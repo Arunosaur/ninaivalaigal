@@ -3,6 +3,10 @@
     "displayName": "mem0",
     "description": "A memory layer for your development environment.",
     "version": "0.1.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/example/mem0.git"
+    },
     "engines": {
         "vscode": "^1.88.0"
     },
