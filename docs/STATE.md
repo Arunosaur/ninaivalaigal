@@ -6,14 +6,14 @@ This document tracks the current state of our development work. It serves as a s
 
 ### Last Action Completed:
 
-*   **Timestamp:** 2025-09-09T16:14:26Z
-*   **Action:** Aligned on the "Controllable Recording Session" vision.
-*   **Details:** The project will now follow a model where the user explicitly starts and stops recording sessions for different contexts. This provides greater user control and enables remote control of the memory.
+*   **Timestamp:** 2025-09-09T16:21:57Z
+*   **Action:** Refactored the server and CLI to support the "Controllable Recording Session" model.
+*   **Details:** The server now tracks a global `recording_context`, and the CLI has new `context start` and `context stop` commands.
 
 ### Next Action Planned:
 
-*   **Action:** Refactor the server and CLI to support the new session model.
-*   **Purpose:** To implement the `context start` and `context stop` commands, which will be the core of the new user experience.
+*   **Action:** Test the new `context start` and `context stop` commands.
+*   **Purpose:** To verify that our new session management model is working correctly end-to-end.
 
 ### Blockers / Open Questions:
 
