@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+
+import sys
+import argparse
+import requests
+import json
+
+API_URL = "http://127.0.0.1:8000"
+
+def remember(args):
+    payload = {
+        "context": args.context,
+        "payload": {
+            "type": "cli_command",
+            "source": "mem0-cli",
+            "data": {
+                "text": args.text
+            }
+        }
+    }
+    response = requests.post(f"{API_URL}/memory", json=payload)
+    print(response.json()["message"])
+
+def recall(args):
+    response = requests.get(f"{API_URL}/memory", params={"context": args.context})
+    for entry in response.json():
+        print(entry['data']['text'])
+
+def switch_context(args):
+    payload = {"client_id": "mem0-cli", "context": args.name}
+    response = requests.post(f"{API_URL}/context", json=payload)
+    print(response.json()["message"])
+
+def main():
+    parser = argparse.ArgumentParser(description="A CLI tool to interact with the mem0 server.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Remember command
+    parser_remember = subparsers.add_parser("remember", help="Store a memory.")
+    parser_remember.add_argument("text", help="The text to remember.")
+    parser_remember.add_argument("--context", default="default", help="The context to store the memory in.")
+    parser_remember.set_defaults(func=remember)
+
+    # Recall command
+    parser_recall = subparsers.add_parser("recall", help="Recall memories.")
+    parser_recall.add_argument("--context", default="default", help="The context to recall memories from.")
+    parser_recall.set_defaults(func=recall)
+
+    # Context command
+    parser_context = subparsers.add_parser("context", help="Manage contexts.")
+    context_subparsers = parser_context.add_subparsers(dest="subcommand", required=True)
+    parser_context_switch = context_subparsers.add_parser("switch", help="Switch the active context.")
+    parser_context_switch.add_argument("name", help="The name of the context to switch to.")
+    parser_context_switch.set_defaults(func=switch_context)
+
+    args = parser.parse_args()
+    args.func(args)
+
+if __name__ == "__main__":
+    main()
+
