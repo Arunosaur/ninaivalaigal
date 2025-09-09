@@ -6,14 +6,14 @@ This document tracks the current state of our development work. It serves as a s
 
 ### Last Action Completed:
 
-*   **Timestamp:** 2025-09-09T16:35:02Z
-*   **Action:** Aligned on the correct next step for the "CCTV Camera" vision.
-*   **Details:** The agent (me) correctly identified that building a "smarter remember" command violates the passive listening principle. The new plan is to build a shell wrapper for automatic command capture.
+*   **Timestamp:** 2025-09-09T16:38:05Z
+*   **Action:** Created the initial `mem0.zsh` script.
+*   **Details:** This script contains the basic structure for the `preexec` and `precmd` hooks that will form the foundation of our "Passive Listener" for the terminal.
 
 ### Next Action Planned:
 
-*   **Action:** Design and implement the "Passive Listener" shell wrapper.
-*   **Purpose:** To create a mechanism that automatically captures terminal commands and their output during a recording session, fulfilling the core of our CCTV vision.
+*   **Action:** Implement the command and output capture logic in `mem0.zsh`.
+*   **Purpose:** To make the shell wrapper functional, allowing it to capture the necessary data to be saved by the `mem0 remember` command.
 
 ### Blockers / Open Questions:
 
