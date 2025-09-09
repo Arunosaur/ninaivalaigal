@@ -1,8 +1,9 @@
 const { build } = require('esbuild');
 
 const production = process.argv.includes('--production');
+const watch = process.argv.includes('--watch');
 
-build({
+const options = {
     entryPoints: ['src/extension.ts'],
     bundle: true,
     outfile: 'dist/extension.js',
@@ -11,6 +12,11 @@ build({
     platform: 'node',
     sourcemap: !production,
     minify: production,
-    watch: process.argv.includes('--watch'),
-}).catch(() => process.exit(1));
+};
+
+if (watch) {
+    options.watch = true;
+}
+
+build(options).catch(() => process.exit(1));
 
