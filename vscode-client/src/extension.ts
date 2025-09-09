@@ -27,7 +27,6 @@ export function activate(context: vscode.ExtensionContext) {
                     args = rest;
                 }
 
-                const child = spawn(mem0CliPath, [command, ...args], { cwd: workspaceRoot });
 
                 child.stdout.on('data', (data) => {
                     stream.markdown(data.toString());
