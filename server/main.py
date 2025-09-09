@@ -6,9 +6,14 @@ import json
 import os
 
 # --- Data Models ---
+class MemoryPayload(BaseModel):
+    type: str
+    source: str
+    data: dict
+
 class MemoryEntry(BaseModel):
     context: str
-    payload: dict
+    payload: MemoryPayload
 
 class ContextSwitch(BaseModel):
     client_id: str

@@ -11,15 +11,15 @@ API_PORT = os.getenv("MEM0_PORT", 13370)
 API_URL = f"http://127.0.0.1:{API_PORT}"
 
 def remember(args):
+    try:
+        payload_data = json.loads(args.json_payload)
+    except json.JSONDecodeError:
+        print("Error: Invalid JSON provided for payload.")
+        return
+
     payload = {
         "context": args.context,
-        "payload": {
-            "type": "cli_command",
-            "source": "mem0-cli",
-            "data": {
-                "text": args.text
-            }
-        }
+        "payload": payload_data
     }
     response = requests.post(f"{API_URL}/memory", json=payload)
     print(response.json()["message"])
@@ -27,7 +27,7 @@ def remember(args):
 def recall(args):
     response = requests.get(f"{API_URL}/memory", params={"context": args.context})
     for entry in response.json():
-        print(entry['data']['text'])
+        print(json.dumps(entry, indent=4))
 
 def switch_context(args):
     payload = {"client_id": "mem0-cli", "context": args.name}
@@ -40,7 +40,7 @@ def main():
 
     # Remember command
     parser_remember = subparsers.add_parser("remember", help="Store a memory.")
-    parser_remember.add_argument("text", help="The text to remember.")
+    parser_remember.add_argument("json_payload", help="The structured memory to store, as a JSON string.")
     parser_remember.add_argument("--context", default="default", help="The context to store the memory in.")
     parser_remember.set_defaults(func=remember)
 
