@@ -1,0 +1,37 @@
+{
+    "name": "mem0-vscode",
+    "displayName": "mem0",
+    "description": "A memory layer for your development environment.",
+    "version": "0.1.0",
+    "engines": {
+        "vscode": "^1.88.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onChatParticipant:mem0"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "chatParticipants": [
+            {
+                "id": "mem0",
+                "name": "mem0",
+                "description": "I remember things so you don't have to."
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run package",
+        "compile": "node esbuild.js",
+        "watch": "node esbuild.js --watch",
+        "package": "node esbuild.js --production"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.88.0",
+        "esbuild": "^0.21.4",
+        "typescript": "^5.4.5"
+    }
+}
+
