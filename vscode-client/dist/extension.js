@@ -1,7 +1,15 @@
-var k=Object.create;var c=Object.defineProperty;var P=Object.getOwnPropertyDescriptor;var w=Object.getOwnPropertyNames;var y=Object.getPrototypeOf,g=Object.prototype.hasOwnProperty;var R=(e,t)=>{for(var n in t)c(e,n,{get:t[n],enumerable:!0})},i=(e,t,n,a)=>{if(t&&typeof t=="object"||typeof t=="function")for(let o of w(t))!g.call(e,o)&&o!==n&&c(e,o,{get:()=>t[o],enumerable:!(a=P(t,o))||a.enumerable});return e};var d=(e,t,n)=>(n=e!=null?k(y(e)):{},i(t||!e||!e.__esModule?c(n,"default",{value:e,enumerable:!0}):n,e)),q=e=>i(c({},"__esModule",{value:!0}),e);var T={};R(T,{activate:()=>E,deactivate:()=>F});module.exports=q(T);var r=d(require("vscode")),h=require("child_process"),p=d(require("path"));function E(e){let t=async(a,o,s,$)=>{let v=p.resolve(o.extensionPath,"../client/mem0"),[l,...x]=a.prompt.split(" ");try{let m=(0,h.execFile)(v,[l,...x],(C,u,f)=>{if(C){s.markdown(`**Error:**
+var g=Object.create;var r=Object.defineProperty;var w=Object.getOwnPropertyDescriptor;var $=Object.getOwnPropertyNames;var P=Object.getPrototypeOf,y=Object.prototype.hasOwnProperty;var E=(e,n)=>{for(var t in n)r(e,t,{get:n[t],enumerable:!0})},v=(e,n,t,a)=>{if(n&&typeof n=="object"||typeof n=="function")for(let o of $(n))!y.call(e,o)&&o!==t&&r(e,o,{get:()=>n[o],enumerable:!(a=w(n,o))||a.enumerable});return e};var x=(e,n,t)=>(t=e!=null?g(P(e)):{},v(n||!e||!e.__esModule?r(t,"default",{value:e,enumerable:!0}):t,e)),R=e=>v(r({},"__esModule",{value:!0}),e);var T={};E(T,{activate:()=>b,deactivate:()=>F});module.exports=R(T);var s=x(require("vscode")),C=require("child_process"),k=x(require("path"));function b(e){let n=async(a,o,c,j)=>{let i=k.resolve(e.extensionPath,"../client/mem0");c.markdown(`> Executing: ${i} ${a.prompt}
+
+`);let[d,...h]=a.prompt.trim().split(/\s+/),m;d==="remember"?m=[h.join(" ")]:m=h;try{let p=(0,C.execFile)(i,[d,...m],(l,u,f)=>{if(c.markdown(`**stdout:**
+\`\`\`
+${u}
+\`\`\``),c.markdown(`**stderr:**
 \`\`\`
 ${f}
-\`\`\``);return}s.markdown(u)})}catch(m){s.markdown(`**Failed to execute mem0 command:**
+\`\`\``),l){c.markdown(`**Error:**
 \`\`\`
-${m.message}
-\`\`\``)}return{commands:[]}},n=r.chat.createChatParticipant("mem0",t);n.iconPath=new r.ThemeIcon("beaker")}function F(){}0&&(module.exports={activate,deactivate});
+${l.message}
+\`\`\``);return}})}catch(p){c.markdown(`**Failed to execute mem0 command:**
+\`\`\`
+${p.message}
+\`\`\``)}return{commands:[]}},t=s.chat.createChatParticipant("mem0",n);t.iconPath=new s.ThemeIcon("beaker")}function F(){}0&&(module.exports={activate,deactivate});

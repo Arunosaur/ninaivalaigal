@@ -35,7 +35,8 @@
     "devDependencies": {
         "@types/vscode": "^1.88.0",
         "esbuild": "^0.21.4",
-        "typescript": "^5.4.5"
+        "typescript": "^5.4.5",
+        "fs-extra": "^11.2.0"
     }
 }
 

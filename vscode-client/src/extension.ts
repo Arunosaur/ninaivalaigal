@@ -6,7 +6,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const handler: vscode.ChatRequestHandler = async (request: vscode.ChatRequest, chatContext: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken): Promise<any> => {
         
-        const mem0CliPath = path.resolve(context.extensionPath, '../client/mem0');
+        const mem0CliPath = path.resolve(context.extensionPath, 'dist/client/mem0');
         stream.markdown(`> Executing: ${mem0CliPath} ${request.prompt}\n\n`);
 
         const [command, ...rest] = request.prompt.trim().split(/\s+/);

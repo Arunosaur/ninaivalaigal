@@ -1,4 +1,6 @@
 const { build } = require('esbuild');
+const fse = require('fs-extra');
+const path = require('path');
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
@@ -14,9 +16,14 @@ const options = {
     minify: production,
 };
 
-if (watch) {
-    options.watch = true;
+async function main() {
+    await build(options).catch(() => process.exit(1));
+
+    // Copy the client directory
+    const clientSrc = path.resolve(__dirname, '../client');
+    const clientDest = path.resolve(__dirname, 'dist/client');
+    fse.copySync(clientSrc, clientDest, { overwrite: true });
 }
 
-build(options).catch(() => process.exit(1));
+main();
 
