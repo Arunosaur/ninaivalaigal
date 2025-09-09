@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# mem0 Database Backup Script
+# Runs daily via cron to backup PostgreSQL database
+
+BACKUP_DIR="{{ mem0_home }}/backups"
+DB_NAME="{{ postgres_db }}"
+DB_USER="{{ postgres_user }}"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_FILE="$BACKUP_DIR/mem0_backup_$TIMESTAMP.sql"
+LOG_FILE="{{ mem0_home }}/logs/backup.log"
+
+# Ensure backup directory exists
+mkdir -p "$BACKUP_DIR"
+
+# Function to log messages
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
+}
+
+log_message "Starting database backup..."
+
+# Create database backup
+if pg_dump -U "$DB_USER" -h localhost "$DB_NAME" > "$BACKUP_FILE"; then
+    log_message "Database backup created: $BACKUP_FILE"
+    
+    # Compress the backup
+    if gzip "$BACKUP_FILE"; then
+        log_message "Backup compressed: ${BACKUP_FILE}.gz"
+        BACKUP_FILE="${BACKUP_FILE}.gz"
+    fi
+    
+    # Remove backups older than 30 days
+    find "$BACKUP_DIR" -name "mem0_backup_*.sql.gz" -mtime +30 -delete
+    log_message "Old backups cleaned up"
+    
+    # Log backup size
+    BACKUP_SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
+    log_message "Backup completed successfully. Size: $BACKUP_SIZE"
+else
+    log_message "ERROR: Database backup failed"
+    exit 1
+fi

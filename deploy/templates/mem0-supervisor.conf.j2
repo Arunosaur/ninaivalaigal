@@ -1,0 +1,11 @@
+[program:mem0]
+command={{ mem0_home }}/venv/bin/uvicorn server.main:app --host 0.0.0.0 --port {{ mem0_port }}
+directory={{ mem0_home }}/mem0
+user={{ mem0_user }}
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile={{ mem0_home }}/logs/mem0.log
+stdout_logfile_maxbytes=10MB
+stdout_logfile_backups=5
+environment=PYTHONPATH="{{ mem0_home }}/mem0"

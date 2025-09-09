@@ -1,0 +1,192 @@
+---
+- name: Deploy mem0 to VM
+  hosts: mem0_servers
+  become: yes
+  vars:
+    mem0_user: mem0
+    mem0_home: /opt/mem0
+    postgres_db: mem0
+    postgres_user: mem0
+    postgres_password: "{{ vault_postgres_password }}"
+    mem0_port: 13370
+
+  tasks:
+    - name: Update system packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install required system packages
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+          - postgresql
+          - postgresql-contrib
+          - nginx
+          - git
+          - supervisor
+        state: present
+
+    - name: Create mem0 user
+      user:
+        name: "{{ mem0_user }}"
+        home: "{{ mem0_home }}"
+        shell: /bin/bash
+        system: yes
+
+    - name: Create mem0 directory structure
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ mem0_user }}"
+        group: "{{ mem0_user }}"
+        mode: '0755'
+      loop:
+        - "{{ mem0_home }}"
+        - "{{ mem0_home }}/logs"
+        - "{{ mem0_home }}/backups"
+
+    - name: Setup PostgreSQL
+      block:
+        - name: Start and enable PostgreSQL
+          systemd:
+            name: postgresql
+            state: started
+            enabled: yes
+
+        - name: Create PostgreSQL database
+          postgresql_db:
+            name: "{{ postgres_db }}"
+            state: present
+          become_user: postgres
+
+        - name: Create PostgreSQL user
+          postgresql_user:
+            name: "{{ postgres_user }}"
+            password: "{{ postgres_password }}"
+            db: "{{ postgres_db }}"
+            priv: ALL
+            state: present
+          become_user: postgres
+
+        - name: Configure PostgreSQL for network access
+          lineinfile:
+            path: /etc/postgresql/*/main/postgresql.conf
+            regexp: "^#?listen_addresses"
+            line: "listen_addresses = 'localhost'"
+          notify: restart postgresql
+
+        - name: Configure PostgreSQL authentication
+          lineinfile:
+            path: /etc/postgresql/*/main/pg_hba.conf
+            line: "local   {{ postgres_db }}   {{ postgres_user }}   md5"
+            insertafter: "^# Database administrative login"
+          notify: restart postgresql
+
+    - name: Clone mem0 repository
+      git:
+        repo: "{{ mem0_repo_url | default('https://github.com/your-org/mem0.git') }}"
+        dest: "{{ mem0_home }}/mem0"
+        version: "{{ mem0_version | default('main') }}"
+      become_user: "{{ mem0_user }}"
+
+    - name: Create Python virtual environment
+      command: python3 -m venv "{{ mem0_home }}/venv"
+      become_user: "{{ mem0_user }}"
+      args:
+        creates: "{{ mem0_home }}/venv"
+
+    - name: Install Python dependencies
+      pip:
+        requirements: "{{ mem0_home }}/mem0/server/requirements.txt"
+        virtualenv: "{{ mem0_home }}/venv"
+      become_user: "{{ mem0_user }}"
+
+    - name: Create mem0 configuration
+      template:
+        src: mem0.config.json.j2
+        dest: "{{ mem0_home }}/mem0/mem0.config.json"
+        owner: "{{ mem0_user }}"
+        group: "{{ mem0_user }}"
+        mode: '0644'
+
+    - name: Create supervisor configuration for mem0
+      template:
+        src: mem0-supervisor.conf.j2
+        dest: /etc/supervisor/conf.d/mem0.conf
+        mode: '0644'
+      notify:
+        - reload supervisor
+        - restart mem0
+
+    - name: Create nginx configuration for mem0
+      template:
+        src: mem0-nginx.conf.j2
+        dest: /etc/nginx/sites-available/mem0
+        mode: '0644'
+      notify: restart nginx
+
+    - name: Enable nginx site
+      file:
+        src: /etc/nginx/sites-available/mem0
+        dest: /etc/nginx/sites-enabled/mem0
+        state: link
+      notify: restart nginx
+
+    - name: Remove default nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
+
+    - name: Setup logrotate for mem0
+      template:
+        src: mem0-logrotate.j2
+        dest: /etc/logrotate.d/mem0
+        mode: '0644'
+
+    - name: Create backup script
+      template:
+        src: backup-mem0.sh.j2
+        dest: "{{ mem0_home }}/backup-mem0.sh"
+        owner: "{{ mem0_user }}"
+        group: "{{ mem0_user }}"
+        mode: '0755'
+
+    - name: Setup daily backup cron job
+      cron:
+        name: "mem0 database backup"
+        minute: "0"
+        hour: "2"
+        job: "{{ mem0_home }}/backup-mem0.sh"
+        user: "{{ mem0_user }}"
+
+    - name: Open firewall for mem0 (if ufw is enabled)
+      ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+      ignore_errors: yes
+
+  handlers:
+    - name: restart postgresql
+      systemd:
+        name: postgresql
+        state: restarted
+
+    - name: reload supervisor
+      systemd:
+        name: supervisor
+        state: reloaded
+
+    - name: restart mem0
+      supervisorctl:
+        name: mem0
+        state: restarted
+
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted

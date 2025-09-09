@@ -1,10 +1,12 @@
 # main.py
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import json
 import os
+from database import DatabaseManager
+import json as json_lib
 
 # --- Data Models ---
 class MemoryPayload(BaseModel):
@@ -16,27 +18,34 @@ class MemoryEntry(BaseModel):
     context: str
     payload: MemoryPayload
 
-# --- Persistence ---
-DATA_FILE = "mem0_data.json"
+# --- Configuration ---
+def load_config():
+    config_path = "mem0.config.json"
+    default_config = {
+        "storage": {
+            "database_url": "sqlite:///./mem0.db"
+        }
+    }
+    
+    try:
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                user_config = json_lib.load(f)
+                if "storage" in user_config and "database_url" in user_config["storage"]:
+                    return user_config["storage"]["database_url"]
+        return default_config["storage"]["database_url"]
+    except Exception:
+        return default_config["storage"]["database_url"]
 
-def load_data():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            return json.load(f)
-    # Default data structure
-    return {"memories": [], "recording_context": None}
+# --- Database Setup ---
+database_url = load_config()
+db = DatabaseManager(database_url)
 
-def save_data(data):
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=4)
+# Migrate existing JSON data if it exists
+db.migrate_from_json()
 
 # --- Application ---
 app = FastAPI()
-
-data = load_data()
-memories = data["memories"]
-# This is a global state, there is only one active recording context at a time
-recording_context = data["recording_context"]
 
 @app.get("/")
 def read_root():
@@ -44,33 +53,59 @@ def read_root():
 
 @app.post("/memory")
 def create_memory(entry: MemoryEntry):
-    # We only save the memory if its context matches the active recording context
-    if entry.context == recording_context:
-        memories.append(entry.dict())
-        save_data({"memories": memories, "recording_context": recording_context})
-        return {"message": "Memory entry recorded."}
-    else:
-        return {"message": "Memory entry ignored. Context does not match recording context."}
+    try:
+        active_context = db.get_active_context()
+        # We only save the memory if its context matches the active recording context
+        if entry.context == active_context:
+            memory_id = db.add_memory(
+                context=entry.context,
+                memory_type=entry.payload.type,
+                source=entry.payload.source,
+                data=entry.payload.data
+            )
+            return {"message": "Memory entry recorded.", "id": memory_id}
+        else:
+            return {"message": "Memory entry ignored. Context does not match recording context."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/memory")
 def get_memory(context: str):
-    return [m['payload'] for m in memories if m['context'] == context]
+    try:
+        memories = db.get_memories(context)
+        return memories
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/context/start")
 def start_recording(context: str):
-    global recording_context
-    recording_context = context
-    save_data({"memories": memories, "recording_context": recording_context})
-    return {"message": f"Now recording to context: {context}"}
+    try:
+        db.set_active_context(context)
+        return {"message": f"Now recording to context: {context}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/context/stop")
 def stop_recording():
-    global recording_context
-    recording_context = None
-    save_data({"memories": memories, "recording_context": recording_context})
-    return {"message": "Recording stopped."}
+    try:
+        db.clear_active_context()
+        return {"message": "Recording stopped."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/context/active")
 def get_active_recording_context():
-    return {"recording_context": recording_context}
+    try:
+        active_context = db.get_active_context()
+        return {"recording_context": active_context}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/contexts")
+def get_all_contexts():
+    try:
+        contexts = db.get_all_contexts()
+        return {"contexts": contexts}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 

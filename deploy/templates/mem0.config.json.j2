@@ -1,0 +1,29 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": {{ mem0_port }},
+    "timeout": 30
+  },
+  "client": {
+    "default_context_strategy": "git_branch",
+    "cache_ttl": 30,
+    "debug": false
+  },
+  "shell": {
+    "enabled": true,
+    "capture_patterns": {
+      "include": ["*"],
+      "exclude": ["ls", "cd", "pwd", "clear", "exit", "history"]
+    }
+  },
+  "storage": {
+    "type": "database",
+    "database_url": "postgresql://{{ postgres_user }}:{{ postgres_password }}@localhost:5432/{{ postgres_db }}",
+    "backup_enabled": true,
+    "max_memories_per_context": 10000
+  },
+  "auth": {
+    "enabled": true,
+    "multi_user": true
+  }
+}

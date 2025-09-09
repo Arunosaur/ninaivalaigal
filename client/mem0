@@ -10,8 +10,33 @@ import requests
 import json
 import subprocess
 
-API_PORT = os.getenv("MEM0_PORT", 13370)
-API_URL = f"http://127.0.0.1:{API_PORT}"
+# Configuration loading
+def load_config():
+    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'mem0.config.json')
+    default_config = {
+        "server": {"host": "127.0.0.1", "port": 13370, "timeout": 10},
+        "client": {"default_context_strategy": "git_branch", "cache_ttl": 30, "debug": False},
+        "shell": {"enabled": True, "capture_patterns": {"include": ["*"], "exclude": ["ls", "cd", "pwd", "clear", "exit"]}},
+        "storage": {"data_file": "mem0_data.json", "backup_enabled": True, "max_memories_per_context": 1000}
+    }
+    
+    try:
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                user_config = json.load(f)
+                # Merge with defaults
+                for section in default_config:
+                    if section in user_config:
+                        default_config[section].update(user_config[section])
+        return default_config
+    except Exception:
+        return default_config
+
+config = load_config()
+API_PORT = os.getenv("MEM0_PORT", config["server"]["port"])
+API_HOST = config["server"]["host"]
+API_URL = f"http://{API_HOST}:{API_PORT}"
+REQUEST_TIMEOUT = config["server"]["timeout"]
 
 def get_active_context():
     try:
@@ -37,7 +62,7 @@ def remember(args):
     }
     
     try:
-        response = requests.post(f"{API_URL}/memory", json=payload, timeout=10)
+        response = requests.post(f"{API_URL}/memory", json=payload, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         print(response.json().get("message", ""))
     except requests.exceptions.ConnectionError:
@@ -52,7 +77,7 @@ def remember(args):
 def recall(args):
     context = args.context if args.context else get_active_context()
     try:
-        response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=10)
+        response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         for entry in response.json():
             print(json.dumps(entry, indent=4))
@@ -67,7 +92,7 @@ def recall(args):
 
 def context_start(args):
     try:
-        response = requests.post(f"{API_URL}/context/start", params={"context": args.name}, timeout=10)
+        response = requests.post(f"{API_URL}/context/start", params={"context": args.name}, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         print(response.json()["message"])
     except requests.exceptions.ConnectionError:
@@ -81,7 +106,7 @@ def context_start(args):
 
 def context_stop(args):
     try:
-        response = requests.post(f"{API_URL}/context/stop", timeout=10)
+        response = requests.post(f"{API_URL}/context/stop", timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         print(response.json()["message"])
     except requests.exceptions.ConnectionError:
@@ -95,7 +120,7 @@ def context_stop(args):
 
 def context_active(args):
     try:
-        response = requests.get(f"{API_URL}/context/active", timeout=10)
+        response = requests.get(f"{API_URL}/context/active", timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         print(response.json())
     except requests.exceptions.ConnectionError:
@@ -110,7 +135,7 @@ def context_active(args):
 def export_memories(args):
     context = args.context if args.context else get_active_context()
     try:
-        response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=10)
+        response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         memories = response.json()
 
@@ -132,6 +157,31 @@ def export_memories(args):
         print(f"Error: Server returned HTTP {e.response.status_code}")
     except IOError as e:
         print(f"Error: Could not write to file {args.filename}: {e}")
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}")
+
+def list_contexts(args):
+    try:
+        response = requests.get(f"{API_URL}/contexts", timeout=REQUEST_TIMEOUT)
+        response.raise_for_status()
+        data = response.json()
+        contexts = data.get("contexts", [])
+        
+        if not contexts:
+            print("No contexts found.")
+            return
+            
+        print("Available contexts:")
+        for context in contexts:
+            status = "ACTIVE" if context["is_active"] else "inactive"
+            print(f"  - {context['name']} ({status}) - created: {context['created_at']}")
+            
+    except requests.exceptions.ConnectionError:
+        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
+    except requests.exceptions.Timeout:
+        print("Error: Request timed out. Server may be overloaded.")
+    except requests.exceptions.HTTPError as e:
+        print(f"Error: Server returned HTTP {e.response.status_code}")
     except Exception as e:
         print(f"Error: Unexpected error occurred: {e}")
 
@@ -166,6 +216,10 @@ def main():
     parser_export.add_argument("filename", help="The name of the file to export to.")
     parser_export.add_argument("--context", help="The context to export memories from. Defaults to the current git branch or directory name.")
     parser_export.set_defaults(func=export_memories)
+
+    # List contexts command
+    parser_contexts = subparsers.add_parser("contexts", help="List all available contexts.")
+    parser_contexts.set_defaults(func=list_contexts)
 
     args = parser.parse_args()
     args.func(args)
