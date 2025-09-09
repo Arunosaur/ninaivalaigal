@@ -1,0 +1,9 @@
+# Ignore test logs
+*.log
+
+# Ignore server data
+mem0_data.json
+
+# Ignore server process file
+.server.pid
+

@@ -6,9 +6,9 @@ This document tracks the current state of our development work. It serves as a s
 
 ### Last Action Completed:
 
-*   **Timestamp:** 2025-09-09T11:36:54Z
-*   **Action:** Successfully tested the automatic context detection feature.
-*   **Details:** The `mem0` client now correctly infers the active context from the current `git` branch, making it more intuitive to use.
+*   **Timestamp:** 2025-09-09T11:47:43Z
+*   **Action:** Refactored the project to include a dedicated `tests` directory.
+*   **Details:** All test scripts have been moved, and a `.gitignore` file has been added to keep the repository clean.
 
 ### Next Action Planned:
 
