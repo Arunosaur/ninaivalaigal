@@ -1,0 +1,17 @@
+{
+    "memories": [
+        {
+            "context": "project-alpha",
+            "payload": {
+                "type": "cli_command",
+                "source": "mem0-cli",
+                "data": {
+                    "text": "The database schema is defined in schema.sql"
+                }
+            }
+        }
+    ],
+    "active_contexts": {
+        "mem0-cli": "project-beta"
+    }
+}

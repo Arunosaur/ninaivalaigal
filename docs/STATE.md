@@ -1,4 +1,4 @@
-# mem0-server Project State
+# mem0 Project State
 
 This document tracks the current state of our development work. It serves as a short-term memory to ensure continuity across sessions and conversation contexts.
 
@@ -6,20 +6,20 @@ This document tracks the current state of our development work. It serves as a s
 
 ### Last Action Completed:
 
-*   **Timestamp:** 2025-09-09T10:52:18Z
-*   **Action:** Attempted the first end-to-end test.
-*   **Details:** The test failed. The client received a `404 Not Found` error, indicating the server was started incorrectly. An attempt to `kill` the rogue server process was unsuccessful.
+*   **Timestamp:** 2025-09-09T11:03:36Z
+*   **Action:** Created a `manage.sh` script to reliably start and stop the server.
+*   **Details:** This script resolves the recurring blocker of unreliable process management and will enable a smooth, repeatable development workflow.
 
 ### Next Action Planned:
 
-*   **Action:** Find and stop the rogue server process.
-*   **Purpose:** To clear the port and allow the server to be started correctly, unblocking our end-to-end test.
-
-### Blockers / Open Questions:
-
-*   A `uvicorn` or `python3` process is currently holding port 13370 open, preventing the server from starting correctly. This process must be terminated.
+*   **Action:** Test the new `manage.sh` script.
+*   **Purpose:** To verify that our new server management process is robust and reliable before proceeding to new features.
 
 ### Blockers / Open Questions:
 
 *   None at this time.
+
+### Process Notes:
+
+*   At the end of every session, or if no response is received for ~10 minutes, the agent will update this `STATE.md` file to ensure no work is lost.
 
