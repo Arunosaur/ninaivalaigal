@@ -7,10 +7,11 @@ export function activate(context: vscode.ExtensionContext) {
     const handler: vscode.ChatRequestHandler = async (request: vscode.ChatRequest, context: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken): Promise<any> => {
         
         const mem0CliPath = path.resolve(context.extensionPath, '../client/mem0');
-        const [command, ...args] = request.prompt.split(' ');
+        const [command, ...rest] = request.prompt.trim().split(/\s+/);
+        const args = rest.join(' ');
 
         try {
-            const child = execFile(mem0CliPath, [command, ...args], (error, stdout, stderr) => {
+            const child = execFile(mem0CliPath, [command, args], (error, stdout, stderr) => {
                 if (error) {
                     stream.markdown(`**Error:**\n\`\`\`\n${stderr}\n\`\`\``);
                     return;
