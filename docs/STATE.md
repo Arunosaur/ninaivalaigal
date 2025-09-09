@@ -6,14 +6,14 @@ This document tracks the current state of our development work. It serves as a s
 
 ### Last Action Completed:
 
-*   **Timestamp:** 2025-09-09T16:39:59Z
-*   **Action:** Implemented the core command and output capture logic in `mem0.zsh`.
-*   **Details:** The Zsh integration script can now capture the command string, exit code, and full output of terminal commands.
+*   **Timestamp:** 2025-09-09T16:52:38Z
+*   **Action:** Ran the first test of the "Passive Listener" shell wrapper.
+*   **Details:** The test failed. No memories were recorded, indicating a bug in the `mem0.zsh` script's output capture logic.
 
 ### Next Action Planned:
 
-*   **Action:** Test the new "Passive Listener" shell wrapper.
-*   **Purpose:** To verify that the Zsh integration can correctly capture and remember a full terminal session.
+*   **Action:** Simplify the `mem0.zsh` script to only capture the command string.
+*   **Purpose:** To achieve a working "Passive Listener" for commands, which will serve as a solid foundation before we tackle the more complex challenge of output capture.
 
 ### Blockers / Open Questions:
 
