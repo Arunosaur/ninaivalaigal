@@ -8,9 +8,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'vendor'))
 import argparse
 import requests
 import json
-
-import os
-
 import subprocess
 
 API_PORT = os.getenv("MEM0_PORT", 13370)
@@ -18,11 +15,9 @@ API_URL = f"http://127.0.0.1:{API_PORT}"
 
 def get_active_context():
     try:
-        # Try to get the git branch name
         branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip().decode()
         return branch
     except (subprocess.CalledProcessError, FileNotFoundError):
-        # Fallback to directory name
         return os.path.basename(os.getcwd())
 
 def remember(args):
@@ -38,7 +33,7 @@ def remember(args):
         "payload": payload_data
     }
     response = requests.post(f"{API_URL}/memory", json=payload)
-    print(response.json()["message"])
+    print(response.json().get("message", ""))
 
 def recall(args):
     context = args.context if args.context else get_active_context()
@@ -46,10 +41,12 @@ def recall(args):
     for entry in response.json():
         print(json.dumps(entry, indent=4))
 
-def switch_context(args):
-    # Note: Context switch should remain explicit
-    payload = {"client_id": "mem0-cli", "context": args.name}
-    response = requests.post(f"{API_URL}/context", json=payload)
+def context_start(args):
+    response = requests.post(f"{API_URL}/context/start", params={"context": args.name})
+    print(response.json()["message"])
+
+def context_stop(args):
+    response = requests.post(f"{API_URL}/context/stop")
     print(response.json()["message"])
 
 def export_memories(args):
@@ -84,11 +81,13 @@ def main():
     parser_recall.set_defaults(func=recall)
 
     # Context command
-    parser_context = subparsers.add_parser("context", help="Manage contexts.")
+    parser_context = subparsers.add_parser("context", help="Manage recording sessions.")
     context_subparsers = parser_context.add_subparsers(dest="subcommand", required=True)
-    parser_context_switch = context_subparsers.add_parser("switch", help="Switch the active context.")
-    parser_context_switch.add_argument("name", help="The name of the context to switch to.")
-    parser_context_switch.set_defaults(func=switch_context)
+    parser_context_start = context_subparsers.add_parser("start", help="Start recording to a new context.")
+    parser_context_start.add_argument("name", help="The name of the context to start recording to.")
+    parser_context_start.set_defaults(func=context_start)
+    parser_context_stop = context_subparsers.add_parser("stop", help="Stop the current recording session.")
+    parser_context_stop.set_defaults(func=context_stop)
 
     # Export command
     parser_export = subparsers.add_parser("export", help="Export memories to a file.")
