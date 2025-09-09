@@ -76,6 +76,16 @@ mem0_clear_cache() {
 }
 
 # Register the hook function
-autoload -U add-zsh-hook
-add-zsh-hook preexec mem0_preexec
+if [[ -n "$ZSH_VERSION" ]]; then
+    # Initialize preexec_functions array if it doesn't exist
+    if [[ -z "$preexec_functions" ]]; then
+        typeset -ga preexec_functions
+    fi
+    
+    # Add our function to the preexec_functions array
+    preexec_functions+=(mem0_preexec)
+else
+    # For bash or other shells
+    echo "Warning: mem0 shell integration is optimized for zsh"
+fi
 
