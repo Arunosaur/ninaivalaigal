@@ -17,10 +17,10 @@ export function activate(context: vscode.ExtensionContext) {
 
                 if (command === 'remember') {
                     args = [rest.join(' ')];
-                } else if (command === 'recall' || command === 'context') {
-                    args = rest;
+                } else if (command === 'recall') {
+                    args = []; // Recall takes no arguments
                 } else {
-                    args = []; // Default for other commands that might not have args
+                    args = rest;
                 }
 
                 const child = spawn(mem0CliPath, [command, ...args], { cwd: workspaceRoot });
