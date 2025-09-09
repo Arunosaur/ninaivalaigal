@@ -24,7 +24,17 @@
                 "name": "mem0",
                 "description": "I remember things so you don't have to."
             }
-        ]
+        ],
+        "configuration": {
+            "title": "mem0",
+            "properties": {
+                "mem0.projectRoot": {
+                    "type": "string",
+                    "default": "",
+                    "description": "The absolute path to the root of your mem0 project."
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run package",

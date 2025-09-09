@@ -10,13 +10,13 @@ export function activate(context: vscode.ExtensionContext) {
         return new Promise<any>((resolve) => {
             try {
                 const mem0CliPath = path.resolve(context.extensionPath, 'dist/client/mem0');
-                const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-                if (!workspaceRoot) {
-                    stream.markdown("**Error:** Could not determine workspace root. Please open a folder.");
+                const projectRoot = vscode.workspace.getConfiguration('mem0').get<string>('projectRoot');
+                if (!projectRoot) {
+                    stream.markdown("**Error:** Please set the `mem0.projectRoot` setting to the absolute path of your mem0 project.");
                     return resolve({ commands: [] });
                 }
 
-                const [command, ...rest] = request.prompt.trim().split(/\s+/);
+                const child = spawn(mem0CliPath, [command, ...args], { cwd: projectRoot });
                 let args: string[];
 
                 if (command === 'remember') {
