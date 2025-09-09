@@ -10,7 +10,11 @@ export function activate(context: vscode.ExtensionContext) {
         return new Promise<any>((resolve) => {
             try {
                 const mem0CliPath = path.resolve(context.extensionPath, 'dist/client/mem0');
-                const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? os.homedir();
+                const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+                if (!workspaceRoot) {
+                    stream.markdown("**Error:** Could not determine workspace root. Please open a folder.");
+                    return resolve({ commands: [] });
+                }
 
                 const [command, ...rest] = request.prompt.trim().split(/\s+/);
                 let args: string[];
