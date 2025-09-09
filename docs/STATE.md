@@ -6,14 +6,14 @@ This document tracks the current state of our development work. It serves as a s
 
 ### Last Action Completed:
 
-*   **Timestamp:** 2025-09-09T16:26:59Z
-*   **Action:** Successfully implemented and tested the "Controllable Recording Session" model.
-*   **Details:** The server and CLI now correctly handle the `context start` and `context stop` commands, and the server will only record memories to the active context. The system is now feature-complete for v0.1.
+*   **Timestamp:** 2025-09-09T16:35:02Z
+*   **Action:** Aligned on the correct next step for the "CCTV Camera" vision.
+*   **Details:** The agent (me) correctly identified that building a "smarter remember" command violates the passive listening principle. The new plan is to build a shell wrapper for automatic command capture.
 
 ### Next Action Planned:
 
-*   **Action:** Celebrate our success and begin planning the next phase of our "Developer to Automation" pipeline.
-*   **Purpose:** To build upon our solid, tested foundation and begin delivering the core vision of our project.
+*   **Action:** Design and implement the "Passive Listener" shell wrapper.
+*   **Purpose:** To create a mechanism that automatically captures terminal commands and their output during a recording session, fulfilling the core of our CCTV vision.
 
 ### Blockers / Open Questions:
 
