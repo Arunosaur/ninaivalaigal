@@ -34,7 +34,8 @@ mem0_get_active_context() {
     local active_context_json=$(./client/mem0 context active 2>/dev/null)
     mem0_debug "active context response: $active_context_json"
     
-    local active_context=$(echo $active_context_json | sed -n 's/.*"recording_context": "\([^"]*\)".*/\1/p')
+    # Parse JSON response - extract context name
+    local active_context=$(echo "$active_context_json" | sed "s/.*'recording_context': '\([^']*\)'.*/\1/")
     
     # Update cache
     MEM0_CACHED_CONTEXT="$active_context"
