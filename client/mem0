@@ -34,6 +34,21 @@ def switch_context(args):
     response = requests.post(f"{API_URL}/context", json=payload)
     print(response.json()["message"])
 
+def export_memories(args):
+    response = requests.get(f"{API_URL}/memory", params={"context": args.context})
+    memories = response.json()
+
+    with open(args.filename, "w") as f:
+        f.write(f"# Memory Export: Context '{args.context}'\n\n")
+        for memory in memories:
+            f.write(f"## Memory Entry\n\n")
+            f.write(f"**Source:** `{memory['source']}`\n")
+            f.write(f"**Type:** `{memory['type']}`\n\n")
+            f.write("```json\n")
+            f.write(json.dumps(memory['data'], indent=4))
+            f.write("\n```\n\n---\n\n")
+    print(f"Successfully exported memories to {args.filename}")
+
 def main():
     parser = argparse.ArgumentParser(description="A CLI tool to interact with the mem0 server.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -55,6 +70,12 @@ def main():
     parser_context_switch = context_subparsers.add_parser("switch", help="Switch the active context.")
     parser_context_switch.add_argument("name", help="The name of the context to switch to.")
     parser_context_switch.set_defaults(func=switch_context)
+
+    # Export command
+    parser_export = subparsers.add_parser("export", help="Export memories to a file.")
+    parser_export.add_argument("filename", help="The name of the file to export to.")
+    parser_export.add_argument("--context", default="default", help="The context to export memories from.")
+    parser_export.set_defaults(func=export_memories)
 
     args = parser.parse_args()
     args.func(args)
