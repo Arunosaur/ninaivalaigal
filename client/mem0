@@ -7,10 +7,22 @@ import json
 
 import os
 
+import subprocess
+
 API_PORT = os.getenv("MEM0_PORT", 13370)
 API_URL = f"http://127.0.0.1:{API_PORT}"
 
+def get_active_context():
+    try:
+        # Try to get the git branch name
+        branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip().decode()
+        return branch
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # Fallback to directory name
+        return os.path.basename(os.getcwd())
+
 def remember(args):
+    context = args.context if args.context else get_active_context()
     try:
         payload_data = json.loads(args.json_payload)
     except json.JSONDecodeError:
@@ -18,28 +30,31 @@ def remember(args):
         return
 
     payload = {
-        "context": args.context,
+        "context": context,
         "payload": payload_data
     }
     response = requests.post(f"{API_URL}/memory", json=payload)
     print(response.json()["message"])
 
 def recall(args):
-    response = requests.get(f"{API_URL}/memory", params={"context": args.context})
+    context = args.context if args.context else get_active_context()
+    response = requests.get(f"{API_URL}/memory", params={"context": context})
     for entry in response.json():
         print(json.dumps(entry, indent=4))
 
 def switch_context(args):
+    # Note: Context switch should remain explicit
     payload = {"client_id": "mem0-cli", "context": args.name}
     response = requests.post(f"{API_URL}/context", json=payload)
     print(response.json()["message"])
 
 def export_memories(args):
-    response = requests.get(f"{API_URL}/memory", params={"context": args.context})
+    context = args.context if args.context else get_active_context()
+    response = requests.get(f"{API_URL}/memory", params={"context": context})
     memories = response.json()
 
     with open(args.filename, "w") as f:
-        f.write(f"# Memory Export: Context '{args.context}'\n\n")
+        f.write(f"# Memory Export: Context '{context}'\n\n")
         for memory in memories:
             f.write(f"## Memory Entry\n\n")
             f.write(f"**Source:** `{memory['source']}`\n")
@@ -56,12 +71,12 @@ def main():
     # Remember command
     parser_remember = subparsers.add_parser("remember", help="Store a memory.")
     parser_remember.add_argument("json_payload", help="The structured memory to store, as a JSON string.")
-    parser_remember.add_argument("--context", default="default", help="The context to store the memory in.")
+    parser_remember.add_argument("--context", help="The context to store the memory in. Defaults to the current git branch or directory name.")
     parser_remember.set_defaults(func=remember)
 
     # Recall command
     parser_recall = subparsers.add_parser("recall", help="Recall memories.")
-    parser_recall.add_argument("--context", default="default", help="The context to recall memories from.")
+    parser_recall.add_argument("--context", help="The context to recall memories from. Defaults to the current git branch or directory name.")
     parser_recall.set_defaults(func=recall)
 
     # Context command
@@ -74,7 +89,7 @@ def main():
     # Export command
     parser_export = subparsers.add_parser("export", help="Export memories to a file.")
     parser_export.add_argument("filename", help="The name of the file to export to.")
-    parser_export.add_argument("--context", default="default", help="The context to export memories from.")
+    parser_export.add_argument("--context", help="The context to export memories from. Defaults to the current git branch or directory name.")
     parser_export.set_defaults(func=export_memories)
 
     args = parser.parse_args()
