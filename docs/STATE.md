@@ -6,14 +6,14 @@ This document tracks the current state of our development work. It serves as a s
 
 ### Last Action Completed:
 
-*   **Timestamp:** 2025-09-09T16:52:38Z
-*   **Action:** Ran the first test of the "Passive Listener" shell wrapper.
-*   **Details:** The test failed. No memories were recorded, indicating a bug in the `mem0.zsh` script's output capture logic.
+*   **Timestamp:** 2025-09-09T16:54:12Z
+*   **Action:** Refactored the `mem0.zsh` script to be simpler and more robust.
+*   **Details:** The script now only captures the command string, deferring the more complex output capture to a future iteration.
 
 ### Next Action Planned:
 
-*   **Action:** Simplify the `mem0.zsh` script to only capture the command string.
-*   **Purpose:** To achieve a working "Passive Listener" for commands, which will serve as a solid foundation before we tackle the more complex challenge of output capture.
+*   **Action:** Re-run the test of the "Passive Listener" shell wrapper.
+*   **Purpose:** To verify that our simplified Zsh integration can correctly capture and remember terminal commands.
 
 ### Blockers / Open Questions:
 
