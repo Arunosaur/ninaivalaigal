@@ -7,13 +7,13 @@ This document tracks the current state of our development work. It serves as a s
 ### Last Action Completed:
 
 *   **Timestamp:** 2025-09-09T12:50:43Z
-*   **Action:** Ran a test of the bundled extension.
-*   **Details:** The test failed. While the pathing issue is resolved, the extension is not correctly capturing and displaying the output from the CLI tool.
+*   **Action:** Refactored the `vscode-client` to use `spawn`.
+*   **Details:** The extension now uses the more robust `spawn` method for inter-process communication, which should resolve the output capturing issues.
 
 ### Next Action Planned:
 
-*   **Action:** Refactor the extension to use `spawn` instead of `execFile`.
-*   **Purpose:** To provide a more robust and direct method of inter-process communication that will correctly capture and stream the CLI's output.
+*   **Action:** Conduct the final, definitive, full-system end-to-end test.
+*   **Purpose:** To verify that all bugs are resolved and that a user in the VS Code UI can successfully create and recall a memory.
 
 ### Blockers / Open Questions:
 
