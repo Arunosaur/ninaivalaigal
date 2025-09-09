@@ -35,42 +35,105 @@ def remember(args):
         "context": context,
         "payload": payload_data
     }
-    response = requests.post(f"{API_URL}/memory", json=payload)
-    print(response.json().get("message", ""))
+    
+    try:
+        response = requests.post(f"{API_URL}/memory", json=payload, timeout=10)
+        response.raise_for_status()
+        print(response.json().get("message", ""))
+    except requests.exceptions.ConnectionError:
+        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
+    except requests.exceptions.Timeout:
+        print("Error: Request timed out. Server may be overloaded.")
+    except requests.exceptions.HTTPError as e:
+        print(f"Error: Server returned HTTP {e.response.status_code}")
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}")
 
 def recall(args):
     context = args.context if args.context else get_active_context()
-    response = requests.get(f"{API_URL}/memory", params={"context": context})
-    for entry in response.json():
-        print(json.dumps(entry, indent=4))
+    try:
+        response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=10)
+        response.raise_for_status()
+        for entry in response.json():
+            print(json.dumps(entry, indent=4))
+    except requests.exceptions.ConnectionError:
+        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
+    except requests.exceptions.Timeout:
+        print("Error: Request timed out. Server may be overloaded.")
+    except requests.exceptions.HTTPError as e:
+        print(f"Error: Server returned HTTP {e.response.status_code}")
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}")
 
 def context_start(args):
-    response = requests.post(f"{API_URL}/context/start", params={"context": args.name})
-    print(response.json()["message"])
+    try:
+        response = requests.post(f"{API_URL}/context/start", params={"context": args.name}, timeout=10)
+        response.raise_for_status()
+        print(response.json()["message"])
+    except requests.exceptions.ConnectionError:
+        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
+    except requests.exceptions.Timeout:
+        print("Error: Request timed out. Server may be overloaded.")
+    except requests.exceptions.HTTPError as e:
+        print(f"Error: Server returned HTTP {e.response.status_code}")
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}")
 
 def context_stop(args):
-    response = requests.post(f"{API_URL}/context/stop")
-    print(response.json()["message"])
+    try:
+        response = requests.post(f"{API_URL}/context/stop", timeout=10)
+        response.raise_for_status()
+        print(response.json()["message"])
+    except requests.exceptions.ConnectionError:
+        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
+    except requests.exceptions.Timeout:
+        print("Error: Request timed out. Server may be overloaded.")
+    except requests.exceptions.HTTPError as e:
+        print(f"Error: Server returned HTTP {e.response.status_code}")
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}")
 
 def context_active(args):
-    response = requests.get(f"{API_URL}/context/active")
-    print(response.json())
+    try:
+        response = requests.get(f"{API_URL}/context/active", timeout=10)
+        response.raise_for_status()
+        print(response.json())
+    except requests.exceptions.ConnectionError:
+        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
+    except requests.exceptions.Timeout:
+        print("Error: Request timed out. Server may be overloaded.")
+    except requests.exceptions.HTTPError as e:
+        print(f"Error: Server returned HTTP {e.response.status_code}")
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}")
 
 def export_memories(args):
     context = args.context if args.context else get_active_context()
-    response = requests.get(f"{API_URL}/memory", params={"context": context})
-    memories = response.json()
+    try:
+        response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=10)
+        response.raise_for_status()
+        memories = response.json()
 
-    with open(args.filename, "w") as f:
-        f.write(f"# Memory Export: Context '{context}'\n\n")
-        for memory in memories:
-            f.write(f"## Memory Entry\n\n")
-            f.write(f"**Source:** `{memory['source']}`\n")
-            f.write(f"**Type:** `{memory['type']}`\n\n")
-            f.write("```json\n")
-            f.write(json.dumps(memory['data'], indent=4))
-            f.write("\n```\n\n---\n\n")
-    print(f"Successfully exported memories to {args.filename}")
+        with open(args.filename, "w") as f:
+            f.write(f"# Memory Export: Context '{context}'\n\n")
+            for memory in memories:
+                f.write(f"## Memory Entry\n\n")
+                f.write(f"**Source:** `{memory['source']}`\n")
+                f.write(f"**Type:** `{memory['type']}`\n\n")
+                f.write("```json\n")
+                f.write(json.dumps(memory['data'], indent=4))
+                f.write("\n```\n\n---\n\n")
+        print(f"Successfully exported memories to {args.filename}")
+    except requests.exceptions.ConnectionError:
+        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
+    except requests.exceptions.Timeout:
+        print("Error: Request timed out. Server may be overloaded.")
+    except requests.exceptions.HTTPError as e:
+        print(f"Error: Server returned HTTP {e.response.status_code}")
+    except IOError as e:
+        print(f"Error: Could not write to file {args.filename}: {e}")
+    except Exception as e:
+        print(f"Error: Unexpected error occurred: {e}")
 
 def main():
     parser = argparse.ArgumentParser(description="A CLI tool to interact with the mem0 server.")
