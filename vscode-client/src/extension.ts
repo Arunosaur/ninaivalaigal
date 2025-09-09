@@ -7,33 +7,38 @@ export function activate(context: vscode.ExtensionContext) {
     const handler: vscode.ChatRequestHandler = (request: vscode.ChatRequest, chatContext: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken): Thenable<any> => {
         
         return new Promise<any>((resolve) => {
-            const mem0CliPath = path.resolve(context.extensionPath, 'dist/client/mem0');
-        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? os.homedir();
+            try {
+                const mem0CliPath = path.resolve(context.extensionPath, 'dist/client/mem0');
+                const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? os.homedir();
 
-        const [command, ...rest] = request.prompt.trim().split(/\s+/);
-        let args: string[];
+                const [command, ...rest] = request.prompt.trim().split(/\s+/);
+                let args: string[];
 
-        if (command === 'remember') {
-            args = [rest.join(' ')];
-        } else if (command === 'recall' || command === 'context') {
-            args = rest;
-        } else {
-            args = []; // Default for other commands that might not have args
-        }
+                if (command === 'remember') {
+                    args = [rest.join(' ')];
+                } else if (command === 'recall' || command === 'context') {
+                    args = rest;
+                } else {
+                    args = []; // Default for other commands that might not have args
+                }
 
-        try {
-            const child = spawn(mem0CliPath, [command, ...args], { cwd: workspaceRoot });
-            child.stdout.on('data', (data) => {
-                stream.markdown(data.toString());
-            });
+                const child = spawn(mem0CliPath, [command, ...args], { cwd: workspaceRoot });
 
-            child.stderr.on('data', (data) => {
-                stream.markdown(`**Error:**\n\`\`\`\n${data.toString()}\n\`\`\``);
-            });
+                child.stdout.on('data', (data) => {
+                    stream.markdown(data.toString());
+                });
 
-            child.on('close', (code) => {
+                child.stderr.on('data', (data) => {
+                    stream.markdown(`**Error:**\n\`\`\`\n${data.toString()}\n\`\`\``);
+                });
+
+                child.on('close', (code) => {
+                    resolve({ commands: [] });
+                });
+            } catch (err: any) {
+                stream.markdown(`**Failed to execute mem0 command:**\n\`\`\`\n${err.message}\n\`\`\``);
                 resolve({ commands: [] });
-            });
+            }
         });
     };
 
