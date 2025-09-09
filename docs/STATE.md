@@ -6,14 +6,14 @@ This document tracks the current state of our development work. It serves as a s
 
 ### Last Action Completed:
 
-*   **Timestamp:** 2025-09-09T16:00:08Z
-*   **Action:** Implemented a prototype of the "Passive Listener" feature.
-*   **Details:** The `@mem0` agent now has a temporary `observe` command that can read and report on the chat history.
+*   **Timestamp:** 2025-09-09T16:14:26Z
+*   **Action:** Aligned on the "Controllable Recording Session" vision.
+*   **Details:** The project will now follow a model where the user explicitly starts and stops recording sessions for different contexts. This provides greater user control and enables remote control of the memory.
 
 ### Next Action Planned:
 
-*   **Action:** Test the new `observe` command.
-*   **Purpose:** To verify that the extension can correctly access and report on the chat history.
+*   **Action:** Refactor the server and CLI to support the new session model.
+*   **Purpose:** To implement the `context start` and `context stop` commands, which will be the core of the new user experience.
 
 ### Blockers / Open Questions:
 
