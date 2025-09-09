@@ -5,7 +5,10 @@ import argparse
 import requests
 import json
 
-API_URL = "http://127.0.0.1:8000"
+import os
+
+API_PORT = os.getenv("MEM0_PORT", 13370)
+API_URL = f"http://127.0.0.1:{API_PORT}"
 
 def remember(args):
     payload = {

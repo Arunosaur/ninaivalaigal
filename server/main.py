@@ -28,11 +28,17 @@ def save_data(data):
         json.dump(data, f, indent=4)
 
 # --- Application ---
+PORT = int(os.getenv("MEM0_PORT", 13370))
 app = FastAPI()
 
 data = load_data()
 memories = data["memories"]
 active_contexts = data["active_contexts"]
+
+# --- Entry point for running standalone ---
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=PORT)
 
 @app.get("/")
 def read_root():
