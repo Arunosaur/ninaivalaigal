@@ -52,6 +52,10 @@ def context_stop(args):
     response = requests.post(f"{API_URL}/context/stop")
     print(response.json()["message"])
 
+def context_active(args):
+    response = requests.get(f"{API_URL}/context/active")
+    print(response.json())
+
 def export_memories(args):
     context = args.context if args.context else get_active_context()
     response = requests.get(f"{API_URL}/memory", params={"context": context})
@@ -91,6 +95,8 @@ def main():
     parser_context_start.set_defaults(func=context_start)
     parser_context_stop = context_subparsers.add_parser("stop", help="Stop the current recording session.")
     parser_context_stop.set_defaults(func=context_stop)
+    parser_context_active = context_subparsers.add_parser("active", help="Get the current active recording context.")
+    parser_context_active.set_defaults(func=context_active)
 
     # Export command
     parser_export = subparsers.add_parser("export", help="Export memories to a file.")
