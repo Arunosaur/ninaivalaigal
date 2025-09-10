@@ -244,6 +244,78 @@ curl -X POST /api/login
 # Share with team or include in PR description
 ```
 
+## Editor Integration
+
+### Terminal Integration
+**Setup (once per terminal):**
+```bash
+source client/mem0.zsh
+```
+
+**Commands:**
+```bash
+mem0_on [project-name]    # Start recording (uses directory name if not specified)
+mem0_off                  # Stop recording
+export MEM0_CONTEXT=name  # Set context for this terminal
+```
+
+### VS Code Integration
+**Setup:**
+1. Install mem0 VS Code extension from marketplace
+2. Set workspace environment variable in `.vscode/settings.json`:
+```json
+{
+  "terminal.integrated.env.osx": {
+    "MEM0_CONTEXT": "my-project"
+  },
+  "terminal.integrated.env.linux": {
+    "MEM0_CONTEXT": "my-project"
+  },
+  "terminal.integrated.env.windows": {
+    "MEM0_CONTEXT": "my-project"
+  }
+}
+```
+
+**What gets captured:**
+- File operations (create, edit, delete, rename)
+- Git operations (commit, push, pull, branch)
+- Debug sessions (breakpoints, variable inspection)
+- Terminal commands within VS Code
+- Extension installations and configurations
+
+**Commands:**
+```bash
+# In VS Code integrated terminal
+mem0_on my-vscode-project
+# Work normally - all actions captured
+mem0_off
+```
+
+### JetBrains Integration (IntelliJ, PyCharm, WebStorm)
+**Setup:**
+1. Install mem0 plugin from JetBrains marketplace
+2. Configure project-specific context in Settings > Tools > mem0:
+   - Context Name: `my-jetbrains-project`
+   - Auto-start recording: ✓
+
+**What gets captured:**
+- Build operations (compile, package, deploy)
+- Test runs (unit tests, integration tests)
+- Refactoring operations (rename, extract method, move class)
+- Code generation (templates, auto-completion usage)
+- VCS operations (commit, merge, rebase)
+- Plugin installations and configurations
+
+**Commands:**
+```bash
+# Set context for JetBrains project
+export MEM0_CONTEXT=my-jetbrains-project
+
+# Or use IDE settings to auto-set context
+# Tools > mem0 > Start Recording
+```
+
 ## Integration with Development Tools
 
 ### Git Integration
