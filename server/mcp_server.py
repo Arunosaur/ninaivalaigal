@@ -9,6 +9,7 @@ import json
 from typing import Any, Optional, List, Dict
 from mcp.server.fastmcp import FastMCP
 from mcp.types import Resource, TextResourceContents, Tool, Prompt
+from datetime import datetime
 
 # Import existing mem0 components
 import sys
@@ -53,15 +54,11 @@ async def remember(text: str, context: str = None) -> str:
         if not context:
             context = "default"
             
-        # Store memory
-        db.store_memory(
-            memory_type=memory_type,
-            source=source,
-            data=memory_data,
-            context=context
-        )
-        
-        return f"Memory stored in context '{context}'"
+        try:
+            db.add_memory(context, "note", "mcp", {"text": text, "timestamp": str(datetime.now()), "context": context})
+            return f"Memory stored successfully in context: {context}"
+        except Exception as e:
+            return f"Error storing memory: {e}"
         
     except Exception as e:
         return f"Error storing memory: {str(e)}"

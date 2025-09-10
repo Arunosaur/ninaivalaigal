@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: mem0-postgres
+    environment:
+      POSTGRES_DB: mem0db
+      POSTGRES_USER: mem0user
+      POSTGRES_PASSWORD: ${MEM0_DB_PASSWORD:-mem0pass}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - mem0-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mem0user -d mem0db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mem0-server:
+    build:
+      context: ../
+      dockerfile: deploy/Dockerfile
+    container_name: mem0-server
+    environment:
+      - MEM0_DB_URL=postgresql://mem0user:${MEM0_DB_PASSWORD:-mem0pass}@postgres:5432/mem0db
+      - MEM0_HOST=0.0.0.0
+      - MEM0_PORT=13370
+    ports:
+      - "13370:13370"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mem0-network
+    restart: unless-stopped
+    volumes:
+      - ../mem0.config.json:/app/mem0.config.json:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:13370/contexts"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  mem0-network:
+    driver: bridge

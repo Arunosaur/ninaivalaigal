@@ -1,0 +1,120 @@
+---
+# PostgreSQL Setup for mem0 Deployment
+# This playbook sets up PostgreSQL for mem0 in production environments
+
+- name: Setup PostgreSQL for mem0
+  hosts: mem0_servers
+  become: yes
+  vars:
+    postgresql_version: "15"
+    mem0_db_name: "mem0db"
+    mem0_db_user: "mem0user"
+    mem0_db_password: "{{ vault_mem0_db_password }}"
+    postgresql_port: 5432
+    
+  tasks:
+    - name: Install PostgreSQL
+      package:
+        name:
+          - postgresql-{{ postgresql_version }}
+          - postgresql-{{ postgresql_version }}-server
+          - postgresql-contrib
+          - python3-psycopg2
+        state: present
+
+    - name: Initialize PostgreSQL database
+      command: postgresql-setup --initdb
+      args:
+        creates: /var/lib/pgsql/{{ postgresql_version }}/data/postgresql.conf
+      when: ansible_os_family == "RedHat"
+
+    - name: Initialize PostgreSQL database (Ubuntu/Debian)
+      command: /usr/lib/postgresql/{{ postgresql_version }}/bin/initdb -D /var/lib/postgresql/{{ postgresql_version }}/main
+      become_user: postgres
+      args:
+        creates: /var/lib/postgresql/{{ postgresql_version }}/main/postgresql.conf
+      when: ansible_os_family == "Debian"
+
+    - name: Start and enable PostgreSQL service
+      systemd:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Configure PostgreSQL authentication
+      lineinfile:
+        path: /var/lib/pgsql/{{ postgresql_version }}/data/pg_hba.conf
+        regexp: '^local\s+all\s+all\s+peer$'
+        line: 'local   all             all                                     md5'
+        backup: yes
+      notify: restart postgresql
+      when: ansible_os_family == "RedHat"
+
+    - name: Configure PostgreSQL authentication (Ubuntu/Debian)
+      lineinfile:
+        path: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+        regexp: '^local\s+all\s+all\s+peer$'
+        line: 'local   all             all                                     md5'
+        backup: yes
+      notify: restart postgresql
+      when: ansible_os_family == "Debian"
+
+    - name: Configure PostgreSQL to listen on localhost
+      lineinfile:
+        path: "{{ postgresql_config_path }}"
+        regexp: "^#?listen_addresses"
+        line: "listen_addresses = 'localhost'"
+        backup: yes
+      vars:
+        postgresql_config_path: "{{ '/var/lib/pgsql/' + postgresql_version + '/data/postgresql.conf' if ansible_os_family == 'RedHat' else '/etc/postgresql/' + postgresql_version + '/main/postgresql.conf' }}"
+      notify: restart postgresql
+
+    - name: Create mem0 database user
+      postgresql_user:
+        name: "{{ mem0_db_user }}"
+        password: "{{ mem0_db_password }}"
+        role_attr_flags: CREATEDB,NOSUPERUSER
+        state: present
+      become_user: postgres
+
+    - name: Create mem0 database
+      postgresql_db:
+        name: "{{ mem0_db_name }}"
+        owner: "{{ mem0_db_user }}"
+        state: present
+      become_user: postgres
+
+    - name: Grant privileges to mem0 user
+      postgresql_privs:
+        db: "{{ mem0_db_name }}"
+        privs: ALL
+        type: database
+        role: "{{ mem0_db_user }}"
+        state: present
+      become_user: postgres
+
+    - name: Install PostgreSQL Python adapter
+      pip:
+        name: psycopg2-binary
+        state: present
+
+    - name: Create mem0 database connection test script
+      template:
+        src: test_db_connection.py.j2
+        dest: /opt/mem0/test_db_connection.py
+        mode: '0755'
+
+    - name: Test database connection
+      command: python3 /opt/mem0/test_db_connection.py
+      register: db_test_result
+      changed_when: false
+
+    - name: Display database test result
+      debug:
+        msg: "Database connection test: {{ db_test_result.stdout }}"
+
+  handlers:
+    - name: restart postgresql
+      systemd:
+        name: postgresql
+        state: restarted

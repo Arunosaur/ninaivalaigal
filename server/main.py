@@ -20,7 +20,7 @@ class MemoryEntry(BaseModel):
 
 # --- Configuration ---
 def load_config():
-    config_path = "mem0.config.json"
+    config_path = "../mem0.config.json"
     default_config = {
         "storage": {
             "database_url": "sqlite:///./mem0.db"
@@ -70,6 +70,14 @@ def create_memory(entry: MemoryEntry):
 def get_memory(context: str):
     try:
         memories = db.get_memories(context)
+        return memories
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/memory/all")
+def get_all_memories():
+    try:
+        memories = db.get_all_memories()
         return memories
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
