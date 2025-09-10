@@ -5,6 +5,7 @@ const os = require('os');
 const fs = require('fs');
 
 export function activate(context: vscode.ExtensionContext) {
+    console.log('mem0 extension activating...');
 
     const handler: vscode.ChatRequestHandler = (request: vscode.ChatRequest, chatContext: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken): Thenable<any> => {
         
@@ -183,6 +184,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     const agent = vscode.chat.createChatParticipant('mem0', handler);
     agent.iconPath = new vscode.ThemeIcon('beaker');
+    
+    context.subscriptions.push(agent);
+    console.log('mem0 extension activated successfully');
 }
 
 export function deactivate() {}

@@ -8,13 +8,13 @@
         "url": "https://github.com/example/mem0.git"
     },
     "engines": {
-        "vscode": "^1.88.0"
+        "vscode": "^1.74.0"
     },
     "categories": [
         "Other"
     ],
     "activationEvents": [
-        "onChatParticipant:mem0"
+        "onStartupFinished"
     ],
     "main": "./dist/extension.js",
     "contributes": {
