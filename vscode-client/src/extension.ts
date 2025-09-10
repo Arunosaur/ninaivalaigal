@@ -106,24 +106,27 @@ export function activate(context: vscode.ExtensionContext) {
             let args: string[];
 
             if (command === 'remember') {
-                args = [rest.join(' '), '--context', projectContext];
+                args = ['remember', rest.join(' '), '--context', projectContext];
             } else if (command === 'recall') {
                 if (rest.length > 0) {
                     // If user specified a context like "recall CIP-analysis", use that
-                    args = ['--context', rest[0]];
+                    args = ['recall', '--context', rest[0]];
                 } else {
                     // Default to current project context
-                    args = ['--context', projectContext];
+                    args = ['recall', '--context', projectContext];
                 }
             } else if (command === 'contexts') {
-                args = [];
+                args = ['contexts'];
             } else {
-                args = rest;
+                args = [command, ...rest];
             }
 
-            const child = spawn(mem0CliPath, [command, ...args], { 
+            // Debug logging
+            stream.markdown(`**Debug:** Running command: \`${mem0CliPath} ${args.join(' ')}\`\n\n`);
+            
+            const child = spawn(mem0CliPath, args, { 
                 cwd: configuredRoot || os.homedir(),
-                env: { ...require('process').env, MEM0_CONTEXT: projectContext }
+                env: { ...require('process').env }
             });
 
             child.stdout.on('data', (data) => {
