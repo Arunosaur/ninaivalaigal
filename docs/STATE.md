@@ -1,18 +1,54 @@
 # mem0 Project State
 
-This document tracks the current state of our development work. It serves as a short-term memory to ensure continuity across sessions and conversation contexts.
+## Current Status (2025-09-10)
+- FastAPI server running on port 13370
+- PostgreSQL database for memory storage  
+- CLI tool for memory management with context isolation
+- Shell integration (zsh) with automatic command/result capture
+- VS Code extension with chat participant and context persistence
+- Planning MCP server conversion
 
----
+## Key Components
+1. **Server** (`server/main.py`) - FastAPI backend with context-filtered endpoints
+2. **Database** (`server/database.py`) - PostgreSQL with context-based memory isolation
+3. **CLI** (`client/mem0`) - Command-line interface with context management
+4. **Shell Integration** (`client/mem0.zsh`) - Automatic capture via preexec/precmd hooks
+5. **VS Code Extension** (`vscode-client/`) - Chat participant with persistent context state
+
+## Configuration
+- Server: `mem0.config.json` (port 13370, PostgreSQL settings)
+- Shell: Environment variables (`MEM0_CONTEXT`, `MEM0_DEBUG`)
+- VS Code: Extension settings for project root and context persistence
+
+## Working Features
+- Context isolation: memories properly filtered by context name
+- Automatic command capture: shell integration records commands/results
+- VS Code integration: @mem0 chat participant with debug output
+- Context persistence: VS Code extension maintains context across commands
+- CLI context management: start/stop/switch contexts
+
+## Recent Major Fixes (2025-09-10)
+- Fixed VS Code extension activation (onStartupFinished + popup notifications)
+- Implemented context persistence in VS Code extension (global currentContext)
+- Enhanced shell integration with command result capture (precmd hooks)
+- Added automatic CLI context start when using VS Code context start
+- Comprehensive debug logging for troubleshooting
+
+## Next Phase: MCP Server Conversion
+- Convert FastAPI server to Model Context Protocol (MCP) server
+- Maintain existing database schema and functionality
+- Update clients (shell, VS Code) to use MCP protocol
+- Estimated effort: ~1 week
 
 ### Last Action Completed:
 
-*   **Timestamp:** 2025-09-09T20:31:04-05:00
-*   **Action:** Context Management & Shell Integration Fixes
+*   **Timestamp:** 2025-09-10T15:17:00-05:00
+*   **Action:** VS Code Extension Automatic Recording Fix & MCP Planning
 *   **Details:** 
-    - **Context Lifecycle Management**: Fixed context_active command to detect deleted contexts and warn users
-    - **Automatic Environment Cleanup**: Added mem0_context_delete wrapper to auto-clear MEM0_CONTEXT
-    - **Shell Hook Optimization**: Implemented processing lock to prevent duplicate command captures
-    - **User Experience**: Enhanced shell wrapper with mem0_context_start for automatic terminal setup
+    - **VS Code Auto Recording**: Added CLI context start call when using @mem0 context start
+    - **Context Persistence**: Fixed VS Code extension to maintain context across commands
+    - **Documentation**: Updated STATE.md and created MCP server design document
+    - **MCP Planning**: Designed conversion approach from FastAPI to MCP server
     - **Error Handling**: Improved feedback when contexts are deleted or become invalid
     - **Version Control**: All changes committed with detailed commit messages
 

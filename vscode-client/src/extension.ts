@@ -71,6 +71,20 @@ export function activate(context: vscode.ExtensionContext) {
                     currentContext = contextArgs[1];
                     projectContext = currentContext;
                     stream.markdown(`🎯 **Started context:** \`${projectContext}\`\n\n`);
+                    
+                    // Start automatic recording by calling CLI context start
+                    const child = spawn(mem0CliPath, ['context', 'start', projectContext], { 
+                        cwd: configuredRoot || os.homedir(),
+                        env: { ...require('process').env }
+                    });
+                    
+                    child.on('close', (code) => {
+                        if (code === 0) {
+                            stream.markdown(`✅ **Automatic recording started for context:** \`${projectContext}\`\n\n`);
+                        } else {
+                            stream.markdown(`❌ **Failed to start recording for context:** \`${projectContext}\`\n\n`);
+                        }
+                    });
                 } else if (contextCommand === 'list') {
                     // List available contexts
                     const child = spawn(mem0CliPath, ['contexts'], { 
