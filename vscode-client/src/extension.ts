@@ -110,7 +110,8 @@ export function activate(context: vscode.ExtensionContext) {
             } else if (command === 'recall') {
                 if (rest.length > 0) {
                     // If user specified a context like "recall CIP-analysis", use that
-                    args = ['recall', '--context', rest[0]];
+                    const contextName = rest.join(' ');
+                    args = ['recall', '--context', contextName];
                 } else {
                     // Default to current project context
                     args = ['recall', '--context', projectContext];
