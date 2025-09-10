@@ -4,6 +4,9 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
+// Global context state
+let currentContext: string = '';
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('mem0 extension activating...');
     vscode.window.showInformationMessage('mem0 extension is activating!');
@@ -47,7 +50,10 @@ export function activate(context: vscode.ExtensionContext) {
             const workspaceConfig = vscode.workspace.getConfiguration('mem0');
             const explicitContext = workspaceConfig.get<string>('context');
             
-            if (explicitContext) {
+            if (currentContext) {
+                // Use the globally set context from previous context start command
+                projectContext = currentContext;
+            } else if (explicitContext) {
                 projectContext = explicitContext;
             } else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
                 const workspaceFolder = vscode.workspace.workspaceFolders[0];
@@ -62,7 +68,8 @@ export function activate(context: vscode.ExtensionContext) {
                 const contextCommand = contextArgs[0];
                 
                 if (contextCommand === 'start' && contextArgs[1]) {
-                    projectContext = contextArgs[1];
+                    currentContext = contextArgs[1];
+                    projectContext = currentContext;
                     stream.markdown(`🎯 **Started context:** \`${projectContext}\`\n\n`);
                 } else if (contextCommand === 'list') {
                     // List available contexts
