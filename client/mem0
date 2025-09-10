@@ -107,6 +107,7 @@ def context_start(args):
         response = requests.post(f"{API_URL}/context/start", params={"context": args.name}, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         print(response.json()["message"])
+        print(f"Use: mem0_context_start {args.name} (for automatic terminal setup)")
     except requests.exceptions.ConnectionError:
         print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
     except requests.exceptions.Timeout:
@@ -138,7 +139,17 @@ def context_active(args):
         # Check if MEM0_CONTEXT is set for this terminal
         terminal_context = os.getenv("MEM0_CONTEXT")
         if terminal_context:
-            print(f"Terminal context: {terminal_context}")
+            # Verify the context still exists on the server
+            response = requests.get(f"{API_URL}/contexts", timeout=REQUEST_TIMEOUT)
+            response.raise_for_status()
+            contexts = response.json().get("contexts", [])
+            context_names = [c["name"] for c in contexts]
+            
+            if terminal_context in context_names:
+                print(f"Terminal context: {terminal_context}")
+            else:
+                print(f"Terminal context '{terminal_context}' no longer exists (deleted)")
+                print("Clear with: unset MEM0_CONTEXT")
         else:
             print("No terminal context set")
     except Exception as e:

@@ -47,6 +47,12 @@ mem0_get_active_context() {
 
 # This function will run before each command is executed
 mem0_preexec() {
+    # Prevent duplicate execution by checking if we're already processing
+    if [[ -n "$MEM0_PROCESSING" ]]; then
+        return
+    fi
+    export MEM0_PROCESSING=1
+    
     mem0_debug "preexec hook triggered for command: $1"
     
     # Check if MEM0_CONTEXT environment variable is set for this terminal
@@ -63,6 +69,7 @@ mem0_preexec() {
     # If we are not recording, do nothing
     if [ -z "$active_context" ] || [ "$active_context" = "null" ]; then
         mem0_debug "no active context, skipping command capture"
+        unset MEM0_PROCESSING
         return
     fi
 
@@ -72,7 +79,7 @@ mem0_preexec() {
 
     # Remember the command, in the background
     mem0_debug "sending command to mem0 server..."
-    ~/Workspace/mem0/client/mem0 remember "$json_payload" --context "$active_context" &>/dev/null &
+    (~/Workspace/mem0/client/mem0 remember "$json_payload" --context "$active_context" &>/dev/null; unset MEM0_PROCESSING) &
 }
 
 # Function to clear the context cache (useful when context changes)
@@ -82,15 +89,59 @@ mem0_clear_cache() {
     mem0_debug "context cache cleared"
 }
 
-# Register the hook function
-if [[ -n "$ZSH_VERSION" ]]; then
-    # Initialize preexec_functions array if it doesn't exist
-    if [[ -z "$preexec_functions" ]]; then
-        typeset -ga preexec_functions
+# Wrapper function for context start that automatically sets MEM0_CONTEXT
+mem0_context_start() {
+    local context_name="$1"
+    if [[ -z "$context_name" ]]; then
+        echo "Usage: mem0_context_start <context-name>"
+        return 1
     fi
     
-    # Add our function to the preexec_functions array
-    preexec_functions+=(mem0_preexec)
+    # Call the actual context start command
+    ~/Workspace/mem0/client/mem0 context start "$context_name"
+    
+    # If successful, set the environment variable
+    if [[ $? -eq 0 ]]; then
+        export MEM0_CONTEXT="$context_name"
+        echo "MEM0_CONTEXT automatically set to: $context_name"
+        mem0_clear_cache  # Clear cache to pick up new context
+    fi
+}
+
+# Wrapper function for context delete that clears MEM0_CONTEXT if needed
+mem0_context_delete() {
+    local context_name="$1"
+    if [[ -z "$context_name" ]]; then
+        echo "Usage: mem0_context_delete <context-name>"
+        return 1
+    fi
+    
+    # Call the actual context delete command
+    ~/Workspace/mem0/client/mem0 context delete "$context_name"
+    
+    # If successful and this was our active context, clear the env var
+    if [[ $? -eq 0 ]] && [[ "$MEM0_CONTEXT" == "$context_name" ]]; then
+        unset MEM0_CONTEXT
+        echo "MEM0_CONTEXT cleared (context was deleted)"
+        mem0_clear_cache  # Clear cache
+    fi
+}
+
+# Register the hook function
+if [[ -n "$ZSH_VERSION" ]]; then
+    # Check if our function is already in the array to avoid duplicates
+    if [[ ! " ${preexec_functions[@]} " =~ " mem0_preexec " ]]; then
+        # Initialize preexec_functions array if it doesn't exist
+        if [[ -z "$preexec_functions" ]]; then
+            typeset -ga preexec_functions
+        fi
+        
+        # Add our function to the preexec_functions array
+        preexec_functions+=(mem0_preexec)
+        mem0_debug "mem0_preexec hook registered"
+    else
+        mem0_debug "mem0_preexec hook already registered"
+    fi
 else
     # For bash or other shells
     echo "Warning: mem0 shell integration is optimized for zsh"
