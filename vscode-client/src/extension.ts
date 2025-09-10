@@ -123,22 +123,58 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             // Debug logging
-            stream.markdown(`**Debug:** Running command: \`${mem0CliPath} ${args.join(' ')}\`\n\n`);
+            stream.markdown(`**Debug Info:**\n`);
+            stream.markdown(`- Command: \`${mem0CliPath} ${args.join(' ')}\`\n`);
+            stream.markdown(`- Working Directory: \`${configuredRoot || os.homedir()}\`\n`);
+            stream.markdown(`- Project Context: \`${projectContext}\`\n\n`);
             
             const child = spawn(mem0CliPath, args, { 
                 cwd: configuredRoot || os.homedir(),
                 env: { ...require('process').env }
             });
 
+            let stdout = '';
+            let stderr = '';
+
             child.stdout.on('data', (data) => {
-                stream.markdown(data.toString());
+                stdout += data.toString();
             });
 
             child.stderr.on('data', (data) => {
-                stream.markdown(`**Error:**\n\`\`\`\n${data.toString()}\n\`\`\``);
+                stderr += data.toString();
             });
 
             child.on('close', (code) => {
+                stream.markdown(`**Exit Code:** ${code}\n\n`);
+                
+                if (stderr) {
+                    stream.markdown(`**Stderr:**\n\`\`\`\n${stderr}\n\`\`\`\n\n`);
+                }
+                
+                if (stdout) {
+                    stream.markdown(`**Raw Output:**\n\`\`\`json\n${stdout}\n\`\`\`\n\n`);
+                    
+                    // Try to parse and format the output
+                    try {
+                        const lines = stdout.trim().split('\n').filter(line => line.trim() && !line.includes('NotOpenSSLWarning'));
+                        const memories = lines.map(line => JSON.parse(line));
+                        
+                        stream.markdown(`**Found ${memories.length} memories:**\n\n`);
+                        
+                        memories.forEach((memory, index) => {
+                            stream.markdown(`${index + 1}. **${memory.type}** (${memory.context || 'no context'})\n`);
+                            if (memory.data && memory.data.text) {
+                                stream.markdown(`   ${memory.data.text}\n`);
+                            }
+                            stream.markdown(`   *Created: ${memory.created_at}*\n\n`);
+                        });
+                    } catch (e) {
+                        stream.markdown(`**Formatted Output:**\n${stdout}\n\n`);
+                    }
+                } else {
+                    stream.markdown(`**No output received**\n\n`);
+                }
+                
                 resolve({ commands: [] });
             });
         });
