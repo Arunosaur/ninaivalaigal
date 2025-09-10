@@ -203,9 +203,10 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                memories = session.query(Memory).filter_by(context=context, user_id=user_id).order_by(Memory.created_at).all()
+                memories = session.query(Memory).filter_by(context=context, user_id=user_id).order_by(Memory.created_at.desc()).all()
             else:
-                memories = session.query(Memory).filter_by(context=context, user_id=None).order_by(Memory.created_at).all()
+                memories = session.query(Memory).filter_by(context=context, user_id=None).order_by(Memory.created_at.desc()).all()
+            
             return [
                 {
                     "type": memory.type,
@@ -217,6 +218,68 @@ class DatabaseManager:
             ]
         finally:
             session.close()
+
+    def get_all_memories(self, user_id: int = None):
+        session = self.get_session()
+        try:
+            if user_id:
+                memories = session.query(Memory).filter_by(user_id=user_id).order_by(Memory.created_at.desc()).all()
+            else:
+                memories = session.query(Memory).filter_by(user_id=None).order_by(Memory.created_at.desc()).all()
+            
+            return [
+                {
+                    "type": memory.type,
+                    "source": memory.source,
+                    "data": memory.data,
+                    "context": memory.context,
+                    "created_at": memory.created_at.isoformat()
+                }
+                for memory in memories
+            ]
+        finally:
+            session.close()
+
+    def get_recent_memories(self, limit: int = 50, user_id: int = None):
+        session = self.get_session()
+        try:
+            if user_id:
+                memories = session.query(Memory).filter_by(user_id=user_id).order_by(Memory.created_at.desc()).limit(limit).all()
+            else:
+                memories = session.query(Memory).filter_by(user_id=None).order_by(Memory.created_at.desc()).limit(limit).all()
+            
+            return [
+                {
+                    "type": memory.type,
+                    "source": memory.source,
+                    "data": memory.data,
+                    "context": memory.context,
+                    "created_at": memory.created_at.isoformat()
+                }
+                for memory in memories
+            ]
+        finally:
+            session.close()
+
+    def get_contexts(self, user_id: int = None):
+        session = self.get_session()
+        try:
+            if user_id:
+                contexts = session.query(Memory.context).filter_by(user_id=user_id).distinct().all()
+            else:
+                contexts = session.query(Memory.context).filter_by(user_id=None).distinct().all()
+            
+            return [context[0] for context in contexts if context[0]]
+        finally:
+            session.close()
+
+    def start_context(self, context_name: str):
+        # For MCP compatibility - could store active context state
+        pass
+
+    def stop_context(self):
+        # For MCP compatibility - could clear active context state
+        pass
     
     def stop_specific_context(self, context_name: str, user_id: int = None):
         session = self.get_session()
