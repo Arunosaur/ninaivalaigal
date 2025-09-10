@@ -14,8 +14,8 @@ export function activate(context: vscode.ExtensionContext) {
             let projectContext: string;
             
             // Try workspace-specific setting first
-            const workspaceConfig = vscode.workspace.getConfiguration('mem0');
-            const configuredRoot = workspaceConfig.get<string>('projectRoot');
+            const initialConfig = vscode.workspace.getConfiguration('mem0');
+            const configuredRoot = initialConfig.get<string>('projectRoot');
             
             if (configuredRoot) {
                 mem0CliPath = path.resolve(configuredRoot, 'client/mem0');
@@ -38,6 +38,19 @@ export function activate(context: vscode.ExtensionContext) {
                         return false;
                     }
                 }) || 'mem0';
+            }
+            
+            // Determine project context first
+            const workspaceConfig = vscode.workspace.getConfiguration('mem0');
+            const explicitContext = workspaceConfig.get<string>('context');
+            
+            if (explicitContext) {
+                projectContext = explicitContext;
+            } else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+                const workspaceFolder = vscode.workspace.workspaceFolders[0];
+                projectContext = path.basename(workspaceFolder.uri.fsPath);
+            } else {
+                projectContext = 'vscode-session';
             }
             
             // Handle context selection and management
@@ -74,23 +87,10 @@ export function activate(context: vscode.ExtensionContext) {
                     stream.markdown(`**Usage:**\n- \`@mem0 context start <name>\` - Start new context\n- \`@mem0 context switch <name>\` - Switch to existing context\n- \`@mem0 context list\` - List all contexts\n\n`);
                     return resolve({ commands: [] });
                 }
-            } else {
-                // Auto-detect or use workspace context
-                const workspaceConfig = vscode.workspace.getConfiguration('mem0');
-                const explicitContext = workspaceConfig.get<string>('context');
-                
-                if (explicitContext) {
-                    projectContext = explicitContext;
-                    stream.markdown(`🎯 **Context:** \`${projectContext}\` (from settings)\n\n`);
-                } else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-                    const workspaceFolder = vscode.workspace.workspaceFolders[0];
-                    projectContext = path.basename(workspaceFolder.uri.fsPath);
-                    stream.markdown(`🎯 **Context:** \`${projectContext}\` (auto-detected from workspace)\n\n`);
-                } else {
-                    projectContext = 'vscode-session';
-                    stream.markdown(`🎯 **Context:** \`${projectContext}\` (default session)\n\n`);
-                }
             }
+            
+            // Show current context
+            stream.markdown(`🎯 **Context:** \`${projectContext}\`\n\n`);
 
             if (request.prompt.trim() === 'observe') {
                 stream.markdown("Observing chat history...\n\n");
@@ -106,9 +106,17 @@ export function activate(context: vscode.ExtensionContext) {
             let args: string[];
 
             if (command === 'remember') {
-                args = [rest.join(' ')];
+                args = [rest.join(' '), '--context', projectContext];
             } else if (command === 'recall') {
-                args = []; // Recall takes no arguments
+                if (rest.length > 0) {
+                    // If user specified a context like "recall CIP-analysis", use that
+                    args = ['--context', rest[0]];
+                } else {
+                    // Default to current project context
+                    args = ['--context', projectContext];
+                }
+            } else if (command === 'contexts') {
+                args = [];
             } else {
                 args = rest;
             }
