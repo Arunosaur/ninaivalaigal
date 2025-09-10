@@ -49,9 +49,16 @@ mem0_get_active_context() {
 mem0_preexec() {
     mem0_debug "preexec hook triggered for command: $1"
     
-    # Get the active recording context (with caching)
-    local active_context=$(mem0_get_active_context)
-    mem0_debug "active context: '$active_context'"
+    # Check if MEM0_CONTEXT environment variable is set for this terminal
+    local active_context=""
+    if [[ -n "$MEM0_CONTEXT" ]]; then
+        active_context="$MEM0_CONTEXT"
+        mem0_debug "using MEM0_CONTEXT env var: '$active_context'"
+    else
+        # Fall back to server's active context (most recently created)
+        active_context=$(mem0_get_active_context)
+        mem0_debug "using server active context: '$active_context'"
+    fi
 
     # If we are not recording, do nothing
     if [ -z "$active_context" ] || [ "$active_context" = "null" ]; then
@@ -65,7 +72,7 @@ mem0_preexec() {
 
     # Remember the command, in the background
     mem0_debug "sending command to mem0 server..."
-    ./client/mem0 remember "$json_payload" --context "$active_context" &>/dev/null &
+    ~/Workspace/mem0/client/mem0 remember "$json_payload" --context "$active_context" &>/dev/null &
 }
 
 # Function to clear the context cache (useful when context changes)

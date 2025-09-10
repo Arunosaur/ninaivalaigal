@@ -40,10 +40,17 @@ REQUEST_TIMEOUT = config["server"]["timeout"]
 
 def get_active_context():
     try:
-        branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip().decode()
-        return branch
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return os.path.basename(os.getcwd())
+        # Get active context from server
+        response = requests.get(f"{API_URL}/context/active", timeout=REQUEST_TIMEOUT)
+        if response.status_code == 200:
+            active_context = response.json().get("recording_context")
+            if active_context:
+                return active_context
+    except:
+        pass
+    
+    # No active context - user must specify --context or start a context first
+    raise ValueError("No active context. Use --context <name> or start a context first with 'context start <name>'")
 
 def remember(args):
     context = args.context if args.context else get_active_context()
@@ -75,7 +82,12 @@ def remember(args):
         print(f"Error: Unexpected error occurred: {e}")
 
 def recall(args):
-    context = args.context if args.context else get_active_context()
+    try:
+        context = args.context if args.context else get_active_context()
+    except ValueError as e:
+        print(f"Error: {e}")
+        return
+    
     try:
         response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
@@ -106,7 +118,10 @@ def context_start(args):
 
 def context_stop(args):
     try:
-        response = requests.post(f"{API_URL}/context/stop", timeout=REQUEST_TIMEOUT)
+        if hasattr(args, 'name') and args.name:
+            response = requests.post(f"{API_URL}/context/stop", params={"context": args.name}, timeout=REQUEST_TIMEOUT)
+        else:
+            response = requests.post(f"{API_URL}/context/stop", timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         print(response.json()["message"])
     except requests.exceptions.ConnectionError:
@@ -120,9 +135,20 @@ def context_stop(args):
 
 def context_active(args):
     try:
-        response = requests.get(f"{API_URL}/context/active", timeout=REQUEST_TIMEOUT)
+        # Check if MEM0_CONTEXT is set for this terminal
+        terminal_context = os.getenv("MEM0_CONTEXT")
+        if terminal_context:
+            print(f"Terminal context: {terminal_context}")
+        else:
+            print("No terminal context set")
+    except Exception as e:
+        print(f"Error: {e}")
+
+def context_delete(args):
+    try:
+        response = requests.delete(f"{API_URL}/context/{args.name}", timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
-        print(response.json())
+        print(response.json()["message"])
     except requests.exceptions.ConnectionError:
         print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
     except requests.exceptions.Timeout:
@@ -170,12 +196,21 @@ def list_contexts(args):
         if not contexts:
             print("No contexts found.")
             return
-            
-        print("Available contexts:")
-        for context in contexts:
-            status = "ACTIVE" if context["is_active"] else "inactive"
-            print(f"  - {context['name']} ({status}) - created: {context['created_at']}")
-            
+        
+        # Check if we want only active contexts
+        if hasattr(args, 'active') and args.active == "active":
+            active_contexts = [c for c in contexts if c["is_active"]]
+            if not active_contexts:
+                print("No active contexts found.")
+                return
+            print("Active contexts:")
+            for context in active_contexts:
+                print(f"  - {context['name']} - created: {context['created_at']}")
+        else:
+            print("Available contexts:")
+            for context in contexts:
+                status = "ACTIVE" if context["is_active"] else "inactive"
+                print(f"  - {context['name']} ({status}) - created: {context['created_at']}")
     except requests.exceptions.ConnectionError:
         print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
     except requests.exceptions.Timeout:
@@ -207,9 +242,13 @@ def main():
     parser_context_start.add_argument("name", help="The name of the context to start recording to.")
     parser_context_start.set_defaults(func=context_start)
     parser_context_stop = context_subparsers.add_parser("stop", help="Stop the current recording session.")
+    parser_context_stop.add_argument("name", nargs="?", help="Optional: specific context name to stop (otherwise stops all active contexts).")
     parser_context_stop.set_defaults(func=context_stop)
     parser_context_active = context_subparsers.add_parser("active", help="Get the current active recording context.")
     parser_context_active.set_defaults(func=context_active)
+    parser_context_delete = context_subparsers.add_parser("delete", help="Delete a context and all its memories.")
+    parser_context_delete.add_argument("name", help="The name of the context to delete.")
+    parser_context_delete.set_defaults(func=context_delete)
 
     # Export command
     parser_export = subparsers.add_parser("export", help="Export memories to a file.")
@@ -219,6 +258,7 @@ def main():
 
     # List contexts command
     parser_contexts = subparsers.add_parser("contexts", help="List all available contexts.")
+    parser_contexts.add_argument("active", nargs="?", help="Show only active contexts when 'active' is specified.")
     parser_contexts.set_defaults(func=list_contexts)
 
     args = parser.parse_args()

@@ -14,7 +14,8 @@ mem0 is a system designed to provide a universal, cross-platform, and shareable 
 ### Key Features
 
 - **Command Capture**: Automatic shell command recording via zsh integration
-- **Context Management**: Session-based memory organization
+- **Multi-Context Support**: Multiple active contexts per user with per-terminal selection
+- **Context Management**: Start, stop, delete, and list operations with user isolation
 - **Performance Optimized**: Intelligent caching to minimize API calls
 - **Debug Support**: Comprehensive logging for troubleshooting
 - **Cross-Platform**: Works across different development environments
@@ -29,42 +30,71 @@ mem0 is a system designed to provide a universal, cross-platform, and shareable 
 
 The server will start on `http://127.0.0.1:13370`
 
-### 2. Start Recording Session
+### 2. Enable Shell Integration
+
+```bash
+source ~/Workspace/mem0/client/mem0.zsh
+export MEM0_DEBUG=1  # Optional: Enable debug logging
+```
+
+### 3. Start Recording Session
 
 ```bash
 ./client/mem0 context start my-session
 ```
 
-### 3. Enable Shell Integration
+### 4. Work Normally - Commands Auto-Captured
 
 ```bash
-source client/mem0.zsh
-```
-
-### 4. Optional: Enable Debug Logging
-
-```bash
-export MEM0_DEBUG=1
+git status
+npm install
+python main.py
 ```
 
 ### 5. View Captured Memories
 
 ```bash
+./client/mem0 recall
+# or from specific context
 ./client/mem0 recall --context my-session
 ```
 
-### 6. Stop Recording
+## Multi-Context Workflows
 
+### Working on Multiple Projects Simultaneously
+
+**Terminal 1 - Frontend:**
 ```bash
-./client/mem0 context stop
+export MEM0_CONTEXT=frontend-app
+./client/mem0 context start frontend-app
+npm run dev
 ```
+
+**Terminal 2 - Backend:**
+```bash
+export MEM0_CONTEXT=backend-api
+./client/mem0 context start backend-api
+python manage.py runserver
+```
+
+**Terminal 3 - DevOps:**
+```bash
+export MEM0_CONTEXT=infrastructure
+./client/mem0 context start infrastructure
+docker build -t myapp .
+```
+
+Each terminal captures commands to its specific context automatically.
 
 ## CLI Commands
 
 ### Context Management
 - `./client/mem0 context start <name>` - Start recording to a context
-- `./client/mem0 context stop` - Stop current recording session
-- `./client/mem0 context active` - Show active recording context
+- `./client/mem0 context stop [<name>]` - Stop specific or current recording session
+- `./client/mem0 context delete <name>` - Delete a context and all its memories
+- `./client/mem0 context active` - Show terminal context (MEM0_CONTEXT env var)
+- `./client/mem0 contexts` - List all contexts with status
+- `./client/mem0 contexts active` - List only active contexts
 
 ### Memory Operations
 - `./client/mem0 remember '<json>'` - Store a memory entry
@@ -126,6 +156,7 @@ The VS Code extension provides IDE integration through a chat participant.
 ### Environment Variables
 - `MEM0_PORT` - Server port (default: 13370)
 - `MEM0_DEBUG` - Enable debug logging (set to 1)
+- `MEM0_CONTEXT` - Specify context for current terminal session
 
 ### Shell Integration Settings
 - `MEM0_CACHE_TTL` - Context cache duration in seconds (default: 30)

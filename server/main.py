@@ -54,18 +54,15 @@ def read_root():
 @app.post("/memory")
 def create_memory(entry: MemoryEntry):
     try:
-        active_context = db.get_active_context()
-        # We only save the memory if its context matches the active recording context
-        if entry.context == active_context:
-            memory_id = db.add_memory(
-                context=entry.context,
-                memory_type=entry.payload.type,
-                source=entry.payload.source,
-                data=entry.payload.data
-            )
-            return {"message": "Memory entry recorded.", "id": memory_id}
-        else:
-            return {"message": "Memory entry ignored. Context does not match recording context."}
+        # Always save the memory to the specified context
+        # The shell wrapper already ensures it only sends when context is active
+        memory_id = db.add_memory(
+            context=entry.context,
+            memory_type=entry.payload.type,
+            source=entry.payload.source,
+            data=entry.payload.data
+        )
+        return {"message": "Memory entry recorded.", "id": memory_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
@@ -86,10 +83,21 @@ def start_recording(context: str):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/context/stop")
-def stop_recording():
+def stop_recording(context: str = None):
     try:
-        db.clear_active_context()
-        return {"message": "Recording stopped."}
+        # TODO: Add user authentication to get actual user_id
+        if context:
+            # Stop specific context
+            db.stop_specific_context(context, user_id=None)
+            return {"message": f"Recording stopped for context: {context}"}
+        else:
+            # Stop only the currently active context, not all contexts
+            active_context = db.get_active_context(user_id=None)
+            if active_context:
+                db.stop_specific_context(active_context, user_id=None)
+                return {"message": f"Recording stopped for active context: {active_context}"}
+            else:
+                return {"message": "No active context to stop."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
@@ -106,6 +114,15 @@ def get_all_contexts():
     try:
         contexts = db.get_all_contexts()
         return {"contexts": contexts}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.delete("/context/{context_name}")
+def delete_context(context_name: str):
+    try:
+        # TODO: Add user authentication to get actual user_id
+        db.delete_context(context_name, user_id=None)
+        return {"message": f"Context '{context_name}' deleted successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 

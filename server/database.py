@@ -112,13 +112,8 @@ class DatabaseManager:
     def set_active_context(self, context_name: str, user_id: int = None):
         session = self.get_session()
         try:
-            # Clear all active contexts for this user (or globally if no user)
-            if user_id:
-                session.query(RecordingContext).filter_by(user_id=user_id).update({"is_active": False})
-            else:
-                session.query(RecordingContext).update({"is_active": False})
-            
-            # Set the new active context
+            # Don't clear other active contexts - allow multiple active contexts per user
+            # Just set this specific context to active
             if user_id:
                 context = session.query(RecordingContext).filter_by(name=context_name, user_id=user_id).first()
             else:
@@ -155,10 +150,15 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                context = session.query(RecordingContext).filter_by(is_active=True, user_id=user_id).first()
+                contexts = session.query(RecordingContext).filter_by(is_active=True, user_id=user_id).all()
             else:
-                context = session.query(RecordingContext).filter_by(is_active=True, user_id=None).first()
-            return context.name if context else None
+                contexts = session.query(RecordingContext).filter_by(is_active=True, user_id=None).all()
+            
+            # Return the most recently created active context
+            if contexts:
+                latest_context = max(contexts, key=lambda c: c.created_at)
+                return latest_context.name
+            return None
         finally:
             session.close()
     
@@ -215,5 +215,36 @@ class DatabaseManager:
                 }
                 for memory in memories
             ]
+        finally:
+            session.close()
+    
+    def stop_specific_context(self, context_name: str, user_id: int = None):
+        session = self.get_session()
+        try:
+            if user_id:
+                session.query(RecordingContext).filter_by(name=context_name, user_id=user_id).update({"is_active": False})
+            else:
+                session.query(RecordingContext).filter_by(name=context_name, user_id=None).update({"is_active": False})
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+    
+    def delete_context(self, context_name: str, user_id: int = None):
+        session = self.get_session()
+        try:
+            # Delete all memories for this context
+            if user_id:
+                session.query(Memory).filter_by(context=context_name, user_id=user_id).delete()
+                session.query(RecordingContext).filter_by(name=context_name, user_id=user_id).delete()
+            else:
+                session.query(Memory).filter_by(context=context_name, user_id=None).delete()
+                session.query(RecordingContext).filter_by(name=context_name, user_id=None).delete()
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
         finally:
             session.close()
