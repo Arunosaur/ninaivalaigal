@@ -8,7 +8,14 @@ AI development agents, including this one, lack long-term memory. They get lost 
 
 ## The Vision
 
-`mem0` is a system designed to solve this problem by providing a universal, cross-platform, and shareable memory layer for AI agents and human developers.
+`mem0` is a **simple CCTV-like observer** that helps AI agents stay on target during agentic development. Like a security camera that just watches and records, mem0 quietly observes development activities across terminals, VS Code, JetBrains, and other editors.
+
+### Core Philosophy: Simple Like CCTV
+
+- **Just an Observer**: Silently watches and records when turned on
+- **On/Off Switch**: Easy to start/stop - complexities hidden behind the scenes  
+- **Multi-Context Support**: Handle multiple projects, but keep user experience minimal
+- **AI Agent Helper**: Primary purpose is helping other AI agents maintain context
 
 ### Key Pillars
 

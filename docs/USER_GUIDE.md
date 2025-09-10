@@ -2,7 +2,7 @@
 
 ## Overview
 
-mem0 is a universal memory layer that captures and recalls your terminal commands, enabling powerful context-aware workflows across multiple projects and terminals.
+mem0 is a simple CCTV-like observer that helps AI agents stay on target during development. It quietly watches and records your terminal activity when turned on.
 
 ## Quick Start
 
@@ -16,19 +16,25 @@ mem0 is a universal memory layer that captures and recalls your terminal command
    source client/mem0.zsh
    ```
 
-3. **Start a context with automatic terminal setup:**
+3. **Turn on recording (like flipping a switch):**
    ```bash
-   mem0_context_start my-project
+   mem0_on my-project
+   # or just: mem0_on (uses current directory name)
    ```
 
-4. **Work normally - commands are captured automatically:**
+4. **Work normally - commands are captured silently:**
    ```bash
    git status
    npm install
    ./run-tests.sh
    ```
 
-5. **Recall your session:**
+5. **Turn off when done:**
+   ```bash
+   mem0_off
+   ```
+
+6. **Let AI agents recall your session:**
    ```bash
    ./client/mem0 recall --context my-project
    ```
@@ -40,80 +46,49 @@ mem0 is a universal memory layer that captures and recalls your terminal command
 **Terminal 1 - Frontend Work:**
 ```bash
 source client/mem0.zsh
-mem0_context_start frontend-app
+mem0_on frontend-app
 npm run dev
 git commit -m "Add new component"
+mem0_off
 ```
 
 **Terminal 2 - Backend Work:**
 ```bash
 source client/mem0.zsh
-mem0_context_start backend-api
+mem0_on backend-api
 python manage.py migrate
 pytest tests/
+mem0_off
 ```
 
 **Terminal 3 - DevOps Work:**
 ```bash
 source client/mem0.zsh
-mem0_context_start infrastructure
+mem0_on infrastructure
 docker build -t myapp .
 kubectl apply -f deployment.yaml
+mem0_off
 ```
 
-### Context Management Commands
+### Simple Commands
 
-#### Start a New Context (Recommended)
+#### Turn Recording On/Off
 ```bash
-# Automatic terminal setup - recommended approach
-mem0_context_start <context-name>
+mem0_on [project-name]    # Start recording (uses directory name if not specified)
+mem0_off                  # Stop recording
 ```
 
-#### Start a New Context (Manual)
+#### For AI Agents - Context Management
 ```bash
-# Manual approach - requires separate export
-./client/mem0 context start <context-name>
-export MEM0_CONTEXT=<context-name>
-```
-
-#### List All Contexts
-```bash
-# List all contexts with status
+# List all contexts
 ./client/mem0 contexts
 
-# List only active contexts
-./client/mem0 contexts active
-```
+# Recall memories for AI agents
+./client/mem0 recall --context <project-name>
 
-#### Stop a Context
-```bash
-# Stop specific context
-./client/mem0 context stop <context-name>
-
-# Stop currently active context
-./client/mem0 context stop
-```
-
-#### Delete a Context (Recommended)
-```bash
-# Automatic cleanup - recommended approach
-mem0_context_delete <context-name>
-```
-
-#### Delete a Context (Manual)
-```bash
-# Manual approach - requires manual cleanup
-./client/mem0 context delete <context-name>
-# If this was your active context, also run:
-unset MEM0_CONTEXT
-```
-**Warning:** This permanently deletes the context and all its memories.
-
-#### Check Terminal Context
-```bash
+# Check what's currently recording
 ./client/mem0 context active
 ```
-Shows the context set for the current terminal session (via MEM0_CONTEXT environment variable).
 
 ### Per-Terminal Context Selection
 

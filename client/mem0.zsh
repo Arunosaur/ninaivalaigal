@@ -89,41 +89,22 @@ mem0_clear_cache() {
     mem0_debug "context cache cleared"
 }
 
-# Wrapper function for context start that automatically sets MEM0_CONTEXT
-mem0_context_start() {
-    local context_name="$1"
-    if [[ -z "$context_name" ]]; then
-        echo "Usage: mem0_context_start <context-name>"
-        return 1
-    fi
-    
-    # Call the actual context start command
-    ~/Workspace/mem0/client/mem0 context start "$context_name"
-    
-    # If successful, set the environment variable
-    if [[ $? -eq 0 ]]; then
-        export MEM0_CONTEXT="$context_name"
-        echo "MEM0_CONTEXT automatically set to: $context_name"
-        mem0_clear_cache  # Clear cache to pick up new context
-    fi
+# Simple on/off functions - like CCTV switch
+mem0_on() {
+    local context_name="${1:-$(basename $(pwd))}"
+    ~/Workspace/mem0/client/mem0 context start "$context_name" >/dev/null 2>&1
+    export MEM0_CONTEXT="$context_name"
+    mem0_clear_cache
+    echo "mem0 recording: $context_name"
 }
 
-# Wrapper function for context delete that clears MEM0_CONTEXT if needed
-mem0_context_delete() {
-    local context_name="$1"
-    if [[ -z "$context_name" ]]; then
-        echo "Usage: mem0_context_delete <context-name>"
-        return 1
-    fi
-    
-    # Call the actual context delete command
-    ~/Workspace/mem0/client/mem0 context delete "$context_name"
-    
-    # If successful and this was our active context, clear the env var
-    if [[ $? -eq 0 ]] && [[ "$MEM0_CONTEXT" == "$context_name" ]]; then
+mem0_off() {
+    if [[ -n "$MEM0_CONTEXT" ]]; then
+        echo "mem0 stopped: $MEM0_CONTEXT"
         unset MEM0_CONTEXT
-        echo "MEM0_CONTEXT cleared (context was deleted)"
-        mem0_clear_cache  # Clear cache
+        mem0_clear_cache
+    else
+        echo "mem0 not recording"
     fi
 }
 
