@@ -1,8 +1,8 @@
 {
   "server": {
-    "host": "0.0.0.0",
-    "port": {{ mem0_port }},
-    "timeout": 30
+    "host": "{{ mem0_host | default('127.0.0.1') }}",
+    "port": {{ mem0_port | default(13370) }},
+    "timeout": 10
   },
   "client": {
     "default_context_strategy": "git_branch",
@@ -13,14 +13,15 @@
     "enabled": true,
     "capture_patterns": {
       "include": ["*"],
-      "exclude": ["ls", "cd", "pwd", "clear", "exit", "history"]
+      "exclude": ["ls", "cd", "pwd", "clear", "exit"]
     }
   },
   "storage": {
     "type": "database",
-    "database_url": "postgresql://{{ postgres_user }}:{{ postgres_password }}@localhost:5432/{{ postgres_db }}",
+    "database_url": "postgresql://{{ mem0_db_user }}:{{ mem0_db_password }}@localhost:5432/{{ mem0_db_name }}",
+    "sqlite_fallback": "sqlite:///{{ mem0_home }}/mem0.db",
     "backup_enabled": true,
-    "max_memories_per_context": 10000
+    "max_memories_per_context": 1000
   },
   "auth": {
     "enabled": true,

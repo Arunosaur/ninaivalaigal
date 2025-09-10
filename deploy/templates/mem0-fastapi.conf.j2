@@ -1,0 +1,11 @@
+[program:mem0-fastapi]
+command={{ mem0_home }}/venv/bin/uvicorn server.main:app --host {{ mem0_host | default('127.0.0.1') }} --port {{ mem0_port | default(13370) }}
+directory={{ mem0_home }}
+user={{ mem0_user }}
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile={{ mem0_home }}/logs/fastapi.log
+stdout_logfile_maxbytes=10MB
+stdout_logfile_backups=5
+environment=PYTHONPATH="{{ mem0_home }}",MEM0_CONFIG="{{ mem0_home }}/config/mem0.config.json"

@@ -6,38 +6,72 @@ mem0 is a simple CCTV-like observer that helps AI agents stay on target during d
 
 ## Quick Start
 
-1. **Start the server:**
+### Prerequisites
+- PostgreSQL database (Docker recommended):
+  ```bash
+  docker run --name mem0-postgres -e POSTGRES_DB=mem0db -e POSTGRES_USER=mem0user -e POSTGRES_PASSWORD=mem0pass -p 5432:5432 -d postgres:15
+  ```
+
+### Starting mem0
+
+1. **Start the FastAPI server:**
    ```bash
    ./manage.sh start
    ```
 
-2. **Source shell integration (once per terminal):**
+2. **Start the MCP server (for AI tools like Claude Desktop):**
+   ```bash
+   cd server && python run_mcp_server.py
+   ```
+
+3. **Source shell integration (once per terminal):**
    ```bash
    source client/mem0.zsh
    ```
 
-3. **Turn on recording (like flipping a switch):**
+4. **Turn on recording (like flipping a switch):**
    ```bash
    mem0_on my-project
    # or just: mem0_on (uses current directory name)
    ```
 
-4. **Work normally - commands are captured silently:**
+5. **Work normally - commands are captured silently:**
    ```bash
    git status
    npm install
    ./run-tests.sh
    ```
 
-5. **Turn off when done:**
+6. **Turn off when done:**
    ```bash
    mem0_off
    ```
 
-6. **Let AI agents recall your session:**
+7. **Let AI agents recall your session:**
    ```bash
    ./client/mem0 recall --context my-project
    ```
+
+## Architecture Overview
+
+mem0 now runs a **dual-server architecture**:
+
+### FastAPI Server (Port 13370)
+- **Purpose**: REST API for CLI, shell integration, and VS Code extension
+- **Endpoints**: `/contexts`, `/memory`, `/memory/all`, etc.
+- **Usage**: Traditional HTTP clients and existing integrations
+
+### MCP Server (stdio transport)
+- **Purpose**: Model Context Protocol server for AI tools
+- **Clients**: Claude Desktop, VS Code with MCP support, other MCP-compatible tools
+- **Tools**: `remember`, `recall`, `context_start`, `context_stop`, `list_contexts`
+- **Resources**: Context listings, memory feeds, recent memories
+- **Prompts**: Analysis templates for AI consumption
+
+### Database Backend
+- **PostgreSQL**: Production database with full multi-user support
+- **SQLite fallback**: Development mode when PostgreSQL unavailable
+- **Schema**: User isolation, context-based memory organization
 
 ## Multi-Context Workflows
 

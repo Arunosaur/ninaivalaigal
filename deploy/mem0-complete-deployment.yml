@@ -1,0 +1,293 @@
+---
+# Complete mem0 Dual-Architecture Deployment Playbook
+# Deploys FastAPI + MCP servers with PostgreSQL from scratch
+
+- name: Deploy mem0 Complete System
+  hosts: mem0_servers
+  become: yes
+  vars:
+    mem0_version: "latest"
+    mem0_user: "mem0"
+    mem0_home: "/opt/mem0"
+    mem0_port: 13370
+    postgresql_version: "15"
+    mem0_db_name: "mem0db"
+    mem0_db_user: "mem0user"
+    mem0_db_password: "{{ vault_mem0_db_password | default('mem0pass') }}"
+    python_version: "3.11"
+    
+  tasks:
+    # System Setup
+    - name: Update system packages
+      package:
+        name: "*"
+        state: latest
+      when: ansible_os_family == "RedHat"
+
+    - name: Update system packages (Debian/Ubuntu)
+      apt:
+        upgrade: dist
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install system dependencies
+      package:
+        name:
+          - git
+          - curl
+          - wget
+          - unzip
+          - supervisor
+          - nginx
+          - python3
+          - python3-pip
+          - python3-venv
+          - build-essential
+        state: present
+
+    # PostgreSQL Installation
+    - name: Install PostgreSQL
+      package:
+        name:
+          - postgresql-{{ postgresql_version }}
+          - postgresql-{{ postgresql_version }}-server
+          - postgresql-contrib
+          - python3-psycopg2
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install PostgreSQL (Debian/Ubuntu)
+      package:
+        name:
+          - postgresql-{{ postgresql_version }}
+          - postgresql-contrib
+          - python3-psycopg2
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Initialize PostgreSQL database
+      command: postgresql-setup --initdb
+      args:
+        creates: /var/lib/pgsql/{{ postgresql_version }}/data/postgresql.conf
+      when: ansible_os_family == "RedHat"
+
+    - name: Start and enable PostgreSQL
+      systemd:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Configure PostgreSQL authentication
+      lineinfile:
+        path: "{{ postgresql_config_path }}"
+        regexp: '^local\s+all\s+all\s+peer$'
+        line: 'local   all             all                                     md5'
+        backup: yes
+      vars:
+        postgresql_config_path: "{{ '/var/lib/pgsql/' + postgresql_version + '/data/pg_hba.conf' if ansible_os_family == 'RedHat' else '/etc/postgresql/' + postgresql_version + '/main/pg_hba.conf' }}"
+      notify: restart postgresql
+
+    # Database Setup
+    - name: Create mem0 database user
+      postgresql_user:
+        name: "{{ mem0_db_user }}"
+        password: "{{ mem0_db_password }}"
+        role_attr_flags: CREATEDB,NOSUPERUSER
+        state: present
+      become_user: postgres
+
+    - name: Create mem0 database
+      postgresql_db:
+        name: "{{ mem0_db_name }}"
+        owner: "{{ mem0_db_user }}"
+        state: present
+      become_user: postgres
+
+    # User and Directory Setup
+    - name: Create mem0 system user
+      user:
+        name: "{{ mem0_user }}"
+        home: "{{ mem0_home }}"
+        shell: /bin/bash
+        system: yes
+        create_home: yes
+
+    - name: Create mem0 directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ mem0_user }}"
+        group: "{{ mem0_user }}"
+        mode: '0755'
+      loop:
+        - "{{ mem0_home }}"
+        - "{{ mem0_home }}/server"
+        - "{{ mem0_home }}/client"
+        - "{{ mem0_home }}/logs"
+        - "{{ mem0_home }}/config"
+
+    # Application Deployment
+    - name: Clone mem0 repository
+      git:
+        repo: "{{ mem0_repo_url | default('https://github.com/yourusername/mem0.git') }}"
+        dest: "{{ mem0_home }}/source"
+        version: "{{ mem0_version }}"
+        force: yes
+      become_user: "{{ mem0_user }}"
+
+    - name: Copy server files
+      copy:
+        src: "{{ mem0_home }}/source/server/"
+        dest: "{{ mem0_home }}/server/"
+        owner: "{{ mem0_user }}"
+        group: "{{ mem0_user }}"
+        mode: '0644'
+        remote_src: yes
+
+    - name: Copy client files
+      copy:
+        src: "{{ mem0_home }}/source/client/"
+        dest: "{{ mem0_home }}/client/"
+        owner: "{{ mem0_user }}"
+        group: "{{ mem0_user }}"
+        mode: '0755'
+        remote_src: yes
+
+    # Python Environment Setup
+    - name: Create Python virtual environment
+      command: python3 -m venv {{ mem0_home }}/venv
+      args:
+        creates: "{{ mem0_home }}/venv/bin/activate"
+      become_user: "{{ mem0_user }}"
+
+    - name: Install Python dependencies
+      pip:
+        requirements: "{{ mem0_home }}/server/requirements.txt"
+        virtualenv: "{{ mem0_home }}/venv"
+      become_user: "{{ mem0_user }}"
+
+    - name: Install additional MCP dependencies
+      pip:
+        name:
+          - fastmcp
+          - mcp
+        virtualenv: "{{ mem0_home }}/venv"
+      become_user: "{{ mem0_user }}"
+
+    # Configuration Files
+    - name: Create mem0 configuration
+      template:
+        src: mem0.config.json.j2
+        dest: "{{ mem0_home }}/config/mem0.config.json"
+        owner: "{{ mem0_user }}"
+        group: "{{ mem0_user }}"
+        mode: '0644'
+
+    - name: Create MCP client configuration
+      template:
+        src: mcp-client-config.json.j2
+        dest: "{{ mem0_home }}/config/mcp-client-config.json"
+        owner: "{{ mem0_user }}"
+        group: "{{ mem0_user }}"
+        mode: '0644'
+
+    # Service Configuration
+    - name: Create FastAPI service configuration
+      template:
+        src: mem0-fastapi.conf.j2
+        dest: /etc/supervisor/conf.d/mem0-fastapi.conf
+        mode: '0644'
+      notify: restart supervisor
+
+    - name: Create MCP service configuration
+      template:
+        src: mem0-mcp.conf.j2
+        dest: /etc/supervisor/conf.d/mem0-mcp.conf
+        mode: '0644'
+      notify: restart supervisor
+
+    # Nginx Configuration
+    - name: Create nginx configuration for mem0
+      template:
+        src: mem0-nginx.conf.j2
+        dest: /etc/nginx/sites-available/mem0
+        mode: '0644'
+      notify: restart nginx
+
+    - name: Enable mem0 nginx site
+      file:
+        src: /etc/nginx/sites-available/mem0
+        dest: /etc/nginx/sites-enabled/mem0
+        state: link
+      notify: restart nginx
+
+    - name: Remove default nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
+
+    # Database Initialization
+    - name: Initialize mem0 database schema
+      command: "{{ mem0_home }}/venv/bin/python -c 'from server.database import DatabaseManager; db = DatabaseManager(\"postgresql://{{ mem0_db_user }}:{{ mem0_db_password }}@localhost:5432/{{ mem0_db_name }}\"); db.create_tables()'"
+      args:
+        chdir: "{{ mem0_home }}"
+      become_user: "{{ mem0_user }}"
+
+    # Service Management
+    - name: Start and enable supervisor
+      systemd:
+        name: supervisor
+        state: started
+        enabled: yes
+
+    - name: Start and enable nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    # Health Checks
+    - name: Wait for FastAPI service to start
+      wait_for:
+        port: "{{ mem0_port }}"
+        host: localhost
+        timeout: 60
+
+    - name: Test FastAPI health
+      uri:
+        url: "http://localhost:{{ mem0_port }}/contexts"
+        method: GET
+      register: fastapi_health
+
+    - name: Test MCP server
+      command: "{{ mem0_home }}/venv/bin/python {{ mem0_home }}/server/test_mcp.py"
+      args:
+        chdir: "{{ mem0_home }}"
+      become_user: "{{ mem0_user }}"
+      register: mcp_health
+
+    - name: Display deployment results
+      debug:
+        msg:
+          - "FastAPI Server: {{ 'HEALTHY' if fastapi_health.status == 200 else 'FAILED' }}"
+          - "MCP Server: {{ 'HEALTHY' if 'test completed' in mcp_health.stdout else 'FAILED' }}"
+          - "Database: Connected to PostgreSQL"
+          - "Services: Running under supervisor"
+          - "Web Access: http://{{ ansible_host }}:{{ mem0_port }}"
+
+  handlers:
+    - name: restart postgresql
+      systemd:
+        name: postgresql
+        state: restarted
+
+    - name: restart supervisor
+      systemd:
+        name: supervisor
+        state: restarted
+
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
