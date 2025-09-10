@@ -6,36 +6,32 @@ mem0 is a universal memory layer that captures and recalls your terminal command
 
 ## Quick Start
 
-### 1. Start the Server
-```bash
-./manage.sh start
-```
+1. **Start the server:**
+   ```bash
+   ./manage.sh start
+   ```
 
-### 2. Source the Shell Integration
-```bash
-source ~/Workspace/mem0/client/mem0.zsh
-export MEM0_DEBUG=1  # Optional: Enable debug logging
-```
+2. **Source shell integration (once per terminal):**
+   ```bash
+   source client/mem0.zsh
+   ```
 
-### 3. Create and Start a Context
-```bash
-./client/mem0 context start my-project
-```
+3. **Start a context with automatic terminal setup:**
+   ```bash
+   mem0_context_start my-project
+   ```
 
-### 4. Work Normally
-Your commands are now automatically captured:
-```bash
-git status
-npm install
-python main.py
-```
+4. **Work normally - commands are captured automatically:**
+   ```bash
+   git status
+   npm install
+   ./run-tests.sh
+   ```
 
-### 5. Recall Your Work
-```bash
-./client/mem0 recall
-# or recall from a specific context
-./client/mem0 recall --context my-project
-```
+5. **Recall your session:**
+   ```bash
+   ./client/mem0 recall --context my-project
+   ```
 
 ## Multi-Context Workflows
 
@@ -43,33 +39,41 @@ python main.py
 
 **Terminal 1 - Frontend Work:**
 ```bash
-export MEM0_CONTEXT=frontend-app
-./client/mem0 context start frontend-app
+source client/mem0.zsh
+mem0_context_start frontend-app
 npm run dev
 git commit -m "Add new component"
 ```
 
 **Terminal 2 - Backend Work:**
 ```bash
-export MEM0_CONTEXT=backend-api
-./client/mem0 context start backend-api
+source client/mem0.zsh
+mem0_context_start backend-api
 python manage.py migrate
 pytest tests/
 ```
 
 **Terminal 3 - DevOps Work:**
 ```bash
-export MEM0_CONTEXT=infrastructure
-./client/mem0 context start infrastructure
+source client/mem0.zsh
+mem0_context_start infrastructure
 docker build -t myapp .
 kubectl apply -f deployment.yaml
 ```
 
 ### Context Management Commands
 
-#### Start a New Context
+#### Start a New Context (Recommended)
 ```bash
+# Automatic terminal setup - recommended approach
+mem0_context_start <context-name>
+```
+
+#### Start a New Context (Manual)
+```bash
+# Manual approach - requires separate export
 ./client/mem0 context start <context-name>
+export MEM0_CONTEXT=<context-name>
 ```
 
 #### List All Contexts
@@ -90,9 +94,18 @@ kubectl apply -f deployment.yaml
 ./client/mem0 context stop
 ```
 
-#### Delete a Context
+#### Delete a Context (Recommended)
 ```bash
+# Automatic cleanup - recommended approach
+mem0_context_delete <context-name>
+```
+
+#### Delete a Context (Manual)
+```bash
+# Manual approach - requires manual cleanup
 ./client/mem0 context delete <context-name>
+# If this was your active context, also run:
+unset MEM0_CONTEXT
 ```
 **Warning:** This permanently deletes the context and all its memories.
 
