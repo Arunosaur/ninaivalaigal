@@ -9,6 +9,7 @@ import argparse
 import requests
 import json
 import subprocess
+from datetime import datetime
 
 # Configuration loading
 def load_config():
@@ -54,14 +55,24 @@ def get_active_context():
 
 def remember(args):
     context = args.context if args.context else get_active_context()
+    
+    # Handle both JSON and plain text input
     try:
-        # The server expects the payload to be a nested object
-        payload_data = json.loads(args.json_payload)
+        # Try to parse as JSON first
+        payload_data = json.loads(args.text_or_json)
         if not all(k in payload_data for k in ['type', 'source', 'data']):
-            raise ValueError("Payload must contain 'type', 'source', and 'data' keys.")
-    except (json.JSONDecodeError, ValueError) as e:
-        print(f"Error: Invalid JSON provided for payload. {e}")
-        return
+            raise ValueError("JSON payload must contain 'type', 'source', and 'data' keys.")
+    except (json.JSONDecodeError, ValueError):
+        # If not JSON, treat as plain text and create structured payload
+        payload_data = {
+            "type": "note",
+            "source": "cli",
+            "data": {
+                "text": args.text_or_json,
+                "timestamp": str(datetime.now()),
+                "context": context
+            }
+        }
 
     payload = {
         "context": context,
@@ -83,16 +94,27 @@ def remember(args):
 
 def recall(args):
     try:
-        context = args.context if args.context else get_active_context()
-    except ValueError as e:
-        print(f"Error: {e}")
-        return
-    
-    try:
-        response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=REQUEST_TIMEOUT)
+        if args.context:
+            # Specific context requested
+            context = args.context
+            response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=REQUEST_TIMEOUT)
+        else:
+            # No context specified - show all memories from all contexts
+            response = requests.get(f"{API_URL}/memory/all", timeout=REQUEST_TIMEOUT)
+        
         response.raise_for_status()
-        for entry in response.json():
+        memories = response.json()
+        
+        if not memories:
+            if args.context:
+                print(f"No memories found for context: {args.context}")
+            else:
+                print("No memories found in any context")
+            return
+            
+        for entry in memories:
             print(json.dumps(entry, indent=4))
+            
     except requests.exceptions.ConnectionError:
         print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
     except requests.exceptions.Timeout:
@@ -107,7 +129,7 @@ def context_start(args):
         response = requests.post(f"{API_URL}/context/start", params={"context": args.name}, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         print(response.json()["message"])
-        print(f"Use: mem0_context_start {args.name} (for automatic terminal setup)")
+        print(f"Use: mem0_context_start {args.name} (for shell integration)")
     except requests.exceptions.ConnectionError:
         print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
     except requests.exceptions.Timeout:
@@ -237,7 +259,7 @@ def main():
 
     # Remember command
     parser_remember = subparsers.add_parser("remember", help="Store a memory.")
-    parser_remember.add_argument("json_payload", help="The structured memory to store, as a JSON string.")
+    parser_remember.add_argument("text_or_json", help="The memory to store - either plain text or JSON string.")
     parser_remember.add_argument("--context", help="The context to store the memory in. Defaults to the current git branch or directory name.")
     parser_remember.set_defaults(func=remember)
 
