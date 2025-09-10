@@ -9,6 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
     const handler: vscode.ChatRequestHandler = (request: vscode.ChatRequest, chatContext: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken): Thenable<any> => {
         
         return new Promise<any>((resolve) => {
+            stream.markdown(`**Extension activated - processing request: "${request.prompt}"**\n\n`);
             // Auto-detect mem0 installation
             let mem0CliPath: string;
             let projectContext: string;
