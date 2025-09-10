@@ -1,0 +1,66 @@
+<idea-plugin>
+    <id>com.mem0.jetbrains</id>
+    <name>mem0</name>
+    <version>0.1.0</version>
+    <vendor email="support@mem0.dev" url="https://github.com/mem0-ai/mem0">mem0</vendor>
+
+    <description><![CDATA[
+    A memory layer for your development environment. mem0 captures and recalls context across your development workflow.
+    
+    Features:
+    - Context-aware memory capture
+    - Integration with AI assistants
+    - Multi-project context isolation
+    - Terminal command integration
+    ]]></description>
+
+    <change-notes><![CDATA[
+    Initial release:
+    - Basic mem0 integration
+    - Context management
+    - Memory operations
+    ]]></change-notes>
+
+    <idea-version since-build="221"/>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Tool Window -->
+        <toolWindow id="mem0" secondary="true" anchor="right" 
+                   factoryClass="com.mem0.jetbrains.toolwindow.Mem0ToolWindowFactory"/>
+        
+        <!-- Actions -->
+        <action id="mem0.remember" class="com.mem0.jetbrains.actions.RememberAction" 
+                text="Remember Selection" description="Remember selected text/code">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift M"/>
+        </action>
+        
+        <action id="mem0.recall" class="com.mem0.jetbrains.actions.RecallAction"
+                text="Recall Memories" description="Recall memories for current context">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift R"/>
+        </action>
+        
+        <action id="mem0.contextStart" class="com.mem0.jetbrains.actions.ContextStartAction"
+                text="Start mem0 Context" description="Start a new mem0 context">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+
+        <!-- Settings -->
+        <applicationConfigurable parentId="tools" instance="com.mem0.jetbrains.settings.Mem0Settings"
+                               id="com.mem0.jetbrains.settings" displayName="mem0"/>
+    </extensions>
+
+    <actions>
+        <group id="mem0.MainGroup" text="mem0" description="mem0 Actions">
+            <add-to-group group-id="MainMenu" anchor="last"/>
+            <action id="mem0.contextMenu" class="com.mem0.jetbrains.actions.ContextMenuAction"
+                    text="Context Management" description="Manage mem0 contexts"/>
+            <separator/>
+            <reference ref="mem0.remember"/>
+            <reference ref="mem0.recall"/>
+        </group>
+    </actions>
+</idea-plugin>

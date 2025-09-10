@@ -1,7 +1,177 @@
-var k=Object.create;var m=Object.defineProperty;var R=Object.getOwnPropertyDescriptor;var b=Object.getOwnPropertyNames;var x=Object.getPrototypeOf,j=Object.prototype.hasOwnProperty;var y=(o,t)=>{for(var e in t)m(o,e,{get:t[e],enumerable:!0})},v=(o,t,e,s)=>{if(t&&typeof t=="object"||typeof t=="function")for(let r of b(t))!j.call(o,r)&&r!==e&&m(o,r,{get:()=>t[r],enumerable:!(s=R(t,r))||s.enumerable});return o};var u=(o,t,e)=>(e=o!=null?k(x(o)):{},v(t||!o||!o.__esModule?m(e,"default",{value:o,enumerable:!0}):e,o)),P=o=>v(m({},"__esModule",{value:!0}),o);var S={};y(S,{activate:()=>T,deactivate:()=>E});module.exports=P(S);var n=u(require("vscode")),g=require("child_process"),C=u(require("path"));function T(o){let t=(s,r,c,$)=>new Promise(d=>{let p=n.workspace.getConfiguration("mem0").get("projectRoot");if(!p)return c.markdown("**Error:** Please set the `mem0.projectRoot` setting to the absolute path of your mem0 project."),d({commands:[]});let w=C.resolve(p,"client/mem0");if(s.prompt.trim()==="observe"){c.markdown(`Observing chat history...
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-`);for(let a of r.history)a instanceof n.ChatResponseTurn&&c.markdown(`- Found a response from **@${a.participant}**
-`);return d({commands:[]})}let[h,...l]=s.prompt.trim().split(/\s+/),i;h==="remember"?i=[l.join(" ")]:h==="recall"?i=[]:i=l;let f=(0,g.spawn)(w,[h,...i],{cwd:p});f.stdout.on("data",a=>{c.markdown(a.toString())}),f.stderr.on("data",a=>{c.markdown(`**Error:**
+// src/extension.ts
+var extension_exports = {};
+__export(extension_exports, {
+  activate: () => activate,
+  deactivate: () => deactivate
+});
+module.exports = __toCommonJS(extension_exports);
+var vscode = __toESM(require("vscode"));
+var { spawn } = require("child_process");
+var path = require("path");
+var os = require("os");
+var fs = require("fs");
+function activate(context) {
+  const handler = (request, chatContext, stream, token) => {
+    return new Promise((resolve) => {
+      let mem0CliPath;
+      let projectContext;
+      const workspaceConfig = vscode.workspace.getConfiguration("mem0");
+      const configuredRoot = workspaceConfig.get("projectRoot");
+      if (configuredRoot) {
+        mem0CliPath = path.resolve(configuredRoot, "client/mem0");
+      } else {
+        const possiblePaths = [
+          path.join(os.homedir(), "Workspace/mem0/client/mem0"),
+          path.join(os.homedir(), "workspace/mem0/client/mem0"),
+          path.join(os.homedir(), "Projects/mem0/client/mem0"),
+          path.join(os.homedir(), "projects/mem0/client/mem0"),
+          "/usr/local/bin/mem0",
+          "mem0"
+          // Try PATH
+        ];
+        mem0CliPath = possiblePaths.find((p) => {
+          try {
+            fs.accessSync(p);
+            return true;
+          } catch {
+            return false;
+          }
+        }) || "mem0";
+      }
+      if (request.prompt.trim().startsWith("context ")) {
+        const contextArgs = request.prompt.trim().split(/\s+/).slice(1);
+        const contextCommand = contextArgs[0];
+        if (contextCommand === "start" && contextArgs[1]) {
+          projectContext = contextArgs[1];
+          stream.markdown(`\u{1F3AF} **Started context:** \`${projectContext}\`
+
+`);
+        } else if (contextCommand === "list") {
+          const child2 = spawn(mem0CliPath, ["contexts"], {
+            cwd: configuredRoot || os.homedir(),
+            env: { ...require("process").env }
+          });
+          child2.stdout.on("data", (data) => {
+            stream.markdown(data.toString());
+          });
+          child2.stderr.on("data", (data) => {
+            stream.markdown(`**Error:**
 \`\`\`
-${a.toString()}
-\`\`\``)}),f.on("close",a=>{d({commands:[]})})}),e=n.chat.createChatParticipant("mem0",t);e.iconPath=new n.ThemeIcon("beaker")}function E(){}0&&(module.exports={activate,deactivate});
+${data.toString()}
+\`\`\``);
+          });
+          child2.on("close", (code) => {
+            resolve({ commands: [] });
+          });
+          return;
+        } else if (contextCommand === "switch" && contextArgs[1]) {
+          projectContext = contextArgs[1];
+          stream.markdown(`\u{1F3AF} **Switched to context:** \`${projectContext}\`
+
+`);
+        } else {
+          stream.markdown(`**Usage:**
+- \`@mem0 context start <name>\` - Start new context
+- \`@mem0 context switch <name>\` - Switch to existing context
+- \`@mem0 context list\` - List all contexts
+
+`);
+          return resolve({ commands: [] });
+        }
+      } else {
+        const workspaceConfig2 = vscode.workspace.getConfiguration("mem0");
+        const explicitContext = workspaceConfig2.get("context");
+        if (explicitContext) {
+          projectContext = explicitContext;
+          stream.markdown(`\u{1F3AF} **Context:** \`${projectContext}\` (from settings)
+
+`);
+        } else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+          const workspaceFolder = vscode.workspace.workspaceFolders[0];
+          projectContext = path.basename(workspaceFolder.uri.fsPath);
+          stream.markdown(`\u{1F3AF} **Context:** \`${projectContext}\` (auto-detected from workspace)
+
+`);
+        } else {
+          projectContext = "vscode-session";
+          stream.markdown(`\u{1F3AF} **Context:** \`${projectContext}\` (default session)
+
+`);
+        }
+      }
+      if (request.prompt.trim() === "observe") {
+        stream.markdown("Observing chat history...\n\n");
+        for (const turn of chatContext.history) {
+          if (turn instanceof vscode.ChatResponseTurn) {
+            stream.markdown(`- Found a response from **@${turn.participant}**
+`);
+          }
+        }
+        return resolve({ commands: [] });
+      }
+      const [command, ...rest] = request.prompt.trim().split(/\s+/);
+      let args;
+      if (command === "remember") {
+        args = [rest.join(" ")];
+      } else if (command === "recall") {
+        args = [];
+      } else {
+        args = rest;
+      }
+      const child = spawn(mem0CliPath, [command, ...args], {
+        cwd: configuredRoot || os.homedir(),
+        env: { ...require("process").env, MEM0_CONTEXT: projectContext }
+      });
+      child.stdout.on("data", (data) => {
+        stream.markdown(data.toString());
+      });
+      child.stderr.on("data", (data) => {
+        stream.markdown(`**Error:**
+\`\`\`
+${data.toString()}
+\`\`\``);
+      });
+      child.on("close", (code) => {
+        resolve({ commands: [] });
+      });
+    });
+  };
+  const agent = vscode.chat.createChatParticipant("mem0", handler);
+  agent.iconPath = new vscode.ThemeIcon("beaker");
+}
+function deactivate() {
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  activate,
+  deactivate
+});
+//# sourceMappingURL=extension.js.map

@@ -6,8 +6,13 @@ This document provides comprehensive guidance for integrating mem0 with various 
 
 ### ✅ VS Code Extension (Available)
 - **Location**: `vscode-client/`
-- **Status**: Implemented with chat participant
-- **Features**: Remember/recall commands via VS Code chat interface
+- **Status**: Full context management with chat participant
+- **Features**: Auto-context detection, explicit context commands, remember/recall
+
+### ✅ JetBrains Plugin (Available)
+- **Location**: `jetbrains-plugin/`
+- **Status**: Native plugin with full IDE integration
+- **Features**: Keyboard shortcuts, tool window, context menus, settings
 
 ### ✅ Terminal Integration (zsh/bash)
 - **Location**: `client/mem0.zsh`
@@ -73,7 +78,22 @@ export MEM0_DEBUG=1
 
 ### 3. JetBrains IDEs Integration
 
-**Method 1: External Tools**
+**Method 1: Native Plugin (Recommended)**
+```bash
+# Install the mem0 JetBrains plugin
+cd jetbrains-plugin
+./gradlew buildPlugin
+# Install from: Settings → Plugins → Install from disk → mem0-jetbrains-0.1.0.zip
+```
+
+**Features:**
+- **Keyboard shortcuts**: Ctrl+Shift+M (remember), Ctrl+Shift+R (recall)
+- **Context menu**: Right-click → "Remember Selection"
+- **Tool window**: View → Tool Windows → mem0
+- **Auto-context detection**: Uses project folder name
+- **Settings**: Configure server URL, CLI path, default context
+
+**Method 2: External Tools (Alternative)**
 1. Go to Settings → Tools → External Tools
 2. Add new tool:
    - Name: "mem0 Remember"
@@ -81,14 +101,9 @@ export MEM0_DEBUG=1
    - Arguments: `remember "$SELECTION$" --context $Prompt$`
    - Working Directory: `$ProjectFileDir$`
 
-**Method 2: Terminal Integration**
+**Method 3: Terminal Integration**
 - Use built-in terminal with zsh integration
 - Commands automatically captured when context is active
-
-**Method 3: Custom Plugin (Future)**
-- Create IntelliJ IDEA plugin
-- Integrate with IDE's indexing system
-- Capture code changes, refactoring actions
 
 ### 4. Zed Editor Integration
 

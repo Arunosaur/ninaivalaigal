@@ -32,6 +32,16 @@
                     "type": "string",
                     "default": "",
                     "description": "The absolute path to the root of your mem0 project."
+                },
+                "mem0.context": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Explicit context name for this workspace (overrides auto-detection)."
+                },
+                "mem0.serverUrl": {
+                    "type": "string",
+                    "default": "http://127.0.0.1:13370",
+                    "description": "URL of the mem0 server."
                 }
             }
         }
@@ -44,6 +54,7 @@
     },
     "devDependencies": {
         "@types/vscode": "^1.88.0",
+        "@types/node": "^20.0.0",
         "esbuild": "^0.21.4",
         "typescript": "^5.4.5",
         "fs-extra": "^11.2.0"
