@@ -5,6 +5,12 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import os
+from performance_monitor import (
+    get_performance_monitor,
+    record_request,
+    record_db_query,
+    start_performance_monitoring
+)
 from database import DatabaseManager, User, Organization, Team, TeamMember, ContextPermission, RecordingContext
 from auth import (
     User, UserCreate, UserLogin, Token, 

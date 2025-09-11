@@ -124,6 +124,42 @@ mem0_on() {
     echo "mem0 recording: $context_name"
 }
 
+# Wrapper function that matches the CLI suggestion
+mem0_context_start() {
+    local context_name="$1"
+    if [[ -z "$context_name" ]]; then
+        echo "Usage: mem0_context_start <context_name>"
+        return 1
+    fi
+    
+    # Create or activate the context
+    ~/Workspace/mem0/client/mem0 context start "$context_name"
+    
+    # Set the terminal environment variable
+    export MEM0_CONTEXT="$context_name"
+    mem0_clear_cache
+    echo "Terminal context set to: $context_name"
+}
+
+# Function to delete context and clean up environment
+mem0_context_delete() {
+    local context_name="$1"
+    if [[ -z "$context_name" ]]; then
+        echo "Usage: mem0_context_delete <context_name>"
+        return 1
+    fi
+    
+    # Delete the context
+    ~/Workspace/mem0/client/mem0 context delete "$context_name"
+    
+    # Clear environment if this was the active context
+    if [[ "$MEM0_CONTEXT" == "$context_name" ]]; then
+        unset MEM0_CONTEXT
+        mem0_clear_cache
+        echo "Terminal context cleared"
+    fi
+}
+
 mem0_off() {
     if [[ -n "$MEM0_CONTEXT" ]]; then
         echo "mem0 stopped: $MEM0_CONTEXT"

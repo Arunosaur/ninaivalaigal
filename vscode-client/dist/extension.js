@@ -1,177 +1,48 @@
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var q=Object.create;var C=Object.defineProperty;var y=Object.getOwnPropertyDescriptor;var E=Object.getOwnPropertyNames;var N=Object.getPrototypeOf,O=Object.prototype.hasOwnProperty;var I=(o,i)=>{for(var r in i)C(o,r,{get:i[r],enumerable:!0})},F=(o,i,r,a)=>{if(i&&typeof i=="object"||typeof i=="function")for(let m of E(i))!O.call(o,m)&&m!==r&&C(o,m,{get:()=>i[m],enumerable:!(a=y(i,m))||a.enumerable});return o};var T=(o,i,r)=>(r=o!=null?q(N(o)):{},F(i||!o||!o.__esModule?C(r,"default",{value:o,enumerable:!0}):r,o)),W=o=>F(C({},"__esModule",{value:!0}),o);var M={};I(M,{activate:()=>D,deactivate:()=>L});module.exports=W(M);var s=T(require("vscode")),{spawn:b}=require("child_process"),x=require("path"),d=require("os"),A=require("fs"),$="";function D(o){console.log("mem0 extension activating..."),s.window.showInformationMessage("mem0 extension is activating!");let i=(a,m,n,H)=>new Promise(g=>{n.markdown(`**Extension activated - processing request: "${a.prompt}"**
 
-// src/extension.ts
-var extension_exports = {};
-__export(extension_exports, {
-  activate: () => activate,
-  deactivate: () => deactivate
-});
-module.exports = __toCommonJS(extension_exports);
-var vscode = __toESM(require("vscode"));
-var { spawn } = require("child_process");
-var path = require("path");
-var os = require("os");
-var fs = require("fs");
-function activate(context) {
-  const handler = (request, chatContext, stream, token) => {
-    return new Promise((resolve) => {
-      let mem0CliPath;
-      let projectContext;
-      const workspaceConfig = vscode.workspace.getConfiguration("mem0");
-      const configuredRoot = workspaceConfig.get("projectRoot");
-      if (configuredRoot) {
-        mem0CliPath = path.resolve(configuredRoot, "client/mem0");
-      } else {
-        const possiblePaths = [
-          path.join(os.homedir(), "Workspace/mem0/client/mem0"),
-          path.join(os.homedir(), "workspace/mem0/client/mem0"),
-          path.join(os.homedir(), "Projects/mem0/client/mem0"),
-          path.join(os.homedir(), "projects/mem0/client/mem0"),
-          "/usr/local/bin/mem0",
-          "mem0"
-          // Try PATH
-        ];
-        mem0CliPath = possiblePaths.find((p) => {
-          try {
-            fs.accessSync(p);
-            return true;
-          } catch {
-            return false;
-          }
-        }) || "mem0";
-      }
-      if (request.prompt.trim().startsWith("context ")) {
-        const contextArgs = request.prompt.trim().split(/\s+/).slice(1);
-        const contextCommand = contextArgs[0];
-        if (contextCommand === "start" && contextArgs[1]) {
-          projectContext = contextArgs[1];
-          stream.markdown(`\u{1F3AF} **Started context:** \`${projectContext}\`
+`);let f,c,h=s.workspace.getConfiguration("mem0").get("projectRoot");h?f=x.resolve(h,"client/mem0"):f=[x.join(d.homedir(),"Workspace/mem0/client/mem0"),x.join(d.homedir(),"workspace/mem0/client/mem0"),x.join(d.homedir(),"Projects/mem0/client/mem0"),x.join(d.homedir(),"projects/mem0/client/mem0"),"/usr/local/bin/mem0","mem0"].find(w=>{try{return A.accessSync(w),!0}catch{return!1}})||"mem0";let P=s.workspace.getConfiguration("mem0").get("context");if($)c=$;else if(P)c=P;else if(s.workspace.workspaceFolders&&s.workspace.workspaceFolders.length>0){let e=s.workspace.workspaceFolders[0];c=x.basename(e.uri.fsPath)}else c="vscode-session";if(a.prompt.trim().startsWith("context ")){let e=a.prompt.trim().split(/\s+/).slice(1),w=e[0];if(w==="start"&&e[1])$=e[1],c=$,n.markdown(`\u{1F3AF} **Started context:** \`${c}\`
 
-`);
-        } else if (contextCommand === "list") {
-          const child2 = spawn(mem0CliPath, ["contexts"], {
-            cwd: configuredRoot || os.homedir(),
-            env: { ...require("process").env }
-          });
-          child2.stdout.on("data", (data) => {
-            stream.markdown(data.toString());
-          });
-          child2.stderr.on("data", (data) => {
-            stream.markdown(`**Error:**
+`),b(f,["context","start",c],{cwd:h||d.homedir(),env:{...require("process").env}}).on("close",t=>{t===0?n.markdown(`\u2705 **Automatic recording started for context:** \`${c}\`
+
+`):n.markdown(`\u274C **Failed to start recording for context:** \`${c}\`
+
+`)});else if(w==="list"){let p=b(f,["contexts"],{cwd:h||d.homedir(),env:{...require("process").env}});p.stdout.on("data",t=>{n.markdown(t.toString())}),p.stderr.on("data",t=>{n.markdown(`**Error:**
 \`\`\`
-${data.toString()}
-\`\`\``);
-          });
-          child2.on("close", (code) => {
-            resolve({ commands: [] });
-          });
-          return;
-        } else if (contextCommand === "switch" && contextArgs[1]) {
-          projectContext = contextArgs[1];
-          stream.markdown(`\u{1F3AF} **Switched to context:** \`${projectContext}\`
+${t.toString()}
+\`\`\``)}),p.on("close",t=>{g({commands:[]})});return}else if(w==="switch"&&e[1])c=e[1],n.markdown(`\u{1F3AF} **Switched to context:** \`${c}\`
 
-`);
-        } else {
-          stream.markdown(`**Usage:**
-- \`@mem0 context start <name>\` - Start new context
-- \`@mem0 context switch <name>\` - Switch to existing context
-- \`@mem0 context list\` - List all contexts
+`);else return n.markdown("**Usage:**\n- `@mem0 context start <name>` - Start new context\n- `@mem0 context switch <name>` - Switch to existing context\n- `@mem0 context list` - List all contexts\n\n"),g({commands:[]})}if(n.markdown(`\u{1F3AF} **Context:** \`${c}\`
 
-`);
-          return resolve({ commands: [] });
-        }
-      } else {
-        const workspaceConfig2 = vscode.workspace.getConfiguration("mem0");
-        const explicitContext = workspaceConfig2.get("context");
-        if (explicitContext) {
-          projectContext = explicitContext;
-          stream.markdown(`\u{1F3AF} **Context:** \`${projectContext}\` (from settings)
+`),a.prompt.trim()==="observe"){n.markdown(`Observing chat history...
 
-`);
-        } else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-          const workspaceFolder = vscode.workspace.workspaceFolders[0];
-          projectContext = path.basename(workspaceFolder.uri.fsPath);
-          stream.markdown(`\u{1F3AF} **Context:** \`${projectContext}\` (auto-detected from workspace)
+`);for(let e of m.history)e instanceof s.ChatResponseTurn&&n.markdown(`- Found a response from **@${e.participant}**
+`);return g({commands:[]})}let[k,...v]=a.prompt.trim().split(/\s+/),l;k==="remember"?l=["remember",v.join(" "),"--context",c]:k==="recall"?v.length>0?l=["recall","--context",v.join(" ")]:l=["recall","--context",c]:k==="contexts"?l=["contexts"]:l=[k,...v],n.markdown(`**Debug Info:**
+`),n.markdown(`- Command: \`${f} ${l.join(" ")}\`
+`),n.markdown(`- Working Directory: \`${h||d.homedir()}\`
+`),n.markdown(`- Project Context: \`${c}\`
 
-`);
-        } else {
-          projectContext = "vscode-session";
-          stream.markdown(`\u{1F3AF} **Context:** \`${projectContext}\` (default session)
+`);let S=b(f,l,{cwd:h||d.homedir(),env:{...require("process").env}}),u="",j="";S.stdout.on("data",e=>{u+=e.toString()}),S.stderr.on("data",e=>{j+=e.toString()}),S.on("close",e=>{if(n.markdown(`**Exit Code:** ${e}
 
-`);
-        }
-      }
-      if (request.prompt.trim() === "observe") {
-        stream.markdown("Observing chat history...\n\n");
-        for (const turn of chatContext.history) {
-          if (turn instanceof vscode.ChatResponseTurn) {
-            stream.markdown(`- Found a response from **@${turn.participant}**
-`);
-          }
-        }
-        return resolve({ commands: [] });
-      }
-      const [command, ...rest] = request.prompt.trim().split(/\s+/);
-      let args;
-      if (command === "remember") {
-        args = [rest.join(" ")];
-      } else if (command === "recall") {
-        args = [];
-      } else {
-        args = rest;
-      }
-      const child = spawn(mem0CliPath, [command, ...args], {
-        cwd: configuredRoot || os.homedir(),
-        env: { ...require("process").env, MEM0_CONTEXT: projectContext }
-      });
-      child.stdout.on("data", (data) => {
-        stream.markdown(data.toString());
-      });
-      child.stderr.on("data", (data) => {
-        stream.markdown(`**Error:**
+`),j&&n.markdown(`**Stderr:**
 \`\`\`
-${data.toString()}
-\`\`\``);
-      });
-      child.on("close", (code) => {
-        resolve({ commands: [] });
-      });
-    });
-  };
-  const agent = vscode.chat.createChatParticipant("mem0", handler);
-  agent.iconPath = new vscode.ThemeIcon("beaker");
-}
-function deactivate() {
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  activate,
-  deactivate
-});
-//# sourceMappingURL=extension.js.map
+${j}
+\`\`\`
+
+`),u){n.markdown(`**Raw Output:**
+\`\`\`json
+${u}
+\`\`\`
+
+`);try{let p=u.trim().split(`
+`).filter(t=>t.trim()&&!t.includes("NotOpenSSLWarning")).map(t=>JSON.parse(t));n.markdown(`**Found ${p.length} memories:**
+
+`),p.forEach((t,R)=>{n.markdown(`${R+1}. **${t.type}** (${t.context||"no context"})
+`),t.data&&t.data.text&&n.markdown(`   ${t.data.text}
+`),n.markdown(`   *Created: ${t.created_at}*
+
+`)})}catch{n.markdown(`**Formatted Output:**
+${u}
+
+`)}}else n.markdown(`**No output received**
+
+`);g({commands:[]})})}),r=s.chat.createChatParticipant("mem0",i);r.iconPath=new s.ThemeIcon("beaker"),o.subscriptions.push(r),console.log("mem0 extension activated successfully"),s.window.showInformationMessage("mem0 extension activated successfully!")}function L(){}0&&(module.exports={activate,deactivate});

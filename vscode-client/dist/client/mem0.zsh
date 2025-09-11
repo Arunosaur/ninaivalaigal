@@ -73,13 +73,39 @@ mem0_preexec() {
         return
     fi
 
+    # Store command for potential output capture
+    export MEM0_LAST_COMMAND="$1"
+    export MEM0_LAST_CONTEXT="$active_context"
+
     # Construct the JSON payload with just the command
-    local json_payload=$(printf '{ "type": "terminal_command", "source": "zsh_session", "data": { "command": "%s" } }' "$1")
+    local json_payload=$(printf '{ "type": "terminal_command", "source": "zsh_session", "data": { "command": "%s", "timestamp": "%s", "pwd": "%s" } }' "$1" "$(date -Iseconds)" "$(pwd)")
     mem0_debug "constructed payload: $json_payload"
 
     # Remember the command, in the background
     mem0_debug "sending command to mem0 server..."
-    (~/Workspace/mem0/client/mem0 remember "$json_payload" --context "$active_context" &>/dev/null; unset MEM0_PROCESSING) &
+    (~/Workspace/mem0/client/mem0 remember "$json_payload" --context "$active_context" &>/dev/null) &
+    
+    # Clear processing flag immediately after starting background job
+    unset MEM0_PROCESSING
+}
+
+# This function runs after each command completes
+mem0_precmd() {
+    # Only capture output if we have a recent command and context
+    if [[ -n "$MEM0_LAST_COMMAND" && -n "$MEM0_LAST_CONTEXT" ]]; then
+        local exit_code=$?
+        mem0_debug "precmd hook triggered, exit code: $exit_code"
+        
+        # Capture command result
+        local result_payload=$(printf '{ "type": "command_result", "source": "zsh_session", "data": { "command": "%s", "exit_code": %d, "timestamp": "%s", "pwd": "%s" } }' "$MEM0_LAST_COMMAND" "$exit_code" "$(date -Iseconds)" "$(pwd)")
+        
+        # Send result in background
+        (~/Workspace/mem0/client/mem0 remember "$result_payload" --context "$MEM0_LAST_CONTEXT" &>/dev/null) &
+        
+        # Clear stored command
+        unset MEM0_LAST_COMMAND
+        unset MEM0_LAST_CONTEXT
+    fi
 }
 
 # Function to clear the context cache (useful when context changes)
@@ -108,9 +134,9 @@ mem0_off() {
     fi
 }
 
-# Register the hook function
+# Register the hook functions
 if [[ -n "$ZSH_VERSION" ]]; then
-    # Check if our function is already in the array to avoid duplicates
+    # Check if our preexec function is already in the array to avoid duplicates
     if [[ ! " ${preexec_functions[@]} " =~ " mem0_preexec " ]]; then
         # Initialize preexec_functions array if it doesn't exist
         if [[ -z "$preexec_functions" ]]; then
@@ -122,6 +148,20 @@ if [[ -n "$ZSH_VERSION" ]]; then
         mem0_debug "mem0_preexec hook registered"
     else
         mem0_debug "mem0_preexec hook already registered"
+    fi
+    
+    # Check if our precmd function is already in the array to avoid duplicates
+    if [[ ! " ${precmd_functions[@]} " =~ " mem0_precmd " ]]; then
+        # Initialize precmd_functions array if it doesn't exist
+        if [[ -z "$precmd_functions" ]]; then
+            typeset -ga precmd_functions
+        fi
+        
+        # Add our function to the precmd_functions array
+        precmd_functions+=(mem0_precmd)
+        mem0_debug "mem0_precmd hook registered"
+    else
+        mem0_debug "mem0_precmd hook already registered"
     fi
 else
     # For bash or other shells
