@@ -1,56 +1,103 @@
 # mem0 User Guide
 
-## Overview
+## Welcome to mem0
 
-mem0 is a simple CCTV-like observer that helps AI agents stay on target during development. It quietly watches and records your terminal activity when turned on.
+**mem0** is your intelligent memory layer for AI-assisted development. It captures, organizes, and shares development context to enhance collaboration between humans and AI agents. Whether you're working solo, in a team, or across organizations, mem0 keeps everyone aligned and productive.
+
+## Table of Contents
+
+1. [Quick Start](#quick-start)
+2. [Authentication & User Management](#authentication--user-management)
+3. [Personal Memory Management](#personal-memory-management)
+4. [Team Collaboration](#team-collaboration)
+5. [Organization-Wide Sharing](#organization-wide-sharing)
+6. [Advanced Workflows](#advanced-workflows)
+7. [Security & Privacy](#security--privacy)
+8. [Troubleshooting](#troubleshooting)
+9. [Best Practices](#best-practices)
 
 ## Quick Start
 
-### Prerequisites
-- PostgreSQL database (Docker recommended):
-  ```bash
-  docker run --name mem0-postgres -e POSTGRES_DB=mem0db -e POSTGRES_USER=mem0user -e POSTGRES_PASSWORD=mem0pass -p 5432:5432 -d postgres:15
-  ```
+### 1. Get Started in 5 Minutes
 
-### Starting mem0
+```bash
+# Start the server
+./manage.sh start
 
-1. **Start the FastAPI server:**
-   ```bash
-   ./manage.sh start
-   ```
+# Register and login
+./client/mem0 auth register --username yourname --password yourpass --email you@domain.com
+./client/mem0 auth login --username yourname --password yourpass
 
-2. **Start the MCP server (for AI tools like Claude Desktop):**
-   ```bash
-   cd server && python run_mcp_server.py
-   ```
+# Create your first context
+./client/mem0 context-create --name "my-first-project" --description "Learning mem0" --visibility private
 
-3. **Source shell integration (once per terminal):**
-   ```bash
-   source client/mem0.zsh
-   ```
+# Enable shell integration
+source client/mem0.zsh
 
-4. **Turn on recording (like flipping a switch):**
-   ```bash
-   mem0_on my-project
-   # or just: mem0_on (uses current directory name)
-   ```
+# Start recording
+mem0_context_start my-first-project
 
-5. **Work normally - commands are captured silently:**
-   ```bash
-   git status
-   npm install
-   ./run-tests.sh
-   ```
+# Work normally - commands are captured automatically
+echo "Hello mem0!"
+git status
 
-6. **Turn off when done:**
-   ```bash
-   mem0_off
-   ```
+# View captured memories
+./client/mem0 recall --context my-first-project
+```
 
-7. **Let AI agents recall your session:**
-   ```bash
-   ./client/mem0 recall --context my-project
-   ```
+**That's it!** You're now capturing and recalling development context.
+
+### 2. Core Concepts
+
+#### Contexts
+- **What**: Named containers for memories (commands, notes, decisions)
+- **Why**: Organize work by project, feature, or task
+- **How**: Create, share, and manage contexts with different visibility levels
+
+#### Memories
+- **What**: Captured development activities and knowledge
+- **Types**: Commands, notes, decisions, errors, solutions
+- **Sources**: Shell commands, manual entries, file changes, AI interactions
+
+#### Sharing Levels
+- **Personal**: Private to you only
+- **Team**: Shared with team members
+- **Organization**: Available to entire organization
+- **Public**: Open to all authenticated users
+
+## Authentication & User Management
+
+### User Registration
+
+```bash
+# Register a new account
+./client/mem0 auth register \
+  --username alice \
+  --password securepass123 \
+  --email alice@company.com
+
+# Login to your account
+./client/mem0 auth login \
+  --username alice \
+  --password securepass123
+```
+
+### Managing Your Profile
+
+```bash
+# View your profile information
+./client/mem0 auth me
+
+# Logout from current session
+./client/mem0 auth logout
+```
+
+### Security Best Practices
+
+- Use strong, unique passwords
+- Enable 2FA when available
+- Regularly review your active sessions
+- Share contexts thoughtfully
 
 ## Architecture Overview
 
@@ -61,68 +108,327 @@ mem0 now runs a **dual-server architecture**:
 - **Endpoints**: `/contexts`, `/memory`, `/memory/all`, etc.
 - **Usage**: Traditional HTTP clients and existing integrations
 
-### MCP Server (stdio transport)
-- **Purpose**: Model Context Protocol server for AI tools
-- **Clients**: Claude Desktop, VS Code with MCP support, other MCP-compatible tools
-- **Tools**: `remember`, `recall`, `context_start`, `context_stop`, `list_contexts`
-- **Resources**: Context listings, memory feeds, recent memories
-- **Prompts**: Analysis templates for AI consumption
+## Personal Memory Management
 
-### Database Backend
-- **PostgreSQL**: Production database with full multi-user support
-- **SQLite fallback**: Development mode when PostgreSQL unavailable
-- **Schema**: User isolation, context-based memory organization
+### Creating Personal Contexts
 
-## Multi-Context Workflows
-
-### Working on Multiple Projects Simultaneously
-
-**Terminal 1 - Frontend Work:**
 ```bash
-source client/mem0.zsh
-mem0_on frontend-app
-npm run dev
-git commit -m "Add new component"
-mem0_off
+# Create a private context for personal projects
+./client/mem0 context-create \
+  --name "personal-research" \
+  --description "Research and learning activities" \
+  --visibility private
+
+# Create context for side projects
+./client/mem0 context-create \
+  --name "side-project-ideas" \
+  --description "Ideas for future projects" \
+  --visibility private
 ```
 
-**Terminal 2 - Backend Work:**
+### Working with Personal Memories
+
 ```bash
-source client/mem0.zsh
-mem0_on backend-api
-python manage.py migrate
-pytest tests/
-mem0_off
+# Start recording to a personal context
+mem0_context_start personal-research
+
+# Work normally - all commands captured
+cd ~/research
+python analyze_data.py
+git commit -m "Add data analysis"
+
+# Manually add memories
+./client/mem0 remember "Key insight: Algorithm X performs 2x better" --context personal-research
+
+# View your memories
+./client/mem0 recall --context personal-research
+
+# Search through memories
+./client/mem0 recall --context personal-research --query "algorithm"
 ```
 
-**Terminal 3 - DevOps Work:**
+### Organizing Personal Work
+
 ```bash
-source client/mem0.zsh
-mem0_on infrastructure
-docker build -t myapp .
-kubectl apply -f deployment.yaml
-mem0_off
+# List all your contexts
+./client/mem0 context list
+
+# Switch between contexts
+mem0_context_start side-project-ideas
+# Work on different project
+mem0_context_start personal-research
+# Back to research
+
+# Clean up completed contexts
+./client/mem0 context delete completed-project
 ```
 
-### Simple Commands
+## Team Collaboration
 
-#### Turn Recording On/Off
+### Setting Up Team Structure
+
 ```bash
-mem0_on [project-name]    # Start recording (uses directory name if not specified)
-mem0_off                  # Stop recording
+# Create organization (admin only)
+./client/mem0 org create \
+  --name "Acme Corp" \
+  --description "Leading tech company"
+
+# Create team within organization
+./client/mem0 team create \
+  --name "Frontend Team" \
+  --org-id 1 \
+  --description "React and UI development"
 ```
 
-#### For AI Agents - Context Management
+### Managing Team Membership
+
 ```bash
-# List all contexts
-./client/mem0 contexts
+# Add team member with specific role
+./client/mem0 team add-member \
+  --team-id 1 \
+  --user-id 2 \
+  --role admin
 
-# Recall memories for AI agents
-./client/mem0 recall --context <project-name>
+# View team members and roles
+./client/mem0 team members --team-id 1
 
-# Check what's currently recording
-./client/mem0 context active
+# See which teams you belong to
+./client/mem0 team list
 ```
+
+### Collaborative Workflows
+
+#### Creating Team Contexts
+
+```bash
+# Create team-shared context
+./client/mem0 context-create \
+  --name "sprint-planning" \
+  --description "Q4 Sprint planning and execution" \
+  --visibility team
+
+# Share with team automatically (due to visibility setting)
+# All team members can now access this context
+```
+
+#### Team Memory Capture
+
+```bash
+# Start team context
+mem0_context_start sprint-planning
+
+# Team members work collaboratively
+# All commands and notes are captured in shared context
+git pull origin main
+npm install new-dependency
+./client/mem0 remember "Decision: Use React Query for state management"
+
+# View team memories
+./client/mem0 recall --context sprint-planning
+```
+
+#### Sharing Contexts with Teams
+
+```bash
+# Share existing context with team
+./client/mem0 share \
+  --context-id 1 \
+  --target-type team \
+  --target-id 1 \
+  --permission write
+
+# Grant different permission levels
+# Read-only access
+./client/mem0 share \
+  --context-id 2 \
+  --target-type team \
+  --target-id 2 \
+  --permission read
+
+# Admin access
+./client/mem0 share \
+  --context-id 3 \
+  --target-type team \
+  --target-id 1 \
+  --permission admin
+```
+
+### Team Roles and Permissions
+
+- **Owner**: Full control, can share and delete
+- **Admin**: Can manage team settings and sharing
+- **Member**: Can read/write to shared contexts
+- **Viewer**: Read-only access to team contexts
+
+## Organization-Wide Sharing
+
+### Organization Setup
+
+```bash
+# Create organization (typically done by admin)
+./client/mem0 org create \
+  --name "Global Tech Corp" \
+  --description "International technology company"
+
+# View available organizations
+./client/mem0 org list
+```
+
+### Organization-Wide Contexts
+
+```bash
+# Create organization-wide knowledge base
+./client/mem0 context-create \
+  --name "company-knowledge" \
+  --description "Company-wide documentation and knowledge" \
+  --visibility organization
+
+# Create shared tooling context
+./client/mem0 context-create \
+  --name "dev-tools" \
+  --description "Shared development tools and configurations" \
+  --visibility organization
+```
+
+### Cross-Team Collaboration
+
+```bash
+# Share context across teams
+./client/mem0 share \
+  --context-id 1 \
+  --target-type team \
+  --target-id 1 \
+  --permission write  # Frontend team
+
+./client/mem0 share \
+  --context-id 1 \
+  --target-type team \
+  --target-id 2 \
+  --permission write  # Backend team
+
+./client/mem0 share \
+  --context-id 1 \
+  --target-type team \
+  --target-id 3 \
+  --permission read   # QA team
+```
+
+### Organization Knowledge Management
+
+```bash
+# Create knowledge base contexts
+./client/mem0 context-create \
+  --name "engineering-standards" \
+  --description "Coding standards and best practices" \
+  --visibility organization
+
+./client/mem0 context-create \
+  --name "product-roadmap" \
+  --description "Company product strategy and roadmap" \
+  --visibility organization
+
+# Populate with knowledge
+./client/mem0 remember "API Design: Use RESTful conventions" --context engineering-standards
+./client/mem0 remember "Q4 Goal: Launch mobile app" --context product-roadmap
+```
+
+## Advanced Workflows
+
+### Multi-Project Development
+
+```bash
+# Developer working on multiple projects
+mem0_context_start project-alpha
+# Work on alpha project
+cd ~/projects/alpha
+git status
+
+mem0_context_start project-beta
+# Switch to beta project
+cd ~/projects/beta
+npm run build
+
+# Both contexts capture separate work streams
+```
+
+### Cross-Organization Projects
+
+```bash
+# Create cross-org team for joint venture
+./client/mem0 team create \
+  --name "Joint-Venture-Team" \
+  --description "Cross-company collaboration"
+
+# Add members from different organizations
+./client/mem0 team add-member --team-id 5 --user-id 10 --role member
+./client/mem0 team add-member --team-id 5 --user-id 15 --role admin
+
+# Share project context
+./client/mem0 share \
+  --context-id 10 \
+  --target-type team \
+  --target-id 5 \
+  --permission write
+```
+
+### AI-Assisted Development
+
+```bash
+# Context for AI collaboration
+./client/mem0 context-create \
+  --name "ai-assistant-session" \
+  --description "Working with GitHub Copilot and other AI tools" \
+  --visibility private
+
+# Capture AI interactions
+./client/mem0 remember "Copilot suggested: Use TypeScript interfaces" --context ai-assistant-session
+./client/mem0 remember "AI Review: Code follows SOLID principles" --context ai-assistant-session
+```
+
+### Knowledge Transfer Sessions
+
+```bash
+# Create context for onboarding
+./client/mem0 context-create \
+  --name "new-hire-onboarding" \
+  --description "Knowledge transfer for new team members" \
+  --visibility team
+
+# Capture onboarding activities
+mem0_context_start new-hire-onboarding
+# Demonstrate workflows
+# Answer questions
+# Share best practices
+
+# New hires can review later
+./client/mem0 recall --context new-hire-onboarding
+```
+
+## Security & Privacy
+
+### Data Isolation
+
+- **User Isolation**: Complete separation between user data
+- **Context Boundaries**: Memories only accessible to authorized users
+- **Audit Trail**: Track who accesses what and when
+
+### Permission Management
+
+```bash
+# Check what contexts you can access
+./client/mem0 context list
+
+# Verify your permissions (API call)
+curl -H "Authorization: Bearer $(cat ~/.mem0/auth.json | jq -r .token)" \
+  http://127.0.0.1:13370/users/me/contexts
+```
+
+### Security Best Practices
+
+- **Regular Audits**: Review context sharing regularly
+- **Principle of Least Privilege**: Grant minimum required permissions
+- **Context Cleanup**: Delete unused contexts and memories
+- **Secure Sharing**: Never share sensitive information inappropriately
 
 ### Per-Terminal Context Selection
 
