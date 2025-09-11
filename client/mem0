@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 
 import sys
@@ -175,128 +176,307 @@ def context_active(args):
         else:
             print("No terminal context set")
     except Exception as e:
-        print(f"Error: {e}")
 
-def context_delete(args):
-    try:
-        response = requests.delete(f"{API_URL}/context/{args.name}", timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        print(response.json()["message"])
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
+    def context_start(self, name):
+        """Start recording to a context"""
+        response = self.make_request('POST', f'/context/start?context={name}')
 
-def export_memories(args):
-    context = args.context if args.context else get_active_context()
-    try:
-        response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        memories = response.json()
-
-        with open(args.filename, "w") as f:
-            f.write(f"# Memory Export: Context '{context}'\n\n")
-            for memory in memories:
-                f.write(f"## Memory Entry\n\n")
-                f.write(f"**Source:** `{memory['source']}`\n")
-                f.write(f"**Type:** `{memory['type']}`\n\n")
-                f.write("```json\n")
-                f.write(json.dumps(memory['data'], indent=4))
-                f.write("\n```\n\n---\n\n")
-        print(f"Successfully exported memories to {args.filename}")
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except IOError as e:
-        print(f"Error: Could not write to file {args.filename}: {e}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
-
-def list_contexts(args):
-    try:
-        response = requests.get(f"{API_URL}/contexts", timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        data = response.json()
-        contexts = data.get("contexts", [])
-        
-        if not contexts:
-            print("No contexts found.")
-            return
-        
-        # Check if we want only active contexts
-        if hasattr(args, 'active') and args.active == "active":
-            active_contexts = [c for c in contexts if c["is_active"]]
-            if not active_contexts:
-                print("No active contexts found.")
-                return
-            print("Active contexts:")
-            for context in active_contexts:
-                print(f"  - {context['name']} - created: {context['created_at']}")
+        if response.status_code == 200:
+            result = response.json()
+            print(result['message'])
+            print(f"💡 Use: mem0_context_start {name} (for shell integration)")
         else:
-            print("Available contexts:")
-            for context in contexts:
-                status = "ACTIVE" if context["is_active"] else "inactive"
-                print(f"  - {context['name']} ({status}) - created: {context['created_at']}")
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
+            print(f"❌ Failed to start context: {response.text}")
 
-def main():
-    parser = argparse.ArgumentParser(description="A CLI tool to interact with the mem0 server.")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    def context_stop(self, name=None):
+        """Stop recording"""
+        if name:
+            response = self.make_request('POST', f'/context/stop?context={name}')
+        else:
+            response = self.make_request('POST', '/context/stop')
 
-    # Remember command
-    parser_remember = subparsers.add_parser("remember", help="Store a memory.")
-    parser_remember.add_argument("text_or_json", help="The memory to store - either plain text or JSON string.")
-    parser_remember.add_argument("--context", help="The context to store the memory in. Defaults to the current git branch or directory name.")
-    parser_remember.set_defaults(func=remember)
+        if response.status_code == 200:
+            result = response.json()
+            print(result['message'])
+        else:
+            print(f"❌ Failed to stop context: {response.text}")
 
-    # Recall command
-    parser_recall = subparsers.add_parser("recall", help="Recall memories.")
-    parser_recall.add_argument("--context", help="The context to recall memories from. Defaults to the current git branch or directory name.")
-    parser_recall.set_defaults(func=recall)
+    def context_active(self):
+        """Show active context"""
+        response = self.make_request('GET', '/context/active')
 
-    # Context command
-    parser_context = subparsers.add_parser("context", help="Manage recording sessions.")
-    context_subparsers = parser_context.add_subparsers(dest="subcommand", required=True)
-    parser_context_start = context_subparsers.add_parser("start", help="Start recording to a new context.")
-    parser_context_start.add_argument("name", help="The name of the context to start recording to.")
-    parser_context_start.set_defaults(func=context_start)
-    parser_context_stop = context_subparsers.add_parser("stop", help="Stop the current recording session.")
-    parser_context_stop.add_argument("name", nargs="?", help="Optional: specific context name to stop (otherwise stops all active contexts).")
-    parser_context_stop.set_defaults(func=context_stop)
-    parser_context_active = context_subparsers.add_parser("active", help="Get the current active recording context.")
-    parser_context_active.set_defaults(func=context_active)
-    parser_context_delete = context_subparsers.add_parser("delete", help="Delete a context and all its memories.")
-    parser_context_delete.add_argument("name", help="The name of the context to delete.")
-    parser_context_delete.set_defaults(func=context_delete)
+        if response.status_code == 200:
+            result = response.json()
+            context = result.get('recording_context')
+            if context:
+                print(f"🎯 Terminal context: {context}")
+            else:
+                print("📭 No terminal context set")
+        else:
+            print(f"❌ Failed to get active context: {response.text}")
 
-    # Export command
-    parser_export = subparsers.add_parser("export", help="Export memories to a file.")
-    parser_export.add_argument("filename", help="The name of the file to export to.")
-    parser_export.add_argument("--context", help="The context to export memories from. Defaults to the current git branch or directory name.")
-    parser_export.set_defaults(func=export_memories)
+    def contexts(self):
+        """List all contexts"""
+        response = self.make_request('GET', '/contexts')
 
-    # List contexts command
-    parser_contexts = subparsers.add_parser("contexts", help="List all available contexts.")
-    parser_contexts.add_argument("active", nargs="?", help="Show only active contexts when 'active' is specified.")
-    parser_contexts.set_defaults(func=list_contexts)
+        if response.status_code == 200:
+            result = response.json()
+            contexts = result.get('contexts', [])
+
+            if not contexts:
+                print("📝 No contexts found")
+                return
+
+            print("📋 Available contexts:")
+            for ctx in contexts:
+                status = "ACTIVE" if ctx['is_active'] else "inactive"
+                created = ctx['created_at'][:19]  # Truncate timestamp
+                print(f"  - {ctx['name']} ({status}) - created: {created}")
+        else:
+            print(f"❌ Failed to list contexts: {response.text}")
+
+    def create_context(self, name, description, visibility):
+        """Create a new context with ownership"""
+        data = {
+            "name": name,
+            "description": description or "",
+            "visibility": visibility
+        }
+        
+        response = self.make_request('POST', '/contexts', json=data)
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Context '{name}' created successfully")
+            print(f"🆔 ID: {result['id']}")
+            print(f"👁️ Visibility: {result['visibility']}")
+            return result
+        else:
+            print(f"❌ Failed to create context: {response.text}")
+            return None
+
+    def create_organization(self, name, description):
+        """Create a new organization"""
+        data = {"name": name}
+        if description:
+            data["description"] = description
+            
+        response = self.make_request('POST', '/organizations', json=data)
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Organization '{name}' created successfully")
+            print(f"🆔 ID: {result['id']}")
+            return result
+        else:
+            print(f"❌ Failed to create organization: {response.text}")
+            return None
+
+    def list_organizations(self):
+        """List all organizations"""
+        response = self.make_request('GET', '/organizations')
+        
+        if response.status_code == 200:
+            result = response.json()
+            orgs = result.get('organizations', [])
+            
+            if not orgs:
+                print("🏢 No organizations found")
+                return
+            
+            print("🏢 Organizations:")
+            for org in orgs:
+                print(f"  - {org['name']} (ID: {org['id']})")
+        else:
+            print(f"❌ Failed to list organizations: {response.text}")
+
+    def create_team(self, name, org_id, description):
+        """Create a new team"""
+        data = {"name": name}
+        if org_id:
+            data["organization_id"] = org_id
+        if description:
+            data["description"] = description
+            
+        response = self.make_request('POST', '/teams', json=data)
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Team '{name}' created successfully")
+            print(f"🆔 ID: {result['id']}")
+            if result.get('organization_id'):
+                print(f"🏢 Organization ID: {result['organization_id']}")
+            return result
+        else:
+            print(f"❌ Failed to create team: {response.text}")
+            return None
+
+    def add_team_member(self, team_id, user_id, role):
+        """Add a member to a team"""
+        data = {"user_id": user_id, "role": role}
+        
+        response = self.make_request('POST', f'/teams/{team_id}/members', json=data)
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ User {user_id} added to team {team_id} with role '{role}'")
+            return result
+        else:
+            print(f"❌ Failed to add team member: {response.text}")
+            return None
+
+    def get_team_members(self, team_id):
+        """Get team members"""
+        response = self.make_request('GET', f'/teams/{team_id}/members')
+        
+        if response.status_code == 200:
+            result = response.json()
+            members = result.get('members', [])
+            
+            if not members:
+                print(f"👥 No members found in team {team_id}")
+                return
+            
+            print(f"👥 Team {team_id} members:")
+            for member in members:
+                user = member['user']
+                role = member['role']
+                joined = member['joined_at'][:10]  # Date only
+                print(f"  - {user['username']} ({role}) - joined: {joined}")
+        else:
+            print(f"❌ Failed to get team members: {response.text}")
+
+    def get_user_teams(self):
+        """Get teams the current user belongs to"""
+        response = self.make_request('GET', '/users/me/teams')
+        
+        if response.status_code == 200:
+            result = response.json()
+            teams = result.get('teams', [])
+            
+            if not teams:
+                print("👤 You are not a member of any teams")
+                return
+            
+            print("👥 Your teams:")
+            for team in teams:
+                org_info = f" (Org: {team['organization_id']})" if team['organization_id'] else ""
+                print(f"  - {team['name']}{org_info} - ID: {team['id']}")
+        else:
+            print(f"❌ Failed to get user teams: {response.text}")
+
+    def share_context(self, context_id, target_type, target_id, permission):
+        """Share a context with user, team, or organization"""
+        data = {
+            "target_type": target_type,
+            "target_id": target_id,
+            "permission_level": permission
+        }
+        
+        response = self.make_request('POST', f'/contexts/{context_id}/share', json=data)
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Context {context_id} shared with {target_type} {target_id}")
+            print(f"🔐 Permission: {permission}")
+            return result
+        else:
+            print(f"❌ Failed to share context: {response.text}")
+            return None
+
+    def get_user_contexts(self):
+        """Get all contexts the user can access"""
+        response = self.make_request('GET', '/users/me/contexts')
+        
+        if response.status_code == 200:
+            result = response.json()
+            contexts = result.get('contexts', [])
+            
+            if not contexts:
+                print("📝 No accessible contexts found")
+                return
+            
+            print("📋 Your accessible contexts:")
+            for ctx in contexts:
+                owner_info = f" - Owner: {ctx['owner']}" if ctx.get('owner') else ""
+                print(f"  - {ctx['name']} ({ctx['visibility']}) - ID: {ctx['id']}{owner_info}")
+        else:
+            print(f"❌ Failed to get user contexts: {response.text}")
+    parser = argparse.ArgumentParser(description="mem0 - Memory Layer for AI Agents")
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # Authentication commands
+    auth_parser = subparsers.add_parser('auth', help='Authentication commands')
+    auth_subparsers = auth_parser.add_subparsers(dest='auth_command')
+
+    # Login
+    login_parser = auth_subparsers.add_parser('login', help='Login to mem0')
+    login_parser.add_argument('--username', required=True, help='Username')
+    login_parser.add_argument('--password', required=True, help='Password')
+
+    # Register
+    register_parser = auth_subparsers.add_parser('register', help='Register new user')
+    register_parser.add_argument('--username', required=True, help='Username')
+    register_parser.add_argument('--password', required=True, help='Password')
+    register_parser.add_argument('--email', help='Email address')
+
+    # Logout
+    auth_subparsers.add_parser('logout', help='Logout from mem0')
+
+    # User info
+    auth_subparsers.add_parser('me', help='Show current user information')
+
+    # Organization commands
+    org_parser = subparsers.add_parser('org', help='Organization management')
+    org_subparsers = org_parser.add_subparsers(dest='org_command')
+
+{{ ... }}
+    context_create_parser = subparsers.add_parser('context-create', help='Create context with ownership')
+    context_create_parser.add_argument('--name', required=True, help='Context name')
+    context_create_parser.add_argument('--description', help='Context description')
+    context_create_parser.add_argument('--visibility', choices=['private', 'team', 'organization', 'public'], default='private', help='Visibility level')
+
+    # Memory commands
+    remember_parser = subparsers.add_parser('remember', help='Store a memory')
+    remember_parser.add_argument('payload', help='JSON payload or text')
+    remember_parser.add_argument('--context', help='Context name')
+
+    # Recall
+    recall_parser = subparsers.add_parser('recall', help='Retrieve memories')
+    recall_parser.add_argument('--context', help='Context name to filter by')
+
+    # Context commands
+    context_parser = subparsers.add_parser('context', help='Context management')
+    context_subparsers = context_parser.add_subparsers(dest='context_command')
+
+    # Context start
+    start_parser = context_subparsers.add_parser('start', help='Start recording to context')
+    start_parser.add_argument('name', help='Context name')
+
+    # Context stop
+    stop_parser = context_subparsers.add_parser('stop', help='Stop recording')
+    stop_parser.add_argument('name', nargs='?', help='Context name (optional)')
+
+    # Context active
+    context_subparsers.add_parser('active', help='Show active context')
+
+    # Context list
+    context_subparsers.add_parser('list', help='List all contexts')
+
+    # Context delete
+    delete_parser = context_subparsers.add_parser('delete', help='Delete context')
+    delete_parser.add_argument('name', help='Context name')
+
+    # Legacy command aliases
+    subparsers.add_parser('contexts', help='List all contexts')
 
     args = parser.parse_args()
-    args.func(args)
+
+    if not args.command:
+        parser.print_help()
+        return
+{{ ... }}
+        parser.print_help()
 
 if __name__ == "__main__":
     main()
-
