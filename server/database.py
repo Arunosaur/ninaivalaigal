@@ -1,8 +1,8 @@
 # database.py - Database models and operations for mem0
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 import json
 import os
@@ -93,11 +93,11 @@ class ContextPermission(Base):
     granted_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     granted_at = Column(DateTime, default=datetime.utcnow)
     
-    # Relationships
+    # Relationships with explicit foreign_keys to resolve ambiguity
     context = relationship("RecordingContext", back_populates="permissions")
-    user = relationship("User")
-    team = relationship("Team")
-    organization = relationship("Organization")
+    user = relationship("User", foreign_keys=[user_id])
+    team = relationship("Team", foreign_keys=[team_id])
+    organization = relationship("Organization", foreign_keys=[organization_id])
     granted_by_user = relationship("User", foreign_keys=[granted_by])
 
 # Update existing models to support sharing
@@ -196,14 +196,14 @@ class DatabaseManager:
             # Don't clear other active contexts - allow multiple active contexts per user
             # Just set this specific context to active
             if user_id:
-                context = session.query(RecordingContext).filter_by(name=context_name, user_id=user_id).first()
+                context = session.query(RecordingContext).filter_by(name=context_name, owner_id=user_id).first()
             else:
-                context = session.query(RecordingContext).filter_by(name=context_name, user_id=None).first()
+                context = session.query(RecordingContext).filter_by(name=context_name, owner_id=None).first()
             
             if context:
                 context.is_active = True
             else:
-                context = RecordingContext(name=context_name, is_active=True, user_id=user_id)
+                context = RecordingContext(name=context_name, is_active=True, owner_id=user_id)
                 session.add(context)
             
             session.commit()
@@ -213,11 +213,35 @@ class DatabaseManager:
         finally:
             session.close()
     
+    def delete_context(self, context_name: str, user_id: int = None):
+        """Delete a recording context"""
+        session = self.get_session()
+        try:
+            if user_id:
+                context = session.query(RecordingContext).filter_by(name=context_name, owner_id=user_id).first()
+            else:
+                context = session.query(RecordingContext).filter_by(name=context_name, owner_id=None).first()
+            
+            if context:
+                # Check if context is active
+                if context.is_active:
+                    raise ValueError(f"Cannot delete active context '{context_name}'. Stop it first.")
+                
+                # Delete associated memories first
+                session.query(Memory).filter_by(context=context_name).delete()
+                # Delete the context
+                session.delete(context)
+                session.commit()
+                return True
+            return False
+        finally:
+            session.close()
+    
     def clear_active_context(self, user_id: int = None):
         session = self.get_session()
         try:
             if user_id:
-                session.query(RecordingContext).filter_by(user_id=user_id).update({"is_active": False})
+                session.query(RecordingContext).filter_by(owner_id=user_id).update({"is_active": False})
             else:
                 session.query(RecordingContext).update({"is_active": False})
             session.commit()
@@ -231,9 +255,9 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                contexts = session.query(RecordingContext).filter_by(is_active=True, user_id=user_id).all()
+                contexts = session.query(RecordingContext).filter_by(is_active=True, owner_id=user_id).all()
             else:
-                contexts = session.query(RecordingContext).filter_by(is_active=True, user_id=None).all()
+                contexts = session.query(RecordingContext).filter_by(is_active=True, owner_id=None).all()
             
             # Return the most recently created active context
             if contexts:
@@ -247,9 +271,9 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                contexts = session.query(RecordingContext).filter_by(user_id=user_id).order_by(RecordingContext.created_at).all()
+                contexts = session.query(RecordingContext).filter_by(owner_id=user_id).order_by(RecordingContext.created_at).all()
             else:
-                contexts = session.query(RecordingContext).filter_by(user_id=None).order_by(RecordingContext.created_at).all()
+                contexts = session.query(RecordingContext).filter_by(owner_id=None).order_by(RecordingContext.created_at).all()
             return [
                 {
                     "name": context.name,
@@ -358,9 +382,34 @@ class DatabaseManager:
         # For MCP compatibility - could store active context state
         pass
 
-    def stop_context(self):
-        # For MCP compatibility - could clear active context state
-        pass
+    def stop_context(self, context_name: str = None):
+        """Stop recording context - either specific context or all active contexts"""
+        session = self.get_session()
+        try:
+            if context_name:
+                # Stop specific context
+                context = session.query(RecordingContext).filter_by(name=context_name).first()
+                if context:
+                    context.is_active = False
+                    session.commit()
+                    return context_name
+                else:
+                    raise ValueError(f"Context '{context_name}' not found")
+            else:
+                # Stop all active contexts
+                active_contexts = session.query(RecordingContext).filter_by(is_active=True).all()
+                stopped_contexts = []
+                for context in active_contexts:
+                    context.is_active = False
+                    stopped_contexts.append(context.name)
+                session.commit()
+                return stopped_contexts
+        finally:
+            session.close()
+    
+    def stop_specific_context(self, context_name: str):
+        """Stop specific context by name"""
+        return self.stop_context(context_name)
     
     def create_organization(self, name: str, description: str = None):
         """Create a new organization"""
@@ -600,9 +649,6 @@ class DatabaseManager:
                 for ctx in all_contexts
             ]
             
-        finally:
-            session.close()
-            raise e
         finally:
             session.close()
     

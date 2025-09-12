@@ -11,8 +11,27 @@ from typing import Optional
 from fastapi import HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from database import DatabaseManager, User
-from main import load_config
+from .database import DatabaseManager, User
+import json
+
+# Configuration loading (moved from main.py to avoid circular import)
+def load_config():
+    config_path = "../mem0.config.json"
+    default_config = {
+        "storage": {
+            "database_url": "sqlite:///./mem0.db"
+        }
+    }
+    
+    try:
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                user_config = json.load(f)
+                if "storage" in user_config and "database_url" in user_config["storage"]:
+                    return user_config["storage"]["database_url"]
+        return default_config["storage"]["database_url"]
+    except Exception:
+        return default_config["storage"]["database_url"]
 
 # Initialize database
 database_url = load_config()

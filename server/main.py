@@ -5,14 +5,14 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import os
-from performance_monitor import (
+from .performance_monitor import (
     get_performance_monitor,
     record_request,
     record_db_query,
     start_performance_monitoring
 )
-from database import DatabaseManager, User, Organization, Team, TeamMember, ContextPermission, RecordingContext
-from auth import (
+from .database import DatabaseManager, User, Organization, Team, TeamMember, ContextPermission, RecordingContext
+from .auth import (
     User, UserCreate, UserLogin, Token, 
     get_current_user, get_current_user_optional, create_access_token
 )
@@ -43,23 +43,8 @@ class ContextShare(BaseModel):
     permission_level: str  # "read", "write", "admin", "owner"
 
 # --- Configuration ---
-def load_config():
-    config_path = "../mem0.config.json"
-    default_config = {
-        "storage": {
-            "database_url": "sqlite:///./mem0.db"
-        }
-    }
-    
-    try:
-        if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                user_config = json_lib.load(f)
-                if "storage" in user_config and "database_url" in user_config["storage"]:
-                    return user_config["storage"]["database_url"]
-        return default_config["storage"]["database_url"]
-    except Exception:
-        return default_config["storage"]["database_url"]
+# Configuration moved to auth.py to avoid circular import
+from .auth import load_config
 
 # --- Database Setup ---
 database_url = load_config()
@@ -67,6 +52,13 @@ db = DatabaseManager(database_url)
 
 # Migrate existing JSON data if it exists
 db.migrate_from_json()
+
+# --- FastAPI App ---
+app = FastAPI(
+    title="mem0 API",
+    description="Universal Memory Layer for AI Agents and Developers",
+    version="1.0.0"
+)
 
 @app.post("/auth/register", response_model=Token)
 def register_user(user_data: UserCreate):
@@ -256,16 +248,41 @@ def create_context(context_data: dict, current_user: User = Depends(get_current_
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create context: {str(e)}")
-    """Store a memory entry with user isolation"""
+
+@app.post("/memory")
+def store_memory(entry: MemoryPayload, current_user: Optional[User] = Depends(get_current_user_optional)):
+    """Store a memory entry with user isolation and duplicate filtering"""
     try:
         # Use authenticated user ID or None for backward compatibility
         user_id = current_user.id if current_user else None
 
+        # Extract context from data if provided, otherwise use default
+        context = entry.data.get("context", "default") if hasattr(entry, 'data') and entry.data else "default"
+        
+        # If Windsurf is sending to hardcoded "test-context", redirect to actual active context
+        if context == "test-context" and entry.source == "zsh_session":
+            active_contexts = db.get_all_contexts()
+            active_context_names = [ctx.get('name') for ctx in active_contexts if ctx.get('is_active', False)]
+            if active_context_names:
+                # Use the first active context instead of hardcoded test-context
+                context = active_context_names[0]
+                # Also update the data.context field to match the redirected context
+                if hasattr(entry, 'data') and entry.data:
+                    entry.data["context"] = context
+            else:
+                # No active context - block the capture
+                return {"message": "Skipped capture - no active context (camera off)", "id": None}
+        
+        # Skip terminal_command entries if we're getting duplicates from Windsurf
+        if entry.type == "terminal_command" and entry.source == "zsh_session":
+            return {"message": "Skipped duplicate terminal_command entry", "id": None}
+        
+        
         memory_id = db.add_memory(
-            context=entry.context,
-            memory_type=entry.payload.type,
-            source=entry.payload.source,
-            data=entry.payload.data,
+            context=context,
+            memory_type=entry.type,
+            source=entry.source,
+            data=entry.data,
             user_id=user_id
         )
         return {"message": "Memory entry recorded.", "id": memory_id}
@@ -317,14 +334,13 @@ def stop_recording(context: str = None, current_user: Optional[User] = Depends(g
 
         if context:
             # Stop specific context
-            db.stop_specific_context(context, user_id)
-            return {"message": f"Recording stopped for context: {context}"}
+            stopped_context = db.stop_specific_context(context)
+            return {"message": f"Recording stopped for context: {stopped_context}"}
         else:
-            # Stop only the currently active context
-            active_context = db.get_active_context(user_id)
-            if active_context:
-                db.stop_specific_context(active_context, user_id)
-                return {"message": f"Recording stopped for active context: {active_context}"}
+            # Stop all active contexts
+            stopped_contexts = db.stop_context()
+            if stopped_contexts:
+                return {"message": f"Recording stopped for contexts: {', '.join(stopped_contexts)}"}
             else:
                 return {"message": "No active context to stop."}
     except Exception as e:

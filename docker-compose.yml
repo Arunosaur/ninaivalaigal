@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: mem0_postgres
+    environment:
+      POSTGRES_DB: mem0_production
+      POSTGRES_USER: mem0_user
+      POSTGRES_PASSWORD: mem0_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mem0_user -d mem0_production"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mem0_server:
+    build: .
+    container_name: mem0_server
+    ports:
+      - "13370:13370"
+    environment:
+      - DATABASE_URL=postgresql://mem0_user:mem0_password@postgres:5432/mem0_production
+      - MEM0_DEBUG=1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - ./backups:/app/backups
+
+volumes:
+  postgres_data:

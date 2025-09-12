@@ -8,7 +8,7 @@ start() {
         exit 1
     fi
     echo "Starting mem0 server..."
-    uvicorn server.main:app --host 127.0.0.1 --port 13370 & echo $! > $PID_FILE
+    /opt/homebrew/anaconda3/bin/python -m uvicorn server.main:app --host 127.0.0.1 --port 13370 & echo $! > $PID_FILE
     echo "Server started with PID: $(cat $PID_FILE)"
 }
 
