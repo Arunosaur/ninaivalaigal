@@ -125,15 +125,35 @@ cd jetbrains-plugin
 
 ### 4. Zed Editor Integration
 
-**Current Options:**
-1. **Terminal Integration**: Use Zed's terminal with zsh hooks
-2. **External Commands**: Configure custom commands in Zed
-3. **Future Plugin**: Zed extension system (when available)
+**Method 1: Terminal Integration (Recommended)**
+```bash
+# 1. Load shell integration in Zed's terminal
+source /Users/asrajag/Workspace/mem0/client/mem0.zsh
 
-**Setup:**
+# 2. Authenticate
+./client/mem0 auth login --username youruser --password yourpass
+
+# 3. Start context
+./client/mem0 start zed-project-$(date +%s)
+
+# 4. Work normally - commands captured automatically
+```
+
+**Method 2: MCP Server Integration**
 ```json
-// Zed settings.json
+// Zed settings.json - Configure MCP server
 {
+    "language_models": {
+        "mcp_servers": {
+            "mem0": {
+                "command": "/opt/homebrew/anaconda3/bin/python",
+                "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
+                "env": {
+                    "MEM0_SERVER_URL": "http://127.0.0.1:13370"
+                }
+            }
+        }
+    },
     "terminal": {
         "shell": {
             "program": "zsh",
@@ -143,15 +163,87 @@ cd jetbrains-plugin
 }
 ```
 
+**Method 3: Custom Tasks**
+```json
+// tasks.json in Zed
+{
+    "tasks": [
+        {
+            "label": "mem0 Remember",
+            "command": "/Users/asrajag/Workspace/mem0/client/mem0",
+            "args": ["remember", "${selectedText}", "--context", "${workspaceFolderBasename}"]
+        },
+        {
+            "label": "mem0 Recall",
+            "command": "/Users/asrajag/Workspace/mem0/client/mem0", 
+            "args": ["recall", "--context", "${workspaceFolderBasename}"]
+        }
+    ]
+}
+```
+
 ### 5. Cursor/Claude Integration
 
-**Method 1: Terminal Commands**
-- Use terminal integration within Cursor
-- Commands captured automatically
+**Method 1: MCP Server Integration (Recommended)**
+```json
+// Cursor settings - Configure MCP server
+{
+    "mcp": {
+        "servers": {
+            "mem0": {
+                "command": "/opt/homebrew/anaconda3/bin/python",
+                "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
+                "env": {
+                    "MEM0_SERVER_URL": "http://127.0.0.1:13370"
+                }
+            }
+        }
+    }
+}
+```
 
-**Method 2: Custom Integration**
-- Leverage Cursor's AI features
-- Create custom prompts that use mem0 CLI
+**Method 2: Terminal Integration**
+```bash
+# In Cursor's terminal
+source /Users/asrajag/Workspace/mem0/client/mem0.zsh
+./client/mem0 auth login --username youruser --password yourpass
+./client/mem0 start cursor-session-$(date +%s)
+# Commands captured automatically
+```
+
+**Method 3: Custom AI Prompts**
+Create custom prompts that leverage mem0:
+```
+Remember this code snippet: [SELECTION]
+Context: ${workspaceName}
+Command: ./client/mem0 remember "${selection}" --context ${workspaceName}
+```
+
+### 6. Warp Terminal Integration
+
+**Setup (Recommended for Warp users):**
+```bash
+# 1. Add to your ~/.zshrc
+echo 'source /Users/asrajag/Workspace/mem0/client/mem0.zsh' >> ~/.zshrc
+
+# 2. Restart Warp or reload config
+source ~/.zshrc
+
+# 3. Authenticate
+./client/mem0 auth login --username youruser --password yourpass
+
+# 4. Start context
+./client/mem0 start warp-session-$(date +%s)
+
+# 5. Enable debug mode (optional)
+export MEM0_DEBUG=1
+```
+
+**Warp-Specific Features:**
+- Shell integration works seamlessly with Warp's command history
+- Context switching preserved across Warp sessions
+- Compatible with Warp's AI features and workflows
+- Command capture works with Warp's autocomplete and suggestions
 
 ## User Authentication Implementation ✅ COMPLETE
 

@@ -11,7 +11,7 @@ from typing import Optional
 from fastapi import HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from .database import DatabaseManager, User
+from database import DatabaseManager, User
 import json
 
 # Configuration loading (moved from main.py to avoid circular import)

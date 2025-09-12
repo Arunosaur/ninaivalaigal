@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/homebrew/anaconda3/bin/python
 """
 mem0 MCP Server - Model Context Protocol implementation
 Provides memory management capabilities as MCP tools, resources, and prompts
@@ -17,7 +17,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from database import DatabaseManager
-from main import load_config
+from auth import load_config
 
 # Initialize MCP server
 mcp = FastMCP("mem0")
