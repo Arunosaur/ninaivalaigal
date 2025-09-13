@@ -154,19 +154,39 @@ class UniversalAIWrapper:
             return []
     
     async def _get_memories_by_level(self, level: str, context: AIContext) -> List[MemoryContext]:
-        """Get memories from a specific hierarchy level"""
+        """Get memories for a specific hierarchy level"""
         try:
-            # Query mem0 MCP server
-            mcp_response = await self._query_mcp_server("recall", {
-                "context": f"{level}_{context.project_context or 'default'}",
-                "language": context.language,
-                "file_type": self._get_file_type(context.file_path),
-                "user_id": context.user_id,
-                "team_id": context.team_id,
-                "organization_id": context.organization_id
-            })
+            # Build query based on level and context
+            query_filters = {}
             
-            return self._parse_memories_response(mcp_response, level)
+            if level == "personal" and context.user_id:
+                query_filters["user_id"] = context.user_id
+            elif level == "team" and context.team_id:
+                query_filters["team_id"] = context.team_id
+            elif level == "organization" and context.organization_id:
+                query_filters["organization_id"] = context.organization_id
+            elif level == "project" and context.project_context:
+                query_filters["context"] = context.project_context
+            
+            # Get memories from database
+            raw_memories = self.db.get_memories(
+                context=query_filters.get("context"),
+                user_id=query_filters.get("user_id")
+            )
+            
+            # Convert to MemoryContext objects
+            memories = []
+            for memory in raw_memories:
+                memories.append(MemoryContext(
+                    content=memory.get("data", ""),
+                    context_name=memory.get("context", "unknown"),
+                    relevance_score=0.7,  # Will be calculated by ranking
+                    timestamp=datetime.fromisoformat(memory.get("created_at", datetime.now().isoformat())),
+                    memory_type=level,
+                    source=memory.get("source", "database")
+                ))
+            
+            return memories
             
         except Exception as e:
             logger.error(f"Error getting {level} memories: {e}")
@@ -175,13 +195,8 @@ class UniversalAIWrapper:
     async def _get_cross_team_memories(self, context: AIContext) -> List[MemoryContext]:
         """Get cross-team memories that user has approved access to"""
         try:
-            # Query approved cross-team contexts
-            mcp_response = await self._query_mcp_server("list_approved_contexts", {
-                "user_id": context.user_id,
-                "team_id": context.team_id
-            })
-            
-            return self._parse_memories_response(mcp_response, "cross_team")
+            # For now, return empty list - will implement with approval workflow
+            return []
             
         except Exception as e:
             logger.error(f"Error getting cross-team memories: {e}")

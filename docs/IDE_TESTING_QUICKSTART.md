@@ -80,6 +80,27 @@ psql -d mem0_db -f /Users/asrajag/Workspace/mem0/scripts/update_schema_approval.
 
 ## Testing Scenarios
 
+### 1. Basic Memory Operations
+Test the core MCP tools:
+
+```bash
+# In your IDE's MCP interface or chat:
+- Use "remember" tool: Store a memory about current project
+- Use "recall" tool: Retrieve memories from context
+- Use "context_start" tool: Start a new context
+- Use "list_contexts" tool: See all available contexts
+```
+
+### 2. AI Enhancement Testing
+Test the universal AI integration:
+
+```bash
+# Test AI prompt enhancement:
+- Use "enhance_ai_prompt_tool" with your current code context
+- Use "get_ai_context" to see available memory contexts
+- Use "store_ai_feedback" to record AI interaction results
+```
+
 ### Scenario 1: Basic AI Enhancement
 ```bash
 # Store some memories first
