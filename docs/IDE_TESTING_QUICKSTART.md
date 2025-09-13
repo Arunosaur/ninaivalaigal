@@ -31,8 +31,10 @@ psql -d mem0_db -f /Users/asrajag/Workspace/mem0/scripts/update_schema_approval.
 ### Option 1: VS Code 
 
 **Setup:**
-1. VS Code uses `settings.json` for MCP configuration, not `.vscode/mcp.json`
-2. Add to your VS Code `settings.json`:
+VS Code MCP configuration varies by version. Try these methods:
+
+**Method 1: User Settings (VS Code 1.85+)**
+Add to your VS Code User Settings (`Cmd+,` → Open Settings JSON):
 ```json
 {
   "mcp.servers": {
@@ -44,14 +46,29 @@ psql -d mem0_db -f /Users/asrajag/Workspace/mem0/scripts/update_schema_approval.
         "MEM0_JWT_SECRET": "your-secret-key-here"
       },
       "cwd": "/Users/asrajag/Workspace/mem0"
-      }
     }
   }
 }
 ```
 
-2. Restart VS Code
-3. Test with: `@mem0 enhance_ai_prompt_tool file_path="test.js" language="javascript" prompt="Create a function" ai_model="generic_ai"`
+**Method 2: Workspace Settings**
+Create `.vscode/settings.json` in your project:
+```json
+{
+  "mcp.servers": {
+    "mem0": {
+      "command": "python",
+      "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
+      "env": {
+        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+      },
+      "cwd": "/Users/asrajag/Workspace/mem0"
+    }
+  }
+}
+```
+
+**Test:** Restart VS Code, then use MCP tools in chat
 
 ### Option 2: Claude Desktop (Best for AI Testing)
 
