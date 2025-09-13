@@ -83,7 +83,7 @@ The server will start on `http://127.0.0.1:13370`
 
 ```bash
 source client/mem0.zsh
-export MEM0_DEBUG=1  # Optional: Enable debug logging
+export NINAIVALAIGAL_DEBUG=1  # Optional: Enable debug logging
 ```
 
 ### 6. Start Recording and Work
@@ -174,7 +174,7 @@ python main.py
 - `./client/mem0 context start <name>` - Start recording to a context
 - `./client/mem0 context stop [<name>]` - Stop specific or current recording session
 - `./client/mem0 context delete <name>` - Delete a context and all its memories
-- `./client/mem0 context active` - Show terminal context (MEM0_CONTEXT env var)
+- `./client/mem0 context active` - Show terminal context (NINAIVALAIGAL_CONTEXT env var)
 - `./client/mem0 contexts` - List all contexts with status
 
 ### Memory Operations
@@ -201,7 +201,7 @@ python main.py
 Enable debug logging to troubleshoot shell integration:
 
 ```bash
-export MEM0_DEBUG=1
+export NINAIVALAIGAL_DEBUG=1
 source client/mem0.zsh
 ```
 
@@ -224,23 +224,23 @@ The VS Code extension provides IDE integration through a chat participant.
    }
    ```
 
-2. Use the `@mem0` chat participant in VS Code
+2. Use the `@e^M` chat participant in VS Code
 
 ### Available Commands
-- `@mem0 remember <data>` - Store a memory
-- `@mem0 recall` - Retrieve memories
-- `@mem0 observe` - Observe chat history
+- `@e^M remember <data>` - Store a memory
+- `@e^M recall` - Retrieve memories
+- `@e^M observe` - Observe chat history
 
 ## Configuration
 
 ### Environment Variables
-- `MEM0_PORT` - Server port (default: 13370)
-- `MEM0_DEBUG` - Enable debug logging (set to 1)
-- `MEM0_CONTEXT` - Specify context for current terminal session
-- `MEM0_SECRET_KEY` - JWT secret key for authentication
+- `NINAIVALAIGAL_PORT` - Server port (default: 13370)
+- `NINAIVALAIGAL_DEBUG` - Enable debug logging (set to 1)
+- `NINAIVALAIGAL_CONTEXT` - Specify context for current terminal session
+- `NINAIVALAIGAL_SECRET_KEY` - JWT secret key for authentication
 
 ### Shell Integration Settings
-- `MEM0_CACHE_TTL` - Context cache duration in seconds (default: 30)
+- `NINAIVALAIGAL_CACHE_TTL` - Context cache duration in seconds (default: 30)
 
 ## Security & Permissions
 

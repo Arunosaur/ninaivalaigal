@@ -22,8 +22,8 @@ def get_mem0_server() -> Tuple[str, int]:
     """
     
     # 1. Environment variables (highest priority)
-    host = os.getenv('MEM0_SERVER_HOST')
-    port = os.getenv('MEM0_SERVER_PORT', '13371')
+    host = os.getenv('NINAIVALAIGAL_SERVER_HOST')
+    port = os.getenv('NINAIVALAIGAL_SERVER_PORT', '13371')
     
     if host:
         return host, int(port)

@@ -67,9 +67,9 @@ def reset_password_postgresql(email, new_password):
         from urllib.parse import urlparse
         
         # Get database URL from environment
-        db_url = os.getenv('MEM0_DATABASE_URL')
+        db_url = os.getenv('NINAIVALAIGAL_DATABASE_URL')
         if not db_url:
-            print("❌ MEM0_DATABASE_URL not set")
+            print("❌ NINAIVALAIGAL_DATABASE_URL not set")
             return False
         
         # Parse database URL

@@ -60,7 +60,7 @@ check_prerequisites() {
     log_info "PostgreSQL server is running"
     
     # Check if SQLite database exists
-    if [[ ! -f "$SQLITE_DB" ]]; then
+    if [ ! -f "$SQLITE_DB" ]; then
         log_error "SQLite database not found at $SQLITE_DB"
         exit 1
     fi
@@ -107,7 +107,7 @@ setup_postgresql() {
     log_step "Setting up PostgreSQL database..."
     
     # Create database if it doesn't exist
-    if ! psql -h "$PG_HOST" -p "$PG_PORT" -lqt | cut -d \| -f 1 | grep -qw "$PG_DATABASE"; then
+    if ! psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -lqt | cut -d \| -f 1 | grep -qw "$PG_DATABASE"; then
         createdb -h "$PG_HOST" -p "$PG_PORT" "$PG_DATABASE"
         log_info "Database '$PG_DATABASE' created"
     else
@@ -274,6 +274,7 @@ if __name__ == "__main__":
 EOF
 
     # Run data migration
+    echo "NINAIVALAIGAL_DATABASE_URL: $NINAIVALAIGAL_DATABASE_URL"
     python3 "$BACKUP_DIR/migrate_data.py" "$SQLITE_DB" "$PG_HOST" "$PG_PORT" "$PG_DATABASE" "$PG_USER"
     log_info "Data migration completed"
 }

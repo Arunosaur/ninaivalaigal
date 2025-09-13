@@ -33,11 +33,11 @@ detect_os() {
 }
 
 # Configuration
-MEM0_PORT=${MEM0_PORT:-13370}
-MEM0_DEBUG=${MEM0_DEBUG:-0}
-MEM0_CONTEXT=${MEM0_CONTEXT:-""}
-MEM0_PROCESSING=${MEM0_PROCESSING:-0}
-MEM0_CACHE_TTL=${MEM0_CACHE_TTL:-30}
+NINAIVALAIGAL_PORT=${NINAIVALAIGAL_PORT:-13370}
+NINAIVALAIGAL_DEBUG=${NINAIVALAIGAL_DEBUG:-0}
+NINAIVALAIGAL_CONTEXT=${NINAIVALAIGAL_CONTEXT:-""}
+NINAIVALAIGAL_PROCESSING=${NINAIVALAIGAL_PROCESSING:-0}
+NINAIVALAIGAL_CACHE_TTL=${NINAIVALAIGAL_CACHE_TTL:-30}
 
 # Global variables
 CURRENT_CONTEXT=""
@@ -46,19 +46,19 @@ CACHE_TIMESTAMP=0
 
 # Debug logging
 debug_log() {
-    if [ "$MEM0_DEBUG" = "1" ]; then
-        echo "[mem0-debug] $1" >&2
+    if [ "$NINAIVALAIGAL_DEBUG" = "1" ]; then
+        echo "[ninaivalaigal-debug] $1" >&2
     fi
 }
 
 # Check if mem0 server is running
 check_server() {
     if command -v curl >/dev/null 2>&1; then
-        if curl -s "http://127.0.0.1:$MEM0_PORT/health" >/dev/null 2>&1; then
+        if curl -s "http://127.0.0.1:$NINAIVALAIGAL_PORT/health" >/dev/null 2>&1; then
             return 0
         fi
     elif command -v wget >/dev/null 2>&1; then
-        if wget -q -O /dev/null "http://127.0.0.1:$MEM0_PORT/health" 2>/dev/null; then
+        if wget -q -O /dev/null "http://127.0.0.1:$NINAIVALAIGAL_PORT/health" 2>/dev/null; then
             return 0
         fi
     fi
@@ -70,7 +70,7 @@ get_context_cache() {
     local current_time
     current_time=$(date +%s)
 
-    if [ -n "$CONTEXT_CACHE" ] && [ $((current_time - CACHE_TIMESTAMP)) -lt $MEM0_CACHE_TTL ]; then
+    if [ -n "$CONTEXT_CACHE" ] && [ $((current_time - CACHE_TIMESTAMP)) -lt $NINAIVALAIGAL_CACHE_TTL ]; then
         debug_log "Using cached context: $CONTEXT_CACHE"
         echo "$CONTEXT_CACHE"
         return 0
@@ -80,7 +80,7 @@ get_context_cache() {
     if check_server; then
         if command -v curl >/dev/null 2>&1; then
             local response
-            response=$(curl -s "http://127.0.0.1:$MEM0_PORT/context/active" 2>/dev/null)
+            response=$(curl -s "http://127.0.0.1:$NINAIVALAIGAL_PORT/context/active" 2>/dev/null)
             if [ $? -eq 0 ] && [ -n "$response" ]; then
                 CONTEXT_CACHE="$response"
                 CACHE_TIMESTAMP=$current_time
@@ -101,7 +101,7 @@ send_command() {
     local exit_code="$3"
 
     # Skip if already processing
-    if [ "$MEM0_PROCESSING" = "1" ]; then
+    if [ "$NINAIVALAIGAL_PROCESSING" = "1" ]; then
         debug_log "Already processing, skipping: $command"
         return
     fi
@@ -120,7 +120,7 @@ send_command() {
     fi
 
     # Set processing flag
-    MEM0_PROCESSING=1
+    NINAIVALAIGAL_PROCESSING=1
 
     debug_log "Sending command: $command (pwd: $pwd, exit: $exit_code)"
 
@@ -146,19 +146,19 @@ EOF
     # Send to server asynchronously
     if check_server; then
         if command -v curl >/dev/null 2>&1; then
-            (curl -s -X POST "http://127.0.0.1:$MEM0_PORT/memory" \
+            (curl -s -X POST "http://127.0.0.1:$NINAIVALAIGAL_PORT/memory" \
                  -H "Content-Type: application/json" \
                  -d "$json_payload" >/dev/null 2>&1 && debug_log "Command sent successfully") &
         elif command -v wget >/dev/null 2>&1; then
             (echo "$json_payload" | wget -q -O /dev/null --post-data=- \
-                 "http://127.0.0.1:$MEM0_PORT/memory" 2>/dev/null && debug_log "Command sent successfully") &
+                 "http://127.0.0.1:$NINAIVALAIGAL_PORT/memory" 2>/dev/null && debug_log "Command sent successfully") &
         fi
     else
         debug_log "Server not available, command not sent"
     fi
 
     # Clear processing flag after background job starts
-    (sleep 0.1 && unset MEM0_PROCESSING) &
+    (sleep 0.1 && unset NINAIVALAIGAL_PROCESSING) &
 }
 
 # Pre-execution hook (capture command before execution)
@@ -248,11 +248,11 @@ mem0_context_start() {
 
     if check_server; then
         if command -v curl >/dev/null 2>&1; then
-            curl -s -X POST "http://127.0.0.1:$MEM0_PORT/context/start" \
+            curl -s -X POST "http://127.0.0.1:$NINAIVALAIGAL_PORT/context/start" \
                  -H "Content-Type: application/json" \
                  -d "{\"name\": \"$context_name\"}" >/dev/null 2>&1
             if [ $? -eq 0 ]; then
-                export MEM0_CONTEXT="$context_name"
+                export NINAIVALAIGAL_CONTEXT="$context_name"
                 mem0_clear_cache
                 echo "Started recording to context: $context_name"
             else
@@ -269,9 +269,9 @@ mem0_context_start() {
 mem0_context_stop() {
     if check_server; then
         if command -v curl >/dev/null 2>&1; then
-            curl -s -X POST "http://127.0.0.1:$MEM0_PORT/context/stop" >/dev/null 2>&1
+            curl -s -X POST "http://127.0.0.1:$NINAIVALAIGAL_PORT/context/stop" >/dev/null 2>&1
             if [ $? -eq 0 ]; then
-                unset MEM0_CONTEXT
+                unset NINAIVALAIGAL_CONTEXT
                 mem0_clear_cache
                 echo "Stopped recording"
             else
@@ -296,7 +296,7 @@ mem0_context_active() {
 }
 
 # Initialize if not already done
-if [ -z "$MEM0_INITIALIZED" ]; then
+if [ -z "$NINAIVALAIGAL_INITIALIZED" ]; then
     init_shell_integration
-    export MEM0_INITIALIZED=1
+    export NINAIVALAIGAL_INITIALIZED=1
 fi

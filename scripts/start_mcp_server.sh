@@ -15,8 +15,8 @@ LOG_FILE="$PROJECT_ROOT/logs/mcp_server.log"
 mkdir -p "$PROJECT_ROOT/logs"
 
 # Environment setup
-export MEM0_DATABASE_URL="${MEM0_DATABASE_URL:-sqlite:///$PROJECT_ROOT/mem0.db}"
-export MEM0_JWT_SECRET="${MEM0_JWT_SECRET:-your-secret-key-here}"
+export NINAIVALAIGAL_DATABASE_URL="${NINAIVALAIGAL_DATABASE_URL:-sqlite:///$PROJECT_ROOT/ninaivalaigal.db}"
+export NINAIVALAIGAL_JWT_SECRET="${NINAIVALAIGAL_JWT_SECRET:-your-secret-key-here}"
 export PYTHONPATH="$SERVER_DIR:$PYTHONPATH"
 
 # Functions
@@ -33,7 +33,7 @@ start_server() {
     fi
     
     echo "Starting mem0 MCP server..."
-    echo "Database: $MEM0_DATABASE_URL"
+    echo "Database: $NINAIVALAIGAL_DATABASE_URL"
     echo "Log file: $LOG_FILE"
     
     cd "$SERVER_DIR"

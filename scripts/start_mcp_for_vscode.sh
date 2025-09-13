@@ -10,8 +10,8 @@ echo "DEBUG: PATH=$PATH" >&2
 echo "DEBUG: PWD=$(pwd)" >&2
 
 # Set environment variables
-export MEM0_JWT_SECRET="FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk"
-export MEM0_DATABASE_URL="postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+export NINAIVALAIGAL_JWT_SECRET="FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk"
+export NINAIVALAIGAL_DATABASE_URL="postgresql://mem0user:mem0pass@localhost:5432/mem0db"
 export PYTHONPATH="/Users/asrajag/Workspace/mem0/server"
 
 # Change to project directory

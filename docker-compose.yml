@@ -26,8 +26,8 @@ services:
     ports:
       - "13370:13370"
     environment:
-      - DATABASE_URL=postgresql://mem0_user:mem0_password@postgres:5432/mem0_production
-      - MEM0_DEBUG=1
+      NINAIVALAIGAL_DATABASE_URL: postgresql://mem0user:mem0pass@postgres:5432/mem0db
+      NINAIVALAIGAL_DEBUG: 1
     depends_on:
       postgres:
         condition: service_healthy

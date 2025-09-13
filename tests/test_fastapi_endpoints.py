@@ -19,8 +19,8 @@ class TestFastAPIEndpoints:
     def setup_class(cls):
         """Start FastAPI server for testing"""
         env = os.environ.copy()
-        env['MEM0_DATABASE_URL'] = 'sqlite:///./test_mem0.db'
-        env['MEM0_JWT_SECRET'] = 'test-secret-key'
+        os.environ['NINAIVALAIGAL_DATABASE_URL'] = 'sqlite:///test.db'
+        os.environ['NINAIVALAIGAL_JWT_SECRET'] = 'test-secret-key'
         
         cls.server_process = subprocess.Popen(
             ['python', 'server/main.py'],

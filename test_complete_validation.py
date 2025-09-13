@@ -116,9 +116,11 @@ def test_cli_integration(token):
     print("\n🖥️  Testing CLI Integration...")
     
     # Set environment variables for CLI
+    db_url = os.getenv('NINAIVALAIGAL_DATABASE_URL')
+    jwt_secret = os.getenv('NINAIVALAIGAL_JWT_SECRET')
     env = os.environ.copy()
-    env['MEM0_USER_ID'] = '7'  # Krishna's user ID
-    env['MEM0_SERVER_URL'] = 'http://localhost:8000'
+    env['NINAIVALAIGAL_USER_ID'] = '7'  # Krishna's user ID
+    env['NINAIVALAIGAL_SERVER_URL'] = 'http://localhost:8000'
     
     try:
         # Test CLI recall

@@ -1,17 +1,17 @@
-# User ID Configuration for Mem0 CCTV Recording
+# NINAIVALAIGAL_USER_ID Configuration Guide for Mem0 CCTV Recording
 
 ## Overview
 
-The mem0 system uses user IDs to associate recording contexts and memories with specific users. This ensures proper user isolation and context ownership.
+The Ninaivalaigal system uses user IDs to associate recording contexts and memories with specific users. This ensures proper user isolation and context ownership.
 
 ## Configuration Methods
 
 ### 1. Environment Variable (Recommended)
 
-Set the `MEM0_USER_ID` environment variable to specify your user ID:
+Set the `NINAIVALAIGAL_USER_ID` environment variable to specify your user ID:
 
 ```bash
-export MEM0_USER_ID=123  # Your unique user ID
+export NINAIVALAIGAL_USER_ID=123  # Your unique user ID
 ```
 
 ### 2. VS Code MCP Configuration
@@ -21,13 +21,13 @@ Add the user ID to your VS Code MCP configuration:
 ```json
 {
   "mcpServers": {
-    "mem0": {
+    "Ninaivalaigal": {
       "command": "/opt/homebrew/anaconda3/bin/python3.11",
-      "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
+      "args": ["/Users/asrajag/Workspace/Ninaivalaigal/server/mcp_server.py"],
       "env": {
-        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
-        "MEM0_JWT_SECRET": "your-secure-jwt-secret",
-        "MEM0_USER_ID": "123"
+        "NINAIVALAIGAL_DATABASE_URL": "postgresql://ninaivalaigaluser:ninaivalaigalpass@localhost:5432/ninaivalaigaldb",
+        "NINAIVALAIGAL_JWT_SECRET": "your-secure-jwt-secret",
+        "NINAIVALAIGAL_USER_ID": "123"
       }
     }
   }
@@ -39,31 +39,31 @@ Add the user ID to your VS Code MCP configuration:
 Add to your shell profile (`.bashrc`, `.zshrc`, etc.):
 
 ```bash
-# Mem0 Configuration
-export MEM0_USER_ID=123
-export MEM0_DATABASE_URL="postgresql://mem0user:mem0pass@localhost:5432/mem0db"
-export MEM0_JWT_SECRET="your-secure-jwt-secret"
+# Ninaivalaigal Configuration
+export NINAIVALAIGAL_USER_ID=123
+export NINAIVALAIGAL_DATABASE_URL="postgresql://ninaivalaigaluser:ninaivalaigalpass@localhost:5432/ninaivalaigaldb"
+export NINAIVALAIGAL_JWT_SECRET="your-secure-jwt-secret"
 ```
 
 ## User ID Assignment
 
 ### Development/Single User
-- Default: `MEM0_USER_ID=1`
+- Default: `NINAIVALAIGAL_USER_ID=1`
 - All contexts and memories will be associated with user ID 1
 
 ### Multi-User Team Deployment
 - Each team member gets a unique user ID
 - Example assignments:
-  - Alice: `MEM0_USER_ID=101`
-  - Bob: `MEM0_USER_ID=102`
-  - Carol: `MEM0_USER_ID=103`
+  - Alice: `NINAIVALAIGAL_USER_ID=101`
+  - Bob: `NINAIVALAIGAL_USER_ID=102`
+  - Carol: `NINAIVALAIGAL_USER_ID=103`
 
 ### Enterprise/Organization Deployment
 - Use your existing user management system IDs
 - Examples:
-  - Employee ID: `MEM0_USER_ID=12345`
-  - LDAP UID: `MEM0_USER_ID=67890`
-  - Database user ID: `MEM0_USER_ID=555`
+  - Employee ID: `NINAIVALAIGAL_USER_ID=12345`
+  - LDAP UID: `NINAIVALAIGAL_USER_ID=67890`
+  - Database user ID: `NINAIVALAIGAL_USER_ID=555`
 
 ## How User ID Association Works
 
@@ -71,7 +71,7 @@ export MEM0_JWT_SECRET="your-secure-jwt-secret"
 When you start CCTV recording:
 ```bash
 # Via MCP
-@mem0 context_start my-project
+@Ninaivalaigal context_start my-project
 
 # Via FastAPI
 curl -X POST "http://localhost:8000/context/start" \
@@ -80,7 +80,7 @@ curl -X POST "http://localhost:8000/context/start" \
 ```
 
 The system automatically:
-1. Reads `MEM0_USER_ID` from environment
+1. Reads `NINAIVALAIGAL_USER_ID` from environment
 2. Associates the recording context with your user ID
 3. All captured interactions are tagged with your user ID
 
@@ -117,7 +117,7 @@ When recalling memories:
 ## Troubleshooting
 
 ### Missing User ID
-If `MEM0_USER_ID` is not set:
+If `NINAIVALAIGAL_USER_ID` is not set:
 - System defaults to user ID `1`
 - Warning message in logs
 - All contexts/memories associated with default user
@@ -130,7 +130,7 @@ If you change your user ID:
 
 ### Multi-Session Issues
 If running multiple sessions:
-- Each session should have the same `MEM0_USER_ID`
+- Each session should have the same `NINAIVALAIGAL_USER_ID`
 - Different user IDs will create separate isolated contexts
 - Use consistent environment variable across all sessions
 
@@ -139,25 +139,25 @@ If running multiple sessions:
 ### Development
 ```bash
 # Single developer
-export MEM0_USER_ID=1
+export NINAIVALAIGAL_USER_ID=1
 ```
 
 ### Team Development
 ```bash
 # Each developer has unique ID
 # Alice
-export MEM0_USER_ID=101
+export NINAIVALAIGAL_USER_ID=101
 
 # Bob  
-export MEM0_USER_ID=102
+export NINAIVALAIGAL_USER_ID=102
 ```
 
 ### Production Deployment
 ```bash
 # Use your organization's user management system
-export MEM0_USER_ID=$(id -u)  # Unix user ID
+export NINAIVALAIGAL_USER_ID=your_user_id  # Unix user ID
 # or
-export MEM0_USER_ID=$EMPLOYEE_ID  # Company employee ID
+export NINAIVALAIGAL_USER_ID=$EMPLOYEE_ID  # Company employee ID
 ```
 
 ### Context Naming
@@ -172,30 +172,30 @@ Create `.vscode/settings.json` in your project:
 ```json
 {
   "terminal.integrated.env.osx": {
-    "MEM0_USER_ID": "123"
+    "NINAIVALAIGAL_USER_ID": "123"
   },
   "terminal.integrated.env.linux": {
-    "MEM0_USER_ID": "123"
+    "NINAIVALAIGAL_USER_ID": "123"
   },
   "terminal.integrated.env.windows": {
-    "MEM0_USER_ID": "123"
+    "NINAIVALAIGAL_USER_ID": "123"
   }
 }
 ```
 
 ### Docker Deployment
 ```dockerfile
-ENV MEM0_USER_ID=123
-ENV MEM0_DATABASE_URL=postgresql://mem0user:mem0pass@db:5432/mem0db
-ENV MEM0_JWT_SECRET=your-secure-jwt-secret
+ENV NINAIVALAIGAL_USER_ID=123
+ENV NINAIVALAIGAL_DATABASE_URL=postgresql://ninaivalaigaluser:ninaivalaigalpass@db:5432/ninaivalaigaldb
+ENV NINAIVALAIGAL_JWT_SECRET=your-secure-jwt-secret
 ```
 
 ### CI/CD Pipeline
 ```yaml
 environment:
-  MEM0_USER_ID: ${{ secrets.MEM0_USER_ID }}
-  MEM0_DATABASE_URL: ${{ secrets.MEM0_DATABASE_URL }}
-  MEM0_JWT_SECRET: ${{ secrets.MEM0_JWT_SECRET }}
+  NINAIVALAIGAL_USER_ID: ${{ secrets.NINAIVALAIGAL_USER_ID }}
+  NINAIVALAIGAL_DATABASE_URL: ${{ secrets.NINAIVALAIGAL_DATABASE_URL }}
+  NINAIVALAIGAL_JWT_SECRET: ${{ secrets.NINAIVALAIGAL_JWT_SECRET }}
 ```
 
 This configuration ensures that your CCTV recording contexts and memories are properly associated with your user identity, providing secure isolation and proper context ownership.
