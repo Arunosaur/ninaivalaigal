@@ -41,39 +41,25 @@ curl http://localhost:13370/health
 
 #### Team Member IDE Configuration
 
-**VS Code/Windsurf** (`.vscode/settings.json`):
+**VS Code/Windsurf** (`.vscode/settings.json`) - **VERIFIED WORKING**:
 ```json
 {
   "mcp.servers": {
     "mem0": {
-      "command": "/path/to/mem0/scripts/start_mcp_for_vscode.sh",
-      "args": [],
+      "command": "/opt/homebrew/anaconda3/bin/python3.11",
+      "args": ["/path/to/mem0/server/mcp_server.py"],
       "cwd": "/path/to/mem0",
       "env": {
         "MEM0_DATABASE_URL": "postgresql://user:pass@server.company.com:5432/mem0_team",
-        "MEM0_JWT_SECRET": "team-shared-secret"
+        "MEM0_JWT_SECRET": "team-shared-secret",
+        "PYTHONPATH": "/path/to/mem0/server"
       }
     }
   }
 }
 ```
 
-**Alternative - Direct Python Path:**
-```json
-{
-  "mcp.servers": {
-    "mem0": {
-      "command": "/usr/bin/python3",
-      "args": ["/path/to/mem0/server/mcp_server.py"],
-      "cwd": "/path/to/mem0",
-      "env": {
-        "MEM0_DATABASE_URL": "postgresql://user:pass@server.company.com:5432/mem0_team",
-        "MEM0_JWT_SECRET": "team-shared-secret"
-      }
-    }
-  }
-}
-```
+**Note**: Use Anaconda Python path as it includes all required MCP dependencies. System Python may lack necessary packages.
 
 ### Option 2: Docker Deployment (Easiest)
 

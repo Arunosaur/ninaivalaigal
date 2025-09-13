@@ -8,11 +8,12 @@
 - **PostgreSQL Integration**: Secure authentication system implemented
 - **Security**: JWT secrets via environment variables, no hardcoded credentials
 
-### ✅ VS Code Integration Resolved
+### ✅ VS Code Integration RESOLVED
 - **Issue**: "spawn python ENOENT" error in VS Code MCP configuration
-- **Solution**: Created wrapper script `scripts/start_mcp_for_vscode.sh`
-- **Testing**: Wrapper successfully initializes MCP server with 11 tools
-- **Configuration**: Updated `.vscode/settings.json` with wrapper approach
+- **Root Cause**: System Python missing MCP dependencies
+- **Solution**: Direct Anaconda Python path configuration
+- **Testing**: ✅ All 11 MCP tools operational with Anaconda Python
+- **Configuration**: Verified working `.vscode/settings.json` setup
 
 ### ✅ Production Infrastructure
 - **Startup Scripts**: `start_mcp_server.sh` with process management
@@ -33,9 +34,14 @@
 {
   "mcp.servers": {
     "mem0": {
-      "command": "/Users/asrajag/Workspace/mem0/scripts/start_mcp_for_vscode.sh",
-      "args": [],
-      "cwd": "/Users/asrajag/Workspace/mem0"
+      "command": "/opt/homebrew/anaconda3/bin/python3.11",
+      "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
+      "cwd": "/Users/asrajag/Workspace/mem0",
+      "env": {
+        "MEM0_JWT_SECRET": "FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk",
+        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+        "PYTHONPATH": "/Users/asrajag/Workspace/mem0/server"
+      }
     }
   }
 }
