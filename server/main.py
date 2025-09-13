@@ -31,15 +31,29 @@ def load_config():
         "jwt_secret": "your-secret-key-here"
     }
     
+    # Load from environment variables first (highest priority)
+    env_database_url = os.getenv('MEM0_DATABASE_URL')
+    env_jwt_secret = os.getenv('MEM0_JWT_SECRET')
+    
+    # Load from config file
+    config = default_config.copy()
+    
     if os.path.exists(config_path):
         with open(config_path, 'r') as f:
-            config = json.load(f)
+            file_config = json.load(f)
             # Merge with defaults
             for key, value in default_config.items():
-                if key not in config:
-                    config[key] = value
-            return config
-    return default_config
+                if key not in file_config:
+                    file_config[key] = value
+            config = file_config
+    
+    # Override with environment variables (highest priority)
+    if env_database_url:
+        config["database_url"] = env_database_url
+    if env_jwt_secret:
+        config["jwt_secret"] = env_jwt_secret
+    
+    return config
 
 # Initialize database and performance monitoring
 db = DatabaseManager(load_config())
