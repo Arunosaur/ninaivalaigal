@@ -85,6 +85,30 @@ Then use simplified VS Code config:
 
 VS Code's MCP implementation may have restrictions on executing shell scripts directly. Direct Python execution is more reliable.
 
+## Test Results
+
+- ❌ **System Python** (`/usr/bin/python3`): Missing MCP dependencies
+- ✅ **Anaconda Python** (`/opt/homebrew/anaconda3/bin/python3.11`): Working with all 11 MCP tools
+
 ## Recommended Configuration
 
-Use **Solution 1** with `/usr/bin/python3` as it's the most compatible with VS Code's execution environment.
+Use **Solution 2** with Anaconda Python as it has all required MCP dependencies installed:
+
+```json
+{
+  "mcp.servers": {
+    "mem0": {
+      "command": "/opt/homebrew/anaconda3/bin/python3.11",
+      "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
+      "cwd": "/Users/asrajag/Workspace/mem0",
+      "env": {
+        "MEM0_JWT_SECRET": "FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk",
+        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+        "PYTHONPATH": "/Users/asrajag/Workspace/mem0/server"
+      }
+    }
+  }
+}
+```
+
+This configuration has been tested and successfully initializes the MCP server with all 11 tools available.
