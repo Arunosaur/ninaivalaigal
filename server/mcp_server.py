@@ -23,7 +23,7 @@ from auto_recording import get_auto_recorder
 from main import load_config
 
 # Initialize MCP server
-mcp = FastMCP("ninaivalaigal")
+mcp = FastMCP("e^m")
 
 # Initialize database and config
 config = load_config()
@@ -189,36 +189,211 @@ async def list_contexts() -> str:
         return f"Error listing contexts: {str(e)}"
 
 @mcp.tool()
-async def request_cross_team_access(context_id: int, target_team_id: int, permission_level: str, justification: str = None) -> str:
-    """Request cross-team access to a memory context"""
+async def cross_team_share_memory(
+    context_name: str,
+    target_team: str,
+    access_level: str = "read",
+    justification: str = ""
+) -> Dict[str, Any]:
+    """
+    Share memory context with another team (requires approval)
+    
+    Args:
+        context_name: Name of the context to share
+        target_team: Target team ID to share with
+        access_level: Access level (read/write)
+        justification: Justification for sharing
+    """
+    user_info = get_current_user()
+    
     try:
-        # Note: In real implementation, we'd get user_id from authentication
-        # For MCP demo, using a placeholder user_id
-        user_id = 1  # This should come from authentication context
-        
-        # Get user's teams
-        user_teams = db.get_user_teams(user_id)
-        if not user_teams:
-            return " Error: User must be a member of a team to request cross-team access"
-        
-        requesting_team_id = user_teams[0].id
-        
-        result = approval_manager.request_cross_team_access(
-            context_id=context_id,
-            requesting_team_id=requesting_team_id,
-            target_team_id=target_team_id,
-            requested_by=user_id,
-            permission_level=permission_level,
+        # Create cross-team sharing request
+        request_id = db.create_cross_team_request(
+            context_name=context_name,
+            requesting_user=user_info['user_id'],
+            requesting_team=user_info['team_id'],
+            target_team=target_team,
+            access_level=access_level,
             justification=justification
         )
         
-        if result["success"]:
-            return f" Cross-team access request created successfully\nRequest ID: {result['request_id']}\nExpires: {result['expires_at']}"
-        else:
-            return f" Error: {result['error']}"
-            
+        return {
+            "status": "success",
+            "message": f"Cross-team sharing request created",
+            "request_id": request_id,
+            "context": context_name,
+            "target_team": target_team,
+            "access_level": access_level
+        }
+        
     except Exception as e:
-        return f" Error requesting cross-team access: {str(e)}"
+        return {
+            "status": "error",
+            "message": f"Failed to create sharing request: {str(e)}"
+        }
+
+@mcp.tool()
+async def team_merger_initiate(
+    merger_type: str,
+    source_teams: List[str],
+    target_teams: List[str],
+    memory_policy: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """
+    Initiate team merger process
+    
+    Args:
+        merger_type: Type of merger ('consolidation', 'split', 'dissolution', 'rename')
+        source_teams: List of source team IDs
+        target_teams: List of target team IDs
+        memory_policy: Memory migration policy configuration
+    """
+    user_info = get_current_user()
+    
+    try:
+        from .team_merger_manager import TeamMergerManager
+        
+        # Validate user permissions
+        if not db.user_has_permission(user_info['user_id'], 'team_management'):
+            raise PermissionError("Insufficient permissions for team merger")
+        
+        merger_config = {
+            'type': merger_type,
+            'source_teams': source_teams,
+            'target_teams': target_teams,
+            'initiated_by': user_info['user_id'],
+            'memory_policy': memory_policy or {}
+        }
+        
+        merger_manager = TeamMergerManager(db)
+        merger_id = merger_manager.initiate_team_merger(
+            user_info['organization_id'], merger_config
+        )
+        
+        return {
+            'status': 'success',
+            'merger_id': merger_id,
+            'merger_type': merger_type,
+            'source_teams': source_teams,
+            'target_teams': target_teams,
+            'next_steps': [
+                'Review merger plan with team leads',
+                'Approve memory migration policy',
+                'Execute merger when ready'
+            ]
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to initiate team merger: {str(e)}"
+        }
+
+@mcp.tool()
+async def team_merger_execute(merger_id: int) -> Dict[str, Any]:
+    """
+    Execute approved team merger
+    
+    Args:
+        merger_id: ID of the merger to execute
+    """
+    user_info = get_current_user()
+    
+    try:
+        from .team_merger_manager import TeamMergerManager
+        
+        merger_manager = TeamMergerManager(db)
+        merger = db.get_team_merger(merger_id)
+        
+        if not merger:
+            raise ValueError(f"Merger {merger_id} not found")
+        
+        if merger['merger_type'] == 'consolidation':
+            result = merger_manager.execute_team_consolidation(merger_id)
+        elif merger['merger_type'] == 'split':
+            result = merger_manager.execute_team_split(merger_id)
+        elif merger['merger_type'] == 'dissolution':
+            result = merger_manager.execute_team_dissolution(merger_id)
+        elif merger['merger_type'] == 'rename':
+            result = merger_manager.execute_team_rename(merger_id)
+        else:
+            raise ValueError(f"Unknown merger type: {merger['merger_type']}")
+        
+        return {
+            'status': 'success',
+            'execution_result': result
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to execute team merger: {str(e)}"
+        }
+
+@mcp.tool()
+async def team_merger_status(merger_id: int) -> Dict[str, Any]:
+    """
+    Get status of team merger
+    
+    Args:
+        merger_id: ID of the merger to check
+    """
+    user_info = get_current_user()
+    
+    try:
+        merger = db.get_team_merger(merger_id)
+        if not merger:
+            raise ValueError(f"Merger {merger_id} not found")
+        
+        # Get detailed status
+        status_info = db.get_team_merger_status(merger_id)
+        audit_trail = db.get_merger_audit_trail(merger_id)
+        
+        return {
+            'status': 'success',
+            'merger_info': merger,
+            'current_status': status_info,
+            'audit_trail': audit_trail[-5:] if audit_trail else [],  # Last 5 entries
+            'can_rollback': merger['status'] == 'completed'
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to get merger status: {str(e)}"
+        }
+
+@mcp.tool()
+async def team_merger_rollback(merger_id: int, rollback_reason: str) -> Dict[str, Any]:
+    """
+    Rollback completed team merger
+    
+    Args:
+        merger_id: ID of the merger to rollback
+        rollback_reason: Reason for rollback
+    """
+    user_info = get_current_user()
+    
+    try:
+        from .team_merger_manager import TeamMergerManager
+        
+        # Validate permissions
+        if not db.user_has_permission(user_info['user_id'], 'team_management'):
+            raise PermissionError("Insufficient permissions for merger rollback")
+        
+        merger_manager = TeamMergerManager(db)
+        result = merger_manager.rollback_merger(merger_id, rollback_reason)
+        
+        return {
+            'status': 'success',
+            'rollback_result': result
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to rollback merger: {str(e)}"
+        }
 
 @mcp.tool()
 async def approve_cross_team_request(request_id: int, action: str, reason: str = None) -> str:
