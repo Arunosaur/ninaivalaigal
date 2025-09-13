@@ -99,11 +99,21 @@ def test_mcp_tools_list():
         # Read init response
         init_response = process.stdout.readline()
         
+        # Send initialized notification (required by MCP protocol)
+        initialized_notification = {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+        }
+        
+        process.stdin.write(json.dumps(initialized_notification) + "\n")
+        process.stdin.flush()
+        
         # Send tools/list request
         tools_request = {
             "jsonrpc": "2.0",
             "id": 2,
-            "method": "tools/list"
+            "method": "tools/list",
+            "params": {}
         }
         
         process.stdin.write(json.dumps(tools_request) + "\n")
@@ -180,6 +190,15 @@ def test_basic_memory_operation():
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
         process.stdout.readline()  # Read init response
+        
+        # Send initialized notification
+        initialized_notification = {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+        }
+        
+        process.stdin.write(json.dumps(initialized_notification) + "\n")
+        process.stdin.flush()
         
         # Test context_start
         context_request = {
