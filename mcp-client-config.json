@@ -1,10 +1,10 @@
 {
   "mcpServers": {
-    "mem0": {
+    "ninaivalaigal": {
       "command": "/opt/homebrew/anaconda3/bin/python",
       "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
       "env": {
-        "MEM0_SERVER_URL": "http://127.0.0.1:13370"
+        "NINAIVALAIGAL_SERVER_URL": "http://127.0.0.1:13370"
       }
     },
     "code-reviewer": {

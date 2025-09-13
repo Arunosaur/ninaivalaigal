@@ -1,6 +1,12 @@
-# mem0 - Universal Memory Layer for AI Agents
+# Ninaivalaigal - e^M Agentic Execution Engine
 
-mem0 is a comprehensive system designed to provide a universal, cross-platform, and shareable memory layer for AI agents and human developers. It captures the iterative development process and transforms it into structured, machine-readable data for automation, collaboration, and team knowledge sharing.
+**Exponential Memory: commands, compounding memory, exponential action**
+
+*By Medhays (www.medhasys.com)*
+
+## Overview
+
+Ninaivalaigal provides an exponential memory system that allows AI assistants and developers to remember context, conversations, and insights across sessions. The e^M (exponential Memory) engine acts as a "CCTV for your AI interactions" - automatically recording and making searchable your development history with compound learning effects.
 
 ## Architecture
 

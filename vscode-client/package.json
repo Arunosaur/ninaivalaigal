@@ -1,11 +1,11 @@
 {
-    "name": "mem0-vscode",
-    "displayName": "mem0",
-    "description": "A memory layer for your development environment.",
+    "name": "ninaivalaigal-vscode",
+    "displayName": "Ninaivalaigal",
+    "description": "e^M - Exponential Memory layer for your development environment.",
     "version": "0.1.0",
     "repository": {
         "type": "git",
-        "url": "https://github.com/example/mem0.git"
+        "url": "https://github.com/medhays/ninaivalaigal.git"
     },
     "engines": {
         "vscode": "^1.74.0"
@@ -20,28 +20,28 @@
     "contributes": {
         "chatParticipants": [
             {
-                "id": "mem0",
-                "name": "mem0",
-                "description": "I remember things so you don't have to."
+                "id": "ninaivalaigal",
+                "name": "e^M",
+                "description": "Exponential Memory - I remember things so you don't have to."
             }
         ],
         "configuration": {
-            "title": "mem0",
+            "title": "Ninaivalaigal",
             "properties": {
-                "mem0.projectRoot": {
+                "ninaivalaigal.projectRoot": {
                     "type": "string",
                     "default": "",
-                    "description": "The absolute path to the root of your mem0 project."
+                    "description": "The absolute path to the root of your Ninaivalaigal project."
                 },
-                "mem0.context": {
+                "ninaivalaigal.context": {
                     "type": "string",
                     "default": "",
                     "description": "Explicit context name for this workspace (overrides auto-detection)."
                 },
-                "mem0.serverUrl": {
+                "ninaivalaigal.serverUrl": {
                     "type": "string",
                     "default": "http://127.0.0.1:13370",
-                    "description": "URL of the mem0 server."
+                    "description": "URL of the Ninaivalaigal server."
                 }
             }
         }

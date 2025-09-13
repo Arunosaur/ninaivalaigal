@@ -21,7 +21,7 @@ async function initializeMCPClient() {
         });
         
         mcpClient = new Client({
-            name: 'mem0-vscode',
+            name: 'ninaivalaigal-vscode',
             version: '1.0.0'
         }, {
             capabilities: {}
@@ -36,8 +36,8 @@ async function initializeMCPClient() {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('mem0 extension activating...');
-    vscode.window.showInformationMessage('mem0 extension is activating!');
+    console.log('Ninaivalaigal extension activating...');
+    vscode.window.showInformationMessage('Ninaivalaigal extension is activating!');
 
     const handler: vscode.ChatRequestHandler = (request: vscode.ChatRequest, chatContext: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken): Thenable<any> => {
         
@@ -46,13 +46,13 @@ export function activate(context: vscode.ExtensionContext) {
             // Initialize MCP client
             const client = await initializeMCPClient();
             if (!client) {
-                stream.markdown('❌ **Failed to connect to mem0 MCP server**\n\n');
+                stream.markdown('❌ **Failed to connect to Ninaivalaigal MCP server**\n\n');
                 return resolve({ commands: [] });
             }
             
             // Determine project context
             let projectContext: string;
-            const workspaceConfig = vscode.workspace.getConfiguration('mem0');
+            const workspaceConfig = vscode.workspace.getConfiguration('ninaivalaigal');
             const explicitContext = workspaceConfig.get<string>('context');
             
             if (currentContext) {
@@ -101,7 +101,7 @@ export function activate(context: vscode.ExtensionContext) {
                     projectContext = contextArgs[1];
                     stream.markdown(`🎯 **Switched to context:** \`${projectContext}\`\n\n`);
                 } else {
-                    stream.markdown(`**Usage:**\n- \`@mem0 context start <name>\` - Start new context\n- \`@mem0 context switch <name>\` - Switch to existing context\n- \`@mem0 context list\` - List all contexts\n\n`);
+                    stream.markdown(`**Usage:**\n- \`@e^M context start <name>\` - Start new context\n- \`@e^M context switch <name>\` - Switch to existing context\n- \`@e^M context list\` - List all contexts\n\n`);
                     return resolve({ commands: [] });
                 }
             }
@@ -174,12 +174,12 @@ export function activate(context: vscode.ExtensionContext) {
         });
     };
 
-    const agent = vscode.chat.createChatParticipant('mem0', handler);
+    const agent = vscode.chat.createChatParticipant('ninaivalaigal', handler);
     agent.iconPath = new vscode.ThemeIcon('beaker');
     
     context.subscriptions.push(agent);
-    console.log('mem0 extension activated successfully');
-    vscode.window.showInformationMessage('mem0 extension activated successfully!');
+    console.log('Ninaivalaigal extension activated successfully');
+    vscode.window.showInformationMessage('Ninaivalaigal extension activated successfully!');
 }
 
 export function deactivate() {}

@@ -25,7 +25,7 @@ import json as json_lib
 
 # Configuration loading
 def load_config():
-    config_path = "../mem0.config.json"
+    config_path = "../ninaivalaigal.config.json"
     default_config = {
         "storage": {
             "type": "postgresql",
@@ -36,8 +36,8 @@ def load_config():
     }
     
     # Load from environment variables first (highest priority)
-    env_database_url = os.getenv('MEM0_DATABASE_URL')
-    env_jwt_secret = os.getenv('MEM0_JWT_SECRET')
+    env_database_url = os.getenv('NINAIVALAIGAL_DATABASE_URL')
+    env_jwt_secret = os.getenv('NINAIVALAIGAL_JWT_SECRET')
     
     # Load from config file
     config = default_config.copy()

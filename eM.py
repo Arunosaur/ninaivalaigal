@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""
+e^M - Ninaivalaigal Agentic Execution Engine
+Exponential Memory: commands, compounding memory, exponential action
+Part of Ninaivalaigal by Medhays (www.medhasys.com)
+"""
+
+import sys
+import os
+import json
+import requests
+from datetime import datetime
+
+# Add vendor directory to path for dependencies
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'client', 'vendor'))
+
+class Mem0Client:
+    def __init__(self):
+        self.base_url = "http://127.0.0.1:13370"
+        self.session = requests.Session()
+
+    def make_request(self, method, endpoint, **kwargs):
+        """Make HTTP request to mem0 server"""
+        url = f"{self.base_url}{endpoint}"
+        try:
+            response = self.session.request(method, url, **kwargs)
+            return response
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Connection error: {e}")
+            sys.exit(1)
+
+    def contexts(self):
+        """List all contexts"""
+        response = self.make_request('GET', '/contexts')
+        if response.status_code == 200:
+            data = response.json()
+            print("📋 Available contexts:")
+            for context in data.get('contexts', []):
+                status = "ACTIVE" if context.get('is_active') else "inactive"
+                created = context.get('created_at', '')[:19]  # Format timestamp
+                print(f"  - {context['name']} ({status}) - created: {created}")
+        else:
+            print(f"❌ Failed to get contexts: {response.text}")
+
+    def context_active(self):
+        """Show active context"""
+        response = self.make_request('GET', '/context/active')
+        if response.status_code == 200:
+            data = response.json()
+            active_context = data.get('recording_context')
+            if active_context:
+                print(f"🎯 Terminal context: {active_context}")
+            else:
+                print("📭 No active context")
+        else:
+            print(f"❌ Failed to get active context: {response.text}")
+
+    def context_start(self, name):
+        """Start recording to context"""
+        response = self.make_request('POST', f'/context/start?context={name}')
+        if response.status_code == 200:
+            print(f"✅ Now recording to context: {name}")
+        else:
+            print(f"❌ Failed to start context: {response.text}")
+
+    def context_stop(self, name=None):
+        """Stop recording context"""
+        if name:
+            response = self.make_request('POST', f'/context/stop?context={name}')
+        else:
+            response = self.make_request('POST', '/context/stop')
+
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Recording stopped for context: {data.get('message', 'Unknown')}")
+        else:
+            print(f"❌ Failed to stop context: {response.text}")
+
+    def remember(self, payload, context=None):
+        """Store a memory entry"""
+        data = {
+            "type": payload.get("type", "manual"),
+            "source": payload.get("source", "cli"),
+            "data": payload.get("data", {})
+        }
+
+        # Add context to the data field for the server to extract
+        if context:
+            data["data"]["context"] = context
+
+        response = self.make_request('POST', '/memory', json=data)
+        if response.status_code == 200:
+            result = response.json()
+            print("✅ Memory entry recorded.")
+        else:
+            print(f"❌ Failed to record memory: {response.text}")
+
+    def context_delete(self, names):
+        """Delete one or more contexts"""
+        success_count = 0
+        failed_count = 0
+        skipped_active = 0
+
+        for context_name in names:
+            # First check if context is active
+            active_response = self.make_request('GET', '/context/active')
+            if active_response.status_code == 200:
+                active_result = active_response.json()
+                active_context = active_result.get('recording_context', '')
+
+                if active_context == context_name:
+                    print(f"⚠️  Cannot delete active context '{context_name}' - stop it first with: mem0 context stop {context_name}")
+                    skipped_active += 1
+                    continue
+
+            # Context is not active, proceed with deletion
+            response = self.make_request('DELETE', f'/context/{context_name}')
+
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ Context '{context_name}' deleted successfully")
+                success_count += 1
+            else:
+                print(f"❌ Failed to delete context '{context_name}': {response.text}")
+                failed_count += 1
+
+        print(f"\n📊 Summary: {success_count} deleted, {failed_count} failed, {skipped_active} active contexts skipped")
+
+    def recall(self, context=None):
+        """Retrieve memories"""
+        if context:
+            response = self.make_request('GET', f'/memory?context={context}')
+        else:
+            response = self.make_request('GET', '/memory/all')
+
+        if response.status_code == 200:
+            memories = response.json()
+            if isinstance(memories, list) and memories:
+                print("📝 Memories:")
+                for memory in memories[:10]:  # Show first 10
+                    print(json.dumps(memory, indent=2))
+            else:
+                print("📭 No memories found")
+        else:
+            print(f"❌ Failed to retrieve memories: {response.text}")
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: mem0 <command> [options]")
+        print("Commands: contexts, active, start, stop, delete, remember, recall")
+        sys.exit(1)
+
+    client = Mem0Client()
+    command = sys.argv[1]
+
+    if command == "contexts":
+        client.contexts()
+
+    elif command == "active":
+        client.context_active()
+
+    elif command == "start":
+        context = None
+        if len(sys.argv) >= 4 and sys.argv[2] == "--context":
+            context = sys.argv[3]
+        elif len(sys.argv) >= 3:
+            print("Usage: mem0 start --context <name>")
+            sys.exit(1)
+        
+        if context:
+            client.context_start(context)
+        else:
+            print("Usage: mem0 start --context <name>")
+            sys.exit(1)
+
+    elif command == "stop":
+        context = None
+        if len(sys.argv) >= 4 and sys.argv[2] == "--context":
+            context = sys.argv[3]
+        client.context_stop(context)
+
+    elif command == "delete":
+        if len(sys.argv) < 4 or sys.argv[2] != "--context":
+            print("Usage: mem0 delete --context <name1> [name2] [name3] ...")
+            sys.exit(1)
+        
+        names = sys.argv[3:]
+        client.context_delete(names)
+
+    elif command == "remember":
+        if len(sys.argv) < 3:
+            print("Usage: mem0 remember <json_payload> [--context <name>]")
+            sys.exit(1)
+
+        payload_str = sys.argv[2]
+        try:
+            payload = json.loads(payload_str)
+        except json.JSONDecodeError:
+            print("❌ Invalid JSON payload")
+            sys.exit(1)
+
+        context = None
+        if len(sys.argv) >= 5 and sys.argv[3] == "--context":
+            context = sys.argv[4]
+
+        client.remember(payload, context)
+
+    elif command == "recall":
+        context = None
+        if len(sys.argv) >= 4 and sys.argv[2] == "--context":
+            context = sys.argv[3]
+        client.recall(context)
+
+    # Backward compatibility for old command structure
+    elif command == "context":
+        print("⚠️  Legacy command format. Use:")
+        print("  mem0 active           (instead of mem0 context active)")
+        print("  mem0 start --context <name>    (instead of mem0 context start <name>)")
+        print("  mem0 stop --context <name>     (instead of mem0 context stop <name>)")
+        print("  mem0 delete --context <name>   (instead of mem0 context delete <name>)")
+
+    else:
+        print(f"❌ Unknown command: {command}")
+        print("Available commands: contexts, active, start, stop, delete, remember, recall")
+
+if __name__ == "__main__":
+    main()

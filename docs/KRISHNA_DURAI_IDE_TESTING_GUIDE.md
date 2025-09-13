@@ -1,5 +1,7 @@
 # Krishna & Durai IDE Testing Guide
-**For Testing VS Code, JetBrains, and IDE Integrations**
+**For Testing VS Code, JetBrains, and IDE Integrations with Ninaivalaigal e^M**
+
+*Part of Ninaivalaigal by Medhays (www.medhasys.com)*
 
 ## 🎯 **What Krishna and Durai Need to Test**
 
@@ -32,9 +34,9 @@ code --install-extension mem0-vscode-0.1.0.vsix
 Create `.vscode/settings.json` in your test project:
 ```json
 {
-  "mem0.serverUrl": "http://localhost:8000",
-  "mem0.context": "krishna-test-project",
-  "mem0.userToken": "your-jwt-token-here"
+  "ninaivalaigal.serverUrl": "http://localhost:8000",
+  "ninaivalaigal.context": "krishna-test-project",
+  "ninaivalaigal.userToken": "your-jwt-token-here"
 }
 ```
 
@@ -42,14 +44,14 @@ Create `.vscode/settings.json` in your test project:
 1. Open VS Code chat panel (`Ctrl+Shift+I` or `Cmd+Shift+I`)
 2. Test these commands:
    ```
-   @mem0 context start my-project
-   @mem0 remember "Added user authentication with JWT tokens"
-   @mem0 recall authentication
-   @mem0 context list
+   @e^M context start my-project
+   @e^M remember "Added user authentication with JWT tokens"
+   @e^M recall authentication
+   @e^M context list
    ```
 
 ### **Expected Results:**
-- ✅ Extension connects to mem0 server
+- ✅ Extension connects to Ninaivalaigal server
 - ✅ Context creation works
 - ✅ Memory storage and recall functions
 - ✅ JWT authentication is handled automatically
@@ -69,7 +71,7 @@ cd /Users/asrajag/Workspace/mem0/jetbrains-plugin
 4. Restart IDE
 
 ### **Step 3: Configure Plugin**
-1. Go to: `Settings → Tools → mem0`
+1. Go to: `Settings → Tools → Ninaivalaigal`
 2. Set:
    - **Server URL**: `http://localhost:8000`
    - **User Token**: `your-jwt-token-here`
@@ -85,11 +87,11 @@ cd /Users/asrajag/Workspace/mem0/jetbrains-plugin
    - Tools menu → mem0 actions
 
 3. **Tool Window**:
-   - View → Tool Windows → mem0
+   - View → Tool Windows → Ninaivalaigal
    - Check current context and memories
 
 ### **Expected Results:**
-- ✅ Plugin connects to mem0 server with JWT
+- ✅ Plugin connects to Ninaivalaigal server with JWT
 - ✅ Code selection remembering works
 - ✅ Memory recall displays in tool window
 - ✅ Context switching functions
@@ -101,12 +103,12 @@ Edit `~/.config/claude-desktop/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "mem0": {
+    "ninaivalaigal": {
       "command": "/opt/homebrew/anaconda3/bin/python",
       "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
       "env": {
-        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
-        "MEM0_JWT_SECRET": "FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk"
+        "NINAIVALAIGAL_DATABASE_URL": "postgresql://ninaivalaigal_user:ninaivalaigal_pass@localhost:5432/ninaivalaigal_db",
+        "NINAIVALAIGAL_JWT_SECRET": "FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk"
       }
     }
   }
@@ -117,54 +119,55 @@ Edit `~/.config/claude-desktop/claude_desktop_config.json`:
 In Claude Desktop or MCP-enabled IDE:
 ```bash
 # Test basic memory operations
-@mem0 remember "Krishna prefers functional programming"
-@mem0 context_start "mcp-test-project"
-@mem0 recall "functional"
+@e^M remember "Test memory for debugging"
+@e^M recall "test"
+@e^M context_start "mcp-test-project"
+@e^M approve_cross_team_request request_id=1
 
 # Test AI enhancement
-@mem0 enhance_ai_prompt_tool file_path="test.js" language="javascript" prompt="Create a React component" ai_model="claude"
+@e^M enhance_ai_prompt_tool file_path="shared.js" language="javascript" prompt="Implement shared function" user_id=1 team_id=1_model="claude"
 ```
 
 ### **Expected Results:**
 - ✅ MCP tools are available in chat
 - ✅ Memory operations work with authentication
-- ✅ AI prompt enhancement includes relevant memories
+- ✅ AI prompt enhancement includes memories
 
 ## 📋 **Test Scenarios for Krishna & Durai**
 
 ### **Scenario 1: Basic Workflow**
 ```bash
 # 1. Start new context
-@mem0 context start "user-auth-feature"
+@e^M context start "user-auth-feature"
 
 # 2. Remember design decisions
-@mem0 remember "Using JWT tokens for stateless authentication"
-@mem0 remember "Password hashing with bcrypt for security"
+@e^M remember "Using JWT tokens for stateless authentication"
+@e^M remember "Password hashing with bcrypt for security"
 
 # 3. Code and remember implementation
 # Select code in IDE → Ctrl+Shift+M
 # Remember: "Implemented login endpoint with error handling"
 
 # 4. Recall when needed
-@mem0 recall "authentication"
+@e^M recall "authentication"
 # Should show all auth-related memories
 ```
 
 ### **Scenario 2: Cross-Context Testing**
 ```bash
 # Test context isolation
-@mem0 context start "frontend-project"
-@mem0 remember "Using React with TypeScript"
-
-@mem0 context start "backend-project"  
-@mem0 remember "Using FastAPI with PostgreSQL"
+@e^M context start "frontend-project"
+@e^M remember "Your coding preference"
+@e^M context_start "project-name"
+@e^M remember "Using FastAPI with PostgreSQL"
 
 # Switch contexts and verify isolation
-@mem0 context switch "frontend-project"
-@mem0 recall "react"  # Should only show frontend memories
+@e^M context switch "frontend-project"
+@e^M list_contexts
+@e^M recall "search term"  # Should only show frontend memories
 
-@mem0 context switch "backend-project"
-@mem0 recall "fastapi"  # Should only show backend memories
+@e^M context switch "backend-project"
+@e^M recall "fastapi"  # Should only show backend memories
 ```
 
 ### **Scenario 3: Multi-IDE Testing**
@@ -179,7 +182,7 @@ In Claude Desktop or MCP-enabled IDE:
 ```bash
 # Extension not loading
 1. Check VS Code Developer Console (Help → Toggle Developer Tools)
-2. Verify extension is enabled: Extensions → Search "mem0"
+2. Verify extension is enabled: Extensions → Search "Ninaivalaigal"
 3. Check settings.json syntax
 
 # Server connection failed
@@ -197,7 +200,7 @@ In Claude Desktop or MCP-enabled IDE:
 
 # Context not detected
 1. Check tool window shows current context
-2. Manually set context: Tools → mem0 → Start Context
+2. Manually set context: Tools → Ninaivalaigal → Start Context
 3. Verify project folder name detection
 ```
 
@@ -227,9 +230,9 @@ In Claude Desktop or MCP-enabled IDE:
 
 ### **For Durai to Verify:**
 - [ ] MCP server starts without errors
-- [ ] Claude Desktop integration works
-- [ ] AI prompt enhancement includes memories
-- [ ] Cross-IDE memory synchronization
+- [ ] IDE recognizes Ninaivalaigal MCP tools
+- [ ] `enhance_ai_prompt_tool` returns enhanced prompts
+- [ ] Memories are retrieved and ranked correctly synchronization
 - [ ] Multi-user context isolation
 - [ ] Performance is acceptable (< 200ms responses)
 
@@ -252,7 +255,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
   http://localhost:8000/contexts
 
 curl -X POST -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8000/memory/record?context=test-context&interaction_type=test&content=Test memory"
+  "http://localhost:8000/@e^M request_cross_team_access context_id=1 target_team_id=2 permission_level="read" justification="Need access for collaboration"
 ```
 
 ## 📞 **Getting Help**

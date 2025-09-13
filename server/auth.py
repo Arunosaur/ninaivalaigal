@@ -1,5 +1,5 @@
 """
-Authentication and user management for Mem0
+Authentication and user management for Ninaivalaigal
 Supports individual users, team members, and organization creators
 """
 
@@ -19,10 +19,10 @@ from email.mime.multipart import MIMEMultipart
 
 # Configuration loading (moved from main.py to avoid circular import)
 def load_config():
-    config_path = "../mem0.config.json"
+    config_path = "../ninaivalaigal.config.json"
     default_config = {
         "storage": {
-            "database_url": "sqlite:///./mem0.db"
+            "database_url": "sqlite:///./ninaivalaigal.db"
         }
     }
     
@@ -44,9 +44,9 @@ def get_db():
     return DatabaseManager(database_url)
 
 # JWT Secret from environment or default
-JWT_SECRET = os.getenv('MEM0_JWT_SECRET', 'dev-secret-key-change-in-production')
+JWT_SECRET = os.getenv('NINAIVALAIGAL_JWT_SECRET', 'dev-secret-key-change-in-production')
 JWT_ALGORITHM = 'HS256'
-JWT_EXPIRATION_HOURS = int(os.getenv('MEM0_JWT_EXPIRATION_HOURS', '168'))  # Default 7 days
+JWT_EXPIRATION_HOURS = int(os.getenv('NINAIVALAIGAL_JWT_EXPIRATION_HOURS', '168'))  # Default 7 days
 
 # Password validation
 def validate_password(password: str) -> bool:

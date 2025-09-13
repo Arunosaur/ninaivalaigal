@@ -1,7 +1,7 @@
 #!/opt/homebrew/anaconda3/bin/python
 """
-mem0 MCP Server - Model Context Protocol implementation
-Provides memory management capabilities as MCP tools, resources, and prompts
+Ninaivalaigal MCP Server - Model Context Protocol implementation
+Provides e^M (exponential Memory) management capabilities as MCP tools, resources, and prompts
 """
 
 import asyncio
@@ -23,7 +23,7 @@ from auto_recording import get_auto_recorder
 from main import load_config
 
 # Initialize MCP server
-mcp = FastMCP("mem0")
+mcp = FastMCP("ninaivalaigal")
 
 # Initialize database and config
 config = load_config()
@@ -34,7 +34,7 @@ auto_recorder = get_auto_recorder(db)
 
 # Get user ID from environment or default to 1 for development
 import os
-DEFAULT_USER_ID = int(os.getenv('MEM0_USER_ID', '1'))
+DEFAULT_USER_ID = int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))
 
 @mcp.tool()
 async def remember(text: str, context: str = None) -> str:
@@ -66,7 +66,7 @@ async def remember(text: str, context: str = None) -> str:
             
         try:
             db.add_memory(context, "note", "mcp", {"text": text, "timestamp": str(datetime.now()), "context": context, "user_id": DEFAULT_USER_ID})
-            return f"Memory stored successfully in context: {context} (User ID: {DEFAULT_USER_ID})"
+            return f"📝 Memory stored successfully in context: {context} (User ID: {DEFAULT_USER_ID})"
         except Exception as e:
             return f"Error storing memory: {e}"
         
@@ -378,7 +378,7 @@ async def store_ai_feedback(
     except Exception as e:
         return f"❌ Error storing AI feedback: {str(e)}"
 
-@mcp.resource("mem0://contexts")
+@mcp.resource("ninaivalaigal://contexts")
 async def list_all_contexts() -> Resource:
     """Provide list of all contexts as a resource"""
     try:
@@ -386,20 +386,20 @@ async def list_all_contexts() -> Resource:
         content = "\n".join(f"- {context}" for context in contexts)
         
         return Resource(
-            uri="mem0://contexts",
+            uri="ninaivalaigal://contexts",
             name="Available Contexts",
             description="List of all available memory contexts",
             mimeType="text/plain"
         )
     except Exception as e:
         return Resource(
-            uri="mem0://contexts",
+            uri="ninaivalaigal://contexts",
             name="Context List Error",
             description=f"Error retrieving contexts: {str(e)}",
             mimeType="text/plain"
         )
 
-@mcp.resource("mem0://context/{context_name}")
+@mcp.resource("ninaivalaigal://context/{context_name}")
 async def get_context_memories(context_name: str) -> Resource:
     """Provide all memories for a specific context"""
     try:
@@ -407,20 +407,20 @@ async def get_context_memories(context_name: str) -> Resource:
         content = json.dumps(memories, indent=2)
         
         return Resource(
-            uri=f"mem0://context/{context_name}",
+            uri=f"ninaivalaigal://context/{context_name}",
             name=f"Context: {context_name}",
             description=f"All memories from context '{context_name}'",
             mimeType="application/json"
         )
     except Exception as e:
         return Resource(
-            uri=f"mem0://context/{context_name}",
+            uri=f"ninaivalaigal://context/{context_name}",
             name=f"Context Error: {context_name}",
             description=f"Error retrieving context: {str(e)}",
             mimeType="text/plain"
         )
 
-@mcp.resource("mem0://recent")
+@mcp.resource("ninaivalaigal://recent")
 async def get_recent_memories() -> Resource:
     """Provide recently added memories across all contexts"""
     try:
@@ -428,14 +428,14 @@ async def get_recent_memories() -> Resource:
         content = json.dumps(memories, indent=2)
         
         return Resource(
-            uri="mem0://recent",
+            uri="ninaivalaigal://recent",
             name="Recent Memories",
             description="Recently added memories across all contexts",
             mimeType="application/json"
         )
     except Exception as e:
         return Resource(
-            uri="mem0://recent",
+            uri="ninaivalaigal://recent",
             name="Recent Memories Error", 
             description=f"Error retrieving recent memories: {str(e)}",
             mimeType="text/plain"
@@ -510,14 +510,14 @@ Recent memories:
         )
 
 # Add resource for approval workflow documentation
-@mcp.resource("mem0://approval-workflow")
+@mcp.resource("ninaivalaigal://approval-workflow")
 async def approval_workflow_guide() -> Resource:
     """Documentation for cross-team memory approval workflow"""
     content = """
 # Cross-Team Memory Approval Workflow
 
 ## Overview
-mem0 supports hierarchical memory access with approval workflows:
+Ninaivalaigal supports hierarchical memory access with approval workflows:
 
 1. **Personal Memory** - Private to individual users
 2. **Team Memory** - Shared within team members
@@ -564,7 +564,7 @@ approve_cross_team_request(
 """
     
     return Resource(
-        uri="mem0://approval-workflow",
+        uri="ninaivalaigal://approval-workflow",
         name="Cross-Team Approval Workflow Guide",
         description="Complete guide for cross-team memory sharing with approval workflows",
         mimeType="text/markdown"
