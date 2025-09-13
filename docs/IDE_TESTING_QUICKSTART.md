@@ -33,42 +33,44 @@ psql -d mem0_db -f /Users/asrajag/Workspace/mem0/scripts/update_schema_approval.
 **Setup:**
 VS Code MCP configuration varies by version. Try these methods:
 
-**Method 1: User Settings (VS Code 1.85+)**
-Add to your VS Code User Settings (`Cmd+,` → Open Settings JSON):
-```json
-{
-  "mcp.servers": {
-    "mem0": {
-      "command": "python",
-      "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
-      "env": {
-        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
-        "MEM0_JWT_SECRET": "your-secret-key-here"
-      },
-      "cwd": "/Users/asrajag/Workspace/mem0"
-    }
-  }
-}
-```
+**Method 1: Wrapper Script (Recommended)**
+VS Code has Python path resolution issues. Use the wrapper script:
 
-**Method 2: Workspace Settings**
 Create `.vscode/settings.json` in your project:
 ```json
 {
   "mcp.servers": {
     "mem0": {
-      "command": "python",
-      "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
-      "env": {
-        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
-      },
+      "command": "/Users/asrajag/Workspace/mem0/scripts/start_mcp_for_vscode.sh",
+      "args": [],
       "cwd": "/Users/asrajag/Workspace/mem0"
     }
   }
 }
 ```
 
-**Test:** Restart VS Code, then use MCP tools in chat
+**Method 2: Direct Python Path**
+If wrapper doesn't work, use full Python path:
+```json
+{
+  "mcp.servers": {
+    "mem0": {
+      "command": "/opt/homebrew/anaconda3/bin/python3.11",
+      "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
+      "cwd": "/Users/asrajag/Workspace/mem0",
+      "env": {
+        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+        "MEM0_JWT_SECRET": "FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk"
+      }
+    }
+  }
+}
+```
+
+**Troubleshooting:**
+- If you see "spawn python ENOENT", use Method 1 (wrapper script)
+- Wrapper script handles environment variables and Python path automatically
+- Restart VS Code after configuration changes
 
 ### Option 2: Claude Desktop (Best for AI Testing)
 
