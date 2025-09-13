@@ -113,15 +113,26 @@
                 </div>
             </div>
 
-            <!-- Recent Activity -->
+            <!-- JWT Token Access -->
             <div class="bg-white card-shadow rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
-                <div id="recent-activity" class="space-y-3">
-                    <div class="flex items-center text-sm text-gray-500">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        No recent activity
+                <h3 class="text-lg font-medium text-gray-900 mb-4">API Access Token</h3>
+                <div class="space-y-3">
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Your JWT Token:</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="jwt-token-display" readonly 
+                                   class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded text-xs font-mono"
+                                   placeholder="Token will appear here...">
+                            <button onclick="copyToken()" 
+                                    class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-500">
+                        <p>• Use this token for API calls and CLI access</p>
+                        <p>• Token expires in 7 days (configurable)</p>
+                        <p>• Keep this token secure and private</p>
                     </div>
                 </div>
             </div>
@@ -180,6 +191,9 @@
         // Display user info
         document.getElementById('user-name').textContent = user.name || 'User';
         document.getElementById('account-type').textContent = user.account_type || 'individual';
+        
+        // Display JWT token
+        document.getElementById('jwt-token-display').value = token;
 
         // Load dashboard data
         async function loadDashboardData() {
@@ -259,6 +273,32 @@
 
         function exportMemories() {
             alert('Memory export feature coming soon!');
+        }
+
+        function copyToken() {
+            const tokenInput = document.getElementById('jwt-token-display');
+            tokenInput.select();
+            tokenInput.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                document.execCommand('copy');
+                
+                // Visual feedback
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                button.classList.add('bg-green-600');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-600');
+                    button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                }, 2000);
+                
+            } catch (err) {
+                alert('Failed to copy token. Please select and copy manually.');
+            }
         }
 
         // Load data on page load

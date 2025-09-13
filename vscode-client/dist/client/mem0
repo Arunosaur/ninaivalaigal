@@ -1,302 +1,33 @@
 #!/usr/bin/env python3
+"""
+mem0 client entry point
+Portable solution that works on any system
+"""
 
-import sys
 import os
-
-# Add the vendor directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'vendor'))
-import argparse
-import requests
-import json
+import sys
 import subprocess
-from datetime import datetime
-
-# Configuration loading
-def load_config():
-    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'mem0.config.json')
-    default_config = {
-        "server": {"host": "127.0.0.1", "port": 13370, "timeout": 10},
-        "client": {"default_context_strategy": "git_branch", "cache_ttl": 30, "debug": False},
-        "shell": {"enabled": True, "capture_patterns": {"include": ["*"], "exclude": ["ls", "cd", "pwd", "clear", "exit"]}},
-        "storage": {"data_file": "mem0_data.json", "backup_enabled": True, "max_memories_per_context": 1000}
-    }
-    
-    try:
-        if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                user_config = json.load(f)
-                # Merge with defaults
-                for section in default_config:
-                    if section in user_config:
-                        default_config[section].update(user_config[section])
-        return default_config
-    except Exception:
-        return default_config
-
-config = load_config()
-API_PORT = os.getenv("MEM0_PORT", config["server"]["port"])
-API_HOST = config["server"]["host"]
-API_URL = f"http://{API_HOST}:{API_PORT}"
-REQUEST_TIMEOUT = config["server"]["timeout"]
-
-def get_active_context():
-    try:
-        # Get active context from server
-        response = requests.get(f"{API_URL}/context/active", timeout=REQUEST_TIMEOUT)
-        if response.status_code == 200:
-            active_context = response.json().get("recording_context")
-            if active_context:
-                return active_context
-    except:
-        pass
-    
-    # No active context - user must specify --context or start a context first
-    raise ValueError("No active context. Use --context <name> or start a context first with 'context start <name>'")
-
-def remember(args):
-    context = args.context if args.context else get_active_context()
-    
-    # Handle both JSON and plain text input
-    try:
-        # Try to parse as JSON first
-        payload_data = json.loads(args.text_or_json)
-        if not all(k in payload_data for k in ['type', 'source', 'data']):
-            raise ValueError("JSON payload must contain 'type', 'source', and 'data' keys.")
-    except (json.JSONDecodeError, ValueError):
-        # If not JSON, treat as plain text and create structured payload
-        payload_data = {
-            "type": "note",
-            "source": "cli",
-            "data": {
-                "text": args.text_or_json,
-                "timestamp": str(datetime.now()),
-                "context": context
-            }
-        }
-
-    payload = {
-        "context": context,
-        "payload": payload_data
-    }
-    
-    try:
-        response = requests.post(f"{API_URL}/memory", json=payload, timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        print(response.json().get("message", ""))
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
-
-def recall(args):
-    try:
-        if args.context:
-            # Specific context requested
-            context = args.context
-            response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=REQUEST_TIMEOUT)
-        else:
-            # No context specified - show all memories from all contexts
-            response = requests.get(f"{API_URL}/memory/all", timeout=REQUEST_TIMEOUT)
-        
-        response.raise_for_status()
-        memories = response.json()
-        
-        if not memories:
-            if args.context:
-                print(f"No memories found for context: {args.context}")
-            else:
-                print("No memories found in any context")
-            return
-            
-        for entry in memories:
-            print(json.dumps(entry, indent=4))
-            
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
-
-def context_start(args):
-    try:
-        response = requests.post(f"{API_URL}/context/start", params={"context": args.name}, timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        print(response.json()["message"])
-        print(f"Use: mem0_context_start {args.name} (for shell integration)")
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
-
-def context_stop(args):
-    try:
-        if hasattr(args, 'name') and args.name:
-            response = requests.post(f"{API_URL}/context/stop", params={"context": args.name}, timeout=REQUEST_TIMEOUT)
-        else:
-            response = requests.post(f"{API_URL}/context/stop", timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        print(response.json()["message"])
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
-
-def context_active(args):
-    try:
-        # Check if MEM0_CONTEXT is set for this terminal
-        terminal_context = os.getenv("MEM0_CONTEXT")
-        if terminal_context:
-            # Verify the context still exists on the server
-            response = requests.get(f"{API_URL}/contexts", timeout=REQUEST_TIMEOUT)
-            response.raise_for_status()
-            contexts = response.json().get("contexts", [])
-            context_names = [c["name"] for c in contexts]
-            
-            if terminal_context in context_names:
-                print(f"Terminal context: {terminal_context}")
-            else:
-                print(f"Terminal context '{terminal_context}' no longer exists (deleted)")
-                print("Clear with: unset MEM0_CONTEXT")
-        else:
-            print("No terminal context set")
-    except Exception as e:
-        print(f"Error: {e}")
-
-def context_delete(args):
-    try:
-        response = requests.delete(f"{API_URL}/context/{args.name}", timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        print(response.json()["message"])
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
-
-def export_memories(args):
-    context = args.context if args.context else get_active_context()
-    try:
-        response = requests.get(f"{API_URL}/memory", params={"context": context}, timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        memories = response.json()
-
-        with open(args.filename, "w") as f:
-            f.write(f"# Memory Export: Context '{context}'\n\n")
-            for memory in memories:
-                f.write(f"## Memory Entry\n\n")
-                f.write(f"**Source:** `{memory['source']}`\n")
-                f.write(f"**Type:** `{memory['type']}`\n\n")
-                f.write("```json\n")
-                f.write(json.dumps(memory['data'], indent=4))
-                f.write("\n```\n\n---\n\n")
-        print(f"Successfully exported memories to {args.filename}")
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except IOError as e:
-        print(f"Error: Could not write to file {args.filename}: {e}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
-
-def list_contexts(args):
-    try:
-        response = requests.get(f"{API_URL}/contexts", timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        data = response.json()
-        contexts = data.get("contexts", [])
-        
-        if not contexts:
-            print("No contexts found.")
-            return
-        
-        # Check if we want only active contexts
-        if hasattr(args, 'active') and args.active == "active":
-            active_contexts = [c for c in contexts if c["is_active"]]
-            if not active_contexts:
-                print("No active contexts found.")
-                return
-            print("Active contexts:")
-            for context in active_contexts:
-                print(f"  - {context['name']} - created: {context['created_at']}")
-        else:
-            print("Available contexts:")
-            for context in contexts:
-                status = "ACTIVE" if context["is_active"] else "inactive"
-                print(f"  - {context['name']} ({status}) - created: {context['created_at']}")
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to mem0 server. Is it running? (./manage.sh start)")
-    except requests.exceptions.Timeout:
-        print("Error: Request timed out. Server may be overloaded.")
-    except requests.exceptions.HTTPError as e:
-        print(f"Error: Server returned HTTP {e.response.status_code}")
-    except Exception as e:
-        print(f"Error: Unexpected error occurred: {e}")
+from pathlib import Path
 
 def main():
-    parser = argparse.ArgumentParser(description="A CLI tool to interact with the mem0 server.")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    # Find the project root directory (portable)
+    script_dir = Path(__file__).parent
+    project_root = script_dir.parent
 
-    # Remember command
-    parser_remember = subparsers.add_parser("remember", help="Store a memory.")
-    parser_remember.add_argument("text_or_json", help="The memory to store - either plain text or JSON string.")
-    parser_remember.add_argument("--context", help="The context to store the memory in. Defaults to the current git branch or directory name.")
-    parser_remember.set_defaults(func=remember)
+    # Change to project root
+    os.chdir(project_root)
 
-    # Recall command
-    parser_recall = subparsers.add_parser("recall", help="Recall memories.")
-    parser_recall.add_argument("--context", help="The context to recall memories from. Defaults to the current git branch or directory name.")
-    parser_recall.set_defaults(func=recall)
-
-    # Context command
-    parser_context = subparsers.add_parser("context", help="Manage recording sessions.")
-    context_subparsers = parser_context.add_subparsers(dest="subcommand", required=True)
-    parser_context_start = context_subparsers.add_parser("start", help="Start recording to a new context.")
-    parser_context_start.add_argument("name", help="The name of the context to start recording to.")
-    parser_context_start.set_defaults(func=context_start)
-    parser_context_stop = context_subparsers.add_parser("stop", help="Stop the current recording session.")
-    parser_context_stop.add_argument("name", nargs="?", help="Optional: specific context name to stop (otherwise stops all active contexts).")
-    parser_context_stop.set_defaults(func=context_stop)
-    parser_context_active = context_subparsers.add_parser("active", help="Get the current active recording context.")
-    parser_context_active.set_defaults(func=context_active)
-    parser_context_delete = context_subparsers.add_parser("delete", help="Delete a context and all its memories.")
-    parser_context_delete.add_argument("name", help="The name of the context to delete.")
-    parser_context_delete.set_defaults(func=context_delete)
-
-    # Export command
-    parser_export = subparsers.add_parser("export", help="Export memories to a file.")
-    parser_export.add_argument("filename", help="The name of the file to export to.")
-    parser_export.add_argument("--context", help="The context to export memories from. Defaults to the current git branch or directory name.")
-    parser_export.set_defaults(func=export_memories)
-
-    # List contexts command
-    parser_contexts = subparsers.add_parser("contexts", help="List all available contexts.")
-    parser_contexts.add_argument("active", nargs="?", help="Show only active contexts when 'active' is specified.")
-    parser_contexts.set_defaults(func=list_contexts)
-
-    args = parser.parse_args()
-    args.func(args)
+    # Run the Python client with all arguments
+    try:
+        result = subprocess.run([sys.executable, 'mem0'] + sys.argv[1:],
+                              capture_output=False, text=True)
+        sys.exit(result.returncode)
+    except FileNotFoundError:
+        print("❌ Error: mem0 Python client not found")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
-

@@ -1,14 +1,15 @@
 # main.py
 
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional
 import json
 import os
 from database import DatabaseManager, User, Organization, Team, TeamMember, ContextPermission, RecordingContext
 from auth import (
-    User, UserCreate, UserLogin, Token, 
-    get_current_user, get_current_user_optional, create_access_token
+    get_current_user_optional, create_access_token, get_current_user
 )
 from performance_monitor import (
     get_performance_monitor,
@@ -17,6 +18,9 @@ from performance_monitor import (
     start_performance_monitoring
 )
 from approval_workflow import ApprovalWorkflowManager
+from auto_recording import get_auto_recorder
+from token_refresh import get_token_manager, auto_refresh_tokens
+from signup_api import router as signup_router
 import json as json_lib
 
 # Configuration loading
@@ -24,10 +28,10 @@ def load_config():
     config_path = "../mem0.config.json"
     default_config = {
         "storage": {
-            "type": "sqlite",
-            "path": "../mem0.db"
+            "type": "postgresql",
+            "url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
         },
-        "database_url": "sqlite:///../mem0.db",
+        "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
         "jwt_secret": "your-secret-key-here"
     }
     
@@ -56,9 +60,29 @@ def load_config():
     return config
 
 # Initialize database and performance monitoring
-db = DatabaseManager(load_config())
-approval_manager = ApprovalWorkflowManager(db)
+config = load_config()
+if isinstance(config, str):
+    database_url = config
+else:
+    database_url = config["database_url"]
+db_manager = DatabaseManager(database_url)
+db = db_manager  # Alias for backward compatibility
+auto_recorder = get_auto_recorder(db_manager)
+approval_manager = ApprovalWorkflowManager(db_manager)
+
+# Performance monitoring
+performance_monitor = get_performance_monitor()
 start_performance_monitoring()
+
+# Start background token refresh service
+import asyncio
+asyncio.create_task(auto_refresh_tokens(db_manager))
+
+# Initialize approval workflow manager
+approval_manager = ApprovalWorkflowManager(db_manager)
+
+# Initialize auto-recorder for CCTV-style recording
+auto_recorder = get_auto_recorder(db_manager)
 
 # --- Data Models ---
 class MemoryPayload(BaseModel):
@@ -106,8 +130,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-@app.post("/auth/register", response_model=Token)
-def register_user(user_data: UserCreate):
+# Include signup/auth router
+app.include_router(signup_router)
+
+@app.post("/auth/register")
+def register_user(user_data: dict):
     """Register a new user"""
     try:
         user = db.create_user(user_data.username, user_data.password, user_data.email)
@@ -122,8 +149,8 @@ def register_user(user_data: UserCreate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
-@app.post("/auth/login", response_model=Token)
-def login_user(user_data: UserLogin):
+@app.post("/auth/login")
+def login_user(user_data: dict):
     """Login user and return JWT token"""
     try:
         user = db.authenticate_user(user_data.username, user_data.password)
@@ -170,9 +197,54 @@ def get_organizations(current_user: User = Depends(get_current_user)):
         # For now, return all organizations - could be filtered by user permissions later
         organizations = []
         # This would need to be implemented in DatabaseManager
-        return {"organizations": organizations}
+        return current_user
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get organizations: {str(e)}")
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "service": "mem0"}
+
+# Serve frontend static files
+import os
+frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
+app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
+
+@app.get("/")
+def serve_signup():
+    """Serve signup page as default"""
+    return FileResponse(os.path.join(frontend_dir, "signup.html"))
+
+@app.get("/signup")
+def serve_signup_page():
+    """Serve signup page"""
+    return FileResponse(os.path.join(frontend_dir, "signup.html"))
+
+@app.get("/signup.html")
+def serve_signup_page_html():
+    """Serve signup page with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "signup.html"))
+
+@app.get("/login")
+def serve_login_page():
+    """Serve login page"""
+    return FileResponse(os.path.join(frontend_dir, "login.html"))
+
+@app.get("/login.html")
+def serve_login_page_html():
+    """Serve login page with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "login.html"))
+
+@app.get("/dashboard")
+def serve_dashboard_page():
+    """Serve dashboard page"""
+    return FileResponse(os.path.join(frontend_dir, "dashboard.html"))
+
+@app.get("/dashboard.html")
+def serve_dashboard_page_html():
+    """Serve dashboard page with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "dashboard.html"))
 
 # --- Team Management ---
 @app.post("/teams")
@@ -431,41 +503,130 @@ def get_all_memories(current_user: Optional[User] = Depends(get_current_user_opt
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/context/start")
-def start_recording(context: str, current_user: Optional[User] = Depends(get_current_user_optional)):
-    """Start recording to a context with user isolation"""
+async def start_recording(context: str, current_user: Optional[User] = Depends(get_current_user_optional)):
+    """Start CCTV-style automatic recording to a context"""
     try:
         # Use authenticated user ID or None for backward compatibility
         user_id = current_user.id if current_user else None
 
-        db.set_active_context(context, user_id)
-        return {"message": f"Now recording to context: {context}"}
+        # Start automatic CCTV recording
+        result = await auto_recorder.start_recording(context, user_id)
+        
+        if result["success"]:
+            return {
+                "message": result["message"],
+                "context": context,
+                "auto_recording": True,
+                "context_id": result.get("context_id")
+            }
+        else:
+            raise HTTPException(status_code=500, detail=result["error"])
+            
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to start recording: {str(e)}")
 
 @app.post("/context/stop")
-def stop_recording(context: str = None, current_user: Optional[User] = Depends(get_current_user_optional)):
-    """Stop recording with user isolation"""
+async def stop_recording(context: str = None, current_user: Optional[User] = Depends(get_current_user_optional)):
+    """Stop CCTV-style automatic recording"""
     try:
         # Use authenticated user ID or None for backward compatibility
         user_id = current_user.id if current_user else None
 
         if context:
-            # Stop specific context
-            stopped_context = db.stop_specific_context(context)
-            return {"message": f"Recording stopped for context: {stopped_context}"}
-        else:
-            # Stop all active contexts
-            stopped_contexts = db.stop_context()
-            if stopped_contexts:
-                return {"message": f"Recording stopped for contexts: {', '.join(stopped_contexts)}"}
+            # Stop specific context recording
+            result = await auto_recorder.stop_recording(context)
+            if result["success"]:
+                return {
+                    "message": result["message"],
+                    "context": context,
+                    "messages_recorded": result.get("messages_recorded", 0)
+                }
             else:
-                return {"message": "No active context to stop."}
+                raise HTTPException(status_code=500, detail=result["error"])
+        else:
+            # Stop all active recordings for user
+            status = await auto_recorder.get_recording_status()
+            stopped_contexts = []
+            for context_name in list(status["contexts"].keys()):
+                result = await auto_recorder.stop_recording(context_name)
+                if result["success"]:
+                    stopped_contexts.append(context_name)
+            
+            return {
+                "message": f"🛑 Stopped recording for {len(stopped_contexts)} contexts",
+                "stopped_contexts": stopped_contexts
+            }
+            
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+@app.get("/context/status")
+async def get_recording_status(current_user: Optional[User] = Depends(get_current_user_optional)):
+    """Get CCTV recording status for all contexts"""
+    try:
+        # Use authenticated user ID or None for backward compatibility
+        user_id = current_user.id if current_user else None
+        
+        status = await auto_recorder.get_recording_status()
+        return {
+            "recording_status": "🎥 CCTV Active" if status["active_contexts"] > 0 else "🔴 CCTV Inactive",
+            "active_contexts": status["active_contexts"],
+            "contexts": status["contexts"]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get recording status: {str(e)}")
+
+@app.get("/memory/recall")
+async def recall_hierarchical(query: str, context: str = None, current_user: Optional[User] = Depends(get_current_user_optional)):
+    """Hierarchical memory recall: Personal -> Team -> Organization"""
+    try:
+        user_id = current_user.id if current_user else None
+        
+        results = await auto_recorder.recall_hierarchical(query, user_id, context)
+        
+        return {
+            "query": query,
+            "context": context,
+            "results": {
+                "personal": results.get("personal", []),
+                "team": results.get("team", []),
+                "organization": results.get("organization", [])
+            },
+            "total_memories": len(results.get("personal", [])) + len(results.get("team", [])) + len(results.get("organization", []))
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to recall memories: {str(e)}")
+
+@app.post("/memory/record")
+async def record_interaction(context: str, interaction_type: str, content: str, 
+                           metadata: dict = None, current_user: Optional[User] = Depends(get_current_user_optional)):
+    """Record AI interaction automatically (CCTV capture)"""
+    try:
+        user_id = current_user.id if current_user else None
+        
+        success = await auto_recorder.record_interaction(context, interaction_type, content, metadata)
+        
+        if success:
+            return {
+                "message": "🎥 Interaction recorded automatically",
+                "context": context,
+                "type": interaction_type
+            }
+        else:
+            return {
+                "message": f"Context '{context}' not actively recording. Start recording first.",
+                "context": context,
+                "recording_active": False
+            }
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to record interaction: {str(e)}")
+
 @app.get("/context/active")
 def get_active_recording_context(current_user: Optional[User] = Depends(get_current_user_optional)):
-    """Get active recording context with user isolation"""
+    """Get active recording context with user isolation (legacy endpoint)"""
     try:
         # Use authenticated user ID or None for backward compatibility
         user_id = current_user.id if current_user else None

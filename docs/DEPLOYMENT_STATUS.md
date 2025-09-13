@@ -5,7 +5,7 @@
 ### ✅ Core Infrastructure Complete
 - **MCP Server**: Fully operational with 11 tools (remember, recall, context management, AI enhancement)
 - **Universal AI Wrapper**: Database-integrated with hierarchical memory retrieval
-- **Database Integration**: PostgreSQL-ready with SQLite fallback
+- **Database**: PostgreSQL-only (no SQLite support)
 - **Authentication**: JWT-based multi-user support with role-based permissions
 
 ### ✅ Testing & Validation

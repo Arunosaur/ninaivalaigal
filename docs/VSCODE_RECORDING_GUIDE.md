@@ -65,7 +65,11 @@ Your VS Code MCP configuration is correct:
     "mem0": {
       "command": "/opt/homebrew/anaconda3/bin/python3.11",
       "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
-      "cwd": "/Users/asrajag/Workspace/mem0"
+      "cwd": "/Users/asrajag/Workspace/mem0",
+      "env": {
+        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+        "MEM0_JWT_SECRET": "your-jwt-secret"
+      }
     }
   }
 }
@@ -90,10 +94,10 @@ Currently, mem0 requires **explicit activation** for each recording session.
 
 ## Database Status
 
-- **Type**: SQLite (not PostgreSQL as configured)
-- **Location**: `/Users/asrajag/Workspace/mem0/mem0.db`
+- **Type**: PostgreSQL only (no SQLite support)
+- **Connection**: Configured via MEM0_DATABASE_URL environment variable
 - **Tables**: All required tables present
-- **Memories**: 17 existing memories from previous sessions
+- **Memories**: Stored in PostgreSQL database
 - **Contexts**: No active recording contexts currently
 
 ## Next Steps

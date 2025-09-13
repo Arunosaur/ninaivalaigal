@@ -129,7 +129,7 @@ mem0_on() {
     local context_name="${1:-$(basename $(pwd))}"
 
     echo "Starting context: $context_name"
-    mem0 context start "$context_name"
+    ~/Workspace/mem0/client/mem0 start --context "$context_name"
 
     export MEM0_CONTEXT="$context_name"
     mem0_clear_cache
@@ -145,7 +145,7 @@ mem0_context_start() {
     fi
     
     # Create or activate the context
-    ~/Workspace/mem0/client/mem0 context start "$context_name"
+    ~/Workspace/mem0/client/mem0 start --context "$context_name"
     
     # Set the terminal environment variable
     export MEM0_CONTEXT="$context_name"
@@ -162,7 +162,7 @@ mem0_context_delete() {
     fi
     
     # Delete the context
-    ~/Workspace/mem0/client/mem0 context delete "$context_name"
+    ~/Workspace/mem0/client/mem0 delete --context "$context_name"
     
     # Clear environment if this was the active context
     if [[ "$MEM0_CONTEXT" == "$context_name" ]]; then
@@ -178,12 +178,12 @@ mem0_off() {
     if [[ -n "$context_name" ]]; then
         # Stop the specific context
         echo "Stopping context: $context_name"
-        ~/Workspace/mem0/mem0.sh context stop "$context_name"
+        ~/Workspace/mem0/client/mem0 stop --context "$context_name"
         echo "mem0 stopped: $context_name"
     elif [[ -n "$MEM0_CONTEXT" ]]; then
         # Stop the context set in MEM0_CONTEXT
         echo "Stopping context: $MEM0_CONTEXT"
-        ~/Workspace/mem0/mem0.sh context stop "$MEM0_CONTEXT"
+        ~/Workspace/mem0/client/mem0 stop --context "$MEM0_CONTEXT"
 
         # Clear local environment
         unset MEM0_CONTEXT
@@ -192,7 +192,7 @@ mem0_off() {
     else
         # Check if there's an active context on the server that we should stop
         echo "Checking for active context on server..."
-        ~/Workspace/mem0/mem0.sh context stop
+        ~/Workspace/mem0/client/mem0 stop
         echo "mem0 stopped active context"
     fi
 }

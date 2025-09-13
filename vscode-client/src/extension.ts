@@ -1,11 +1,39 @@
 import * as vscode from 'vscode';
-const { spawn } = require('child_process');
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import * as path from 'path';
+import * as os from 'os';
+import * as http from 'http';
+import * as fs from 'fs';
 
-// Global context state
+// Global MCP client and context state
+let mcpClient: any = null;
 let currentContext: string = '';
+
+// Initialize MCP client
+async function initializeMCPClient() {
+    if (mcpClient) return mcpClient;
+    
+    try {
+        const transport = new StdioClientTransport({
+            command: '/opt/homebrew/anaconda3/bin/python',
+            args: ['/Users/asrajag/Workspace/mem0/server/mcp_server.py']
+        });
+        
+        mcpClient = new Client({
+            name: 'mem0-vscode',
+            version: '1.0.0'
+        }, {
+            capabilities: {}
+        });
+        
+        await mcpClient.connect(transport);
+        return mcpClient;
+    } catch (error) {
+        console.error('Failed to initialize MCP client:', error);
+        return null;
+    }
+}
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('mem0 extension activating...');
@@ -13,45 +41,21 @@ export function activate(context: vscode.ExtensionContext) {
 
     const handler: vscode.ChatRequestHandler = (request: vscode.ChatRequest, chatContext: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken): Thenable<any> => {
         
-        return new Promise<any>((resolve) => {
+        return new Promise<any>(async (resolve) => {
             stream.markdown(`**Extension activated - processing request: "${request.prompt}"**\n\n`);
-            // Auto-detect mem0 installation
-            let mem0CliPath: string;
-            let projectContext: string;
-            
-            // Try workspace-specific setting first
-            const initialConfig = vscode.workspace.getConfiguration('mem0');
-            const configuredRoot = initialConfig.get<string>('projectRoot');
-            
-            if (configuredRoot) {
-                mem0CliPath = path.resolve(configuredRoot, 'client/mem0');
-            } else {
-                // Auto-detect: look for mem0 in common locations
-                const possiblePaths = [
-                    path.join(os.homedir(), 'Workspace/mem0/client/mem0'),
-                    path.join(os.homedir(), 'workspace/mem0/client/mem0'),
-                    path.join(os.homedir(), 'Projects/mem0/client/mem0'),
-                    path.join(os.homedir(), 'projects/mem0/client/mem0'),
-                    '/usr/local/bin/mem0',
-                    'mem0' // Try PATH
-                ];
-                
-                mem0CliPath = possiblePaths.find(p => {
-                    try {
-                        fs.accessSync(p);
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                }) || 'mem0';
+            // Initialize MCP client
+            const client = await initializeMCPClient();
+            if (!client) {
+                stream.markdown('❌ **Failed to connect to mem0 MCP server**\n\n');
+                return resolve({ commands: [] });
             }
             
-            // Determine project context first
+            // Determine project context
+            let projectContext: string;
             const workspaceConfig = vscode.workspace.getConfiguration('mem0');
             const explicitContext = workspaceConfig.get<string>('context');
             
             if (currentContext) {
-                // Use the globally set context from previous context start command
                 projectContext = currentContext;
             } else if (explicitContext) {
                 projectContext = explicitContext;
@@ -72,38 +76,27 @@ export function activate(context: vscode.ExtensionContext) {
                     projectContext = currentContext;
                     stream.markdown(`🎯 **Started context:** \`${projectContext}\`\n\n`);
                     
-                    // Start automatic recording by calling CLI context start
-                    const child = spawn(mem0CliPath, ['context', 'start', projectContext], { 
-                        cwd: configuredRoot || os.homedir(),
-                        env: { ...require('process').env }
-                    });
-                    
-                    child.on('close', (code) => {
-                        if (code === 0) {
-                            stream.markdown(`✅ **Automatic recording started for context:** \`${projectContext}\`\n\n`);
-                        } else {
-                            stream.markdown(`❌ **Failed to start recording for context:** \`${projectContext}\`\n\n`);
-                        }
-                    });
+                    try {
+                        const result = await client.callTool({
+                            name: 'context_start',
+                            arguments: { context_name: projectContext }
+                        });
+                        stream.markdown(`✅ **${result.content[0].text}**\n\n`);
+                    } catch (error: any) {
+                        stream.markdown(`❌ **Failed to start context:** ${error.message}\n\n`);
+                    }
                 } else if (contextCommand === 'list') {
-                    // List available contexts
-                    const child = spawn(mem0CliPath, ['contexts'], { 
-                        cwd: configuredRoot || os.homedir(),
-                        env: { ...require('process').env }
-                    });
-                    
-                    child.stdout.on('data', (data) => {
-                        stream.markdown(data.toString());
-                    });
-                    
-                    child.stderr.on('data', (data) => {
-                        stream.markdown(`**Error:**\n\`\`\`\n${data.toString()}\n\`\`\``);
-                    });
-                    
-                    child.on('close', (code) => {
-                        resolve({ commands: [] });
-                    });
-                    return;
+                    try {
+                        const result = await client.callTool({
+                            name: 'list_contexts',
+                            arguments: {}
+                        });
+                        const contexts = result.content[0].text;
+                        stream.markdown(`**Available Contexts:**\n${Array.isArray(contexts) ? contexts.join('\n') : contexts}\n\n`);
+                    } catch (error: any) {
+                        stream.markdown(`❌ **Failed to list contexts:** ${error.message}\n\n`);
+                    }
+                    return resolve({ commands: [] });
                 } else if (contextCommand === 'switch' && contextArgs[1]) {
                     projectContext = contextArgs[1];
                     stream.markdown(`🎯 **Switched to context:** \`${projectContext}\`\n\n`);
@@ -129,62 +122,30 @@ export function activate(context: vscode.ExtensionContext) {
             const [command, ...rest] = request.prompt.trim().split(/\s+/);
             let args: string[];
 
-            if (command === 'remember') {
-                args = ['remember', rest.join(' '), '--context', projectContext];
-            } else if (command === 'recall') {
-                if (rest.length > 0) {
-                    // If user specified a context like "recall CIP-analysis", use that
-                    const contextName = rest.join(' ');
-                    args = ['recall', '--context', contextName];
-                } else {
-                    // Default to current project context
-                    args = ['recall', '--context', projectContext];
-                }
-            } else if (command === 'contexts') {
-                args = ['contexts'];
-            } else {
-                args = [command, ...rest];
-            }
-
-            // Debug logging
-            stream.markdown(`**Debug Info:**\n`);
-            stream.markdown(`- Command: \`${mem0CliPath} ${args.join(' ')}\`\n`);
-            stream.markdown(`- Working Directory: \`${configuredRoot || os.homedir()}\`\n`);
-            stream.markdown(`- Project Context: \`${projectContext}\`\n\n`);
-            
-            const child = spawn(mem0CliPath, args, { 
-                cwd: configuredRoot || os.homedir(),
-                env: { ...require('process').env }
-            });
-
-            let stdout = '';
-            let stderr = '';
-
-            child.stdout.on('data', (data) => {
-                stdout += data.toString();
-            });
-
-            child.stderr.on('data', (data) => {
-                stderr += data.toString();
-            });
-
-            child.on('close', (code) => {
-                stream.markdown(`**Exit Code:** ${code}\n\n`);
+            try {
+                let result;
                 
-                if (stderr) {
-                    stream.markdown(`**Stderr:**\n\`\`\`\n${stderr}\n\`\`\`\n\n`);
-                }
-                
-                if (stdout) {
-                    stream.markdown(`**Raw Output:**\n\`\`\`json\n${stdout}\n\`\`\`\n\n`);
+                if (command === 'remember') {
+                    result = await client.callTool({
+                        name: 'remember',
+                        arguments: {
+                            text: rest.join(' '),
+                            context: projectContext
+                        }
+                    });
+                    stream.markdown(`**Result:** ${result.content[0].text}\n\n`);
+                } else if (command === 'recall') {
+                    const contextName = rest.length > 0 ? rest.join(' ') : projectContext;
+                    result = await client.callTool({
+                        name: 'recall',
+                        arguments: {
+                            context: contextName
+                        }
+                    });
                     
-                    // Try to parse and format the output
-                    try {
-                        const lines = stdout.trim().split('\n').filter(line => line.trim() && !line.includes('NotOpenSSLWarning'));
-                        const memories = lines.map(line => JSON.parse(line));
-                        
+                    const memories = result.content[0].text;
+                    if (Array.isArray(memories) && memories.length > 0) {
                         stream.markdown(`**Found ${memories.length} memories:**\n\n`);
-                        
                         memories.forEach((memory, index) => {
                             stream.markdown(`${index + 1}. **${memory.type}** (${memory.context || 'no context'})\n`);
                             if (memory.data && memory.data.text) {
@@ -192,15 +153,24 @@ export function activate(context: vscode.ExtensionContext) {
                             }
                             stream.markdown(`   *Created: ${memory.created_at}*\n\n`);
                         });
-                    } catch (e) {
-                        stream.markdown(`**Formatted Output:**\n${stdout}\n\n`);
+                    } else {
+                        stream.markdown(`**No memories found in context:** ${contextName}\n\n`);
                     }
+                } else if (command === 'contexts') {
+                    result = await client.callTool({
+                        name: 'list_contexts',
+                        arguments: {}
+                    });
+                    const contexts = result.content[0].text;
+                    stream.markdown(`**Available Contexts:**\n${Array.isArray(contexts) ? contexts.join('\n') : contexts}\n\n`);
                 } else {
-                    stream.markdown(`**No output received**\n\n`);
+                    stream.markdown(`**Unknown command:** ${command}\n\n`);
                 }
-                
-                resolve({ commands: [] });
-            });
+            } catch (error: any) {
+                stream.markdown(`❌ **Error:** ${error.message}\n\n`);
+            }
+
+            resolve({ commands: [] });
         });
     };
 

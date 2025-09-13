@@ -53,11 +53,13 @@
         "package": "node esbuild.js --production"
     },
     "devDependencies": {
+        "@types/node": "^20.19.13",
         "@types/vscode": "^1.74.0",
-        "@types/node": "^20.0.0",
         "esbuild": "^0.21.4",
-        "typescript": "^5.4.5",
-        "fs-extra": "^11.2.0"
+        "fs-extra": "^11.2.0",
+        "typescript": "^5.4.5"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.18.0"
     }
 }
-

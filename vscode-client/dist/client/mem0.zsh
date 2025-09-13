@@ -31,11 +31,11 @@ mem0_get_active_context() {
     
     # Fetch fresh context from server
     mem0_debug "fetching fresh context from server (cache expired)"
-    local active_context_json=$(./client/mem0 context active 2>/dev/null)
+    local active_context_json=$(~/Workspace/mem0/client/mem0 active 2>/dev/null)
     mem0_debug "active context response: $active_context_json"
     
-    # Parse JSON response - extract context name
-    local active_context=$(echo "$active_context_json" | sed "s/.*'recording_context': '\([^']*\)'.*/\1/")
+    # Parse the response - extract context name from "Terminal context: <name>" format
+    local active_context=$(echo "$active_context_json" | sed -n 's/.*Terminal context: \(.*\)/\1/p')
     
     # Update cache
     MEM0_CACHED_CONTEXT="$active_context"
@@ -47,6 +47,11 @@ mem0_get_active_context() {
 
 # This function will run before each command is executed
 mem0_preexec() {
+    # Skip if command is empty or starts with space (private command)
+    if [[ -z "$1" || "$1" =~ ^[[:space:]] ]]; then
+        return
+    fi
+    
     # Prevent duplicate execution by checking if we're already processing
     if [[ -n "$MEM0_PROCESSING" ]]; then
         return
@@ -73,19 +78,14 @@ mem0_preexec() {
         return
     fi
 
-    # Store command for potential output capture
+    # Store command for output capture in precmd
     export MEM0_LAST_COMMAND="$1"
     export MEM0_LAST_CONTEXT="$active_context"
-
-    # Construct the JSON payload with just the command
-    local json_payload=$(printf '{ "type": "terminal_command", "source": "zsh_session", "data": { "command": "%s", "timestamp": "%s", "pwd": "%s" } }' "$1" "$(date -Iseconds)" "$(pwd)")
-    mem0_debug "constructed payload: $json_payload"
-
-    # Remember the command, in the background
-    mem0_debug "sending command to mem0 server..."
-    (~/Workspace/mem0/client/mem0 remember "$json_payload" --context "$active_context" &>/dev/null) &
+    export MEM0_COMMAND_START_TIME="$(date -Iseconds)"
     
-    # Clear processing flag immediately after starting background job
+    mem0_debug "command queued for capture: '$1' in context '$active_context'"
+    
+    # Clear processing flag immediately - we'll capture everything in precmd
     unset MEM0_PROCESSING
 }
 
@@ -96,15 +96,24 @@ mem0_precmd() {
         local exit_code=$?
         mem0_debug "precmd hook triggered, exit code: $exit_code"
         
-        # Capture command result
-        local result_payload=$(printf '{ "type": "command_result", "source": "zsh_session", "data": { "command": "%s", "exit_code": %d, "timestamp": "%s", "pwd": "%s" } }' "$MEM0_LAST_COMMAND" "$exit_code" "$(date -Iseconds)" "$(pwd)")
+        # Escape command for JSON - replace quotes and newlines
+        local escaped_command=$(echo "$MEM0_LAST_COMMAND" | sed 's/"/\\"/g' | tr '\n' ' ')
+        local escaped_pwd=$(pwd | sed 's/"/\\"/g')
         
-        # Send result in background
-        (~/Workspace/mem0/client/mem0 remember "$result_payload" --context "$MEM0_LAST_CONTEXT" &>/dev/null) &
+        # Capture complete command execution (command + result in one entry)
+        local complete_payload=$(printf '{ "type": "command_execution", "source": "zsh_session", "data": { "command": "%s", "exit_code": %d, "start_time": "%s", "end_time": "%s", "pwd": "%s" } }' "$escaped_command" "$exit_code" "$MEM0_COMMAND_START_TIME" "$(date -Iseconds)" "$escaped_pwd")
         
-        # Clear stored command
+        # Send complete execution record in background with proper error handling
+        {
+            ~/Workspace/mem0/client/mem0 remember "$complete_payload" --context "$MEM0_LAST_CONTEXT" 2>&1 | while read line; do
+                mem0_debug "remember output: $line"
+            done
+        } &
+        
+        # Clear stored command variables
         unset MEM0_LAST_COMMAND
         unset MEM0_LAST_CONTEXT
+        unset MEM0_COMMAND_START_TIME
     fi
 }
 
@@ -118,19 +127,73 @@ mem0_clear_cache() {
 # Simple on/off functions - like CCTV switch
 mem0_on() {
     local context_name="${1:-$(basename $(pwd))}"
-    ~/Workspace/mem0/client/mem0 context start "$context_name" >/dev/null 2>&1
+
+    echo "Starting context: $context_name"
+    ~/Workspace/mem0/client/mem0 start --context "$context_name"
+
     export MEM0_CONTEXT="$context_name"
     mem0_clear_cache
     echo "mem0 recording: $context_name"
 }
 
-mem0_off() {
-    if [[ -n "$MEM0_CONTEXT" ]]; then
-        echo "mem0 stopped: $MEM0_CONTEXT"
+# Wrapper function that matches the CLI suggestion
+mem0_context_start() {
+    local context_name="$1"
+    if [[ -z "$context_name" ]]; then
+        echo "Usage: mem0_context_start <context_name>"
+        return 1
+    fi
+    
+    # Create or activate the context
+    ~/Workspace/mem0/client/mem0 start --context "$context_name"
+    
+    # Set the terminal environment variable
+    export MEM0_CONTEXT="$context_name"
+    mem0_clear_cache
+    echo "Terminal context set to: $context_name"
+}
+
+# Function to delete context and clean up environment
+mem0_context_delete() {
+    local context_name="$1"
+    if [[ -z "$context_name" ]]; then
+        echo "Usage: mem0_context_delete <context_name>"
+        return 1
+    fi
+    
+    # Delete the context
+    ~/Workspace/mem0/client/mem0 delete --context "$context_name"
+    
+    # Clear environment if this was the active context
+    if [[ "$MEM0_CONTEXT" == "$context_name" ]]; then
         unset MEM0_CONTEXT
         mem0_clear_cache
+        echo "Terminal context cleared"
+    fi
+}
+
+mem0_off() {
+    local context_name="$1"
+
+    if [[ -n "$context_name" ]]; then
+        # Stop the specific context
+        echo "Stopping context: $context_name"
+        ~/Workspace/mem0/client/mem0 stop --context "$context_name"
+        echo "mem0 stopped: $context_name"
+    elif [[ -n "$MEM0_CONTEXT" ]]; then
+        # Stop the context set in MEM0_CONTEXT
+        echo "Stopping context: $MEM0_CONTEXT"
+        ~/Workspace/mem0/client/mem0 stop --context "$MEM0_CONTEXT"
+
+        # Clear local environment
+        unset MEM0_CONTEXT
+        mem0_clear_cache
+        echo "mem0 stopped: $MEM0_CONTEXT"
     else
-        echo "mem0 not recording"
+        # Check if there's an active context on the server that we should stop
+        echo "Checking for active context on server..."
+        ~/Workspace/mem0/client/mem0 stop
+        echo "mem0 stopped active context"
     fi
 }
 
@@ -168,3 +231,27 @@ else
     echo "Warning: mem0 shell integration is optimized for zsh"
 fi
 
+# Direct mem0 command function
+mem0() {
+    # Change to the mem0 project directory
+    local original_dir=$(pwd)
+    local mem0_dir="$HOME/Workspace/mem0"
+
+    if [[ ! -d "$mem0_dir" ]]; then
+        echo "Error: mem0 directory not found at $mem0_dir"
+        return 1
+    fi
+
+    cd "$mem0_dir"
+
+    # Run the Python client with all arguments
+    python3 client/mem0 "$@"
+
+    # Return to original directory
+    cd "$original_dir"
+}
+
+# Register the hooks with zsh
+autoload -U add-zsh-hook
+add-zsh-hook preexec mem0_preexec
+add-zsh-hook precmd mem0_precmd

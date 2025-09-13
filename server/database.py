@@ -13,9 +13,18 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(255), unique=True, nullable=False, index=True)
-    email = Column(String(255), unique=True, nullable=True)
+    username = Column(String(255), unique=True, nullable=True, index=True)  # Made nullable for email-only signup
+    email = Column(String(255), unique=True, nullable=False, index=True)  # Made required
+    name = Column(String(255), nullable=False)  # Full name
     password_hash = Column(String(255), nullable=False)
+    account_type = Column(String(50), nullable=False, default="individual")  # individual, team_member, organization_admin
+    subscription_tier = Column(String(50), nullable=False, default="free")  # free, team, enterprise
+    personal_contexts_limit = Column(Integer, default=10)
+    role = Column(String(50), nullable=False, default="user")  # user, admin, super_admin
+    created_via = Column(String(50), nullable=False, default="signup")  # signup, invite, admin
+    email_verified = Column(Boolean, default=False)
+    verification_token = Column(String(255), nullable=True)
+    last_login = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -44,6 +53,9 @@ class Organization(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), unique=True, nullable=False)
     description = Column(Text, nullable=True)
+    domain = Column(String(255), nullable=True)  # Company domain
+    settings = Column(JSON, nullable=True)  # Organization settings
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -99,6 +111,47 @@ class ContextPermission(Base):
     team = relationship("Team", foreign_keys=[team_id])
     organization = relationship("Organization", foreign_keys=[organization_id])
     granted_by_user = relationship("User", foreign_keys=[granted_by])
+
+# New models for user management system
+class OrganizationRegistration(Base):
+    __tablename__ = "organization_registrations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    creator_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    registration_data = Column(JSON, nullable=True)  # Additional signup data
+    status = Column(String(50), nullable=False, default="active")  # active, suspended, cancelled
+    billing_email = Column(String(255), nullable=False)
+    company_size = Column(String(50), nullable=True)
+    industry = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    organization = relationship("Organization")
+    creator = relationship("User")
+
+class UserInvitation(Base):
+    __tablename__ = "user_invitations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), nullable=False, index=True)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
+    team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
+    invited_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    invitation_token = Column(String(255), unique=True, nullable=False)
+    role = Column(String(50), nullable=False, default="user")
+    status = Column(String(50), nullable=False, default="pending")  # pending, accepted, expired, cancelled
+    expires_at = Column(DateTime, nullable=False)
+    accepted_at = Column(DateTime, nullable=True)
+    invitation_message = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    organization = relationship("Organization")
+    team = relationship("Team")
+    inviter = relationship("User")
 
 # Update existing models to support sharing
 class RecordingContext(Base):
@@ -213,6 +266,31 @@ class DatabaseManager:
                 session.add(context)
             
             session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+    
+    def create_context(self, name: str, description: str = None, user_id: int = None):
+        """Create a new recording context"""
+        session = self.get_session()
+        try:
+            # Check if context already exists for this user
+            existing = session.query(RecordingContext).filter_by(name=name, owner_id=user_id).first()
+            if existing:
+                return existing
+            
+            context = RecordingContext(
+                name=name,
+                description=description or f"Context for {name}",
+                owner_id=user_id,
+                is_active=False
+            )
+            session.add(context)
+            session.commit()
+            session.refresh(context)
+            return context
         except Exception as e:
             session.rollback()
             raise e
@@ -658,11 +736,19 @@ class DatabaseManager:
         finally:
             session.close()
     
-    def get_user_by_id(self, user_id: int):
+    def get_user_by_id(self, user_id):
         """Get user by ID"""
         session = self.get_session()
         try:
-            return session.query(User).filter_by(id=user_id, is_active=True).first()
+            return session.query(User).filter(User.id == user_id).first()
+        finally:
+            session.close()
+    
+    def get_user_by_email(self, email):
+        """Get user by email"""
+        session = self.get_session()
+        try:
+            return session.query(User).filter(User.email == email).first()
         finally:
             session.close()
     

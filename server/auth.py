@@ -1,18 +1,21 @@
 """
-Authentication middleware for mem0 server
-Provides JWT-based authentication and user isolation
+Authentication and user management for Mem0
+Supports individual users, team members, and organization creators
 """
 
 import os
 import jwt
 import bcrypt
+import secrets
+import smtplib
+import json
+import re
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict, Any
 from fastapi import HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
-from database import DatabaseManager, User
-import json
+from pydantic import BaseModel, EmailStr
+from email.mime.multipart import MIMEMultipart
 
 # Configuration loading (moved from main.py to avoid circular import)
 def load_config():
@@ -33,24 +36,78 @@ def load_config():
     except Exception:
         return default_config["storage"]["database_url"]
 
-# Initialize database
-database_url = load_config()
-db = DatabaseManager(database_url)
+# Database helper to avoid circular imports
+def get_db():
+    """Get database instance"""
+    from database import DatabaseManager
+    database_url = load_config()  # load_config returns string directly
+    return DatabaseManager(database_url)
 
-# JWT Configuration
-SECRET_KEY = os.getenv("MEM0_SECRET_KEY", "your-secret-key-change-this-in-production")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+# JWT Secret from environment or default
+JWT_SECRET = os.getenv('MEM0_JWT_SECRET', 'dev-secret-key-change-in-production')
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_HOURS = int(os.getenv('MEM0_JWT_EXPIRATION_HOURS', '168'))  # Default 7 days
 
-# Pydantic models for auth
-class UserCreate(BaseModel):
-    username: str
+# Password validation
+def validate_password(password: str) -> bool:
+    """Validate password strength"""
+    if len(password) < 8:
+        return False
+    if not re.search(r'[A-Za-z]', password):
+        return False
+    if not re.search(r'\d', password):
+        return False
+    return True
+
+# Email validation
+def validate_email(email: str) -> bool:
+    """Basic email validation"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+# Password hashing
+def hash_password(password: str) -> str:
+    """Hash password using bcrypt"""
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify password against hash"""
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+# Token generation
+def generate_verification_token() -> str:
+    """Generate secure verification token"""
+    return secrets.token_urlsafe(32)
+
+def generate_invitation_token() -> str:
+    """Generate secure invitation token"""
+    return secrets.token_urlsafe(32)
+
+# Pydantic models for signup and auth
+class IndividualUserSignup(BaseModel):
+    email: EmailStr
     password: str
-    email: Optional[str] = None
+    name: str
+    account_type: str = "individual"
+
+class OrganizationSignup(BaseModel):
+    user: Dict[str, Any]  # email, password, name
+    organization: Dict[str, Any]  # name, domain, size, industry
 
 class UserLogin(BaseModel):
-    username: str
+    email: EmailStr
     password: str
+
+class InvitationAccept(BaseModel):
+    invitation_token: str
+    user: Dict[str, Any]  # password, name
+
+class UserInvitation(BaseModel):
+    email: EmailStr
+    team_ids: Optional[list] = []
+    role: str = "user"
+    message: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
@@ -77,14 +134,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 def verify_token(token: str) -> TokenData:
     """Verify JWT token and return token data"""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         username: str = payload.get("sub")
         user_id: int = payload.get("user_id")
+        # Check if user already exists
+        db = get_db()
+        session = db.get_session()
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
         token_data = TokenData(username=username, user_id=user_id)
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except jwt.JWTError:
+        return None
     return token_data
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
@@ -112,6 +172,144 @@ async def get_current_user_optional(request: Request):
         return user
     except:
         return None
+
+# User management functions
+def create_individual_user(signup_data):
+    """Create individual user account"""
+    # Validate email and password
+    if not validate_email(signup_data.email):
+        raise HTTPException(status_code=400, detail="Invalid email format")
+    
+    if not validate_password(signup_data.password):
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters with letters and numbers")
+    
+    # Check if user already exists
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database import User
+        existing_user = session.query(User).filter_by(email=signup_data.email).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User with this email already exists")
+        
+        # Create user
+        password_hash = hash_password(signup_data.password)
+        verification_token = generate_verification_token()
+        
+        new_user = User(
+            email=signup_data.email,
+            name=signup_data.name,
+            password_hash=password_hash,
+            account_type="individual",
+            subscription_tier="free",
+            personal_contexts_limit=10,
+            created_via="signup",
+            email_verified=False,
+            verification_token=verification_token,
+            role="user"
+        )
+        
+        session.add(new_user)
+        session.commit()
+        
+        # Generate JWT token
+        jwt_payload = {
+            "user_id": new_user.id,
+            "email": new_user.email,
+            "account_type": new_user.account_type,
+            "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+        }
+        jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        
+        return {
+            "user_id": new_user.id,
+            "email": new_user.email,
+            "name": new_user.name,
+            "account_type": new_user.account_type,
+            "personal_contexts_limit": new_user.personal_contexts_limit,
+            "jwt_token": jwt_token,
+            "email_verified": False,
+            "verification_token": verification_token
+        }
+        
+    except Exception as e:
+        session.rollback()
+        if "already exists" in str(e):
+            raise e
+        raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
+    finally:
+        session.close()
+
+def authenticate_user(email: str, password: str):
+    """Authenticate user login"""
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database import User
+        user = session.query(User).filter_by(email=email, is_active=True).first()
+        
+        if not user or not user.password_hash:
+            return None
+            
+        if not verify_password(password, user.password_hash):
+            return None
+            
+        # Update last login
+        user.last_login = datetime.utcnow()
+        session.commit()
+        
+        # Generate JWT token
+        jwt_payload = {
+            "user_id": user.id,
+            "email": user.email,
+            "account_type": user.account_type,
+            "role": user.role,
+            "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+        }
+        jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        
+        return {
+            "user_id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "account_type": user.account_type,
+            "role": user.role,
+            "jwt_token": jwt_token,
+            "email_verified": user.email_verified
+        }
+        
+    finally:
+        session.close()
+
+def send_verification_email(email: str, verification_token: str):
+    """Send email verification (placeholder - implement with actual email service)"""
+    # In production, integrate with SendGrid, AWS SES, etc.
+    verification_url = f"http://localhost:8000/auth/verify-email?token={verification_token}"
+    print(f"Email verification URL for {email}: {verification_url}")
+    # TODO: Implement actual email sending
+
+def verify_email_token(verification_token: str) -> bool:
+    """Verify email verification token"""
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database import User
+        user = session.query(User).filter_by(verification_token=verification_token).first()
+        
+        if not user:
+            return False
+            
+        user.email_verified = True
+        user.verification_token = None
+        session.commit()
+        
+        return True
+        
+    except Exception:
+        session.rollback()
+        return False
+    finally:
+        session.close()
 
 def hash_password(password: str) -> str:
     """Hash password using bcrypt"""

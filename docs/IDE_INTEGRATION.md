@@ -4,15 +4,16 @@ This document provides comprehensive guidance for integrating mem0 with various 
 
 ## Current Integration Status
 
-### ✅ VS Code Extension (Available)
-- **Location**: `vscode-client/`
-- **Status**: Full context management with chat participant and authentication
-- **Features**: Auto-context detection, explicit context commands, remember/recall, user authentication
+### ✅ MCP Configuration (Recommended)
+- **Supported IDEs**: Windsurf, VS Code, Claude Desktop, Zed, Cursor
+- **Status**: Native MCP protocol support via configuration files
+- **Features**: Direct MCP server integration, no custom extensions needed
+- **Configuration**: `.vscode/mcp.json` or IDE-specific MCP config files
 
-### ✅ JetBrains Plugin (Available)
-- **Location**: `jetbrains-plugin/`
-- **Status**: Native plugin with full IDE integration and sharing support
-- **Features**: Keyboard shortcuts, tool window, context menus, settings, multi-user support
+### ✅ Legacy Extensions (Fallback)
+- **VS Code Extension**: `vscode-client/` - Custom extension using MCP internally
+- **JetBrains Plugin**: `jetbrains-plugin/` - Custom plugin using MCP internally
+- **Status**: Available for IDEs without native MCP support
 
 ### ✅ Universal Shell Integration (Available)
 - **Location**: `client/mem0-universal.sh`, `client/mem0-windows.ps1`, `client/mem0-fish.fish`

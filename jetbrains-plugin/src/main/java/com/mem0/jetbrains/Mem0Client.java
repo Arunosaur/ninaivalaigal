@@ -2,51 +2,63 @@ package com.mem0.jetbrains;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Mem0Client {
-    private static final String DEFAULT_SERVER_URL = "http://127.0.0.1:13370";
-    private final String serverUrl;
-    private final String mem0CliPath;
+    private static final String MCP_SERVER_PATH = "/opt/homebrew/anaconda3/bin/python";
+    private static final String MCP_SCRIPT_PATH = "/Users/asrajag/Workspace/mem0/server/mcp_server.py";
+    private Process mcpProcess;
+    private OutputStreamWriter mcpInput;
+    private BufferedReader mcpOutput;
     private String currentContext;
+    private int requestId = 1;
 
     public Mem0Client(Project project) {
-        this.serverUrl = Mem0Settings.getInstance().getServerUrl();
-        this.mem0CliPath = findMem0Cli();
         this.currentContext = detectProjectContext(project);
+        initializeMCPConnection();
     }
 
-    private String findMem0Cli() {
-        // Try common locations for mem0 CLI
-        String[] possiblePaths = {
-            System.getProperty("user.home") + "/Workspace/mem0/client/mem0",
-            System.getProperty("user.home") + "/workspace/mem0/client/mem0",
-            System.getProperty("user.home") + "/Projects/mem0/client/mem0",
-            "/usr/local/bin/mem0",
-            "mem0" // Try PATH
-        };
-
-        for (String path : possiblePaths) {
-            if (new File(path).exists()) {
-                return path;
-            }
+    private void initializeMCPConnection() {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(MCP_SERVER_PATH, MCP_SCRIPT_PATH);
+            mcpProcess = pb.start();
+            mcpInput = new OutputStreamWriter(mcpProcess.getOutputStream());
+            mcpOutput = new BufferedReader(new InputStreamReader(mcpProcess.getInputStream()));
+            
+            // Send initialize request
+            JSONObject initRequest = new JSONObject();
+            initRequest.put("jsonrpc", "2.0");
+            initRequest.put("id", requestId++);
+            initRequest.put("method", "initialize");
+            
+            JSONObject params = new JSONObject();
+            params.put("protocolVersion", "2024-11-05");
+            
+            JSONObject clientInfo = new JSONObject();
+            clientInfo.put("name", "mem0-jetbrains");
+            clientInfo.put("version", "1.0.0");
+            params.put("clientInfo", clientInfo);
+            
+            JSONObject capabilities = new JSONObject();
+            params.put("capabilities", capabilities);
+            
+            initRequest.put("params", params);
+            
+            sendMCPRequest(initRequest);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return "mem0"; // Fallback to PATH
     }
 
     private String detectProjectContext(Project project) {
@@ -66,12 +78,22 @@ public class Mem0Client {
 
     public boolean startContext(String contextName) {
         try {
-            ProcessBuilder pb = new ProcessBuilder(mem0CliPath, "context", "start", contextName);
-            pb.environment().put("MEM0_CONTEXT", contextName);
-            Process process = pb.start();
-            int exitCode = process.waitFor();
+            JSONObject request = new JSONObject();
+            request.put("jsonrpc", "2.0");
+            request.put("id", requestId++);
+            request.put("method", "tools/call");
             
-            if (exitCode == 0) {
+            JSONObject params = new JSONObject();
+            params.put("name", "context_start");
+            
+            JSONObject arguments = new JSONObject();
+            arguments.put("context_name", contextName);
+            params.put("arguments", arguments);
+            
+            request.put("params", params);
+            
+            JSONObject response = sendMCPRequest(request);
+            if (response != null && !response.has("error")) {
                 this.currentContext = contextName;
                 return true;
             }
@@ -84,17 +106,33 @@ public class Mem0Client {
     public List<String> listContexts() {
         List<String> contexts = new ArrayList<>();
         try {
-            ProcessBuilder pb = new ProcessBuilder(mem0CliPath, "contexts");
-            Process process = pb.start();
+            JSONObject request = new JSONObject();
+            request.put("jsonrpc", "2.0");
+            request.put("id", requestId++);
+            request.put("method", "tools/call");
             
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!StringUtil.isEmpty(line.trim())) {
-                    contexts.add(line.trim());
+            JSONObject params = new JSONObject();
+            params.put("name", "list_contexts");
+            params.put("arguments", new JSONObject());
+            
+            request.put("params", params);
+            
+            JSONObject response = sendMCPRequest(request);
+            if (response != null && response.has("result")) {
+                JSONObject result = response.getJSONObject("result");
+                if (result.has("content")) {
+                    JSONArray content = result.getJSONArray("content");
+                    if (content.length() > 0) {
+                        Object contextData = content.getJSONObject(0).get("text");
+                        if (contextData instanceof JSONArray) {
+                            JSONArray contextArray = (JSONArray) contextData;
+                            for (int i = 0; i < contextArray.length(); i++) {
+                                contexts.add(contextArray.getString(i));
+                            }
+                        }
+                    }
                 }
             }
-            process.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,10 +141,23 @@ public class Mem0Client {
 
     public boolean remember(String memory) {
         try {
-            ProcessBuilder pb = new ProcessBuilder(mem0CliPath, "remember", memory, "--context", currentContext);
-            pb.environment().put("MEM0_CONTEXT", currentContext);
-            Process process = pb.start();
-            return process.waitFor() == 0;
+            JSONObject request = new JSONObject();
+            request.put("jsonrpc", "2.0");
+            request.put("id", requestId++);
+            request.put("method", "tools/call");
+            
+            JSONObject params = new JSONObject();
+            params.put("name", "remember");
+            
+            JSONObject arguments = new JSONObject();
+            arguments.put("text", memory);
+            arguments.put("context", currentContext);
+            params.put("arguments", arguments);
+            
+            request.put("params", params);
+            
+            JSONObject response = sendMCPRequest(request);
+            return response != null && !response.has("error");
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -115,18 +166,31 @@ public class Mem0Client {
 
     public String recall() {
         try {
-            ProcessBuilder pb = new ProcessBuilder(mem0CliPath, "recall", "--context", currentContext);
-            pb.environment().put("MEM0_CONTEXT", currentContext);
-            Process process = pb.start();
+            JSONObject request = new JSONObject();
+            request.put("jsonrpc", "2.0");
+            request.put("id", requestId++);
+            request.put("method", "tools/call");
             
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder result = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                result.append(line).append("\n");
+            JSONObject params = new JSONObject();
+            params.put("name", "recall");
+            
+            JSONObject arguments = new JSONObject();
+            arguments.put("context", currentContext);
+            params.put("arguments", arguments);
+            
+            request.put("params", params);
+            
+            JSONObject response = sendMCPRequest(request);
+            if (response != null && response.has("result")) {
+                JSONObject result = response.getJSONObject("result");
+                if (result.has("content")) {
+                    JSONArray content = result.getJSONArray("content");
+                    if (content.length() > 0) {
+                        return content.getJSONObject(0).getString("text");
+                    }
+                }
             }
-            process.waitFor();
-            return result.toString();
+            return "No memories found";
         } catch (Exception e) {
             e.printStackTrace();
             return "Error recalling memories: " + e.getMessage();
@@ -134,13 +198,32 @@ public class Mem0Client {
     }
 
     public boolean isServerRunning() {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpGet request = new HttpGet(serverUrl + "/");
-            try (CloseableHttpResponse response = client.execute(request)) {
-                return response.getStatusLine().getStatusCode() == 200;
+        return mcpProcess != null && mcpProcess.isAlive();
+    }
+    
+    private JSONObject sendMCPRequest(JSONObject request) {
+        try {
+            String requestStr = request.toString() + "\n";
+            mcpInput.write(requestStr);
+            mcpInput.flush();
+            
+            String responseStr = mcpOutput.readLine();
+            if (responseStr != null) {
+                return new JSONObject(responseStr);
             }
         } catch (Exception e) {
-            return false;
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public void close() {
+        try {
+            if (mcpInput != null) mcpInput.close();
+            if (mcpOutput != null) mcpOutput.close();
+            if (mcpProcess != null) mcpProcess.destroy();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
