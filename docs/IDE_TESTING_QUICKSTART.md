@@ -28,19 +28,22 @@ psql -d mem0_db -f /Users/asrajag/Workspace/mem0/scripts/update_schema_approval.
 
 ## IDE Testing Options
 
-### Option 1: VS Code (Recommended - Easiest)
+### Option 1: VS Code 
 
 **Setup:**
-1. Create `.vscode/mcp.json` in your workspace:
+1. VS Code uses `settings.json` for MCP configuration, not `.vscode/mcp.json`
+2. Add to your VS Code `settings.json`:
 ```json
 {
-  "servers": {
+  "mcp.servers": {
     "mem0": {
-      "command": "/opt/homebrew/anaconda3/bin/python",
+      "command": "python",
       "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
-      "type": "stdio",
       "env": {
-        "MEM0_AI_ENHANCEMENT": "true"
+        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+        "MEM0_JWT_SECRET": "your-secret-key-here"
+      },
+      "cwd": "/Users/asrajag/Workspace/mem0"
       }
     }
   }
