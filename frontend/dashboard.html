@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mem0 Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-white">mem0</h1>
+                    <span class="ml-3 text-white/80">AI Memory Dashboard</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="user-name" class="text-white/90"></span>
+                    <span id="account-type" class="px-3 py-1 bg-white/20 rounded-full text-white text-sm"></span>
+                    <button onclick="logout()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Welcome Section -->
+        <div class="px-4 py-6 sm:px-0">
+            <div class="bg-white card-shadow rounded-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome to mem0!</h2>
+                <p class="text-gray-600">Your AI memory system is ready. Start recording contexts and enhancing your development workflow.</p>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white card-shadow rounded-lg p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Active Contexts</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="active-contexts">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white card-shadow rounded-lg p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Total Memories</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="total-memories">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white card-shadow rounded-lg p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Team Members</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="team-members">1</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Context Management -->
+            <div class="bg-white card-shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Context Management</h3>
+                <div class="space-y-3">
+                    <button onclick="startNewContext()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        Start New Context
+                    </button>
+                    <button onclick="viewContexts()" class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+                        View All Contexts
+                    </button>
+                    <button onclick="exportMemories()" class="w-full bg-green-100 text-green-700 py-2 px-4 rounded-lg hover:bg-green-200 transition-colors">
+                        Export Memories
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white card-shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
+                <div id="recent-activity" class="space-y-3">
+                    <div class="flex items-center text-sm text-gray-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        No recent activity
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Status -->
+        <div class="mt-8">
+            <div class="bg-white card-shadow rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Integration Status</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-center p-3 bg-green-50 rounded-lg">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <span class="text-sm text-green-800">FastAPI Server</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-green-50 rounded-lg">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <span class="text-sm text-green-800">PostgreSQL Database</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-yellow-50 rounded-lg">
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+                        <span class="text-sm text-yellow-800">MCP Server</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Modal -->
+    <div id="context-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Start New Context</h3>
+                <input type="text" id="context-name" placeholder="Context name (e.g., 'project-alpha')" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4">
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="createContext()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Create
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('mem0_token');
+        const user = JSON.parse(localStorage.getItem('mem0_user') || '{}');
+
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Display user info
+        document.getElementById('user-name').textContent = user.name || 'User';
+        document.getElementById('account-type').textContent = user.account_type || 'individual';
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                // Load contexts
+                const contextsResponse = await fetch('/contexts', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (contextsResponse.ok) {
+                    const contexts = await contextsResponse.json();
+                    document.getElementById('active-contexts').textContent = contexts.length;
+                }
+
+                // Load memories count (placeholder for now)
+                document.getElementById('total-memories').textContent = '0';
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Dashboard functions
+        function logout() {
+            localStorage.removeItem('mem0_token');
+            localStorage.removeItem('mem0_user');
+            window.location.href = 'login.html';
+        }
+
+        function startNewContext() {
+            document.getElementById('context-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('context-modal').classList.add('hidden');
+            document.getElementById('context-name').value = '';
+        }
+
+        async function createContext() {
+            const contextName = document.getElementById('context-name').value.trim();
+            if (!contextName) {
+                alert('Please enter a context name');
+                return;
+            }
+
+            try {
+                const response = await fetch('/contexts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: contextName,
+                        description: `Context for ${contextName}`
+                    })
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    loadDashboardData(); // Refresh data
+                    alert(`Context "${contextName}" created successfully!`);
+                } else {
+                    const error = await response.json();
+                    alert(`Error creating context: ${error.detail}`);
+                }
+            } catch (error) {
+                alert(`Network error: ${error.message}`);
+            }
+        }
+
+        function viewContexts() {
+            alert('Context management UI coming soon!');
+        }
+
+        function exportMemories() {
+            alert('Memory export feature coming soon!');
+        }
+
+        // Load data on page load
+        loadDashboardData();
+    </script>
+</body>
+</html>
