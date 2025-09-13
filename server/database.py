@@ -122,7 +122,13 @@ class RecordingContext(Base):
     permissions = relationship("ContextPermission", back_populates="context")
 
 class DatabaseManager:
-    def __init__(self, database_url="postgresql://mem0:mem0@localhost:5432/mem0"):
+    def __init__(self, config="postgresql://mem0:mem0@localhost:5432/mem0"):
+        # Handle both string URL and config dict
+        if isinstance(config, dict):
+            database_url = config.get("database_url", "sqlite:///../mem0.db")
+        else:
+            database_url = config
+            
         # Use different connection args for PostgreSQL vs SQLite
         if database_url.startswith("sqlite"):
             self.engine = create_engine(database_url, connect_args={"check_same_thread": False})

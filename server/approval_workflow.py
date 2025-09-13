@@ -28,7 +28,7 @@ class CrossTeamApprovalRequest(Base):
     __tablename__ = "cross_team_approval_requests"
     
     id = Column(Integer, primary_key=True)
-    context_id = Column(Integer, ForeignKey("contexts.id"), nullable=False)
+    context_id = Column(Integer, nullable=False)  # Will add FK when contexts table exists
     requesting_team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
     target_team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
     requested_by = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -43,8 +43,8 @@ class CrossTeamApprovalRequest(Base):
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    # Relationships
-    context = relationship("RecordingContext", back_populates="approval_requests")
+    # Relationships  
+    # Note: RecordingContext relationship will be established when contexts table exists
     requesting_team = relationship("Team", foreign_keys=[requesting_team_id])
     target_team = relationship("Team", foreign_keys=[target_team_id])
     requester = relationship("User", foreign_keys=[requested_by])

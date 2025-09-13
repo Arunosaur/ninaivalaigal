@@ -161,32 +161,35 @@ class PerformanceMonitor:
     def _capture_system_snapshot(self) -> PerformanceSnapshot:
         """Capture current system performance snapshot"""
         try:
-            cpu_percent = psutil.cpu_percent(interval=1)
+            cpu_percent = psutil.cpu_percent(interval=0.1)  # Reduced interval
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage('/')
-            network_connections = len(psutil.net_connections())
-            active_threads = threading.active_count()
-
-            # Count open files (Unix-like systems only)
+            
+            # Get process-specific metrics with error handling
             try:
-                open_files = len(psutil.Process().open_files())
-            except (psutil.AccessDenied, AttributeError):
+                process = psutil.Process()
+                connections = len(process.connections())
+                threads = process.num_threads()
+                open_files = len(process.open_files())
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                connections = 0
+                threads = 0
                 open_files = 0
-
+            
             return PerformanceSnapshot(
-                timestamp=datetime.now(),
+                timestamp=datetime.utcnow(),
                 cpu_percent=cpu_percent,
                 memory_percent=memory.percent,
                 memory_used_mb=memory.used / 1024 / 1024,
                 disk_usage_percent=disk.percent,
-                network_connections=network_connections,
-                active_threads=active_threads,
+                network_connections=connections,
+                active_threads=threads,
                 open_files=open_files
             )
         except Exception as e:
-            self.logger.error(f"Error capturing system snapshot: {e}")
+            # Silently return default snapshot to avoid startup issues
             return PerformanceSnapshot(
-                timestamp=datetime.now(),
+                timestamp=datetime.utcnow(),
                 cpu_percent=0.0,
                 memory_percent=0.0,
                 memory_used_mb=0.0,

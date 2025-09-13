@@ -5,18 +5,46 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import os
-from .performance_monitor import (
+from database import DatabaseManager, User, Organization, Team, TeamMember, ContextPermission, RecordingContext
+from auth import (
+    User, UserCreate, UserLogin, Token, 
+    get_current_user, get_current_user_optional, create_access_token
+)
+from performance_monitor import (
     get_performance_monitor,
     record_request,
     record_db_query,
     start_performance_monitoring
 )
-from .database import DatabaseManager, User, Organization, Team, TeamMember, ContextPermission, RecordingContext
-from .auth import (
-    User, UserCreate, UserLogin, Token, 
-    get_current_user, get_current_user_optional, create_access_token
-)
+from approval_workflow import ApprovalWorkflowManager
 import json as json_lib
+
+# Configuration loading
+def load_config():
+    config_path = "../mem0.config.json"
+    default_config = {
+        "storage": {
+            "type": "sqlite",
+            "path": "../mem0.db"
+        },
+        "database_url": "sqlite:///../mem0.db",
+        "jwt_secret": "your-secret-key-here"
+    }
+    
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+            # Merge with defaults
+            for key, value in default_config.items():
+                if key not in config:
+                    config[key] = value
+            return config
+    return default_config
+
+# Initialize database and performance monitoring
+db = DatabaseManager(load_config())
+approval_manager = ApprovalWorkflowManager(db)
+start_performance_monitoring()
 
 # --- Data Models ---
 class MemoryPayload(BaseModel):
@@ -42,16 +70,20 @@ class ContextShare(BaseModel):
     target_id: int
     permission_level: str  # "read", "write", "admin", "owner"
 
+class CrossTeamAccessRequest(BaseModel):
+    context_id: int
+    target_team_id: int
+    permission_level: str  # "read", "write", "admin"
+    justification: Optional[str] = None
+
+class ApprovalAction(BaseModel):
+    request_id: int
+    action: str  # "approve" or "reject"
+    reason: Optional[str] = None
+
 # --- Configuration ---
 # Configuration moved to auth.py to avoid circular import
-from .auth import load_config
-
-# --- Database Setup ---
-database_url = load_config()
-db = DatabaseManager(database_url)
-
-# Migrate existing JSON data if it exists
-db.migrate_from_json()
+# Remove duplicate import - load_config is already defined above
 
 # --- FastAPI App ---
 app = FastAPI(
@@ -197,9 +229,80 @@ def share_context(context_id: int, share_data: ContextShare, current_user: User 
         else:
             raise HTTPException(status_code=400, detail="Invalid target_type. Must be 'user', 'team', or 'organization'")
 
-        return {"message": f"Context {context_id} shared with {share_data.target_type} {share_data.target_id}"}
+        return {"message": "Context shared successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to share context: {str(e)}")
+
+@app.post("/cross-team-request")
+async def request_cross_team_access(
+    request_data: CrossTeamAccessRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Request cross-team access to a context"""
+    # Get user's team for the request
+    user_teams = db.get_user_teams(current_user.id)
+    if not user_teams:
+        raise HTTPException(status_code=400, detail="User must be a member of a team to request cross-team access")
+    
+    # Use the first team the user belongs to as requesting team
+    requesting_team_id = user_teams[0].id
+    
+    result = approval_manager.request_cross_team_access(
+        context_id=request_data.context_id,
+        requesting_team_id=requesting_team_id,
+        target_team_id=request_data.target_team_id,
+        requested_by=current_user.id,
+        permission_level=request_data.permission_level,
+        justification=request_data.justification
+    )
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+@app.post("/approval-action")
+async def handle_approval_action(
+    action_data: ApprovalAction,
+    current_user: User = Depends(get_current_user)
+):
+    """Approve or reject a cross-team access request"""
+    if action_data.action == "approve":
+        result = approval_manager.approve_request(action_data.request_id, current_user.id)
+    elif action_data.action == "reject":
+        result = approval_manager.reject_request(action_data.request_id, current_user.id, action_data.reason)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action. Must be 'approve' or 'reject'")
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+@app.get("/pending-approvals")
+async def get_pending_approvals(current_user: User = Depends(get_current_user)):
+    """Get pending approval requests for user's teams"""
+    user_teams = db.get_user_teams(current_user.id)
+    all_requests = []
+    
+    for team in user_teams:
+        team_requests = approval_manager.get_pending_requests_for_team(team.id)
+        all_requests.extend(team_requests)
+    
+    return {"pending_requests": all_requests}
+
+@app.get("/approval-status/{request_id}")
+async def get_approval_status(
+    request_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    """Get status of a specific approval request"""
+    result = approval_manager.get_request_status(request_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["error"])
+    
+    return result
 
 @app.get("/users/me/contexts")
 def get_user_accessible_contexts(current_user: User = Depends(get_current_user)):
