@@ -10,14 +10,18 @@
 
 **Architecture:**
 ```
+{{ ... }}
 Team Members (IDEs) → Central mem0 Server → Shared PostgreSQL Database
 ```
 
-#### Server Setup
+#### Quick Setup Commands
+
 ```bash
-# Deploy on team server (e.g., server.company.com)
-git clone https://github.com/company/mem0.git
+# Clone and setup
+git clone <your-mem0-repo>
 cd mem0
+
+# Install dependencies
 pip install -r server/requirements.txt
 
 # Configure environment
@@ -26,37 +30,46 @@ export MEM0_JWT_SECRET="team-shared-secret"
 export MEM0_HOST="0.0.0.0"
 export MEM0_PORT="13370"
 
-# Start services
-python server/mcp_server.py --host 0.0.0.0 --port 13371 &
-python server/main.py --host 0.0.0.0 --port 13370 &
+# Start servers
+python server/main.py &        # FastAPI server
+./scripts/start_mcp_server.sh start  # MCP server with process management
+
+# Test deployment
+curl http://localhost:13370/health
+./scripts/start_mcp_server.sh test   # Test MCP functionality
 ```
 
 #### Team Member IDE Configuration
-**VS Code/Windsurf** (`.vscode/mcp.json`):
+
+**VS Code/Windsurf** (`.vscode/settings.json`):
 ```json
 {
-  "servers": {
+  "mcp.servers": {
     "mem0": {
-      "command": "python",
-      "args": ["-c", "import subprocess; subprocess.run(['python', '-c', 'import socket; import json; s=socket.socket(); s.connect((\"server.company.com\", 13371)); exec(open(\"/tmp/mcp_client.py\").read())'])"],
-      "type": "stdio",
+      "command": "/path/to/mem0/scripts/start_mcp_for_vscode.sh",
+      "args": [],
+      "cwd": "/path/to/mem0",
       "env": {
-        "MEM0_SERVER_HOST": "server.company.com",
-        "MEM0_SERVER_PORT": "13371"
+        "MEM0_DATABASE_URL": "postgresql://user:pass@server.company.com:5432/mem0_team",
+        "MEM0_JWT_SECRET": "team-shared-secret"
       }
     }
   }
 }
 ```
 
-**Better approach - HTTP Proxy:**
+**Alternative - Direct Python Path:**
 ```json
 {
-  "servers": {
+  "mcp.servers": {
     "mem0": {
-      "command": "curl",
-      "args": ["-X", "POST", "http://server.company.com:13370/mcp-proxy"],
-      "type": "http"
+      "command": "/usr/bin/python3",
+      "args": ["/path/to/mem0/server/mcp_server.py"],
+      "cwd": "/path/to/mem0",
+      "env": {
+        "MEM0_DATABASE_URL": "postgresql://user:pass@server.company.com:5432/mem0_team",
+        "MEM0_JWT_SECRET": "team-shared-secret"
+      }
     }
   }
 }
