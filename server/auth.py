@@ -22,7 +22,7 @@ def load_config():
     config_path = "../ninaivalaigal.config.json"
     default_config = {
         "storage": {
-            "database_url": "sqlite:///./ninaivalaigal.db"
+            "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
         }
     }
     
