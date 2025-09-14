@@ -30,7 +30,7 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships for sharing system
-    owned_contexts = relationship("RecordingContext", foreign_keys="[RecordingContext.owner_id]", back_populates="owner")
+    owned_contexts = relationship("Context", foreign_keys="[Context.owner_id]", back_populates="owner")
     team_memberships = relationship("TeamMember", back_populates="user")
     granted_permissions = relationship("ContextPermission", foreign_keys="[ContextPermission.granted_by]", back_populates="granted_by_user")
     user_permissions = relationship("ContextPermission", foreign_keys="[ContextPermission.user_id]")
@@ -61,7 +61,7 @@ class Organization(Base):
     
     # Relationships
     teams = relationship("Team", back_populates="organization")
-    contexts = relationship("RecordingContext", back_populates="organization")
+    contexts = relationship("Context", back_populates="organization")
     permissions = relationship("ContextPermission", back_populates="organization")
 
 class Team(Base):
@@ -77,7 +77,7 @@ class Team(Base):
     # Relationships
     organization = relationship("Organization", back_populates="teams")
     members = relationship("TeamMember", back_populates="team")
-    contexts = relationship("RecordingContext", back_populates="team")
+    contexts = relationship("Context", back_populates="team")
     permissions = relationship("ContextPermission", back_populates="team")
 
 class TeamMember(Base):
@@ -97,7 +97,7 @@ class ContextPermission(Base):
     __tablename__ = "context_permissions"
     
     id = Column(Integer, primary_key=True, index=True)
-    context_id = Column(Integer, ForeignKey("recording_contexts.id"), nullable=False)
+    context_id = Column(Integer, ForeignKey("contexts.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # NULL for team/org permissions
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)  # NULL for user/org permissions
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)  # NULL for user/team permissions
@@ -106,7 +106,7 @@ class ContextPermission(Base):
     granted_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships with explicit foreign_keys to resolve ambiguity
-    context = relationship("RecordingContext", back_populates="permissions")
+    context = relationship("Context", back_populates="permissions")
     user = relationship("User", foreign_keys=[user_id], overlaps="user_permissions")
     team = relationship("Team", foreign_keys=[team_id])
     organization = relationship("Organization", foreign_keys=[organization_id])
@@ -154,8 +154,8 @@ class UserInvitation(Base):
     inviter = relationship("User")
 
 # Update existing models to support sharing
-class RecordingContext(Base):
-    __tablename__ = "recording_contexts"
+class Context(Base):
+    __tablename__ = "contexts"
     
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, index=True)
@@ -167,6 +167,7 @@ class RecordingContext(Base):
     is_active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    scope = Column(String(20), nullable=True)  # personal, team, organization
     
     # Relationships
     owner = relationship("User", foreign_keys=[owner_id])
@@ -223,14 +224,14 @@ class DatabaseManager:
                 active_context = data.get("recording_context")
                 if active_context:
                     # Clear any existing active contexts
-                    session.query(RecordingContext).update({"is_active": False})
+                    session.query(Context).update({"is_active": False})
                     
                     # Set or create the active context
-                    context = session.query(RecordingContext).filter_by(name=active_context).first()
+                    context = session.query(Context).filter_by(name=active_context).first()
                     if context:
                         context.is_active = True
                     else:
-                        context = RecordingContext(name=active_context, is_active=True)
+                        context = Context(name=active_context, is_active=True)
                         session.add(context)
                 
                 session.commit()
@@ -251,20 +252,21 @@ class DatabaseManager:
             print(f"Error migrating from JSON: {e}")
     
     
-    def set_active_context(self, context_name: str, user_id: int = None):
+    def set_active_context(self, context_name: str, user_id: int = None, scope: str = None):
         session = self.get_session()
         try:
-            # Don't clear other active contexts - allow multiple active contexts per user
-            # Just set this specific context to active
-            if user_id:
-                context = session.query(RecordingContext).filter_by(name=context_name, owner_id=user_id).first()
-            else:
-                context = session.query(RecordingContext).filter_by(name=context_name, owner_id=None).first()
+            context = self.resolve_context(context_name, user_id, scope, session)
             
             if context:
                 context.is_active = True
             else:
-                context = RecordingContext(name=context_name, is_active=True, owner_id=user_id)
+                # Create new personal context if not found
+                context = Context(
+                    name=context_name, 
+                    is_active=True, 
+                    owner_id=user_id,
+                    scope="personal"
+                )
                 session.add(context)
             
             session.commit()
@@ -274,26 +276,46 @@ class DatabaseManager:
         finally:
             session.close()
     
-    def create_context(self, name: str, description: str = None, user_id: int = None):
-        """Create a new recording context"""
+    def create_context(self, name: str, description: str = None, user_id: int = None, team_id: int = None, organization_id: int = None, scope: str = None):
+        """Create a new context with ownership scope"""
         session = self.get_session()
         try:
-            # Check if context already exists
-            existing = session.query(RecordingContext).filter_by(name=name).first()
+            # Determine scope if not provided
+            if not scope:
+                if user_id:
+                    scope = "personal"
+                elif team_id:
+                    scope = "team"
+                elif organization_id:
+                    scope = "organization"
+                else:
+                    scope = "personal"  # default
+            
+            # Check if context already exists in same scope
+            existing_query = session.query(Context).filter_by(name=name)
+            if scope == "personal" and user_id:
+                existing = existing_query.filter_by(owner_id=user_id).first()
+            elif scope == "team" and team_id:
+                existing = existing_query.filter_by(team_id=team_id).first()
+            elif scope == "organization" and organization_id:
+                existing = existing_query.filter_by(organization_id=organization_id).first()
+            else:
+                existing = None
+                
             if existing:
-                # Update ownership if user_id provided and context has no owner
-                if user_id and existing.owner_id is None:
-                    existing.owner_id = user_id
-                    existing.is_active = True
-                    session.commit()
-                    session.refresh(existing)
+                existing.is_active = True
+                session.commit()
+                session.refresh(existing)
                 return existing
             
-            context = RecordingContext(
+            context = Context(
                 name=name,
                 description=description or f"Context for {name}",
-                owner_id=user_id,
-                is_active=True  # Set active when created with user_id
+                owner_id=user_id if scope == "personal" else None,
+                team_id=team_id if scope == "team" else None,
+                organization_id=organization_id if scope == "organization" else None,
+                scope=scope,
+                is_active=True
             )
             session.add(context)
             session.commit()
@@ -334,9 +356,9 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                session.query(RecordingContext).filter_by(owner_id=user_id).update({"is_active": False})
+                session.query(Context).filter_by(owner_id=user_id).update({"is_active": False})
             else:
-                session.query(RecordingContext).update({"is_active": False})
+                session.query(Context).update({"is_active": False})
             session.commit()
         except Exception as e:
             session.rollback()
@@ -348,9 +370,9 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                contexts = session.query(RecordingContext).filter_by(is_active=True, owner_id=user_id).all()
+                contexts = session.query(Context).filter_by(is_active=True, owner_id=user_id).all()
             else:
-                contexts = session.query(RecordingContext).filter_by(is_active=True, owner_id=None).all()
+                contexts = session.query(Context).filter_by(is_active=True, owner_id=None).all()
             
             # Return the most recently created active context
             if contexts:
@@ -361,22 +383,120 @@ class DatabaseManager:
             session.close()
     
     def get_all_contexts(self, user_id: int = None):
+        """Get all contexts accessible to a user"""
         session = self.get_session()
         try:
             if user_id:
-                contexts = session.query(RecordingContext).filter_by(owner_id=user_id).order_by(RecordingContext.created_at).all()
+                # Get personal contexts
+                personal_contexts = session.query(Context).filter_by(owner_id=user_id).all()
+                
+                # Get team contexts for user's teams
+                user_teams = session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
+                team_contexts = session.query(Context).filter(Context.team_id.in_(user_teams)).all()
+                
+                # Get org contexts for user's organizations
+                user_orgs = session.query(Team.organization_id).join(TeamMember).filter(
+                    TeamMember.user_id == user_id
+                ).distinct().subquery()
+                org_contexts = session.query(Context).filter(Context.organization_id.in_(user_orgs)).all()
+                
+                # Combine all contexts
+                all_contexts = personal_contexts + team_contexts + org_contexts
             else:
-                contexts = session.query(RecordingContext).filter_by(owner_id=None).order_by(RecordingContext.created_at).all()
+                all_contexts = session.query(Context).filter_by(owner_id=None).order_by(Context.created_at).all()
+                
             return [
                 {
                     "name": context.name,
+                    "scope": context.scope or "personal",
                     "is_active": context.is_active,
-                    "created_at": context.created_at.isoformat()
+                    "created_at": context.created_at.isoformat(),
+                    "team_name": context.team.name if context.team else None,
+                    "org_name": context.organization.name if context.organization else None
                 }
-                for context in contexts
+                for context in all_contexts
             ]
         finally:
             session.close()
+    
+    def resolve_context(self, context_name: str, user_id: int = None, scope: str = None, session=None):
+        """Resolve context based on name, user access, and scope priority"""
+        if not session:
+            session = self.get_session()
+            close_session = True
+        else:
+            close_session = False
+            
+        try:
+            contexts = []
+            
+            if scope == "personal":
+                context = session.query(Context).filter_by(name=context_name, owner_id=user_id).first()
+                return context
+            elif scope == "team":
+                # Get user's teams and find team contexts
+                user_teams = session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
+                context = session.query(Context).filter(
+                    Context.name == context_name,
+                    Context.team_id.in_(user_teams)
+                ).first()
+                return context
+            elif scope == "organization":
+                # Get user's organizations and find org contexts
+                user_orgs = session.query(Team.organization_id).join(TeamMember).filter(
+                    TeamMember.user_id == user_id
+                ).distinct().subquery()
+                context = session.query(Context).filter(
+                    Context.name == context_name,
+                    Context.organization_id.in_(user_orgs)
+                ).first()
+                return context
+            else:
+                # Auto-resolve with priority: personal > team > org > shared
+                
+                # 1. Personal contexts (highest priority)
+                personal = session.query(Context).filter_by(name=context_name, owner_id=user_id).first()
+                if personal:
+                    contexts.append(("personal", personal))
+                
+                # 2. Team contexts
+                user_teams = session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
+                team_contexts = session.query(Context).filter(
+                    Context.name == context_name,
+                    Context.team_id.in_(user_teams)
+                ).all()
+                for ctx in team_contexts:
+                    contexts.append(("team", ctx))
+                
+                # 3. Organization contexts
+                user_orgs = session.query(Team.organization_id).join(TeamMember).filter(
+                    TeamMember.user_id == user_id
+                ).distinct().subquery()
+                org_contexts = session.query(Context).filter(
+                    Context.name == context_name,
+                    Context.organization_id.in_(user_orgs)
+                ).all()
+                for ctx in org_contexts:
+                    contexts.append(("organization", ctx))
+                
+                # 4. Shared contexts (via permissions)
+                shared_contexts = session.query(Context).join(ContextPermission).filter(
+                    Context.name == context_name,
+                    ContextPermission.user_id == user_id
+                ).all()
+                for ctx in shared_contexts:
+                    contexts.append(("shared", ctx))
+                
+                if len(contexts) == 1:
+                    return contexts[0][1]
+                elif len(contexts) > 1:
+                    # Return highest priority (personal first)
+                    return contexts[0][1]
+                else:
+                    return None
+        finally:
+            if close_session:
+                session.close()
     
     def add_memory(self, context: str, memory_type: str, source: str, data: dict, user_id: int = None):
         session = self.get_session()
@@ -481,7 +601,7 @@ class DatabaseManager:
         try:
             if context_name:
                 # Stop specific context
-                context = session.query(RecordingContext).filter_by(name=context_name).first()
+                context = session.query(Context).filter_by(name=context_name).first()
                 if context:
                     context.is_active = False
                     session.commit()
@@ -490,7 +610,7 @@ class DatabaseManager:
                     raise ValueError(f"Context '{context_name}' not found")
             else:
                 # Stop all active contexts
-                active_contexts = session.query(RecordingContext).filter_by(is_active=True).all()
+                active_contexts = session.query(Context).filter_by(is_active=True).all()
                 stopped_contexts = []
                 for context in active_contexts:
                     context.is_active = False
@@ -636,7 +756,7 @@ class DatabaseManager:
         session = self.get_session()
         try:
             # First check if user owns the context
-            context = session.query(RecordingContext).filter_by(id=context_id).first()
+            context = session.query(Context).filter_by(id=context_id).first()
             if not context:
                 return False
             
@@ -704,16 +824,16 @@ class DatabaseManager:
         session = self.get_session()
         try:
             # Get user's own contexts
-            own_contexts = session.query(RecordingContext).filter_by(owner_id=user_id).all()
+            own_contexts = session.query(Context).filter_by(owner_id=user_id).all()
             
             # Get contexts shared with user directly
-            user_shared = session.query(RecordingContext).join(ContextPermission).filter(
+            user_shared = session.query(Context).join(ContextPermission).filter(
                 ContextPermission.user_id == user_id
             ).all()
             
             # Get contexts shared with user's teams
             user_teams = session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
-            team_shared = session.query(RecordingContext).join(ContextPermission).filter(
+            team_shared = session.query(Context).join(ContextPermission).filter(
                 ContextPermission.team_id.in_(user_teams)
             ).all()
             
@@ -722,7 +842,7 @@ class DatabaseManager:
                 TeamMember.user_id == user_id
             ).distinct().subquery()
             
-            org_shared = session.query(RecordingContext).join(ContextPermission).filter(
+            org_shared = session.query(Context).join(ContextPermission).filter(
                 ContextPermission.organization_id.in_(user_orgs)
             ).all()
             

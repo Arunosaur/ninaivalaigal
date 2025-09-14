@@ -74,8 +74,8 @@ class AutoRecorder:
             # Update database to set context as inactive
             session = self.db.get_session()
             try:
-                from database import RecordingContext
-                context = session.query(RecordingContext).filter_by(name=context_name).first()
+                from database import Context
+                context = session.query(Context).filter_by(name=context_name).first()
                 if context:
                     context.is_active = False
                     session.commit()

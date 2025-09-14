@@ -7,10 +7,9 @@ from pydantic import BaseModel
 from typing import Optional
 import json
 import os
-from database import DatabaseManager, User, Organization, Team, TeamMember, ContextPermission, RecordingContext
-from auth import (
-    get_current_user_optional, create_access_token, get_current_user
-)
+from database import DatabaseManager, User, Context, Memory, Team, TeamMember, ContextPermission
+from auth import get_current_user, load_config
+from spec_kit import SpecKitContextManager, ContextSpec, ContextScope, ContextPermissionSpec, PermissionLevel
 from performance_monitor import (
     get_performance_monitor,
     record_request,
@@ -59,6 +58,10 @@ def load_config():
     
     return config
 
+# Initialize database and spec-kit
+db = DatabaseManager()
+spec_context_manager = SpecKitContextManager(db)
+
 # Initialize database and performance monitoring
 config = load_config()
 if isinstance(config, str):
@@ -103,10 +106,21 @@ class TeamMemberAdd(BaseModel):
     user_id: int
     role: str = "member"
 
+class ContextCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    scope: str = "personal"  # "personal", "team", "organization"
+    team_id: Optional[int] = None
+    organization_id: Optional[int] = None
+
 class ContextShare(BaseModel):
     target_type: str  # "user", "team", or "organization"
     target_id: int
     permission_level: str  # "read", "write", "admin", "owner"
+
+class ContextTransfer(BaseModel):
+    target_type: str  # "user", "team", or "organization"
+    target_id: int
 
 class CrossTeamAccessRequest(BaseModel):
     context_id: int
@@ -300,24 +314,36 @@ def get_user_teams(current_user: User = Depends(get_current_user)):
 # --- Context Sharing ---
 @app.post("/contexts/{context_id}/share")
 def share_context(context_id: int, share_data: ContextShare, current_user: User = Depends(get_current_user)):
-    """Share a context with user, team, or organization"""
+    """Share context with user/team/organization"""
     try:
-        # Check if user has permission to share this context
+        # Validate ownership/admin permission
         if not db.check_context_permission(context_id, current_user.id, "admin"):
-            raise HTTPException(status_code=403, detail="Insufficient permissions to share this context")
-
-        if share_data.target_type == "user":
-            db.share_context_with_user(context_id, share_data.target_id, share_data.permission_level, current_user.id)
-        elif share_data.target_type == "team":
-            db.share_context_with_team(context_id, share_data.target_id, share_data.permission_level, current_user.id)
-        elif share_data.target_type == "organization":
-            db.share_context_with_organization(context_id, share_data.target_id, share_data.permission_level, current_user.id)
-        else:
-            raise HTTPException(status_code=400, detail="Invalid target_type. Must be 'user', 'team', or 'organization'")
-
-        return {"message": "Context shared successfully"}
+            raise HTTPException(403, "Only context owners/admins can share contexts")
+        
+        session = db.get_session()
+        try:
+            # Create permission entry
+            permission = ContextPermission(
+                context_id=context_id,
+                user_id=share_data.target_id if share_data.target_type == "user" else None,
+                team_id=share_data.target_id if share_data.target_type == "team" else None,
+                organization_id=share_data.target_id if share_data.target_type == "organization" else None,
+                permission_level=share_data.permission_level,
+                granted_by=current_user.id
+            )
+            session.add(permission)
+            session.commit()
+            
+            return {
+                "success": True,
+                "message": f"Context shared with {share_data.target_type} {share_data.target_id}"
+            }
+        finally:
+            session.close()
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to share context: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/cross-team-request")
 async def request_cross_team_access(
@@ -401,42 +427,31 @@ def get_user_accessible_contexts(current_user: User = Depends(get_current_user))
 
 # --- Context Creation with Ownership ---
 @app.post("/contexts")
-def create_context(context_data: dict, current_user: User = Depends(get_current_user)):
-    """Create a new context with ownership"""
+def create_context(context_data: ContextCreate, current_user: User = Depends(get_current_user)):
+    """Create a new context with scope-based ownership through spec-kit"""
     try:
-        context_name = context_data.get("name")
-        description = context_data.get("description", "")
-        visibility = context_data.get("visibility", "private")
-
-        # Create context record
-        session = db.get_session()
-        try:
-            context = RecordingContext(
-                name=context_name,
-                description=description,
-                owner_id=current_user.id,
-                visibility=visibility
-            )
-            session.add(context)
-            session.commit()
-            session.refresh(context)
+        # Create context spec
+        spec = ContextSpec(
+            name=context_data.name,
+            description=context_data.description,
+            scope=ContextScope(context_data.scope),
+            owner_id=current_user.id if context_data.scope == "personal" else None,
+            team_id=context_data.team_id if context_data.scope == "team" else None,
+            organization_id=context_data.organization_id if context_data.scope == "organization" else None
+        )
+        
+        # Use spec-kit for creation
+        result = spec_context_manager.create_context(spec, current_user.id)
+        
+        if result.success:
+            return result.data
+        else:
+            raise HTTPException(status_code=400, detail=result.message)
             
-            return {
-                "id": context.id,
-                "name": context.name,
-                "description": context.description,
-                "owner_id": context.owner_id,
-                "visibility": context.visibility,
-                "created_at": context.created_at.isoformat()
-            }
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-            
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid scope: {e}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create context: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/memory")
 def store_memory(entry: MemoryPayload, current_user: User = Depends(get_current_user)):
@@ -646,7 +661,66 @@ def get_all_contexts(current_user: User = Depends(get_current_user)):
         contexts = db.get_all_contexts(user_id)
         return {"contexts": contexts}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to share context: {str(e)}")
+
+@app.post("/contexts/{context_id}/transfer")
+def transfer_context(context_id: int, transfer_data: ContextTransfer, current_user: User = Depends(get_current_user)):
+    """Transfer context ownership"""
+    try:
+        session = db.get_session()
+        try:
+            # Get context and validate current ownership
+            context = session.query(Context).filter_by(id=context_id).first()
+            if not context:
+                raise HTTPException(404, "Context not found")
+            
+            # Check if current user is owner
+            is_owner = False
+            if context.owner_id == current_user.id:
+                is_owner = True
+            elif context.team_id:
+                # Check if user is team admin
+                team_member = session.query(TeamMember).filter_by(
+                    team_id=context.team_id,
+                    user_id=current_user.id
+                ).first()
+                if team_member and team_member.role in ["admin", "owner"]:
+                    is_owner = True
+            elif context.organization_id and current_user.role == "admin":
+                is_owner = True
+            
+            if not is_owner:
+                raise HTTPException(403, "Only context owners can transfer ownership")
+            
+            # Update ownership based on target type
+            if transfer_data.target_type == "user":
+                context.owner_id = transfer_data.target_id
+                context.team_id = None
+                context.organization_id = None
+                context.scope = "personal"
+            elif transfer_data.target_type == "team":
+                context.owner_id = None
+                context.team_id = transfer_data.target_id
+                context.organization_id = None
+                context.scope = "team"
+            elif transfer_data.target_type == "organization":
+                context.owner_id = None
+                context.team_id = None
+                context.organization_id = transfer_data.target_id
+                context.scope = "organization"
+            
+            session.commit()
+            
+            return {
+                "success": True,
+                "message": f"Context transferred to {transfer_data.target_type} {transfer_data.target_id}"
+            }
+        finally:
+            session.close()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/context/{context_name}")
 def delete_context(context_name: str, current_user: User = Depends(get_current_user)):

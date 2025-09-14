@@ -30,7 +30,7 @@ class Mem0Client:
             sys.exit(1)
 
     def contexts(self):
-        """List all contexts"""
+        """List all contexts with scope information"""
         response = self.make_request('GET', '/contexts')
         if response.status_code == 200:
             data = response.json()
@@ -38,7 +38,9 @@ class Mem0Client:
             for context in data.get('contexts', []):
                 status = "ACTIVE" if context.get('is_active') else "inactive"
                 created = context.get('created_at', '')[:19]  # Format timestamp
-                print(f"  - {context['name']} ({status}) - created: {created}")
+                scope = context.get('scope', 'personal')
+                scope_icon = {'personal': '👤', 'team': '👥', 'organization': '🏢'}.get(scope, '📁')
+                print(f"  {scope_icon} {context['name']} ({scope}, {status}) - created: {created}")
         else:
             print(f"❌ Failed to get contexts: {response.text}")
 
@@ -55,9 +57,13 @@ class Mem0Client:
         else:
             print(f"❌ Failed to get active context: {response.text}")
 
-    def context_start(self, name):
-        """Start recording to context"""
-        response = self.make_request('POST', f'/context/start?context={name}')
+    def context_start(self, name, scope=None):
+        """Start recording to context with optional scope"""
+        params = {'context': name}
+        if scope:
+            params['scope'] = scope
+        
+        response = self.make_request('POST', '/context/start', params=params)
         if response.status_code == 200:
             print(f"✅ Now recording to context: {name}")
         else:
@@ -144,10 +150,32 @@ class Mem0Client:
         else:
             print(f"❌ Failed to retrieve memories: {response.text}")
 
+    def create_context(self, name, scope="personal", description=None, team_id=None, organization_id=None):
+        """Create a new context with specified scope"""
+        data = {
+            "name": name,
+            "scope": scope,
+            "description": description or f"{scope.title()} context: {name}"
+        }
+        
+        if team_id:
+            data["team_id"] = team_id
+        if organization_id:
+            data["organization_id"] = organization_id
+        
+        response = self.make_request('POST', '/contexts', json=data)
+        if response.status_code == 200:
+            result = response.json()
+            context = result.get('context', {})
+            scope_icon = {'personal': '👤', 'team': '👥', 'organization': '🏢'}.get(scope, '📁')
+            print(f"✅ {scope_icon} Context '{name}' created successfully ({scope} scope)")
+        else:
+            print(f"❌ Failed to create context: {response.text}")
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: mem0 <command> [options]")
-        print("Commands: contexts, active, start, stop, delete, remember, recall")
+        print("Commands: contexts, active, start, stop, delete, remember, recall, create")
         sys.exit(1)
 
     client = Mem0Client()
@@ -161,17 +189,23 @@ def main():
 
     elif command == "start":
         context = None
-        if len(sys.argv) >= 4 and sys.argv[2] == "--context":
-            context = sys.argv[3]
-        elif len(sys.argv) >= 3:
-            print("Usage: mem0 start --context <name>")
+        scope = None
+        i = 2
+        while i < len(sys.argv):
+            if sys.argv[i] == "--context" and i + 1 < len(sys.argv):
+                context = sys.argv[i + 1]
+                i += 2
+            elif sys.argv[i] == "--scope" and i + 1 < len(sys.argv):
+                scope = sys.argv[i + 1]
+                i += 2
+            else:
+                i += 1
+        
+        if not context:
+            print("Usage: mem0 start --context <name> [--scope personal|team|organization]")
             sys.exit(1)
         
-        if context:
-            client.context_start(context)
-        else:
-            print("Usage: mem0 start --context <name>")
-            sys.exit(1)
+        client.context_start(context, scope)
 
     elif command == "stop":
         context = None
@@ -210,18 +244,41 @@ def main():
         if len(sys.argv) >= 4 and sys.argv[2] == "--context":
             context = sys.argv[3]
         client.recall(context)
+    
+    elif command == "create":
+        if len(sys.argv) < 4 or sys.argv[2] != "--context":
+            print("Usage: mem0 create --context <name> [--scope personal|team|organization] [--description <desc>] [--team-id <id>] [--org-id <id>]")
+            sys.exit(1)
+        
+        name = sys.argv[3]
+        scope = "personal"
+        description = None
+        team_id = None
+        org_id = None
+        
+        i = 4
+        while i < len(sys.argv):
+            if sys.argv[i] == "--scope" and i + 1 < len(sys.argv):
+                scope = sys.argv[i + 1]
+                i += 2
+            elif sys.argv[i] == "--description" and i + 1 < len(sys.argv):
+                description = sys.argv[i + 1]
+                i += 2
+            elif sys.argv[i] == "--team-id" and i + 1 < len(sys.argv):
+                team_id = int(sys.argv[i + 1])
+                i += 2
+            elif sys.argv[i] == "--org-id" and i + 1 < len(sys.argv):
+                org_id = int(sys.argv[i + 1])
+                i += 2
+            else:
+                i += 1
+        
+        client.create_context(name, scope, description, team_id, org_id)
 
-    # Backward compatibility for old command structure
-    elif command == "context":
-        print("⚠️  Legacy command format. Use:")
-        print("  mem0 active           (instead of mem0 context active)")
-        print("  mem0 start --context <name>    (instead of mem0 context start <name>)")
-        print("  mem0 stop --context <name>     (instead of mem0 context stop <name>)")
-        print("  mem0 delete --context <name>   (instead of mem0 context delete <name>)")
 
     else:
         print(f"❌ Unknown command: {command}")
-        print("Available commands: contexts, active, start, stop, delete, remember, recall")
+        print("Available commands: contexts, active, start, stop, delete, remember, recall, create")
 
 if __name__ == "__main__":
     main()

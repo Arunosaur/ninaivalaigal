@@ -21,6 +21,7 @@ from approval_workflow import ApprovalWorkflowManager
 from universal_ai_wrapper import UniversalAIWrapper
 from auto_recording import get_auto_recorder
 from main import load_config
+from spec_kit import SpecKitContextManager, ContextSpec, ContextScope, ContextPermissionSpec, PermissionLevel
 
 # Initialize MCP server
 mcp = FastMCP("e^m")
@@ -29,6 +30,7 @@ mcp = FastMCP("e^m")
 config = load_config()
 database_url = config.get('database_url', 'sqlite:///./mem0.db')
 db = DatabaseManager(database_url)
+spec_context_manager = SpecKitContextManager(db)
 approval_manager = ApprovalWorkflowManager(db)
 auto_recorder = get_auto_recorder(db)
 
@@ -189,19 +191,24 @@ async def context_stop(context_name: str = None) -> str:
 
 @mcp.tool()
 async def list_contexts() -> str:
-    """List all available contexts"""
+    """List all available contexts with scope information"""
     try:
-        # For now, return all contexts - in production this should be user-scoped
-        contexts = db.get_all_contexts()
-        if not contexts:
-            return "No contexts found."
-        
-        context_list = []
-        for ctx in contexts:
-            status = " Active" if ctx.get('is_active') else " Inactive"
-            context_list.append(f"• {ctx['name']} ({status}) - {ctx.get('description', 'No description')}")
-        
-        return "Available contexts:\n" + "\n".join(context_list)
+        result = spec_context_manager.list_contexts(DEFAULT_USER_ID)
+        if result.success:
+            contexts = result.data.get('contexts', [])
+            if not contexts:
+                return "No contexts found."
+            
+            context_list = []
+            for ctx in contexts:
+                scope = ctx.get('scope', 'personal')
+                scope_icon = {'personal': '👤', 'team': '👥', 'organization': '🏢'}.get(scope, '📁')
+                status = " Active" if ctx.get('is_active') else " Inactive"
+                context_list.append(f"{scope_icon} {ctx['name']} ({scope}, {status}) - {ctx.get('description', 'No description')}")
+            
+            return "Available contexts:\n" + "\n".join(context_list)
+        else:
+            return f"Error: {result.message}"
     except Exception as e:
         return f"Error listing contexts: {str(e)}"
 

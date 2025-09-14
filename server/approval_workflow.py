@@ -79,7 +79,7 @@ class ApprovalWorkflowManager:
                 return {"success": False, "error": "User is not a member of the requesting team"}
             
             # Check if context belongs to target team or is accessible
-            context = session.query(self.db.RecordingContext).filter_by(id=context_id).first()
+            context = session.query(self.db.Context).filter_by(id=context_id).first()
             if not context:
                 return {"success": False, "error": "Context not found"}
             
