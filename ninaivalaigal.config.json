@@ -23,7 +23,6 @@
     "type": "database",
     "database_url": "postgresql://ninaivalaigal_user:ninaivalaigal_pass@localhost:5432/ninaivalaigal_db",
     "postgresql_url": "postgresql://ninaivalaigal_user:ninaivalaigal_pass@localhost:5432/ninaivalaigal_db",
-    "sqlite_fallback": "sqlite:///./ninaivalaigal.db",
     "backup_enabled": true,
     "max_memories_per_context": 1000
   }

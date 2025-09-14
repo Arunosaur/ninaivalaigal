@@ -234,8 +234,6 @@ def create_individual_user(signup_data):
         
     except Exception as e:
         session.rollback()
-        if "already exists" in str(e):
-            raise e
         raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
     finally:
         session.close()

@@ -20,7 +20,6 @@
     "type": "database",
     "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
     "postgresql_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
-    "sqlite_fallback": "sqlite:///./mem0.db",
     "backup_enabled": true,
     "max_memories_per_context": 1000
   }
