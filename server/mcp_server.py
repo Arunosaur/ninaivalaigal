@@ -32,9 +32,26 @@ db = DatabaseManager(database_url)
 approval_manager = ApprovalWorkflowManager(db)
 auto_recorder = get_auto_recorder(db)
 
-# Get user ID from environment or default to 1 for development
+# JWT token handling for user authentication
 import os
-DEFAULT_USER_ID = int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))
+import jwt
+import json
+
+def get_user_from_jwt():
+    """Extract user ID from JWT token"""
+    token = os.getenv('NINAIVALAIGAL_USER_TOKEN')
+    if not token:
+        return int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))  # Fallback
+    
+    try:
+        # Decode JWT token (without verification for now - should be verified in production)
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        return decoded.get('user_id', 1)
+    except Exception as e:
+        print(f"JWT decode error: {e}")
+        return int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))  # Fallback
+
+DEFAULT_USER_ID = get_user_from_jwt()
 
 @mcp.tool()
 async def remember(text: str, context: str = None) -> str:
