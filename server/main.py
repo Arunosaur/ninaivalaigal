@@ -439,11 +439,11 @@ def create_context(context_data: dict, current_user: User = Depends(get_current_
         raise HTTPException(status_code=500, detail=f"Failed to create context: {str(e)}")
 
 @app.post("/memory")
-def store_memory(entry: MemoryPayload, current_user: Optional[User] = Depends(get_current_user_optional)):
+def store_memory(entry: MemoryPayload, current_user: User = Depends(get_current_user)):
     """Store a memory entry with user isolation and duplicate filtering"""
     try:
-        # Use authenticated user ID or None for backward compatibility
-        user_id = current_user.id if current_user else None
+        # Use authenticated user ID (mandatory)
+        user_id = current_user.id
 
         # Extract context from data if provided, otherwise use default
         context = entry.data.get("context", "default") if hasattr(entry, 'data') and entry.data else "default"
@@ -479,11 +479,11 @@ def store_memory(entry: MemoryPayload, current_user: Optional[User] = Depends(ge
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/memory")
-def get_memory(context: str, current_user: Optional[User] = Depends(get_current_user_optional)):
+def get_memory(context: str, current_user: User = Depends(get_current_user)):
     """Retrieve memories for a context with user isolation"""
     try:
-        # Use authenticated user ID or None for backward compatibility
-        user_id = current_user.id if current_user else None
+        # Use authenticated user ID (mandatory)
+        user_id = current_user.id
 
         memories = db.get_memories(context, user_id)
         return memories
@@ -491,11 +491,11 @@ def get_memory(context: str, current_user: Optional[User] = Depends(get_current_
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/memory/all")
-def get_all_memories(current_user: Optional[User] = Depends(get_current_user_optional)):
+def get_all_memories(current_user: User = Depends(get_current_user)):
     """Retrieve all memories with user isolation"""
     try:
-        # Use authenticated user ID or None for backward compatibility
-        user_id = current_user.id if current_user else None
+        # Use authenticated user ID (mandatory)
+        user_id = current_user.id
 
         memories = db.get_all_memories(user_id)
         return memories
@@ -503,11 +503,11 @@ def get_all_memories(current_user: Optional[User] = Depends(get_current_user_opt
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/context/start")
-async def start_recording(context: str, current_user: Optional[User] = Depends(get_current_user_optional)):
+async def start_recording(context: str, current_user: User = Depends(get_current_user)):
     """Start CCTV-style automatic recording to a context"""
     try:
-        # Use authenticated user ID or None for backward compatibility
-        user_id = current_user.id if current_user else None
+        # Use authenticated user ID (mandatory)
+        user_id = current_user.id
 
         # Start automatic CCTV recording
         result = await auto_recorder.start_recording(context, user_id)
@@ -526,11 +526,11 @@ async def start_recording(context: str, current_user: Optional[User] = Depends(g
         raise HTTPException(status_code=500, detail=f"Failed to start recording: {str(e)}")
 
 @app.post("/context/stop")
-async def stop_recording(context: str = None, current_user: Optional[User] = Depends(get_current_user_optional)):
+async def stop_recording(context: str = None, current_user: User = Depends(get_current_user)):
     """Stop CCTV-style automatic recording"""
     try:
-        # Use authenticated user ID or None for backward compatibility
-        user_id = current_user.id if current_user else None
+        # Use authenticated user ID (mandatory)
+        user_id = current_user.id
 
         if context:
             # Stop specific context recording
@@ -561,11 +561,11 @@ async def stop_recording(context: str = None, current_user: Optional[User] = Dep
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/context/status")
-async def get_recording_status(current_user: Optional[User] = Depends(get_current_user_optional)):
+async def get_recording_status(current_user: User = Depends(get_current_user)):
     """Get CCTV recording status for all contexts"""
     try:
-        # Use authenticated user ID or None for backward compatibility
-        user_id = current_user.id if current_user else None
+        # Use authenticated user ID (mandatory)
+        user_id = current_user.id
         
         status = await auto_recorder.get_recording_status()
         return {
@@ -578,7 +578,7 @@ async def get_recording_status(current_user: Optional[User] = Depends(get_curren
         raise HTTPException(status_code=500, detail=f"Failed to get recording status: {str(e)}")
 
 @app.get("/memory/recall")
-async def recall_hierarchical(query: str, context: str = None, current_user: Optional[User] = Depends(get_current_user_optional)):
+async def recall_hierarchical(query: str, context: str = None, current_user: User = Depends(get_current_user)):
     """Hierarchical memory recall: Personal -> Team -> Organization"""
     try:
         user_id = current_user.id if current_user else None
@@ -601,7 +601,7 @@ async def recall_hierarchical(query: str, context: str = None, current_user: Opt
 
 @app.post("/memory/record")
 async def record_interaction(context: str, interaction_type: str, content: str, 
-                           metadata: dict = None, current_user: Optional[User] = Depends(get_current_user_optional)):
+                           metadata: dict = None, current_user: User = Depends(get_current_user)):
     """Record AI interaction automatically (CCTV capture)"""
     try:
         user_id = current_user.id if current_user else None
@@ -625,11 +625,11 @@ async def record_interaction(context: str, interaction_type: str, content: str,
         raise HTTPException(status_code=500, detail=f"Failed to record interaction: {str(e)}")
 
 @app.get("/context/active")
-def get_active_recording_context(current_user: Optional[User] = Depends(get_current_user_optional)):
+def get_active_recording_context(current_user: User = Depends(get_current_user)):
     """Get active recording context with user isolation (legacy endpoint)"""
     try:
-        # Use authenticated user ID or None for backward compatibility
-        user_id = current_user.id if current_user else None
+        # Use authenticated user ID (mandatory)
+        user_id = current_user.id
 
         active_context = db.get_active_context(user_id)
         return {"recording_context": active_context}
@@ -637,11 +637,11 @@ def get_active_recording_context(current_user: Optional[User] = Depends(get_curr
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/contexts")
-def get_all_contexts(current_user: Optional[User] = Depends(get_current_user_optional)):
+def get_all_contexts(current_user: User = Depends(get_current_user)):
     """Get all contexts with user isolation"""
     try:
-        # Use authenticated user ID or None for backward compatibility
-        user_id = current_user.id if current_user else None
+        # Use authenticated user ID (mandatory)
+        user_id = current_user.id
 
         contexts = db.get_all_contexts(user_id)
         return {"contexts": contexts}
@@ -649,14 +649,19 @@ def get_all_contexts(current_user: Optional[User] = Depends(get_current_user_opt
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.delete("/context/{context_name}")
-def delete_context(context_name: str, current_user: Optional[User] = Depends(get_current_user_optional)):
-    """Delete context with user isolation"""
+def delete_context(context_name: str, current_user: User = Depends(get_current_user)):
+    """Delete context with mandatory user authentication"""
     try:
-        # Use authenticated user ID or None for backward compatibility
-        user_id = current_user.id if current_user else None
+        # Require authenticated user - no fallback to None
+        user_id = current_user.id
 
-        db.delete_context(context_name, user_id)
+        success = db.delete_context(context_name, user_id)
+        if not success:
+            raise HTTPException(status_code=404, detail=f"Context '{context_name}' not found or not owned by user")
+        
         return {"message": f"Context '{context_name}' deleted successfully."}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 

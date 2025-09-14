@@ -182,6 +182,10 @@ class DatabaseManager:
         else:
             database_url = config
             
+        # Force SQLite for now until PostgreSQL is properly configured
+        database_url = "sqlite:///./mem0.db"
+        print(f"📁 Using SQLite: {database_url}")
+            
         # Use different connection args for PostgreSQL vs SQLite
         if database_url.startswith("sqlite"):
             self.engine = create_engine(database_url, connect_args={"check_same_thread": False})
@@ -303,22 +307,23 @@ class DatabaseManager:
         finally:
             session.close()
     
-    def delete_context(self, context_name: str, user_id: int = None):
-        """Delete a recording context"""
+    def delete_context(self, context_name: str, user_id: int):
+        """Delete a recording context - requires user authentication"""
+        if user_id is None:
+            raise ValueError("User authentication required for delete operations")
+            
         session = self.get_session()
         try:
-            if user_id:
-                context = session.query(RecordingContext).filter_by(name=context_name, owner_id=user_id).first()
-            else:
-                context = session.query(RecordingContext).filter_by(name=context_name, owner_id=None).first()
+            # Only allow deletion of contexts owned by the authenticated user
+            context = session.query(RecordingContext).filter_by(name=context_name, owner_id=user_id).first()
             
             if context:
                 # Check if context is active
                 if context.is_active:
                     raise ValueError(f"Cannot delete active context '{context_name}'. Stop it first.")
                 
-                # Delete associated memories first
-                session.query(Memory).filter_by(context=context_name).delete()
+                # Delete associated memories first (only for this user's context)
+                session.query(Memory).filter_by(context=context_name, user_id=user_id).delete()
                 # Delete the context
                 session.delete(context)
                 session.commit()

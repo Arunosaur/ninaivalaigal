@@ -44,7 +44,7 @@ def get_db():
     return DatabaseManager(database_url)
 
 # JWT Secret from environment or default
-JWT_SECRET = os.getenv('NINAIVALAIGAL_JWT_SECRET', 'dev-secret-key-change-in-production')
+JWT_SECRET = os.getenv('NINAIVALAIGAL_JWT_SECRET', os.getenv('MEM0_JWT_SECRET', 'dev-secret-key-change-in-production'))
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = int(os.getenv('NINAIVALAIGAL_JWT_EXPIRATION_HOURS', '168'))  # Default 7 days
 
@@ -135,23 +135,23 @@ def verify_token(token: str) -> TokenData:
     """Verify JWT token and return token data"""
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        username: str = payload.get("sub")
+        username: str = payload.get("email")  # Use email as username
         user_id: int = payload.get("user_id")
-        # Check if user already exists
-        db = get_db()
-        session = db.get_session()
-        if username is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        if username is None or user_id is None:
+            return None
         token_data = TokenData(username=username, user_id=user_id)
-    except jwt.JWTError:
+    except jwt.InvalidTokenError:
         return None
     return token_data
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Get current authenticated user"""
     token_data = verify_token(credentials.credentials)
+    if token_data is None:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
     # Get user from database
+    db = get_db()
     user = db.get_user_by_id(token_data.user_id)
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")

@@ -71,6 +71,17 @@ class AutoRecorder:
             # Save any remaining buffered messages
             await self._flush_buffer(context_name)
             
+            # Update database to set context as inactive
+            session = self.db.get_session()
+            try:
+                from database import RecordingContext
+                context = session.query(RecordingContext).filter_by(name=context_name).first()
+                if context:
+                    context.is_active = False
+                    session.commit()
+            finally:
+                session.close()
+            
             # Remove from active contexts
             recording_info = self.active_contexts.pop(context_name)
             self.recording_buffer.pop(context_name, None)

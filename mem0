@@ -17,9 +17,16 @@ class Mem0Client:
     def __init__(self):
         self.base_url = "http://127.0.0.1:13370"
         self.session = requests.Session()
+        
+        # Set JWT token from environment variable
+        jwt_token = os.getenv('NINAIVALAIGAL_USER_TOKEN')
+        if jwt_token:
+            self.session.headers.update({
+                'Authorization': f'Bearer {jwt_token}'
+            })
 
     def make_request(self, method, endpoint, **kwargs):
-        """Make HTTP request to mem0 server"""
+        """Make HTTP request to mem0 server with JWT authentication"""
         url = f"{self.base_url}{endpoint}"
         try:
             response = self.session.request(method, url, **kwargs)
