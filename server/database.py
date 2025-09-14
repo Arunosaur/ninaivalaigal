@@ -276,16 +276,22 @@ class DatabaseManager:
         """Create a new recording context"""
         session = self.get_session()
         try:
-            # Check if context already exists for this user
-            existing = session.query(RecordingContext).filter_by(name=name, owner_id=user_id).first()
+            # Check if context already exists
+            existing = session.query(RecordingContext).filter_by(name=name).first()
             if existing:
+                # Update ownership if user_id provided and context has no owner
+                if user_id and existing.owner_id is None:
+                    existing.owner_id = user_id
+                    existing.is_active = True
+                    session.commit()
+                    session.refresh(existing)
                 return existing
             
             context = RecordingContext(
                 name=name,
                 description=description or f"Context for {name}",
                 owner_id=user_id,
-                is_active=False
+                is_active=True  # Set active when created with user_id
             )
             session.add(context)
             session.commit()
