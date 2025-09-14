@@ -181,8 +181,8 @@
 
     <script>
         // Check authentication
-        const token = localStorage.getItem('mem0_token');
-        const user = JSON.parse(localStorage.getItem('mem0_user') || '{}');
+        const token = localStorage.getItem('ninaivalaigal_token');
+        const user = JSON.parse(localStorage.getItem('ninaivalaigal_user') || '{}');
 
         if (!token) {
             window.location.href = 'login.html';
@@ -220,8 +220,8 @@
 
         // Dashboard functions
         function logout() {
-            localStorage.removeItem('mem0_token');
-            localStorage.removeItem('mem0_user');
+            localStorage.removeItem('ninaivalaigal_token');
+            localStorage.removeItem('ninaivalaigal_user');
             window.location.href = 'login.html';
         }
 
