@@ -75,8 +75,8 @@ performance_monitor = get_performance_monitor()
 start_performance_monitoring()
 
 # Start background token refresh service
-import asyncio
-asyncio.create_task(auto_refresh_tokens(db_manager))
+# Note: Token refresh will be handled by the FastAPI server when it starts
+# asyncio.create_task(auto_refresh_tokens(db_manager))  # Removed - causes issues in MCP server context
 
 # Initialize approval workflow manager
 approval_manager = ApprovalWorkflowManager(db_manager)

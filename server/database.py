@@ -107,7 +107,7 @@ class ContextPermission(Base):
     
     # Relationships with explicit foreign_keys to resolve ambiguity
     context = relationship("RecordingContext", back_populates="permissions")
-    user = relationship("User", foreign_keys=[user_id])
+    user = relationship("User", foreign_keys=[user_id], overlaps="user_permissions")
     team = relationship("Team", foreign_keys=[team_id])
     organization = relationship("Organization", foreign_keys=[organization_id])
     granted_by_user = relationship("User", foreign_keys=[granted_by])

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "e^m": {
+      "command": "/opt/homebrew/anaconda3/bin/python3.11",
+      "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
+      "cwd": "/Users/asrajag/Workspace/mem0",
+      "env": {
+        "MEM0_JWT_SECRET": "FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk",
+        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+        "NINAIVALAIGAL_USER_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo4LCJlbWFpbCI6ImR1cmFpQGV4YW1wbGUuY29tIiwiYWNjb3VudF90eXBlIjoiaW5kaXZpZHVhbCIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzU3ODc5NjI5fQ.FQulmDLPK2WaBLuW-NIZ5TsKutnqP4E7iMKigVKoWaI",
+        "NINAIVALAIGAL_USER_ID": "8",
+        "PYTHONPATH": "/Users/asrajag/Workspace/mem0/server"
+      }
+    }
+  }
+}

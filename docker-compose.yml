@@ -3,30 +3,33 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: mem0_postgres
+    container_name: ninaivalaigal_postgres
     environment:
-      POSTGRES_DB: mem0_production
-      POSTGRES_USER: mem0_user
-      POSTGRES_PASSWORD: mem0_password
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: ninaivalaigal_db
+      POSTGRES_USER: ninaivalaigal_app
+      POSTGRES_PASSWORD: ninaivalaigal_secure_password_2024
+      POSTGRES_HOST_AUTH_METHOD: md5
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ninaivalaigal_postgres_data:/var/lib/postgresql/data
       - ./backups:/backups
+      - ./scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mem0_user -d mem0_production"]
+      test: ["CMD-SHELL", "pg_isready -U ninaivalaigal_app -d ninaivalaigal_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
-  mem0_server:
+  ninaivalaigal_server:
     build: .
-    container_name: mem0_server
+    container_name: ninaivalaigal_server
     ports:
       - "13370:13370"
     environment:
-      NINAIVALAIGAL_DATABASE_URL: postgresql://mem0user:mem0pass@postgres:5432/mem0db
+      NINAIVALAIGAL_DATABASE_URL: postgresql://ninaivalaigal_app:ninaivalaigal_secure_password_2024@postgres:5432/ninaivalaigal_db
+      NINAIVALAIGAL_JWT_SECRET: ninaivalaigal-super-secret-jwt-signing-key-min-32-chars-2024
       NINAIVALAIGAL_DEBUG: 1
     depends_on:
       postgres:
@@ -36,4 +39,4 @@ services:
       - ./backups:/app/backups
 
 volumes:
-  postgres_data:
+  ninaivalaigal_postgres_data:
