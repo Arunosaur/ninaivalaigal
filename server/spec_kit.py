@@ -22,6 +22,16 @@ class PermissionLevel(Enum):
     ADMIN = "admin"
     OWNER = "owner"
 
+class EntityType(Enum):
+    TEAM = "team"
+    ORGANIZATION = "organization"
+
+class OwnershipRole(Enum):
+    OWNER = "owner"
+    ADMIN = "admin"
+    MEMBER = "member"
+    VIEWER = "viewer"
+
 @dataclass
 class ContextSpec:
     """Standard context specification"""
@@ -48,6 +58,37 @@ class ContextPermissionSpec:
     granted_by: Optional[int] = None
 
 @dataclass
+class OwnershipSpec:
+    """Standard ownership specification"""
+    entity_type: EntityType
+    entity_id: int
+    current_owner_id: int
+    new_owner_id: int
+    transfer_message: Optional[str] = None
+    expires_at: Optional[str] = None
+
+@dataclass
+class TeamSpec:
+    """Standard team specification"""
+    id: Optional[int] = None
+    name: str = ""
+    organization_id: Optional[int] = None
+    description: Optional[str] = None
+    initial_owners: List[int] = None
+    created_at: Optional[str] = None
+
+@dataclass
+class OrganizationSpec:
+    """Standard organization specification"""
+    id: Optional[int] = None
+    name: str = ""
+    domain: Optional[str] = None
+    description: Optional[str] = None
+    initial_owner_id: Optional[int] = None
+    settings: Optional[Dict[str, Any]] = None
+    created_at: Optional[str] = None
+
+@dataclass
 class ContextOperationResult:
     """Standard result for context operations"""
     success: bool
@@ -61,6 +102,18 @@ class ContextValidationError(Exception):
 
 class ContextPermissionError(Exception):
     """Context permission error"""
+    pass
+
+class OwnershipError(Exception):
+    """Ownership management error"""
+    pass
+
+class TeamManagementError(Exception):
+    """Team management error"""
+    pass
+
+class OrganizationManagementError(Exception):
+    """Organization management error"""
     pass
 
 class ContextInterface(ABC):
@@ -185,6 +238,7 @@ class SpecKitContextManager(ContextInterface):
         self.db = database_manager
         self.validator = ContextValidator()
         self.resolver = ContextResolver()
+        self.ownership_manager = SpecKitOwnershipManager(database_manager)
     
     def create_context(self, spec: ContextSpec, user_id: int) -> ContextOperationResult:
         """Create context through spec-kit interface"""
@@ -404,4 +458,154 @@ class SpecKitContextManager(ContextInterface):
         return ContextOperationResult(success=False, message="Not implemented")
     
     def deactivate_context(self, context_id: int, user_id: int) -> ContextOperationResult:
+        """Deactivate context"""
+        return ContextOperationResult(success=False, message="Not implemented")
+
+class OwnershipInterface(ABC):
+    """Standard interface for ownership operations"""
+    
+    @abstractmethod
+    def create_team_with_owners(self, team_spec: TeamSpec, owner_ids: List[int]) -> ContextOperationResult:
+        """Create team with initial owners"""
+        pass
+    
+    @abstractmethod
+    def create_organization_with_owner(self, org_spec: OrganizationSpec, owner_id: int) -> ContextOperationResult:
+        """Create organization with initial owner"""
+        pass
+    
+    @abstractmethod
+    def transfer_ownership(self, ownership_spec: OwnershipSpec, user_id: int) -> ContextOperationResult:
+        """Initiate ownership transfer"""
+        pass
+    
+    @abstractmethod
+    def accept_ownership_transfer(self, transfer_id: int, user_id: int) -> ContextOperationResult:
+        """Accept ownership transfer"""
+        pass
+    
+    @abstractmethod
+    def reject_ownership_transfer(self, transfer_id: int, user_id: int, reason: str) -> ContextOperationResult:
+        """Reject ownership transfer"""
+        pass
+    
+    @abstractmethod
+    def get_ownership_transfers(self, user_id: int) -> ContextOperationResult:
+        """Get pending ownership transfers for user"""
+        pass
+    
+    @abstractmethod
+    def change_member_role(self, entity_type: EntityType, entity_id: int, user_id: int, new_role: OwnershipRole, changed_by: int) -> ContextOperationResult:
+        """Change member role in team or organization"""
+        pass
+
+class SpecKitOwnershipManager(OwnershipInterface):
+    """Spec-kit compliant ownership manager implementation"""
+    
+    def __init__(self, database_manager):
+        self.db = database_manager
+    
+    def create_team_with_owners(self, team_spec: TeamSpec, owner_ids: List[int]) -> ContextOperationResult:
+        """Create team with initial owners through spec-kit"""
+        try:
+            if not owner_ids:
+                raise TeamManagementError("At least one owner is required")
+            
+            # Create team
+            team = self.db.create_team(
+                name=team_spec.name,
+                organization_id=team_spec.organization_id,
+                description=team_spec.description
+            )
+            
+            # Add owners
+            for owner_id in owner_ids:
+                self.db.add_team_member(team.id, owner_id, "owner")
+            
+            return ContextOperationResult(
+                success=True,
+                message=f"Team '{team_spec.name}' created with {len(owner_ids)} owners",
+                data={"team": self._team_to_dict(team)}
+            )
+            
+        except TeamManagementError as e:
+            return ContextOperationResult(
+                success=False,
+                message=str(e),
+                error_code="TEAM_MANAGEMENT_ERROR"
+            )
+        except Exception as e:
+            return ContextOperationResult(
+                success=False,
+                message="Failed to create team",
+                error_code="INTERNAL_ERROR"
+            )
+    
+    def transfer_ownership(self, ownership_spec: OwnershipSpec, user_id: int) -> ContextOperationResult:
+        """Initiate ownership transfer through spec-kit"""
+        try:
+            # Validate current ownership
+            if not self._is_owner(ownership_spec.entity_type, ownership_spec.entity_id, user_id):
+                raise OwnershipError("Only owners can transfer ownership")
+            
+            # Create transfer request
+            transfer_id = self.db.create_ownership_transfer_request(
+                entity_type=ownership_spec.entity_type.value,
+                entity_id=ownership_spec.entity_id,
+                current_owner_id=ownership_spec.current_owner_id,
+                new_owner_id=ownership_spec.new_owner_id,
+                message=ownership_spec.transfer_message
+            )
+            
+            return ContextOperationResult(
+                success=True,
+                message="Ownership transfer initiated",
+                data={"transfer_id": transfer_id}
+            )
+            
+        except OwnershipError as e:
+            return ContextOperationResult(
+                success=False,
+                message=str(e),
+                error_code="OWNERSHIP_ERROR"
+            )
+        except Exception as e:
+            return ContextOperationResult(
+                success=False,
+                message="Failed to initiate ownership transfer",
+                error_code="INTERNAL_ERROR"
+            )
+    
+    def _is_owner(self, entity_type: EntityType, entity_id: int, user_id: int) -> bool:
+        """Check if user is owner of entity"""
+        if entity_type == EntityType.TEAM:
+            return self.db.is_team_owner(entity_id, user_id)
+        elif entity_type == EntityType.ORGANIZATION:
+            return self.db.is_organization_owner(entity_id, user_id)
+        return False
+    
+    def _team_to_dict(self, team) -> Dict[str, Any]:
+        """Convert team to dictionary"""
+        return {
+            "id": team.id,
+            "name": team.name,
+            "organization_id": team.organization_id,
+            "description": team.description,
+            "created_at": team.created_at.isoformat() if team.created_at else None
+        }
+    
+    # Placeholder implementations
+    def create_organization_with_owner(self, org_spec: OrganizationSpec, owner_id: int) -> ContextOperationResult:
+        return ContextOperationResult(success=False, message="Not implemented")
+    
+    def accept_ownership_transfer(self, transfer_id: int, user_id: int) -> ContextOperationResult:
+        return ContextOperationResult(success=False, message="Not implemented")
+    
+    def reject_ownership_transfer(self, transfer_id: int, user_id: int, reason: str) -> ContextOperationResult:
+        return ContextOperationResult(success=False, message="Not implemented")
+    
+    def get_ownership_transfers(self, user_id: int) -> ContextOperationResult:
+        return ContextOperationResult(success=False, message="Not implemented")
+    
+    def change_member_role(self, entity_type: EntityType, entity_id: int, user_id: int, new_role: OwnershipRole, changed_by: int) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")

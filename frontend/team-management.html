@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Management - Ninaivalaigal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .team-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            color: #2d3748;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .members-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .members-table th,
+        .members-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .members-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .role-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .role-badge.owner {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .role-badge.admin {
+            background: #feebc8;
+            color: #dd6b20;
+        }
+
+        .role-badge.member {
+            background: #c6f6d5;
+            color: #38a169;
+        }
+
+        .role-badge.viewer {
+            background: #bee3f8;
+            color: #3182ce;
+        }
+
+        .role-select {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .role-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .actions-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ownership-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f7fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .ownership-section h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .transfer-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #f6ad55;
+        }
+
+        .transfer-item p {
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+
+        .transfer-item .transfer-to {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #48bb78;
+        }
+
+        .notification.error {
+            background: #f56565;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-info {
+                grid-template-columns: 1fr;
+            }
+
+            .members-table {
+                font-size: 0.9rem;
+            }
+
+            .actions-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 Team Management</h1>
+            <p class="subtitle">Manage team members, roles, and ownership</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Team Overview -->
+            <div class="card">
+                <h2>🏢 Team Overview</h2>
+                <div class="team-info">
+                    <div class="info-item">
+                        <div class="info-label">Team Name</div>
+                        <div class="info-value" id="team-name">Engineering Team</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Organization</div>
+                        <div class="info-value" id="org-name">Acme Corp</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Total Members</div>
+                        <div class="info-value" id="member-count">12</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Created</div>
+                        <div class="info-value" id="created-date">2024-01-15</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="openEditTeamModal()">Edit Team Details</button>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <h2>⚡ Quick Actions</h2>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button class="btn btn-primary" onclick="openAddMemberModal()">
+                        👤 Add Team Member
+                    </button>
+                    <button class="btn btn-secondary" onclick="openTransferOwnershipModal()">
+                        🔄 Transfer Ownership
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportTeamData()">
+                        📊 Export Team Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Members Section -->
+        <div class="card">
+            <h2>👥 Team Members</h2>
+            
+            <table class="members-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="members-tbody">
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #667eea; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">JD</div>
+                                <div>
+                                    <div style="font-weight: 600;">John Doe</div>
+                                    <div style="font-size: 0.8rem; color: #718096;">Team Lead</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>john@acme.com</td>
+                        <td>
+                            <span class="role-badge owner">Owner</span>
+                        </td>
+                        <td>2024-01-15</td>
+                        <td>
+                            <div class="actions-group">
+                                <button class="btn btn-secondary btn-small" onclick="openTransferOwnershipModal('john@acme.com')">Transfer</button>
+                                <button class="btn btn-danger btn-small" onclick="removeMember('john@acme.com')">Remove</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #48bb78; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">JS</div>
+                                <div>
+                                    <div style="font-weight: 600;">Jane Smith</div>
+                                    <div style="font-size: 0.8rem; color: #718096;">Senior Developer</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>jane@acme.com</td>
+                        <td>
+                            <select class="role-select" data-user-email="jane@acme.com" onchange="changeRole(this)">
+                                <option value="viewer">Viewer</option>
+                                <option value="member">Member</option>
+                                <option value="admin" selected>Admin</option>
+                                <option value="owner">Owner</option>
+                            </select>
+                        </td>
+                        <td>2024-01-20</td>
+                        <td>
+                            <div class="actions-group">
+                                <button class="btn btn-secondary btn-small" onclick="viewMemberDetails('jane@acme.com')">Details</button>
+                                <button class="btn btn-danger btn-small" onclick="removeMember('jane@acme.com')">Remove</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Ownership Management Section -->
+        <div class="card">
+            <div class="ownership-section">
+                <h3>🔐 Ownership Management</h3>
+                
+                <div id="pending-transfers">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;">Pending Ownership Transfers</h4>
+                    <div class="transfer-item">
+                        <p><span class="transfer-to">Transfer to: Jane Smith (jane@acme.com)</span></p>
+                        <p>Requested: 2024-01-20</p>
+                        <p>Expires: 2024-01-27</p>
+                        <p>Message: "Promoting to team lead role"</p>
+                        <div style="margin-top: 15px;">
+                            <button class="btn btn-danger btn-small" onclick="cancelTransfer(1)">Cancel Transfer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="add-member-modal" class="modal">
+        <div class="modal-content">
+            <h3>👤 Add Team Member</h3>
+            <form id="add-member-form">
+                <div class="form-group">
+                    <label class="form-label" for="member-email">Email Address</label>
+                    <input type="email" id="member-email" class="form-input" placeholder="user@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="member-role">Role</label>
+                    <select id="member-role" class="form-select">
+                        <option value="viewer">Viewer</option>
+                        <option value="member" selected>Member</option>
+                        <option value="admin">Admin</option>
+                        <option value="owner">Owner</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="invitation-message">Invitation Message (Optional)</label>
+                    <textarea id="invitation-message" class="form-textarea" placeholder="Welcome to our team!"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-member-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Invitation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transfer Ownership Modal -->
+    <div id="transfer-ownership-modal" class="modal">
+        <div class="modal-content">
+            <h3>🔄 Transfer Team Ownership</h3>
+            <form id="transfer-ownership-form">
+                <div class="form-group">
+                    <label class="form-label" for="new-owner-email">New Owner Email</label>
+                    <input type="email" id="new-owner-email" class="form-input" placeholder="newowner@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="transfer-message">Transfer Message</label>
+                    <textarea id="transfer-message" class="form-textarea" placeholder="Reason for ownership transfer..." required></textarea>
+                </div>
+                <div style="background: #fef5e7; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="color: #d69e2e; font-size: 0.9rem; margin: 0;">
+                        ⚠️ <strong>Important:</strong> The new owner must accept this transfer within 7 days. You will lose ownership privileges once the transfer is accepted.
+                    </p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('transfer-ownership-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Initiate Transfer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Team Modal -->
+    <div id="edit-team-modal" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Edit Team Details</h3>
+            <form id="edit-team-form">
+                <div class="form-group">
+                    <label class="form-label" for="edit-team-name">Team Name</label>
+                    <input type="text" id="edit-team-name" class="form-input" value="Engineering Team" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="edit-team-description">Description</label>
+                    <textarea id="edit-team-description" class="form-textarea" placeholder="Team description...">Core engineering team responsible for product development</textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('edit-team-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Modal management
+        function openAddMemberModal() {
+            document.getElementById('add-member-modal').style.display = 'block';
+        }
+
+        function openTransferOwnershipModal(email = '') {
+            if (email) {
+                document.getElementById('new-owner-email').value = email;
+            }
+            document.getElementById('transfer-ownership-modal').style.display = 'block';
+        }
+
+        function openEditTeamModal() {
+            document.getElementById('edit-team-modal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Team member management
+        function changeRole(selectElement) {
+            const email = selectElement.dataset.userEmail;
+            const newRole = selectElement.value;
+            
+            // API call to change role
+            fetch(`/api/teams/1/members/${email}/role`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ role: newRole })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`Role updated to ${newRole} for ${email}`);
+                    // Update the role badge in the table
+                    updateRoleBadge(email, newRole);
+                } else {
+                    showNotification('Failed to update role', 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error updating role', 'error');
+                console.error('Error:', error);
+            });
+        }
+
+        function updateRoleBadge(email, role) {
+            // Find the row and update the role badge
+            const rows = document.querySelectorAll('#members-tbody tr');
+            rows.forEach(row => {
+                const emailCell = row.cells[1];
+                if (emailCell.textContent === email) {
+                    const roleCell = row.cells[2];
+                    roleCell.innerHTML = `<span class="role-badge ${role}">${role}</span>`;
+                }
+            });
+        }
+
+        function removeMember(email) {
+            if (confirm(`Are you sure you want to remove ${email} from the team?`)) {
+                // API call to remove member
+                fetch(`/api/teams/1/members/${email}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`${email} removed from team`);
+                        // Remove the row from table
+                        removeRowByEmail(email);
+                    } else {
+                        showNotification('Failed to remove member', 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Error removing member', 'error');
+                    console.error('Error:', error);
+                });
+            }
+        }
+
+        function removeRowByEmail(email) {
+            const rows = document.querySelectorAll('#members-tbody tr');
+            rows.forEach(row => {
+                const emailCell = row.cells[1];
+                if (emailCell.textContent === email) {
+                    row.remove();
+                }
+            });
+        }
+
+        function cancelTransfer(transferId) {
+            if (confirm('Are you sure you want to cancel this ownership transfer?')) {
+                // API call to cancel transfer
+                fetch(`/api/ownership-transfers/${transferId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Ownership transfer cancelled');
+                        // Remove the transfer item from UI
+                        location.reload(); // Simple reload for now
+                    } else {
+                        showNotification('Failed to cancel transfer', 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Error cancelling transfer', 'error');
+                    console.error('Error:', error);
+                });
+            }
+        }
+
+        function exportTeamData() {
+            // Export team data as CSV
+            showNotification('Exporting team data...');
+            
+            fetch('/api/teams/1/export', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'team-data.csv';
+                a.click();
+                showNotification('Team data exported successfully');
+            })
+            .catch(error => {
+                showNotification('Error exporting data', 'error');
+                console.error('Error:', error);
+            });
+        }
+
+        // Form submissions
+        document.getElementById('add-member-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('member-email').value;
+            const role = document.getElementById('member-role').value;
+            const message = document.getElementById('invitation-message').value;
+            
+            fetch('/api/teams/1/members', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    email: email,
+                    role: role,
+                    invitation_message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`Invitation sent to ${email}`);
+                    closeModal('add-member-modal');
+                    this.reset();
+                } else {
+                    showNotification('Failed to send invitation', 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error sending invitation', 'error');
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('transfer-ownership-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newOwnerEmail = document.getElementById('new-owner-email').value;
+            const message = document.getElementById('transfer-message').value;
+            
+            fetch('/api/teams/1/transfer-ownership', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    new_owner_email: newOwnerEmail,
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`Ownership transfer initiated to ${newOwnerEmail}`);
+                    closeModal('transfer-ownership-modal');
+                    this.reset();
+                } else {
+                    showNotification('Failed to initiate transfer', 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error initiating transfer', 'error');
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('edit-team-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('edit-team-name').value;
+            const description = document.getElementById('edit-team-description').value;
+            
+            fetch('/api/teams/1', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    name: name,
+                    description: description
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Team details updated successfully');
+                    closeModal('edit-team-modal');
+                    // Update the team name in the header
+                    document.getElementById('team-name').textContent = name;
+                } else {
+                    showNotification('Failed to update team details', 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error updating team details', 'error');
+                console.error('Error:', error);
+            });
+        });
+
+        // Load team data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTeamData();
+        });
+
+        function loadTeamData() {
+            // Load team information and members
+            fetch('/api/teams/1', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update team info
+                    document.getElementById('team-name').textContent = data.team.name;
+                    document.getElementById('org-name').textContent = data.team.organization_name || 'No Organization';
+                    document.getElementById('member-count').textContent = data.team.member_count;
+                    document.getElementById('created-date').textContent = new Date(data.team.created_at).toLocaleDateString();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading team data:', error);
+            });
+        }
+    </script>
+</body>
+</html>
