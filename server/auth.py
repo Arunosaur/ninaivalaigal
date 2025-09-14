@@ -44,7 +44,7 @@ def get_db():
     return DatabaseManager(database_url)
 
 # JWT Secret from environment or default
-JWT_SECRET = os.getenv('NINAIVALAIGAL_JWT_SECRET', os.getenv('MEM0_JWT_SECRET', 'dev-secret-key-change-in-production'))
+JWT_SECRET = os.getenv('NINAIVALAIGAL_JWT_SECRET', 'dev-secret-key-change-in-production')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = int(os.getenv('NINAIVALAIGAL_JWT_EXPIRATION_HOURS', '168'))  # Default 7 days
 
