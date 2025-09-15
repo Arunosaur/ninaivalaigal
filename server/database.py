@@ -294,15 +294,16 @@ class DatabaseManager:
             # Check if context already exists in same scope
             existing_query = session.query(Context).filter_by(name=name)
             if scope == "personal" and user_id:
-                existing = existing_query.filter_by(owner_id=user_id).first()
+                existing = existing_query.filter_by(owner_id=user_id, scope=scope).first()
             elif scope == "team" and team_id:
-                existing = existing_query.filter_by(team_id=team_id).first()
+                existing = existing_query.filter_by(team_id=team_id, scope=scope).first()
             elif scope == "organization" and organization_id:
-                existing = existing_query.filter_by(organization_id=organization_id).first()
+                existing = existing_query.filter_by(organization_id=organization_id, scope=scope).first()
             else:
                 existing = None
                 
             if existing:
+                # Reactivate existing context instead of creating duplicate
                 existing.is_active = True
                 session.commit()
                 session.refresh(existing)

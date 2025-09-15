@@ -23,8 +23,8 @@ class AutoRecorder:
     async def start_recording(self, context_name: str, user_id: int = None, token: str = None) -> Dict:
         """Start automatic recording for a context (CCTV ON)"""
         try:
-            # Create or activate context
-            self.db.create_context(context_name, user_id)
+            # Create or activate context with correct parameters
+            self.db.create_context(name=context_name, user_id=user_id, scope="personal")
             context_id = f"{context_name}_{user_id or 'default'}"
             
             self.active_contexts[context_name] = {
