@@ -271,7 +271,7 @@
             showLoading();
             
             try {
-                const response = await fetch('/auth/signup/individual', {
+                const response = await fetch('http://localhost:13370/auth/signup/individual', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -312,7 +312,7 @@
             showLoading();
             
             try {
-                const response = await fetch('/auth/signup/organization', {
+                const response = await fetch('http://localhost:13370/auth/signup/organization', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

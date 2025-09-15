@@ -812,3 +812,7 @@ def delete_context(context_name: str, current_user: User = Depends(get_current_u
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+# Run the server
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=13370, reload=True)
