@@ -61,7 +61,7 @@ async def remember(text: str, context: str = None) -> str:
     
     Args:
         text: The text content to remember
-        context: Context name to store the memory in (optional)
+        context: Context name to store in (optional, uses default if not provided)
     
     Returns:
         Confirmation message
@@ -85,6 +85,16 @@ async def remember(text: str, context: str = None) -> str:
             
         try:
             db.add_memory(context, "note", "mcp", {"text": text, "timestamp": str(datetime.now()), "context": context, "user_id": DEFAULT_USER_ID})
+            
+            # If CCTV recording is active, also record this interaction
+            if context in auto_recorder.active_contexts:
+                await auto_recorder.record_interaction(
+                    context_name=context,
+                    interaction_type="user_memory",
+                    content=text,
+                    metadata={"source": "mcp_remember", "user_id": DEFAULT_USER_ID}
+                )
+            
             return f"📝 Memory stored successfully in context: {context} (User ID: {DEFAULT_USER_ID})"
         except Exception as e:
             return f"Error storing memory: {e}"
@@ -147,6 +157,13 @@ async def context_start(context_name: str) -> str:
         result = await auto_recorder.start_recording(context_name, user_id=DEFAULT_USER_ID)
         
         if result["success"]:
+            # Record the context start event
+            await auto_recorder.record_interaction(
+                context_name=context_name,
+                interaction_type="system_event",
+                content=f"CCTV recording started for context: {context_name}",
+                metadata={"event_type": "context_start", "user_id": DEFAULT_USER_ID}
+            )
             return result["message"]
         else:
             return f"❌ Error starting recording: {result['error']}"
