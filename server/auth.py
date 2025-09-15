@@ -15,6 +15,7 @@ from typing import Optional, Dict, Any
 from fastapi import HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
+from input_validation import get_api_validator, InputValidationError
 from email.mime.multipart import MIMEMultipart
 
 # Configuration loading (moved from main.py to avoid circular import)
@@ -43,8 +44,10 @@ def get_db():
     database_url = load_config()  # load_config returns string directly
     return DatabaseManager(database_url)
 
-# JWT Secret from environment or default
-JWT_SECRET = os.getenv('NINAIVALAIGAL_JWT_SECRET', 'dev-secret-key-change-in-production')
+# JWT Secret from environment (REQUIRED - no fallback for security)
+JWT_SECRET = os.getenv('NINAIVALAIGAL_JWT_SECRET')
+if not JWT_SECRET:
+    raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required for security")
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = int(os.getenv('NINAIVALAIGAL_JWT_EXPIRATION_HOURS', '168'))  # Default 7 days
 
@@ -177,36 +180,32 @@ async def get_current_user_optional(request: Request):
 def create_individual_user(signup_data):
     """Create individual user account"""
     # Validate email and password
-    if not validate_email(signup_data.email):
-        raise HTTPException(status_code=400, detail="Invalid email format")
-    
-    if not validate_password(signup_data.password):
-        raise HTTPException(status_code=400, detail="Password must be at least 8 characters with letters and numbers")
-    
-    # Check if user already exists
-    db = get_db()
-    session = db.get_session()
     try:
-        from database import User
-        existing_user = session.query(User).filter_by(email=signup_data.email).first()
+        # Validate input data
+        api_validator = get_api_validator()
+        validated_data = api_validator.validate_signup_data({
+            'email': signup_data.email,
+            'password': signup_data.password,
+            'name': signup_data.name,
+            'account_type': signup_data.account_type
+        })
+        
+        db = get_db()
+        
+        # Check if user already exists
+        existing_user = db.get_user_by_email(validated_data['email'])
         if existing_user:
-            raise HTTPException(status_code=400, detail="User with this email already exists")
+            raise HTTPException(status_code=400, detail="User already exists")
+        
+        # Hash password
+        hashed_password = hash_password(validated_data['password'])
         
         # Create user
-        password_hash = hash_password(signup_data.password)
-        verification_token = generate_verification_token()
-        
-        new_user = User(
-            email=signup_data.email,
-            name=signup_data.name,
-            password_hash=password_hash,
-            account_type="individual",
-            subscription_tier="free",
-            personal_contexts_limit=10,
-            created_via="signup",
-            email_verified=False,
-            verification_token=verification_token,
-            role="user"
+        new_user = db.create_user(
+            email=validated_data['email'],
+            password_hash=hashed_password,
+            name=validated_data['name'],
+            account_type=validated_data['account_type']
         )
         
         session.add(new_user)

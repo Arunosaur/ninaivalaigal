@@ -9,7 +9,11 @@ from typing import Optional
 import json
 import os
 from database import DatabaseManager, User, Context, Memory, Team, TeamMember, ContextPermission
-from auth import get_current_user, load_config
+from auth import get_db, signup_user, login_user, signup_router
+from secret_redaction import redact_api_response, redact_log_message
+from shell_injection_prevention import safe_run_command
+from input_validation import get_api_validator, InputValidationError
+from rate_limiting import rate_limit_middleware
 from spec_kit import SpecKitContextManager, ContextSpec, ContextScope, ContextPermissionSpec, PermissionLevel
 from performance_monitor import (
     get_performance_monitor,
@@ -32,7 +36,6 @@ def load_config():
             "url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
         },
         "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
-        "jwt_secret": "your-secret-key-here"
     }
     
     # Load from environment variables first (highest priority)
@@ -145,13 +148,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Add rate limiting middleware (before CORS)
+app.middleware("http")(rate_limit_middleware)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:8080", "http://127.0.0.1:8080"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Include signup/auth router

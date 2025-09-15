@@ -20,6 +20,7 @@ from database import DatabaseManager
 from approval_workflow import ApprovalWorkflowManager
 from universal_ai_wrapper import UniversalAIWrapper
 from auto_recording import get_auto_recorder
+from secret_redaction import redact_memory_before_storage, redact_log_message
 from main import load_config
 from spec_kit import SpecKitContextManager, ContextSpec, ContextScope, ContextPermissionSpec, PermissionLevel
 
@@ -40,18 +41,31 @@ import jwt
 import json
 
 def get_user_from_jwt():
-    """Extract user ID from JWT token"""
+    """Extract user ID from JWT token with proper verification"""
     token = os.getenv('NINAIVALAIGAL_USER_TOKEN')
     if not token:
         return int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))  # Fallback
     
     try:
-        # Decode JWT token (without verification for now - should be verified in production)
-        decoded = jwt.decode(token, options={"verify_signature": False})
+        # Get JWT secret for verification
+        jwt_secret = os.getenv('NINAIVALAIGAL_JWT_SECRET')
+        if not jwt_secret:
+            print("WARNING: JWT_SECRET not set, using unverified token")
+            decoded = jwt.decode(token, options={"verify_signature": False})
+        else:
+            # Properly verify JWT signature
+            decoded = jwt.decode(token, jwt_secret, algorithms=['HS256'])
+        
         return decoded.get('user_id', 1)
+    except jwt.ExpiredSignatureError:
+        print("JWT token expired")
+        return int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))
+    except jwt.InvalidTokenError as e:
+        print(f"Invalid JWT token: {e}")
+        return int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))
     except Exception as e:
         print(f"JWT decode error: {e}")
-        return int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))  # Fallback
+        return int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))
 
 DEFAULT_USER_ID = get_user_from_jwt()
 
@@ -84,7 +98,12 @@ async def remember(text: str, context: str = None) -> str:
             context = "default"
             
         try:
-            db.add_memory(context, "note", "mcp", {"text": text, "timestamp": str(datetime.now()), "context": context, "user_id": DEFAULT_USER_ID})
+            # Apply secret redaction before storage
+            memory_data = {"text": text, "timestamp": str(datetime.now()), "context": context, "user_id": DEFAULT_USER_ID}
+            redacted_memory_data = redact_memory_before_storage(memory_data)
+            redacted_text = redacted_memory_data.get("text", text)
+            
+            db.add_memory(context, "note", "mcp", {"text": redacted_text, "timestamp": str(datetime.now()), "context": context, "user_id": DEFAULT_USER_ID})
             
             # If CCTV recording is active, also record this interaction
             if context in auto_recorder.active_contexts:
@@ -830,6 +849,30 @@ async def auto_record_tool_usage(tool_name: str, content: str, response: Any = N
             )
     except Exception as e:
         print(f"Auto-recording error: {e}")
+
+async def store_memory(text: str, context: str = None):
+    try:
+        # Store memory with context
+        memory_data = {
+            "text": text,
+            "context": context or "default",
+            "user_id": DEFAULT_USER_ID,
+            "timestamp": datetime.now().isoformat(),
+            "source": "mcp_tool"
+        }
+        
+        # Apply secret redaction before storage
+        redacted_memory_data = redact_memory_before_storage(memory_data)
+        redacted_text = redacted_memory_data.get("text", text)
+        
+        # Store in database
+        memory_id = db.add_memory(
+            user_id=DEFAULT_USER_ID,
+            text=redacted_text,
+            context=context or "default"
+        )
+    except Exception as e:
+        print(f"Error storing memory: {e}")
 
 if __name__ == "__main__":
     import asyncio
