@@ -584,6 +584,14 @@
     <div id="notification" class="notification"></div>
 
     <script>
+        // Check authentication first
+        const token = localStorage.getItem('ninaivalaigal_token');
+        const user = JSON.parse(localStorage.getItem('ninaivalaigal_user') || '{}');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
         // Modal management
         function openAddMemberModal() {
             document.getElementById('add-member-modal').style.display = 'block';
@@ -861,9 +869,9 @@
 
         function loadTeamData() {
             // Load team information and members
-            fetch('/api/teams/1', {
+            fetch('http://127.0.0.1:13370/api/teams/1', {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('ninaivalaigal_token')}`
                 }
             })
             .then(response => response.json())
