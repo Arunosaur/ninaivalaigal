@@ -724,7 +724,6 @@ class DatabaseManager:
     
     def get_team_members(self, team_id: int):
         """Get all members of a team with their roles"""
-{{ ... }}
         session = self.get_session()
         try:
             members = session.query(TeamMember, User).join(User).filter(TeamMember.team_id == team_id).all()
