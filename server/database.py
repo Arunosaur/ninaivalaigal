@@ -689,12 +689,62 @@ class DatabaseManager:
         finally:
             session.close()
     
+    def get_all_organizations(self):
+        """Get all organizations"""
+        session = self.get_session()
+        try:
+            return session.query(Organization).all()
+        finally:
+            session.close()
+    
+    def get_organization_teams(self, organization_id: int):
+        """Get all teams in an organization"""
+        session = self.get_session()
+        try:
+            return session.query(Team).filter_by(organization_id=organization_id).all()
+        finally:
+            session.close()
+    
+    def get_user_organizations(self, user_id: int):
+        """Get all organizations a user belongs to (via teams)"""
+        session = self.get_session()
+        try:
+            # Simple approach: get organizations through team memberships
+            orgs = session.query(Organization).join(Team).join(TeamMember).filter(TeamMember.user_id == user_id).all()
+            # Remove duplicates manually to avoid DISTINCT on JSON columns
+            seen_ids = set()
+            unique_orgs = []
+            for org in orgs:
+                if org.id not in seen_ids:
+                    seen_ids.add(org.id)
+                    unique_orgs.append(org)
+            return unique_orgs
+        finally:
+            session.close()
+    
     def get_team_members(self, team_id: int):
         """Get all members of a team with their roles"""
+{{ ... }}
         session = self.get_session()
         try:
             members = session.query(TeamMember, User).join(User).filter(TeamMember.team_id == team_id).all()
             return [{"user": user, "role": member.role, "joined_at": member.joined_at} for member, user in members]
+        finally:
+            session.close()
+    
+    def remove_team_member(self, team_id: int, user_id: int):
+        """Remove a member from a team"""
+        session = self.get_session()
+        try:
+            member = session.query(TeamMember).filter_by(team_id=team_id, user_id=user_id).first()
+            if member:
+                session.delete(member)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            raise e
         finally:
             session.close()
     

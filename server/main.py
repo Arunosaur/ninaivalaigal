@@ -181,7 +181,8 @@ def create_organization(org_data: OrganizationCreate, current_user: User = Depen
             "id": org.id,
             "name": org.name,
             "description": org.description,
-            "created_at": org.created_at.isoformat()
+            "created_at": org.created_at.isoformat(),
+            "message": "Organization created successfully"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create organization: {str(e)}")
@@ -190,12 +191,53 @@ def create_organization(org_data: OrganizationCreate, current_user: User = Depen
 def get_organizations(current_user: User = Depends(get_current_user)):
     """Get all organizations"""
     try:
-        # For now, return all organizations - could be filtered by user permissions later
-        organizations = []
-        # This would need to be implemented in DatabaseManager
-        return current_user
+        organizations = db.get_all_organizations()
+        return {"organizations": [
+            {
+                "id": org.id,
+                "name": org.name,
+                "description": org.description,
+                "created_at": org.created_at.isoformat() if org.created_at else None
+            }
+            for org in organizations
+        ]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get organizations: {str(e)}")
+
+@app.get("/users/me/organizations")
+def get_user_organizations(current_user: User = Depends(get_current_user)):
+    """Get organizations the current user belongs to"""
+    try:
+        organizations = db.get_user_organizations(current_user.id)
+        return {"organizations": [
+            {
+                "id": org.id,
+                "name": org.name,
+                "description": org.description,
+                "created_at": org.created_at.isoformat()
+            }
+            for org in organizations
+        ]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get user organizations: {str(e)}")
+
+@app.get("/organizations/{org_id}/teams")
+def get_organization_teams(org_id: int, current_user: User = Depends(get_current_user)):
+    """Get all teams in an organization"""
+    try:
+        teams = db.get_organization_teams(org_id)
+        return {"teams": [
+            {
+                "id": team.id,
+                "name": team.name,
+                "organization_id": team.organization_id,
+                "description": team.description,
+                "created_at": team.created_at.isoformat()
+            }
+            for team in teams
+        ]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get organization teams: {str(e)}")
 
 @app.get("/health")
 def health_check():
@@ -248,6 +290,8 @@ def create_team(team_data: TeamCreate, current_user: User = Depends(get_current_
     """Create a new team"""
     try:
         team = db.create_team(team_data.name, team_data.organization_id, team_data.description)
+        # Automatically add creator as team admin
+        db.add_team_member(team.id, current_user.id, "admin")
         return {
             "id": team.id,
             "name": team.name,
@@ -262,17 +306,44 @@ def create_team(team_data: TeamCreate, current_user: User = Depends(get_current_
 def add_team_member(team_id: int, member_data: TeamMemberAdd, current_user: User = Depends(get_current_user)):
     """Add a member to a team"""
     try:
+        # In a real implementation, check if current user has permission to add members
         db.add_team_member(team_id, member_data.user_id, member_data.role)
-        return {"message": f"User {member_data.user_id} added to team {team_id} with role {member_data.role}"}
+        return {
+            "success": True,
+            "message": f"User {member_data.user_id} added to team {team_id} with role {member_data.role}"
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add team member: {str(e)}")
+
+@app.delete("/teams/{team_id}/members/{user_id}")
+def remove_team_member(team_id: int, user_id: int, current_user: User = Depends(get_current_user)):
+    """Remove a member from a team"""
+    try:
+        # In a real implementation, check if current user has permission to remove members
+        db.remove_team_member(team_id, user_id)
+        return {
+            "success": True,
+            "message": f"User {user_id} removed from team {team_id}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to remove team member: {str(e)}")
 
 @app.get("/teams/{team_id}/members")
 def get_team_members(team_id: int, current_user: User = Depends(get_current_user)):
     """Get team members"""
     try:
         members = db.get_team_members(team_id)
-        return {"members": members}
+        return {"members": [
+            {
+                "user_id": member["user"].id,
+                "username": member["user"].username,
+                "email": member["user"].email,
+                "name": member["user"].name,
+                "role": member["role"],
+                "joined_at": member["joined_at"].isoformat()
+            }
+            for member in members
+        ]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get team members: {str(e)}")
 
@@ -286,14 +357,34 @@ def get_user_teams(current_user: User = Depends(get_current_user)):
                 "id": team.id,
                 "name": team.name,
                 "organization_id": team.organization_id,
-                "description": team.description
+                "description": team.description,
+                "created_at": team.created_at.isoformat()
             }
             for team in teams
         ]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get user teams: {str(e)}")
 
-# --- Context Sharing ---
+@app.get("/teams")
+def get_all_teams(current_user: User = Depends(get_current_user)):
+    """Get all teams (admin endpoint)"""
+    try:
+        # In a real implementation, this would check admin permissions
+        teams = db.get_user_teams(current_user.id)  # For now, just return user's teams
+        return {"teams": [
+            {
+                "id": team.id,
+                "name": team.name,
+                "organization_id": team.organization_id,
+                "description": team.description,
+                "created_at": team.created_at.isoformat()
+            }
+            for team in teams
+        ]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get teams: {str(e)}")
+
+# Context sharing endpoint
 @app.post("/contexts/{context_id}/share")
 def share_context(context_id: int, share_data: ContextShare, current_user: User = Depends(get_current_user)):
     """Share context with user/team/organization"""
