@@ -114,6 +114,9 @@ async def recall(context: str = None, query: str = None) -> List[Dict[str, Any]]
         List of matching memories
     """
     try:
+        # Auto-record this recall operation
+        await auto_record_tool_usage("recall", f"Context: {context}, Query: {query}")
+        
         if context:
             # Get memories from specific context
             memories = db.get_memories(context)
@@ -136,6 +139,9 @@ async def recall(context: str = None, query: str = None) -> List[Dict[str, Any]]
                 if query_lower in memory_text.lower():
                     filtered_memories.append(memory)
             memories = filtered_memories
+        
+        # Record the result
+        await auto_record_tool_usage("recall", f"Found {len(memories)} memories", memories)
         
         return memories
         
@@ -208,13 +214,24 @@ async def context_stop(context_name: str = None) -> str:
 
 @mcp.tool()
 async def list_contexts() -> str:
-    """List all available contexts with scope information"""
+    """List all available contexts for the current user
+    
+    Returns:
+        Formatted list of contexts with their details
+    """
     try:
-        result = spec_context_manager.list_contexts(DEFAULT_USER_ID)
+        # Auto-record this operation
+        await auto_record_tool_usage("list_contexts", "User requested context list")
+        
+        user_info = get_current_user()
+        result = spec_context_manager.list_contexts(user_info['user_id'])
+        
         if result.success:
-            contexts = result.data.get('contexts', [])
+            contexts = result.data
             if not contexts:
-                return "No contexts found."
+                response = "No contexts found."
+                await auto_record_tool_usage("list_contexts", "No contexts found", response)
+                return response
             
             context_list = []
             for ctx in contexts:
@@ -223,11 +240,17 @@ async def list_contexts() -> str:
                 status = " Active" if ctx.get('is_active') else " Inactive"
                 context_list.append(f"{scope_icon} {ctx['name']} ({scope}, {status}) - {ctx.get('description', 'No description')}")
             
-            return "Available contexts:\n" + "\n".join(context_list)
+            response = "Available contexts:\n" + "\n".join(context_list)
+            await auto_record_tool_usage("list_contexts", f"Found {len(contexts)} contexts", response)
+            return response
         else:
-            return f"Error: {result.message}"
+            error_msg = f"Error: {result.message}"
+            await auto_record_tool_usage("list_contexts", "Error occurred", error_msg)
+            return error_msg
     except Exception as e:
-        return f"Error listing contexts: {str(e)}"
+        error_msg = f"Error listing contexts: {str(e)}"
+        await auto_record_tool_usage("list_contexts", "Exception occurred", error_msg)
+        return error_msg
 
 @mcp.tool()
 async def cross_team_share_memory(
@@ -785,6 +808,28 @@ approve_cross_team_request(
         description="Complete guide for cross-team memory sharing with approval workflows",
         mimeType="text/markdown"
     ), TextResourceContents(text=content)
+
+# Auto-recording helper function
+async def auto_record_tool_usage(tool_name: str, content: str, response: Any = None):
+    """Helper to automatically record tool usage in active contexts"""
+    try:
+        for context_name in auto_recorder.active_contexts:
+            full_content = f"Tool: {tool_name} - {content}"
+            if response:
+                full_content += f" | Response: {str(response)[:100]}..."
+            
+            await auto_recorder.record_interaction(
+                context_name=context_name,
+                interaction_type="mcp_tool_call",
+                content=full_content,
+                metadata={
+                    "tool_name": tool_name,
+                    "user_id": DEFAULT_USER_ID,
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
+    except Exception as e:
+        print(f"Auto-recording error: {e}")
 
 if __name__ == "__main__":
     import asyncio
