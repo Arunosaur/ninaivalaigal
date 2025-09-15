@@ -147,37 +147,9 @@ app = FastAPI(
 # Include signup/auth router
 app.include_router(signup_router)
 
-@app.post("/auth/register")
-def register_user(user_data: dict):
-    """Register a new user"""
-    try:
-        user = db.create_user(user_data.username, user_data.password, user_data.email)
-        if not user:
-            raise HTTPException(status_code=400, detail="Username already exists")
+# Remove duplicate auth endpoints - handled by signup_router
 
-        # Create access token
-        access_token = create_access_token(
-            data={"sub": user.username, "user_id": user.id}
-        )
-        return {"access_token": access_token, "token_type": "bearer"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
-
-@app.post("/auth/login")
-def login_user(user_data: dict):
-    """Login user and return JWT token"""
-    try:
-        user = db.authenticate_user(user_data.username, user_data.password)
-        if not user:
-            raise HTTPException(status_code=401, detail="Invalid username or password")
-
-        # Create access token
-        access_token = create_access_token(
-            data={"sub": user.username, "user_id": user.id}
-        )
-        return {"access_token": access_token, "token_type": "bearer"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
+# Login endpoint handled by signup_router
 
 @app.get("/auth/me")
 def get_current_user_info(current_user: User = Depends(get_current_user)):
