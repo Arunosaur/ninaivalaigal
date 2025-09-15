@@ -175,7 +175,9 @@ Ninaivalaigal is the foundational memory layer of the **Medhays** ecosystem - an
 ## 🏗️ TECHNICAL ARCHITECTURE
 
 ### Current Stack
-- **Backend**: FastAPI (Python 3.11+)
+- **Backend**: Dual-server architecture
+  - **FastAPI Server**: REST API (Python 3.11+) for web/CLI access
+  - **MCP Server**: Model Context Protocol for AI IDE integration
 - **Database**: PostgreSQL 15.14
 - **Frontend**: HTML5, Tailwind CSS, Vanilla JavaScript
 - **Authentication**: JWT with HS256

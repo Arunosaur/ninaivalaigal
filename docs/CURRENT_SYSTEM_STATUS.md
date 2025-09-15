@@ -14,11 +14,16 @@ The Ninaivalaigal platform is now fully operational with all core components tes
 - **Schema**: Complete with all tables (users, contexts, memories, teams, organizations, team_members)
 - **Constraints**: Proper foreign keys and uniqueness constraints implemented
 
-### Backend API Server
-- **FastAPI**: Running on localhost:13370 with auto-reload
-- **CORS**: Enabled for frontend communication
-- **Authentication**: JWT-based with 7-day expiration
-- **API Documentation**: Available at http://127.0.0.1:13370/docs
+### Backend Servers
+- **FastAPI Server**: Running on localhost:13370 with auto-reload
+  - REST API with 25+ endpoints for web/CLI access
+  - CORS enabled for frontend communication
+  - JWT-based authentication with 7-day expiration
+  - API Documentation: http://127.0.0.1:13370/docs
+- **MCP Server**: Model Context Protocol for AI IDE integration
+  - stdio transport for VS Code, Claude Desktop, etc.
+  - Full context and memory management capabilities
+  - Synchronized with FastAPI database
 
 ### Frontend Web Interface
 - **Static Server**: Running on localhost:8080
