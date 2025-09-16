@@ -124,15 +124,57 @@ class TokenData(BaseModel):
 security = HTTPBearer()
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """Create JWT access token"""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+        expire = datetime.utcnow() + timedelta(days=7)  # Default 7 days
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    
+    # Get JWT secret from environment variable (required)
+    jwt_secret = os.getenv('NINAIVALAIGAL_JWT_SECRET')
+    if not jwt_secret:
+        raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required")
+    
+    encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=JWT_ALGORITHM)
     return encoded_jwt
+
+def get_user_roles_for_token(db, user_id: int) -> dict:
+    """Get user roles for JWT token inclusion"""
+    from rbac_models import get_user_roles
+    
+    try:
+        # Get all active role assignments for the user
+        role_assignments = get_user_roles(db, user_id)
+        
+        roles = {}
+        teams = {}
+        org_id = None
+        
+        for assignment in role_assignments:
+            scope_key = f"{assignment.scope_type}:{assignment.scope_id}" if assignment.scope_id else assignment.scope_type
+            roles[scope_key] = assignment.role.name
+            
+            # Track team memberships
+            if assignment.scope_type == 'team' and assignment.scope_id:
+                teams[assignment.scope_id] = assignment.role.name
+            
+            # Track organization membership
+            if assignment.scope_type == 'org' and assignment.scope_id:
+                org_id = assignment.scope_id
+        
+        return {
+            'roles': roles,
+            'teams': teams,
+            'org_id': org_id
+        }
+    except Exception as e:
+        # Fallback to basic role if RBAC lookup fails
+        return {
+            'roles': {'global': 'MEMBER'},
+            'teams': {},
+            'org_id': None
+        }
 
 def verify_token(token: str) -> TokenData:
     """Verify JWT token and return token data"""
@@ -255,13 +297,17 @@ def authenticate_user(email: str, password: str):
         user.last_login = datetime.utcnow()
         session.commit()
         
-        # Generate JWT token
+        # Get user roles for token
+        role_data = get_user_roles_for_token(db, user.id)
+        
+        # Generate JWT token with RBAC roles
         jwt_payload = {
             "user_id": user.id,
             "email": user.email,
             "account_type": user.account_type,
             "role": user.role,
-            "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+            "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
+            **role_data  # Include roles, teams, org_id
         }
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
         
@@ -272,7 +318,9 @@ def authenticate_user(email: str, password: str):
             "account_type": user.account_type,
             "role": user.role,
             "jwt_token": jwt_token,
-            "email_verified": user.email_verified
+            "email_verified": user.email_verified,
+            "rbac_roles": role_data.get('roles', {}),
+            "is_system_admin": getattr(user, 'is_system_admin', False)
         }
         
     finally:

@@ -1,19 +1,23 @@
 # main.py
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
-from typing import Optional
-import json
+import uvicorn
 import os
+from contextlib import asynccontextmanager
+from typing import Optional
+
+from auth import get_db, get_current_user
 from database import DatabaseManager, User, Context, Memory, Team, TeamMember, ContextPermission
-from auth import get_db, signup_user, login_user, signup_router
 from secret_redaction import redact_api_response, redact_log_message
 from shell_injection_prevention import safe_run_command
 from input_validation import get_api_validator, InputValidationError
 from rate_limiting import rate_limit_middleware
+from rbac_middleware import rbac_middleware, require_permission, require_role, get_rbac_context, require_authentication
+from rbac.permissions import Role, Action, Resource
 from spec_kit import SpecKitContextManager, ContextSpec, ContextScope, ContextPermissionSpec, PermissionLevel
 from performance_monitor import (
     get_performance_monitor,
@@ -26,6 +30,7 @@ from auto_recording import get_auto_recorder
 from token_refresh import get_token_manager, auto_refresh_tokens
 from signup_api import router as signup_router
 import json as json_lib
+import json
 
 # Configuration loading
 def load_config():
@@ -151,6 +156,9 @@ app = FastAPI(
 # Add rate limiting middleware (before CORS)
 app.middleware("http")(rate_limit_middleware)
 
+# Add RBAC middleware (before CORS)
+app.middleware("http")(rbac_middleware)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -162,6 +170,10 @@ app.add_middleware(
 
 # Include signup/auth router
 app.include_router(signup_router)
+
+# Include RBAC router
+from rbac_api import rbac_router
+app.include_router(rbac_router)
 
 # Remove duplicate auth endpoints - handled by signup_router
 
@@ -179,7 +191,8 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
 
 # --- Organization Management ---
 @app.post("/organizations")
-def create_organization(org_data: OrganizationCreate, current_user: User = Depends(get_current_user)):
+@require_permission(Resource.ORG, Action.CREATE)
+def create_organization(request: Request, org_data: OrganizationCreate, current_user: User = Depends(get_current_user)):
     """Create a new organization"""
     try:
         org = db.create_organization(org_data.name, org_data.description)
@@ -194,7 +207,8 @@ def create_organization(org_data: OrganizationCreate, current_user: User = Depen
         raise HTTPException(status_code=500, detail=f"Failed to create organization: {str(e)}")
 
 @app.get("/organizations")
-def get_organizations(current_user: User = Depends(get_current_user)):
+@require_permission(Resource.ORG, Action.READ)
+def get_organizations(request: Request, current_user: User = Depends(get_current_user)):
     """Get all organizations"""
     try:
         organizations = db.get_all_organizations()
@@ -292,7 +306,8 @@ def serve_dashboard_page_html():
 
 # --- Team Management ---
 @app.post("/teams")
-def create_team(team_data: TeamCreate, current_user: User = Depends(get_current_user)):
+@require_permission(Resource.TEAM, Action.CREATE)
+def create_team(request: Request, team_data: TeamCreate, current_user: User = Depends(get_current_user)):
     """Create a new team"""
     try:
         team = db.create_team(team_data.name, team_data.organization_id, team_data.description)
@@ -309,7 +324,8 @@ def create_team(team_data: TeamCreate, current_user: User = Depends(get_current_
         raise HTTPException(status_code=500, detail=f"Failed to create team: {str(e)}")
 
 @app.post("/teams/{team_id}/members")
-def add_team_member(team_id: int, member_data: TeamMemberAdd, current_user: User = Depends(get_current_user)):
+@require_permission(Resource.TEAM, Action.ADMINISTER)
+def add_team_member(request: Request, team_id: int, member_data: TeamMemberAdd, current_user: User = Depends(get_current_user)):
     """Add a member to a team"""
     try:
         # In a real implementation, check if current user has permission to add members
@@ -322,7 +338,8 @@ def add_team_member(team_id: int, member_data: TeamMemberAdd, current_user: User
         raise HTTPException(status_code=500, detail=f"Failed to add team member: {str(e)}")
 
 @app.delete("/teams/{team_id}/members/{user_id}")
-def remove_team_member(team_id: int, user_id: int, current_user: User = Depends(get_current_user)):
+@require_permission(Resource.TEAM, Action.ADMINISTER)
+def remove_team_member(request: Request, team_id: int, user_id: int, current_user: User = Depends(get_current_user)):
     """Remove a member from a team"""
     try:
         # In a real implementation, check if current user has permission to remove members
@@ -506,7 +523,8 @@ def get_user_accessible_contexts(current_user: User = Depends(get_current_user))
 
 # --- Context Creation with Ownership ---
 @app.post("/contexts")
-def create_context(context_data: ContextCreate, current_user: User = Depends(get_current_user)):
+@require_permission(Resource.CONTEXT, Action.CREATE)
+def create_context(request: Request, context_data: ContextCreate, current_user: User = Depends(get_current_user)):
     """Create a new context with scope-based ownership through spec-kit"""
     try:
         # Create context spec
@@ -533,7 +551,8 @@ def create_context(context_data: ContextCreate, current_user: User = Depends(get
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/memory")
-def store_memory(entry: MemoryPayload, current_user: User = Depends(get_current_user)):
+@require_permission(Resource.MEMORY, Action.CREATE)
+def store_memory(request: Request, entry: MemoryPayload, current_user: User = Depends(get_current_user)):
     """Store a memory entry with user isolation and duplicate filtering"""
     try:
         # Use authenticated user ID (mandatory)
@@ -573,7 +592,8 @@ def store_memory(entry: MemoryPayload, current_user: User = Depends(get_current_
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/memory")
-def get_memory(context: str, current_user: User = Depends(get_current_user)):
+@require_permission(Resource.MEMORY, Action.READ)
+def get_memory(request: Request, context: str, current_user: User = Depends(get_current_user)):
     """Retrieve memories for a context with user isolation"""
     try:
         # Use authenticated user ID (mandatory)
