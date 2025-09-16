@@ -11,6 +11,7 @@ import re
 import mimetypes
 from dataclasses import dataclass
 from .binary_masquerade_guard import looks_binary
+from .strict_limits import enforce_part_limits, PartLimitConfig, detect_magic_bytes
 from starlette.datastructures import UploadFile
 
 
@@ -58,7 +59,7 @@ class StrictMultipartValidator:
         self._filename_pattern = re.compile(r'^[a-zA-Z0-9._-]+$')
         self._content_type_pattern = re.compile(r'^([a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_]*)/([a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_]*)$')
     
-    def validate_part(self, field_name: str, content_type: str, filename: Optional[str] = None) -> Dict[str, Any]:
+    def validate_part(self, field_name: str, content_type: str, filename: Optional[str] = None, content: Optional[bytes] = None, part_limit_config: Optional[PartLimitConfig] = None) -> Dict[str, Any]:
         """
         Validate individual multipart part against policy.
         
@@ -99,6 +100,33 @@ class StrictMultipartValidator:
                 result["valid"] = False
                 result["violations"].extend(filename_validation["violations"])
         
+        # Validate content with per-part limits if content provided
+        if content is not None:
+            try:
+                limit_result = enforce_part_limits(
+                    content, 
+                    content_type, 
+                    filename, 
+                    part_limit_config or PartLimitConfig()
+                )
+                
+                # Merge limit validation results
+                if not limit_result["valid"]:
+                    result["valid"] = False
+                    # Convert limit violations to validator format
+                    for violation in limit_result["violations"]:
+                        result["violations"].append(violation["type"])
+                
+                # Add additional metadata
+                result["size_bytes"] = limit_result["size_bytes"]
+                result["is_binary"] = limit_result["is_binary"]
+                result["magic_byte_result"] = limit_result["magic_byte_result"]
+                
+            except ValueError as e:
+                result["valid"] = False
+                result["violations"].append("part_limit_exceeded")
+                result["limit_error"] = str(e)
+        
         return result
     
     def _validate_filename(self, filename: str, content_type: str) -> Dict[str, Any]:
@@ -116,22 +144,9 @@ class StrictMultipartValidator:
             result["violations"].append("filename_invalid_characters")
         
         # Check for executable extensions
-        if self._is_executable_extension(filename):
-            violations.append({
-                "type": "executable_extension",
-                "message": f"Executable file extension not allowed: {filename}",
-                "severity": "high"
-            })
-        
-        # Check for binary masquerade
-        if content and looks_binary(content, content_type, filename):
-            violations.append({
-                "type": "binary_masquerade",
-                "message": f"Binary content masquerading as {content_type}",
-                "severity": "high"
-            })
-        
-        result["violations"].extend(violations)
+        if self.policy.block_executable_extensions and self._is_executable_extension(filename):
+            result["valid"] = False
+            result["violations"].append("executable_extension")
         
         # Check filename/content-type mismatch
         if self.policy.require_content_type_match:
@@ -142,6 +157,13 @@ class StrictMultipartValidator:
                 result["mismatch_details"] = mismatch
         
         return result
+    
+    def _is_executable_extension(self, filename: str) -> bool:
+        """Check if filename has executable extension."""
+        if '.' not in filename:
+            return False
+        extension = "." + filename.split('.')[-1].lower()
+        return extension in self.EXECUTABLE_EXTENSIONS
     
     def _get_file_extension(self, filename: str) -> str:
         """Extract file extension in lowercase."""
@@ -183,12 +205,13 @@ class StrictMultipartValidator:
         
         return None
     
-    def validate_multipart_request(self, parts: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def validate_multipart_request(self, parts: List[Dict[str, Any]], part_limit_config: Optional[PartLimitConfig] = None) -> Dict[str, Any]:
         """
         Validate entire multipart request against policy.
         
         Args:
-            parts: List of part dictionaries with keys: field_name, content_type, filename
+            parts: List of part dictionaries with keys: field_name, content_type, filename, content (optional)
+            part_limit_config: Configuration for per-part limits
         """
         result = {
             "valid": True,
@@ -212,7 +235,9 @@ class StrictMultipartValidator:
             part_result = self.validate_part(
                 part["field_name"],
                 part["content_type"], 
-                part.get("filename")
+                part.get("filename"),
+                part.get("content"),  
+                part_limit_config
             )
             
             result["part_results"].append(part_result)
@@ -280,8 +305,13 @@ def create_permissive_policy() -> MultipartPolicy:
 
 
 # Integration with Starlette
-async def validate_starlette_multipart(request, policy: Optional[MultipartPolicy] = None) -> Dict[str, Any]:
-    """Validate Starlette multipart request."""
+async def validate_starlette_multipart(
+    request, 
+    policy: Optional[MultipartPolicy] = None, 
+    part_limit_config: Optional[PartLimitConfig] = None,
+    read_content: bool = True
+) -> Dict[str, Any]:
+    """Validate Starlette multipart request with content analysis."""
     validator = StrictMultipartValidator(policy)
     
     # Extract parts information from request
@@ -290,17 +320,29 @@ async def validate_starlette_multipart(request, policy: Optional[MultipartPolicy
     
     for field_name, field_value in form.items():
         if isinstance(field_value, UploadFile):
+            content = None
+            if read_content:
+                # Read content for validation (reset file pointer after)
+                content = await field_value.read()
+                await field_value.seek(0)  # Reset for downstream processing
+            
             parts.append({
                 "field_name": field_name,
                 "content_type": field_value.content_type or "application/octet-stream",
-                "filename": field_value.filename
+                "filename": field_value.filename,
+                "content": content
             })
         else:
             # Text field
+            content = None
+            if read_content and hasattr(field_value, 'encode'):
+                content = field_value.encode('utf-8')
+            
             parts.append({
                 "field_name": field_name,
                 "content_type": "text/plain",
-                "filename": None
+                "filename": None,
+                "content": content
             })
     
     return validator.validate_multipart_request(parts)

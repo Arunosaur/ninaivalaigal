@@ -17,19 +17,21 @@ class ScopedKeyHelper:
     # Path template patterns for common route structures
     PATH_PATTERNS = [
         # Organization IDs (org_ prefix) - must come before generic alphanumeric
-        (r'/org_[a-zA-Z0-9]+', '/{org_id}'),
+        (r'/org_[a-zA-Z0-9-]+', '/{org_id}'),
         # Team IDs (team_ prefix) - must come before generic alphanumeric
-        (r'/team_[a-zA-Z0-9]+', '/{team_id}'),
+        (r'/team_[a-zA-Z0-9-]+', '/{team_id}'),
         # Memory IDs (mem_ prefix) - must come before generic alphanumeric
-        (r'/mem_[a-zA-Z0-9]+', '/{memory_id}'),
+        (r'/mem_[a-zA-Z0-9-]+', '/{memory_id}'),
         # Context IDs (ctx_ prefix) - must come before generic alphanumeric
-        (r'/ctx_[a-zA-Z0-9]+', '/{context_id}'),
+        (r'/ctx_[a-zA-Z0-9-]+', '/{context_id}'),
         # UUID patterns - must come before numeric IDs
         (r'/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', '/{uuid}'),
-        # Numeric IDs
+        # Numeric IDs (pure numbers)
         (r'/\d+', '/{id}'),
-        # Generic alphanumeric IDs (last to avoid conflicts)
-        (r'/[a-zA-Z0-9]{6,32}(?![0-9a-f-])', '/{id}'),
+        # Alphanumeric with hyphens that look like IDs
+        (r'/[a-zA-Z0-9]+-[a-zA-Z0-9-]+', '/{id}'),
+        # Mixed alphanumeric that contains numbers (likely IDs)
+        (r'/[a-zA-Z]*\d+[a-zA-Z0-9]*', '/{id}'),
     ]
     
     @classmethod
@@ -68,10 +70,13 @@ class ScopedKeyHelper:
         """
         Generate scoped idempotency key.
         
-        Format: {method}:{path_template}:{user_id}:{org_id}:{key_hash}
+        Format: {method}:{path_template}:{user_id}:{org_id}:{path_hash}:{key_hash}
         """
         # Extract path template
         path_template = cls.extract_path_template(path)
+        
+        # Create hash of concrete path to prevent collisions on same template
+        path_hash = hashlib.sha256(path.encode()).hexdigest()[:8]
         
         # Build scope components
         components = [
@@ -79,6 +84,7 @@ class ScopedKeyHelper:
             path_template,
             subject_user_id or "anonymous",
             organization_id or "default",
+            path_hash,
         ]
         
         # Add idempotency key hash if provided
@@ -95,7 +101,7 @@ class ScopedKeyHelper:
         """Parse scoped key back into components."""
         parts = scoped_key.split(":")
         
-        if len(parts) < 5:
+        if len(parts) < 6:
             raise ValueError(f"Invalid scoped key format: {scoped_key}")
         
         return {
@@ -103,7 +109,8 @@ class ScopedKeyHelper:
             "path_template": parts[1], 
             "subject_user_id": parts[2] if parts[2] != "anonymous" else None,
             "organization_id": parts[3] if parts[3] != "default" else None,
-            "key_hash": parts[4] if parts[4] != "no-key" else None
+            "path_hash": parts[4],
+            "key_hash": parts[5] if parts[5] != "no-key" else None
         }
     
     @classmethod
@@ -119,6 +126,11 @@ class ScopedKeyHelper:
             # Check path template match
             expected_template = cls.extract_path_template(path)
             if parsed["path_template"] != expected_template:
+                return False
+            
+            # Check path hash match
+            expected_path_hash = hashlib.sha256(path.encode()).hexdigest()[:8]
+            if parsed["path_hash"] != expected_path_hash:
                 return False
             
             # Check user context match
@@ -154,16 +166,19 @@ class ScopedKeyHelper:
             if parsed1["organization_id"] == parsed2["organization_id"]:
                 collisions.append("organization_id")
             
+            if parsed1["path_hash"] == parsed2["path_hash"]:
+                collisions.append("path_hash")
+            
             if parsed1["key_hash"] == parsed2["key_hash"]:
                 collisions.append("key_hash")
             
             # Full collision if all components match
-            full_collision = len(collisions) == 5
+            full_collision = len(collisions) == 6
             
             return {
                 "full_collision": full_collision,
                 "partial_collisions": collisions,
-                "collision_risk": len(collisions) / 5.0,
+                "collision_risk": len(collisions) / 6.0,
                 "key1_parsed": parsed1,
                 "key2_parsed": parsed2
             }
