@@ -1,6 +1,6 @@
 # database.py - Database models and operations for mem0
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, Boolean, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, Boolean, ForeignKey, Enum as SQLEnum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -28,6 +28,10 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # RBAC fields
+    default_role = Column(String(50), default="MEMBER")
+    is_system_admin = Column(Boolean, default=False)
     
     # Relationships for sharing system
     owned_contexts = relationship("Context", foreign_keys="[Context.owner_id]", back_populates="owner")

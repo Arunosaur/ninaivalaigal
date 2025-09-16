@@ -63,10 +63,13 @@ def validate_password(password: str) -> bool:
     return True
 
 # Email validation
-def validate_email(email: str) -> bool:
-    """Basic email validation"""
+def validate_email(email: str) -> str:
+    """Validate email format"""
+    import re
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return re.match(pattern, email) is not None
+    if not re.match(pattern, email):
+        raise HTTPException(status_code=400, detail="Invalid email format")
+    return email.lower().strip()
 
 # Password hashing
 def hash_password(password: str) -> str:
@@ -219,39 +222,62 @@ async def get_current_user_optional(request: Request):
         return None
 
 # User management functions
-def create_individual_user(signup_data):
+def create_individual_user(signup_data: IndividualUserSignup):
     """Create individual user account"""
-    # Validate email and password
+    db = get_db()
+    session = db.get_session()
+    
     try:
         # Validate input data
-        api_validator = get_api_validator()
-        validated_data = api_validator.validate_signup_data({
-            'email': signup_data.email,
+        validated_data = {
+            'email': validate_email(signup_data.email),
             'password': signup_data.password,
             'name': signup_data.name,
             'account_type': signup_data.account_type
-        })
-        
-        db = get_db()
+        }
         
         # Check if user already exists
         existing_user = db.get_user_by_email(validated_data['email'])
         if existing_user:
             raise HTTPException(status_code=400, detail="User already exists")
         
+        # Generate verification token
+        verification_token = generate_verification_token()
+        
         # Hash password
         hashed_password = hash_password(validated_data['password'])
         
-        # Create user
-        new_user = db.create_user(
+        # Create user in database
+        from database import User
+        new_user = User(
+            username=None,
             email=validated_data['email'],
-            password_hash=hashed_password,
             name=validated_data['name'],
+            password_hash=hashed_password,
+            verification_token=verification_token,
             account_type=validated_data['account_type']
         )
         
         session.add(new_user)
         session.commit()
+        
+        # Create default RBAC role assignment
+        try:
+            from rbac_models import RoleAssignment
+            from rbac.permissions import Role
+            
+            role_assignment = RoleAssignment(
+                user_id=new_user.id,
+                role=Role.MEMBER,
+                scope_type="global",
+                scope_id=None,
+                assigned_by=new_user.id,
+                is_active=True
+            )
+            session.add(role_assignment)
+            session.commit()
+        except Exception as rbac_error:
+            print(f"Warning: Failed to create RBAC role assignment: {rbac_error}")
         
         # Generate JWT token
         jwt_payload = {

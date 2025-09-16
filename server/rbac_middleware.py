@@ -181,7 +181,8 @@ def require_permission(resource: Resource, action: Action,
             )
             print(log_msg)
             
-            return await func(*args, **kwargs)
+            result = await func(*args, **kwargs)
+            return result
         return wrapper
     return decorator
 
@@ -196,20 +197,10 @@ def require_role(min_role: Role, scope_param: Optional[str] = None):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            # Find the request object
-            request = None
-            for arg in args:
-                if isinstance(arg, Request):
-                    request = arg
-                    break
-            
-            if not request:
-                request = kwargs.get('request')
-            
+            request = kwargs.get('request') or (args[0] if args and hasattr(args[0], 'headers') else None)
             if not request:
                 raise HTTPException(status_code=500, detail="Request object not found")
             
-            # Get RBAC context
             rbac_context = getattr(request.state, 'rbac_context', None)
             if not rbac_context:
                 raise HTTPException(status_code=401, detail="Authentication required")

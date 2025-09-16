@@ -524,7 +524,7 @@ def get_user_accessible_contexts(current_user: User = Depends(get_current_user))
 # --- Context Creation with Ownership ---
 @app.post("/contexts")
 @require_permission(Resource.CONTEXT, Action.CREATE)
-def create_context(request: Request, context_data: ContextCreate, current_user: User = Depends(get_current_user)):
+async def create_context(request: Request, context_data: ContextCreate, current_user: User = Depends(get_current_user)):
     """Create a new context with scope-based ownership through spec-kit"""
     try:
         # Create context spec

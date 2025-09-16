@@ -335,38 +335,52 @@ async def accept_invitation(
             
             # Create user account
             password_hash = hash_password(user_data["password"])
-            verification_token = generate_verification_token()
-            
-            new_user = User(
-                email=invitation.email,
-                name=user_data["name"],
-                password_hash=password_hash,
-                account_type="team_member",
-                subscription_tier="team",
-                role=invitation.role,
-                created_via="invite",
-                email_verified=False,
-                verification_token=verification_token
-            )
-            session.add(new_user)
-            session.flush()  # Get user ID
-            
-            # Update invitation status
-            invitation.status = "accepted"
-            invitation.accepted_at = datetime.utcnow()
-            
-            session.commit()
-            
-            # Generate JWT token
-            jwt_payload = {
-                "user_id": new_user.id,
-                "email": new_user.email,
-                "account_type": new_user.account_type,
-                "role": new_user.role,
-                "organization_id": invitation.organization_id,
-                "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
-            }
-            jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+            try:
+                # Create user in database
+                user = db.create_user(
+                    username=None,  # No username for individual signup
+                    email=invitation.email,
+                    name=user_data["name"],
+                    password=user_data["password"],
+                    account_type="team_member"
+                )
+                
+                # Create default role assignment
+                from rbac_models import RoleAssignment
+                from rbac.permissions import Role
+                db_session = db.get_session()
+                
+                role_assignment = RoleAssignment(
+                    user_id=user.id,
+                    role=Role.MEMBER,
+                    scope_type="global",
+                    scope_id=None,
+                    assigned_by=user.id,  # Self-assigned for new users
+                    is_active=True
+                )
+                db_session.add(role_assignment)
+                db_session.commit()  # Get user ID
+                
+                # Update invitation status
+                invitation.status = "accepted"
+                invitation.accepted_at = datetime.utcnow()
+                
+                session.commit()
+                
+                # Generate JWT token
+                jwt_payload = {
+                    "user_id": user.id,
+                    "email": user.email,
+                    "account_type": user.account_type,
+                    "role": invitation.role,
+                    "organization_id": invitation.organization_id,
+                    "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+                }
+                jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+                
+            except Exception as e:
+                session.rollback()
+                raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
             
             # Send verification email
             background_tasks.add_task(

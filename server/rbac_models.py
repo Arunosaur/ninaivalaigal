@@ -115,30 +115,22 @@ class AccessRequest(Base):
     def __repr__(self):
         return f"<AccessRequest(requester_id={self.requester_id}, resource={self.resource.name}, action={self.action.name}, status={self.status})>"
 
-# Extend existing User model with RBAC relationships
-def extend_user_model():
-    """Add RBAC relationships to existing User model"""
-    from database import User
-    from sqlalchemy import Column, Boolean
-    from sqlalchemy.orm import relationship
-    
-    # Add role assignments relationship
-    if not hasattr(User, 'role_assignments'):
-        User.role_assignments = relationship("RoleAssignment", 
-                                           foreign_keys="RoleAssignment.user_id",
-                                           back_populates="user")
-    
-    # Add permission audits relationship
-    if not hasattr(User, 'permission_audits'):
-        User.permission_audits = relationship("PermissionAudit", back_populates="user")
+# Import User model and add RBAC relationships
+from database import User
+from sqlalchemy.orm import relationship
 
-# Call this function to extend the User model
-extend_user_model()
+# Add RBAC relationships to User model
+User.role_assignments = relationship("RoleAssignment", 
+                                   foreign_keys="RoleAssignment.user_id",
+                                   back_populates="user")
+
+User.permission_audits = relationship("PermissionAudit", back_populates="user")
 
 # Helper functions for RBAC operations
 def get_user_roles(db, user_id: int, scope_type: str = None, scope_id: str = None):
     """Get all active role assignments for a user"""
-    query = db.session.query(RoleAssignment).filter(
+    session = db.get_session()
+    query = session.query(RoleAssignment).filter(
         RoleAssignment.user_id == user_id,
         RoleAssignment.is_active == True
     )
