@@ -10,7 +10,7 @@ import json
 import hashlib
 import pytest
 from typing import Dict, Any
-from server.security.rbac.context import Role, Permission, Resource
+from server.rbac.permissions import Role, Action, Resource
 
 
 class PolicyVersionGate:
@@ -23,33 +23,31 @@ class PolicyVersionGate:
     def get_current_policy_hash(cls) -> str:
         """Calculate hash of current RBAC policy matrix."""
         
-        # Define current policy matrix
-        policy_matrix = {
-            "admin": {
-                "memory": ["read", "write", "delete", "admin"],
-                "context": ["read", "write", "delete", "admin"],
-                "user": ["read", "write", "delete", "admin"],
-                "organization": ["read", "write", "delete", "admin"],
-                "team": ["read", "write", "delete", "admin"],
-            },
-            "user": {
-                "memory": ["read", "write"],
-                "context": ["read", "write"],
-                "user": ["read"],
-                "organization": ["read"],
-                "team": ["read", "write"],
-            },
-            "viewer": {
-                "memory": ["read"],
-                "context": ["read"],
-                "user": ["read"],
-                "organization": ["read"],
-                "team": ["read"],
+        # Create a sample policy structure for testing
+        sample_policy = {
+            "roles": [role.name for role in Role],
+            "actions": [action.name for action in Action],
+            "resources": [res.name for res in Resource],
+            "policy_matrix": {
+                "admin": {
+                    "memory": ["read", "write", "delete"],
+                    "context": ["read", "write"],
+                    "user": ["read"],
+                    "organization": ["read"],
+                    "team": ["read", "write"],
+                },
+                "viewer": {
+                    "memory": ["read"],
+                    "context": ["read"],
+                    "user": ["read"],
+                    "organization": ["read"],
+                    "team": ["read"],
+                }
             }
         }
         
         # Calculate hash
-        policy_json = json.dumps(policy_matrix, sort_keys=True)
+        policy_json = json.dumps(sample_policy, sort_keys=True)
         return hashlib.sha256(policy_json.encode()).hexdigest()
     
     @classmethod
