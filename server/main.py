@@ -18,6 +18,7 @@ from input_validation import get_api_validator, InputValidationError
 from rate_limiting import rate_limit_middleware
 from rbac_middleware import rbac_middleware, require_permission, require_role, get_rbac_context, require_authentication
 from rbac.permissions import Role, Action, Resource
+from security_integration import configure_security, redact_text, check_cross_org_access, log_admin_action, security_manager
 from spec_kit import SpecKitContextManager, ContextSpec, ContextScope, ContextPermissionSpec, PermissionLevel
 from performance_monitor import (
     get_performance_monitor,
@@ -153,7 +154,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add rate limiting middleware (before CORS)
+# Configure security middleware (includes headers, redaction, rate limiting)
+development_mode = os.getenv('DEVELOPMENT_MODE', 'false').lower() == 'true'
+configure_security(app, development_mode=development_mode)
+
+# Add legacy rate limiting middleware (before CORS) - will be replaced by security middleware
 app.middleware("http")(rate_limit_middleware)
 
 # Add RBAC middleware (before CORS)
@@ -175,6 +180,10 @@ app.include_router(signup_router)
 from rbac_api import rbac_router
 app.include_router(rbac_router)
 
+# Include security router
+from security_endpoints import security_router
+app.include_router(security_router)
+
 # Remove duplicate auth endpoints - handled by signup_router
 
 # Login endpoint handled by signup_router
@@ -192,9 +201,18 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
 # --- Organization Management ---
 @app.post("/organizations")
 @require_permission(Resource.ORG, Action.CREATE)
-def create_organization(request: Request, org_data: OrganizationCreate, current_user: User = Depends(get_current_user)):
+async def create_organization(request: Request, org_data: OrganizationCreate, current_user: User = Depends(get_current_user)):
     """Create a new organization"""
     try:
+        # Log admin action
+        rbac_context = get_rbac_context(request)
+        await log_admin_action(
+            rbac_context, 
+            "create_organization", 
+            f"organization:{org_data.name}",
+            {"organization_name": org_data.name, "description": org_data.description}
+        )
+        
         org = db.create_organization(org_data.name, org_data.description)
         return {
             "id": org.id,
@@ -552,7 +570,7 @@ async def create_context(request: Request, context_data: ContextCreate, current_
 
 @app.post("/memory")
 @require_permission(Resource.MEMORY, Action.CREATE)
-def store_memory(request: Request, entry: MemoryPayload, current_user: User = Depends(get_current_user)):
+async def store_memory(request: Request, entry: MemoryPayload, current_user: User = Depends(get_current_user)):
     """Store a memory entry with user isolation and duplicate filtering"""
     try:
         # Use authenticated user ID (mandatory)
@@ -579,6 +597,19 @@ def store_memory(request: Request, entry: MemoryPayload, current_user: User = De
         if entry.type == "terminal_command" and entry.source == "zsh_session":
             return {"message": "Skipped duplicate terminal_command entry", "id": None}
         
+        # Apply redaction to sensitive data before storing
+        rbac_context = get_rbac_context(request)
+        if entry.data:
+            # Convert data to string for redaction
+            data_str = json.dumps(entry.data)
+            redacted_data_str = await redact_text(data_str, rbac_context=rbac_context)
+            # Parse back to dict if redaction was applied
+            if redacted_data_str != data_str:
+                try:
+                    entry.data = json.loads(redacted_data_str)
+                except json.JSONDecodeError:
+                    # If redaction broke JSON structure, store as redacted string
+                    entry.data = {"redacted_content": redacted_data_str}
         
         memory_id = db.add_memory(
             context=context,
