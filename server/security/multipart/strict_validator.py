@@ -6,8 +6,11 @@ to prevent multipart-based security bypasses and evasion attacks.
 """
 
 import re
-from typing import Set, Dict, Any, Optional, List, Tuple
+from typing import Dict, List, Optional, Set, Any
+import re
+import mimetypes
 from dataclasses import dataclass
+from .binary_masquerade_guard import looks_binary
 from starlette.datastructures import UploadFile
 
 
@@ -113,11 +116,22 @@ class StrictMultipartValidator:
             result["violations"].append("filename_invalid_characters")
         
         # Check for executable extensions
-        if self.policy.block_executable_extensions:
-            file_ext = self._get_file_extension(filename)
-            if file_ext in self.EXECUTABLE_EXTENSIONS:
-                result["valid"] = False
-                result["violations"].append("executable_extension_blocked")
+        if self._is_executable_extension(filename):
+            violations.append({
+                "type": "executable_extension",
+                "message": f"Executable file extension not allowed: {filename}",
+                "severity": "high"
+            })
+        
+        # Check for binary masquerade
+        if content and looks_binary(content, content_type, filename):
+            violations.append({
+                "type": "binary_masquerade",
+                "message": f"Binary content masquerading as {content_type}",
+                "severity": "high"
+            })
+        
+        result["violations"].extend(violations)
         
         # Check filename/content-type mismatch
         if self.policy.require_content_type_match:

@@ -344,14 +344,13 @@ def apply_production_security(app: FastAPI, redis_url: Optional[str] = None) -> 
     )
 
 
-def apply_development_security(app: FastAPI) -> None:
-    """Apply development-friendly security configuration."""
+def apply_development_security(app: FastAPI):
+    """Apply development security configuration."""
     SecurityBundle.apply(
         app,
-        idempotency_store=MemoryIdempotencyStore(),
-        fail_closed_tier_threshold=4,  # More lenient for development
+        enable_compression_guard=True,  # Keep enabled for parity testing
         enable_multipart_adapter=True,
-        enable_compression_guard=False,  # Allow compressed requests in dev
+        fail_closed_tier_threshold=5,  # More lenient in dev
         enable_global_scrubbing=True,
         reject_disallowed=False  # Allow all content types in dev
     )
