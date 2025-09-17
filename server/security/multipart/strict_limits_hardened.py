@@ -73,13 +73,18 @@ EXECUTABLE_TYPES = {
     "application/x-mach-binary"
 }
 
+# Default constants for adapter compatibility
+DEFAULT_MAX_TEXT_PART_BYTES = 1 * 1024 * 1024  # 1MB for text
+DEFAULT_MAX_BINARY_PART_BYTES = 10 * 1024 * 1024  # 10MB for binary  
+DEFAULT_MAX_PARTS_PER_REQUEST = 256  # P0: Part count DoS prevention
+
 @dataclass
 class HardenedPartLimitConfig:
     """Enhanced configuration with P0 hardening options."""
     max_part_bytes: int = 10 * 1024 * 1024  # 10MB default
-    max_text_part_bytes: int = 1 * 1024 * 1024  # 1MB for text
-    max_binary_part_bytes: int = 10 * 1024 * 1024  # 10MB for binary
-    max_parts_per_request: int = 256  # P0: Part count DoS prevention
+    max_text_part_bytes: int = DEFAULT_MAX_TEXT_PART_BYTES
+    max_binary_part_bytes: int = DEFAULT_MAX_BINARY_PART_BYTES
+    max_parts_per_request: int = DEFAULT_MAX_PARTS_PER_REQUEST
     
     # Magic byte detection
     enforce_magic_byte_checks: bool = True

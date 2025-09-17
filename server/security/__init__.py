@@ -15,7 +15,7 @@ from .rbac.decorators import (
 )
 from .rbac.context import get_subject_ctx, resolve_jwt_claims, SubjectContext, Role
 from .idempotency.middleware import IdempotencyMiddleware, memory_idempotency_middleware
-from .multipart.starlette_adapter import process_multipart_securely, SecurityMultipartHandler
+from .multipart.starlette_adapter import scan_with_starlette
 from .orm.tenancy_guard import (
     set_tenant_context, get_tenant_context, tenant_context, require_tenant_context,
     install_tenancy_guard, validate_tenant_access

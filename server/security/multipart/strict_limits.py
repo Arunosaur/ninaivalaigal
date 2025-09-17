@@ -134,6 +134,31 @@ def looks_binary(payload: bytes, *, printable_threshold: float = 0.30) -> bool:
     ratio = nonprint / max(1, len(payload))
     return ratio > printable_threshold
 
+# Import hardened implementation functions
+from server.security.multipart.strict_limits_hardened import (
+    HardenedPartLimitConfig,
+    enforce_part_limits_stream,
+    looks_binary as hardened_looks_binary,
+    disallow_archives_for_text,
+    reject_content_transfer_encoding,
+    require_utf8_text,
+    DEFAULT_MAX_TEXT_PART_BYTES,
+    DEFAULT_MAX_BINARY_PART_BYTES,
+    DEFAULT_MAX_PARTS_PER_REQUEST,
+)
+
+# Re-export for compatibility
+__all__ = [
+    'enforce_part_limits_stream',
+    'looks_binary', 
+    'disallow_archives_for_text',
+    'reject_content_transfer_encoding',
+    'require_utf8_text',
+    'DEFAULT_MAX_TEXT_PART_BYTES',
+    'DEFAULT_MAX_BINARY_PART_BYTES', 
+    'DEFAULT_MAX_PARTS_PER_REQUEST',
+]
+
 def enforce_part_limits(
     content: bytes, 
     content_type: str,

@@ -1,220 +1,118 @@
-"""
-Starlette Multipart Adapter
+# server/security/multipart/starlette_adapter.py
+from __future__ import annotations
+from typing import Callable, Optional
 
-Hardened multipart/form-data parser with stream-aware processing,
-size limits, and security callbacks for the Ninaivalaigal platform.
-"""
-
-import asyncio
-from typing import AsyncIterator, Callable, Optional, Dict, Any, Protocol
-from starlette.datastructures import UploadFile
+from fastapi import HTTPException, status
 from starlette.requests import Request
+from starlette.formparsers import MultiPartParser
 
+from server.security.multipart.strict_limits_hardened import (
+    DEFAULT_MAX_TEXT_PART_BYTES,
+    DEFAULT_MAX_BINARY_PART_BYTES,
+    DEFAULT_MAX_PARTS_PER_REQUEST,
+    HardenedPartLimitConfig,
+    StreamLimitState,
+    _looks_binary_enhanced as looks_binary,
+    detect_enhanced_magic_bytes,
+    require_utf8_text,
+    reject_content_transfer_encoding,
+    disallow_archives_for_text,
+)
 
-class MultipartHandler(Protocol):
-    """Protocol for handling multipart parts."""
-    
-    async def handle_text_part(self, field_name: str, content: str) -> str:
-        """Handle text part, return processed content."""
-        ...
-    
-    async def handle_binary_part(self, field_name: str, file: UploadFile) -> Optional[UploadFile]:
-        """Handle binary part, return processed file or None to skip."""
-        ...
+REASON_ENGINE_ERROR = "engine_error"
+REASON_POLICY_DENIED = "policy_denied"
+REASON_MAGIC_MISMATCH = "magic_mismatch"
+REASON_PART_TOO_LARGE = "part_too_large"
+REASON_TOO_MANY_PARTS = "too_many_parts"
+REASON_INVALID_ENCODING = "invalid_encoding"
+REASON_ARCHIVE_BLOCKED = "archive_blocked"
 
+def _emit_multipart_reject(reason: str) -> None:
+    return
 
-class SecurityMultipartHandler:
-    """Security-focused multipart handler with redaction."""
-    
-    def __init__(
-        self,
-        text_processor: Optional[Callable[[str], str]] = None,
-        allow_binary: bool = False,
-        max_text_size: int = 1024 * 1024,  # 1MB
-        max_binary_size: int = 10 * 1024 * 1024  # 10MB
-    ):
-        self.text_processor = text_processor or (lambda x: x)
-        self.allow_binary = allow_binary
-        self.max_text_size = max_text_size
-        self.max_binary_size = max_binary_size
-    
-    async def handle_text_part(self, field_name: str, content: str) -> str:
-        """Handle text part with size limits and processing."""
-        if len(content.encode('utf-8')) > self.max_text_size:
-            raise ValueError(f"Text part '{field_name}' exceeds size limit")
-        
-        # Apply text processor (e.g., redaction)
-        return self.text_processor(content)
-    
-    async def handle_binary_part(self, field_name: str, file: UploadFile) -> Optional[UploadFile]:
-        """Handle binary part with security policies."""
-        if not self.allow_binary:
-            # Security policy: reject binary uploads
-            return None
-        
-        # Check file size
-        content = await file.read()
-        if len(content) > self.max_binary_size:
-            raise ValueError(f"Binary part '{field_name}' exceeds size limit")
-        
-        # Reset file position
-        await file.seek(0)
-        return file
-
-
-class StarletteMultipartAdapter:
-    """Adapter for secure multipart processing with Starlette."""
-    
-    def __init__(
-        self,
-        handler: MultipartHandler,
-        max_parts: int = 100,
-        max_total_size: int = 50 * 1024 * 1024  # 50MB
-    ):
-        self.handler = handler
-        self.max_parts = max_parts
-        self.max_total_size = max_total_size
-    
-    async def process_multipart(self, request: Request) -> Dict[str, Any]:
-        """Process multipart request with security constraints."""
-        if not self._is_multipart(request):
-            raise ValueError("Request is not multipart/form-data")
-        
-        form = await request.form()
-        processed_data = {}
-        part_count = 0
-        total_size = 0
-        
-        for field_name, field_value in form.items():
-            part_count += 1
-            if part_count > self.max_parts:
-                raise ValueError(f"Too many parts: {part_count} > {self.max_parts}")
-            
-            if isinstance(field_value, UploadFile):
-                # Binary part
-                file_size = await self._get_file_size(field_value)
-                total_size += file_size
-                
-                if total_size > self.max_total_size:
-                    raise ValueError(f"Total size exceeds limit: {total_size}")
-                
-                processed_file = await self.handler.handle_binary_part(field_name, field_value)
-                if processed_file:
-                    processed_data[field_name] = processed_file
-            
-            elif isinstance(field_value, str):
-                # Text part
-                text_size = len(field_value.encode('utf-8'))
-                total_size += text_size
-                
-                if total_size > self.max_total_size:
-                    raise ValueError(f"Total size exceeds limit: {total_size}")
-                
-                processed_text = await self.handler.handle_text_part(field_name, field_value)
-                processed_data[field_name] = processed_text
-            
-            else:
-                # Handle other types as strings
-                str_value = str(field_value)
-                processed_text = await self.handler.handle_text_part(field_name, str_value)
-                processed_data[field_name] = processed_text
-        
-        return processed_data
-    
-    def _is_multipart(self, request: Request) -> bool:
-        """Check if request is multipart/form-data."""
-        content_type = request.headers.get("content-type", "")
-        return content_type.startswith("multipart/form-data")
-    
-    async def _get_file_size(self, file: UploadFile) -> int:
-        """Get file size without consuming the stream."""
-        current_pos = await file.seek(0, 2)  # Seek to end
-        size = await file.tell()
-        await file.seek(current_pos)  # Reset position
-        return size
-
-
-async def process_multipart_securely(
+async def scan_with_starlette(
     request: Request,
-    text_processor: Optional[Callable[[str], str]] = None,
-    allow_binary: bool = False,
-    max_parts: int = 100
-) -> Dict[str, Any]:
-    """Convenience function for secure multipart processing."""
-    handler = SecurityMultipartHandler(
-        text_processor=text_processor,
-        allow_binary=allow_binary
-    )
-    
-    adapter = StarletteMultipartAdapter(handler, max_parts=max_parts)
-    return await adapter.process_multipart(request)
+    text_handler: Callable[[str, dict], None],
+    binary_handler: Optional[Callable[[bytes, dict], None]] = None,
+    *,
+    max_text_part_bytes: int = DEFAULT_MAX_TEXT_PART_BYTES,
+    max_binary_part_bytes: int = DEFAULT_MAX_BINARY_PART_BYTES,
+    max_parts_per_request: int = DEFAULT_MAX_PARTS_PER_REQUEST,
+) -> None:
+    try:
+        parser = MultiPartParser(headers=request.headers, stream=request.stream())
+    except Exception as e:
+        _emit_multipart_reject(REASON_ENGINE_ERROR)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"invalid multipart: {e}") from e
 
+    part_count = 0
 
-class StreamingMultipartProcessor:
-    """Stream-aware multipart processor for large uploads."""
-    
-    def __init__(
-        self,
-        chunk_size: int = 8192,
-        max_memory: int = 1024 * 1024  # 1MB in memory
-    ):
-        self.chunk_size = chunk_size
-        self.max_memory = max_memory
-    
-    async def process_streaming(
-        self,
-        request: Request,
-        part_callback: Callable[[str, AsyncIterator[bytes]], None]
-    ) -> None:
-        """Process multipart data in streaming fashion."""
-        if not request.headers.get("content-type", "").startswith("multipart/form-data"):
-            raise ValueError("Not a multipart request")
-        
-        # This is a simplified streaming processor
-        # In production, you'd use a proper multipart parser
-        async for chunk in self._read_chunks(request):
-            # Process chunk
-            await part_callback("stream", self._chunk_iterator([chunk]))
-    
-    async def _read_chunks(self, request: Request) -> AsyncIterator[bytes]:
-        """Read request body in chunks."""
-        body = await request.body()
-        for i in range(0, len(body), self.chunk_size):
-            yield body[i:i + self.chunk_size]
-    
-    async def _chunk_iterator(self, chunks: list) -> AsyncIterator[bytes]:
-        """Convert chunk list to async iterator."""
-        for chunk in chunks:
-            yield chunk
+    async for part in parser.parse():
+        part_count += 1
+        if part_count > max_parts_per_request:
+            _emit_multipart_reject(REASON_TOO_MANY_PARTS)
+            raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                                detail="too many multipart parts")
 
+        headers = dict(part.headers or {})
+        ctype = (headers.get("content-type") or "").lower()
+        cte   = headers.get("content-transfer-encoding")
 
-def create_secure_multipart_middleware(
-    text_processor: Optional[Callable[[str], str]] = None,
-    allow_binary: bool = False
-):
-    """Create middleware for secure multipart processing."""
-    
-    async def middleware(request: Request, call_next):
-        if request.headers.get("content-type", "").startswith("multipart/form-data"):
-            # Process multipart data securely
+        is_textish = ctype.startswith("text/") or ctype.startswith("application/json") or ctype.startswith("application/x-www-form-urlencoded")
+        cap = max_text_part_bytes if is_textish else max_binary_part_bytes
+
+        # Collect part data with size limits
+        try:
+            head = b""
+            total_size = 0
+            async for chunk in part.stream():
+                total_size += len(chunk)
+                if total_size > cap:
+                    _emit_multipart_reject(REASON_PART_TOO_LARGE)
+                    raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                                        detail="multipart part exceeds size limit")
+                head += chunk
+        except HTTPException:
+            raise
+        except Exception:
+            _emit_multipart_reject(REASON_ENGINE_ERROR)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="failed to process multipart stream")
+
+        # Check for archives on text endpoints
+        magic_result = detect_enhanced_magic_bytes(head)
+        if is_textish and magic_result.get("detected") and "zip" in magic_result.get("mime_type", "").lower():
+            _emit_multipart_reject(REASON_ARCHIVE_BLOCKED)
+            raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                detail="archive payload not allowed for text endpoints")
+
+        if looks_binary(head):
+            if is_textish:
+                _emit_multipart_reject(REASON_MAGIC_MISMATCH)
+                raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                    detail="content-type mismatch: binary payload in text part")
+            if binary_handler is not None:
+                binary_handler(head, headers)
+            continue
+
+        # Check Content-Transfer-Encoding
+        cte_result = reject_content_transfer_encoding(cte)
+        if not cte_result.get("valid", True):
+            _emit_multipart_reject(REASON_INVALID_ENCODING)
+            raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                detail="unsupported Content-Transfer-Encoding for text part")
+
+        # Check UTF-8 validity
+        utf8_result = require_utf8_text(head)
+        if not utf8_result.get("valid", True):
+            _emit_multipart_reject(REASON_INVALID_ENCODING)
+            raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                detail="text parts must be UTF-8")
+
+        if head:
             try:
-                processed_data = await process_multipart_securely(
-                    request,
-                    text_processor=text_processor,
-                    allow_binary=allow_binary
-                )
-                
-                # Attach processed data to request
-                request.state.processed_multipart = processed_data
-                
-            except Exception as e:
-                # Return error response for invalid multipart data
-                from starlette.responses import JSONResponse
-                return JSONResponse(
-                    {"error": f"Multipart processing failed: {str(e)}"},
-                    status_code=400
-                )
-        
-        return await call_next(request)
-    
-    return middleware
+                text_handler(head.decode("utf-8"), headers)
+            except UnicodeDecodeError:
+                _emit_multipart_reject(REASON_INVALID_ENCODING)
+                raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                    detail="text parts must be UTF-8")
