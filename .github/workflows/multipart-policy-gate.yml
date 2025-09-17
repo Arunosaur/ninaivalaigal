@@ -1,0 +1,11 @@
+name: Multipart Policy Gate
+
+on: [pull_request]
+
+jobs:
+  policy-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Multipart Policy Snapshot Gate
+        run: python scripts/multipart_policy_snapshot_gate.py
