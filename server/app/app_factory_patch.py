@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, Depends
 from pydantic import BaseModel
 from typing import Any, Dict
-from server.memory.store_factory import get_memory_store
+from memory.store_factory import get_memory_store
 
 class WriteBody(BaseModel):
     scope: str = "personal"

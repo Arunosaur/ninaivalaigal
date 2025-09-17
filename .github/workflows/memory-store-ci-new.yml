@@ -1,0 +1,90 @@
+name: memory-store-ci
+on:
+  push:
+    paths:
+      - 'server/**'
+      - 'alembic/**'
+      - 'docker-compose.ci.yml'
+      - '.github/workflows/memory-store-ci.yml'
+      - 'tests/**'
+      - 'scripts/**'
+  pull_request:
+  schedule:
+    - cron: '15 3 * * *'
+jobs:
+  test-memory-store:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix: { python-version: ['3.10','3.11','3.12'] }
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+            pyproject.toml
+            setup.cfg
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black
+          pip install "psycopg[binary]" sqlalchemy alembic pytest fastapi "uvicorn[standard]" httpx
+      - name: Lint
+        run: |
+          flake8 server || (echo "::warning::flake8 fails"; exit 1)
+          black --check server || (echo "::warning::black check fails"; exit 1)
+      - name: Start pgvector
+        run: |
+          docker compose -f docker-compose.ci.yml up -d pgvector
+          for i in {1..90}; do
+            s=$(docker inspect --format='{{json .State.Health.Status}}' $(docker compose -f docker-compose.ci.yml ps -q pgvector) || echo 'null')
+            if echo "$s" | grep -q healthy; then break; fi; sleep 2; done
+      - name: Compute snapshot key
+        id: snapkey
+        run: |
+          python scripts/db_snapshot_key.py > snapshot_key.txt || echo no-migrations > snapshot_key.txt
+          echo "key=$(cat snapshot_key.txt)" >> $GITHUB_OUTPUT
+      - name: Restore dump
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: memory_dump.sql
+          key: db-snapshot-${{ steps.snapkey.outputs.key }}
+      - name: Restore DB (if cached)
+        if: steps.cache-restore.outputs.cache-hit == 'true'
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f memory_dump.sql
+      - name: Apply migrations (if no dump)
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: |
+          if [ -f alembic.ini ]; then alembic upgrade head;
+          elif [ -f server/memory/db/migrations/0111_memory_pgvector.sql ]; then psql "$DATABASE_URL" -f server/memory/db/migrations/0111_memory_pgvector.sql;
+          fi
+      - name: Dump DB (on miss)
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: pg_dump "$DATABASE_URL" > memory_dump.sql
+      - name: Save dump
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: memory_dump.sql
+          key: db-snapshot-${{ steps.snapkey.outputs.key }}
+      - name: Tests
+        run: |
+          pytest -q tests/test_factory_switch_smoke.py
+          if [ -f server/memory/tests/test_postgres_semantic_demo.py ]; then pytest -q server/memory/tests/test_postgres_semantic_demo.py; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-artifacts-${{ matrix.python-version }}
+          path: |
+            .pytest_cache
+            **/pytest*.xml
+            memory_dump.sql
+          if-no-files-found: ignore
