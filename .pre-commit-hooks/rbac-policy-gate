@@ -1,0 +1,53 @@
+#!/bin/bash
+# RBAC Policy Snapshot Pre-commit Hook
+# Prevents unnoticed RBAC matrix changes by validating against baseline snapshot
+
+set -e
+
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+GATE_SCRIPT="$REPO_ROOT/scripts/rbac_policy_snapshot_gate.py"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo "🔒 Running RBAC Policy Snapshot Gate..."
+
+# Check if gate script exists
+if [[ ! -f "$GATE_SCRIPT" ]]; then
+    echo -e "${RED}❌ RBAC Policy Gate script not found: $GATE_SCRIPT${NC}"
+    exit 1
+fi
+
+# Make script executable
+chmod +x "$GATE_SCRIPT"
+
+# Run the policy gate check
+if python3 "$GATE_SCRIPT" --check; then
+    echo -e "${GREEN}✅ RBAC Policy Gate: PASSED${NC}"
+    exit 0
+else
+    exit_code=$?
+    
+    if [[ $exit_code -eq 1 ]]; then
+        echo -e "${RED}❌ RBAC Policy Gate: FAILED${NC}"
+        echo -e "${YELLOW}🔒 Policy changes detected that require manual approval${NC}"
+        echo ""
+        echo "To approve these changes:"
+        echo "1. Review the policy changes carefully"
+        echo "2. Run: python3 $GATE_SCRIPT --generate-approval"
+        echo "3. Create approval file: touch .rbac_changes_approved"
+        echo "4. Commit the approval: git add .rbac_changes_approved && git commit -m 'Approve RBAC policy changes'"
+        echo ""
+        echo "To update baseline (if changes are intentional):"
+        echo "python3 $GATE_SCRIPT --update-baseline"
+    else
+        echo -e "${RED}❌ RBAC Policy Gate: ERROR${NC}"
+    fi
+    
+    exit $exit_code
+fi
