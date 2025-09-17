@@ -25,6 +25,23 @@ This bundle contains Grafana dashboards, Prometheus recording rules, and alert r
 - Added P95 latency from adapter ≤ **5 ms**
 - False-positive reject rate ≤ **0.1%**
 
+## Key PromQL Queries
+
+**False-positive rate** (target ≤ 0.1% during canary):
+```promql
+sum(rate(multipart_reject_total[5m])) / clamp_min(sum(rate(multipart_parts_total[5m])), 1)
+```
+
+**Upload success rate** (SLO ≥ 99.9%):
+```promql
+slo:upload_success_rate:ratio
+```
+
+**Per-tenant rejection rates**:
+```promql
+slo:upload_rejects_per_tenant:rate
+```
+
 ## Notes
 - You can scope alerts to canary by appending label filters (e.g., `cluster=~"canary|prod"`).
 - For per-tenant noise reduction, use the recording rule `slo:upload_rejects_per_tenant:rate` and set thresholds relative to tenant baseline.

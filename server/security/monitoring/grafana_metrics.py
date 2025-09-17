@@ -78,6 +78,7 @@ class SecurityMetricsCollector:
             ("archive_ratio_max", MetricType.GAUGE, "Maximum compression ratio detected in archives"),
             ("archive_entries_total", MetricType.COUNTER, "Total archive entries processed"),
             ("strict_mode_flag", MetricType.GAUGE, "Feature flag state for strict mode (0/1)"),
+            ("strict_mode_flip_total", MetricType.COUNTER, "Total feature flag flips for annotations"),
             
             # Redis metrics
             ("redis_operations_total", MetricType.COUNTER, "Total Redis operations"),
@@ -339,6 +340,7 @@ def record_archive_telemetry(compression_ratio: float, entry_count: int):
 def update_strict_mode_flag(enabled: bool):
     """Update strict mode feature flag state for monitoring."""
     _metrics_collector.set_gauge("strict_mode_flag", 1.0 if enabled else 0.0)
+    _metrics_collector.increment_counter("strict_mode_flip_total")  # For annotations
 
 
 def record_request_duration(duration_seconds: float, endpoint: str):

@@ -45,9 +45,9 @@ groups:
           runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/encoding-attacks.md"
           dashboard_url: "https://grafana.example.com/d/multipart-security-alerts"
 
-      # SLO monitoring - Upload success rate
-      - alert: SLOUploadSuccessRateLow
-        expr: slo:upload_success_rate:ratio < 0.999
+      # SLO monitoring - Upload success rate (multi-window burn rate)
+      - alert: SLOUploadSuccessRateBurn
+        expr: (1 - slo:upload_success_rate:ratio) > (1 - 0.999)
         for: 15m
         labels:
           severity: ticket
@@ -59,6 +59,21 @@ groups:
           description: "Current success rate: {{ $value | humanizePercentage }}. Investigate recent multipart rejects or endpoint errors."
           runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/multipart-security.md"
           dashboard_url: "https://grafana.example.com/d/multipart-security-main"
+
+      # Per-tenant anomaly detection
+      - alert: TenantRejectAnomaly
+        expr: slo:upload_rejects_per_tenant:rate > 2
+        for: 10m
+        labels:
+          severity: ticket
+          component: multipart_security
+          team: security
+          anomaly_type: per_tenant_spike
+        annotations:
+          summary: "Tenant reject rate elevated"
+          description: "Tenant {{ $labels.tenant_id }} rejection rate: {{ $value }} rejects/sec (threshold: 2/sec)"
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/multipart-security.md"
+          dashboard_url: "https://grafana.example.com/d/multipart-security-alerts"
 
   - name: ninaivalaigal_multipart_performance
     rules:

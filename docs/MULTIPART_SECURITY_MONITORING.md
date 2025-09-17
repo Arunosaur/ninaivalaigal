@@ -183,7 +183,11 @@ Import the provided dashboard JSON files:
 1. `monitoring/grafana_dashboards/multipart_security_main.json` - Main service dashboard with SLO gauges
 2. `monitoring/grafana_dashboards/multipart_security_alerts.json` - Alerts overview with per-tenant rates
 
-Set the Prometheus datasource UID to `prom` or update the JSON files with your datasource UID.
+**Configuration Notes**:
+- Set the Prometheus datasource UID to `prom` or update the JSON files with your datasource UID
+- Ensure `/healthz/config` exposes boundary/header caps and feature flag state (strict/warn)
+- RBAC on dashboards: restrict write permissions; read-only for broader audiences
+- Dashboard includes `$upload_endpoint` variable (default: `/upload`) for flexible endpoint monitoring
 
 ## Runbook References
 

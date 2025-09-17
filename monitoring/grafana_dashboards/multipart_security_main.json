@@ -5,6 +5,20 @@
     "timezone": "browser",
     "schemaVersion": 36,
     "refresh": "30s",
+    "templating": {
+      "list": [
+        {
+          "name": "upload_endpoint",
+          "type": "textbox",
+          "label": "Upload Endpoint",
+          "query": "/upload",
+          "current": {
+            "value": "/upload",
+            "text": "/upload"
+          }
+        }
+      ]
+    },
     "panels": [
       {
         "title": "Rejections by Reason (rate)",
@@ -34,11 +48,11 @@
         },
         "targets": [
           {
-            "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{endpoint=\"/upload\"}[5m])) by (le))",
+            "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{endpoint=~\"$upload_endpoint\"}[5m])) by (le))",
             "legendFormat": "P50"
           },
           {
-            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{endpoint=\"/upload\"}[5m])) by (le))",
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{endpoint=~\"$upload_endpoint\"}[5m])) by (le))",
             "legendFormat": "P95"
           }
         ],
