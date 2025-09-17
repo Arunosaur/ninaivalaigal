@@ -1,0 +1,41 @@
+{
+  "title": "Spec010 RED Dashboard",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Requests by Status",
+      "targets": [
+        {
+          "expr": "sum by (status)(http_requests_total)"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "RBAC Denials",
+      "targets": [
+        {
+          "expr": "sum(rbac_denials_total)"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "JWKS Failures",
+      "targets": [
+        {
+          "expr": "sum(jwt_jwks_fetch_failures_total)"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Request Latency (P95)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))"
+        }
+      ]
+    }
+  ]
+}

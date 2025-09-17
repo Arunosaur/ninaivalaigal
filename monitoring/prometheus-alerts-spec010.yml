@@ -1,0 +1,26 @@
+groups:
+- name: spec010-alerts
+  rules:
+  - alert: HighRBACDenials
+    expr: sum(rate(rbac_denials_total[5m])) > 5
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High RBAC denials detected"
+
+  - alert: JWKSFailures
+    expr: sum(rate(jwt_jwks_fetch_failures_total[5m])) > 1
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "JWKS fetch failures"
+
+  - alert: HighLatencyP95
+    expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.5
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High P95 latency"
