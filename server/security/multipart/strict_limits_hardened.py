@@ -197,6 +197,17 @@ def require_utf8_text(content: bytes) -> Dict[str, Any]:
         result["encoding"] = "utf-16"
         return result
     
+    # Check for UTF-16LE without BOM (common case)
+    if len(content) >= 2 and content[1:2] == b'\x00' and content[0:1] != b'\x00':
+        result["valid"] = False
+        result["violations"].append({
+            "type": "utf16_detected",
+            "message": "UTF-16LE encoding detected in text part",
+            "severity": "high"
+        })
+        result["encoding"] = "utf-16le"
+        return result
+    
     try:
         # Attempt UTF-8 decode
         decoded = content.decode('utf-8')

@@ -28,7 +28,18 @@ REASON_INVALID_ENCODING = "invalid_encoding"
 REASON_ARCHIVE_BLOCKED = "archive_blocked"
 
 def _emit_multipart_reject(reason: str) -> None:
-    return
+    """Emit multipart rejection metrics with bounded reasons."""
+    # Wire to metrics counter: multipart_reject_total{reason}
+    # Bounded reasons: engine_error, policy_denied, magic_mismatch, 
+    # part_too_large, too_many_parts, invalid_encoding, archive_blocked
+    try:
+        from server.observability.metrics_label_guard import validate_reason_bucket
+        validated_reason = validate_reason_bucket(reason)
+        # TODO: Wire to actual metrics system
+        # metrics.counter("multipart_reject_total", tags={"reason": validated_reason}).increment()
+        pass
+    except ImportError:
+        pass
 
 async def scan_with_starlette(
     request: Request,
@@ -49,10 +60,10 @@ async def scan_with_starlette(
 
     async for part in parser.parse():
         part_count += 1
-        if part_count > max_parts_per_request:
+        if part_count >= max_parts_per_request:
             _emit_multipart_reject(REASON_TOO_MANY_PARTS)
             raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                                detail="too many multipart parts")
+                                detail="Too many parts in multipart request")
 
         headers = dict(part.headers or {})
         ctype = (headers.get("content-type") or "").lower()
@@ -76,43 +87,46 @@ async def scan_with_starlette(
             raise
         except Exception:
             _emit_multipart_reject(REASON_ENGINE_ERROR)
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="failed to process multipart stream")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="multipart processing error")
 
-        # Check for archives on text endpoints
-        magic_result = detect_enhanced_magic_bytes(head)
-        if is_textish and magic_result.get("detected") and "zip" in magic_result.get("mime_type", "").lower():
-            _emit_multipart_reject(REASON_ARCHIVE_BLOCKED)
-            raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                                detail="archive payload not allowed for text endpoints")
-
-        if looks_binary(head):
-            if is_textish:
-                _emit_multipart_reject(REASON_MAGIC_MISMATCH)
-                raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                                    detail="content-type mismatch: binary payload in text part")
-            if binary_handler is not None:
-                binary_handler(head, headers)
-            continue
-
-        # Check Content-Transfer-Encoding
-        cte_result = reject_content_transfer_encoding(cte)
-        if not cte_result.get("valid", True):
+        # Security validations
+        if cte:
             _emit_multipart_reject(REASON_INVALID_ENCODING)
             raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                                detail="unsupported Content-Transfer-Encoding for text part")
+                                detail="Content-Transfer-Encoding not allowed")
 
-        # Check UTF-8 validity
-        utf8_result = require_utf8_text(head)
-        if not utf8_result.get("valid", True):
-            _emit_multipart_reject(REASON_INVALID_ENCODING)
-            raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                                detail="text parts must be UTF-8")
-
-        if head:
-            try:
-                text_handler(head.decode("utf-8"), headers)
-            except UnicodeDecodeError:
+        if is_textish:
+            # UTF-8 validation for text parts
+            utf8_result = require_utf8_text(head)
+            if not utf8_result.get("valid"):
                 _emit_multipart_reject(REASON_INVALID_ENCODING)
                 raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                                    detail="text parts must be UTF-8")
+                                    detail="Text parts must be valid UTF-8")
+
+            # Binary masquerade detection
+            magic_result = detect_enhanced_magic_bytes(head)
+            if magic_result.get("detected"):
+                _emit_multipart_reject(REASON_MAGIC_MISMATCH)
+                raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                    detail="Binary content detected in text part")
+
+            # Archive blocking on text endpoints
+            if binary_handler is None:  # Text-only endpoint
+                archive_result = detect_enhanced_magic_bytes(head)
+                if archive_result.get("detected") and archive_result.get("format") in ["ZIP", "RAR", "7Z", "TAR"]:
+                    _emit_multipart_reject(REASON_ARCHIVE_BLOCKED)
+                    raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                        detail="Archive uploads not allowed on text endpoints")
+
+            # Process text part
+            text_content = head.decode("utf-8")
+            await text_handler(text_content, headers)
+
+        else:
+            # Binary part processing
+            if binary_handler is None:
+                _emit_multipart_reject(REASON_POLICY_DENIED)
+                raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                                    detail="Binary uploads not supported on this endpoint")
+
+            await binary_handler(head, headers)
