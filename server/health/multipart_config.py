@@ -39,7 +39,11 @@ def get_multipart_config_health() -> Dict[str, Any]:
             "too_many_parts",
             "invalid_encoding",
             "archive_blocked"
-        ]
+        ],
+        "boundary_limits": {
+            "max_boundary_length": 200,  # chars
+            "max_header_lines": 8192     # lines per part
+        }
     }
     
     # Validate configuration sanity
