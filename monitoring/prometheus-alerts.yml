@@ -60,7 +60,7 @@ groups:
           runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/multipart-security.md"
           dashboard_url: "https://grafana.example.com/d/multipart-security-main"
 
-      # Per-tenant anomaly detection
+      # Per-tenant anomaly detection (absolute threshold)
       - alert: TenantRejectAnomaly
         expr: slo:upload_rejects_per_tenant:rate > 2
         for: 10m
@@ -70,8 +70,23 @@ groups:
           team: security
           anomaly_type: per_tenant_spike
         annotations:
-          summary: "Tenant reject rate elevated"
+          summary: "Tenant reject rate elevated (absolute)"
           description: "Tenant {{ $labels.tenant_id }} rejection rate: {{ $value }} rejects/sec (threshold: 2/sec)"
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/multipart-security.md"
+          dashboard_url: "https://grafana.example.com/d/multipart-security-alerts"
+
+      # Per-tenant anomaly detection (baseline-aware)
+      - alert: TenantRejectAnomalyBaseline
+        expr: slo:upload_rejects_per_tenant:rate > 3 * (avg_over_time(slo:upload_rejects_per_tenant:rate[1d]) + 0.2)
+        for: 15m
+        labels:
+          severity: warning
+          component: multipart_security
+          team: security
+          anomaly_type: per_tenant_baseline_deviation
+        annotations:
+          summary: "Tenant reject rate anomaly (baseline-aware)"
+          description: "Tenant {{ $labels.tenant_id }} rejection rate {{ $value }} is 3x above 1-day baseline"
           runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/multipart-security.md"
           dashboard_url: "https://grafana.example.com/d/multipart-security-alerts"
 

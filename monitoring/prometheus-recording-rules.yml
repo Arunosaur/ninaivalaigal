@@ -1,6 +1,6 @@
 groups:
 - name: multipart-security.rules
-  interval: 30s
+  interval: 1m  # Conservative: works with 15s-60s scrape intervals
   rules:
   - record: slo:upload_success_rate:ratio
     expr: 1 - (sum(rate(multipart_reject_total[5m])) / clamp_min(sum(rate(multipart_parts_total[5m])), 1))

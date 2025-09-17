@@ -19,6 +19,22 @@
         }
       ]
     },
+    "annotations": {
+      "list": [
+        {
+          "name": "Feature Flag Flips",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prom"
+          },
+          "expr": "increase(strict_mode_flip_total[5m]) > 0",
+          "titleFormat": "Feature Flag Change",
+          "textFormat": "Strict mode flag flipped",
+          "iconColor": "orange",
+          "enable": true
+        }
+      ]
+    },
     "panels": [
       {
         "title": "Rejections by Reason (rate)",

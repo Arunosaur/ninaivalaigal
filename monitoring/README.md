@@ -27,7 +27,7 @@ This bundle contains Grafana dashboards, Prometheus recording rules, and alert r
 
 ## Key PromQL Queries
 
-**False-positive rate** (target ≤ 0.1% during canary):
+**False-positive rate** (target ≤ **0.1%** during canary - explicit acceptance criterion):
 ```promql
 sum(rate(multipart_reject_total[5m])) / clamp_min(sum(rate(multipart_parts_total[5m])), 1)
 ```

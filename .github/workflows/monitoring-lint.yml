@@ -1,0 +1,108 @@
+name: Monitoring Lint
+
+on:
+  push:
+    paths:
+      - 'monitoring/**'
+      - '.github/workflows/monitoring-lint.yml'
+  pull_request:
+    paths:
+      - 'monitoring/**'
+      - '.github/workflows/monitoring-lint.yml'
+
+jobs:
+  prometheus-rules-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Prometheus
+        run: |
+          wget https://github.com/prometheus/prometheus/releases/download/v2.45.0/prometheus-2.45.0.linux-amd64.tar.gz
+          tar xzf prometheus-2.45.0.linux-amd64.tar.gz
+          sudo mv prometheus-2.45.0.linux-amd64/promtool /usr/local/bin/
+      
+      - name: Lint Recording Rules
+        run: |
+          promtool check rules monitoring/prometheus-recording-rules.yml
+      
+      - name: Lint Alert Rules  
+        run: |
+          promtool check rules monitoring/prometheus-alerts.yml
+
+  grafana-dashboards-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      
+      - name: Lint Dashboard JSON
+        run: |
+          # Validate JSON syntax
+          jq empty monitoring/grafana_dashboards/multipart_security_main.json
+          jq empty monitoring/grafana_dashboards/multipart_security_alerts.json
+          
+          # Check for expected PromQL queries
+          if ! grep -q "multipart_reject_total" monitoring/grafana_dashboards/multipart_security_main.json; then
+            echo "ERROR: Main dashboard missing multipart_reject_total query"
+            exit 1
+          fi
+          
+          if ! grep -q "slo:upload_success_rate:ratio" monitoring/grafana_dashboards/multipart_security_main.json; then
+            echo "ERROR: Main dashboard missing SLO success rate query"
+            exit 1
+          fi
+          
+          echo "✅ Dashboard JSON validation passed"
+
+  metrics-presence-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install pytest
+      
+      - name: Test Metrics Presence
+        run: |
+          python -c "
+          import sys
+          sys.path.append('.')
+          
+          # Import metrics module
+          from server.security.monitoring.grafana_metrics import _metrics_collector
+          
+          # Expected metrics from our implementation
+          expected_metrics = [
+              'multipart_reject_total',
+              'multipart_parts_total', 
+              'multipart_bytes_total',
+              'archive_ratio_max',
+              'archive_entries_total',
+              'strict_mode_flag',
+              'strict_mode_flip_total'
+          ]
+          
+          # Check all expected metrics exist in metadata
+          missing_metrics = []
+          for metric in expected_metrics:
+              if metric not in _metrics_collector.metric_metadata:
+                  missing_metrics.append(metric)
+          
+          if missing_metrics:
+              print(f'ERROR: Missing metrics: {missing_metrics}')
+              sys.exit(1)
+          
+          print('✅ All expected metrics are present')
+          "

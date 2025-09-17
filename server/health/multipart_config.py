@@ -1,5 +1,7 @@
 """Multipart configuration health checks for /healthz/config endpoint."""
 
+import hashlib
+import json
 from typing import Dict, Any, List
 from server.security.multipart.strict_limits_hardened import (
     DEFAULT_MAX_TEXT_PART_BYTES,
@@ -76,6 +78,15 @@ def get_multipart_config_health() -> Dict[str, Any]:
     
     # Add feature flag status
     config["feature_flags"] = get_feature_flag_health()
+    
+    # Add deterministic config hash for drift detection
+    config_for_hash = {
+        "limits": config["limits"],
+        "security_features": config["security_features"],
+        "boundary_limits": config["boundary_limits"]
+    }
+    config_json = json.dumps(config_for_hash, sort_keys=True)
+    config["config_hash"] = hashlib.sha256(config_json.encode()).hexdigest()[:16]
     
     return config
 
