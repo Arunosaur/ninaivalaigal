@@ -1,0 +1,42 @@
+{
+  "title": "RBAC Denials",
+  "panels": [
+    {
+      "title": "RBAC Denials by Permission (rate)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prom"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(rbac_denials_total[5m])) by (permission)",
+          "legendFormat": "{{permission}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "rps"
+        }
+      }
+    },
+    {
+      "title": "401 vs 403 Rate (upload endpoints)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prom"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{status=\"401\",endpoint=~\"$upload_endpoint\"}[5m]))",
+          "legendFormat": "401"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{status=\"403\",endpoint=~\"$upload_endpoint\"}[5m]))",
+          "legendFormat": "403"
+        }
+      ]
+    }
+  ]
+}
