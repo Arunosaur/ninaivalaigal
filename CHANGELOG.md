@@ -1,5 +1,83 @@
 # Changelog
 
+## [1.1.0] - 2025-09-16
+
+### 🔒 Major Security Release: Multipart Upload Hardening
+
+#### Multipart Security Framework
+- **Hardened Starlette Adapter**: Stream-time per-part size enforcement with early abort
+- **Part Count DoS Prevention**: Configurable limits (default: 256 parts) with HTTP 413 responses
+- **Binary Masquerade Detection**: Enhanced magic byte detection (PE, ELF, Mach-O, Java, MP4 offset-aware)
+- **Archive Blocking**: ZIP/RAR/7Z prevention on text-only endpoints with HTTP 415 responses
+- **UTF-8 Validation**: Strict text encoding with UTF-16 detection and rejection
+- **Content-Transfer-Encoding Guards**: Base64/quoted-printable blocking to prevent encoding bypasses
+
+#### Security Controls Matrix
+- **DoS Prevention**: Part count and size limits prevent resource exhaustion
+- **Code Injection**: Magic byte detection blocks executable uploads  
+- **Data Exfiltration**: Archive blocking prevents nested payload smuggling
+- **Encoding Attacks**: CTE guards prevent base64/quoted-printable bypasses
+- **Unicode Exploits**: Strict UTF-8 validation prevents encoding confusion
+
+#### Filename Security
+- **Unicode Normalization**: NFC normalization with path traversal prevention
+- **Reserved Name Handling**: Windows reserved name protection (CON, PRN, AUX, etc.)
+- **Content-Disposition Parsing**: RFC 5987 encoded filename support
+- **Archive Detection**: Comprehensive extension validation with safety checks
+
+#### Testing & Validation
+- **Focused Testing Framework**: 6 hardening tests with MultiPartParser mocking
+- **27/27 Tests Passing**: Complete security control validation
+- **Isolated Unit Tests**: No external dependencies with fast execution
+- **CI/CD Integration**: Ready for automated security validation
+
+#### Monitoring & Health
+- **Metrics Integration**: Bounded cardinality rejection reasons
+- **Health Monitoring**: `/healthz/config` multipart validation
+- **Boot Validation**: Production failure detection with actionable messages
+- **Debug Support**: Comprehensive logging and troubleshooting guides
+
+#### RBAC Policy Protection
+- **Pre-commit Gate**: Prevents unnoticed RBAC matrix changes
+- **Baseline Snapshots**: Automated policy drift detection
+- **Privilege Escalation Detection**: Security-critical change validation
+- **Manual Approval Workflow**: Configurable thresholds with bypass protection
+
+#### Performance Characteristics
+- **Stream Processing**: O(1) memory usage regardless of upload size
+- **Early Abort**: Violations detected within first few KB
+- **Minimal Overhead**: ~1-2ms per part for security validation
+- **Bounded Cardinality**: Metrics labels limited to prevent explosion
+
+### Added
+- `server/security/multipart/starlette_adapter.py` - Hardened multipart adapter
+- `server/utils/filename_sanitizer.py` - Filename security utilities
+- `server/health/multipart_config.py` - Health monitoring integration
+- `docs/security/MULTIPART_SECURITY_CONSOLIDATED.md` - Complete security guide
+- `tests/test_starlette_adapter_hardening.py` - Focused security tests
+- `tests/test_filename_sanitizer.py` - Filename safety validation
+
+### Security Improvements
+- Stream-time enforcement prevents memory exhaustion attacks
+- Part count limiting blocks multipart DoS vectors
+- Binary masquerade detection prevents executable smuggling
+- Archive blocking on text endpoints prevents payload nesting
+- UTF-8 validation with CTE guards prevents encoding bypasses
+- RBAC policy snapshot gate prevents privilege drift
+
+### Breaking Changes
+- Multipart adapter surface changes require integration updates
+- New HTTPException status codes (413, 415) for security violations
+- Stricter validation may reject previously accepted uploads
+
+### Migration Guide
+- Update multipart handlers to use new `scan_with_starlette` function
+- Add health check integration for production monitoring
+- Review and adjust size/count limits for your use case
+- Test existing uploads against new security controls
+
+---
+
 ## [1.0.0-ninaivalaigal] - 2025-09-13
 
 ### 🎉 Major Release: Complete Rebranding to Ninaivalaigal

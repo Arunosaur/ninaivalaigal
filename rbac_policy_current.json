@@ -1,0 +1,178 @@
+{
+  "created_at": 1758079392.639436,
+  "metadata": {
+    "permissions": [
+      "read",
+      "write",
+      "delete",
+      "admin"
+    ],
+    "resources": [
+      "memory",
+      "context",
+      "user",
+      "organization",
+      "team"
+    ],
+    "roles": [
+      "admin",
+      "user",
+      "viewer"
+    ]
+  },
+  "policy_hash": "b974dd1d500e937930c1ad6333d8b5d72611f153d765f4e63606a1cc736ec162",
+  "rules": [
+    {
+      "conditions": {},
+      "permissions": [
+        "read",
+        "write",
+        "delete",
+        "admin"
+      ],
+      "resource": "memory",
+      "role": "admin"
+    },
+    {
+      "conditions": {},
+      "permissions": [
+        "read",
+        "write",
+        "delete",
+        "admin"
+      ],
+      "resource": "context",
+      "role": "admin"
+    },
+    {
+      "conditions": {},
+      "permissions": [
+        "read",
+        "write",
+        "delete",
+        "admin"
+      ],
+      "resource": "user",
+      "role": "admin"
+    },
+    {
+      "conditions": {},
+      "permissions": [
+        "read",
+        "write",
+        "delete",
+        "admin"
+      ],
+      "resource": "organization",
+      "role": "admin"
+    },
+    {
+      "conditions": {},
+      "permissions": [
+        "read",
+        "write",
+        "delete",
+        "admin"
+      ],
+      "resource": "team",
+      "role": "admin"
+    },
+    {
+      "conditions": {
+        "owner_only": true
+      },
+      "permissions": [
+        "read",
+        "write"
+      ],
+      "resource": "memory",
+      "role": "user"
+    },
+    {
+      "conditions": {
+        "owner_only": true
+      },
+      "permissions": [
+        "read",
+        "write"
+      ],
+      "resource": "context",
+      "role": "user"
+    },
+    {
+      "conditions": {},
+      "permissions": [
+        "read"
+      ],
+      "resource": "user",
+      "role": "user"
+    },
+    {
+      "conditions": {},
+      "permissions": [
+        "read"
+      ],
+      "resource": "organization",
+      "role": "user"
+    },
+    {
+      "conditions": {
+        "member_only": true
+      },
+      "permissions": [
+        "read",
+        "write"
+      ],
+      "resource": "team",
+      "role": "user"
+    },
+    {
+      "conditions": {
+        "owner_only": true
+      },
+      "permissions": [
+        "read"
+      ],
+      "resource": "memory",
+      "role": "viewer"
+    },
+    {
+      "conditions": {
+        "owner_only": true
+      },
+      "permissions": [
+        "read"
+      ],
+      "resource": "context",
+      "role": "viewer"
+    },
+    {
+      "conditions": {},
+      "permissions": [
+        "read"
+      ],
+      "resource": "user",
+      "role": "viewer"
+    },
+    {
+      "conditions": {},
+      "permissions": [
+        "read"
+      ],
+      "resource": "organization",
+      "role": "viewer"
+    },
+    {
+      "conditions": {
+        "member_only": true
+      },
+      "permissions": [
+        "read"
+      ],
+      "resource": "team",
+      "role": "viewer"
+    }
+  ],
+  "rules_count": 15,
+  "version": "1.0.0"
+}
