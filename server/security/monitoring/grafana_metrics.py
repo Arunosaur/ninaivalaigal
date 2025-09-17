@@ -68,7 +68,10 @@ class SecurityMetricsCollector:
             
             # Multipart metrics
             ("multipart_parts_processed_total", MetricType.COUNTER, "Total multipart parts processed"),
-            ("multipart_parts_rejected_total", MetricType.COUNTER, "Total multipart parts rejected"),
+            ("multipart_parts_total", MetricType.COUNTER, "Total multipart parts received"),
+            ("multipart_bytes_total", MetricType.COUNTER, "Total multipart bytes processed"),
+            ("multipart_reject_total", MetricType.COUNTER, "Total multipart rejections with reason"),
+            ("multipart_processing_duration_seconds", MetricType.HISTOGRAM, "Multipart processing duration"),
             ("multipart_content_type_mismatches_total", MetricType.COUNTER, "Total content-type mismatches"),
             
             # Redis metrics
@@ -303,10 +306,23 @@ def record_fail_closed_event(tier: int, threshold: int):
     )
 
 
-def record_multipart_processing(parts_count: int, rejected_count: int):
+def record_multipart_processing(parts_count: int, bytes_count: int, duration_seconds: float):
     """Record multipart processing statistics."""
-    _metrics_collector.increment_counter("multipart_parts_processed_total", value=parts_count)
-    _metrics_collector.increment_counter("multipart_parts_rejected_total", value=rejected_count)
+    _metrics_collector.increment_counter("multipart_parts_total", value=parts_count)
+    _metrics_collector.increment_counter("multipart_bytes_total", value=bytes_count)
+    _metrics_collector.record_histogram("multipart_processing_duration_seconds", duration_seconds)
+
+
+def record_multipart_rejection(reason: str, endpoint: str = "unknown", tenant: str = "unknown"):
+    """Record multipart rejection with specific reason."""
+    _metrics_collector.increment_counter(
+        "multipart_reject_total",
+        labels={
+            "reason": reason,
+            "endpoint": endpoint,
+            "tenant": tenant
+        }
+    )
 
 
 def record_request_duration(duration_seconds: float, endpoint: str):

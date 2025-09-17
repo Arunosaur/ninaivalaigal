@@ -1,0 +1,136 @@
+groups:
+  - name: ninaivalaigal_multipart_security
+    rules:
+      # Spike in adapter rejections - Page severity
+      - alert: MultipartRejectsSpiking
+        expr: increase(multipart_reject_total[10m]) > 50
+        for: 10m
+        labels:
+          severity: page
+          component: multipart_security
+          team: security
+        annotations:
+          summary: "Multipart rejects spiking"
+          description: "Multipart rejections have increased by {{ $value }} in the last 10 minutes. Reasons: {{ range query \"label_values(multipart_reject_total, reason)\" }}{{ . }} {{ end }}"
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/multipart-security.md"
+          dashboard_url: "https://grafana.example.com/d/multipart-security"
+
+      # Specific concern: archive uploads on text endpoints - Page severity  
+      - alert: ArchiveUploadsOnTextEndpoints
+        expr: increase(multipart_reject_total{reason="archive_blocked"}[10m]) > 10
+        for: 10m
+        labels:
+          severity: page
+          component: multipart_security
+          team: security
+          attack_vector: archive_upload
+        annotations:
+          summary: "Archive uploads detected on text endpoints"
+          description: "{{ $value }} archive uploads have been blocked on text endpoints in the last 10 minutes. This may indicate an attack or misconfigured client."
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/archive-upload-attacks.md"
+          dashboard_url: "https://grafana.example.com/d/multipart-security"
+
+      # Invalid encodings (client-side bug/attack) - Ticket severity
+      - alert: InvalidEncodingAttacks
+        expr: increase(multipart_reject_total{reason="invalid_encoding"}[10m]) > 10
+        for: 10m
+        labels:
+          severity: ticket
+          component: multipart_security
+          team: security
+          attack_vector: encoding_bypass
+        annotations:
+          summary: "Invalid encoding attacks detected"
+          description: "{{ $value }} requests with invalid encodings have been rejected in the last 10 minutes. This may indicate UTF-8 bypass attempts or client bugs."
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/encoding-attacks.md"
+          dashboard_url: "https://grafana.example.com/d/multipart-security"
+
+  - name: ninaivalaigal_multipart_performance
+    rules:
+      # Performance monitoring for multipart processing
+      - alert: MultipartProcessingLatencyHigh
+        expr: histogram_quantile(0.95, rate(multipart_processing_duration_seconds_bucket[5m])) > 0.005
+        for: 5m
+        labels:
+          severity: warning
+          component: multipart_security
+          team: performance
+        annotations:
+          summary: "Multipart processing latency high"
+          description: "95th percentile multipart processing latency is {{ $value }}s, exceeding 5ms target"
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/performance-tuning.md"
+
+      # Monitor multipart throughput
+      - alert: MultipartThroughputLow
+        expr: rate(multipart_parts_total[5m]) < 10
+        for: 10m
+        labels:
+          severity: info
+          component: multipart_security
+          team: operations
+        annotations:
+          summary: "Multipart throughput unusually low"
+          description: "Multipart processing rate is {{ $value }} parts/sec, which is below normal baseline"
+
+  - name: ninaivalaigal_canary_monitoring
+    rules:
+      # Canary deployment health check
+      - alert: CanaryDeploymentIssues
+        expr: |
+          (
+            increase(multipart_reject_total{reason="archive_blocked"}[10m]) > 5
+            or
+            increase(multipart_reject_total{reason="invalid_encoding"}[10m]) > 5
+          ) and on() (
+            up{job="ninaivalaigal-canary"} == 1
+          )
+        for: 5m
+        labels:
+          severity: critical
+          component: canary_deployment
+          team: sre
+        annotations:
+          summary: "Canary deployment showing security issues"
+          description: "Canary deployment is rejecting requests at elevated rate. Consider rollback."
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/canary-rollback.md"
+
+      # Feature flag monitoring
+      - alert: ArchiveCheckFeatureFlagDisabled
+        expr: ninaivalaigal_feature_flag{flag="archive_checks_enabled"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          component: feature_flags
+          team: security
+        annotations:
+          summary: "Archive security checks disabled via feature flag"
+          description: "Archive blocking has been disabled via feature flag. Security posture reduced."
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/feature-flag-management.md"
+
+  - name: ninaivalaigal_security_baseline
+    rules:
+      # RBAC privilege drift detection
+      - alert: RBACPrivilegeDrift
+        expr: increase(rbac_access_denied_total[1h]) > 100
+        for: 15m
+        labels:
+          severity: warning
+          component: rbac
+          team: security
+        annotations:
+          summary: "Elevated RBAC denials detected"
+          description: "{{ $value }} RBAC denials in the last hour may indicate privilege drift or attack"
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/rbac-investigation.md"
+
+      # Security middleware health
+      - alert: SecurityMiddlewareDown
+        expr: security_middleware_health == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: security_middleware
+          team: sre
+        annotations:
+          summary: "Security middleware unhealthy"
+          description: "Security middleware health check failing. All security controls may be bypassed."
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/security-middleware-recovery.md"

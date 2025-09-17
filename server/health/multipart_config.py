@@ -6,6 +6,7 @@ from server.security.multipart.strict_limits_hardened import (
     DEFAULT_MAX_BINARY_PART_BYTES,
     DEFAULT_MAX_PARTS_PER_REQUEST,
 )
+from server.security.feature_flags import get_feature_flag_health
 
 
 def get_multipart_config_health() -> Dict[str, Any]:
@@ -72,6 +73,9 @@ def get_multipart_config_health() -> Dict[str, Any]:
         config["issues"] = issues
         if config["status"] == "healthy":
             config["status"] = "warning"
+    
+    # Add feature flag status
+    config["feature_flags"] = get_feature_flag_health()
     
     return config
 
