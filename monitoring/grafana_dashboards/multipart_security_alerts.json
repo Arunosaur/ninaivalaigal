@@ -1,0 +1,108 @@
+{
+  "dashboard": {
+    "uid": "multipart-security-alerts",
+    "title": "Multipart Security - Alerts Overview",
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "refresh": "30s",
+    "panels": [
+      {
+        "title": "Active Alerts (Prometheus)",
+        "type": "table",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "ALERTS{alertstate=\"firing\"}"
+          }
+        ],
+        "options": {
+          "showHeader": true
+        }
+      },
+      {
+        "title": "Rejects Spike (all reasons)",
+        "type": "timeseries",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "security:multipart_rejects:total"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "rps"
+          }
+        }
+      },
+      {
+        "title": "Archive Blocked & Invalid Encoding (rate)",
+        "type": "timeseries",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(multipart_reject_total{reason=\"archive_blocked\"}[5m]))",
+            "legendFormat": "archive_blocked"
+          },
+          {
+            "expr": "sum(rate(multipart_reject_total{reason=\"invalid_encoding\"}[5m]))",
+            "legendFormat": "invalid_encoding"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "rps"
+          }
+        }
+      },
+      {
+        "title": "Per-Tenant Reject Rate (Top 10)",
+        "type": "timeseries",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "topk(10, slo:upload_rejects_per_tenant:rate)"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "rps"
+          }
+        }
+      },
+      {
+        "title": "Archive Telemetry",
+        "type": "stat",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "security:archive_ratio:max",
+            "legendFormat": "max ratio"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ]
+          },
+          "orientation": "auto"
+        }
+      }
+    ]
+  }
+}

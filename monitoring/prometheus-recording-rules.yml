@@ -1,0 +1,14 @@
+groups:
+- name: multipart-security.rules
+  interval: 30s
+  rules:
+  - record: slo:upload_success_rate:ratio
+    expr: 1 - (sum(rate(multipart_reject_total[5m])) / sum(rate(multipart_parts_total[5m])))
+  - record: slo:upload_rejects_per_tenant:rate
+    expr: sum(rate(multipart_reject_total[5m])) by (tenant_id)
+  - record: security:archive_ratio:max
+    expr: max_over_time(archive_ratio_max[5m])
+  - record: security:archive_entries:total
+    expr: sum(rate(archive_entries_total[5m]))
+  - record: security:multipart_rejects:total
+    expr: sum(rate(multipart_reject_total[5m]))

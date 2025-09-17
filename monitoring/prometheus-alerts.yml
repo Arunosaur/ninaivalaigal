@@ -1,9 +1,9 @@
 groups:
   - name: ninaivalaigal_multipart_security
     rules:
-      # Spike in adapter rejections - Page severity
+      # Spike in adapter rejections - Page severity (using recording rule for efficiency)
       - alert: MultipartRejectsSpiking
-        expr: increase(multipart_reject_total[10m]) > 50
+        expr: increase(security:multipart_rejects:total[10m]) > 50
         for: 10m
         labels:
           severity: page
@@ -11,9 +11,9 @@ groups:
           team: security
         annotations:
           summary: "Multipart rejects spiking"
-          description: "Multipart rejections have increased by {{ $value }} in the last 10 minutes. Reasons: {{ range query \"label_values(multipart_reject_total, reason)\" }}{{ . }} {{ end }}"
+          description: "Multipart rejections have increased by {{ $value }} in the last 10 minutes. Check dashboard for breakdown by reason."
           runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/multipart-security.md"
-          dashboard_url: "https://grafana.example.com/d/multipart-security"
+          dashboard_url: "https://grafana.example.com/d/multipart-security-main"
 
       # Specific concern: archive uploads on text endpoints - Page severity  
       - alert: ArchiveUploadsOnTextEndpoints
@@ -43,7 +43,22 @@ groups:
           summary: "Invalid encoding attacks detected"
           description: "{{ $value }} requests with invalid encodings have been rejected in the last 10 minutes. This may indicate UTF-8 bypass attempts or client bugs."
           runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/encoding-attacks.md"
-          dashboard_url: "https://grafana.example.com/d/multipart-security"
+          dashboard_url: "https://grafana.example.com/d/multipart-security-alerts"
+
+      # SLO monitoring - Upload success rate
+      - alert: SLOUploadSuccessRateLow
+        expr: slo:upload_success_rate:ratio < 0.999
+        for: 15m
+        labels:
+          severity: ticket
+          component: multipart_security
+          team: sre
+          slo_violation: upload_success_rate
+        annotations:
+          summary: "Upload success rate below SLO (99.9%)"
+          description: "Current success rate: {{ $value | humanizePercentage }}. Investigate recent multipart rejects or endpoint errors."
+          runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/multipart-security.md"
+          dashboard_url: "https://grafana.example.com/d/multipart-security-main"
 
   - name: ninaivalaigal_multipart_performance
     rules:

@@ -74,6 +74,11 @@ class SecurityMetricsCollector:
             ("multipart_processing_duration_seconds", MetricType.HISTOGRAM, "Multipart processing duration"),
             ("multipart_content_type_mismatches_total", MetricType.COUNTER, "Total content-type mismatches"),
             
+            # Archive telemetry metrics
+            ("archive_ratio_max", MetricType.GAUGE, "Maximum compression ratio detected in archives"),
+            ("archive_entries_total", MetricType.COUNTER, "Total archive entries processed"),
+            ("strict_mode_flag", MetricType.GAUGE, "Feature flag state for strict mode (0/1)"),
+            
             # Redis metrics
             ("redis_operations_total", MetricType.COUNTER, "Total Redis operations"),
             ("redis_failures_total", MetricType.COUNTER, "Total Redis operation failures"),
@@ -323,6 +328,17 @@ def record_multipart_rejection(reason: str, endpoint: str = "unknown", tenant: s
             "tenant": tenant
         }
     )
+
+
+def record_archive_telemetry(compression_ratio: float, entry_count: int):
+    """Record archive compression telemetry for post-incident analysis."""
+    _metrics_collector.set_gauge("archive_ratio_max", compression_ratio)
+    _metrics_collector.increment_counter("archive_entries_total", value=entry_count)
+
+
+def update_strict_mode_flag(enabled: bool):
+    """Update strict mode feature flag state for monitoring."""
+    _metrics_collector.set_gauge("strict_mode_flag", 1.0 if enabled else 0.0)
 
 
 def record_request_duration(duration_seconds: float, endpoint: str):

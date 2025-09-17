@@ -1,0 +1,144 @@
+{
+  "dashboard": {
+    "uid": "multipart-security-main",
+    "title": "Multipart Security - Main",
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "refresh": "30s",
+    "panels": [
+      {
+        "title": "Rejections by Reason (rate)",
+        "type": "timeseries",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(multipart_reject_total[5m])) by (reason)",
+            "legendFormat": "{{reason}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "rps"
+          }
+        }
+      },
+      {
+        "title": "Upload Latency P50/P95",
+        "type": "timeseries",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{endpoint=\"/upload\"}[5m])) by (le))",
+            "legendFormat": "P50"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{endpoint=\"/upload\"}[5m])) by (le))",
+            "legendFormat": "P95"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "title": "Parts / Bytes (rate)",
+        "type": "timeseries",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(multipart_parts_total[5m]))",
+            "legendFormat": "parts/s"
+          },
+          {
+            "expr": "sum(rate(multipart_bytes_total[5m]))",
+            "legendFormat": "bytes/s"
+          }
+        ],
+        "fieldConfig": {
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "bytes/s"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "Bps"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "title": "Strict Mode Flag",
+        "type": "stat",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "strict_mode_flag"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ]
+          },
+          "orientation": "auto"
+        }
+      },
+      {
+        "title": "SLO - Upload Success Rate",
+        "type": "gauge",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prom"
+        },
+        "targets": [
+          {
+            "expr": "slo:upload_success_rate:ratio"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "orange",
+                  "value": 0.999
+                },
+                {
+                  "color": "green",
+                  "value": 0.9995
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

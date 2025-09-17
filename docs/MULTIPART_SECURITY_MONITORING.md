@@ -172,10 +172,18 @@ kubectl patch ingress ninaivalaigal --patch '{"spec":{"rules":[{"host":"api.nina
 
 ## Dashboard Links
 
-- **Security Overview**: https://grafana.example.com/d/security-overview
-- **Multipart Processing**: https://grafana.example.com/d/multipart-security  
+- **Multipart Security Main**: https://grafana.example.com/d/multipart-security-main
+- **Multipart Security Alerts**: https://grafana.example.com/d/multipart-security-alerts  
 - **Performance Metrics**: https://grafana.example.com/d/performance-overview
 - **Canary Health**: https://grafana.example.com/d/canary-deployment
+
+## Grafana Dashboard Setup
+
+Import the provided dashboard JSON files:
+1. `monitoring/grafana_dashboards/multipart_security_main.json` - Main service dashboard with SLO gauges
+2. `monitoring/grafana_dashboards/multipart_security_alerts.json` - Alerts overview with per-tenant rates
+
+Set the Prometheus datasource UID to `prom` or update the JSON files with your datasource UID.
 
 ## Runbook References
 
