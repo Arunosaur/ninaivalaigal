@@ -1,0 +1,78 @@
+{
+  "name": "ninaivalaigal",
+  "version": "1.0.0",
+  "description": "Universal Memory Layer for AI Agents and Developers - Production-hardened with enterprise security",
+  "main": "server/main.py",
+  "private": true,
+  "scripts": {
+    "start": "make stack-up",
+    "stop": "make stack-down",
+    "status": "make stack-status",
+    "test": "make spec-test",
+    "backup": "make backup",
+    "restore": "make restore",
+    "health": "curl -f http://localhost:13370/health/detailed",
+    "metrics": "curl -s http://localhost:13370/metrics",
+    "release": "semantic-release",
+    "release:dry": "semantic-release --dry-run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Arunosaur/ninaivalaigal.git"
+  },
+  "keywords": [
+    "ai",
+    "memory",
+    "agents",
+    "fastapi",
+    "postgresql",
+    "pgvector",
+    "mem0",
+    "apple-container-cli",
+    "mac-studio",
+    "production-ready",
+    "enterprise-security"
+  ],
+  "author": "Swami",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.11.0"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^11.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.6",
+    "@semantic-release/npm": "^11.0.2",
+    "@semantic-release/release-notes-generator": "^12.1.0",
+    "semantic-release": "^22.0.12"
+  },
+  "release": {
+    "extends": "./.releaserc.json"
+  },
+  "config": {
+    "stack": {
+      "database": "PostgreSQL 15 with pgvector",
+      "api": "FastAPI with Python 3.11",
+      "memory": "mem0 sidecar with authentication",
+      "proxy": "PgBouncer connection pooling",
+      "ui": "React with Nginx",
+      "container": "Apple Container CLI"
+    },
+    "security": {
+      "supply_chain": "Pinned images with SHA digests",
+      "vulnerability_scanning": "Trivy for CRITICAL/HIGH",
+      "sbom": "Anchore Syft for all containers",
+      "secrets": "detect-secrets with baseline",
+      "pre_commit": "15+ hooks for code quality",
+      "authentication": "HMAC-SHA256 for mem0 sidecar"
+    },
+    "observability": {
+      "metrics": "Prometheus format",
+      "health_checks": "Detailed with SLO compliance",
+      "backup_verification": "Automated restore rehearsal",
+      "slo_targets": "99.9% availability, p95 <250ms"
+    }
+  }
+}

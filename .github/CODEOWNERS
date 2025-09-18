@@ -1,0 +1,35 @@
+# Global ownership - all files require review
+* @swami
+
+# Critical infrastructure files require additional review
+/.github/workflows/ @swami
+/scripts/ @swami
+/Dockerfile* @swami
+/docker-compose*.yml @swami
+/Makefile @swami
+
+# Security-sensitive files
+/.secrets.baseline @swami
+/.pre-commit-config.yaml @swami
+/pyproject.toml @swami
+
+# Documentation
+/docs/ @swami
+/README.md @swami
+
+# Configuration files
+/.env.example @swami
+/ninaivalaigal.config.json @swami
+
+# Database and backup scripts
+/scripts/*db*.sh @swami
+/scripts/*backup*.sh @swami
+/scripts/*restore*.sh @swami
+
+# Authentication and security
+/sidecar/ @swami
+/server/auth.py @swami
+/server/security/ @swami
+
+# Apple Container CLI scripts (Mac Studio deployment)
+/scripts/nv-*.sh @swami
