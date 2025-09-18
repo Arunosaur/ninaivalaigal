@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore spec-new spec-test system-info ui-up ui-down ui-status
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info ui-up ui-down ui-status
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -63,6 +63,22 @@ pgb-stats:
 ## restore database from backup (usage: make restore BACKUP_FILE=path/to/backup.dump)
 restore:
 	@$(SCRIPTS)/restore-db.sh $(BACKUP_FILE)
+
+## verify backup integrity (usage: make verify-backup BACKUP_FILE=path/to/backup.dump)
+verify-backup:
+	@$(SCRIPTS)/verify-backup.sh $(BACKUP_FILE)
+
+## verify latest backup
+verify-latest:
+	@$(SCRIPTS)/verify-backup.sh latest
+
+## cleanup old backups (usage: make cleanup-backups RETENTION_DAYS=14)
+cleanup-backups:
+	@$(SCRIPTS)/cleanup-backups.sh $(if $(RETENTION_DAYS),--retention-days $(RETENTION_DAYS),)
+
+## dry run backup cleanup
+cleanup-backups-dry:
+	@$(SCRIPTS)/cleanup-backups.sh --dry-run $(if $(RETENTION_DAYS),--retention-days $(RETENTION_DAYS),)
 
 ## create new SPEC (usage: make spec-new ID=013 NAME="memory-substrate-v2")
 spec-new:

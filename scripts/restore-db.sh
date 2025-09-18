@@ -56,18 +56,52 @@ main(){
     --if-exists \
     "$BACKUP_FILE"
   
-  # Verify restore
-  log "Verifying restore..."
+  # Comprehensive verification
+  log "Verifying restore integrity..."
+  
+  # Count tables
   TABLE_COUNT=$(PGPASSWORD="${POSTGRES_PASSWORD}" psql \
     --host="$POSTGRES_HOST" \
     --port="$POSTGRES_PORT" \
     --username="$POSTGRES_USER" \
     --dbname="$TARGET_DB" \
     --tuples-only \
-    --command="SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+    --command="SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | xargs)
   
-  log "Restore completed: $TARGET_DB ($TABLE_COUNT tables)"
-  log "Connection string: postgresql://$POSTGRES_USER@$POSTGRES_HOST:$POSTGRES_PORT/$TARGET_DB"
+  # Check for pgvector extension
+  PGVECTOR_EXISTS=$(PGPASSWORD="${POSTGRES_PASSWORD}" psql \
+    --host="$POSTGRES_HOST" \
+    --port="$POSTGRES_PORT" \
+    --username="$POSTGRES_USER" \
+    --dbname="$TARGET_DB" \
+    --tuples-only \
+    --command="SELECT COUNT(*) FROM pg_extension WHERE extname = 'vector';" | xargs)
+  
+  # Basic data integrity check
+  if [[ "$TABLE_COUNT" -gt 0 ]]; then
+    log "✅ Tables restored: $TABLE_COUNT"
+  else
+    die "❌ No tables found in restored database"
+  fi
+  
+  if [[ "$PGVECTOR_EXISTS" -eq 1 ]]; then
+    log "✅ pgvector extension verified"
+  else
+    log "⚠️  pgvector extension not found (may be expected)"
+  fi
+  
+  # Test basic operations
+  log "Testing database connectivity..."
+  PGPASSWORD="${POSTGRES_PASSWORD}" psql \
+    --host="$POSTGRES_HOST" \
+    --port="$POSTGRES_PORT" \
+    --username="$POSTGRES_USER" \
+    --dbname="$TARGET_DB" \
+    --command="SELECT version();" >/dev/null
+  
+  log "✅ Restore completed successfully: $TARGET_DB"
+  log "📊 Tables: $TABLE_COUNT | pgvector: $([ "$PGVECTOR_EXISTS" -eq 1 ] && echo "✓" || echo "✗")"
+  log "🔗 Connection: postgresql://$POSTGRES_USER@$POSTGRES_HOST:$POSTGRES_PORT/$TARGET_DB"
 }
 
 main "$@"

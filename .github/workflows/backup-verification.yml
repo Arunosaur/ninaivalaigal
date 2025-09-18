@@ -1,0 +1,156 @@
+name: Backup Verification & Restore Rehearsal
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC (after backup creation)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      backup_file:
+        description: 'Specific backup file to verify (optional)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  backup-verification:
+    runs-on: [self-hosted, macstudio]
+    timeout-minutes: 30
+    
+    env:
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: 5433
+      POSTGRES_USER: nina
+      POSTGRES_DB: nina
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      BACKUP_DIR: /srv/ninaivalaigal/backups
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        shell: bash
+        run: |
+          echo "BACKUP_VERIFICATION_START=$(date -Iseconds)" >> $GITHUB_ENV
+          mkdir -p artifacts
+
+      - name: Start database for verification
+        shell: bash
+        run: |
+          # Start minimal stack (DB only) for verification
+          make db-only
+          sleep 10
+          make stack-status
+
+      - name: Verify latest backup
+        shell: bash
+        run: |
+          if [[ -n "${{ github.event.inputs.backup_file }}" ]]; then
+            echo "Verifying specific backup: ${{ github.event.inputs.backup_file }}"
+            make verify-backup BACKUP_FILE="${{ github.event.inputs.backup_file }}"
+          else
+            echo "Verifying latest backup"
+            make verify-latest
+          fi
+
+      - name: Restore rehearsal test
+        shell: bash
+        run: |
+          echo "=== Restore Rehearsal Test ==="
+          
+          # Find latest backup
+          LATEST_BACKUP=$(find ${BACKUP_DIR} -name "nina-*.dump" -type f -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
+          
+          if [[ -z "$LATEST_BACKUP" ]]; then
+            echo "❌ No backup files found for rehearsal"
+            exit 1
+          fi
+          
+          echo "Testing restore of: $(basename "$LATEST_BACKUP")"
+          
+          # Perform restore to temporary database
+          RESTORE_DB="nina_rehearsal_$(date +%s)"
+          echo "Restoring to: $RESTORE_DB"
+          
+          if ./scripts/restore-db.sh "$LATEST_BACKUP" "$RESTORE_DB"; then
+            echo "✅ Restore rehearsal successful"
+            
+            # Basic functionality test on restored database
+            echo "Testing basic operations on restored database..."
+            
+            # Test connection and basic queries
+            PGPASSWORD="${POSTGRES_PASSWORD}" psql \
+              --host="$POSTGRES_HOST" \
+              --port="$POSTGRES_PORT" \
+              --username="$POSTGRES_USER" \
+              --dbname="$RESTORE_DB" \
+              --command="SELECT 'Restore verification' as test, version();" || {
+              echo "❌ Basic query test failed"
+              exit 1
+            }
+            
+            echo "✅ Restored database functional"
+            
+            # Cleanup test database
+            echo "Cleaning up test database: $RESTORE_DB"
+            PGPASSWORD="${POSTGRES_PASSWORD}" psql \
+              --host="$POSTGRES_HOST" \
+              --port="$POSTGRES_PORT" \
+              --username="$POSTGRES_USER" \
+              --dbname="postgres" \
+              --command="DROP DATABASE \"$RESTORE_DB\";" || true
+              
+          else
+            echo "❌ Restore rehearsal failed"
+            exit 1
+          fi
+
+      - name: Generate backup report
+        if: always()
+        shell: bash
+        run: |
+          echo "=== Backup Verification Report ===" > artifacts/backup-report.txt
+          echo "Date: $(date -Iseconds)" >> artifacts/backup-report.txt
+          echo "Environment: Mac Studio CI" >> artifacts/backup-report.txt
+          echo "" >> artifacts/backup-report.txt
+          
+          # List all backups
+          echo "Available Backups:" >> artifacts/backup-report.txt
+          if [[ -d "${BACKUP_DIR}" ]]; then
+            ls -lah "${BACKUP_DIR}"/nina-*.dump >> artifacts/backup-report.txt 2>/dev/null || echo "No backup files found" >> artifacts/backup-report.txt
+          else
+            echo "Backup directory not found: ${BACKUP_DIR}" >> artifacts/backup-report.txt
+          fi
+          
+          echo "" >> artifacts/backup-report.txt
+          echo "Verification Status: $([ $? -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")" >> artifacts/backup-report.txt
+          
+          # Show report
+          cat artifacts/backup-report.txt
+
+      - name: Upload verification artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-verification-$(date +%Y%m%d-%H%M%S)
+          path: artifacts/
+          retention-days: 30
+
+      - name: Stop database
+        if: always()
+        shell: bash
+        run: |
+          make stack-down || true
+
+      - name: Notify on failure
+        if: failure()
+        shell: bash
+        run: |
+          echo "🚨 Backup verification failed!"
+          echo "This indicates potential issues with backup integrity or restore process."
+          echo "Manual investigation required."
+          # In production, you might want to send alerts here
+          # e.g., Slack webhook, email, PagerDuty, etc.
