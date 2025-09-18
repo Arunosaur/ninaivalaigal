@@ -7,12 +7,16 @@ set -euo pipefail
 DB_ONLY=false
 SKIP_API=false
 SKIP_PGB=false
+SKIP_MEM0=false
+MEM0_ONLY=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --db-only) DB_ONLY=true ;;
     --skip-api) SKIP_API=true ;;
     --skip-pgbouncer|--skip-pgb) SKIP_PGB=true ;;
+    --skip-mem0) SKIP_MEM0=true ;;
+    --mem0-only) MEM0_ONLY=true; SKIP_API=true ;;
     *) echo "Unknown flag: $1"; exit 1 ;;
   esac
   shift
@@ -58,7 +62,27 @@ else
   log "Skipping PgBouncer per flag."
 fi
 
-# 3) API
+# 3) Mem0 (if http provider or explicitly requested)
+if ! $SKIP_MEM0 && [[ "${MEMORY_PROVIDER:-}" == "http" || "$MEM0_ONLY" == "true" ]]; then
+  log "Starting Mem0 sidecar…"
+  if [[ -x "${SCRIPTS}/nv-mem0-start.sh" ]]; then
+    bash "${SCRIPTS}/nv-mem0-start.sh"
+  else
+    log "nv-mem0-start.sh not found; ensure mem0 is running at ${MEMORY_HTTP_BASE:-http://127.0.0.1:7070}"
+  fi
+elif $SKIP_MEM0; then
+  log "Skipping Mem0 per flag."
+elif [[ "${MEMORY_PROVIDER:-}" != "http" ]]; then
+  log "Skipping Mem0 (MEMORY_PROVIDER=${MEMORY_PROVIDER:-native})"
+fi
+
+# stop early if mem0-only
+if $MEM0_ONLY; then
+  log "Mem0-only requested. Done."
+  exit 0
+fi
+
+# 4) API
 if ! $SKIP_API; then
   log "Starting API…"
   # ensure API can reach host PgBouncer/DB; pass explicit host ip
