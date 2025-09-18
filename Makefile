@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -105,3 +105,10 @@ ui-down:
 
 ui-status:
 	@$(SCRIPTS)/nv-ui-status.sh
+
+## run comprehensive production readiness validation
+sanity-check:
+	@$(SCRIPTS)/sanity-check.sh
+
+## alias for sanity-check
+validate-production: sanity-check
