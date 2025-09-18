@@ -7,7 +7,11 @@ SCRIPTS="${ROOT}/scripts"
 
 log(){ printf "\033[1;36m[stack]\033[0m %s\n" "$*"; }
 
-# API first (drain)
+# UI first (user-facing)
+log "Stopping UI…"
+bash "${SCRIPTS}/nv-ui-stop.sh" || true
+
+# API next (drain)
 log "Stopping API…"
 bash "${SCRIPTS}/nv-api-stop.sh" || true
 

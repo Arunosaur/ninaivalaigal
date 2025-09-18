@@ -8,6 +8,8 @@ SKIP_API=false
 SKIP_PGB=false
 WITH_MEM0=false
 SKIP_MEM0=false
+SKIP_UI=false
+WITH_UI=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -16,6 +18,8 @@ while [[ $# -gt 0 ]]; do
     --skip-pgbouncer|--skip-pgb) SKIP_PGB=true ;;
     --with-mem0) WITH_MEM0=true ;;
     --skip-mem0) SKIP_MEM0=true ;;
+    --skip-ui) SKIP_UI=true ;;
+    --with-ui) WITH_UI=true ;;
     *) echo "Unknown flag: $1"; exit 1 ;;
   esac
   shift
@@ -77,6 +81,21 @@ if ! $SKIP_API; then
   POSTGRES_HOST="${POSTGRES_HOST}" bash "${SCRIPTS}/nv-api-start.sh"
 else
   log "Skipping API per flag."
+fi
+
+# 5) UI (if requested or in production mode)
+START_UI=false
+if $WITH_UI; then
+  START_UI=true
+elif [[ "${NODE_ENV:-}" == "production" && $SKIP_UI == false ]]; then
+  START_UI=true
+fi
+
+if $START_UI; then
+  log "Starting UI…"
+  bash "${SCRIPTS}/nv-ui-start.sh"
+else
+  log "Skipping UI (flags: with=${WITH_UI}, skip=${SKIP_UI})."
 fi
 
 log "Stack start complete."
