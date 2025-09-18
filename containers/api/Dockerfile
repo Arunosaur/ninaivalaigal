@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir "psycopg[binary]" sqlalchemy alembic fastapi "uvi
 
 # Copy application code
 COPY server/ ./server/
+COPY frontend/ ./frontend/
 
 # Set Python path and working directory
 ENV PYTHONPATH=/app

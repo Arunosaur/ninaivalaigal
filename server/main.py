@@ -70,18 +70,17 @@ def load_config():
     
     return config
 
-# Initialize database and spec-kit
-db = DatabaseManager()
-spec_context_manager = SpecKitContextManager(db)
-
 # Initialize database and performance monitoring
 config = load_config()
 if isinstance(config, str):
     database_url = config
 else:
     database_url = config["database_url"]
+
+# Initialize database and spec-kit
 db_manager = DatabaseManager(database_url)
 db = db_manager  # Alias for backward compatibility
+spec_context_manager = SpecKitContextManager(db)
 auto_recorder = get_auto_recorder(db_manager)
 approval_manager = ApprovalWorkflowManager(db_manager)
 
