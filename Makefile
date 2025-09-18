@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats restore spec-new spec-test system-info ui-up ui-down ui-status
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore spec-new spec-test system-info ui-up ui-down ui-status
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -55,6 +55,10 @@ backup:
 ## show database statistics
 db-stats:
 	@$(SCRIPTS)/db-stats.sh
+
+## show PgBouncer statistics
+pgb-stats:
+	@echo "SHOW STATS;" | psql "postgresql://$(POSTGRES_USER):$$POSTGRES_PASSWORD@127.0.0.1:$(PGBOUNCER_PORT)/pgbouncer"
 
 ## restore database from backup (usage: make restore BACKUP_FILE=path/to/backup.dump)
 restore:

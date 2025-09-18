@@ -129,6 +129,58 @@ jobs:
         shell: bash
         run: make stack-status
 
+      # ── Security Scanning ──────────────────────────────────────────────────
+      - name: SBOM Generation (API)
+        if: always()
+        uses: anchore/sbom-action@v0
+        with:
+          image: ninaivalaigal-api:latest
+          format: spdx-json
+          output-file: sbom-api.spdx.json
+
+      - name: SBOM Generation (mem0)
+        if: always()
+        uses: anchore/sbom-action@v0
+        with:
+          image: ninaivalaigal-mem0:latest
+          format: spdx-json
+          output-file: sbom-mem0.spdx.json
+
+      - name: SBOM Generation (UI)
+        if: always()
+        uses: anchore/sbom-action@v0
+        with:
+          image: ninaivalaigal-ui:latest
+          format: spdx-json
+          output-file: sbom-ui.spdx.json
+
+      - name: Vulnerability Scan (API)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ninaivalaigal-api:latest
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Vulnerability Scan (mem0)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ninaivalaigal-mem0:latest
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Vulnerability Scan (UI)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ninaivalaigal-ui:latest
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+
       # ── SPEC under test ─────────────────────────────────────────────────────
       - name: Run SPEC tests
         shell: bash
@@ -138,7 +190,7 @@ jobs:
           make spec-test ID=${{ matrix.spec.name }}
 
       # ── Artifacts & Cleanup (always) ────────────────────────────────────────
-      - name: Collect logs
+      - name: Collect logs and security artifacts
         if: always()
         shell: bash
         run: |
@@ -149,8 +201,15 @@ jobs:
           container logs nv-mem0 > artifacts/mem0.log 2>&1 || true
           container logs nv-api > artifacts/api.log 2>&1 || true
           container logs nv-ui > artifacts/ui.log 2>&1 || true
+          # Move SBOM files to artifacts
+          mv sbom-*.spdx.json artifacts/ 2>/dev/null || true
+          # Rename files with spec and provider info
           for f in artifacts/*.log; do \
             mv "$f" "${f%.log}-${{ matrix.spec.name }}-${{ matrix.provider }}.log" 2>/dev/null || true; \
+          done
+          for f in artifacts/sbom-*.spdx.json; do \
+            base=$(basename "$f" .spdx.json)
+            mv "$f" "artifacts/${base}-${{ matrix.spec.name }}-${{ matrix.provider }}.spdx.json" 2>/dev/null || true; \
           done
 
       - name: Upload artifacts
