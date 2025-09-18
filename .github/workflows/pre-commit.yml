@@ -1,0 +1,78 @@
+name: Pre-commit Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit on all files
+        run: pre-commit run --all-files --show-diff-on-failure
+
+      - name: Upload bandit security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+        continue-on-error: true
+
+  secrets-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install detect-secrets
+        run: pip install detect-secrets
+
+      - name: Run detect-secrets scan
+        run: |
+          detect-secrets scan --baseline .secrets.baseline --all-files
+          if [ $? -ne 0 ]; then
+            echo "❌ New secrets detected! Please review and update .secrets.baseline if legitimate."
+            echo "Run: detect-secrets scan --baseline .secrets.baseline --all-files"
+            exit 1
+          else
+            echo "✅ No new secrets detected"
+          fi
+
+      - name: Verify secrets baseline
+        run: |
+          detect-secrets audit .secrets.baseline
+          echo "✅ Secrets baseline verified"
