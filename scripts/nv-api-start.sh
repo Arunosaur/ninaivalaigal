@@ -66,48 +66,27 @@ check_db() {
   fi
 }
 
-prepare_context() {
-  [ -d "server" ] || die "Run from project root; 'server/' not found."
-  
-  # Create Dockerfile in project root (will be cleaned up later)
-  cat > "Dockerfile.api-temp" <<'EOF'
-FROM python:3.11-slim
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc libpq-dev curl \
- && rm -rf /var/lib/apt/lists/*
-
-COPY server/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir "psycopg[binary]" sqlalchemy alembic fastapi "uvicorn[standard]" httpx PyJWT email-validator python-multipart bcrypt \
- && pip install --no-cache-dir -r requirements.txt
-
-COPY server/ ./server/
-ENV PYTHONPATH=/app/server
-
-# health endpoint path must exist in your app
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD curl -fsS http://localhost:8000/health || exit 1
-
-# allow toggling reload via env
-ENV API_RELOAD=${API_RELOAD:-false}
-CMD ["bash","-lc","exec uvicorn server.main:app --host 0.0.0.0 --port 8000 $( [ \"$API_RELOAD\" = \"true\" ] && echo --reload )"]
-EOF
-  echo "."
+ensure_image() {
+  local image_name="nina-api:arm64"
+  if ! container image list | grep -q "nina-api.*arm64"; then
+    log "Building custom ARM64 API image: $image_name"
+    local dockerfile_dir="containers/api"
+    if [[ ! -f "$dockerfile_dir/Dockerfile" ]]; then
+      die "Dockerfile not found at $dockerfile_dir/Dockerfile. Run from project root."
+    fi
+    container build -t "$image_name" -f "$dockerfile_dir/Dockerfile" . || die "Failed to build API image"
+    log "Successfully built $image_name"
+  else
+    log "Image $image_name already exists"
+  fi
+  echo "$image_name"
 }
 
-build_image() {
-  local ctx="$1"
-  local tag="ninaivalaigal-api:latest"
-  log "Building API image (${tag})..."
-  container build -t "$tag" -f "Dockerfile.api-temp" "$ctx"
-  echo "$tag"
-}
+# Legacy function - now using ensure_image() instead
 
 run_api() {
-  local ctx tag db_url
-  ctx="$(prepare_context)"
-  tag="$(build_image "$ctx")"
+  local tag db_url
+  tag="$(ensure_image)"
   db_url="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
 
   log "Starting API container '$CONTAINER_NAME' on ${HOST_PORT}..."
@@ -117,8 +96,6 @@ run_api() {
     --env "NINAIVALAIGAL_JWT_SECRET=${JWT_SECRET}" \
     --env "API_RELOAD=${API_RELOAD}" \
     "$tag"
-
-  rm -f "Dockerfile.api-temp"
 }
 
 migrate() {
