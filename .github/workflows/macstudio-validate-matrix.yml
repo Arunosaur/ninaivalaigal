@@ -1,4 +1,4 @@
-name: Mac Studio Apple Container CLI Validation
+name: Mac Studio Validation (Matrix: native vs http)
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - '**.sh'
       - 'server/**'
       - 'tests/**'
-      - '.github/workflows/macstudio-validate.yml'
+      - '.github/workflows/macstudio-validate-matrix.yml'
   pull_request:
     branches: [ main, develop ]
   workflow_dispatch: {}
@@ -18,11 +18,25 @@ permissions:
 
 jobs:
   validate:
+    # Single Mac Studio host -> keep as self-hosted
     runs-on: [self-hosted, macstudio]
-    timeout-minutes: 45
+    timeout-minutes: 60
+
+    # Matrix runs will queue on the same host due to concurrency below
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: native-provider
+            provider: native
+            memory_http_base: ""
+          - name: http-provider
+            provider: http
+            memory_http_base: "http://127.0.0.1:7070"   # adjust if different
 
     concurrency:
-      group: macstudio-validate-${{ github.ref }}
+      # serialize runs on the single Mac Studio box; each matrix job will wait its turn
+      group: macstudio-validate-matrix
       cancel-in-progress: true
 
     env:
@@ -38,18 +52,19 @@ jobs:
 
       # --- API / App env ---
       NINAIVALAIGAL_JWT_SECRET: ${{ secrets.NINAIVALAIGAL_JWT_SECRET }}
-      API_RELOAD: "false"   # CI should run non-reload
+      API_RELOAD: "false"
 
-      # --- Memory provider toggles (set for your current choice) ---
-      MEMORY_PROVIDER: "http"                          # http (mem0 sidecar) | native
-      MEMORY_HTTP_BASE: "http://127.0.0.1:7070"        # adjust if you expose mem0 sidecar
+      # --- Provider from the matrix ---
+      MEMORY_PROVIDER: ${{ matrix.provider }}
+      MEMORY_HTTP_BASE: ${{ matrix.memory_http_base }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Host info (sanity)
+      - name: Host info
         run: |
+          echo "Matrix case: provider=${{ matrix.provider }}"
           sw_vers || true
           uname -a
           container --version || true
@@ -57,12 +72,11 @@ jobs:
       - name: Detect host IP for containers (LAN/Tailscale)
         shell: bash
         run: |
-          # Prefer en0; fall back to loopback if missing
           HOST_IP="$(ipconfig getifaddr en0 2>/dev/null || echo 127.0.0.1)"
           echo "POSTGRES_HOST=${HOST_IP}" >> "$GITHUB_ENV"
           echo "Detected POSTGRES_HOST=${HOST_IP}"
 
-      - name: Set up Python 3.11
+      - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -84,24 +98,43 @@ jobs:
             if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt || true; fi
           fi
 
-      - name: Pre-flight validation (optional)
+      - name: Pre-flight script lint (optional)
         shell: bash
         run: |
-          # quick shellcheck if available
           if command -v shellcheck >/dev/null 2>&1; then
             shellcheck scripts/*.sh || true
           fi
 
-      # --- Bring up the stack on the Mac Studio host ---
-      - name: Start stack (DB → PgBouncer → API)
+      # ---------- Start services ----------
+      - name: Start DB + PgBouncer
         shell: bash
-        run: make stack-up
+        run: |
+          # Bring up DB and PgBouncer (skip API here so we can start mem0 first in http case)
+          ./scripts/nv-db-start.sh
+          ./scripts/nv-pgbouncer-start.sh
 
-      - name: Stack status (after start)
+      - name: Start mem0 sidecar (only for http)
+        if: matrix.provider == 'http'
         shell: bash
-        run: make stack-status
+        run: |
+          # If you have dedicated scripts, call them; else, no-op gracefully
+          if [ -x ./scripts/nv-mem0-start.sh ]; then
+            ./scripts/nv-mem0-start.sh
+          else
+            echo "nv-mem0-start.sh not found; ensure mem0 is running at $MEMORY_HTTP_BASE"
+          fi
 
-      # --- Your existing validations ---
+      - name: Start API
+        shell: bash
+        env:
+          # pass through provider envs to API start script as needed
+          MEMORY_PROVIDER: ${{ matrix.provider }}
+          MEMORY_HTTP_BASE: ${{ matrix.memory_http_base }}
+        run: |
+          ./scripts/nv-api-start.sh
+          ./scripts/nv-stack-status.sh
+
+      # ---------- Validations ----------
       - name: Run system validation
         shell: bash
         run: |
@@ -117,8 +150,7 @@ jobs:
         run: |
           if [ -x ./validate_cli_flow.sh ]; then ./validate_cli_flow.sh; else echo "validate_cli_flow.sh not found"; fi
 
-      # --- Optional: run tests if present ---
-      - name: Run tests (pytest)
+      - name: Pytests (if present)
         shell: bash
         run: |
           if command -v pytest >/dev/null 2>&1 && [ -d tests ]; then
@@ -127,27 +159,37 @@ jobs:
             echo "pytest or tests/ not present; skipping."
           fi
 
-      # --- Always collect logs + status, even on failure ---
+      # ---------- Artifacts & Cleanup ----------
       - name: Collect logs & status (always)
         if: always()
         shell: bash
         run: |
           mkdir -p artifacts
-          make stack-status || true
+          ./scripts/nv-stack-status.sh || true
           container logs nv-db > artifacts/db.log 2>&1 || true
           container logs nv-pgbouncer > artifacts/pgbouncer.log 2>&1 || true
           container logs nv-api > artifacts/api.log 2>&1 || true
-          # mem0 sidecar (if you add it as nv-mem0)
           container logs nv-mem0 > artifacts/mem0.log 2>&1 || true
+          # Tag logs with provider to avoid overwrite
+          for f in artifacts/*.log; do mv "$f" "${f%.log}-${{ matrix.provider }}.log" 2>/dev/null || true; done
 
       - name: Upload artifacts (always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: macstudio-stack-logs
+          name: macstudio-logs-${{ matrix.provider }}
           path: artifacts/
 
       - name: Stop stack (always)
         if: always()
         shell: bash
-        run: make stack-down
+        run: |
+          # Stop API
+          ./scripts/nv-api-stop.sh || true
+          # Stop mem0 only for http case
+          if [ "${{ matrix.provider }}" = "http" ]; then
+            if [ -x ./scripts/nv-mem0-stop.sh ]; then ./scripts/nv-mem0-stop.sh || true; fi
+          fi
+          # Stop PgBouncer & DB
+          ./scripts/nv-pgbouncer-stop.sh || true
+          ./scripts/nv-db-stop.sh || true
