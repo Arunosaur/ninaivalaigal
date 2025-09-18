@@ -29,6 +29,19 @@ main(){
   log "Database Statistics for $POSTGRES_DB"
   echo "=================================="
   
+  # Top 20 queries by execution time
+  log "Top 20 Slowest Queries:"
+  echo "SELECT query, mean_exec_time, calls, total_exec_time FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 20;" | \
+    PGPASSWORD="${POSTGRES_PASSWORD}" psql \
+      --host="$POSTGRES_HOST" \
+      --port="$POSTGRES_PORT" \
+      --username="$POSTGRES_USER" \
+      --dbname="$POSTGRES_DB" \
+      --expanded \
+      2>/dev/null || echo "pg_stat_statements not available"
+  
+  echo ""
+  
   # Database size
   echo "Database Size:"
   run_query "SELECT pg_size_pretty(pg_database_size('$POSTGRES_DB')) as size;"

@@ -9,6 +9,8 @@ import uvicorn
 import os
 from contextlib import asynccontextmanager
 from typing import Optional
+import time
+from datetime import datetime
 
 from auth import get_db, get_current_user
 from database import DatabaseManager, User, Context, Memory, Team, TeamMember, ContextPermission
@@ -153,6 +155,9 @@ app = FastAPI(
     description="Universal Memory Layer for AI Agents and Developers",
     version="1.0.0"
 )
+
+# Initialize app state for metrics
+app.state.start_time = time.time()
 
 # Configure security middleware (includes headers, redaction, rate limiting)
 development_mode = os.getenv('DEVELOPMENT_MODE', 'false').lower() == 'true'
@@ -868,6 +873,165 @@ def delete_context(context_name: str, current_user: User = Depends(get_current_u
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+# --- Observability Endpoints ---
+
+@app.get("/metrics")
+def get_prometheus_metrics():
+    """Prometheus metrics endpoint for monitoring and alerting"""
+    try:
+        from security.monitoring.grafana_metrics import SecurityMetricsCollector
+        
+        # Get performance monitor instance
+        perf_monitor = get_performance_monitor()
+        
+        # Get security metrics collector
+        security_collector = SecurityMetricsCollector()
+        
+        # Generate Prometheus format metrics
+        metrics_output = []
+        
+        # Add performance metrics
+        if hasattr(perf_monitor, 'get_current_metrics'):
+            current_metrics = perf_monitor.get_current_metrics()
+            
+            # API request metrics
+            metrics_output.append("# HELP ninaivalaigal_requests_total Total number of API requests")
+            metrics_output.append("# TYPE ninaivalaigal_requests_total counter")
+            metrics_output.append(f"ninaivalaigal_requests_total {current_metrics.get('requests_total', 0)}")
+            
+            # Health check latency
+            metrics_output.append("# HELP ninaivalaigal_health_latency_seconds Health check response time")
+            metrics_output.append("# TYPE ninaivalaigal_health_latency_seconds gauge")
+            metrics_output.append(f"ninaivalaigal_health_latency_seconds {current_metrics.get('health_latency_ms', 0) / 1000}")
+            
+            # Database connection metrics
+            metrics_output.append("# HELP ninaivalaigal_db_connections_active Active database connections")
+            metrics_output.append("# TYPE ninaivalaigal_db_connections_active gauge")
+            metrics_output.append(f"ninaivalaigal_db_connections_active {current_metrics.get('db_connections', 0)}")
+            
+            # Memory usage
+            metrics_output.append("# HELP ninaivalaigal_memory_usage_percent Memory usage percentage")
+            metrics_output.append("# TYPE ninaivalaigal_memory_usage_percent gauge")
+            metrics_output.append(f"ninaivalaigal_memory_usage_percent {current_metrics.get('memory_percent', 0)}")
+            
+            # CPU usage
+            metrics_output.append("# HELP ninaivalaigal_cpu_usage_percent CPU usage percentage")
+            metrics_output.append("# TYPE ninaivalaigal_cpu_usage_percent gauge")
+            metrics_output.append(f"ninaivalaigal_cpu_usage_percent {current_metrics.get('cpu_percent', 0)}")
+        
+        # Add security metrics
+        if hasattr(security_collector, 'get_prometheus_metrics'):
+            security_metrics = security_collector.get_prometheus_metrics()
+            metrics_output.extend(security_metrics)
+        
+        # Add basic health metrics
+        import time
+        import psutil
+        
+        # System metrics
+        metrics_output.append("# HELP ninaivalaigal_uptime_seconds Application uptime in seconds")
+        metrics_output.append("# TYPE ninaivalaigal_uptime_seconds counter")
+        metrics_output.append(f"ninaivalaigal_uptime_seconds {time.time() - app.state.start_time if hasattr(app.state, 'start_time') else 0}")
+        
+        # Database health
+        try:
+            db_healthy = db.health_check() if hasattr(db, 'health_check') else True
+            metrics_output.append("# HELP ninaivalaigal_database_healthy Database health status")
+            metrics_output.append("# TYPE ninaivalaigal_database_healthy gauge")
+            metrics_output.append(f"ninaivalaigal_database_healthy {1 if db_healthy else 0}")
+        except:
+            metrics_output.append("ninaivalaigal_database_healthy 0")
+        
+        return "\n".join(metrics_output) + "\n"
+        
+    except Exception as e:
+        # Return basic metrics even if advanced metrics fail
+        basic_metrics = [
+            "# HELP ninaivalaigal_metrics_error Metrics collection error",
+            "# TYPE ninaivalaigal_metrics_error gauge",
+            "ninaivalaigal_metrics_error 1",
+            f"# Error: {str(e)}"
+        ]
+        return "\n".join(basic_metrics) + "\n"
+
+@app.get("/health/detailed")
+def get_detailed_health():
+    """Detailed health check with latency measurements for SLO monitoring"""
+    start_time = time.time()
+    
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "checks": {},
+        "metrics": {}
+    }
+    
+    try:
+        # Database health check
+        db_start = time.time()
+        try:
+            db_healthy = db.health_check() if hasattr(db, 'health_check') else True
+            db_latency = (time.time() - db_start) * 1000
+            health_status["checks"]["database"] = {
+                "status": "healthy" if db_healthy else "unhealthy",
+                "latency_ms": round(db_latency, 2)
+            }
+        except Exception as e:
+            health_status["checks"]["database"] = {
+                "status": "unhealthy",
+                "error": str(e),
+                "latency_ms": round((time.time() - db_start) * 1000, 2)
+            }
+            health_status["status"] = "degraded"
+        
+        # Memory provider health (if using HTTP)
+        memory_provider = os.getenv("MEMORY_PROVIDER", "native")
+        if memory_provider == "http":
+            mem_start = time.time()
+            try:
+                import httpx
+                response = httpx.get("http://127.0.0.1:8000/health", timeout=5.0)
+                mem_latency = (time.time() - mem_start) * 1000
+                health_status["checks"]["memory_provider"] = {
+                    "status": "healthy" if response.status_code == 200 else "unhealthy",
+                    "latency_ms": round(mem_latency, 2)
+                }
+            except Exception as e:
+                health_status["checks"]["memory_provider"] = {
+                    "status": "unhealthy",
+                    "error": str(e),
+                    "latency_ms": round((time.time() - mem_start) * 1000, 2)
+                }
+                health_status["status"] = "degraded"
+        
+        # System metrics
+        try:
+            import psutil
+            health_status["metrics"] = {
+                "cpu_percent": psutil.cpu_percent(),
+                "memory_percent": psutil.virtual_memory().percent,
+                "disk_percent": psutil.disk_usage('/').percent
+            }
+        except:
+            pass
+        
+        # Overall latency
+        total_latency = (time.time() - start_time) * 1000
+        health_status["total_latency_ms"] = round(total_latency, 2)
+        
+        # SLO compliance check (target: <250ms for p95)
+        health_status["slo_compliant"] = total_latency < 250
+        
+        return health_status
+        
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat(),
+            "total_latency_ms": round((time.time() - start_time) * 1000, 2)
+        }
 
 # Run the server
 if __name__ == "__main__":
