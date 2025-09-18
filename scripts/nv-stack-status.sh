@@ -22,7 +22,7 @@ API_NAME="${API_CONTAINER_NAME:-nv-api}"
 MEM0_NAME="${MEM0_CONTAINER_NAME:-nv-mem0}"
 UI_NAME="${UI_CONTAINER_NAME:-nv-ui}"
 
-c_exists() { container list | awk '{print $NF}' | grep -qx "$1"; }
+c_exists() { container list | awk 'NR>1 {print $1}' | grep -qx "$1"; }
 port_listen() { nc -z 127.0.0.1 "$1" >/dev/null 2>&1; }
 
 echo "== Containers =="

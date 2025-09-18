@@ -42,10 +42,10 @@ detect_system(){
         fi
         
         echo "SYSTEM_OS=macOS"
-        echo "SYSTEM_VERSION=$macos_version"
-        echo "SYSTEM_MODEL=$model"
-        echo "SYSTEM_CHIP=$chip"
-        echo "SYSTEM_MEMORY=$memory"
+        echo "SYSTEM_VERSION='$macos_version'"
+        echo "SYSTEM_MODEL='$model'"
+        echo "SYSTEM_CHIP='$chip'"
+        echo "SYSTEM_MEMORY='$memory'"
         echo "SYSTEM_IS_DEPLOYMENT=$is_deployment"
         
         # Determine role based on deployment context
@@ -83,12 +83,12 @@ detect_system(){
         fi
         
         echo "SYSTEM_OS=linux"
-        echo "SYSTEM_VERSION=$distro"
-        echo "SYSTEM_MODEL=server"
-        echo "SYSTEM_CHIP=unknown"
-        echo "SYSTEM_MEMORY=unknown"
+        echo "SYSTEM_VERSION='$distro'"
+        echo "SYSTEM_MODEL='server'"
+        echo "SYSTEM_CHIP='unknown'"
+        echo "SYSTEM_MEMORY='unknown'"
         echo "SYSTEM_IS_DEPLOYMENT=$is_deployment"
-        echo "SYSTEM_CONTAINER_TYPE=$container_type"
+        echo "SYSTEM_CONTAINER_TYPE='$container_type'"
         
         # Role determination for Linux
         if [[ "$is_deployment" == true ]] || [[ "$container_type" != "none" ]]; then

@@ -44,15 +44,15 @@ ensure_container_system() {
 }
 
 check_database() {
-  log "Checking database reachability at $DB_HOST:$DB_PORT…"
+  log "Checking database reachability at $DB_HOST:$DB_PORT..."
   nc -z "$DB_HOST" "$DB_PORT" >/dev/null 2>&1 || \
     die "DB not reachable. Start DB first: ./scripts/nv-db-start.sh"
 }
 
 stop_existing() {
   # exact match on NAME column
-  if container list | awk '{print $NF}' | grep -qx "$CONTAINER_NAME"; then
-    warn "Container '$CONTAINER_NAME' exists. Stopping & removing…"
+  if container list | awk 'NR>1 {print $1}' | grep -qx "$CONTAINER_NAME"; then
+    warn "Container '$CONTAINER_NAME' exists. Stopping & removing..."
     container stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
     container delete "$CONTAINER_NAME" >/dev/null 2>&1 || true
   fi
@@ -107,7 +107,7 @@ EOF
 
 run_pgbouncer() {
   local cfg; cfg="$(create_pgbouncer_config)"
-  log "Starting PgBouncer '$CONTAINER_NAME' on host port ${HOST_PORT}…"
+  log "Starting PgBouncer '$CONTAINER_NAME' on host port ${HOST_PORT}..."
   container run --detach --name "$CONTAINER_NAME" \
     --publish "${HOST_PORT}:5432" \
     --volume "${cfg}:/etc/pgbouncer" \
@@ -115,7 +115,7 @@ run_pgbouncer() {
 }
 
 wait_ready() {
-  log "Waiting for PgBouncer (timeout ${WAIT_SEC}s)…"
+  log "Waiting for PgBouncer (timeout ${WAIT_SEC}s)..."
   local t=0
   until nc -z 127.0.0.1 "$HOST_PORT" >/dev/null 2>&1; do
     sleep 2; t=$((t+2))
@@ -128,7 +128,7 @@ wait_ready() {
 }
 
 test_connection() {
-  log "Testing PgBouncer auth…"
+  log "Testing PgBouncer auth..."
   if command -v psql >/dev/null 2>&1; then
     PGPASSWORD="$DB_PASS" psql \
       "postgresql://$DB_USER@127.0.0.1:${HOST_PORT}/$DB_NAME" \

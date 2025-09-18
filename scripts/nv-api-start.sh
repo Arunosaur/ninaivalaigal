@@ -39,15 +39,15 @@ ensure_container_system() {
 
 stop_existing() {
   # Exact name match on the last column
-  if container list | awk '{print $NF}' | grep -qx "$CONTAINER_NAME"; then
-    warn "Container '$CONTAINER_NAME' exists. Stopping & removing…"
+  if container list | awk 'NR>1 {print $1}' | grep -qx "$CONTAINER_NAME"; then
+    warn "Container '$CONTAINER_NAME' exists. Stopping & removing..."
     container stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
     container delete "$CONTAINER_NAME" >/dev/null 2>&1 || true
   fi
 }
 
 check_db() {
-  log "Checking DB (prefer PgBouncer ${DB_HOST}:${DB_PORT})…"
+  log "Checking DB (prefer PgBouncer ${DB_HOST}:${DB_PORT})..."
   if nc -z "$DB_HOST" "$DB_PORT" >/dev/null 2>&1; then
     :
   else
@@ -67,17 +67,10 @@ check_db() {
 }
 
 prepare_context() {
-  local ctx="/tmp/ninaivalaigal-api-$CONTAINER_NAME"
-  rm -rf "$ctx" && mkdir -p "$ctx"
-
   [ -d "server" ] || die "Run from project root; 'server/' not found."
-  cp -r server "$ctx/"
-
-  # optional requirements
-  [ -f "requirements.txt" ] && cp requirements.txt "$ctx/"
-
-  # Dockerfile (installs curl for HEALTHCHECK)
-  cat > "$ctx/Dockerfile" <<'EOF'
+  
+  # Create Dockerfile in project root (will be cleaned up later)
+  cat > "Dockerfile.api-temp" <<'EOF'
 FROM python:3.11-slim
 WORKDIR /app
 
@@ -85,9 +78,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc libpq-dev curl \
  && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt* ./
-RUN pip install --no-cache-dir "psycopg[binary]" sqlalchemy alembic fastapi "uvicorn[standard]" httpx \
- && if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
+COPY server/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir "psycopg[binary]" sqlalchemy alembic fastapi "uvicorn[standard]" httpx PyJWT email-validator python-multipart bcrypt \
+ && pip install --no-cache-dir -r requirements.txt
 
 COPY server/ ./server/
 ENV PYTHONPATH=/app/server
@@ -100,14 +93,14 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
 ENV API_RELOAD=${API_RELOAD:-false}
 CMD ["bash","-lc","exec uvicorn server.main:app --host 0.0.0.0 --port 8000 $( [ \"$API_RELOAD\" = \"true\" ] && echo --reload )"]
 EOF
-  echo "$ctx"
+  echo "."
 }
 
 build_image() {
   local ctx="$1"
   local tag="ninaivalaigal-api:latest"
-  log "Building API image (${tag})…"
-  container build -t "$tag" -f "$ctx/Dockerfile" "$ctx"
+  log "Building API image (${tag})..."
+  container build -t "$tag" -f "Dockerfile.api-temp" "$ctx"
   echo "$tag"
 }
 
@@ -117,7 +110,7 @@ run_api() {
   tag="$(build_image "$ctx")"
   db_url="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
 
-  log "Starting API container '$CONTAINER_NAME' on ${HOST_PORT}…"
+  log "Starting API container '$CONTAINER_NAME' on ${HOST_PORT}..."
   container run --detach --name "$CONTAINER_NAME" \
     --publish "${HOST_PORT}:8000" \
     --env "DATABASE_URL=${db_url}" \
@@ -125,18 +118,18 @@ run_api() {
     --env "API_RELOAD=${API_RELOAD}" \
     "$tag"
 
-  rm -rf "$ctx"
+  rm -f "Dockerfile.api-temp"
 }
 
 migrate() {
-  log "Running alembic migrations inside container…"
+  log "Running alembic migrations inside container..."
   # If your alembic lives in server/, this will work; adjust path if needed.
   container exec "$CONTAINER_NAME" bash -lc "alembic upgrade head" || \
     warn "alembic not available or not configured; skipped."
 }
 
 wait_ready() {
-  log "Waiting for API health (timeout ${WAIT_SEC}s)…"
+  log "Waiting for API health (timeout ${WAIT_SEC}s)..."
   local t=0
   until curl -fsS "http://127.0.0.1:${HOST_PORT}/health" >/dev/null 2>&1; do
     sleep 2; t=$((t+2))
