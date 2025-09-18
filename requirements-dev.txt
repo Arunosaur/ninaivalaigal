@@ -5,7 +5,7 @@ flake8-bugbear==24.8.19
 flake8-docstrings==1.7.0
 pydocstyle==6.3.0
 isort==5.13.2
-pytest==8.3.3
+pytest==8.4.2
 psycopg[binary]==3.2.1
 SQLAlchemy==2.0.35
 alembic==1.13.2
