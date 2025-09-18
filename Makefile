@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 logs
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 logs backup db-stats restore
 
 ## start full stack: DB → PgBouncer → Mem0 → API
 stack-up:
@@ -42,3 +42,15 @@ logs:
 	 echo "== PgBouncer logs =="; -container logs -f nv-pgbouncer & \
 	 echo "== Mem0 logs ==";      -container logs -f nv-mem0 & \
 	 echo "== API logs ==";       -container logs -f nv-api & wait
+
+## backup database
+backup:
+	@$(SCRIPTS)/backup-db.sh
+
+## show database statistics
+db-stats:
+	@$(SCRIPTS)/db-stats.sh
+
+## restore database from backup (usage: make restore BACKUP_FILE=path/to/backup.dump)
+restore:
+	@$(SCRIPTS)/restore-db.sh $(BACKUP_FILE)

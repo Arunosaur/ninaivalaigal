@@ -50,3 +50,10 @@ repos:
         files: ^server/.*\.py$
         args: ["-r", "server/", "-f", "json", "-o", "bandit-report.json"]
         exclude: ^server/tests/.*
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.9.0
+    hooks:
+      - id: shellcheck
+        files: ^scripts/.*\.sh$
+        args: ["-e", "SC1091"]  # Ignore sourcing non-constant files
