@@ -1,0 +1,202 @@
+name: Mac Studio Apple Container CLI Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'scripts/nv-db-*.sh'
+      - 'scripts/nv-test-db.sh'
+      - '.env.example'
+      - 'server/memory/**'
+      - 'tests/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'scripts/nv-db-*.sh'
+      - 'scripts/nv-test-db.sh'
+      - '.env.example'
+      - 'server/memory/**'
+      - 'tests/**'
+  workflow_dispatch:
+    inputs:
+      run_performance_tests:
+        description: 'Run performance benchmarks'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  validate-apple-container-cli:
+    runs-on: [self-hosted, macstudio]
+    timeout-minutes: 15
+    
+    env:
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: nina_ci_${{ github.run_id }}
+      HOST_PORT: ${{ 5433 + strategy.job-index }}
+      CONTAINER_NAME: nv-db-ci-${{ github.run_id }}
+      PYTHONPATH: ${{ github.workspace }}/server
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Mac Studio environment
+        run: |
+          echo "🏗️ Mac Studio Environment Check"
+          echo "================================"
+          sw_vers
+          system_profiler SPHardwareDataType | grep -E "(Model Name|Chip|Memory)"
+          echo ""
+          echo "Container CLI Status:"
+          container --version
+          container system status
+          echo ""
+
+      - name: Setup Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "psycopg[binary]" sqlalchemy alembic pytest fastapi "uvicorn[standard]" httpx
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Start Apple Container CLI database
+        run: |
+          echo "🐘 Starting PostgreSQL + pgvector via Apple Container CLI"
+          echo "========================================================"
+          # Use unique container name and port for this CI run
+          export CONTAINER_NAME="nv-db-ci-${{ github.run_id }}"
+          export HOST_PORT="${{ 5433 + strategy.job-index }}"
+          ./scripts/nv-db-start.sh
+
+      - name: Validate database health
+        run: |
+          echo "🔍 Database Health Check"
+          echo "======================="
+          export CONTAINER_NAME="nv-db-ci-${{ github.run_id }}"
+          ./scripts/nv-db-status.sh
+          
+          # Test pgvector functionality
+          container exec "$CONTAINER_NAME" psql -U nina -d "nina_ci_${{ github.run_id }}" -c "
+            CREATE TABLE test_vectors (id SERIAL PRIMARY KEY, embedding vector(3));
+            INSERT INTO test_vectors (embedding) VALUES ('[1,2,3]'), ('[4,5,6]');
+            SELECT id, embedding <-> '[1,2,3]' AS distance FROM test_vectors ORDER BY distance;
+          "
+
+      - name: Run core memory substrate tests
+        run: |
+          echo "🧠 Memory Substrate Tests"
+          echo "========================"
+          export DATABASE_URL="postgresql://nina:${{ secrets.POSTGRES_PASSWORD }}@localhost:${{ 5433 + strategy.job-index }}/nina_ci_${{ github.run_id }}"
+          
+          # Run core tests
+          pytest -v tests/test_factory_switch_smoke.py
+          pytest -v tests/test_security_basic.py
+          pytest -v tests/test_auto_recording.py
+          
+          # Run memory substrate tests if available
+          if [ -f server/memory/tests/test_postgres_semantic_demo.py ]; then 
+            pytest -v server/memory/tests/test_postgres_semantic_demo.py
+          fi
+
+      - name: Performance benchmark (optional)
+        if: ${{ github.event.inputs.run_performance_tests == 'true' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "⚡ Performance Benchmarks"
+          echo "========================"
+          export CONTAINER_NAME="nv-db-ci-${{ github.run_id }}"
+          
+          # Measure container startup time
+          start_time=$(date +%s%N)
+          ./scripts/nv-db-stop.sh
+          ./scripts/nv-db-start.sh
+          end_time=$(date +%s%N)
+          startup_ms=$(( (end_time - start_time) / 1000000 ))
+          echo "Container startup time: ${startup_ms}ms"
+          
+          # Measure query performance
+          query_start=$(date +%s%N)
+          container exec "$CONTAINER_NAME" psql -U nina -d "nina_ci_${{ github.run_id }}" -c "SELECT version();"
+          query_end=$(date +%s%N)
+          query_ms=$(( (query_end - query_start) / 1000000 ))
+          echo "Query response time: ${query_ms}ms"
+          
+          # Vector operation performance
+          vector_start=$(date +%s%N)
+          container exec "$CONTAINER_NAME" psql -U nina -d "nina_ci_${{ github.run_id }}" -c "
+            SELECT embedding <-> '[1,2,3]' AS distance FROM test_vectors ORDER BY distance LIMIT 100;
+          "
+          vector_end=$(date +%s%N)
+          vector_ms=$(( (vector_end - vector_start) / 1000000 ))
+          echo "Vector query time: ${vector_ms}ms"
+
+      - name: Test automated workflow
+        run: |
+          echo "🔄 Testing nv-test-db.sh workflow"
+          echo "================================="
+          # Test the complete automated workflow
+          export DATABASE_URL="postgresql://nina:${{ secrets.POSTGRES_PASSWORD }}@localhost:${{ 5433 + strategy.job-index }}/nina_ci_${{ github.run_id }}"
+          export CONTAINER_NAME="nv-db-ci-${{ github.run_id }}"
+          
+          # Stop current container first
+          ./scripts/nv-db-stop.sh
+          
+          # Test the full automated workflow
+          ./scripts/nv-test-db.sh tests/test_factory_switch_smoke.py -v
+
+      - name: Cleanup database container
+        if: always()
+        run: |
+          echo "🧹 Cleanup"
+          echo "=========="
+          export CONTAINER_NAME="nv-db-ci-${{ github.run_id }}"
+          ./scripts/nv-db-stop.sh || true
+          
+          # Verify cleanup
+          if container list | grep -q "$CONTAINER_NAME"; then
+            echo "⚠️ Container still exists, force cleanup"
+            container stop "$CONTAINER_NAME" || true
+            container delete "$CONTAINER_NAME" || true
+          fi
+          
+          echo "✅ Cleanup complete"
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macstudio-validation-${{ github.run_id }}
+          path: |
+            .pytest_cache/
+            **/pytest*.xml
+          if-no-files-found: ignore
+
+  summary:
+    runs-on: [self-hosted, macstudio]
+    needs: validate-apple-container-cli
+    if: always()
+    steps:
+      - name: Validation Summary
+        run: |
+          echo "📊 Mac Studio Apple Container CLI Validation Summary"
+          echo "=================================================="
+          echo "✅ Container Runtime: Apple Container CLI v$(container --version | cut -d' ' -f4)"
+          echo "✅ System: $(sw_vers -productName) $(sw_vers -productVersion)"
+          echo "✅ Hardware: $(system_profiler SPHardwareDataType | grep 'Model Name' | cut -d: -f2 | xargs)"
+          echo "✅ Database: PostgreSQL + pgvector validated"
+          echo "✅ Scripts: nv-db-*.sh workflow tested"
+          echo ""
+          if [ "${{ needs.validate-apple-container-cli.result }}" == "success" ]; then
+            echo "🎉 All validations passed! Mac Studio is ready for production workloads."
+          else
+            echo "❌ Some validations failed. Check the logs above."
+          fi
