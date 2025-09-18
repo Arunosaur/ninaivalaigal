@@ -34,15 +34,18 @@ EOF
 main(){
   [[ -n "$SPEC_ID" && -n "$SPEC_NAME" ]] || usage
   
-  # System detection and recommendations
+  # System detection and recommendations (skip in deployment environments)
   eval "$(detect_system)"
   
-  if [[ "${SYSTEM_ROLE:-unknown}" == "studio" ]]; then
+  # Only show interactive prompts in non-deployment environments
+  if [[ "${SYSTEM_IS_DEPLOYMENT:-false}" == "false" && "${SYSTEM_ROLE:-unknown}" == "studio" ]]; then
     warn "You're on Mac Studio - consider authoring SPECs on laptop for faster iteration"
     warn "Studio is optimized for: make stack-up && make spec-test"
     read -p "Continue anyway? (y/N) " -n 1 -r
     echo
     [[ $REPLY =~ ^[Yy]$ ]] || exit 0
+  elif [[ "${SYSTEM_IS_DEPLOYMENT:-false}" == "true" ]]; then
+    log "Deployment environment detected - proceeding automatically"
   fi
   
   # Validate SPEC ID format

@@ -114,13 +114,18 @@ run_spec_validation(){
 main(){
   [[ -n "$SPEC_ID" ]] || usage
   
-  # System detection and recommendations
+  # System detection and recommendations (deployment-aware)
   eval "$(detect_system)"
   
-  if [[ "${SYSTEM_ROLE:-unknown}" == "laptop" ]]; then
-    warn "You're on laptop - SPEC testing works best on Mac Studio"
-    warn "Consider: git push → let Studio CI validate, or connect to Studio stack"
-    log "Laptop is optimized for: make spec-new, UI development, authoring"
+  # Only show recommendations in non-deployment environments
+  if [[ "${SYSTEM_IS_DEPLOYMENT:-false}" == "false" ]]; then
+    if [[ "${SYSTEM_ROLE:-unknown}" == "laptop" ]]; then
+      warn "You're on laptop - SPEC testing works best on Mac Studio"
+      warn "Consider: git push → let Studio CI validate, or connect to Studio stack"
+      log "Laptop is optimized for: make spec-new, UI development, authoring"
+    fi
+  else
+    log "Deployment environment detected - running automated SPEC validation"
   fi
   
   # Find SPEC directory
