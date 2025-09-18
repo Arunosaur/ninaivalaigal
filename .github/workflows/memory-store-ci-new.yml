@@ -13,13 +13,13 @@ on:
     - cron: '15 3 * * *'
 jobs:
   test-memory-store:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macstudio]  # Use Mac Studio runner
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix: { python-version: ['3.10','3.11','3.12'] }
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      DATABASE_URL: postgresql://medhasys:${{ secrets.POSTGRES_PASSWORD }}@localhost:5433/medhasys_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -40,12 +40,17 @@ jobs:
         run: |
           flake8 server || (echo "::warning::flake8 fails"; exit 1)
           black --check server || (echo "::warning::black check fails"; exit 1)
-      - name: Start pgvector
+      - name: Start test database
         run: |
-          docker compose -f docker-compose.ci.yml up -d pgvector
-          for i in {1..90}; do
-            s=$(docker inspect --format='{{json .State.Health.Status}}' $(docker compose -f docker-compose.ci.yml ps -q pgvector) || echo 'null')
-            if echo "$s" | grep -q healthy; then break; fi; sleep 2; done
+          docker run -d --name postgres-test-${{ matrix.python-version }} \
+            -e POSTGRES_USER=medhasys \
+            -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            -e POSTGRES_DB=medhasys_test \
+            -p ${{ 5433 + strategy.job-index }}:5432 \
+            pgvector/pgvector:pg16
+          
+          # Wait for database to be ready
+          timeout 60 bash -c 'until pg_isready -h localhost -p ${{ 5433 + strategy.job-index }} -U medhasys; do sleep 2; done'
       - name: Compute snapshot key
         id: snapkey
         run: |
@@ -57,18 +62,17 @@ jobs:
         with:
           path: memory_dump.sql
           key: db-snapshot-${{ steps.snapkey.outputs.key }}
-      - name: Restore DB (if cached)
-        if: steps.cache-restore.outputs.cache-hit == 'true'
-        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f memory_dump.sql
-      - name: Apply migrations (if no dump)
-        if: steps.cache-restore.outputs.cache-hit != 'true'
+      - name: Setup database schema
         run: |
-          if [ -f alembic.ini ]; then alembic upgrade head;
-          elif [ -f server/memory/db/migrations/0111_memory_pgvector.sql ]; then psql "$DATABASE_URL" -f server/memory/db/migrations/0111_memory_pgvector.sql;
+          # Update DATABASE_URL for this specific test instance
+          export DATABASE_URL="postgresql://medhasys:${{ secrets.POSTGRES_PASSWORD }}@localhost:${{ 5433 + strategy.job-index }}/medhasys_test"
+          
+          # Apply migrations
+          if [ -f alembic.ini ]; then 
+            alembic upgrade head
+          elif [ -f server/memory/db/migrations/0111_memory_pgvector.sql ]; then 
+            psql "$DATABASE_URL" -f server/memory/db/migrations/0111_memory_pgvector.sql
           fi
-      - name: Dump DB (on miss)
-        if: steps.cache-restore.outputs.cache-hit != 'true'
-        run: pg_dump "$DATABASE_URL" > memory_dump.sql
       - name: Save dump
         if: steps.cache-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
@@ -77,8 +81,23 @@ jobs:
           key: db-snapshot-${{ steps.snapkey.outputs.key }}
       - name: Tests
         run: |
+          # Set DATABASE_URL for tests
+          export DATABASE_URL="postgresql://medhasys:${{ secrets.POSTGRES_PASSWORD }}@localhost:${{ 5433 + strategy.job-index }}/medhasys_test"
+          export PYTHONPATH="$PWD/server:$PYTHONPATH"
+          
+          # Run core tests
           pytest -q tests/test_factory_switch_smoke.py
-          if [ -f server/memory/tests/test_postgres_semantic_demo.py ]; then pytest -q server/memory/tests/test_postgres_semantic_demo.py; fi
+          pytest -q tests/test_security_basic.py
+          pytest -q tests/test_auto_recording.py
+          
+          # Run memory substrate tests if available
+          if [ -f server/memory/tests/test_postgres_semantic_demo.py ]; then 
+            pytest -q server/memory/tests/test_postgres_semantic_demo.py
+          fi
+      - name: Cleanup
+        if: always()
+        run: |
+          docker rm -f postgres-test-${{ matrix.python-version }} || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
