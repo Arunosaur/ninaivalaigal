@@ -19,7 +19,7 @@ WAIT_SEC="${WAIT_SEC:-90}"
 API_RELOAD="${API_RELOAD:-true}"            # set false in prod
 # --------------------------------------------------
 
-log()  { printf "\033[1;34m[info]\033[0m %s\n" "$*"; }
+log()  { printf "\033[1;32m[api]\033[0m %s\n" "$*"; }
 warn() { printf "\033[1;33m[warn]\033[0m %s\n" "$*"; }
 die()  { printf "\033[1;31m[fail]\033[0m %s\n" "$*"; exit 1; }
 
@@ -47,20 +47,18 @@ stop_existing() {
 }
 
 check_db() {
-  log "Checking DB reachability (prefer PgBouncer ${DB_HOST}:${DB_PORT})…"
+  log "Checking DB (prefer PgBouncer ${DB_HOST}:${DB_PORT})…"
   if nc -z "$DB_HOST" "$DB_PORT" >/dev/null 2>&1; then
-    log "PgBouncer reachable."
+    :
   else
-    local direct_port="${POSTGRES_PORT:-5433}"
-    if nc -z "$DB_HOST" "$direct_port" >/dev/null 2>&1; then
-      warn "PgBouncer not reachable; falling back to direct DB on ${direct_port}."
-      DB_PORT="$direct_port"
+    local direct="${POSTGRES_PORT:-5433}"
+    if nc -z "$DB_HOST" "$direct" >/dev/null 2>&1; then
+      warn "PgBouncer not reachable; falling back to direct DB on ${direct}."
+      DB_PORT="$direct"
     else
-      die "DB not reachable at ${DB_HOST}:{${DB_PORT},${direct_port}}. Start DB/PgBouncer first."
+      die "DB not reachable at ${DB_HOST}:{${DB_PORT},${direct}}. Start DB/PgBouncer first."
     fi
   fi
-
-  # If psql is available, do a real check
   if command -v psql >/dev/null 2>&1; then
     PGPASSWORD="$DB_PASS" psql \
       "host=${DB_HOST} port=${DB_PORT} user=${DB_USER} dbname=${DB_NAME}" \
@@ -143,8 +141,8 @@ wait_ready() {
   until curl -fsS "http://127.0.0.1:${HOST_PORT}/health" >/dev/null 2>&1; do
     sleep 2; t=$((t+2))
     if [ "$t" -ge "$WAIT_SEC" ]; then
-      container logs "$CONTAINER_NAME" | tail -n 60 || true
-      die "API did not become ready within ${WAIT_SEC}s."
+      container logs "$CONTAINER_NAME" | tail -n 80 || true
+      die "API didn't become ready in ${WAIT_SEC}s."
     fi
   done
   log "API is healthy."
@@ -174,8 +172,7 @@ main() {
   need container
   need curl
   ensure_container_system
-
-  port_in_use "$HOST_PORT" && die "Host port ${HOST_PORT} in use."
+  port_in_use "$HOST_PORT" && die "Host port ${HOST_PORT} is busy."
   stop_existing
   check_db
   run_api

@@ -1,37 +1,26 @@
 #!/usr/bin/env bash
-# Stop the complete ninaivalaigal stack on Mac Studio
-# API → PgBouncer → Database in reverse order
+# Stop ninaivalaigal stack (API -> PgBouncer -> DB) to drain gracefully
 
 set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
+SCRIPTS="${ROOT}/scripts"
 
-log()  { printf "\033[1;34m[stack]\033[0m %s\n" "$*"; }
+log(){ printf "\033[1;36m[stack]\033[0m %s\n" "$*"; }
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Stop API first
+log "Stopping API…"
+bash "${SCRIPTS}/nv-api-stop.sh" || true
 
-main() {
-  log "🛑 Stopping ninaivalaigal stack on Mac Studio"
-  log "============================================="
-  
-  # Stop in reverse order for clean shutdown
-  log "🌐 Stopping API server..."
-  "$SCRIPT_DIR/nv-api-stop.sh" || true
-  
-  log "🔄 Stopping PgBouncer..."
-  "$SCRIPT_DIR/nv-pgbouncer-stop.sh" || true
-  
-  log "📊 Stopping database..."
-  "$SCRIPT_DIR/nv-db-stop.sh" || true
-  
-  log "✅ Stack shutdown complete!"
-  
-  # Verify cleanup
-  echo ""
-  log "Remaining ninaivalaigal containers:"
-  if container list | grep -E "(nv-db|nv-pgbouncer|nv-api)"; then
-    log "⚠️  Some containers still running"
-  else
-    log "✅ All containers stopped"
-  fi
+# Then PgBouncer
+log "Stopping PgBouncer…"
+bash "${SCRIPTS}/nv-pgbouncer-stop.sh" || true
+
+# Finally DB
+log "Stopping DB…"
+bash "${SCRIPTS}/nv-db-stop.sh" || {
+  # fallback if you only have nv-db-start.sh today
+  container stop nv-db >/dev/null 2>&1 || true
+  container delete nv-db >/dev/null 2>&1 || true
 }
 
-main "$@"
+log "Stack stop complete."

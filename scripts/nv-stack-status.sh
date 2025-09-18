@@ -1,97 +1,59 @@
 #!/usr/bin/env bash
-# Show comprehensive status of ninaivalaigal stack on Mac Studio
+# Show concise status for DB, PgBouncer, API
 
 set -euo pipefail
+RED=$'\033[31m'; GRN=$'\033[32m'; YLW=$'\033[33m'; NC=$'\033[0m'
 
-log()  { printf "\033[1;34m[stack]\033[0m %s\n" "$*"; }
-warn() { printf "\033[1;33m[warn]\033[0m %s\n" "$*"; }
-success() { printf "\033[1;32m[ok]\033[0m %s\n" "$*"; }
+ok(){ echo "${GRN}✔${NC} $*"; }
+warn(){ echo "${YLW}⚠${NC} $*"; }
+bad(){ echo "${RED}✘${NC} $*"; }
 
-check_service() {
-  local name="$1"
-  local port="$2"
-  local description="$3"
-  
-  if container list | grep -q "$name"; then
-    if nc -z 127.0.0.1 "$port" >/dev/null 2>&1; then
-      success "$description: ✅ Running and accessible on port $port"
-    else
-      warn "$description: ⚠️  Container running but port $port not accessible"
-    fi
+# Defaults must match your start scripts
+DB_PORT="${POSTGRES_PORT:-5433}"
+PGB_PORT="${PGBOUNCER_PORT:-6432}"
+API_PORT="${API_PORT:-13370}"
+
+# container names
+DB_NAME="${DB_CONTAINER_NAME:-nv-db}"
+PGB_NAME="${PGBOUNCER_CONTAINER_NAME:-nv-pgbouncer}"
+API_NAME="${API_CONTAINER_NAME:-nv-api}"
+
+c_exists() { container list | awk '{print $NF}' | grep -qx "$1"; }
+port_listen() { nc -z 127.0.0.1 "$1" >/dev/null 2>&1; }
+
+echo "== Containers =="
+c_exists "$DB_NAME"  && ok "DB: $DB_NAME running" || bad "DB: $DB_NAME not running"
+c_exists "$PGB_NAME" && ok "PgBouncer: $PGB_NAME running" || warn "PgBouncer: $PGB_NAME not running"
+c_exists "$API_NAME" && ok "API: $API_NAME running" || warn "API: $API_NAME not running"
+
+echo ""
+echo "== Ports (localhost) =="
+port_listen "$DB_PORT"  && ok "DB port $DB_PORT open"  || warn "DB port $DB_PORT closed"
+port_listen "$PGB_PORT" && ok "PgBouncer port $PGB_PORT open" || warn "PgBouncer port $PGB_PORT closed"
+port_listen "$API_PORT" && ok "API port $API_PORT open" || warn "API port $API_PORT closed"
+
+echo ""
+echo "== Health =="
+if command -v psql >/dev/null 2>&1 && port_listen "$PGB_PORT"; then
+  if PGPASSWORD="${POSTGRES_PASSWORD:-change_me_securely}" psql \
+       "postgresql://${POSTGRES_USER:-nina}@127.0.0.1:${PGB_PORT}/${POSTGRES_DB:-nina}" \
+       -c "select 1" >/dev/null 2>&1; then
+    ok "DB via PgBouncer: SELECT 1 OK"
   else
-    warn "$description: ❌ Container not running"
+    warn "DB via PgBouncer: SELECT 1 failed"
   fi
-}
+else
+  warn "Skipping DB check (psql missing or port closed)"
+fi
 
-main() {
-  log "📊 ninaivalaigal Stack Status (Mac Studio)"
-  log "=========================================="
-  echo ""
-  
-  # Container system status
-  log "Apple Container CLI:"
-  if container system status >/dev/null 2>&1; then
-    success "✅ Container system operational"
-  else
-    warn "❌ Container system not running"
-  fi
-  echo ""
-  
-  # Individual service status
-  log "Service Status:"
-  check_service "nv-db" "5433" "Database (PostgreSQL + pgvector)"
-  check_service "nv-pgbouncer" "6432" "PgBouncer (Connection pooler)"  
-  check_service "nv-api" "13370" "API Server (FastAPI)"
-  echo ""
-  
-  # Container details
-  log "Container Details:"
-  echo "ID          IMAGE                             STATE    PORTS"
-  echo "----------  --------------------------------  -------  -------------------------"
-  container list | grep -E "(nv-db|nv-pgbouncer|nv-api)" || echo "No ninaivalaigal containers running"
-  echo ""
-  
-  # Service URLs and connection strings
-  log "Connection Information:"
-  if container list | grep -q "nv-db"; then
-    echo "  📊 Database (direct):   postgresql://nina:***@localhost:5433/nina"
-  fi
-  if container list | grep -q "nv-pgbouncer"; then
-    echo "  🔄 Database (pooled):   postgresql://nina:***@localhost:6432/nina"
-  fi
-  if container list | grep -q "nv-api"; then
-    echo "  🌐 API Health:          http://localhost:13370/health"
-    echo "  📚 API Documentation:   http://localhost:13370/docs"
-    echo "  🔗 API Base URL:        http://localhost:13370/"
-  fi
-  echo ""
-  
-  # Quick health checks
-  log "Health Checks:"
-  if container list | grep -q "nv-db"; then
-    if container exec nv-db pg_isready -h 127.0.0.1 -p 5432 -U nina -d nina >/dev/null 2>&1; then
-      success "✅ Database accepting connections"
-    else
-      warn "❌ Database not accepting connections"
-    fi
-  fi
-  
-  if container list | grep -q "nv-api"; then
-    if curl -f http://127.0.0.1:13370/health >/dev/null 2>&1; then
-      success "✅ API health endpoint responding"
-    else
-      warn "❌ API health endpoint not responding"
-    fi
-  fi
-  echo ""
-  
-  # Management commands
-  log "Stack Management:"
-  echo "  Start full stack:  ./nv-stack-start.sh"
-  echo "  Stop full stack:   ./nv-stack-stop.sh"
-  echo "  Database only:     ./nv-stack-start.sh --db-only"
-  echo "  Individual:        ./nv-db-start.sh, ./nv-pgbouncer-start.sh, ./nv-api-start.sh"
-  echo ""
-}
+if command -v curl >/dev/null 2>&1 && port_listen "$API_PORT"; then
+  curl -fsS "http://127.0.0.1:${API_PORT}/health" >/dev/null 2>&1 && ok "API /health OK" || warn "API /health not responding"
+else
+  warn "Skipping API health (curl missing or port closed)"
+fi
 
-main "$@"
+echo ""
+echo "== Tips =="
+echo "  container logs -f ${DB_NAME}         # DB logs"
+echo "  container logs -f ${PGB_NAME}        # PgBouncer logs"
+echo "  container logs -f ${API_NAME}        # API logs"

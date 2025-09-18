@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Start ninaivalaigal PgBouncer on Mac Studio via Apple Container CLI
-# Connects to existing PostgreSQL database container
 
 set -euo pipefail
 
@@ -20,9 +19,7 @@ log()  { printf "\033[1;34m[info]\033[0m %s\n" "$*"; }
 warn() { printf "\033[1;33m[warn]\033[0m %s\n" "$*"; }
 die()  { printf "\033[1;31m[fail]\033[0m %s\n" "$*"; exit 1; }
 
-ensure_bin() {
-  command -v "$1" >/dev/null 2>&1 || die "Missing '$1'. Install and retry."
-}
+need() { command -v "$1" >/dev/null 2>&1 || die "Missing '$1'"; }
 
 port_in_use() {
   if command -v lsof >/dev/null 2>&1; then
@@ -33,34 +30,27 @@ port_in_use() {
 }
 
 maybe_pull() {
-  # Prefer 'container image' verbs for widest compatibility
-  if container image ls | awk '{print $1}' | grep -q "^$(echo "$IMAGE" | sed 's/:.*//')$"; then
+  # Apple CLI: prefer 'container image' verbs
+  if container image ls | awk '{print $1}' | grep -qx "$(echo "$IMAGE" | sed 's/:.*//')"; then
     log "Image cache present; skipping pull."
   else
     log "Pulling image: $IMAGE"
-    if ! container image pull "$IMAGE"; then
-      warn "Pull failed; will try to run anyway if already local."
-    fi
+    container image pull "$IMAGE" || warn "Pull failed; will try run anyway."
   fi
 }
 
 ensure_container_system() {
-  if ! container system status >/dev/null 2>&1; then
-    log "Starting container system…"
-    container system start
-  fi
+  container system status >/dev/null 2>&1 || container system start
 }
 
 check_database() {
-  log "Checking database connectivity..."
-  if ! nc -z "$DB_HOST" "$DB_PORT" >/dev/null 2>&1; then
-    die "Database not reachable at $DB_HOST:$DB_PORT. Start database first with: ./nv-db-start.sh"
-  fi
-  log "Database is reachable at $DB_HOST:$DB_PORT"
+  log "Checking database reachability at $DB_HOST:$DB_PORT…"
+  nc -z "$DB_HOST" "$DB_PORT" >/dev/null 2>&1 || \
+    die "DB not reachable. Start DB first: ./scripts/nv-db-start.sh"
 }
 
 stop_existing() {
-  # Exact-name match on last column to avoid substring collisions
+  # exact match on NAME column
   if container list | awk '{print $NF}' | grep -qx "$CONTAINER_NAME"; then
     warn "Container '$CONTAINER_NAME' exists. Stopping & removing…"
     container stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -68,16 +58,15 @@ stop_existing() {
   fi
 }
 
-# Portable md5(password+username) generator for PgBouncer userlist
+# portable md5(password+username) for PgBouncer userlist
 pgb_md5() {
-  local s="$1"  # password+username
+  local s="$1"
   if command -v md5 >/dev/null 2>&1; then
     md5 -q <<<"$s"
   elif command -v openssl >/dev/null 2>&1; then
-    # outputs like '(stdin)= abcd...'; cut field 2
     printf "%s" "$s" | openssl md5 | awk '{print $2}'
   else
-    die "Need 'md5' (macOS) or 'openssl' to generate PgBouncer MD5."
+    die "Need 'md5' (macOS) or 'openssl' for PgBouncer MD5."
   fi
 }
 
@@ -117,61 +106,53 @@ EOF
 }
 
 run_pgbouncer() {
-  local config_dir
-  config_dir=$(create_pgbouncer_config)
-
-  log "Starting PgBouncer container '$CONTAINER_NAME' on host port ${HOST_PORT}…"
+  local cfg; cfg="$(create_pgbouncer_config)"
+  log "Starting PgBouncer '$CONTAINER_NAME' on host port ${HOST_PORT}…"
   container run --detach --name "$CONTAINER_NAME" \
     --publish "${HOST_PORT}:5432" \
-    --volume "${config_dir}:/etc/pgbouncer" \
+    --volume "${cfg}:/etc/pgbouncer" \
     "$IMAGE"
 }
 
 wait_ready() {
-  log "Waiting for PgBouncer to accept connections (timeout ${WAIT_SEC}s)…"
+  log "Waiting for PgBouncer (timeout ${WAIT_SEC}s)…"
   local t=0
   until nc -z 127.0.0.1 "$HOST_PORT" >/dev/null 2>&1; do
     sleep 2; t=$((t+2))
     if [ "$t" -ge "$WAIT_SEC" ]; then
-      container logs "$CONTAINER_NAME" | tail -n 20 || true
-      die "PgBouncer did not become ready within ${WAIT_SEC}s."
+      container logs "$CONTAINER_NAME" | tail -n 40 || true
+      die "PgBouncer not ready in ${WAIT_SEC}s."
     fi
   done
   log "PgBouncer is ready."
 }
 
 test_connection() {
-  log "Testing PgBouncer connection..."
-  # Prefer host psql if container lacks it
+  log "Testing PgBouncer auth…"
   if command -v psql >/dev/null 2>&1; then
     PGPASSWORD="$DB_PASS" psql \
       "postgresql://$DB_USER@127.0.0.1:${HOST_PORT}/$DB_NAME" \
-      -c "SELECT 'PgBouncer connection test successful';" >/dev/null
-    log "PgBouncer connection test successful (host psql)."
-  elif container exec "$CONTAINER_NAME" which psql >/dev/null 2>&1; then
-    container exec "$CONTAINER_NAME" psql -h 127.0.0.1 -p 5432 -U "$DB_USER" -d "$DB_NAME" \
-      -c "SELECT 'PgBouncer connection test successful';" >/dev/null
-    log "PgBouncer connection test successful (in-container psql)."
+      -c "select 1" >/dev/null && log "Auth OK."
   else
-    warn "psql not found on host or in image; skipped auth test. Port is open."
+    warn "psql not installed on host; skipped auth test."
   fi
 }
 
-connection_summary() {
+summary() {
   cat <<EOF
 
-✅ PgBouncer is up via Apple Container CLI.
+✅ PgBouncer up via Apple 'container'.
 
-Connect through PgBouncer:
+Connect:
   psql "postgresql://${DB_USER}:${DB_PASS}@localhost:${HOST_PORT}/${DB_NAME}"
 
-Use in apps (via PgBouncer):
+Apps:
   DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@localhost:${HOST_PORT}/${DB_NAME}
 
-Direct database (bypass PgBouncer):
+Direct DB:
   DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}
 
-Container logs:
+Logs:
   container logs -f ${CONTAINER_NAME}
 
 Stop:
@@ -181,20 +162,17 @@ EOF
 }
 
 main() {
-  ensure_bin container
+  need container
+  need nc
   ensure_container_system
 
-  if port_in_use "$HOST_PORT"; then
-    die "Host port ${HOST_PORT} is already in use. Choose another PGBOUNCER_PORT or stop the conflicting service."
-  fi
-
+  port_in_use "$HOST_PORT" && die "Host port ${HOST_PORT} is busy."
   check_database
   maybe_pull
   stop_existing
   run_pgbouncer
   wait_ready
   test_connection
-  connection_summary
+  summary
 }
-
 main "$@"
