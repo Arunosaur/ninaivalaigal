@@ -33,11 +33,14 @@ port_in_use() {
 }
 
 maybe_pull() {
-  if container images list | grep -q "$(echo "$IMAGE" | sed 's/:.*//')" ; then
+  # Prefer 'container image' verbs for widest compatibility
+  if container image ls | awk '{print $1}' | grep -q "^$(echo "$IMAGE" | sed 's/:.*//')$"; then
     log "Image cache present; skipping pull."
   else
     log "Pulling image: $IMAGE"
-    container images pull "$IMAGE" || warn "Pull failed, will try to run anyway"
+    if ! container image pull "$IMAGE"; then
+      warn "Pull failed; will try to run anyway if already local."
+    fi
   fi
 }
 
@@ -57,21 +60,35 @@ check_database() {
 }
 
 stop_existing() {
-  if container list | grep -q "$CONTAINER_NAME"; then
+  # Exact-name match on last column to avoid substring collisions
+  if container list | awk '{print $NF}' | grep -qx "$CONTAINER_NAME"; then
     warn "Container '$CONTAINER_NAME' exists. Stopping & removing…"
     container stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
     container delete "$CONTAINER_NAME" >/dev/null 2>&1 || true
   fi
 }
 
+# Portable md5(password+username) generator for PgBouncer userlist
+pgb_md5() {
+  local s="$1"  # password+username
+  if command -v md5 >/dev/null 2>&1; then
+    md5 -q <<<"$s"
+  elif command -v openssl >/dev/null 2>&1; then
+    # outputs like '(stdin)= abcd...'; cut field 2
+    printf "%s" "$s" | openssl md5 | awk '{print $2}'
+  else
+    die "Need 'md5' (macOS) or 'openssl' to generate PgBouncer MD5."
+  fi
+}
+
 create_pgbouncer_config() {
   local config_dir="/tmp/pgbouncer-$CONTAINER_NAME"
   mkdir -p "$config_dir"
-  
+
   # Create pgbouncer.ini
   cat > "$config_dir/pgbouncer.ini" <<EOF
 [databases]
-$DB_NAME = host=$DB_HOST port=$DB_PORT dbname=$DB_NAME
+$DB_NAME = host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASS
 
 [pgbouncer]
 listen_addr = 0.0.0.0
@@ -92,11 +109,9 @@ log_disconnections = 1
 log_pooler_errors = 1
 EOF
 
-  # Create userlist.txt with MD5 password
-  # Note: In production, use proper password hashing
-  cat > "$config_dir/userlist.txt" <<EOF
-"$DB_USER" "md5$(echo -n "${DB_PASS}${DB_USER}" | md5sum | cut -d' ' -f1)"
-EOF
+  # Create userlist.txt with MD5(password+username)
+  local hex; hex="$(pgb_md5 "${DB_PASS}${DB_USER}")"
+  printf '"%s" "md5%s"\n' "$DB_USER" "$hex" > "$config_dir/userlist.txt"
 
   echo "$config_dir"
 }
@@ -104,16 +119,11 @@ EOF
 run_pgbouncer() {
   local config_dir
   config_dir=$(create_pgbouncer_config)
-  
+
   log "Starting PgBouncer container '$CONTAINER_NAME' on host port ${HOST_PORT}…"
   container run --detach --name "$CONTAINER_NAME" \
     --publish "${HOST_PORT}:5432" \
     --volume "${config_dir}:/etc/pgbouncer" \
-    --env "DATABASES_HOST=${DB_HOST}" \
-    --env "DATABASES_PORT=${DB_PORT}" \
-    --env "DATABASES_NAME=${DB_NAME}" \
-    --env "DATABASES_USER=${DB_USER}" \
-    --env "DATABASES_PASSWORD=${DB_PASS}" \
     "$IMAGE"
 }
 
@@ -121,8 +131,7 @@ wait_ready() {
   log "Waiting for PgBouncer to accept connections (timeout ${WAIT_SEC}s)…"
   local t=0
   until nc -z 127.0.0.1 "$HOST_PORT" >/dev/null 2>&1; do
-    sleep 2
-    t=$((t+2))
+    sleep 2; t=$((t+2))
     if [ "$t" -ge "$WAIT_SEC" ]; then
       container logs "$CONTAINER_NAME" | tail -n 20 || true
       die "PgBouncer did not become ready within ${WAIT_SEC}s."
@@ -133,12 +142,18 @@ wait_ready() {
 
 test_connection() {
   log "Testing PgBouncer connection..."
-  # Test via container exec if psql is available in the image
-  if container exec "$CONTAINER_NAME" which psql >/dev/null 2>&1; then
-    container exec "$CONTAINER_NAME" psql -h 127.0.0.1 -p 5432 -U "$DB_USER" -d "$DB_NAME" -c "SELECT 'PgBouncer connection test successful';" >/dev/null
-    log "PgBouncer connection test successful"
+  # Prefer host psql if container lacks it
+  if command -v psql >/dev/null 2>&1; then
+    PGPASSWORD="$DB_PASS" psql \
+      "postgresql://$DB_USER@127.0.0.1:${HOST_PORT}/$DB_NAME" \
+      -c "SELECT 'PgBouncer connection test successful';" >/dev/null
+    log "PgBouncer connection test successful (host psql)."
+  elif container exec "$CONTAINER_NAME" which psql >/dev/null 2>&1; then
+    container exec "$CONTAINER_NAME" psql -h 127.0.0.1 -p 5432 -U "$DB_USER" -d "$DB_NAME" \
+      -c "SELECT 'PgBouncer connection test successful';" >/dev/null
+    log "PgBouncer connection test successful (in-container psql)."
   else
-    log "PgBouncer is listening (psql not available in container for testing)"
+    warn "psql not found on host or in image; skipped auth test. Port is open."
   fi
 }
 
@@ -157,7 +172,7 @@ Direct database (bypass PgBouncer):
   DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}
 
 Container logs:
-  container logs ${CONTAINER_NAME}
+  container logs -f ${CONTAINER_NAME}
 
 Stop:
   container stop ${CONTAINER_NAME} && container delete ${CONTAINER_NAME}
