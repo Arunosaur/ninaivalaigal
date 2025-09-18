@@ -7,3 +7,4 @@ mem0_data.json
 # Ignore server process file
 .server.pid
 
+.env
