@@ -24,17 +24,17 @@ c_exists() { container list | awk '{print $NF}' | grep -qx "$1"; }
 port_listen() { nc -z 127.0.0.1 "$1" >/dev/null 2>&1; }
 
 echo "== Containers =="
-c_exists "$DB_NAME"  && ok "DB: $DB_NAME running" || bad "DB: $DB_NAME not running"
-c_exists "$PGB_NAME" && ok "PgBouncer: $PGB_NAME running" || warn "PgBouncer: $PGB_NAME not running"
-c_exists "$MEM0_NAME" && ok "Mem0: $MEM0_NAME running" || warn "Mem0: $MEM0_NAME not running"
-c_exists "$API_NAME" && ok "API: $API_NAME running" || warn "API: $API_NAME not running"
+c_exists "$DB_NAME"   && ok "DB: $DB_NAME running"      || bad  "DB: $DB_NAME not running"
+c_exists "$PGB_NAME"  && ok "PgB: $PGB_NAME running"     || warn "PgB: $PGB_NAME not running"
+c_exists "$MEM0_NAME" && ok "mem0: $MEM0_NAME running"   || warn "mem0: $MEM0_NAME not running"
+c_exists "$API_NAME"  && ok "API: $API_NAME running"     || warn "API: $API_NAME not running"
 
 echo ""
 echo "== Ports (localhost) =="
-port_listen "$DB_PORT"  && ok "DB port $DB_PORT open"  || warn "DB port $DB_PORT closed"
-port_listen "$PGB_PORT" && ok "PgBouncer port $PGB_PORT open" || warn "PgBouncer port $PGB_PORT closed"
-port_listen "$MEM0_PORT" && ok "Mem0 port $MEM0_PORT open" || warn "Mem0 port $MEM0_PORT closed"
-port_listen "$API_PORT" && ok "API port $API_PORT open" || warn "API port $API_PORT closed"
+port_listen "$DB_PORT"  && ok "DB port $DB_PORT open"     || warn "DB port $DB_PORT closed"
+port_listen "$PGB_PORT" && ok "PgB port $PGB_PORT open"   || warn "PgB port $PGB_PORT closed"
+port_listen "$MEM0_PORT"&& ok "mem0 port $MEM0_PORT open" || warn "mem0 port $MEM0_PORT closed"
+port_listen "$API_PORT" && ok "API port $API_PORT open"   || warn "API port $API_PORT closed"
 
 echo ""
 echo "== Health =="
@@ -51,20 +51,20 @@ else
 fi
 
 if command -v curl >/dev/null 2>&1 && port_listen "$MEM0_PORT"; then
-  curl -fsS "http://127.0.0.1:${MEM0_PORT}/health" >/dev/null 2>&1 && ok "Mem0 /health OK" || warn "Mem0 /health not responding"
+  curl -fsS "http://127.0.0.1:${MEM0_PORT}/health" >/dev/null 2>&1 && ok "mem0 /health OK" || warn "mem0 /health failed"
 else
-  warn "Skipping Mem0 health (curl missing or port closed)"
+  warn "Skipping mem0 health (curl missing or port closed)"
 fi
 
 if command -v curl >/dev/null 2>&1 && port_listen "$API_PORT"; then
-  curl -fsS "http://127.0.0.1:${API_PORT}/health" >/dev/null 2>&1 && ok "API /health OK" || warn "API /health not responding"
+  curl -fsS "http://127.0.0.1:${API_PORT}/health" >/dev/null 2>&1 && ok "API /health OK" || warn "API /health failed"
 else
   warn "Skipping API health (curl missing or port closed)"
 fi
 
 echo ""
 echo "== Tips =="
-echo "  container logs -f ${DB_NAME}         # DB logs"
-echo "  container logs -f ${PGB_NAME}        # PgBouncer logs"
-echo "  container logs -f ${MEM0_NAME}       # Mem0 logs"
-echo "  container logs -f ${API_NAME}        # API logs"
+echo "  container logs -f ${DB_NAME}"
+echo "  container logs -f ${PGB_NAME}"
+echo "  container logs -f ${MEM0_NAME}"
+echo "  container logs -f ${API_NAME}"

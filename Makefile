@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 mem0-only logs
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 logs
 
 ## start full stack: DB → PgBouncer → Mem0 → API
 stack-up:
@@ -33,8 +33,8 @@ skip-mem0:
 	@$(SCRIPTS)/nv-stack-start.sh --skip-mem0
 
 ## bring up DB + PgBouncer + Mem0 but skip API
-mem0-only:
-	@$(SCRIPTS)/nv-stack-start.sh --mem0-only
+with-mem0:
+	@$(SCRIPTS)/nv-stack-start.sh --with-mem0 --skip-api
 
 ## tail logs for all containers
 logs:
