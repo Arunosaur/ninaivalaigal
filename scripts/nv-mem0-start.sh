@@ -30,8 +30,19 @@ build_image(){
 
 run_container(){
   log "Starting $CONTAINER_NAME on :$HOST_PORT…"
+  
+  # Pass MEMORY_SHARED_SECRET to container if set
+  local env_args=""
+  if [[ -n "${MEMORY_SHARED_SECRET:-}" ]]; then
+    env_args="--env MEMORY_SHARED_SECRET=${MEMORY_SHARED_SECRET}"
+    log "Authentication enabled with shared secret"
+  else
+    log "⚠️  No MEMORY_SHARED_SECRET set - authentication disabled"
+  fi
+  
   container run -d --name "$CONTAINER_NAME" \
     --publish "${HOST_PORT}:7070" \
+    ${env_args} \
     "$IMAGE"
 }
 

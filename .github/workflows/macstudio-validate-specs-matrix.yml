@@ -220,6 +220,22 @@ jobs:
             echo "⚠️  PgBouncer statistics not available"
           fi
 
+      - name: mem0 Authentication Test
+        if: matrix.provider == 'http'
+        shell: bash
+        env:
+          MEMORY_SHARED_SECRET: test-secret-for-ci
+        run: |
+          echo "=== mem0 Sidecar Authentication Test ==="
+          
+          # Test authentication with the HTTP memory provider
+          if make test-mem0-auth; then
+            echo "✅ mem0 authentication tests passed"
+          else
+            echo "❌ mem0 authentication tests failed"
+            exit 1
+          fi
+
       # ── Security Scanning ──────────────────────────────────────────────────
       - name: SBOM Generation (API)
         if: always()

@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info ui-up ui-down ui-status
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -91,6 +91,10 @@ spec-test:
 ## detect system capabilities and provide recommendations
 system-info:
 	@$(SCRIPTS)/system-detect.sh
+
+## test mem0 sidecar authentication
+test-mem0-auth:
+	@$(SCRIPTS)/test-mem0-auth.sh
 
 ## UI management targets
 ui-up:
