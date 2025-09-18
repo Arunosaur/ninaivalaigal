@@ -40,6 +40,96 @@ Ninaivalaigal provides an exponential memory system that allows AI assistants an
 
 The server will start on `http://127.0.0.1:13370`
 
+## 🚀 Quickstart (Apple Container CLI on Mac Studio)
+
+The ninaivalaigal stack runs on Apple's container CLI instead of Docker.
+We provide scripts + a Makefile to make it one-command easy.
+
+### Prerequisites
+
+- Apple `container` CLI installed and working (`brew install apple/containerization/container-cli`).
+- PostgreSQL database credentials exported in `.env` (see `.env.example`).
+- Ports available:
+  - **DB**: 5433
+  - **PgBouncer**: 6432
+  - **API**: 13370
+
+### First-time setup
+
+```bash
+# clone and enter repo
+git clone https://github.com/Arunosaur/ninaivalaigal.git
+cd ninaivalaigal
+
+# copy environment template
+cp .env.example .env
+
+# make sure scripts are executable
+chmod +x scripts/*.sh
+```
+
+### Bring up the full stack
+
+```bash
+make stack-up
+```
+
+This starts:
+
+1. **DB** (Postgres container)
+2. **PgBouncer** (connection pooler on port 6432)
+3. **API** (FastAPI service on port 13370)
+
+Health is checked before moving to the next service.
+
+### Check status
+
+```bash
+make stack-status
+```
+
+**Sample output:**
+
+```
+== Containers ==
+✔ DB: nv-db running
+✔ PgBouncer: nv-pgbouncer running
+✔ API: nv-api running
+
+== Ports (localhost) ==
+✔ DB port 5433 open
+✔ PgBouncer port 6432 open
+✔ API port 13370 open
+
+== Health ==
+✔ DB via PgBouncer: SELECT 1 OK
+✔ API /health OK
+```
+
+### Stop everything
+
+```bash
+make stack-down
+```
+
+### Variants
+
+```bash
+make db-only        # DB only
+make skip-api       # DB + PgBouncer, skip API
+make skip-pgb       # DB + API, skip PgBouncer
+```
+
+### Logs
+
+```bash
+make logs
+```
+
+Tails DB, PgBouncer, and API logs together.
+
+⚡ **Tip: If your API container cannot reach localhost, set POSTGRES_HOST to your Mac Studio LAN or Tailscale IP in .env.**
+
 ### 2. Register and Authenticate
 
 ```bash
