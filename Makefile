@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats restore spec-new spec-test
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats restore spec-new spec-test system-info ui-up ui-down ui-status
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -67,3 +67,17 @@ spec-new:
 ## test SPEC implementation (usage: make spec-test ID=013)
 spec-test:
 	@$(SCRIPTS)/spec-test.sh $(ID)
+
+## detect system capabilities and provide recommendations
+system-info:
+	@$(SCRIPTS)/system-detect.sh
+
+## UI management targets
+ui-up:
+	@$(SCRIPTS)/nv-ui-start.sh
+
+ui-down:
+	@$(SCRIPTS)/nv-ui-stop.sh
+
+ui-status:
+	@$(SCRIPTS)/nv-ui-status.sh

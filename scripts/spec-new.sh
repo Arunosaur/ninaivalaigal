@@ -5,8 +5,13 @@ set -euo pipefail
 SPEC_ID="${1:-}"
 SPEC_NAME="${2:-}"
 
+# Source system detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/system-detect.sh"
+
 log(){ printf "\033[1;36m[spec-new]\033[0m %s\n" "$*"; }
 die(){ printf "\033[1;31m[fail]\033[0m %s\n" "$*"; exit 1; }
+warn(){ printf "\033[1;33m[warn]\033[0m %s\n" "$*"; }
 
 usage(){
   cat <<EOF
@@ -28,6 +33,17 @@ EOF
 
 main(){
   [[ -n "$SPEC_ID" && -n "$SPEC_NAME" ]] || usage
+  
+  # System detection and recommendations
+  eval "$(detect_system)"
+  
+  if [[ "${SYSTEM_ROLE:-unknown}" == "studio" ]]; then
+    warn "You're on Mac Studio - consider authoring SPECs on laptop for faster iteration"
+    warn "Studio is optimized for: make stack-up && make spec-test"
+    read -p "Continue anyway? (y/N) " -n 1 -r
+    echo
+    [[ $REPLY =~ ^[Yy]$ ]] || exit 0
+  fi
   
   # Validate SPEC ID format
   [[ "$SPEC_ID" =~ ^[0-9]{3}$ ]] || die "SPEC_ID must be 3 digits (e.g., 013)"

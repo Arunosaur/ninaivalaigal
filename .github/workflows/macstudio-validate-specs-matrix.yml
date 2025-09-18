@@ -1,0 +1,166 @@
+name: Mac Studio – Validate All SPECs (native + http)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'specs/**'
+      - 'scripts/**'
+      - 'server/**'
+      - '.github/workflows/macstudio-validate-specs-matrix.yml'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 1) Enumerate SPEC directories dynamically
+# ──────────────────────────────────────────────────────────────────────────────
+jobs:
+  enumerate-specs:
+    runs-on: ubuntu-latest
+    outputs:
+      specs: ${{ steps.gather.outputs.specs }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: gather
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAP=()
+          while IFS= read -r -d '' dir; do
+            name="$(basename "$dir")"
+            MAP+=("{\"path\":\"$dir\",\"name\":\"$name\"}")
+          done < <(find specs -maxdepth 1 -mindepth 1 -type d -print0 | \
+                   xargs -0 -I{} bash -lc '[ -f "{}/SPEC.md" ] && echo -n "{}\0"')
+          JSON="[$(IFS=,; echo "${MAP[*]-}")]"
+          echo "specs=$JSON" >> "$GITHUB_OUTPUT"
+          echo "Detected specs: $JSON"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 2) Validate each SPEC for both memory providers
+# ──────────────────────────────────────────────────────────────────────────────
+  validate:
+    name: SPEC ${{ matrix.spec.name }} • provider=${{ matrix.provider }}
+    needs: enumerate-specs
+    runs-on: [self-hosted, macstudio]
+    timeout-minutes: 70
+
+    # single Studio host: serialize all jobs and cancel superseded runs
+    concurrency:
+      group: macstudio-validate-specs-matrix
+      cancel-in-progress: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        spec: ${{ fromJson(needs.enumerate-specs.outputs.specs) }}
+        provider: [native, http]
+
+    env:
+      # Ports (align with your scripts/.env.example)
+      POSTGRES_PORT: "5433"
+      PGBOUNCER_PORT: "6432"
+      API_PORT: "13370"
+      MEM0_PORT: "7070"
+
+      # DB / App secrets
+      POSTGRES_USER: "nina"
+      POSTGRES_DB: "nina"
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      NINAIVALAIGAL_JWT_SECRET: ${{ secrets.NINAIVALAIGAL_JWT_SECRET || 'dev-secret-change-in-production' }}
+
+      # Provider (stack scripts start mem0 automatically when = http)
+      MEMORY_PROVIDER: ${{ matrix.provider }}
+      MEMORY_HTTP_BASE: "http://127.0.0.1:7070"
+
+      API_RELOAD: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: System Detection
+        run: |
+          echo "SPEC: ${{ matrix.spec.name }}  PATH: ${{ matrix.spec.path }}"
+          echo "PROVIDER: ${{ matrix.provider }}"
+          make system-info
+
+      - name: Detect host IP for containers (LAN/Tailscale)
+        shell: bash
+        run: |
+          HOST_IP="$(ipconfig getifaddr en0 2>/dev/null || echo 127.0.0.1)"
+          echo "POSTGRES_HOST=${HOST_IP}" >> "$GITHUB_ENV"
+          echo "Using POSTGRES_HOST=${HOST_IP}"
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
+
+      - name: Install Python deps (best-effort)
+        shell: bash
+        run: |
+          python -m pip install -U pip
+          if ls requirements*.txt >/dev/null 2>&1; then
+            pip install -r requirements.txt || true
+            [ -f requirements-dev.txt ] && pip install -r requirements-dev.txt || true
+          fi
+          pip install -q pytest httpx || true
+
+      # ── Start services (DB → PgB → mem0? → API → UI) ────────────────────────
+      - name: Start stack
+        shell: bash
+        run: make stack-up
+        # NOTE: your nv-stack-start.sh auto-starts mem0 when MEMORY_PROVIDER=http
+
+      - name: Stack status
+        shell: bash
+        run: make stack-status
+
+      # ── SPEC under test ─────────────────────────────────────────────────────
+      - name: Run SPEC tests
+        shell: bash
+        env:
+          API_BASE: "http://127.0.0.1:${{ env.API_PORT }}"
+        run: |
+          make spec-test ID=${{ matrix.spec.name }}
+
+      # ── Artifacts & Cleanup (always) ────────────────────────────────────────
+      - name: Collect logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          make stack-status || true
+          container logs nv-db > artifacts/db.log 2>&1 || true
+          container logs nv-pgbouncer > artifacts/pgbouncer.log 2>&1 || true
+          container logs nv-mem0 > artifacts/mem0.log 2>&1 || true
+          container logs nv-api > artifacts/api.log 2>&1 || true
+          container logs nv-ui > artifacts/ui.log 2>&1 || true
+          for f in artifacts/*.log; do \
+            mv "$f" "${f%.log}-${{ matrix.spec.name }}-${{ matrix.provider }}.log" 2>/dev/null || true; \
+          done
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macstudio-${{ matrix.spec.name }}-${{ matrix.provider }}
+          path: artifacts/
+
+      - name: Stop stack
+        if: always()
+        shell: bash
+        run: make stack-down

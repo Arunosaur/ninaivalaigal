@@ -4,8 +4,13 @@ set -euo pipefail
 
 SPEC_ID="${1:-}"
 
+# Source system detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/system-detect.sh"
+
 log(){ printf "\033[1;36m[spec-test]\033[0m %s\n" "$*"; }
 die(){ printf "\033[1;31m[fail]\033[0m %s\n" "$*"; exit 1; }
+warn(){ printf "\033[1;33m[warn]\033[0m %s\n" "$*"; }
 
 usage(){
   cat <<EOF
@@ -109,6 +114,15 @@ run_spec_validation(){
 main(){
   [[ -n "$SPEC_ID" ]] || usage
   
+  # System detection and recommendations
+  eval "$(detect_system)"
+  
+  if [[ "${SYSTEM_ROLE:-unknown}" == "laptop" ]]; then
+    warn "You're on laptop - SPEC testing works best on Mac Studio"
+    warn "Consider: git push → let Studio CI validate, or connect to Studio stack"
+    log "Laptop is optimized for: make spec-new, UI development, authoring"
+  fi
+  
   # Find SPEC directory
   SPEC_DIR=$(find_spec_dir "$SPEC_ID")
   
@@ -121,7 +135,11 @@ main(){
       log "✅ Stack is running - integration tests available"
     else
       log "⚠️  Stack not running - integration tests may be limited"
-      log "   Start with: make stack-up"
+      if [[ "${SYSTEM_ROLE:-unknown}" == "studio" ]]; then
+        log "   Start with: make stack-up"
+      else
+        log "   Connect to Studio stack or start local: make stack-up"
+      fi
     fi
   fi
   

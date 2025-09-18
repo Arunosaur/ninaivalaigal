@@ -1,0 +1,14 @@
+### Health
+GET http://localhost:13370/health
+
+### Write
+POST http://localhost:13370/memory/remember
+Content-Type: application/json
+
+{
+  "text": "hello world from SPEC demo",
+  "metadata": {"spec":"TEMPLATE"}
+}
+
+### Recall
+GET http://localhost:13370/memory/recall?q=hello&k=5
