@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Copy requirements and install Python dependencies
 COPY server/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir "psycopg[binary]" sqlalchemy alembic fastapi "uvicorn[standard]" httpx PyJWT email-validator python-multipart bcrypt && \
+RUN pip install --no-cache-dir "psycopg[binary]" sqlalchemy alembic fastapi "uvicorn[standard]" httpx PyJWT email-validator python-multipart bcrypt psutil && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
