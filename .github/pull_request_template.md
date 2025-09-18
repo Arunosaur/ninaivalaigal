@@ -18,11 +18,28 @@ Brief description of the changes in this PR.
 
 ## Testing
 
-- [ ] Tests pass locally with `make spec-test`
-- [ ] Pre-commit hooks pass with `pre-commit run --all-files`
-- [ ] Health checks pass with `make stack-status`
-- [ ] Authentication tests pass with `make test-mem0-auth` (if applicable)
-- [ ] Backup verification works with `make verify-latest` (if applicable)
+### **Core Validation (Required)**
+- [ ] **SPEC Tests**: `make spec-test` - All SPECs pass
+- [ ] **Pre-commit Hooks**: `pre-commit run --all-files` - All 15+ hooks pass
+- [ ] **Stack Health**: `make stack-up && make stack-status` - All 5 services healthy
+- [ ] **SLO Compliance**: `curl http://localhost:13370/health/detailed` - Latency under targets
+
+### **Security & Authentication (If Applicable)**
+- [ ] **mem0 Authentication**: `make test-mem0-auth` - All auth tests pass
+- [ ] **Secrets Detection**: No new secrets detected in baseline
+- [ ] **Container Security**: SBOM generation successful
+- [ ] **Vulnerability Scan**: No new CRITICAL/HIGH vulnerabilities
+
+### **Backup & Recovery (If Applicable)**
+- [ ] **Backup Creation**: `make backup` - Backup completes successfully
+- [ ] **Backup Verification**: `make verify-latest` - Integrity check passes
+- [ ] **Restore Rehearsal**: Backup can be restored without issues
+
+### **Mac Studio Validation (Production)**
+- [ ] **Apple Container CLI**: All scripts use `container` commands (no `docker`)
+- [ ] **Error Handling**: Scripts follow `set -euo pipefail` best practices
+- [ ] **Health Monitoring**: Container logs show healthy startup sequences
+- [ ] **Network Connectivity**: Services can reach each other properly
 
 ## Security Checklist
 

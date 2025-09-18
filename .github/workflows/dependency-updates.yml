@@ -1,0 +1,86 @@
+name: Weekly Dependency Updates
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install pip-tools
+        run: pip install pip-tools
+
+      - name: Update Python dependencies
+        run: |
+          # Update server dependencies
+          if [ -f server/requirements.in ]; then
+            cd server
+            pip-compile --upgrade requirements.in
+            cd ..
+          fi
+          
+          # Update any other requirements files
+          find . -name "requirements.in" -exec pip-compile --upgrade {} \;
+
+      - name: Check for container image updates
+        run: |
+          echo "Checking for newer container image digests..."
+          
+          # Check PostgreSQL image
+          CURRENT_POSTGRES=$(grep "pgvector/pgvector" Dockerfile* | head -1 | cut -d'@' -f2)
+          echo "Current PostgreSQL digest: $CURRENT_POSTGRES"
+          
+          # Check Python base image  
+          CURRENT_PYTHON=$(grep "python:3.11-slim" Dockerfile* | head -1 | cut -d'@' -f2)
+          echo "Current Python digest: $CURRENT_PYTHON"
+          
+          # Note: Actual digest updates require manual verification for security
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies (automated weekly update)'
+          title: '🔄 Weekly Dependency Updates'
+          body: |
+            ## Automated Dependency Updates
+            
+            This PR contains automated dependency updates generated weekly.
+            
+            ### Changes
+            - Updated Python dependencies to latest compatible versions
+            - Regenerated lockfiles with pip-compile
+            
+            ### Security Review Required
+            - [ ] Review dependency changes for security implications
+            - [ ] Verify no breaking changes in updated packages
+            - [ ] Run full SPEC test suite: `make spec-test`
+            - [ ] Validate container security: SBOM + vulnerability scan
+            
+            ### Testing Checklist
+            - [ ] Pre-commit hooks pass: `pre-commit run --all-files`
+            - [ ] Stack boots successfully: `make stack-up && make stack-status`
+            - [ ] All SPECs pass: `make spec-test`
+            - [ ] Authentication works: `make test-mem0-auth`
+            - [ ] SLO compliance: Health checks under target latency
+            
+            **Note**: Container image digests require manual security review before updating.
+          branch: automated/dependency-updates
+          delete-branch: true
