@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.13 (2025-09-19)</small>
+
+* fix: use proven production scripts instead of reinventing ([99d2847ff53e09d405753b702f0362cc64aac6f7](https://github.com/Arunosaur/ninaivalaigal/commit/99d2847ff53e09d405753b702f0362cc64aac6f7))
+
 ## <small>1.3.12 (2025-09-19)</small>
 
 * fix: resolve API JWT_SECRET and PgBouncer pidfile issues ([90e3c125b8101074a86d1ee50b3339dbd1dd0f7f](https://github.com/Arunosaur/ninaivalaigal/commit/90e3c125b8101074a86d1ee50b3339dbd1dd0f7f))
