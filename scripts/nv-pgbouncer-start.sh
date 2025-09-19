@@ -5,7 +5,7 @@ set -euo pipefail
 
 # -------- settings (env overrides allowed) --------
 CONTAINER_NAME="${PGBOUNCER_CONTAINER_NAME:-nv-pgbouncer}"
-IMAGE="${PGBOUNCER_IMAGE:-bitnami/pgbouncer:1.22.1}"
+IMAGE="${PGBOUNCER_IMAGE:-nina-pgbouncer:arm64}"
 HOST_PORT="${PGBOUNCER_PORT:-6432}"        # host -> container 5432
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5433}"
