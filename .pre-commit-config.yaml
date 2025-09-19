@@ -93,7 +93,13 @@ repos:
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
-        args: ['-d', 'relaxed']
+        exclude: >
+          (?x)^(
+            .*node_modules/.*|
+            .*/.venv/.*|
+            .*/.git/.*|
+            .*/containers/.*\.ini$
+          )$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.9

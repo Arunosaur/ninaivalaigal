@@ -144,12 +144,16 @@ EOF
 }
 
 run_pgbouncer() {
-  local cfg; cfg="$(create_pgbouncer_config)"
   log "Starting PgBouncer '$CONTAINER_NAME' on host port ${HOST_PORT}..."
+  container rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
   container run --detach --name "$CONTAINER_NAME" \
-    --publish "${HOST_PORT}:5432" \
-    --volume "${cfg}:/opt/bitnami/pgbouncer/conf" \
-    "$IMAGE"
+    --publish "${HOST_PORT}:6432" \
+    -v "$PWD/containers/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro" \
+    -v "$PWD/containers/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro" \
+    nina-pgbouncer:arm64 || {
+    echo "[fail] Failed to start nv-pgbouncer"
+    exit 2
+  }
 }
 
 wait_ready() {

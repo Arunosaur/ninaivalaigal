@@ -1,0 +1,1 @@
+"nina" "md5xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  ; unused when auth_type=any
