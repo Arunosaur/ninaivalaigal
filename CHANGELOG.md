@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.4 (2025-09-19)</small>
+
+* fix: use existing custom nina-pgbouncer:arm64 image ([fe229e1c40d89f44955c1b1885fe0b61daf0d860](https://github.com/Arunosaur/ninaivalaigal/commit/fe229e1c40d89f44955c1b1885fe0b61daf0d860))
+
 ## <small>1.3.3 (2025-09-19)</small>
 
 * fix: use safe user-space container CLI setup (no sudo) ([8bfc2ce17076119755b508cf652ca754409342e7](https://github.com/Arunosaur/ninaivalaigal/commit/8bfc2ce17076119755b508cf652ca754409342e7))
