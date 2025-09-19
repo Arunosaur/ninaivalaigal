@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.14 (2025-09-19)</small>
+
+* fix: improve PgBouncer script with better debugging and image building ([b9a01b50596d68ac14470a504a95c9fc3ccc8e35](https://github.com/Arunosaur/ninaivalaigal/commit/b9a01b50596d68ac14470a504a95c9fc3ccc8e35))
+
 ## <small>1.3.13 (2025-09-19)</small>
 
 * fix: use proven production scripts instead of reinventing ([99d2847ff53e09d405753b702f0362cc64aac6f7](https://github.com/Arunosaur/ninaivalaigal/commit/99d2847ff53e09d405753b702f0362cc64aac6f7))
