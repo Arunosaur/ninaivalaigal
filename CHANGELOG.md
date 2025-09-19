@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.3 (2025-09-19)</small>
+
+* fix: use safe user-space container CLI setup (no sudo) ([8bfc2ce17076119755b508cf652ca754409342e7](https://github.com/Arunosaur/ninaivalaigal/commit/8bfc2ce17076119755b508cf652ca754409342e7))
+
 ## <small>1.3.2 (2025-09-19)</small>
 
 * fix: implement robust container CLI and pre-commit fixes ([d11b53cbd580b1f5cb17cf268be6c07b53de9f92](https://github.com/Arunosaur/ninaivalaigal/commit/d11b53cbd580b1f5cb17cf268be6c07b53de9f92))
