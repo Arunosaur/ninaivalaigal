@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.22 (2025-09-19)</small>
+
+* fix: add timeouts and debugging to prevent hanging workflows ([708b115df9e4007787b753136c513a1e611fec87](https://github.com/Arunosaur/ninaivalaigal/commit/708b115df9e4007787b753136c513a1e611fec87))
+
 ## <small>1.3.21 (2025-09-19)</small>
 
 * fix: add non-root user to PgBouncer for security compliance ([f9726080c613b03dc0bdf16de2460bbc87930e63](https://github.com/Arunosaur/ninaivalaigal/commit/f9726080c613b03dc0bdf16de2460bbc87930e63))
