@@ -1,0 +1,37 @@
+name: Runner Smoke Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ '.github/workflows/runner-smoke-test.yml' ]
+
+jobs:
+  test-runner:
+    runs-on: [self-hosted, macstudio]
+    timeout-minutes: 5
+    
+    steps:
+      - name: Basic system info
+        run: |
+          echo "🖥️  Runner: $RUNNER_NAME"
+          echo "🍎 System: $(uname -a)"
+          echo "🐍 Python: $(python3 --version)"
+          echo "📦 Container: $(container --version || echo 'not found')"
+          echo "🧠 Memory: $(system_profiler SPHardwareDataType | grep Memory)"
+          
+      - name: Test Apple Container CLI
+        run: |
+          if command -v container >/dev/null 2>&1; then
+            echo "✅ Apple Container CLI found"
+            container --version
+          else
+            echo "❌ Apple Container CLI not found"
+            exit 1
+          fi
+          
+      - name: Success
+        run: |
+          echo "🎉 Hybrid runner setup working perfectly!"
+          echo "📊 Runner: ninaivalaigal-runner"
+          echo "🏗️  Architecture: Hybrid (repo + org runners)"
