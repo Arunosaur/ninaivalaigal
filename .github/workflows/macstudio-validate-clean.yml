@@ -1,6 +1,7 @@
 name: Mac Studio – Validate Stack
 
 on:
+  workflow_call: {}
   push:
     branches: [ main ]
   pull_request:
@@ -35,36 +36,18 @@ jobs:
       - name: Ensure Apple Container CLI is available (user-space only)
         shell: bash
         run: |
-          set -euo pipefail
-          
-          # Add common locations to PATH for this job
           echo "/usr/local/bin" >> $GITHUB_PATH
           echo "/opt/homebrew/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "/Applications/Container.app/Contents/MacOS" >> $GITHUB_PATH
           
           # Fast path: if container is already in PATH, we're good
           if command -v container >/dev/null 2>&1; then
             echo "[ok] container found: $(command -v container)"
             container --version || true
-            exit 0
-          fi
-          
-          # Optional: create a user-local shim if the binary exists at a fixed path
-          # (Adjust the source if your binary lives elsewhere on the Studio)
-          if [ -x /usr/local/bin/container ]; then
-            mkdir -p "$HOME/.local/bin"
-            ln -sf /usr/local/bin/container "$HOME/.local/bin/container"
-          fi
-          
-          # Final check
-          if ! command -v container >/dev/null 2>&1; then
-            echo "[fail] Apple Container CLI not found in PATH."
+          else
+            echo "[warn] Apple Container CLI not found in PATH."
             echo "       Please install it on the runner or add its location to PATH."
-            exit 1
           fi
-          
-          echo "[ok] Apple Container CLI ready."
-          container --version || true
 
       - name: Use conda nina
         uses: ./.github/actions/use-conda-nina
@@ -96,10 +79,15 @@ jobs:
           chmod +x scripts/nv-db-start.sh
           ./scripts/nv-db-start.sh
 
-      - name: PgBouncer (Apple Container CLI)
+      - name: Start PgBouncer (Apple Container CLI)
         run: |
-          chmod +x scripts/nv-pgbouncer-start.sh
-          ./scripts/nv-pgbouncer-start.sh
+          set -euo pipefail
+          if ! container images list | awk '{print $1":"$2}' | grep -q '^nina-pgbouncer:arm64$'; then
+            echo "::error::Local image nina-pgbouncer:arm64 not found on runner"
+            echo "Please build it first or use PGBOUNCER_IMAGE=bitnami/pgbouncer:1.22.1"
+            exit 1
+          fi
+          scripts/nv-pgbouncer-start.sh
 
       - name: API (Apple Container CLI)
         run: |

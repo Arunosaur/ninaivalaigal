@@ -1,6 +1,8 @@
-name: Pre-commit Checks (Nina)
+name: Pre-commit (Reusable)
 
 on:
+  workflow_call: {}
+  workflow_dispatch: {}  # optional: lets you click "Run workflow"
   push:
     branches: [ main ]
   pull_request:

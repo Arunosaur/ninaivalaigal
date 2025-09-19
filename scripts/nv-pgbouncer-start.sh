@@ -100,9 +100,12 @@ pgb_md5() {
 }
 
 create_pgbouncer_config() {
-  local config_dir="/tmp/pgbouncer-$CONTAINER_NAME"
+  local config_dir="/tmp/pgbouncer-config-$$"
   mkdir -p "$config_dir"
-
+  
+  # Use plain auth for CI simplicity (can be overridden with PGBOUNCER_AUTH_TYPE=md5)
+  local auth_type="${PGBOUNCER_AUTH_TYPE:-plain}"
+  
   # Create pgbouncer.ini
   cat > "$config_dir/pgbouncer.ini" <<EOF
 [databases]
@@ -111,8 +114,8 @@ $DB_NAME = host=$DB_HOST port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$D
 [pgbouncer]
 listen_addr = 0.0.0.0
 listen_port = 5432
-auth_type = md5
-auth_file = /etc/pgbouncer/userlist.txt
+auth_type = $auth_type
+auth_file = /tmp/userlist.txt
 pool_mode = transaction
 max_client_conn = 100
 default_pool_size = 20
@@ -127,9 +130,15 @@ log_disconnections = 1
 log_pooler_errors = 1
 EOF
 
-  # Create userlist.txt with MD5(password+username)
-  local hex; hex="$(pgb_md5 "${DB_PASS}${DB_USER}")"
-  printf '"%s" "md5%s"\n' "$DB_USER" "$hex" > "$config_dir/userlist.txt"
+  # Create userlist.txt based on auth type
+  if [ "$auth_type" = "md5" ]; then
+    # Create userlist.txt with MD5(password+username)
+    local hex; hex="$(pgb_md5 "${DB_PASS}${DB_USER}")"
+    printf '"%s" "md5%s"\n' "$DB_USER" "$hex" > "$config_dir/userlist.txt"
+  else
+    # Plain auth - just username and password
+    printf '"%s" "%s"\n' "$DB_USER" "$DB_PASS" > "$config_dir/userlist.txt"
+  fi
 
   echo "$config_dir"
 }

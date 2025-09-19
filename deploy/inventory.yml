@@ -1,9 +1,17 @@
-[mem0_servers]
-# Replace with your actual server IP/hostname
-mem0-vm ansible_host=10.0.0.100 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/mem0-key.pem
+---
+all:
+  hosts: {}
+  children: {}
 
-[mem0_servers:vars]
-# Vault variables (encrypt with ansible-vault)
-vault_postgres_password=your_secure_password_here
-mem0_repo_url=https://github.com/your-org/mem0.git
-mem0_version=main
+mem0_servers:
+  hosts:
+    # Replace with your actual server IP/hostname
+    mem0-vm:
+      ansible_host: 10.0.0.100
+      ansible_user: ubuntu
+      ansible_ssh_private_key_file: ~/.ssh/mem0-key.pem
+  vars:
+    # Vault variables (encrypt with ansible-vault)
+    vault_postgres_password: your_secure_password_here
+    mem0_repo_url: https://github.com/your-org/mem0.git
+    mem0_version: main
