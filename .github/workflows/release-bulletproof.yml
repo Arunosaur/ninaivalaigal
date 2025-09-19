@@ -1,0 +1,43 @@
+name: Release (Bulletproof)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write          # create tags & releases
+  issues: write            # if you use issue notes
+  pull-requests: write     # if you comment on PRs
+  actions: read            # optional, default
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}     # PAT you created
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} # also set this, some plugins read it
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                   # semantic-release needs full history
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify token presence (debug)
+        run: |
+          node -e "if(!process.env.GH_TOKEN){throw new Error('GH_TOKEN missing')}"
+          node -e "console.log('GH_TOKEN set?', Boolean(process.env.GH_TOKEN))"
+          node -e "console.log('GITHUB_TOKEN set?', Boolean(process.env.GITHUB_TOKEN))"
+          echo "Tokens look present (values are masked)."
+
+      - name: Install semantic-release
+        run: npm i -D semantic-release @semantic-release/git @semantic-release/github @semantic-release/changelog @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/npm
+
+      - name: Run semantic-release
+        run: npx semantic-release
