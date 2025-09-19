@@ -1,0 +1,46 @@
+name: Release (Minimal)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create simple release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Extract version from package.json
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $VERSION"
+          
+          # Create a simple release using GitHub CLI
+          if ! gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "Creating release v$VERSION"
+            gh release create "v$VERSION" \
+              --title "Release v$VERSION" \
+              --notes "Automated release v$VERSION" \
+              --latest
+          else
+            echo "Release v$VERSION already exists"
+          fi
