@@ -1,0 +1,101 @@
+name: Mac Studio – Validate Stack
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+# workflow-level concurrency (one run per branch)
+concurrency:
+  group: studio-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate on Mac Studio
+    runs-on: [self-hosted, macstudio]
+
+    env:
+      # Make all scripts fail fast and colorized (your scripts already do set -euo pipefail).
+      CI: "true"
+      # Wire through your .env if you want, else rely on defaults in scripts/.env.example
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true   # pulls external/spec-013 too
+
+      - name: Normalize PATH
+        run: echo "/usr/local/bin" >> $GITHUB_PATH
+
+      - name: Show environment
+        run: |
+          echo "Runner: $RUNNER_NAME"
+          which container || true
+          container --version || true
+          python3 --version || true
+          node --version || true
+          npm --version || true
+
+      - name: Preflight lint (shell + python + secrets)
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ruff bandit detect-secrets
+          brew list shellcheck >/dev/null 2>&1 || true
+          ruff --version
+          bandit --version
+          detect-secrets --version
+          # (Optional) Run selective checks; keep it fast for commit feedback
+          ruff check server || true
+          bandit -q -r server || true
+          detect-secrets scan --all-files > /dev/null || true
+
+      - name: Start DB (Apple Container CLI)
+        run: |
+          chmod +x scripts/nv-db-start.sh
+          ./scripts/nv-db-start.sh
+
+      - name: PgBouncer (Apple Container CLI)
+        run: |
+          chmod +x scripts/nv-pgbouncer-start.sh
+          ./scripts/nv-pgbouncer-start.sh
+
+      - name: API (Apple Container CLI)
+        run: |
+          chmod +x scripts/nv-api-start.sh
+          ./scripts/nv-api-start.sh
+
+      - name: Stack status
+        run: |
+          chmod +x scripts/nv-stack-status.sh
+          ./scripts/nv-stack-status.sh
+
+      - name: Collect logs (artifact)
+        if: always()
+        run: |
+          mkdir -p artifacts
+          container list > artifacts/container-list.txt || true
+          container logs nv-db       > artifacts/nv-db.log       || true
+          container logs nv-pgbouncer> artifacts/nv-pgbouncer.log|| true
+          container logs nv-api      > artifacts/nv-api.log      || true
+          echo "Done."
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macstudio-validate-logs
+          path: artifacts
+
+      - name: Teardown (always)
+        if: always()
+        run: |
+          chmod +x scripts/nv-stack-stop.sh
+          ./scripts/nv-stack-stop.sh
