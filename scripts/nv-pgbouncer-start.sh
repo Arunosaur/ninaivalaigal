@@ -22,16 +22,16 @@ mkdir -p "$CFG_DIR" "$LOG_DIR"
 # Create PgBouncer configuration
 cat > "$CFG_DIR/pgbouncer.ini" <<EOF
 [databases]
-${POSTGRES_DB} = host=host.lima.internal port=${POSTGRES_PORT} dbname=${POSTGRES_DB} user=${POSTGRES_USER}
+* = host=host.lima.internal port=${POSTGRES_PORT} dbname=${POSTGRES_DB}
 
 [pgbouncer]
 listen_port = 6432
 listen_addr = 0.0.0.0
-auth_type = trust
-admin_users = ${POSTGRES_USER}
+auth_type = any
 pool_mode = transaction
 max_client_conn = 100
 default_pool_size = 20
+ignore_startup_parameters = extra_float_digits
 EOF
 
 # Create empty userlist (not needed with auth_type=trust)
