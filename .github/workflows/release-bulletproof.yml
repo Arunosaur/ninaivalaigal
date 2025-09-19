@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0                   # semantic-release needs full history
+          fetch-tags: true                 # ensure all tags are available
 
       - name: Setup Node
         uses: actions/setup-node@v4

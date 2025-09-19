@@ -9,6 +9,8 @@ plugins:
     - preset: "conventionalcommits"
   - - "@semantic-release/release-notes-generator"
     - preset: "conventionalcommits"
+      writerOpts:
+        transform: "./scripts/release-writer.cjs"
   - - "@semantic-release/changelog"
     - changelogFile: "CHANGELOG.md"
       changelogTitle: |
