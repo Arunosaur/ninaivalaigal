@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.17 (2025-09-19)</small>
+
+* fix: comprehensive rock-solid Apple Container CLI solution ([b0a4277c580615a09819472b377d059fd9d5d5c0](https://github.com/Arunosaur/ninaivalaigal/commit/b0a4277c580615a09819472b377d059fd9d5d5c0))
+
 ## <small>1.3.16 (2025-09-19)</small>
 
 * fix: add forced user for auth_type=any in PgBouncer config ([be87b32d5692a64825b352cad423c7229d1f06ee](https://github.com/Arunosaur/ninaivalaigal/commit/be87b32d5692a64825b352cad423c7229d1f06ee))
