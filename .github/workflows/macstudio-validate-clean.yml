@@ -58,7 +58,7 @@ jobs:
         run: |
           # Build the custom images our scripts expect
           container build -t nina-pgbouncer:arm64 -f containers/pgbouncer/Dockerfile containers/pgbouncer
-          container build -t nina-api:arm64 -f containers/api/Dockerfile containers/api
+          container build -t nina-api:arm64 -f containers/api/Dockerfile .
 
       - name: Use validated stack scripts
         run: |

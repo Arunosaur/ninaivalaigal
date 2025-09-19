@@ -6,7 +6,7 @@ API_REF="$(container images --format '{{.Ref}}' \
 
 if [ -z "$API_REF" ]; then
   # Build one if missing
-  container build -t nina-api:arm64 -f containers/api/Dockerfile containers/api
+  container build -t nina-api:arm64 -f containers/api/Dockerfile .
   API_REF="nina-api:arm64"
 fi
 
