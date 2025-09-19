@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.1 (2025-09-19)</small>
+
+* fix: resolve Python dependencies and container CLI issues ([b0a19c078c50d0e0a610e903028e3e96a3f86a17](https://github.com/Arunosaur/ninaivalaigal/commit/b0a19c078c50d0e0a610e903028e3e96a3f86a17))
+
 ## 1.3.0 (2025-09-19)
 
 * feat: add runner smoke test for hybrid architecture ([9d09c911fc0e0e87006e25aa2cde5af5a349b611](https://github.com/Arunosaur/ninaivalaigal/commit/9d09c911fc0e0e87006e25aa2cde5af5a349b611))
