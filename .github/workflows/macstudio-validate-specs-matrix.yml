@@ -83,6 +83,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Ensure Apple Container CLI on PATH
+        run: |
+          if [ -x /opt/homebrew/bin/container ] && [ ! -x /usr/local/bin/container ]; then
+            sudo ln -sf /opt/homebrew/bin/container /usr/local/bin/container
+          fi
+          which container && container --version
+
       - name: System Detection
         run: |
           echo "SPEC: ${{ matrix.spec.name }}  PATH: ${{ matrix.spec.path }}"

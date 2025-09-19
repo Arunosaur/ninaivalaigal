@@ -20,7 +20,8 @@ from input_validation import get_api_validator, InputValidationError
 from rate_limiting import rate_limit_middleware
 from rbac_middleware import rbac_middleware, require_permission, require_role, get_rbac_context, require_authentication
 from rbac.permissions import Role, Action, Resource
-from security_integration import configure_security, redact_text, check_cross_org_access, log_admin_action, security_manager
+from security_integration import setup_security_middleware, redact_text, check_cross_org_access, log_admin_action, security_manager
+from observability import health_router, metrics_router, MetricsMiddleware
 from spec_kit import SpecKitContextManager, ContextSpec, ContextScope, ContextPermissionSpec, PermissionLevel
 from performance_monitor import (
     get_performance_monitor,
@@ -162,6 +163,9 @@ app.state.start_time = time.time()
 development_mode = os.getenv('DEVELOPMENT_MODE', 'false').lower() == 'true'
 configure_security(app, development_mode=development_mode)
 
+# Add observability middleware
+app.add_middleware(MetricsMiddleware)
+
 # Add legacy rate limiting middleware (before CORS) - will be replaced by security middleware
 app.middleware("http")(rate_limit_middleware)
 
@@ -187,6 +191,10 @@ app.include_router(rbac_router)
 # Include security router
 from security_endpoints import security_router
 app.include_router(security_router)
+
+# Include observability routers
+app.include_router(health_router)
+app.include_router(metrics_router)
 
 # Remove duplicate auth endpoints - handled by signup_router
 

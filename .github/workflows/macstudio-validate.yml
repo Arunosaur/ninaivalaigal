@@ -45,8 +45,20 @@ jobs:
       MEMORY_HTTP_BASE: "http://127.0.0.1:7070"        # adjust if you expose mem0 sidecar
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Ensure Apple Container CLI on PATH
+        run: |
+          if [ -x /opt/homebrew/bin/container ] && [ ! -x /usr/local/bin/container ]; then
+            sudo ln -sf /opt/homebrew/bin/container /usr/local/bin/container
+          fi
+          which container && container --version
+
+      - name: Setup Python for pre-commit
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       - name: Host info (sanity)
         run: |
@@ -59,7 +71,8 @@ jobs:
         run: |
           # Prefer en0; fall back to loopback if missing
           HOST_IP="$(ipconfig getifaddr en0 2>/dev/null || echo 127.0.0.1)"
-          echo "POSTGRES_HOST=${HOST_IP}" >> "$GITHUB_ENV"
+          echo "HOST_IP=${HOST_IP}" >> $GITHUB_ENV
+          echo "POSTGRES_HOST=127.0.0.1" >> $GITHUB_ENV
           echo "Detected POSTGRES_HOST=${HOST_IP}"
 
       - name: Set up Python 3.11

@@ -5,7 +5,7 @@ set -euo pipefail
 
 # -------- settings (env overrides allowed) --------
 CONTAINER_NAME="${PGBOUNCER_CONTAINER_NAME:-nv-pgbouncer}"
-IMAGE="${PGBOUNCER_IMAGE:-nina-pgbouncer:arm64}"
+IMAGE="${PGBOUNCER_IMAGE:-bitnami/pgbouncer:1.22.1}"
 HOST_PORT="${PGBOUNCER_PORT:-6432}"        # host -> container 5432
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5433}"
@@ -29,19 +29,15 @@ port_in_use() {
   fi
 }
 
-ensure_image() {
-  if ! container image list | grep -q "nina-pgbouncer.*arm64"; then
-    log "Building custom ARM64 PgBouncer image: $IMAGE"
-    local dockerfile_dir="containers/pgbouncer"
-    if [[ ! -f "$dockerfile_dir/Dockerfile" ]]; then
-      die "Dockerfile not found at $dockerfile_dir/Dockerfile. Run from project root."
-    fi
-    container build -t "$IMAGE" "$dockerfile_dir" || die "Failed to build PgBouncer image"
-    log "Successfully built $IMAGE"
+maybe_pull() {
+  if ! container image list | grep -q "$IMAGE"; then
+    log "Pulling PgBouncer image: $IMAGE"
+    container pull "$IMAGE" || die "Failed to pull $IMAGE"
   else
-    log "Image $IMAGE already exists"
+    log "Image $IMAGE already available"
   fi
 }
+
 
 ensure_container_system() {
   container system status >/dev/null 2>&1 || container system start
@@ -114,7 +110,7 @@ run_pgbouncer() {
   log "Starting PgBouncer '$CONTAINER_NAME' on host port ${HOST_PORT}..."
   container run --detach --name "$CONTAINER_NAME" \
     --publish "${HOST_PORT}:5432" \
-    --volume "${cfg}:/etc/pgbouncer" \
+    --volume "${cfg}:/opt/bitnami/pgbouncer/conf" \
     "$IMAGE"
 }
 
@@ -172,7 +168,7 @@ main() {
 
   port_in_use "$HOST_PORT" && die "Host port ${HOST_PORT} is busy."
   check_database
-  ensure_image
+  maybe_pull
   stop_existing
   run_pgbouncer
   wait_ready
