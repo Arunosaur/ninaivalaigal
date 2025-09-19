@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.18 (2025-09-19)</small>
+
+* fix: add missing userlist.txt for PgBouncer Docker build ([f7428d9982ff813c23f6ab7fb1846a5bdd26be00](https://github.com/Arunosaur/ninaivalaigal/commit/f7428d9982ff813c23f6ab7fb1846a5bdd26be00))
+
 ## <small>1.3.17 (2025-09-19)</small>
 
 * fix: comprehensive rock-solid Apple Container CLI solution ([b0a4277c580615a09819472b377d059fd9d5d5c0](https://github.com/Arunosaur/ninaivalaigal/commit/b0a4277c580615a09819472b377d059fd9d5d5c0))
