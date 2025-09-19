@@ -20,7 +20,7 @@ from input_validation import get_api_validator, InputValidationError
 from rate_limiting import rate_limit_middleware
 from rbac_middleware import rbac_middleware, require_permission, require_role, get_rbac_context, require_authentication
 from rbac.permissions import Role, Action, Resource
-from security_integration import setup_security_middleware, redact_text, check_cross_org_access, log_admin_action, security_manager
+from security_integration import configure_security, redact_text, check_cross_org_access, log_admin_action, security_manager
 from observability import health_router, metrics_router, MetricsMiddleware
 from spec_kit import SpecKitContextManager, ContextSpec, ContextScope, ContextPermissionSpec, PermissionLevel
 from performance_monitor import (
@@ -195,6 +195,10 @@ app.include_router(security_router)
 # Include observability routers
 app.include_router(health_router)
 app.include_router(metrics_router)
+
+# Include memory substrate router
+from memory_api import router as memory_router
+app.include_router(memory_router)
 
 # Remove duplicate auth endpoints - handled by signup_router
 
