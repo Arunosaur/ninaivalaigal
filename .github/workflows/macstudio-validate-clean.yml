@@ -26,6 +26,8 @@ jobs:
       CI: "true"
       # Wire through your .env if you want, else rely on defaults in scripts/.env.example
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      # Ensure PgBouncer uses same password as database
+      PGBOUNCER_AUTH_TYPE: "plain"
 
     steps:
       - name: Checkout
