@@ -36,8 +36,16 @@ jobs:
           node -e "console.log('GITHUB_TOKEN set?', Boolean(process.env.GITHUB_TOKEN))"
           echo "Tokens look present (values are masked)."
 
-      - name: Install semantic-release
-        run: npm i -D semantic-release @semantic-release/git @semantic-release/github @semantic-release/changelog @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/npm
+      - name: Install semantic-release deps
+        run: |
+          npm i -D \
+            semantic-release \
+            @semantic-release/commit-analyzer \
+            @semantic-release/release-notes-generator \
+            @semantic-release/changelog \
+            @semantic-release/github \
+            @semantic-release/git \
+            conventional-changelog-conventionalcommits
 
       - name: Run semantic-release
         run: npx semantic-release
