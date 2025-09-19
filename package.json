@@ -48,9 +48,6 @@
     "@semantic-release/release-notes-generator": "^12.1.0",
     "semantic-release": "^22.0.12"
   },
-  "release": {
-    "extends": "./.releaserc.json"
-  },
   "config": {
     "stack": {
       "database": "PostgreSQL 15 with pgvector",
