@@ -13,9 +13,12 @@ This guide covers the development workflow, tools, and best practices for the ni
 ### Setup Development Environment
 
 ```bash
-# Clone and setup
-git clone <repo-url>
+# Clone with submodules (recommended)
+git clone --recurse-submodules <repo-url>
 cd ninaivalaigal
+
+# Or if already cloned, initialize submodules
+git submodule update --init --recursive
 
 # Install pre-commit hooks (REQUIRED)
 pip install pre-commit
@@ -214,3 +217,40 @@ container logs nv-api
 4. **Audit logging**: Track all sensitive operations
 
 This development environment provides enterprise-grade quality gates while maintaining developer productivity and system-aware optimization.
+
+## External Submodules
+
+Some platform/infrastructure SPECs are maintained as external repositories:
+
+- **SPEC-013** (Mac Studio validation): `external/spec-013/`
+  - Repository: https://github.com/Arunosaur/spec-013-mac-studio-validation
+  - Purpose: Apple Container CLI validation toolkit
+  - CI: Independent workflows (hosted + self-hosted Mac Studio)
+
+### Working with Submodules
+
+```bash
+# Clone with submodules
+git clone --recurse-submodules git@github.com:Arunosaur/ninaivalaigal.git
+
+# Update submodule to latest
+git submodule update --remote external/spec-013
+
+# Make changes in submodule
+cd external/spec-013
+# edit, commit, push
+git commit -am "update validation scripts"
+git push
+
+# Update pointer in main repo
+cd ../..
+git add external/spec-013
+git commit -m "chore: bump SPEC-013 pointer"
+git push
+```
+
+### Separation of Concerns
+
+- **Main repo**: Core AI memory features, API, and product SPECs
+- **External SPECs**: Platform validation, infrastructure testing, reusable toolkits
+- **CI isolation**: External SPEC failures don't block main project development
