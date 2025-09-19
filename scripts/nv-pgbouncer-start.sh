@@ -32,12 +32,44 @@ port_in_use() {
 maybe_pull() {
   if ! container image list | grep -q "$IMAGE"; then
     log "Pulling PgBouncer image: $IMAGE"
-    container pull "$IMAGE" || die "Failed to pull $IMAGE"
+    if ! container pull "$IMAGE" 2>/dev/null; then
+      warn "Failed to pull $IMAGE, trying alternative approaches..."
+      
+      # Try with different pull syntax or build custom image
+      if [[ "$IMAGE" == *"bitnami/pgbouncer"* ]]; then
+        log "Building custom PgBouncer image as fallback..."
+        build_custom_pgbouncer || die "Failed to build custom PgBouncer image"
+      else
+        die "Failed to pull $IMAGE and no fallback available"
+      fi
+    fi
   else
     log "Image $IMAGE already available"
   fi
 }
 
+build_custom_pgbouncer() {
+  local build_dir="/tmp/pgbouncer-build-$$"
+  mkdir -p "$build_dir"
+  
+  cat > "$build_dir/Dockerfile" <<'EOF'
+FROM debian:12-slim
+
+RUN apt-get update && apt-get install -y \
+    pgbouncer \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -r -s /bin/false pgbouncer
+
+USER pgbouncer
+EXPOSE 5432
+CMD ["pgbouncer", "/opt/bitnami/pgbouncer/conf/pgbouncer.ini"]
+EOF
+
+  log "Building custom PgBouncer image..."
+  container build -t "$IMAGE" "$build_dir" || return 1
+  rm -rf "$build_dir"
+  log "Custom PgBouncer image built successfully"
+}
 
 ensure_container_system() {
   container system status >/dev/null 2>&1 || container system start
