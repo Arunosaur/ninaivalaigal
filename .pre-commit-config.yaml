@@ -36,7 +36,6 @@ repos:
     hooks:
       - id: mypy
         files: ^server/.*\.py$
-        additional_dependencies: [types-all]
         args: ["--ignore-missing-imports"]
 
   - repo: https://github.com/Yelp/detect-secrets

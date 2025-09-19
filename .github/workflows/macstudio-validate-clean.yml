@@ -32,16 +32,24 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Normalize PATH and Apple Container CLI
+      - name: Repair Apple Container CLI Installation
         run: |
           echo "/usr/local/bin" >> $GITHUB_PATH
           echo "/opt/homebrew/bin" >> $GITHUB_PATH
-          # Ensure Apple Container CLI is available
-          sudo ln -sf /opt/homebrew/bin/container /usr/local/bin/container || true
+          
+          # Repair Apple Container CLI so subcommands like 'images pull' work
+          # Make sure the plugins are installed for the service account
+          mkdir -p /usr/local/lib/container/plugins
+          curl -fsSL https://raw.githubusercontent.com/apple/containercli/main/install.sh | bash
+          
+          # Ensure the plugin dir is visible
+          export CONTAINER_PLUGIN_DIR="/usr/local/lib/container/plugins"
+          echo 'export CONTAINER_PLUGIN_DIR="/usr/local/lib/container/plugins"' >> ~/.bash_profile
+          
           # Verify container CLI is working
           which container && container --version || echo "Container CLI setup needed"
-          # Check for container plugins
-          container --help | grep -E "(pull|push)" || echo "Container plugins may be limited"
+          # Sanity check
+          container --version && container plugins list || true
 
       - name: Use conda nina
         uses: ./.github/actions/use-conda-nina

@@ -29,22 +29,19 @@ port_in_use() {
   fi
 }
 
+has_plugin() { container plugins list 2>/dev/null | grep -q "$1"; }
+
 maybe_pull() {
-  if ! container image list | grep -q "$IMAGE"; then
-    log "Pulling PgBouncer image: $IMAGE"
-    if ! container pull "$IMAGE" 2>/dev/null; then
-      warn "Failed to pull $IMAGE, trying alternative approaches..."
-      
-      # Try with different pull syntax or build custom image
-      if [[ "$IMAGE" == *"bitnami/pgbouncer"* ]]; then
-        log "Building custom PgBouncer image as fallback..."
-        build_custom_pgbouncer || die "Failed to build custom PgBouncer image"
-      else
-        die "Failed to pull $IMAGE and no fallback available"
-      fi
+  # Only try to pull if image looks remote (has / or @)
+  if printf "%s" "$IMAGE" | grep -Eq '[/@]'; then
+    if has_plugin container-pull; then
+      log "Ensuring image present: $IMAGE"
+      container images pull "$IMAGE" || warn "Pull failed; will try to run with cache"
+    else
+      warn "container-pull plugin not found - skipping explicit pull"
     fi
   else
-    log "Image $IMAGE already available"
+    log "Using locally-built image: $IMAGE (no pull)"
   fi
 }
 
