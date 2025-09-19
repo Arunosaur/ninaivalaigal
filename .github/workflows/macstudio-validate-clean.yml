@@ -35,27 +35,46 @@ jobs:
       - name: Normalize PATH
         run: echo "/usr/local/bin" >> $GITHUB_PATH
 
+      - name: Activate conda env 'nina'
+        shell: bash
+        run: |
+          # locate conda base (works for Anaconda/Homebrew installs)
+          CONDA_BASE="${CONDA_BASE:-$(conda info --base 2>/dev/null || true)}"
+          if [ -z "$CONDA_BASE" ]; then
+            # fallback common paths
+            for p in "$HOME/miniconda3" "$HOME/anaconda3" "/opt/homebrew/anaconda3"; do
+              [ -d "$p" ] && CONDA_BASE="$p" && break
+            done
+          fi
+          
+          source "$CONDA_BASE/etc/profile.d/conda.sh"
+          conda activate nina
+          echo "CONDA_BASE=$CONDA_BASE" >> $GITHUB_ENV
+          echo "PATH=$(conda run -n nina python -c 'import sys; print(sys.executable.replace("/python", ""))')" >> $GITHUB_ENV
+
       - name: Show environment
         run: |
           echo "Runner: $RUNNER_NAME"
           which container || true
           container --version || true
-          python3 --version || true
+          conda run -n nina python -V
+          conda run -n nina which python
           node --version || true
           npm --version || true
 
       - name: Preflight lint (shell + python + secrets)
         run: |
-          pip3 install --upgrade pip
-          pip3 install ruff bandit detect-secrets
+          # Use nina environment for all Python tools
+          conda run -n nina pip install --upgrade pip
+          conda run -n nina pip install ruff bandit detect-secrets
           brew list shellcheck >/dev/null 2>&1 || true
-          ruff --version
-          bandit --version
-          detect-secrets --version
-          # (Optional) Run selective checks; keep it fast for commit feedback
-          ruff check server || true
-          bandit -q -r server || true
-          detect-secrets scan --all-files > /dev/null || true
+          conda run -n nina ruff --version
+          conda run -n nina bandit --version
+          conda run -n nina detect-secrets --version
+          # Run selective checks; keep it fast for commit feedback
+          conda run -n nina ruff check server || true
+          conda run -n nina bandit -q -r server || true
+          conda run -n nina detect-secrets scan --all-files > /dev/null || true
 
       - name: Start DB (Apple Container CLI)
         run: |
