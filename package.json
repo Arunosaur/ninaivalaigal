@@ -1,6 +1,6 @@
 {
   "name": "ninaivalaigal",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Universal Memory Layer for AI Agents and Developers - Production-hardened with enterprise security",
   "main": "server/main.py",
   "private": true,
@@ -46,6 +46,7 @@
     "@semantic-release/github": "^9.2.6",
     "@semantic-release/npm": "^11.0.2",
     "@semantic-release/release-notes-generator": "^12.1.0",
+    "conventional-changelog-conventionalcommits": "^9.1.0",
     "semantic-release": "^22.0.12"
   },
   "config": {
