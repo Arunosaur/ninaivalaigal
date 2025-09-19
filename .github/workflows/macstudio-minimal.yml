@@ -1,0 +1,46 @@
+name: Mac Studio – Minimal Test
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: minimal-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  minimal-test:
+    name: Minimal Mac Studio Test
+    runs-on: [self-hosted, macstudio]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show basic environment
+        run: |
+          echo "Runner: $RUNNER_NAME"
+          echo "System: $(uname -a)"
+          echo "Python: $(python3 --version)"
+          echo "Container: $(container --version || echo 'not found')"
+          echo "Conda: $(conda --version || echo 'not found')"
+
+      - name: Test Apple Container CLI
+        run: |
+          if command -v container >/dev/null 2>&1; then
+            echo "✅ Apple Container CLI found"
+            container --version
+            echo "✅ Basic container test"
+            container run --rm alpine:latest echo "Hello from Apple Container CLI"
+          else
+            echo "❌ Apple Container CLI not found"
+            exit 1
+          fi
+
+      - name: Success
+        run: echo "🎉 Minimal test passed!"
