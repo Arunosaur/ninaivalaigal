@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.20 (2025-09-19)</small>
+
+* fix: use repo root as build context for API image ([526441efaa03f1e18f7a9e2a5c2520985a7c7aaf](https://github.com/Arunosaur/ninaivalaigal/commit/526441efaa03f1e18f7a9e2a5c2520985a7c7aaf))
+
 ## <small>1.3.19 (2025-09-19)</small>
 
 * fix: correct Docker build context for container images ([e6db01f598f56bad81be6aed29c90db4ea042a16](https://github.com/Arunosaur/ninaivalaigal/commit/e6db01f598f56bad81be6aed29c90db4ea042a16))
