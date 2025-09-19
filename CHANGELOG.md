@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.3.0 (2025-09-19)
+
+* feat: add runner smoke test for hybrid architecture ([9d09c911fc0e0e87006e25aa2cde5af5a349b611](https://github.com/Arunosaur/ninaivalaigal/commit/9d09c911fc0e0e87006e25aa2cde5af5a349b611))
+* test: trigger Mac Studio runner after restart ([c62f688aa49eb4d4b122eee9492aad8485d40a49](https://github.com/Arunosaur/ninaivalaigal/commit/c62f688aa49eb4d4b122eee9492aad8485d40a49))
+
 ## <small>1.2.1 (2025-09-19)</small>
 
 * fix: use targeted release assets instead of wildcard docs ([fd65da6cad83f2a4b0b4756758ea02ce121c3ff5](https://github.com/Arunosaur/ninaivalaigal/commit/fd65da6cad83f2a4b0b4756758ea02ce121c3ff5))
