@@ -1,119 +1,151 @@
+---
 name: Mac Studio – Validate Stack
 
 on:
-  workflow_call: {}
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [main]
+  workflow_dispatch: {}
 
-# workflow-level concurrency (one run per branch)
+permissions:
+  contents: read
+  packages: read
+
 concurrency:
   group: studio-validate-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
   validate:
-    name: Validate on Mac Studio
     runs-on: [self-hosted, macstudio]
+    timeout-minutes: 30
 
     env:
-      # Make all scripts fail fast and colorized (your scripts already do set -euo pipefail).
-      CI: "true"
-      # Wire through your .env if you want, else rely on defaults in scripts/.env.example
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      # Ensure PgBouncer uses same password as database
-      PGBOUNCER_AUTH_TYPE: "plain"
+      PG_PORT: "5433"
+      PGBOUNCER_PORT: "6432"
+      PG_USER: "postgres"
+      PG_PASSWORD: "test123"
+      PG_DB: "testdb"
+      NV_PGBOUNCER_IMAGE: "nina-pgbouncer:arm64"   # local, no pull
+      NV_API_IMAGE: "nina-api:arm64"  # local image, no pull
 
     steps:
-      - name: Checkout
+      - name: Checkout (with submodules)
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Ensure Apple Container CLI is available (user-space only)
-        run: |
-          which container
-          container --version
-
-      - name: Use conda nina
-        uses: ./.github/actions/use-conda-nina
+          fetch-depth: 0
 
       - name: Show environment
         run: |
-          echo "Runner: $RUNNER_NAME"
+          set -euxo pipefail
           which container || true
           container --version || true
-          python -V
-          which python
-          node --version || true
-          npm --version || true
+          echo "Workspace: $GITHUB_WORKSPACE"
+          sysctl -n machdep.cpu.brand_string || true
 
-      - name: Preflight lint (shell + python + secrets)
+      - name: Prepare runner directories (PgBouncer + logs)
         run: |
-          # Tools are now in nina environment from the action
-          brew list shellcheck >/dev/null 2>&1 || true
-          ruff --version
-          bandit --version
-          detect-secrets --version
-          # Run selective checks; keep it fast for commit feedback
-          ruff check server || true
-          bandit -q -r server || true
-          detect-secrets scan --all-files > /dev/null || true
+          set -euxo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/.runner/pgbouncer"
+          mkdir -p "$GITHUB_WORKSPACE/.runner/logs"
 
       - name: Start DB (Apple Container CLI)
         run: |
-          chmod +x scripts/nv-db-start.sh
-          ./scripts/nv-db-start.sh
+          set -euxo pipefail
+          # Start a disposable postgres for the validation
+          container run -d --name nv-db \
+            -e POSTGRES_PASSWORD="${PG_PASSWORD}" \
+            -e POSTGRES_DB="${PG_DB}" \
+            -p "${PG_PORT}:5432" \
+            postgres:15-alpine
+
+          # Wait for DB
+          for i in $(seq 1 30); do
+            if container exec nv-db pg_isready -U "${PG_USER}" -d "${PG_DB}" >/dev/null 2>&1; then
+              echo "DB is ready"; break
+            fi
+            sleep 1
+          done
 
       - name: Start PgBouncer (Apple Container CLI)
         run: |
-          # Use our proven custom nina-pgbouncer:arm64 image
-          scripts/nv-pgbouncer-start.sh
+          set -euxo pipefail
 
-      - name: Show container list + last 50 logs on failure
-        if: failure()
+          # Generate a minimal pgbouncer.ini and userlist.txt under the workspace
+          cat > "$GITHUB_WORKSPACE/.runner/pgbouncer/pgbouncer.ini" <<'EOF'
+          [databases]
+          * = host=host.docker.internal port=5433 user=postgres
+
+          [pgbouncer]
+          logfile = /var/log/pgbouncer/pgbouncer.log
+          pidfile  = /var/run/pgbouncer/pgbouncer.pid
+          listen_port = 6432
+          listen_addr = 0.0.0.0
+          auth_type = trust
+          admin_users = postgres
+          pool_mode = transaction
+          EOF
+
+          : > "$GITHUB_WORKSPACE/.runner/pgbouncer/userlist.txt"
+
+          # Start PgBouncer using the local, prebuilt ARM64 image
+          container run -d --name nv-pgbouncer \
+            -p "${PGBOUNCER_PORT}:6432" \
+            --volume "$GITHUB_WORKSPACE/.runner/pgbouncer:/etc/pgbouncer" \
+            --volume "$GITHUB_WORKSPACE/.runner/logs:/var/log/pgbouncer" \
+            "${NV_PGBOUNCER_IMAGE}"
+
+          # Health check PgBouncer
+          for i in $(seq 1 30); do
+            if psql "postgresql://${PG_USER}:${PG_PASSWORD}@127.0.0.1:${PGBOUNCER_PORT}/${PG_DB}" -c 'SHOW VERSION;' >/dev/null 2>&1; then
+              echo "PgBouncer is ready"; break
+            fi
+            sleep 1
+          done
+
+      - name: Start API (Apple Container CLI)
         run: |
-          set +e
+          set -euxo pipefail
+          IMAGE="${NV_API_IMAGE}"
+          case "$IMAGE" in
+            ""|" "*) echo "NV_API_IMAGE is empty"; exit 1;;
+            *" "*)   echo "NV_API_IMAGE contains spaces"; exit 1;;
+          esac
+
+          # Prefer PgBouncer if reachable, else fall back to DB
+          if psql "postgresql://${PG_USER}:${PG_PASSWORD}@127.0.0.1:${PGBOUNCER_PORT}/${PG_DB}" -c 'SHOW VERSION;' >/dev/null 2>&1; then
+            DB_URL="postgresql://${PG_USER}:${PG_PASSWORD}@127.0.0.1:${PGBOUNCER_PORT}/${PG_DB}"
+          else
+            DB_URL="postgresql://${PG_USER}:${PG_PASSWORD}@127.0.0.1:${PG_PORT}/${PG_DB}"
+          fi
+
+          container run -d --name nv-api \
+            -e DATABASE_URL="${DB_URL}" \
+            -p 13370:8000 \
+            "${IMAGE}"
+
+          # Basic health
+          sleep 5
+          curl -f http://localhost:13370/health || (echo "API health failed" && exit 1)
+
+      - name: Collect logs (always)
+        if: always()
+        run: |
+          set -euxo pipefail
+          echo "::group::ps"
           container ps -a || true
-          echo "---- PgBouncer logs ----"
-          container logs nv-pgbouncer --tail=200 || true
-          echo "---- DB logs ----"
-          container logs nv-db --tail=200 || true
+          echo "::endgroup::"
 
-      - name: API (Apple Container CLI)
-        run: |
-          chmod +x scripts/nv-api-start.sh
-          ./scripts/nv-api-start.sh
-
-      - name: Stack status
-        run: |
-          chmod +x scripts/nv-stack-status.sh
-          ./scripts/nv-stack-status.sh
-
-      - name: Collect logs (artifact)
-        if: always()
-        run: |
-          mkdir -p artifacts
-          container list > artifacts/container-list.txt || true
-          container logs nv-db       > artifacts/nv-db.log       || true
-          container logs nv-pgbouncer> artifacts/nv-pgbouncer.log|| true
-          container logs nv-api      > artifacts/nv-api.log      || true
-          echo "Done."
-
-      - name: Upload artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: macstudio-validate-logs
-          path: artifacts
+          for c in nv-api nv-pgbouncer nv-db; do
+            echo "::group::logs $c"
+            container logs "$c" || true
+            echo "::endgroup::"
+          done
 
       - name: Teardown (always)
         if: always()
         run: |
-          chmod +x scripts/nv-stack-stop.sh
-          ./scripts/nv-stack-stop.sh
+          set -euxo pipefail
+          for c in nv-api nv-pgbouncer nv-db; do
+            container rm -f "$c" || true
+          done

@@ -1,12 +1,13 @@
+---
 name: Pre-commit (Reusable)
 
 on:
   workflow_call: {}
   workflow_dispatch: {}  # optional: lets you click "Run workflow"
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
