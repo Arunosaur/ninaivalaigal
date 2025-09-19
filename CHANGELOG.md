@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.9 (2025-09-19)</small>
+
+* fix: comprehensive drop-in solution for Mac Studio green CI ([eb5f9a043054b0d77622bbe4a6c503b399ff4e62](https://github.com/Arunosaur/ninaivalaigal/commit/eb5f9a043054b0d77622bbe4a6c503b399ff4e62))
+
 ## <small>1.3.8 (2025-09-19)</small>
 
 * fix: comprehensive solution for all CI failures ([ce2f54b0008f0a9efd0da0d60e270ce673cb4dc7](https://github.com/Arunosaur/ninaivalaigal/commit/ce2f54b0008f0a9efd0da0d60e270ce673cb4dc7))
