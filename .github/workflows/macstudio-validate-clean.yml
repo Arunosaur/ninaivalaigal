@@ -118,10 +118,11 @@ jobs:
           esac
 
           # Prefer PgBouncer if reachable, else fall back to DB
+          # API container needs host.lima.internal to reach host services
           if psql "postgresql://${PG_USER}:${PG_PASSWORD}@127.0.0.1:${PGBOUNCER_PORT}/${PG_DB}" -c 'SHOW VERSION;' >/dev/null 2>&1; then
-            DB_URL="postgresql://${PG_USER}:${PG_PASSWORD}@127.0.0.1:${PGBOUNCER_PORT}/${PG_DB}"
+            DB_URL="postgresql://${PG_USER}:${PG_PASSWORD}@host.lima.internal:${PGBOUNCER_PORT}/${PG_DB}"
           else
-            DB_URL="postgresql://${PG_USER}:${PG_PASSWORD}@127.0.0.1:${PG_PORT}/${PG_DB}"
+            DB_URL="postgresql://${PG_USER}:${PG_PASSWORD}@host.lima.internal:${PG_PORT}/${PG_DB}"
           fi
 
           container run -d --name nv-api \
@@ -129,8 +130,8 @@ jobs:
             -p 13370:8000 \
             "${IMAGE}"
 
-          # Basic health
-          sleep 5
+          # Basic health - give API time to start and connect to DB
+          sleep 10
           curl -f http://localhost:13370/health || (echo "API health failed" && exit 1)
 
       - name: Collect logs (always)
