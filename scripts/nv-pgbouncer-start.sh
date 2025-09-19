@@ -22,7 +22,7 @@ mkdir -p "$CFG_DIR" "$LOG_DIR"
 # Create PgBouncer configuration
 cat > "$CFG_DIR/pgbouncer.ini" <<EOF
 [databases]
-* = host=host.lima.internal port=${POSTGRES_PORT} dbname=${POSTGRES_DB}
+* = host=host.lima.internal port=${POSTGRES_PORT} dbname=${POSTGRES_DB} user=${POSTGRES_USER}
 
 [pgbouncer]
 listen_port = 6432
