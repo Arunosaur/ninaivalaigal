@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.7 (2025-09-19)</small>
+
+* fix: resolve PgBouncer auth mismatch with robust testing ([45502e473c5597a2ee30d1529a9e13707020943e](https://github.com/Arunosaur/ninaivalaigal/commit/45502e473c5597a2ee30d1529a9e13707020943e))
+
 ## <small>1.3.6 (2025-09-19)</small>
 
 * fix: use proven nina-pgbouncer:arm64 image without defensive checks ([3a68ef4036e414f510c0a62075ece50e00e2af1a](https://github.com/Arunosaur/ninaivalaigal/commit/3a68ef4036e414f510c0a62075ece50e00e2af1a))
