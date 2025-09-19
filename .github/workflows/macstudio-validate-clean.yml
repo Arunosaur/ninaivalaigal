@@ -32,24 +32,39 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Repair Apple Container CLI Installation
+      - name: Ensure Apple Container CLI is available (user-space only)
+        shell: bash
         run: |
+          set -euo pipefail
+          
+          # Add common locations to PATH for this job
           echo "/usr/local/bin" >> $GITHUB_PATH
           echo "/opt/homebrew/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
           
-          # Repair Apple Container CLI so subcommands like 'images pull' work
-          # Make sure the plugins are installed for the service account
-          mkdir -p /usr/local/lib/container/plugins
-          curl -fsSL https://raw.githubusercontent.com/apple/containercli/main/install.sh | bash
+          # Fast path: if container is already in PATH, we're good
+          if command -v container >/dev/null 2>&1; then
+            echo "[ok] container found: $(command -v container)"
+            container --version || true
+            exit 0
+          fi
           
-          # Ensure the plugin dir is visible
-          export CONTAINER_PLUGIN_DIR="/usr/local/lib/container/plugins"
-          echo 'export CONTAINER_PLUGIN_DIR="/usr/local/lib/container/plugins"' >> ~/.bash_profile
+          # Optional: create a user-local shim if the binary exists at a fixed path
+          # (Adjust the source if your binary lives elsewhere on the Studio)
+          if [ -x /usr/local/bin/container ]; then
+            mkdir -p "$HOME/.local/bin"
+            ln -sf /usr/local/bin/container "$HOME/.local/bin/container"
+          fi
           
-          # Verify container CLI is working
-          which container && container --version || echo "Container CLI setup needed"
-          # Sanity check
-          container --version && container plugins list || true
+          # Final check
+          if ! command -v container >/dev/null 2>&1; then
+            echo "[fail] Apple Container CLI not found in PATH."
+            echo "       Please install it on the runner or add its location to PATH."
+            exit 1
+          fi
+          
+          echo "[ok] Apple Container CLI ready."
+          container --version || true
 
       - name: Use conda nina
         uses: ./.github/actions/use-conda-nina
