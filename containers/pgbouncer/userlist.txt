@@ -1,1 +1,1 @@
-"nina" "md5xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  ; unused when auth_type=any
+"postgres" "md5b3873e3ee1f184466e179d5e4e2b3313"
