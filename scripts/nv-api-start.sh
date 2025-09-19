@@ -1,26 +1,76 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Find a local image that starts with nina-api and use its full Ref
-API_REF="$(container images --format '{{.Ref}}' \
-  | grep -E '^nina-api:[^|@]$' | head -n1 || true)"
+echo "[api] Starting nv-api…"
 
-if [ -z "$API_REF" ]; then
-  # Build one if missing
-  container build -t nina-api:arm64 -f containers/api/Dockerfile .
-  API_REF="nina-api:arm64"
+# ---- Config (override via env if you want) -------------------------------
+IMAGE="${IMAGE:-nina-api:arm64}"          # make sure this image is built/tagged
+NAME="${NAME:-nv-api}"
+HOST_HTTP_PORT="${HOST_HTTP_PORT:-13370}" # host port for the API
+CONTAINER_HTTP_PORT="${CONTAINER_HTTP_PORT:-8000}"   # port the app listens on
+DB_USER="${DB_USER:-nina}"
+DB_PASS="${DB_PASS:-change_me_securely}"
+DB_NAME="${DB_NAME:-testdb}"
+PGBOUNCER_HOST="${PGBOUNCER_HOST:-127.0.0.1}"
+PGBOUNCER_PORT="${PGBOUNCER_PORT:-6432}"
+DB_FALLBACK_HOST="${DB_FALLBACK_HOST:-127.0.0.1}"
+DB_FALLBACK_PORT="${DB_FALLBACK_PORT:-5433}"
+READY_PATH="${READY_PATH:-/health}"       # nv-api exposes /health
+READY_TIMEOUT="${READY_TIMEOUT:-45}"      # seconds
+# -------------------------------------------------------------------------
+
+# Decide DB endpoint: prefer PgBouncer if reachable
+DB_HOST="$DB_FALLBACK_HOST"
+DB_PORT="$DB_FALLBACK_PORT"
+if (echo | nc -z "$PGBOUNCER_HOST" "$PGBOUNCER_PORT") >/dev/null 2>&1; then
+  DB_HOST="$PGBOUNCER_HOST"
+  DB_PORT="$PGBOUNCER_PORT"
+  echo "[api] Using PgBouncer at ${DB_HOST}:${DB_PORT}"
+else
+  echo "[api] PgBouncer not reachable; using direct DB at ${DB_FALLBACK_HOST}:${DB_FALLBACK_PORT}"
 fi
 
-DB_URL="${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD:-test123}@127.0.0.1:5433/testdb}"
+# Compose DATABASE_URL (adjust if your app expects a different scheme)
+DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
 
-container rm -f nv-api >/dev/null 2>&1 || true
-container run -d --name nv-api -e DATABASE_URL="${DB_URL}" -p 13370:8000 "${API_REF}"
+# Clean any old container
+container rm -f "$NAME" >/dev/null 2>&1 || true
 
-# Health wait
-for i in {1..30}; do
-  if curl -sf http://localhost:13370/health >/dev/null; then
-    echo "[ok] API is healthy"; exit 0
+# Start the API
+set -x
+container run -d --name "$NAME" \
+  -p "${HOST_HTTP_PORT}:${CONTAINER_HTTP_PORT}" \
+  -e DATABASE_URL="${DATABASE_URL}" \
+  "$IMAGE"
+set +x
+
+# Quick sanity: did it start at all?
+if ! container ps --format '{{.Names}}' | grep -q "^${NAME}$"; then
+  echo "[api][fail] container did not start"
+  container logs "$NAME" || true
+  exit 2
+fi
+
+# Wait for readiness on /health (or your READY_PATH)
+API_URL="http://localhost:${HOST_HTTP_PORT}${READY_PATH}"
+
+for sec in $(seq 1 "${READY_TIMEOUT}"); do
+  # If the container died, show logs and bail
+  if ! container ps --format '{{.Names}}' | grep -q "^${NAME}$"; then
+    echo "[api][fail] container exited while waiting"
+    container logs "$NAME" || true
+    exit 2
   fi
+
+  # Consider 'healthy' when the endpoint returns 2xx
+  if curl -fsS "$API_URL" >/dev/null 2>&1; then
+    echo "[api][ok] ready at ${API_URL}"
+    exit 0
+  fi
+
   sleep 1
 done
-echo "[fail] API health failed"; container logs nv-api || true; exit 1
+
+echo "[api][fail] timeout waiting for ${API_URL}"
+container logs "$NAME" || true
+exit 2

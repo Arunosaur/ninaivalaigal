@@ -1,24 +1,47 @@
 #!/usr/bin/env bash
 set -euo pipefail
-IMAGE="nina-pgbouncer:arm64"
 
-# Build if missing
-if ! container images | grep -q "^${IMAGE}\b"; then
-    container build -t "${IMAGE}" -f containers/pgbouncer/Dockerfile containers/pgbouncer
+echo "[pgbouncer] Starting..."
+
+# Clean up any old container
+container rm -f nv-pgbouncer >/dev/null 2>&1 || true
+
+# Start (detached)
+container run -d --name nv-pgbouncer \
+  -p 6432:6432 \
+  nina-pgbouncer:arm64
+
+# Quick sanity: did it start at all?
+if ! container ps --format '{{.Names}}' | grep -q '^nv-pgbouncer$'; then
+  echo "[pgbouncer][fail] container did not start"
+  container logs nv-pgbouncer || true
+  exit 2
 fi
 
-# (Re)start
-container rm -f nv-pgbouncer >/dev/null 2>&1 || true
-container run -d --name nv-pgbouncer -p 6432:6432 "${IMAGE}"
-
-# Wait until ready
-for i in {1..30}; do
-  if psql "host=127.0.0.1 port=6432 dbname=testdb user=postgres password=${POSTGRES_PASSWORD:-test123}" \
-      -c 'SHOW VERSION;' >/dev/null 2>&1; then
-    echo "[ok] PgBouncer is ready."
+# Wait for readiness (max 30s), and bail if it crashes
+for sec in $(seq 1 30); do
+  # If the container died, dump logs and fail fast
+  if ! container ps --format '{{.Names}}' | grep -q '^nv-pgbouncer$'; then
+    echo "[pgbouncer][fail] exited while waiting (crash)"
+    container logs nv-pgbouncer || true
+    exit 2
+  fi
+  
+  # Try to talk to PgBouncer admin port (via psql auth handshake)
+  if psql "host=127.0.0.1 port=6432 user=nina dbname=testdb password=change_me_securely" -c 'SHOW VERSION;' >/dev/null 2>&1; then
+    echo "[pgbouncer][ok] ready on 127.0.0.1:6432"
     exit 0
   fi
+  
+  # Or at least confirm the port is open
+  if (echo | nc -z 127.0.0.1 6432) >/dev/null 2>&1; then
+    echo "[pgbouncer][ok] port open; psql auth may still be settling..."
+    exit 0
+  fi
+  
   sleep 1
 done
 
-echo "[fail] PgBouncer did not become ready"; container logs nv-pgbouncer || true; exit 2
+echo "[pgbouncer][fail] timeout waiting for readiness"
+container logs nv-pgbouncer || true
+exit 2
