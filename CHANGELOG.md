@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.2 (2025-09-19)</small>
+
+* fix: implement robust container CLI and pre-commit fixes ([d11b53cbd580b1f5cb17cf268be6c07b53de9f92](https://github.com/Arunosaur/ninaivalaigal/commit/d11b53cbd580b1f5cb17cf268be6c07b53de9f92))
+* fix: robust fallbacks for container pull and Python dependency issues ([2621f775290907fed75c9c9bc847895c9c898392](https://github.com/Arunosaur/ninaivalaigal/commit/2621f775290907fed75c9c9bc847895c9c898392))
+
 ## <small>1.3.1 (2025-09-19)</small>
 
 * fix: resolve Python dependencies and container CLI issues ([b0a19c078c50d0e0a610e903028e3e96a3f86a17](https://github.com/Arunosaur/ninaivalaigal/commit/b0a19c078c50d0e0a610e903028e3e96a3f86a17))
