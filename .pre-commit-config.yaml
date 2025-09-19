@@ -1,10 +1,14 @@
 default_language_version:
   python: python3
 
+# Exclude problematic dependencies that cause version conflicts
 exclude: |
   (?x)^(
-    external/spec-013/.*
+    external/spec-013/.*|
+    .*\.lock$|
+    .*requirements.*\.txt$
   )$
+
 
 repos:
   - repo: https://github.com/psf/black
