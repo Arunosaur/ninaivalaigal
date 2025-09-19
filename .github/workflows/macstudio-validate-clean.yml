@@ -35,6 +35,11 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Ensure Apple Container CLI on PATH
+        run: |
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"  # wherever the 'container' binary lives on the runner
+          command -v container
+
       - name: Show environment
         run: |
           set -euxo pipefail

@@ -1,16 +1,7 @@
-FROM debian:12-slim
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    pgbouncer ca-certificates && \
-    rm -rf /var/lib/apt/lists/* && \
-    useradd --system --no-create-home --shell /bin/false pgbouncer && \
-    mkdir -p /etc/pgbouncer /var/log/pgbouncer && \
-    chown -R pgbouncer:pgbouncer /etc/pgbouncer /var/log/pgbouncer
-
-WORKDIR /etc/pgbouncer
-
-USER pgbouncer
-
+FROM alpine:3.20
+RUN apk add --no-cache pgbouncer ca-certificates
+# Copy config in-image (no host mounts needed)
+COPY pgbouncer.ini /etc/pgbouncer/pgbouncer.ini
+COPY userlist.txt /etc/pgbouncer/userlist.txt
 EXPOSE 6432
-
-CMD ["pgbouncer", "/etc/pgbouncer/pgbouncer.ini"]
+ENTRYPOINT ["pgbouncer","/etc/pgbouncer/pgbouncer.ini"]
