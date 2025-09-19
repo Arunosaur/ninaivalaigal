@@ -26,8 +26,10 @@ plugins:
     - assets:
         - path: "CHANGELOG.md"
           label: "Changelog"
-        - path: "docs/**/*.md"
-          label: "Documentation"
+        - path: "README.md"
+          label: "README"
+        - path: "SECURITY.md"
+          label: "Security Policy"
       successComment: |
         🎉 This ${issue.pull_request ? 'PR is included' : 'issue has been resolved'} in version ${nextRelease.version} :tada:
 
