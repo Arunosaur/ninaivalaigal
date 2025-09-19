@@ -1,8 +1,9 @@
+---
 name: Mac Studio – Minimal Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [main ]
   workflow_dispatch:
 
 concurrency:

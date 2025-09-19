@@ -1,3 +1,4 @@
+---
 name: Backup Verification & Restore Rehearsal
 
 on:
@@ -126,7 +127,7 @@ jobs:
           fi
           
           echo "" >> artifacts/backup-report.txt
-          echo "Verification Status: $([ $? -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")" >> artifacts/backup-report.txt
+          echo "Verification Status: $([$? -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")" >> artifacts/backup-report.txt
           
           # Show report
           cat artifacts/backup-report.txt

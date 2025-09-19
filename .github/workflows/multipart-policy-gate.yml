@@ -1,3 +1,4 @@
+---
 name: Multipart Policy Gate
 
 on: [pull_request]

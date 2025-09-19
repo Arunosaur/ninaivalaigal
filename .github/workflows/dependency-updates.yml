@@ -1,3 +1,4 @@
+---
 name: Weekly Dependency Updates
 
 on:
@@ -30,7 +31,7 @@ jobs:
       - name: Update Python dependencies
         run: |
           # Update server dependencies
-          if [ -f server/requirements.in ]; then
+          if [-f server/requirements.in ]; then
             cd server
             pip-compile --upgrade requirements.in
             cd ..
@@ -69,17 +70,17 @@ jobs:
             - Regenerated lockfiles with pip-compile
             
             ### Security Review Required
-            - [ ] Review dependency changes for security implications
-            - [ ] Verify no breaking changes in updated packages
-            - [ ] Run full SPEC test suite: `make spec-test`
-            - [ ] Validate container security: SBOM + vulnerability scan
+            - [] Review dependency changes for security implications
+            - [] Verify no breaking changes in updated packages
+            - [] Run full SPEC test suite: `make spec-test`
+            - [] Validate container security: SBOM + vulnerability scan
             
             ### Testing Checklist
-            - [ ] Pre-commit hooks pass: `pre-commit run --all-files`
-            - [ ] Stack boots successfully: `make stack-up && make stack-status`
-            - [ ] All SPECs pass: `make spec-test`
-            - [ ] Authentication works: `make test-mem0-auth`
-            - [ ] SLO compliance: Health checks under target latency
+            - [] Pre-commit hooks pass: `pre-commit run --all-files`
+            - [] Stack boots successfully: `make stack-up && make stack-status`
+            - [] All SPECs pass: `make spec-test`
+            - [] Authentication works: `make test-mem0-auth`
+            - [] SLO compliance: Health checks under target latency
             
             **Note**: Container image digests require manual security review before updating.
           branch: automated/dependency-updates
