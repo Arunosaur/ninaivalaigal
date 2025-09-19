@@ -1,0 +1,40 @@
+name: Use conda env nina
+description: "Activate conda env nina on self-hosted runner"
+runs:
+  using: composite
+  steps:
+    - id: conda-activate
+      shell: bash
+      run: |
+        set -euo pipefail
+        # 1) Locate conda base (works for Anaconda/Homebrew installs)
+        CONDA_BASE="${CONDA_BASE:-$(conda info --base 2>/dev/null || true)}"
+        if [ -z "${CONDA_BASE:-}" ]; then
+          for p in "$HOME/miniconda3" "$HOME/anaconda3" "/opt/homebrew/anaconda3"; do
+            [ -d "$p" ] && CONDA_BASE="$p" && break
+          done
+        fi
+        if [ -z "${CONDA_BASE:-}" ]; then
+          echo "::error::Conda base not found"; exit 1
+        fi
+
+        # 2) Activate env
+        source "$CONDA_BASE/etc/profile.d/conda.sh"
+        conda activate nina
+
+        # 3) Diagnostics for logs
+        echo "CONDA_BASE=$CONDA_BASE"
+        echo "PYTHON=$(which python)"
+        python -V
+        which pre-commit || true
+        which ruff || true
+        which bandit || true
+        which detect-secrets || true
+
+        # 4) Ensure core tools exist inside nina (idempotent)
+        python -m pip install -U pip
+        python -m pip install -U pre-commit ruff bandit detect-secrets
+
+        # 5) Export environment for subsequent steps
+        echo "CONDA_BASE=$CONDA_BASE" >> $GITHUB_ENV
+        echo "$(dirname $(which python))" >> $GITHUB_PATH
