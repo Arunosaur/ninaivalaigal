@@ -49,89 +49,26 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/.runner/pgbouncer"
           mkdir -p "$GITHUB_WORKSPACE/.runner/logs"
 
-      - name: Build images locally
+      - name: Use validated stack scripts
         run: |
-          container build -t nina-pgbouncer:arm64 -f containers/pgbouncer/Dockerfile .
-          container build -t nina-api:arm64 -f containers/api/Dockerfile .
-
-      - name: Start DB (Apple Container CLI)
-        run: |
-          set -euxo pipefail
-          # Start a disposable postgres for the validation
-          container run -d --name nv-db \
-            -e POSTGRES_PASSWORD="${PG_PASSWORD}" \
-            -e POSTGRES_DB="${PG_DB}" \
-            -p "${PG_PORT}:5432" \
-            postgres:15-alpine
-
-          # Wait for DB
-          for i in $(seq 1 30); do
-            if container exec nv-db pg_isready -U "${PG_USER}" -d "${PG_DB}" >/dev/null 2>&1; then
-              echo "DB is ready"; break
-            fi
-            sleep 1
-          done
-
-      - name: Start PgBouncer (Apple Container CLI)
-        run: |
-          set -euxo pipefail
-
-          # Generate a minimal pgbouncer.ini and userlist.txt under the workspace
-          cat > "$GITHUB_WORKSPACE/.runner/pgbouncer/pgbouncer.ini" <<'EOF'
-          [databases]
-          testdb = host=host.lima.internal port=5433 dbname=testdb user=postgres
-
-          [pgbouncer]
-          listen_port = 6432
-          listen_addr = 0.0.0.0
-          auth_type = trust
-          admin_users = postgres
-          pool_mode = transaction
-          EOF
-
-          : > "$GITHUB_WORKSPACE/.runner/pgbouncer/userlist.txt"
-
-          # Start PgBouncer using the local, prebuilt ARM64 image
-          container run -d --name nv-pgbouncer \
-            -p "${PGBOUNCER_PORT}:6432" \
-            --volume "$GITHUB_WORKSPACE/.runner/pgbouncer:/etc/pgbouncer" \
-            --volume "$GITHUB_WORKSPACE/.runner/logs:/var/log/pgbouncer" \
-            "${NV_PGBOUNCER_IMAGE}"
-
-          # Health check PgBouncer
-          for i in $(seq 1 30); do
-            if psql "postgresql://${PG_USER}:${PG_PASSWORD}@127.0.0.1:${PGBOUNCER_PORT}/${PG_DB}" -c 'SHOW VERSION;' >/dev/null 2>&1; then
-              echo "PgBouncer is ready"; break
-            fi
-            sleep 1
-          done
-
-      - name: Start API (Apple Container CLI)
-        run: |
-          set -euxo pipefail
-          IMAGE="${NV_API_IMAGE}"
-          case "$IMAGE" in
-            ""|" "*) echo "NV_API_IMAGE is empty"; exit 1;;
-            *" "*)   echo "NV_API_IMAGE contains spaces"; exit 1;;
-          esac
-
-          # Prefer PgBouncer if reachable, else fall back to DB
-          # API container needs host.lima.internal to reach host services
-          if psql "postgresql://${PG_USER}:${PG_PASSWORD}@127.0.0.1:${PGBOUNCER_PORT}/${PG_DB}" -c 'SHOW VERSION;' >/dev/null 2>&1; then
-            DB_URL="postgresql://${PG_USER}:${PG_PASSWORD}@host.lima.internal:${PGBOUNCER_PORT}/${PG_DB}"
-          else
-            DB_URL="postgresql://${PG_USER}:${PG_PASSWORD}@host.lima.internal:${PG_PORT}/${PG_DB}"
-          fi
-
-          container run -d --name nv-api \
-            -e DATABASE_URL="${DB_URL}" \
-            -e NINAIVALAIGAL_JWT_SECRET="test-secret-for-ci-validation-only" \
-            -p 13370:8000 \
-            "${IMAGE}"
-
-          # Basic health - give API time to start and connect to DB
-          sleep 10
-          curl -f http://localhost:13370/health || (echo "API health failed" && exit 1)
+          # Set environment variables for our proven scripts
+          export POSTGRES_PASSWORD="${PG_PASSWORD}"
+          export POSTGRES_DB="${PG_DB}"
+          export POSTGRES_USER="${PG_USER}"
+          export POSTGRES_PORT="${PG_PORT}"
+          export PGBOUNCER_PORT="${PGBOUNCER_PORT}"
+          export NINAIVALAIGAL_JWT_SECRET="test-secret-for-ci-validation-only"
+          
+          # Use our validated, production-ready scripts
+          chmod +x scripts/nv-*.sh
+          
+          # Start the stack using proven scripts
+          ./scripts/nv-db-start.sh
+          ./scripts/nv-pgbouncer-start.sh  
+          ./scripts/nv-api-start.sh
+          
+          # Validate the stack
+          ./scripts/nv-stack-status.sh
 
       - name: Collect logs (always)
         if: always()
@@ -150,7 +87,6 @@ jobs:
       - name: Teardown (always)
         if: always()
         run: |
-          set -euxo pipefail
-          for c in nv-api nv-pgbouncer nv-db; do
-            container rm -f "$c" || true
-          done
+          # Use our proven teardown script
+          chmod +x scripts/nv-stack-stop.sh
+          ./scripts/nv-stack-stop.sh || true
