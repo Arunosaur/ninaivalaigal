@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.16 (2025-09-19)</small>
+
+* fix: add forced user for auth_type=any in PgBouncer config ([be87b32d5692a64825b352cad423c7229d1f06ee](https://github.com/Arunosaur/ninaivalaigal/commit/be87b32d5692a64825b352cad423c7229d1f06ee))
+
 ## <small>1.3.15 (2025-09-19)</small>
 
 * fix: use auth_type=any for PgBouncer to bypass authentication issues ([004fe3c1d445ba1d458734a0d82b9376d5c16433](https://github.com/Arunosaur/ninaivalaigal/commit/004fe3c1d445ba1d458734a0d82b9376d5c16433))
