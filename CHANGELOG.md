@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.19 (2025-09-19)</small>
+
+* fix: correct Docker build context for container images ([e6db01f598f56bad81be6aed29c90db4ea042a16](https://github.com/Arunosaur/ninaivalaigal/commit/e6db01f598f56bad81be6aed29c90db4ea042a16))
+
 ## <small>1.3.18 (2025-09-19)</small>
 
 * fix: add missing userlist.txt for PgBouncer Docker build ([f7428d9982ff813c23f6ab7fb1846a5bdd26be00](https://github.com/Arunosaur/ninaivalaigal/commit/f7428d9982ff813c23f6ab7fb1846a5bdd26be00))
