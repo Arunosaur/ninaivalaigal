@@ -18,8 +18,6 @@ cat > "$CFG_DIR/pgbouncer.ini" <<'EOF'
 testdb = host=host.lima.internal port=5433 dbname=testdb user=postgres
 
 [pgbouncer]
-logfile = /var/log/pgbouncer/pgbouncer.log
-pidfile  = /var/run/pgbouncer/pgbouncer.pid
 listen_port = 6432
 listen_addr = 0.0.0.0
 auth_type = trust
