@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.3.12 (2025-09-19)</small>
+
+* fix: resolve API JWT_SECRET and PgBouncer pidfile issues ([90e3c125b8101074a86d1ee50b3339dbd1dd0f7f](https://github.com/Arunosaur/ninaivalaigal/commit/90e3c125b8101074a86d1ee50b3339dbd1dd0f7f))
+
 ## <small>1.3.11 (2025-09-19)</small>
 
 * fix: API container networking for Lima environment ([7ca660d420d31fac55235becf5af508de8264b77](https://github.com/Arunosaur/ninaivalaigal/commit/7ca660d420d31fac55235becf5af508de8264b77))
