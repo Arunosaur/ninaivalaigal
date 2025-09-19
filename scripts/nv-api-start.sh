@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Find a local image that starts with nina-api and use its full Ref

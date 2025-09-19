@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 IMAGE="nina-pgbouncer:arm64"
 
