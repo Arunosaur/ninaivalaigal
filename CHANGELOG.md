@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.2.1 (2025-09-19)</small>
+
+* fix: use targeted release assets instead of wildcard docs ([fd65da6cad83f2a4b0b4756758ea02ce121c3ff5](https://github.com/Arunosaur/ninaivalaigal/commit/fd65da6cad83f2a4b0b4756758ea02ce121c3ff5))
+
 ## 1.2.0 (2025-09-19)
 
 * fix: Add clean YAML workflow to resolve CI failures ([512d48cb9b82bd77219f06d88c3a19f4bb2eaa74](https://github.com/Arunosaur/ninaivalaigal/commit/512d48cb9b82bd77219f06d88c3a19f4bb2eaa74))
