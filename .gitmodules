@@ -1,0 +1,4 @@
+[submodule "external/spec-013"]
+	path = external/spec-013
+	url = https://github.com/Arunosaur/spec-013-mac-studio-validation.git
+	branch = main
