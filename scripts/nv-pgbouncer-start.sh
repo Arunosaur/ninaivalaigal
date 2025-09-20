@@ -12,7 +12,7 @@ container run -d --name nv-pgbouncer \
   nina-pgbouncer:arm64
 
 # Quick sanity: did it start at all?
-if ! container ps --format '{{.Names}}' | grep -q '^nv-pgbouncer$'; then
+if ! container ps | grep -q 'nv-pgbouncer'; then
   echo "[pgbouncer][fail] container did not start"
   container logs nv-pgbouncer || true
   exit 2
@@ -21,7 +21,7 @@ fi
 # Wait for readiness (max 30s), and bail if it crashes
 for sec in $(seq 1 30); do
   # If the container died, dump logs and fail fast
-  if ! container ps --format '{{.Names}}' | grep -q '^nv-pgbouncer$'; then
+  if ! container ps | grep -q 'nv-pgbouncer'; then
     echo "[pgbouncer][fail] exited while waiting (crash)"
     container logs nv-pgbouncer || true
     exit 2

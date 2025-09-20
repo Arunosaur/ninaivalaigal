@@ -45,7 +45,7 @@ container run -d --name "$NAME" \
 set +x
 
 # Quick sanity: did it start at all?
-if ! container ps --format '{{.Names}}' | grep -q "^${NAME}$"; then
+if ! container ps | grep -q "$NAME"; then
   echo "[api][fail] container did not start"
   container logs "$NAME" || true
   exit 2
@@ -56,7 +56,7 @@ API_URL="http://localhost:${HOST_HTTP_PORT}${READY_PATH}"
 
 for sec in $(seq 1 "${READY_TIMEOUT}"); do
   # If the container died, show logs and bail
-  if ! container ps --format '{{.Names}}' | grep -q "^${NAME}$"; then
+  if ! container ps | grep -q "$NAME"; then
     echo "[api][fail] container exited while waiting"
     container logs "$NAME" || true
     exit 2
