@@ -44,10 +44,10 @@ container run -d --name "$NAME" \
   "$IMAGE"
 set +x
 
-# Quick sanity: did it start at all?
-if ! container ps | grep -q "$NAME"; then
-  echo "[api][fail] container did not start"
-  container logs "$NAME" || true
+# Quick sanity: did it start at all? (check via logs)
+sleep 2
+if ! container logs "$NAME" >/dev/null 2>&1; then
+  echo "[api][fail] container did not start (no logs available)"
   exit 2
 fi
 
@@ -56,9 +56,8 @@ API_URL="http://localhost:${HOST_HTTP_PORT}${READY_PATH}"
 
 for sec in $(seq 1 "${READY_TIMEOUT}"); do
   # If the container died, show logs and bail
-  if ! container ps | grep -q "$NAME"; then
+  if ! container logs "$NAME" >/dev/null 2>&1; then
     echo "[api][fail] container exited while waiting"
-    container logs "$NAME" || true
     exit 2
   fi
 
