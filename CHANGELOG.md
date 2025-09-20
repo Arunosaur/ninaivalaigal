@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.4.8 (2025-09-20)</small>
+
+* fix: implement self-contained PgBouncer with baked-in configuration ([20f47e1bcd056125d4b8d0d28f837e4814b7fbfe](https://github.com/Arunosaur/ninaivalaigal/commit/20f47e1bcd056125d4b8d0d28f837e4814b7fbfe))
+* fix: use container-to-container networking (nv-db:5432) ([74a235f61e04a5f016a8f44dc0e3b6c45f55a2da](https://github.com/Arunosaur/ninaivalaigal/commit/74a235f61e04a5f016a8f44dc0e3b6c45f55a2da))
+
 ## <small>1.4.7 (2025-09-20)</small>
 
 * fix: revert to original working PgBouncer configuration with localhost ([4cde4d5b66825d0d8404b1a6f5cf4a3ca0a05dfb](https://github.com/Arunosaur/ninaivalaigal/commit/4cde4d5b66825d0d8404b1a6f5cf4a3ca0a05dfb))
