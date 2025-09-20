@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.13.0 (2025-09-20)
+
+* feat: Complete enterprise cloud deployment strategy with GHCR automation ([60a38da8f2cd68baf71bdca23b4b0e47373c1783](https://github.com/Arunosaur/ninaivalaigal/commit/60a38da8f2cd68baf71bdca23b4b0e47373c1783))
+
 ## 1.12.0 (2025-09-20)
 
 * feat: Complete cloud-native deployment strategy with Kubernetes support ([2a1f9b40bb08207f9065643372f62c4df7e38062](https://github.com/Arunosaur/ninaivalaigal/commit/2a1f9b40bb08207f9065643372f62c4df7e38062))
