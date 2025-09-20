@@ -182,10 +182,20 @@ container logs nv-api
 - `96c3db5`: Dynamic container IP networking (PgBouncer working)
 - `32ef2f9`: Template substitution with envsubst (PgBouncer connects to DB)
 
-### **Latest Status (Run 17883636905)**:
+### **Latest Status (Run 17883737905) - STILL FAILING**:
 - ✅ **PgBouncer**: Successfully connecting to DB via container IP
-- ❌ **API**: Still trying 127.0.0.1:6432 (needs PgBouncer container IP)
-- 🎯 **Root Cause**: API script hardcoded to use 127.0.0.1 instead of PgBouncer IP
+- ❌ **API**: STILL trying 127.0.0.1:6432 despite our changes
+- 🎯 **Root Cause**: API script changes not taking effect - hardcoded localhost in workflow
+
+### **CRITICAL DISCOVERY**:
+**Our API script changes are being ignored!** The workflow is still using the old approach.
+**Evidence**: API logs show "connection to server at 127.0.0.1, port 6432 failed"
+
+### **IMMEDIATE FIX NEEDED**:
+1. **Patch API start script**: Use PgBouncer container IP detection
+2. **Add smoke test**: Verify API can reach PgBouncer at container IP
+3. **Guard against localhost**: Grep and remove any localhost defaults
+4. **Workflow integration**: Ensure changes are applied in CI
 
 ### **Failed Approaches**:
 - Host networking attempts (host.docker.internal, host.lima.internal, 127.0.0.1, localhost)

@@ -20,22 +20,24 @@ from email.mime.multipart import MIMEMultipart
 
 # Configuration loading (moved from main.py to avoid circular import)
 def load_config():
-    config_path = "../ninaivalaigal.config.json"
-    default_config = {
-        "storage": {
-            "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
-        }
-    }
+    # PRIORITY 1: Environment variable (for container deployment)
+    env_database_url = os.getenv('NINAIVALAIGAL_DATABASE_URL')
+    if env_database_url:
+        return env_database_url
     
+    # PRIORITY 2: Config file
+    config_path = "../ninaivalaigal.config.json"
     try:
         if os.path.exists(config_path):
             with open(config_path, 'r') as f:
                 user_config = json.load(f)
                 if "storage" in user_config and "database_url" in user_config["storage"]:
                     return user_config["storage"]["database_url"]
-        return default_config["storage"]["database_url"]
     except Exception:
-        return default_config["storage"]["database_url"]
+        pass
+    
+    # PRIORITY 3: Fallback (should not be used in container)
+    return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
 
 # Database helper to avoid circular imports
 def get_db():
