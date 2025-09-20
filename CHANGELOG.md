@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.6.0 (2025-09-20)
+
+* feat: Complete Apple Container CLI compatibility and developer experience ([2c62a68938a86f3d15c13a446c622e671b2bdd65](https://github.com/Arunosaur/ninaivalaigal/commit/2c62a68938a86f3d15c13a446c622e671b2bdd65))
+
 ## <small>1.5.5 (2025-09-20)</small>
 
 * fix: use Apple Container CLI compatible inspect commands (no --format flag) ([0455682bac828c44ff201f713cfe5e605caba1b9](https://github.com/Arunosaur/ninaivalaigal/commit/0455682bac828c44ff201f713cfe5e605caba1b9))
