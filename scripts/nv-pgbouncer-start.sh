@@ -6,10 +6,18 @@ echo "[pgbouncer] Starting..."
 # Clean up any old container
 container rm -f nv-pgbouncer >/dev/null 2>&1 || true
 
-# Start (detached)
+# Get DB container IP for intra-VM connectivity
+echo "[pgbouncer] Getting database container IP..."
+DB_IP=$(container inspect nv-db --format '{{ .NetworkSettings.IPAddress }}' 2>/dev/null || echo "nv-db")
+echo "[pgbouncer] Database IP: $DB_IP"
+
+# Start PgBouncer with DB_HOST environment variable
+set -x
 container run -d --name nv-pgbouncer \
   -p 6432:6432 \
+  -e DB_HOST="$DB_IP" \
   nina-pgbouncer:arm64
+set +x
 
 # Quick sanity: did it start at all? (check via logs)
 echo "[pgbouncer] Waiting for database to be fully ready..."

@@ -7,22 +7,25 @@ RUN apk add --no-cache pgbouncer ca-certificates \
 && mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer /var/lib/pgbouncer \
 && chown -R pgbouncer:pgbouncer /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer /var/lib/pgbouncer
 
-# Create pgbouncer.ini with safe defaults for CI
-RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini \
-&& echo 'testdb = host=nv-db port=5432 dbname=testdb pool_mode=session auth_user=postgres' >> /etc/pgbouncer/pgbouncer.ini \
-&& echo '' >> /etc/pgbouncer/pgbouncer.ini \
-&& echo '[pgbouncer]' >> /etc/pgbouncer/pgbouncer.ini \
-&& echo 'listen_addr = 0.0.0.0' >> /etc/pgbouncer/pgbouncer.ini \
-&& echo 'listen_port = 6432' >> /etc/pgbouncer/pgbouncer.ini \
-&& echo 'auth_type = any' >> /etc/pgbouncer/pgbouncer.ini \
-&& echo 'auth_file = /etc/pgbouncer/userlist.txt' >> /etc/pgbouncer/pgbouncer.ini \
-&& echo 'admin_users = postgres' >> /etc/pgbouncer/pgbouncer.ini \
-&& echo 'logfile = /var/log/pgbouncer/pgbouncer.log' >> /etc/pgbouncer/pgbouncer.ini \
-&& echo 'pidfile = /var/lib/pgbouncer/pgbouncer.pid' >> /etc/pgbouncer/pgbouncer.ini
+# Install gettext for envsubst
+RUN apk add --no-cache gettext
+
+# Create pgbouncer.ini.template with templating
+RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'testdb = host=${DB_HOST} port=5432 dbname=testdb pool_mode=session auth_user=postgres' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo '' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo '[pgbouncer]' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'listen_addr = 0.0.0.0' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'listen_port = 6432' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'auth_type = any' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'auth_file = /etc/pgbouncer/userlist.txt' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'admin_users = postgres' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'logfile = /var/log/pgbouncer/pgbouncer.log' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'pidfile = /var/lib/pgbouncer/pgbouncer.pid' >> /etc/pgbouncer/pgbouncer.ini.template
 
 # Create userlist.txt
 RUN echo '"postgres" ""' > /etc/pgbouncer/userlist.txt
 
 USER pgbouncer
 EXPOSE 6432
-ENTRYPOINT ["pgbouncer", "/etc/pgbouncer/pgbouncer.ini"]
+ENTRYPOINT ["/bin/sh","-c","envsubst < /etc/pgbouncer/pgbouncer.ini.template > /etc/pgbouncer/pgbouncer.ini && exec pgbouncer /etc/pgbouncer/pgbouncer.ini"]
