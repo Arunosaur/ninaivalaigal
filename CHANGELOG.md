@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.5.2 (2025-09-20)</small>
+
+* docs: update checklist with breakthrough discovery and fix ([79bce255011fc4e81bd688e5b0b713b4097612e8](https://github.com/Arunosaur/ninaivalaigal/commit/79bce255011fc4e81bd688e5b0b713b4097612e8))
+* fix: API now properly uses NINAIVALAIGAL_DATABASE_URL environment variable ([30682f4964ab180e81c57d5f98ab139920ed6f19](https://github.com/Arunosaur/ninaivalaigal/commit/30682f4964ab180e81c57d5f98ab139920ed6f19))
+
 ## <small>1.5.1 (2025-09-20)</small>
 
 * fix: implement complete container-to-container networking solution ([1cae81b39f9aebdf2670288f11dcd20959df0d41](https://github.com/Arunosaur/ninaivalaigal/commit/1cae81b39f9aebdf2670288f11dcd20959df0d41))
