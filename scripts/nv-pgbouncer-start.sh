@@ -11,12 +11,18 @@ container run -d --name nv-pgbouncer \
   -p 6432:6432 \
   nina-pgbouncer:arm64
 
-# Quick sanity: did it start at all?
+# Quick sanity: did it start at all? (give it a moment)
+sleep 2
+echo "[pgbouncer] Checking if container started..."
+container ps -a | head -10  # Debug: show what containers exist
 if ! container ps | grep -q 'nv-pgbouncer'; then
   echo "[pgbouncer][fail] container did not start"
+  echo "[pgbouncer][debug] All containers:"
+  container ps -a || true
   container logs nv-pgbouncer || true
   exit 2
 fi
+echo "[pgbouncer] Container detected, proceeding to health check..."
 
 # Wait for readiness (max 30s), and bail if it crashes
 for sec in $(seq 1 30); do
