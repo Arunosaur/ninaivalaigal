@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.5.3 (2025-09-20)</small>
+
+* fix: improve container IP detection with debugging and fallback methods ([6df418bb0a6546c5e20a1795cf7c207ec20f22db](https://github.com/Arunosaur/ninaivalaigal/commit/6df418bb0a6546c5e20a1795cf7c207ec20f22db))
+
 ## <small>1.5.2 (2025-09-20)</small>
 
 * docs: update checklist with breakthrough discovery and fix ([79bce255011fc4e81bd688e5b0b713b4097612e8](https://github.com/Arunosaur/ninaivalaigal/commit/79bce255011fc4e81bd688e5b0b713b4097612e8))
