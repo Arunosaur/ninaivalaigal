@@ -1,25 +1,28 @@
 FROM alpine:3.20
 
 # Packages: pgbouncer + certs
-RUN apk add --no-cache pgbouncer ca-certificates
+RUN apk add --no-cache pgbouncer ca-certificates \
+&& addgroup -S pgbouncer \
+&& adduser -S -G pgbouncer -H -D -s /sbin/nologin pgbouncer \
+&& mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer /var/lib/pgbouncer \
+&& chown -R pgbouncer:pgbouncer /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer /var/lib/pgbouncer
 
-# Create non-root user and group
-RUN addgroup -S pgbouncer \
-&& adduser -S -G pgbouncer -H -D -s /sbin/nologin pgbouncer
+# Create pgbouncer.ini with safe defaults for CI
+RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini \
+&& echo 'testdb = host=host.docker.internal port=5433 dbname=testdb pool_mode=session auth_user=postgres' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo '' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo '[pgbouncer]' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo 'listen_addr = 0.0.0.0' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo 'listen_port = 6432' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo 'auth_type = any' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo 'auth_file = /etc/pgbouncer/userlist.txt' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo 'admin_users = postgres' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo 'logfile = /var/log/pgbouncer/pgbouncer.log' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo 'pidfile = /var/lib/pgbouncer/pgbouncer.pid' >> /etc/pgbouncer/pgbouncer.ini
 
-# Config
-COPY pgbouncer.ini /etc/pgbouncer/pgbouncer.ini
-COPY userlist.txt /etc/pgbouncer/userlist.txt
+# Create userlist.txt
+RUN echo '"postgres" ""' > /etc/pgbouncer/userlist.txt
 
-# Runtime dirs + permissions
-RUN mkdir -p /var/run/pgbouncer /var/log/pgbouncer /var/lib/pgbouncer \
-&& chown -R pgbouncer:pgbouncer \
-   /etc/pgbouncer /var/run/pgbouncer /var/log/pgbouncer /var/lib/pgbouncer
-
-EXPOSE 6432
-
-# Drop privileges permanently
 USER pgbouncer
-
-# Start PgBouncer
+EXPOSE 6432
 ENTRYPOINT ["pgbouncer", "/etc/pgbouncer/pgbouncer.ini"]
