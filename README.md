@@ -43,14 +43,15 @@ make dev-down
 ### 🌍 Cloud Deployment
 
 ```bash
-# Deploy to AWS
-KEY_NAME=my-key make deploy-aws
+# Virtual Machine Deployment (Full Stack)
+KEY_NAME=my-key make deploy-aws-vm
+PROJECT_ID=my-project make deploy-gcp-vm  
+RESOURCE_GROUP=my-rg make deploy-azure-vm
 
-# Deploy to Google Cloud
-PROJECT_ID=my-project make deploy-gcp
-
-# Deploy to Microsoft Azure
-RESOURCE_GROUP=my-rg make deploy-azure
+# Cloud-Native Container Services (GHCR Images)
+make deploy-aws      # AWS ECS
+make deploy-gcp      # Google Cloud Run
+make deploy-azure    # Azure Container Instances
 
 # Setup secure tunnel for remote access
 REMOTE_HOST=server.com make tunnel-start
@@ -96,7 +97,18 @@ make deploy-azure-aci    # Azure Container Instances
 | **Local Dev** | `make dev-up` | ARM64 Apple CLI | Performance + DX |
 | **Local CI** | `make ci-test` | x86_64 Docker | Compatibility |
 | **Multi-Arch** | `make release` | ARM64 + x86_64 | Universal Images |
-| **Cloud Deploy** | `make k8s-deploy` | Architecture Agnostic | Production |
+| **Cloud VM** | `make deploy-aws-vm` | Full Stack | Traditional Deploy |
+| **Cloud Native** | `make deploy-aws` | Container Services | Serverless Scale |
+| **Kubernetes** | `make k8s-deploy` | Architecture Agnostic | Enterprise Production |
+
+### 🚀 Release & Deployment Summary
+
+| Command | What it does |
+|---------|-------------|
+| `make release` | Push multi-arch image to GHCR |
+| `make deploy-aws` | Redeploy ECS service with new image |
+| `make deploy-gcp` | Deploy to Cloud Run (fully managed, serverless) |
+| `make deploy-azure` | Create Azure container instance (ACI) |
 
 > **⚡ Apple Silicon Optimized**: This project runs natively on Apple Container CLI for 3-5x better performance than Docker Desktop. See [Apple Container CLI Guide](docs/APPLE_CONTAINER_CLI.md) for details.
 

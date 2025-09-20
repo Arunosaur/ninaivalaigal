@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws deploy-gcp deploy-azure deploy-aws-ecs deploy-gcp-run deploy-azure-aci k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws-vm deploy-gcp-vm deploy-azure-vm deploy-aws deploy-gcp deploy-azure k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -170,47 +170,48 @@ tunnel-stop:
 	@echo "🛑 Stopping secure tunnels..."
 	@$(SCRIPTS)/nv-tunnel-stop.sh
 
-deploy-aws:
-	@echo "🚀 Deploying to AWS..."
-	@echo "Usage: KEY_NAME=my-key make deploy-aws"
+## Virtual Machine Deployment
+deploy-aws-vm:
+	@echo "🚀 Deploying to AWS EC2 VM..."
+	@echo "Usage: KEY_NAME=my-key make deploy-aws-vm"
 	@$(SCRIPTS)/deploy-aws.sh
 
-deploy-gcp:
-	@echo "🚀 Deploying to Google Cloud Platform..."
-	@echo "Usage: PROJECT_ID=my-project make deploy-gcp"
+deploy-gcp-vm:
+	@echo "🚀 Deploying to GCP Compute Engine VM..."
+	@echo "Usage: PROJECT_ID=my-project make deploy-gcp-vm"
 	@$(SCRIPTS)/deploy-gcp.sh
 
-deploy-azure:
-	@echo "🚀 Deploying to Microsoft Azure..."
-	@echo "Usage: RESOURCE_GROUP=my-rg make deploy-azure"
+deploy-azure-vm:
+	@echo "🚀 Deploying to Azure VM..."
+	@echo "Usage: RESOURCE_GROUP=my-rg make deploy-azure-vm"
 	@$(SCRIPTS)/deploy-azure.sh
 
-## Cloud-Native Deployment with GHCR Images
-deploy-aws-ecs:
-	@echo "🚀 Deploying to AWS ECS with GHCR images..."
+## Cloud-Native Container Services
+deploy-aws:
+	@echo "🚀 Deploying to AWS ECS..."
 	@aws ecs update-service \
-		--cluster ninaivalaigal \
+		--cluster ninaivalaigal-cluster \
 		--service ninaivalaigal-api \
-		--force-new-deployment \
-		--task-definition ninaivalaigal-api:latest
+		--force-new-deployment
 
-deploy-gcp-run:
-	@echo "🚀 Deploying to Google Cloud Run with GHCR images..."
+deploy-gcp:
+	@echo "🚀 Deploying to Google Cloud Run..."
 	@gcloud run deploy ninaivalaigal-api \
-		--image ghcr.io/arunosaur/ninaivalaigal-api:latest \
-		--region us-central1 \
-		--allow-unauthenticated \
-		--set-env-vars DATABASE_URL="$$DATABASE_URL"
+		--image=ghcr.io/arunosaur/ninaivalaigal-api:latest \
+		--platform=managed \
+		--region=us-central1 \
+		--allow-unauthenticated
 
-deploy-azure-aci:
-	@echo "🚀 Deploying to Azure Container Instances with GHCR images..."
+deploy-azure:
+	@echo "🚀 Deploying to Azure Container Instances..."
 	@az container create \
-		--resource-group $${RESOURCE_GROUP:-ninaivalaigal} \
+		--resource-group ninaivalaigal-rg \
 		--name ninaivalaigal-api \
 		--image ghcr.io/arunosaur/ninaivalaigal-api:latest \
-		--cpu 1 --memory 2 \
-		--ports 8000 \
-		--environment-variables DATABASE_URL="$$DATABASE_URL"
+		--cpu 1 --memory 1.5 \
+		--dns-name-label ninaivalaigal-api \
+		--ports 8080 \
+		--restart-policy Always
 
 ## Kubernetes Deployment
 k8s-deploy:
