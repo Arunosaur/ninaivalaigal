@@ -8,9 +8,9 @@ IMAGE="${IMAGE:-nina-api:arm64}"          # make sure this image is built/tagged
 NAME="${NAME:-nv-api}"
 HOST_HTTP_PORT="${HOST_HTTP_PORT:-13370}" # host port for the API
 CONTAINER_HTTP_PORT="${CONTAINER_HTTP_PORT:-8000}"   # port the app listens on
-DB_USER="${DB_USER:-postgres}"
-DB_PASS="${DB_PASS:-test123}"
-DB_NAME="${DB_NAME:-testdb}"
+DB_USER="${DB_USER:-nina}"
+DB_PASS="${DB_PASS:-change_me_securely}"
+DB_NAME="${DB_NAME:-nina}"
 PGBOUNCER_HOST="${PGBOUNCER_HOST:-127.0.0.1}"
 PGBOUNCER_PORT="${PGBOUNCER_PORT:-6432}"
 DB_FALLBACK_HOST="${DB_FALLBACK_HOST:-127.0.0.1}"
@@ -19,19 +19,19 @@ READY_PATH="${READY_PATH:-/health}"       # nv-api exposes /health
 READY_TIMEOUT="${READY_TIMEOUT:-45}"      # seconds
 # -------------------------------------------------------------------------
 
-# Get PgBouncer container IP for intra-VM connectivity
-echo "[api] Getting PgBouncer container IP..."
-# Wait for PgBouncer container to be ready
+# Get database container IP for direct connection (bypassing PgBouncer for now)
+echo "[api] Getting database container IP..."
+# Wait for database container to be ready
 sleep 2
 
-# Get PgBouncer container IP using Apple Container CLI compatible method
-PGB_IP=$(container inspect nv-pgbouncer | jq -r '.[0].NetworkSettings.IPAddress')
-echo "[api] PgBouncer IP: $PGB_IP"
+# Get database container IP using Apple Container CLI compatible method
+DB_IP=$(container inspect nv-db | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
+echo "[api] Database IP: $DB_IP"
 
-# Set both environment variables to be extra safe
-DBURL="postgresql://postgres:test123@${PGB_IP}:6432/testdb"
+# Set both environment variables to be extra safe (connecting directly to DB)
+DBURL="postgresql://${DB_USER}:${DB_PASS}@${DB_IP}:5432/${DB_NAME}"
 
-echo "[api] Using PgBouncer at ${PGB_IP}:6432"
+echo "[api] Using database directly at ${DB_IP}:5432"
 
 # Clean any old container
 container rm -f "$NAME" >/dev/null 2>&1 || true
@@ -42,7 +42,7 @@ container run -d --name "$NAME" \
   -p "${HOST_HTTP_PORT}:${CONTAINER_HTTP_PORT}" \
   -e NINAIVALAIGAL_DATABASE_URL="${DBURL}" \
   -e DATABASE_URL="${DBURL}" \
-  -e NINAIVALAIGAL_JWT_SECRET="test-jwt-secret-for-ci" \
+  -e NINAIVALAIGAL_JWT_SECRET=test-jwt-secret-for-ci  # pragma: allowlist secret
   "$IMAGE"
 set +x
 
@@ -54,10 +54,10 @@ if ! container logs "$NAME" >/dev/null 2>&1; then
 fi
 
 # Show exactly what the API container sees
-container exec nv-api sh -lc 'echo "DB_URL=$NINAIVALAIGAL_DATABASE_URL"; env | grep "NINAIVALAIGAL_DATABASE_URL\|DATABASE_URL"'
+container exec nv-api sh -lc "echo \"DB_URL=\$NINAIVALAIGAL_DATABASE_URL\"; env | grep \"NINAIVALAIGAL_DATABASE_URL\\|DATABASE_URL\""
 
 # Try a live connection from inside the API container to prove routing
-container exec nv-api sh -lc "python -c <<'PY'
+container exec nv-api python -c "
 import os, psycopg2
 dsn = os.getenv('NINAIVALAIGAL_DATABASE_URL') or os.getenv('DATABASE_URL')
 print('Connecting to:', dsn)
@@ -65,12 +65,12 @@ conn = psycopg2.connect(dsn)
 cur = conn.cursor(); cur.execute('select version()'); print(cur.fetchone())
 cur.close(); conn.close()
 print('DB connectivity OK.')
-PY"
+"
 
 # Wait for readiness on /health (or your READY_PATH)
 API_URL="http://localhost:${HOST_HTTP_PORT}${READY_PATH}"
 
-for sec in $(seq 1 "${READY_TIMEOUT}"); do
+for _ in $(seq 1 "${READY_TIMEOUT}"); do
   # If the container died, show logs and bail
   if ! container logs "$NAME" >/dev/null 2>&1; then
     echo "[api][fail] container exited while waiting"

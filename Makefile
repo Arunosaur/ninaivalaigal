@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -112,3 +112,50 @@ sanity-check:
 
 ## alias for sanity-check
 validate-production: sanity-check
+
+## Apple Container CLI convenience aliases
+start: stack-up
+
+stop: stack-down
+
+health:
+	@echo "🏥 Health Check Summary"
+	@echo "======================"
+	@curl -s http://localhost:13370/health | jq .
+	@echo ""
+	@curl -s http://localhost:13370/health/detailed | jq .
+	@echo ""
+	@curl -s http://localhost:13370/memory/health | jq .
+
+metrics:
+	@echo "📊 Prometheus Metrics Summary"
+	@echo "============================="
+	@echo "🔗 Full metrics: http://localhost:13370/metrics"
+	@echo ""
+	@echo "📈 Key Performance Metrics:"
+	@curl -s http://localhost:13370/metrics | grep -E "(http_requests_total|http_request_duration_seconds_count|process_resident_memory_bytes|app_uptime_seconds)" | head -10
+
+## Docker Compose-style dev environment
+dev-up:
+	@echo "🚀 Starting development environment..."
+	@$(SCRIPTS)/nv-stack-start.sh --skip-mem0
+	@echo "✅ Development stack ready!"
+	@echo "   Database: http://localhost:5433"
+	@echo "   PgBouncer: http://localhost:6432"
+	@echo "   API: http://localhost:13370"
+	@echo ""
+	@echo "Quick health check:"
+	@make health
+
+dev-down:
+	@echo "🛑 Stopping development environment..."
+	@$(SCRIPTS)/nv-stack-stop.sh
+
+dev-logs:
+	@echo "📋 Following logs for all containers..."
+	@container logs -f nv-db & \
+	 container logs -f nv-pgbouncer & \
+	 container logs -f nv-api & \
+	 wait
+
+dev-status: stack-status

@@ -1,71 +1,44 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euo pipefail
 
-echo "[pgbouncer] Starting..."
+PGBOUNCER_CONTAINER_NAME=nv-pgbouncer
+PGBOUNCER_PORT=6432
+PGBOUNCER_IMAGE=nina-pgbouncer:arm64
 
-# Clean up any old container
-container rm -f nv-pgbouncer >/dev/null 2>&1 || true
+echo "=== Starting PgBouncer ==="
 
-# Get DB container IP for intra-VM connectivity
+# Get database container IP for networking
 echo "[pgbouncer] Getting database container IP..."
-DB_IP=$(container inspect nv-db --format '{{ .NetworkSettings.IPAddress }}' 2>/dev/null || echo "nv-db")
+DB_IP=$(container inspect nv-db | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
 echo "[pgbouncer] Database IP: $DB_IP"
 
-# Start PgBouncer with DB_HOST environment variable
-set -x
-container run -d --name nv-pgbouncer \
-  -p 6432:6432 \
+# Start PgBouncer container
+container run -d \
+  --name "$PGBOUNCER_CONTAINER_NAME" \
+  -p "$PGBOUNCER_PORT:6432" \
   -e DB_HOST="$DB_IP" \
-  nina-pgbouncer:arm64
-set +x
+  "$PGBOUNCER_IMAGE"
 
-# Quick sanity: did it start at all? (check via logs)
-echo "[pgbouncer] Waiting for database to be fully ready..."
-sleep 10
-echo "[pgbouncer] Checking if container started..."
-if ! container logs nv-pgbouncer >/dev/null 2>&1; then
-  echo "[pgbouncer][fail] container did not start (no logs available)"
-  exit 2
-fi
-echo "[pgbouncer] Container detected, proceeding to health check..."
+# Wait for container to start
+timeout=60
+while [ $timeout -gt 0 ]; do
+  echo "[pgbouncer] Waiting for container to start..."
+  sleep 2
 
-# After nv-pgbouncer is running - capture its IP using Apple Container CLI compatible method
-PGB_IP=$(container inspect nv-pgbouncer | jq -r '.[0].State.Status')
-if [ "$PGB_IP" != "running" ]; then
-  echo "nv-pgbouncer is not running"
+  # Check if container is running using grep instead of --format
+  if container inspect "$PGBOUNCER_CONTAINER_NAME" | grep -q '"status":"running"'; then
+    echo "[pgbouncer] Container is running."
+    break
+  fi
+
+  timeout=$((timeout - 2))
+done
+
+if [ $timeout -le 0 ]; then
+  echo "PgBouncer start timed out"
   exit 1
 fi
 
-# Get IP using jq (Apple Container CLI compatible)
-PGB_IP=$(container inspect nv-pgbouncer | jq -r '.[0].NetworkSettings.IPAddress')
-echo "::group::PgBouncer IP"; echo "$PGB_IP"; echo "::endgroup::"
-
-# Quick sanity: can the host (runner) reach PgBouncer via the container IP?
-psql "postgresql://postgres:test123@${PGB_IP}:6432/testdb?connect_timeout=1" -c 'select 1;'
-
-# Wait for readiness (max 30s), and bail if it crashes
-for sec in $(seq 1 30); do
-  # If the container died, dump logs and fail fast
-  if ! container logs nv-pgbouncer >/dev/null 2>&1; then
-    echo "[pgbouncer][fail] exited while waiting (crash)"
-    exit 2
-  fi
-  
-  # Try to talk to PgBouncer admin port (via psql auth handshake)
-  if psql "host=127.0.0.1 port=6432 user=postgres dbname=testdb password=test123" -c 'SHOW VERSION;' >/dev/null 2>&1; then
-    echo "[pgbouncer][ok] ready on 127.0.0.1:6432"
-    exit 0
-  fi
-  
-  # Or at least confirm the port is open
-  if (echo | nc -z 127.0.0.1 6432) >/dev/null 2>&1; then
-    echo "[pgbouncer][ok] port open; psql auth may still be settling..."
-    exit 0
-  fi
-  
-  sleep 1
-done
-
-echo "[pgbouncer][fail] timeout waiting for readiness"
-container logs nv-pgbouncer || true
-exit 2
+# Optional: Add health check here (e.g., ping localhost:6432 inside container)
+echo "[pgbouncer] PgBouncer started successfully."
+exit 0

@@ -21,7 +21,7 @@ FAILED_CHECKS=0
 check_command() {
     local cmd="$1"
     local desc="$2"
-    
+
     log_step "$desc"
     if eval "$cmd" >/dev/null 2>&1; then
         log_success "$desc"
@@ -34,7 +34,7 @@ check_command() {
 check_url() {
     local url="$1"
     local desc="$2"
-    
+
     log_step "$desc"
     if curl -f -s "$url" >/dev/null 2>&1; then
         log_success "$desc"
@@ -68,7 +68,7 @@ echo "🐳 Phase 3: Container Stack"
 echo "==========================="
 
 # Check if containers are running
-if docker ps --format "table {{.Names}}" | grep -q postgres; then
+if container ps | grep -q postgres; then
     log_success "PostgreSQL container running"
     check_command "pg_isready -h localhost -p 5432" "PostgreSQL connectivity"
 else
@@ -82,7 +82,7 @@ else
     fi
 fi
 
-if docker ps --format "table {{.Names}}" | grep -q api; then
+if container ps | grep -q api; then
     log_success "API server container running"
     check_url "http://localhost:8000/healthz" "API health endpoint"
     check_url "http://localhost:8000/health/detailed" "Detailed health with SLO"

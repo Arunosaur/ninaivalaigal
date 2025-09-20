@@ -8,6 +8,24 @@
 
 Ninaivalaigal provides an exponential memory system that allows AI assistants and developers to remember context, conversations, and insights across sessions. The e^M (exponential Memory) engine acts as a "CCTV for your AI interactions" - automatically recording and making searchable your development history with compound learning effects.
 
+## Quick Start (Apple Container CLI)
+
+```bash
+# Start the full stack
+make start
+
+# Check health status
+make health
+
+# View stack status
+make stack-status
+
+# Stop the stack
+make stop
+```
+
+> **Note**: This project runs natively on Apple Container CLI for optimal ARM64 performance. See [Apple Container CLI Guide](docs/APPLE_CONTAINER_CLI.md) for details.
+
 ## Architecture
 
 ### Core Components

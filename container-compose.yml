@@ -1,0 +1,58 @@
+# Apple Container CLI Compose-style configuration
+# Usage: make dev-up, make dev-down, make dev-logs
+version: '1.0'
+
+services:
+  nv-db:
+    image: docker.io/pgvector/pgvector:pg15
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: nina
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: change_me_securely  # pragma: allowlist secret
+    volumes:
+      - nv_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["pg_isready", "-U", "nina", "-d", "nina"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  nv-pgbouncer:
+    image: nina-pgbouncer:arm64
+    ports:
+      - "6432:6432"
+    environment:
+      DB_HOST: "{{nv-db.ip}}"  # Dynamic IP injection
+    depends_on:
+      - nv-db
+    healthcheck:
+      test: ["nc", "-z", "localhost", "6432"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  nv-api:
+    image: nina-api:arm64
+    ports:
+      - "13370:8000"
+    environment:
+      NINAIVALAIGAL_DATABASE_URL: "postgresql://nina:change_me_securely@{{nv-db.ip}}:5432/nina"  # pragma: allowlist secret
+      DATABASE_URL: "postgresql://nina:change_me_securely@{{nv-db.ip}}:5432/nina"  # pragma: allowlist secret
+      NINAIVALAIGAL_JWT_SECRET: test-jwt-secret-for-ci  # pragma: allowlist secret
+    depends_on:
+      - nv-db
+    healthcheck:
+      test: ["curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  nv_postgres_data:
+
+networks:
+  default:
+    driver: bridge
