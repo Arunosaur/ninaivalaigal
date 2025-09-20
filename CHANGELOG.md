@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.4.3 (2025-09-20)</small>
+
+* fix: align database credentials across all components ([d60af6f7821fc0bf79f2719479906ddc0075775a](https://github.com/Arunosaur/ninaivalaigal/commit/d60af6f7821fc0bf79f2719479906ddc0075775a))
+
 ## <small>1.4.2 (2025-09-20)</small>
 
 * fix: replace container ps with container logs for Apple Container CLI compatibility ([2126ee6c52c2dadd5576816eec581d307dc7fa76](https://github.com/Arunosaur/ninaivalaigal/commit/2126ee6c52c2dadd5576816eec581d307dc7fa76))
