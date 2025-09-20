@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.4.5 (2025-09-20)</small>
+
+* fix: use direct IP 127.0.0.1 instead of host aliases for Apple Container CLI ([b8a150cf8c5cd26a5da37e4c300daf00034cfa45](https://github.com/Arunosaur/ninaivalaigal/commit/b8a150cf8c5cd26a5da37e4c300daf00034cfa45))
+
 ## <small>1.4.4 (2025-09-20)</small>
 
 * fix: use host.lima.internal for Apple Container CLI networking ([f9e47ab6078d269dc35ed5c6b03ba9e61952917c](https://github.com/Arunosaur/ninaivalaigal/commit/f9e47ab6078d269dc35ed5c6b03ba9e61952917c))
