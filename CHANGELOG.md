@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.10.0 (2025-09-20)
+
+* feat: Add dual-architecture CI strategy with x86_64 validation ([a7bbcd1f538390638bb33c66848d5bb9503f130c](https://github.com/Arunosaur/ninaivalaigal/commit/a7bbcd1f538390638bb33c66848d5bb9503f130c))
+
 ## 1.9.0 (2025-09-20)
 
 * feat: Add Azure deployment and comprehensive implementation checklist ([3ee5259b67344f2c9849c0241e120b7320b1edb3](https://github.com/Arunosaur/ninaivalaigal/commit/3ee5259b67344f2c9849c0241e120b7320b1edb3))
