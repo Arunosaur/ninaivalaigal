@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.5.0 (2025-09-20)
+
+* feat: implement dynamic container IP networking solution ([32ef2f9a6ab1d18546521c126aea238aeb6c9c84](https://github.com/Arunosaur/ninaivalaigal/commit/32ef2f9a6ab1d18546521c126aea238aeb6c9c84))
+
 ## <small>1.4.11 (2025-09-20)</small>
 
 * docs: comprehensive checklist to prevent debugging cycles ([a68eedb9aa7db80b5fd972dbc18f58c54aaa38a4](https://github.com/Arunosaur/ninaivalaigal/commit/a68eedb9aa7db80b5fd972dbc18f58c54aaa38a4))
