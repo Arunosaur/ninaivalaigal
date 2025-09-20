@@ -19,16 +19,15 @@ READY_PATH="${READY_PATH:-/health}"       # nv-api exposes /health
 READY_TIMEOUT="${READY_TIMEOUT:-45}"      # seconds
 # -------------------------------------------------------------------------
 
-# Decide DB endpoint: prefer PgBouncer if reachable
-DB_HOST="$DB_FALLBACK_HOST"
-DB_PORT="$DB_FALLBACK_PORT"
-if (echo | nc -z "$PGBOUNCER_HOST" "$PGBOUNCER_PORT") >/dev/null 2>&1; then
-  DB_HOST="$PGBOUNCER_HOST"
-  DB_PORT="$PGBOUNCER_PORT"
-  echo "[api] Using PgBouncer at ${DB_HOST}:${DB_PORT}"
-else
-  echo "[api] PgBouncer not reachable; using direct DB at ${DB_FALLBACK_HOST}:${DB_FALLBACK_PORT}"
-fi
+# Get PgBouncer container IP for intra-VM connectivity
+echo "[api] Getting PgBouncer container IP..."
+PGB_IP=$(container inspect nv-pgbouncer --format '{{ .NetworkSettings.IPAddress }}' 2>/dev/null || echo "127.0.0.1")
+echo "[api] PgBouncer IP: $PGB_IP"
+
+# Use PgBouncer container IP (not localhost/127.0.0.1)
+DB_HOST="$PGB_IP"
+DB_PORT="6432"
+echo "[api] Using PgBouncer at ${DB_HOST}:${DB_PORT}"
 
 # Compose DATABASE_URL (adjust if your app expects a different scheme)
 DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
