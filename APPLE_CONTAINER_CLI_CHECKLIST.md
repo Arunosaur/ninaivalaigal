@@ -61,8 +61,8 @@
 - **✅ What Fixed It**: `auth_type=any`, non-root pgbouncer user
 - **Evidence**: PgBouncer logs show stats (container running)
 
-#### **Networking Issues - IN PROGRESS**:
-**Attempts Made**:
+#### **Networking Issues - ROOT CAUSE IDENTIFIED**:
+**❌ All Previous Attempts Failed**:
 1. **❌ host.docker.internal**: DNS lookup failed
    - Evidence: Logs show "DNS lookup failed: host.docker.internal"
 2. **❌ host.lima.internal**: DNS lookup failed  
@@ -71,10 +71,20 @@
    - Evidence: Logs show "connect failed" to 127.0.0.1:5433
 4. **❌ localhost**: Resolves to 127.0.0.1, same issue
    - Evidence: Logs show connection attempts to 127.0.0.1
-5. **🔄 nv-db:5432**: Container-to-container (CURRENT ATTEMPT)
-   - Status: Just implemented, not yet tested
+5. **❌ nv-db:5432**: Container name resolution issues
+   - Evidence: Still connection failures
+6. **❌ Dynamic IP approach**: Template substitution failed
+   - Evidence: Latest run still shows API trying 127.0.0.1:6432
 
-**Key Discovery**: Original working setup used **localhost** but containers can't reach host via 127.0.0.1 in Apple Container CLI
+**🎯 ROOT CAUSE DISCOVERED**:
+- **API container trying to reach PgBouncer at 127.0.0.1:6432**
+- **Inside container, 127.0.0.1 = API container itself, NOT PgBouncer**
+- **Need API to use PgBouncer's container IP, not localhost**
+
+**✅ COMPLETE SOLUTION PROVIDED BY USER**:
+- **PgBouncer**: Use DB container IP (dynamic detection working)
+- **API**: Must use PgBouncer container IP, not 127.0.0.1
+- **Implementation**: Get PGB_IP dynamically, pass to API as NINAIVALAIGAL_DATABASE_URL
 
 ### 🔄 **API (nv-api)**
 **Status**: 🔄 **ENVIRONMENT ISSUES RESOLVED, NETWORKING PENDING**
@@ -118,11 +128,48 @@
 - [ ] All health checks pass
 - [ ] Complete green workflow
 
-### **If Current Approach Fails**:
-Consider **simplified workflow approach** from user's analysis:
-- Direct container commands without complex networking
-- Minimal configuration for CI validation
-- Focus on proving Apple Container CLI viability
+### **🎯 FINAL SOLUTION (User-Provided)**:
+
+**Complete Container-to-Container Implementation:**
+
+```bash
+# 1) DB - Get container IP
+DB_IP="$(container inspect nv-db --format '{{ .NetworkSettings.IPAddress }}')"
+
+# 2) PgBouncer - Use DB container IP (WORKING)
+container run -d --name nv-pgbouncer -p 6432:6432 \
+  -e DB_HOST="$DB_IP" nina-pgbouncer:arm64
+
+# 3) API - Use PgBouncer container IP (NOT 127.0.0.1)
+PGB_IP="$(container inspect nv-pgbouncer --format '{{ .NetworkSettings.IPAddress }}')"
+NINAIVALAIGAL_DATABASE_URL="postgresql://postgres:test123@${PGB_IP}:6432/testdb"
+
+container run -d --name nv-api -p 13370:8000 \
+  -e NINAIVALAIGAL_DATABASE_URL="$NINAIVALAIGAL_DATABASE_URL" \
+  -e NINAIVALAIGAL_JWT_SECRET="test-jwt-secret-for-ci" \
+  nina-api:arm64
+```
+
+**Why This Works:**
+- ✅ **No localhost anywhere** between containers
+- ✅ **API connects to PgBouncer's container IP**, not 127.0.0.1
+- ✅ **PgBouncer connects to DB's container IP** (already working)
+- ✅ **Ports still published to host** (5433, 6432, 13370) for human checks
+
+**Key Insight**: `127.0.0.1` inside container = container itself, not host or other containers
+
+### **Debugging Commands**:
+```bash
+# Check container IPs
+container exec nv-api sh -c "python -c 'import socket; print(socket.gethostbyname(\"localhost\"))'"
+container exec nv-pgbouncer sh -c "nc -zv ${DB_IP} 5432"
+container exec nv-api sh -c "nc -zv ${PGB_IP} 6432"
+
+# Always dump logs on failure
+container logs nv-pgbouncer
+container logs nv-db  
+container logs nv-api
+```
 
 ---
 
@@ -132,7 +179,13 @@ Consider **simplified workflow approach** from user's analysis:
 - `20f47e1`: Self-contained PgBouncer (eliminated build issues)
 - `8732bc4`: Added JWT_SECRET (eliminated API startup issue)  
 - `28aecec`: Fixed DATABASE_URL variable name (eliminated API config issue)
-- `af6daff`: Container-to-container networking (current test)
+- `96c3db5`: Dynamic container IP networking (PgBouncer working)
+- `32ef2f9`: Template substitution with envsubst (PgBouncer connects to DB)
+
+### **Latest Status (Run 17883636905)**:
+- ✅ **PgBouncer**: Successfully connecting to DB via container IP
+- ❌ **API**: Still trying 127.0.0.1:6432 (needs PgBouncer container IP)
+- 🎯 **Root Cause**: API script hardcoded to use 127.0.0.1 instead of PgBouncer IP
 
 ### **Failed Approaches**:
 - Host networking attempts (host.docker.internal, host.lima.internal, 127.0.0.1, localhost)
