@@ -29,7 +29,7 @@ for sec in $(seq 1 30); do
   fi
   
   # Try to talk to PgBouncer admin port (via psql auth handshake)
-  if psql "host=127.0.0.1 port=6432 user=nina dbname=testdb password=change_me_securely" -c 'SHOW VERSION;' >/dev/null 2>&1; then
+  if psql "host=127.0.0.1 port=6432 user=postgres dbname=testdb password=test123" -c 'SHOW VERSION;' >/dev/null 2>&1; then
     echo "[pgbouncer][ok] ready on 127.0.0.1:6432"
     exit 0
   fi
