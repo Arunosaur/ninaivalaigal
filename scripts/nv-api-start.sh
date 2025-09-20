@@ -24,8 +24,8 @@ echo "[api] Getting PgBouncer container IP..."
 # Wait for PgBouncer container to be ready
 sleep 2
 
-# Get PgBouncer container IP
-PGB_IP="$(container inspect nv-pgbouncer --format '{{ .NetworkSettings.IPAddress }}')"
+# Get PgBouncer container IP using Apple Container CLI compatible method
+PGB_IP=$(container inspect nv-pgbouncer | jq -r '.[0].NetworkSettings.IPAddress')
 echo "[api] PgBouncer IP: $PGB_IP"
 
 # Set both environment variables to be extra safe

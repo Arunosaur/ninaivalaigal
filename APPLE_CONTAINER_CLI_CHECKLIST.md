@@ -202,10 +202,16 @@ container logs nv-api
 3. ❌ **API tries to connect to 127.0.0.1:6432** (container itself, not PgBouncer)
 4. ❌ **Connection refused** (no service on API container port 6432)
 
-### **IMMEDIATE FIX NEEDED**:
-- Fix `container inspect` format for Apple Container CLI
-- Ensure PgBouncer container exists before API tries to inspect it
-- Add error handling for container IP detection failure
+### **🚨 APPLE CONTAINER CLI COMPATIBILITY ISSUE FOUND**:
+**Problem**: Used Docker `--format` flag which Apple Container CLI doesn't support
+**Evidence**: `Error: Unknown option '--format'` in workflow logs
+**Root Cause**: Apple Container CLI uses different syntax than Docker
+
+### **✅ FIXED WITH JQ PARSING**:
+- ❌ `container inspect --format '{{ .NetworkSettings.IPAddress }}'` (Docker syntax)
+- ✅ `container inspect nv-pgbouncer | jq -r '.[0].NetworkSettings.IPAddress'` (Apple CLI)
+- ✅ Added container status check before IP extraction
+- ✅ Apple Container CLI compatible commands throughout
 
 ### **Failed Approaches**:
 - Host networking attempts (host.docker.internal, host.lima.internal, 127.0.0.1, localhost)

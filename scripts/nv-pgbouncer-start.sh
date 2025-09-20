@@ -29,8 +29,15 @@ if ! container logs nv-pgbouncer >/dev/null 2>&1; then
 fi
 echo "[pgbouncer] Container detected, proceeding to health check..."
 
-# After nv-pgbouncer is running - capture its IP
-PGB_IP="$(container inspect nv-pgbouncer --format '{{ .NetworkSettings.IPAddress }}')"
+# After nv-pgbouncer is running - capture its IP using Apple Container CLI compatible method
+PGB_IP=$(container inspect nv-pgbouncer | jq -r '.[0].State.Status')
+if [ "$PGB_IP" != "running" ]; then
+  echo "nv-pgbouncer is not running"
+  exit 1
+fi
+
+# Get IP using jq (Apple Container CLI compatible)
+PGB_IP=$(container inspect nv-pgbouncer | jq -r '.[0].NetworkSettings.IPAddress')
 echo "::group::PgBouncer IP"; echo "$PGB_IP"; echo "::endgroup::"
 
 # Quick sanity: can the host (runner) reach PgBouncer via the container IP?
