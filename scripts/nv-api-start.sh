@@ -23,23 +23,15 @@ READY_TIMEOUT="${READY_TIMEOUT:-45}"      # seconds
 echo "[api] Getting PgBouncer container IP..."
 # Wait for PgBouncer container to be ready
 sleep 2
-# Try different Apple Container CLI inspect formats
-PGB_IP=$(container inspect nv-pgbouncer --format '{{.NetworkSettings.IPAddress}}' 2>/dev/null || \
-         container inspect nv-pgbouncer | grep -o '"IPAddress": "[^"]*"' | cut -d'"' -f4 2>/dev/null || \
-         echo "127.0.0.1")
+
+# Get PgBouncer container IP
+PGB_IP="$(container inspect nv-pgbouncer --format '{{ .NetworkSettings.IPAddress }}')"
 echo "[api] PgBouncer IP: $PGB_IP"
 
-# Debug: Show container status
-echo "[api] PgBouncer container status:"
-container ps | grep nv-pgbouncer || echo "PgBouncer container not found"
+# Set both environment variables to be extra safe
+DBURL="postgresql://postgres:test123@${PGB_IP}:6432/testdb"
 
-# Use PgBouncer container IP (not localhost/127.0.0.1)
-DB_HOST="$PGB_IP"
-DB_PORT="6432"
-echo "[api] Using PgBouncer at ${DB_HOST}:${DB_PORT}"
-
-# Compose DATABASE_URL (adjust if your app expects a different scheme)
-DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+echo "[api] Using PgBouncer at ${PGB_IP}:6432"
 
 # Clean any old container
 container rm -f "$NAME" >/dev/null 2>&1 || true
@@ -48,7 +40,8 @@ container rm -f "$NAME" >/dev/null 2>&1 || true
 set -x
 container run -d --name "$NAME" \
   -p "${HOST_HTTP_PORT}:${CONTAINER_HTTP_PORT}" \
-  -e NINAIVALAIGAL_DATABASE_URL="${DATABASE_URL}" \
+  -e NINAIVALAIGAL_DATABASE_URL="${DBURL}" \
+  -e DATABASE_URL="${DBURL}" \
   -e NINAIVALAIGAL_JWT_SECRET="test-jwt-secret-for-ci" \
   "$IMAGE"
 set +x
@@ -59,6 +52,20 @@ if ! container logs "$NAME" >/dev/null 2>&1; then
   echo "[api][fail] container did not start (no logs available)"
   exit 2
 fi
+
+# Show exactly what the API container sees
+container exec nv-api sh -lc 'echo "DB_URL=$NINAIVALAIGAL_DATABASE_URL"; env | grep "NINAIVALAIGAL_DATABASE_URL\|DATABASE_URL"'
+
+# Try a live connection from inside the API container to prove routing
+container exec nv-api sh -lc "python -c <<'PY'
+import os, psycopg2
+dsn = os.getenv('NINAIVALAIGAL_DATABASE_URL') or os.getenv('DATABASE_URL')
+print('Connecting to:', dsn)
+conn = psycopg2.connect(dsn)
+cur = conn.cursor(); cur.execute('select version()'); print(cur.fetchone())
+cur.close(); conn.close()
+print('DB connectivity OK.')
+PY"
 
 # Wait for readiness on /health (or your READY_PATH)
 API_URL="http://localhost:${HOST_HTTP_PORT}${READY_PATH}"

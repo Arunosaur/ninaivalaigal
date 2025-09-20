@@ -29,6 +29,13 @@ if ! container logs nv-pgbouncer >/dev/null 2>&1; then
 fi
 echo "[pgbouncer] Container detected, proceeding to health check..."
 
+# After nv-pgbouncer is running - capture its IP
+PGB_IP="$(container inspect nv-pgbouncer --format '{{ .NetworkSettings.IPAddress }}')"
+echo "::group::PgBouncer IP"; echo "$PGB_IP"; echo "::endgroup::"
+
+# Quick sanity: can the host (runner) reach PgBouncer via the container IP?
+psql "postgresql://postgres:test123@${PGB_IP}:6432/testdb?connect_timeout=1" -c 'select 1;'
+
 # Wait for readiness (max 30s), and bail if it crashes
 for sec in $(seq 1 30); do
   # If the container died, dump logs and fail fast
