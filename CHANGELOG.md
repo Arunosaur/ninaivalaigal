@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.8.0 (2025-09-20)
+
+* feat: Complete package release and distribution system ([bcf48b664b6b7e8fd4d3886c12e7fc9c7c5a3914](https://github.com/Arunosaur/ninaivalaigal/commit/bcf48b664b6b7e8fd4d3886c12e7fc9c7c5a3914))
+
 ## 1.7.0 (2025-09-20)
 
 * feat: Add remote access and cloud deployment capabilities ([b7281a56757295e75cb5b5f42ee97e12e31b246e](https://github.com/Arunosaur/ninaivalaigal/commit/b7281a56757295e75cb5b5f42ee97e12e31b246e))
