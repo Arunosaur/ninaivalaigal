@@ -31,11 +31,17 @@ make tunnel-stop
 Deploy directly to cloud providers:
 
 ```bash
-# AWS deployment
-KEY_NAME=my-aws-key make deploy-aws
+# Deploy to AWS
+KEY_NAME=my-key make deploy-aws
 
-# Google Cloud deployment
-PROJECT_ID=my-gcp-project make deploy-gcp
+# Deploy to Google Cloud
+PROJECT_ID=my-project make deploy-gcp
+
+# Deploy to Microsoft Azure
+RESOURCE_GROUP=my-rg make deploy-azure
+
+# Setup secure tunnel for remote access
+REMOTE_HOST=server.com make tunnel-start
 ```
 
 ## ☁️ Cloud Deployment
@@ -86,6 +92,41 @@ PROJECT_ID=my-project-id ZONE=us-central1-a make deploy-gcp
 
 # Monitor deployment
 gcloud compute ssh ninaivalaigal-stack --zone=us-central1-a --command='sudo journalctl -u ninaivalaigal -f'
+```
+
+### Microsoft Azure Deployment
+
+**Prerequisites:**
+- Azure CLI installed (`brew install azure-cli`)
+- Azure subscription and authentication (`az login`)
+- Resource group created or will be created automatically
+
+**Quick Start:**
+```bash
+# Deploy to Azure VM
+RESOURCE_GROUP=my-rg LOCATION=eastus make deploy-azure
+
+# Deploy to Azure Container Instances (simplified)
+RESOURCE_GROUP=my-rg DEPLOYMENT_TYPE=aci make deploy-azure
+
+# Monitor deployment
+az vm run-command invoke --resource-group my-rg --name ninaivalaigal-vm --command-id RunShellScript --scripts "sudo journalctl -u ninaivalaigal -f"
+```
+
+**What gets deployed:**
+- ✅ Azure VM (Standard_B2s, Ubuntu 22.04)
+- ✅ Network Security Group with ports 22, 8080
+- ✅ Automatic ninaivalaigal stack setup via cloud-init
+- ✅ Nginx reverse proxy configuration
+- ✅ Systemd service for auto-restart
+
+**Access:**
+```bash
+# SSH to VM
+az vm show --resource-group my-rg --name ninaivalaigal-vm --show-details --query publicIps -o tsv
+
+# SSH with IP
+ssh azureuser@<PUBLIC_IP>
 ```
 
 **What gets deployed:**

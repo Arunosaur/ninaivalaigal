@@ -49,6 +49,9 @@ KEY_NAME=my-key make deploy-aws
 # Deploy to Google Cloud
 PROJECT_ID=my-project make deploy-gcp
 
+# Deploy to Microsoft Azure
+RESOURCE_GROUP=my-rg make deploy-azure
+
 # Setup secure tunnel for remote access
 REMOTE_HOST=server.com make tunnel-start
 ```
