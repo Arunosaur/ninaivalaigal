@@ -191,11 +191,16 @@ container logs nv-api
 **Our API script changes are being ignored!** The workflow is still using the old approach.
 **Evidence**: API logs show "connection to server at 127.0.0.1, port 6432 failed"
 
-### **IMMEDIATE FIX NEEDED**:
-1. **Patch API start script**: Use PgBouncer container IP detection
-2. **Add smoke test**: Verify API can reach PgBouncer at container IP
-3. **Guard against localhost**: Grep and remove any localhost defaults
-4. **Workflow integration**: Ensure changes are applied in CI
+### **🎯 BREAKTHROUGH - ROOT CAUSE FOUND & FIXED**:
+**Problem**: API `auth.py` had hardcoded localhost fallback that ignored environment variables!
+**Evidence**: `load_config()` returned `postgresql://mem0user:mem0pass@localhost:5432/mem0db`
+**Solution**: Modified `load_config()` to prioritize `NINAIVALAIGAL_DATABASE_URL` environment variable
+
+### **FIXED IN COMMIT 918321d**:
+1. ✅ **API now reads environment variable first** (NINAIVALAIGAL_DATABASE_URL)
+2. ✅ **Config file second** (for local development)  
+3. ✅ **Localhost fallback last** (should not be used in container)
+4. ✅ **API will finally use PgBouncer container IP**
 
 ### **Failed Approaches**:
 - Host networking attempts (host.docker.internal, host.lima.internal, 127.0.0.1, localhost)
