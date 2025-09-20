@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.5.5 (2025-09-20)</small>
+
+* fix: use Apple Container CLI compatible inspect commands (no --format flag) ([0455682bac828c44ff201f713cfe5e605caba1b9](https://github.com/Arunosaur/ninaivalaigal/commit/0455682bac828c44ff201f713cfe5e605caba1b9))
+
 ## <small>1.5.4 (2025-09-20)</small>
 
 * fix: implement complete container IP solution based on user analysis ([7ff31789eeb4115f309dd6d78c5153d9753eea8f](https://github.com/Arunosaur/ninaivalaigal/commit/7ff31789eeb4115f309dd6d78c5153d9753eea8f))
