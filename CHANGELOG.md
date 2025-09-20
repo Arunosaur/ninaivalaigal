@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.7.0 (2025-09-20)
+
+* feat: Add remote access and cloud deployment capabilities ([b7281a56757295e75cb5b5f42ee97e12e31b246e](https://github.com/Arunosaur/ninaivalaigal/commit/b7281a56757295e75cb5b5f42ee97e12e31b246e))
+
 ## 1.6.0 (2025-09-20)
 
 * feat: Complete Apple Container CLI compatibility and developer experience ([2c62a68938a86f3d15c13a446c622e671b2bdd65](https://github.com/Arunosaur/ninaivalaigal/commit/2c62a68938a86f3d15c13a446c622e671b2bdd65))
