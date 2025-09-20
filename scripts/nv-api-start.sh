@@ -19,19 +19,19 @@ READY_PATH="${READY_PATH:-/health}"       # nv-api exposes /health
 READY_TIMEOUT="${READY_TIMEOUT:-45}"      # seconds
 # -------------------------------------------------------------------------
 
-# Get database container IP for direct connection (bypassing PgBouncer for now)
-echo "[api] Getting database container IP..."
-# Wait for database container to be ready
+# Get PgBouncer container IP for connection pooling
+echo "[api] Getting PgBouncer container IP..."
+# Wait for PgBouncer container to be ready
 sleep 2
 
-# Get database container IP using Apple Container CLI compatible method
-DB_IP=$(container inspect nv-db | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
-echo "[api] Database IP: $DB_IP"
+# Get PgBouncer container IP using Apple Container CLI compatible method
+PGB_IP=$(container inspect nv-pgbouncer | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
+echo "[api] PgBouncer IP: $PGB_IP"
 
-# Set both environment variables to be extra safe (connecting directly to DB)
-DBURL="postgresql://${DB_USER}:${DB_PASS}@${DB_IP}:5432/${DB_NAME}"
+# Set both environment variables to use PgBouncer connection pooling
+DBURL="postgresql://${DB_USER}:${DB_PASS}@${PGB_IP}:6432/${DB_NAME}"
 
-echo "[api] Using database directly at ${DB_IP}:5432"
+echo "[api] Using PgBouncer connection pooling at ${PGB_IP}:6432"
 
 # Clean any old container
 container rm -f "$NAME" >/dev/null 2>&1 || true
@@ -42,8 +42,8 @@ container run -d --name "$NAME" \
   -p "${HOST_HTTP_PORT}:${CONTAINER_HTTP_PORT}" \
   -e NINAIVALAIGAL_DATABASE_URL="${DBURL}" \
   -e DATABASE_URL="${DBURL}" \
-  -e NINAIVALAIGAL_JWT_SECRET=test-jwt-secret-for-ci  # pragma: allowlist secret
-  "$IMAGE"
+  -e NINAIVALAIGAL_JWT_SECRET=test-jwt-secret-for-ci \
+  "$IMAGE"  # pragma: allowlist secret
 set +x
 
 # Quick sanity: did it start at all? (check via logs)

@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws deploy-gcp
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -159,3 +159,23 @@ dev-logs:
 	 wait
 
 dev-status: stack-status
+
+## Remote Access & Cloud Deployment
+tunnel-start:
+	@echo "🌐 Starting secure tunnel for remote access..."
+	@echo "Usage: REMOTE_HOST=your-server.com make tunnel-start"
+	@$(SCRIPTS)/nv-tunnel-start.sh
+
+tunnel-stop:
+	@echo "🛑 Stopping secure tunnels..."
+	@$(SCRIPTS)/nv-tunnel-stop.sh
+
+deploy-aws:
+	@echo "🚀 Deploying to AWS..."
+	@echo "Usage: KEY_NAME=my-key make deploy-aws"
+	@$(SCRIPTS)/deploy-aws.sh
+
+deploy-gcp:
+	@echo "🚀 Deploying to Google Cloud Platform..."
+	@echo "Usage: PROJECT_ID=my-project make deploy-gcp"
+	@$(SCRIPTS)/deploy-gcp.sh

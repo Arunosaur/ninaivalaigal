@@ -17,15 +17,15 @@ RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini.template \
 && echo '[pgbouncer]' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'listen_addr = 0.0.0.0' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'listen_port = 6432' >> /etc/pgbouncer/pgbouncer.ini.template \
-&& echo 'auth_type = trust' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'auth_type = scram-sha-256' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'auth_file = /etc/pgbouncer/userlist.txt' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'admin_users = postgres' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'logfile = /var/log/pgbouncer/pgbouncer.log' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'pidfile = /var/lib/pgbouncer/pgbouncer.pid' >> /etc/pgbouncer/pgbouncer.ini.template
 
-# Create userlist.txt with MD5 hash
-RUN echo '"nina" "md5c5c6bdc297551f8464af199238dbcee4"' > /etc/pgbouncer/userlist.txt
+# Create userlist.txt template (will be populated at runtime)
+RUN echo '"nina" "${SCRAM_PASSWORD}"' > /etc/pgbouncer/userlist.txt.template
 
 USER pgbouncer
 EXPOSE 6432
-ENTRYPOINT ["/bin/sh","-c","envsubst < /etc/pgbouncer/pgbouncer.ini.template > /etc/pgbouncer/pgbouncer.ini && exec pgbouncer /etc/pgbouncer/pgbouncer.ini"]
+ENTRYPOINT ["/bin/sh","-c","envsubst < /etc/pgbouncer/pgbouncer.ini.template > /etc/pgbouncer/pgbouncer.ini && envsubst < /etc/pgbouncer/userlist.txt.template > /etc/pgbouncer/userlist.txt && exec pgbouncer /etc/pgbouncer/pgbouncer.ini"]

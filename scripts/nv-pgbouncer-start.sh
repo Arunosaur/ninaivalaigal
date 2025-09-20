@@ -12,11 +12,17 @@ echo "[pgbouncer] Getting database container IP..."
 DB_IP=$(container inspect nv-db | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
 echo "[pgbouncer] Database IP: $DB_IP"
 
+# Get current SCRAM password from database
+echo "[pgbouncer] Getting SCRAM password from database..."
+SCRAM_PASSWORD=$(container exec nv-db psql -U nina -d nina -t -c "SELECT rolpassword FROM pg_authid WHERE rolname = 'nina';" | tr -d ' ')
+echo "[pgbouncer] SCRAM password retrieved"
+
 # Start PgBouncer container
 container run -d \
   --name "$PGBOUNCER_CONTAINER_NAME" \
   -p "$PGBOUNCER_PORT:6432" \
   -e DB_HOST="$DB_IP" \
+  -e SCRAM_PASSWORD="$SCRAM_PASSWORD" \
   "$PGBOUNCER_IMAGE"
 
 # Wait for container to start
