@@ -41,6 +41,7 @@ set -x
 container run -d --name "$NAME" \
   -p "${HOST_HTTP_PORT}:${CONTAINER_HTTP_PORT}" \
   -e DATABASE_URL="${DATABASE_URL}" \
+  -e NINAIVALAIGAL_JWT_SECRET="test-jwt-secret-for-ci" \
   "$IMAGE"
 set +x
 
