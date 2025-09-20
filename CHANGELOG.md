@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.4.10 (2025-09-20)</small>
+
+* fix: use correct environment variable name for API database connection ([28aececb084677bc91b49c31e7910cf1a4949259](https://github.com/Arunosaur/ninaivalaigal/commit/28aececb084677bc91b49c31e7910cf1a4949259))
+
 ## <small>1.4.9 (2025-09-20)</small>
 
 * fix: add missing JWT_SECRET environment variable for API ([8732bc49763d3b2b45a42b91700585085a38a3b6](https://github.com/Arunosaur/ninaivalaigal/commit/8732bc49763d3b2b45a42b91700585085a38a3b6))
