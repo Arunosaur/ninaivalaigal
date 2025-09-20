@@ -56,6 +56,22 @@ RESOURCE_GROUP=my-rg make deploy-azure
 REMOTE_HOST=server.com make tunnel-start
 ```
 
+### 📦 Multi-Architecture Container Release
+
+```bash
+# Build and push multi-arch containers (ARM64 + x86_64)
+make release
+
+# Test multi-arch build locally (no push)
+make release-local
+
+# Local development (ARM64 optimized)
+make dev-up
+
+# Local CI validation (x86_64)
+make ci-test
+```
+
 > **⚡ Apple Silicon Optimized**: This project runs natively on Apple Container CLI for 3-5x better performance than Docker Desktop. See [Apple Container CLI Guide](docs/APPLE_CONTAINER_CLI.md) for details.
 
 ## Architecture

@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws deploy-gcp deploy-azure build-images install uninstall ci-test
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws deploy-gcp deploy-azure build-images install uninstall ci-test release release-local
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -212,3 +212,49 @@ ci-test:
 		echo "❌ act not found. Install with: brew install act"; \
 		echo "   Then run: make ci-test"; \
 	fi
+
+## Multi-Architecture Container Release
+# Set your image name (replace with your actual registry)
+IMAGE_NAME = ghcr.io/arunosaur/ninaivalaigal
+
+release:
+	@echo "🚀 Building and pushing multi-arch containers..."
+	@echo "Building for ARM64 and x86_64 platforms"
+	@docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--push \
+		-t $(IMAGE_NAME)-api:latest \
+		-t $(IMAGE_NAME)-api:$$(shell date +%Y%m%d-%H%M%S) \
+		-f Dockerfile.api .
+	@docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--push \
+		-t $(IMAGE_NAME)-pgbouncer:latest \
+		-t $(IMAGE_NAME)-pgbouncer:$$(shell date +%Y%m%d-%H%M%S) \
+		-f Dockerfile.pgbouncer .
+	@docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--push \
+		-t $(IMAGE_NAME)-postgres:latest \
+		-t $(IMAGE_NAME)-postgres:$$(shell date +%Y%m%d-%H%M%S) \
+		-f Dockerfile.postgres .
+	@echo "✅ Multi-arch containers released!"
+
+release-local:
+	@echo "🧪 Building multi-arch containers locally (no push)..."
+	@docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--load \
+		-t $(IMAGE_NAME)-api:local-test \
+		-f Dockerfile.api .
+	@docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--load \
+		-t $(IMAGE_NAME)-pgbouncer:local-test \
+		-f Dockerfile.pgbouncer .
+	@docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--load \
+		-t $(IMAGE_NAME)-postgres:local-test \
+		-f Dockerfile.postgres .
+	@echo "✅ Multi-arch containers built locally!"
