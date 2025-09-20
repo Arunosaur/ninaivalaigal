@@ -9,7 +9,7 @@ RUN apk add --no-cache pgbouncer ca-certificates \
 
 # Create pgbouncer.ini with safe defaults for CI
 RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini \
-&& echo 'testdb = host=host.docker.internal port=5433 dbname=testdb pool_mode=session auth_user=postgres' >> /etc/pgbouncer/pgbouncer.ini \
+&& echo 'testdb = host=nv-db port=5432 dbname=testdb pool_mode=session auth_user=postgres' >> /etc/pgbouncer/pgbouncer.ini \
 && echo '' >> /etc/pgbouncer/pgbouncer.ini \
 && echo '[pgbouncer]' >> /etc/pgbouncer/pgbouncer.ini \
 && echo 'listen_addr = 0.0.0.0' >> /etc/pgbouncer/pgbouncer.ini \
