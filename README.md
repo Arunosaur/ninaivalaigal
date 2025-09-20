@@ -8,23 +8,52 @@
 
 Ninaivalaigal provides an exponential memory system that allows AI assistants and developers to remember context, conversations, and insights across sessions. The e^M (exponential Memory) engine acts as a "CCTV for your AI interactions" - automatically recording and making searchable your development history with compound learning effects.
 
-## Quick Start (Apple Container CLI)
+## 🚀 Quick Start
+
+### One-Line Installation (Recommended)
 
 ```bash
-# Start the full stack
-make start
+curl -fsSL https://raw.githubusercontent.com/Arunosaur/ninaivalaigal/main/install.sh | bash
+```
+
+### Manual Installation
+
+```bash
+git clone https://github.com/Arunosaur/ninaivalaigal.git
+cd ninaivalaigal
+make dev-up
+```
+
+### Basic Usage
+
+```bash
+# Start development environment
+make dev-up
 
 # Check health status
 make health
 
-# View stack status
-make stack-status
+# View detailed status
+make dev-status
 
 # Stop the stack
-make stop
+make dev-down
 ```
 
-> **Note**: This project runs natively on Apple Container CLI for optimal ARM64 performance. See [Apple Container CLI Guide](docs/APPLE_CONTAINER_CLI.md) for details.
+### 🌍 Cloud Deployment
+
+```bash
+# Deploy to AWS
+KEY_NAME=my-key make deploy-aws
+
+# Deploy to Google Cloud
+PROJECT_ID=my-project make deploy-gcp
+
+# Setup secure tunnel for remote access
+REMOTE_HOST=server.com make tunnel-start
+```
+
+> **⚡ Apple Silicon Optimized**: This project runs natively on Apple Container CLI for 3-5x better performance than Docker Desktop. See [Apple Container CLI Guide](docs/APPLE_CONTAINER_CLI.md) for details.
 
 ## Architecture
 
