@@ -1,0 +1,22 @@
+# PostgreSQL + pgvector Dockerfile for x86_64 compatibility
+FROM postgres:15
+
+# Install pgvector extension
+RUN apt-get update && apt-get install -y \
+    postgresql-15-pgvector \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV POSTGRES_DB=nina
+ENV POSTGRES_USER=nina
+# pragma: allowlist secret
+ENV POSTGRES_PASSWORD=change_me_securely
+
+# Create initialization script
+RUN echo "CREATE EXTENSION IF NOT EXISTS vector;" > /docker-entrypoint-initdb.d/01-create-vector-extension.sql
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD pg_isready -U nina -d nina || exit 1
+
+EXPOSE 5432

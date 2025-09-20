@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws deploy-gcp deploy-azure build-images install uninstall
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws deploy-gcp deploy-azure build-images install uninstall ci-test
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -201,3 +201,14 @@ uninstall:
 	@make dev-down || true
 	@container rmi nina-pgbouncer:arm64 nina-api:arm64 2>/dev/null || true
 	@echo "✅ Ninaivalaigal uninstalled"
+
+## CI/CD & Testing
+ci-test:
+	@echo "🧪 Running GitHub Actions locally with act..."
+	@echo "This simulates the x86_64 CI environment"
+	@if command -v act >/dev/null 2>&1; then \
+		act -j dev-stack; \
+	else \
+		echo "❌ act not found. Install with: brew install act"; \
+		echo "   Then run: make ci-test"; \
+	fi

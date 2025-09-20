@@ -1,0 +1,153 @@
+name: Dev Stack Validation
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  dev-stack:
+    runs-on: ubuntu-latest
+    name: Validate Dev Stack (x86 compatible)
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install jq for JSON parsing
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Build Postgres Image (x86)
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --load \
+            -t pgvector-db:amd64 \
+            -f Dockerfile.postgres .
+
+      - name: Build PgBouncer Image (x86)
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --load \
+            -t nina-pgbouncer:amd64 \
+            -f Dockerfile.pgbouncer .
+
+      - name: Build API Image (x86)
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --load \
+            -t nina-api:amd64 \
+            -f Dockerfile.api .
+
+      - name: Start PostgreSQL
+        run: |
+          # pragma: allowlist secret
+          docker run -d \
+            --name nv-db \
+            -p 5433:5432 \
+            -e POSTGRES_DB=nina \
+            -e POSTGRES_USER=nina \
+            -e POSTGRES_PASSWORD=change_me_securely \
+            pgvector-db:amd64
+
+          # Wait for PostgreSQL to be ready
+          echo "⏳ Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if docker exec nv-db pg_isready -U nina -d nina; then
+              echo "✅ PostgreSQL is ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Get PostgreSQL SCRAM password
+        id: scram
+        run: |
+          SCRAM_PASSWORD=$(docker exec nv-db psql -U nina -d nina -t -c "SELECT rolpassword FROM pg_authid WHERE rolname = 'nina';" | tr -d ' ')
+          echo "scram_password=$SCRAM_PASSWORD" >> $GITHUB_OUTPUT
+
+      - name: Start PgBouncer
+        run: |
+          docker run -d \
+            --name nv-pgbouncer \
+            -p 6432:6432 \
+            -e DB_HOST=host.docker.internal \
+            -e SCRAM_PASSWORD="${{ steps.scram.outputs.scram_password }}" \
+            nina-pgbouncer:amd64
+
+          # Wait for PgBouncer to be ready
+          echo "⏳ Waiting for PgBouncer to be ready..."
+          sleep 5
+
+      - name: Start API
+        run: |
+          # pragma: allowlist secret
+          docker run -d \
+            --name nv-api \
+            -p 13370:8000 \
+            -e NINAIVALAIGAL_DATABASE_URL="postgresql://nina:change_me_securely@host.docker.internal:5433/nina" \
+            -e DATABASE_URL="postgresql://nina:change_me_securely@host.docker.internal:5433/nina" \
+            -e NINAIVALAIGAL_JWT_SECRET=test-jwt-secret-for-ci \
+            nina-api:amd64
+
+      - name: Wait for API to become healthy
+        run: |
+          echo "⏳ Waiting for API health to return 200..."
+          for i in {1..30}; do
+            if curl -s http://localhost:13370/health; then
+              echo "✅ API is responding"
+              break
+            fi
+            echo "Attempt $i/30 failed, waiting..."
+            sleep 3
+          done
+
+      - name: Validate /health
+        run: |
+          echo "🏥 Testing /health endpoint..."
+          curl -f http://localhost:13370/health
+          echo "✅ /health endpoint working"
+
+      - name: Validate /health/detailed
+        run: |
+          echo "🏥 Testing /health/detailed endpoint..."
+          curl -f http://localhost:13370/health/detailed | jq .
+          echo "✅ /health/detailed endpoint working"
+
+      - name: Validate /memory/health
+        run: |
+          echo "🧠 Testing /memory/health endpoint..."
+          curl -f http://localhost:13370/memory/health | jq .
+          echo "✅ /memory/health endpoint working"
+
+      - name: Test database connectivity
+        run: |
+          echo "🗄️ Testing database connectivity..."
+          docker exec nv-db psql -U nina -d nina -c "SELECT version();"
+          echo "✅ Database connectivity working"
+
+      - name: Show container logs (for debugging)
+        if: failure()
+        run: |
+          echo "📋 Container logs for debugging:"
+          echo "=== PostgreSQL logs ==="
+          docker logs nv-db || true
+          echo "=== PgBouncer logs ==="
+          docker logs nv-pgbouncer || true
+          echo "=== API logs ==="
+          docker logs nv-api || true
+
+      - name: Stop stack (cleanup)
+        if: always()
+        run: |
+          echo "🛑 Cleaning up containers..."
+          docker stop nv-api nv-pgbouncer nv-db || true
+          docker rm nv-api nv-pgbouncer nv-db || true
+          echo "✅ Cleanup complete"

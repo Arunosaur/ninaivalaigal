@@ -1,0 +1,34 @@
+# PgBouncer Dockerfile for x86_64 compatibility
+FROM debian:12-slim
+
+# Install PgBouncer and dependencies
+RUN apt-get update && apt-get install -y \
+    pgbouncer \
+    gettext-base \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create pgbouncer user and directories
+RUN useradd -r -s /bin/false pgbouncer && \
+    mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/lib/pgbouncer && \
+    chown -R pgbouncer:pgbouncer /etc/pgbouncer /var/log/pgbouncer /var/lib/pgbouncer
+
+# Create pgbouncer.ini template
+RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini.template && \
+    echo 'nina = host=${DB_HOST} port=5432 dbname=nina pool_mode=session' >> /etc/pgbouncer/pgbouncer.ini.template && \
+    echo '' >> /etc/pgbouncer/pgbouncer.ini.template && \
+    echo '[pgbouncer]' >> /etc/pgbouncer/pgbouncer.ini.template && \
+    echo 'listen_addr = 0.0.0.0' >> /etc/pgbouncer/pgbouncer.ini.template && \
+    echo 'listen_port = 6432' >> /etc/pgbouncer/pgbouncer.ini.template && \
+    echo 'auth_type = scram-sha-256' >> /etc/pgbouncer/pgbouncer.ini.template && \
+    echo 'auth_file = /etc/pgbouncer/userlist.txt' >> /etc/pgbouncer/pgbouncer.ini.template && \
+    echo 'admin_users = postgres' >> /etc/pgbouncer/pgbouncer.ini.template && \
+    echo 'logfile = /var/log/pgbouncer/pgbouncer.log' >> /etc/pgbouncer/pgbouncer.ini.template && \
+    echo 'pidfile = /var/lib/pgbouncer/pgbouncer.pid' >> /etc/pgbouncer/pgbouncer.ini.template
+
+# Create userlist.txt template (will be populated at runtime)
+RUN echo '"nina" "${SCRAM_PASSWORD}"' > /etc/pgbouncer/userlist.txt.template
+
+USER pgbouncer
+EXPOSE 6432
+
+ENTRYPOINT ["/bin/sh", "-c", "envsubst < /etc/pgbouncer/pgbouncer.ini.template > /etc/pgbouncer/pgbouncer.ini && envsubst < /etc/pgbouncer/userlist.txt.template > /etc/pgbouncer/userlist.txt && exec pgbouncer /etc/pgbouncer/pgbouncer.ini"]
