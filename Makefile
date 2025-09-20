@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws deploy-gcp deploy-azure build-images install uninstall ci-test release release-local
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws deploy-gcp deploy-azure deploy-aws-ecs deploy-gcp-run deploy-azure-aci k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local
 
 ## start full stack: DB → PgBouncer → Mem0 → API → UI
 stack-up:
@@ -184,6 +184,51 @@ deploy-azure:
 	@echo "🚀 Deploying to Microsoft Azure..."
 	@echo "Usage: RESOURCE_GROUP=my-rg make deploy-azure"
 	@$(SCRIPTS)/deploy-azure.sh
+
+## Cloud-Native Deployment with GHCR Images
+deploy-aws-ecs:
+	@echo "🚀 Deploying to AWS ECS with GHCR images..."
+	@aws ecs update-service \
+		--cluster ninaivalaigal \
+		--service ninaivalaigal-api \
+		--force-new-deployment \
+		--task-definition ninaivalaigal-api:latest
+
+deploy-gcp-run:
+	@echo "🚀 Deploying to Google Cloud Run with GHCR images..."
+	@gcloud run deploy ninaivalaigal-api \
+		--image ghcr.io/arunosaur/ninaivalaigal-api:latest \
+		--region us-central1 \
+		--allow-unauthenticated \
+		--set-env-vars DATABASE_URL="$$DATABASE_URL"
+
+deploy-azure-aci:
+	@echo "🚀 Deploying to Azure Container Instances with GHCR images..."
+	@az container create \
+		--resource-group $${RESOURCE_GROUP:-ninaivalaigal} \
+		--name ninaivalaigal-api \
+		--image ghcr.io/arunosaur/ninaivalaigal-api:latest \
+		--cpu 1 --memory 2 \
+		--ports 8000 \
+		--environment-variables DATABASE_URL="$$DATABASE_URL"
+
+## Kubernetes Deployment
+k8s-deploy:
+	@echo "🚀 Deploying to Kubernetes with GHCR images..."
+	@kubectl apply -k k8s/
+	@echo "✅ Deployed to Kubernetes namespace: ninaivalaigal"
+
+k8s-status:
+	@echo "📊 Kubernetes deployment status..."
+	@kubectl get all -n ninaivalaigal
+
+k8s-logs:
+	@echo "📋 API logs from Kubernetes..."
+	@kubectl logs -n ninaivalaigal -l app=ninaivalaigal-api --tail=50
+
+k8s-delete:
+	@echo "🗑️ Deleting Kubernetes deployment..."
+	@kubectl delete -k k8s/ || true
 
 ## Package Management & Installation
 build-images:

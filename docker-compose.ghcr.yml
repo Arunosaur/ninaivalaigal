@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: ghcr.io/arunosaur/ninaivalaigal-postgres:latest
+    container_name: ninaivalaigal_postgres
+    environment:
+      POSTGRES_DB: nina
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: change_me_securely
+    ports:
+      - "5433:5432"
+    volumes:
+      - ninaivalaigal_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nina -d nina"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  pgbouncer:
+    image: ghcr.io/arunosaur/ninaivalaigal-pgbouncer:latest
+    container_name: ninaivalaigal_pgbouncer
+    environment:
+      DB_HOST: postgres
+      SCRAM_PASSWORD: "SCRAM-SHA-256$4096:change_me_securely_salt$change_me_securely_hash:change_me_securely_key"
+    ports:
+      - "6432:6432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/arunosaur/ninaivalaigal-api:latest
+    container_name: ninaivalaigal_api
+    ports:
+      - "13370:8000"
+    environment:
+      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:change_me_securely@postgres:5432/nina
+      DATABASE_URL: postgresql://nina:change_me_securely@postgres:5432/nina
+      NINAIVALAIGAL_JWT_SECRET: ninaivalaigal-super-secret-jwt-signing-key-min-32-chars-2024
+      MEMORY_PROVIDER: native
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  ninaivalaigal_postgres_data:
+
+# Usage:
+# docker-compose -f docker-compose.ghcr.yml up -d
+# 
+# This uses multi-arch GHCR images that work on both ARM64 and x86_64
+# Images are automatically pulled from GitHub Container Registry

@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: ninaivalaigal
+data:
+  DATABASE_URL: postgresql://nina:change_me_securely@postgres:5432/nina
+  NINAIVALAIGAL_DATABASE_URL: postgresql://nina:change_me_securely@postgres:5432/nina
+  MEMORY_PROVIDER: native
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-secret
+  namespace: ninaivalaigal
+type: Opaque
+data:
+  NINAIVALAIGAL_JWT_SECRET: bmlubmFpdmFsYWlnYWwtc3VwZXItc2VjcmV0LWp3dC1zaWduaW5nLWtleS1taW4tMzItY2hhcnMtMjAyNA==  # base64
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ninaivalaigal-api
+  namespace: ninaivalaigal
+  labels:
+    app: ninaivalaigal-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ninaivalaigal-api
+  template:
+    metadata:
+      labels:
+        app: ninaivalaigal-api
+    spec:
+      containers:
+      - name: api
+        image: ghcr.io/arunosaur/ninaivalaigal-api:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: api-config
+        - secretRef:
+            name: api-secret
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ninaivalaigal-api
+  namespace: ninaivalaigal
+spec:
+  selector:
+    app: ninaivalaigal-api
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ninaivalaigal-ingress
+  namespace: ninaivalaigal
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts:
+    - api.ninaivalaigal.com
+    secretName: ninaivalaigal-tls
+  rules:
+  - host: api.ninaivalaigal.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ninaivalaigal-api
+            port:
+              number: 8000

@@ -72,6 +72,32 @@ make dev-up
 make ci-test
 ```
 
+### ☁️ Cloud-Native Deployment
+
+```bash
+# Docker Compose with GHCR images (universal)
+docker-compose -f docker-compose.ghcr.yml up -d
+
+# Kubernetes deployment
+make k8s-deploy
+make k8s-status
+make k8s-logs
+
+# Cloud-native services
+make deploy-aws-ecs      # AWS ECS
+make deploy-gcp-run      # Google Cloud Run
+make deploy-azure-aci    # Azure Container Instances
+```
+
+### 🏗️ Complete Architecture Strategy
+
+| Environment | Command | Architecture | Purpose |
+|-------------|---------|--------------|---------|
+| **Local Dev** | `make dev-up` | ARM64 Apple CLI | Performance + DX |
+| **Local CI** | `make ci-test` | x86_64 Docker | Compatibility |
+| **Multi-Arch** | `make release` | ARM64 + x86_64 | Universal Images |
+| **Cloud Deploy** | `make k8s-deploy` | Architecture Agnostic | Production |
+
 > **⚡ Apple Silicon Optimized**: This project runs natively on Apple Container CLI for 3-5x better performance than Docker Desktop. See [Apple Container CLI Guide](docs/APPLE_CONTAINER_CLI.md) for details.
 
 ## Architecture

@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ninaivalaigal
+
+resources:
+  - namespace.yaml
+  - postgres.yaml
+  - api.yaml
+
+commonLabels:
+  app: ninaivalaigal
+  version: v1.0.0
+
+images:
+  - name: ghcr.io/arunosaur/ninaivalaigal-postgres
+    newTag: latest
+  - name: ghcr.io/arunosaur/ninaivalaigal-api
+    newTag: latest
+
+# Usage:
+# kubectl apply -k k8s/
+# 
+# This deploys the complete ninaivalaigal stack to Kubernetes
+# with multi-arch GHCR images that work on any cluster
