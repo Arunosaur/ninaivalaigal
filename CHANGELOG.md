@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.4.1 (2025-09-20)</small>
+
+* fix: simplify container detection for Apple Container CLI compatibility ([485d05e0cba9b036e98801936e50a607bc08b8b3](https://github.com/Arunosaur/ninaivalaigal/commit/485d05e0cba9b036e98801936e50a607bc08b8b3))
+
 ## 1.4.0 (2025-09-19)
 
 * feat: implement comprehensive defensive scripts for robust stack startup ([316dafb3994f63064a0eacad1e803b3a81333e50](https://github.com/Arunosaur/ninaivalaigal/commit/316dafb3994f63064a0eacad1e803b3a81333e50))
