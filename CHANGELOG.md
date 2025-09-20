@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.4.7 (2025-09-20)</small>
+
+* fix: revert to original working PgBouncer configuration with localhost ([4cde4d5b66825d0d8404b1a6f5cf4a3ca0a05dfb](https://github.com/Arunosaur/ninaivalaigal/commit/4cde4d5b66825d0d8404b1a6f5cf4a3ca0a05dfb))
+
 ## <small>1.4.6 (2025-09-20)</small>
 
 * fix: add longer wait for database readiness before PgBouncer health check ([45773a3cbd38901ad26a18d03f4055751f660ccc](https://github.com/Arunosaur/ninaivalaigal/commit/45773a3cbd38901ad26a18d03f4055751f660ccc))
