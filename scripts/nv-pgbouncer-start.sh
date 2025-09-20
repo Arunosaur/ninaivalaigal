@@ -12,7 +12,8 @@ container run -d --name nv-pgbouncer \
   nina-pgbouncer:arm64
 
 # Quick sanity: did it start at all? (check via logs)
-sleep 2
+echo "[pgbouncer] Waiting for database to be fully ready..."
+sleep 10
 echo "[pgbouncer] Checking if container started..."
 if ! container logs nv-pgbouncer >/dev/null 2>&1; then
   echo "[pgbouncer][fail] container did not start (no logs available)"
