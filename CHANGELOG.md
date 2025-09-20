@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.4.9 (2025-09-20)</small>
+
+* fix: add missing JWT_SECRET environment variable for API ([8732bc49763d3b2b45a42b91700585085a38a3b6](https://github.com/Arunosaur/ninaivalaigal/commit/8732bc49763d3b2b45a42b91700585085a38a3b6))
+
 ## <small>1.4.8 (2025-09-20)</small>
 
 * fix: implement self-contained PgBouncer with baked-in configuration ([20f47e1bcd056125d4b8d0d28f837e4814b7fbfe](https://github.com/Arunosaur/ninaivalaigal/commit/20f47e1bcd056125d4b8d0d28f837e4814b7fbfe))

@@ -1,6 +1,6 @@
 {
   "name": "ninaivalaigal",
-  "version": "1.4.8",
+  "version": "1.4.9",
   "description": "Universal Memory Layer for AI Agents and Developers - Production-hardened with enterprise security",
   "main": "server/main.py",
   "private": true,
