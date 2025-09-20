@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.12.0 (2025-09-20)
+
+* feat: Complete cloud-native deployment strategy with Kubernetes support ([2a1f9b40bb08207f9065643372f62c4df7e38062](https://github.com/Arunosaur/ninaivalaigal/commit/2a1f9b40bb08207f9065643372f62c4df7e38062))
+
 ## 1.11.0 (2025-09-20)
 
 * feat: Add multi-architecture container release strategy ([3c8759cd8022bffdb38e1a726b1c49395c161a7f](https://github.com/Arunosaur/ninaivalaigal/commit/3c8759cd8022bffdb38e1a726b1c49395c161a7f))
