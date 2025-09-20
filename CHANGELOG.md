@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.11.0 (2025-09-20)
+
+* feat: Add multi-architecture container release strategy ([3c8759cd8022bffdb38e1a726b1c49395c161a7f](https://github.com/Arunosaur/ninaivalaigal/commit/3c8759cd8022bffdb38e1a726b1c49395c161a7f))
+
 ## <small>1.10.1 (2025-09-20)</small>
 
 * fix: Add requirements.txt and fix Dockerfile.api for CI build ([c47e625cdfb7a346d8c27a9ea8e1ff668f943752](https://github.com/Arunosaur/ninaivalaigal/commit/c47e625cdfb7a346d8c27a9ea8e1ff668f943752))
