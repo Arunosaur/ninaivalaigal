@@ -1,0 +1,86 @@
+name: 🏗️ Infrastructure Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      cloud_provider:
+        description: 'Cloud provider to deploy to'
+        required: true
+        default: 'aws'
+        type: choice
+        options:
+        - aws
+        - gcp
+        - azure
+      action:
+        description: 'Terraform action to perform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+        - plan
+        - apply
+        - destroy
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    name: Terraform ${{ github.event.inputs.action }} on ${{ github.event.inputs.cloud_provider }}
+    
+    steps:
+      - name: 📋 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6.0"
+
+      - name: 🔐 Configure AWS credentials
+        if: github.event.inputs.cloud_provider == 'aws'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: 🔐 Authenticate to Google Cloud
+        if: github.event.inputs.cloud_provider == 'gcp'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: 🔐 Azure Login
+        if: github.event.inputs.cloud_provider == 'azure'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 🏗️ Terraform Init
+        run: |
+          cd terraform/${{ github.event.inputs.cloud_provider }}
+          terraform init
+
+      - name: 📋 Terraform Plan
+        if: github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply'
+        run: |
+          cd terraform/${{ github.event.inputs.cloud_provider }}
+          terraform plan -out=tfplan
+
+      - name: 🚀 Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        run: |
+          cd terraform/${{ github.event.inputs.cloud_provider }}
+          terraform apply tfplan
+
+      - name: 🗑️ Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: |
+          cd terraform/${{ github.event.inputs.cloud_provider }}
+          terraform destroy -auto-approve
+
+      - name: 📊 Output Results
+        if: github.event.inputs.action == 'apply'
+        run: |
+          cd terraform/${{ github.event.inputs.cloud_provider }}
+          terraform output

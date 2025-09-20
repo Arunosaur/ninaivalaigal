@@ -36,6 +36,8 @@ spec:
       labels:
         app: ninaivalaigal-api
     spec:
+      imagePullSecrets:
+      - name: ghcr-pull-secret
       containers:
       - name: api
         image: ghcr.io/arunosaur/ninaivalaigal-api:latest

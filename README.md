@@ -101,14 +101,34 @@ make deploy-azure-aci    # Azure Container Instances
 | **Cloud Native** | `make deploy-aws` | Container Services | Serverless Scale |
 | **Kubernetes** | `make k8s-deploy` | Architecture Agnostic | Enterprise Production |
 
+### 🏗️ Infrastructure as Code (Terraform)
+
+```bash
+# AWS ECS with Load Balancer
+make terraform-init-aws
+make terraform-plan-aws
+make terraform-apply-aws
+
+# Google Cloud Run (Serverless)
+make terraform-init-gcp
+make terraform-plan-gcp
+make terraform-apply-gcp
+
+# Azure Container Instances
+make terraform-init-azure
+make terraform-plan-azure
+make terraform-apply-azure
+```
+
 ### 🚀 Release & Deployment Summary
 
 | Command | What it does |
 |---------|-------------|
 | `make release` | Push multi-arch image to GHCR |
-| `make deploy-aws` | Redeploy ECS service with new image |
-| `make deploy-gcp` | Deploy to Cloud Run (fully managed, serverless) |
-| `make deploy-azure` | Create Azure container instance (ACI) |
+| `make terraform-apply-aws` | Deploy complete AWS infrastructure (ECS + ALB) |
+| `make terraform-apply-gcp` | Deploy to Cloud Run with Terraform |
+| `make terraform-apply-azure` | Deploy to Azure Container Instances |
+| `make k8s-deploy` | Deploy to any Kubernetes cluster |
 
 > **⚡ Apple Silicon Optimized**: This project runs natively on Apple Container CLI for 3-5x better performance than Docker Desktop. See [Apple Container CLI Guide](docs/APPLE_CONTAINER_CLI.md) for details.
 

@@ -231,6 +231,55 @@ k8s-delete:
 	@echo "🗑️ Deleting Kubernetes deployment..."
 	@kubectl delete -k k8s/ || true
 
+## Terraform Infrastructure as Code
+terraform-init-aws:
+	@echo "🏗️ Initializing Terraform for AWS..."
+	@cd terraform/aws && terraform init
+
+terraform-plan-aws:
+	@echo "📋 Planning Terraform deployment for AWS..."
+	@cd terraform/aws && terraform plan
+
+terraform-apply-aws:
+	@echo "🚀 Applying Terraform deployment for AWS..."
+	@cd terraform/aws && terraform apply
+
+terraform-destroy-aws:
+	@echo "🗑️ Destroying Terraform deployment for AWS..."
+	@cd terraform/aws && terraform destroy
+
+terraform-init-gcp:
+	@echo "🏗️ Initializing Terraform for GCP..."
+	@cd terraform/gcp && terraform init
+
+terraform-plan-gcp:
+	@echo "📋 Planning Terraform deployment for GCP..."
+	@cd terraform/gcp && terraform plan
+
+terraform-apply-gcp:
+	@echo "🚀 Applying Terraform deployment for GCP..."
+	@cd terraform/gcp && terraform apply
+
+terraform-destroy-gcp:
+	@echo "🗑️ Destroying Terraform deployment for GCP..."
+	@cd terraform/gcp && terraform destroy
+
+terraform-init-azure:
+	@echo "🏗️ Initializing Terraform for Azure..."
+	@cd terraform/azure && terraform init
+
+terraform-plan-azure:
+	@echo "📋 Planning Terraform deployment for Azure..."
+	@cd terraform/azure && terraform plan
+
+terraform-apply-azure:
+	@echo "🚀 Applying Terraform deployment for Azure..."
+	@cd terraform/azure && terraform apply
+
+terraform-destroy-azure:
+	@echo "🗑️ Destroying Terraform deployment for Azure..."
+	@cd terraform/azure && terraform destroy
+
 ## Package Management & Installation
 build-images:
 	@echo "🏗️  Building container images..."

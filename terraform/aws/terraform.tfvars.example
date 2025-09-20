@@ -1,0 +1,15 @@
+# AWS Configuration
+aws_region = "us-west-2"
+environment = "production"
+
+# Network Configuration
+vpc_id = "vpc-xxxxxxxxx"
+subnet_ids = [
+  "subnet-xxxxxxxxx",
+  "subnet-yyyyyyyyy"
+]
+
+# Application Configuration
+desired_count = 2
+database_url = "postgresql://user:password@host:5432/database"
+jwt_secret = "your-super-secret-jwt-key-min-32-chars"
