@@ -191,16 +191,21 @@ container logs nv-api
 **Our API script changes are being ignored!** The workflow is still using the old approach.
 **Evidence**: API logs show "connection to server at 127.0.0.1, port 6432 failed"
 
-### **🎯 BREAKTHROUGH - ROOT CAUSE FOUND & FIXED**:
-**Problem**: API `auth.py` had hardcoded localhost fallback that ignored environment variables!
-**Evidence**: `load_config()` returned `postgresql://mem0user:mem0pass@localhost:5432/mem0db`
-**Solution**: Modified `load_config()` to prioritize `NINAIVALAIGAL_DATABASE_URL` environment variable
+### **🎯 NEW ROOT CAUSE FOUND (Run 17883873413)**:
+**Problem**: `container inspect nv-pgbouncer` failing, falling back to 127.0.0.1
+**Evidence**: `[api] PgBouncer IP: 127.0.0.1` (should be container IP like 192.168.65.3)
+**Real Issue**: Container IP detection not working in Apple Container CLI
 
-### **FIXED IN COMMIT 918321d**:
-1. ✅ **API now reads environment variable first** (NINAIVALAIGAL_DATABASE_URL)
-2. ✅ **Config file second** (for local development)  
-3. ✅ **Localhost fallback last** (should not be used in container)
-4. ✅ **API will finally use PgBouncer container IP**
+### **CONTAINER INSPECT FAILING**:
+1. ❌ **PgBouncer container inspect returns nothing** 
+2. ❌ **Falls back to 127.0.0.1** (our fallback value)
+3. ❌ **API tries to connect to 127.0.0.1:6432** (container itself, not PgBouncer)
+4. ❌ **Connection refused** (no service on API container port 6432)
+
+### **IMMEDIATE FIX NEEDED**:
+- Fix `container inspect` format for Apple Container CLI
+- Ensure PgBouncer container exists before API tries to inspect it
+- Add error handling for container IP detection failure
 
 ### **Failed Approaches**:
 - Host networking attempts (host.docker.internal, host.lima.internal, 127.0.0.1, localhost)

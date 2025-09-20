@@ -21,8 +21,17 @@ READY_TIMEOUT="${READY_TIMEOUT:-45}"      # seconds
 
 # Get PgBouncer container IP for intra-VM connectivity
 echo "[api] Getting PgBouncer container IP..."
-PGB_IP=$(container inspect nv-pgbouncer --format '{{ .NetworkSettings.IPAddress }}' 2>/dev/null || echo "127.0.0.1")
+# Wait for PgBouncer container to be ready
+sleep 2
+# Try different Apple Container CLI inspect formats
+PGB_IP=$(container inspect nv-pgbouncer --format '{{.NetworkSettings.IPAddress}}' 2>/dev/null || \
+         container inspect nv-pgbouncer | grep -o '"IPAddress": "[^"]*"' | cut -d'"' -f4 2>/dev/null || \
+         echo "127.0.0.1")
 echo "[api] PgBouncer IP: $PGB_IP"
+
+# Debug: Show container status
+echo "[api] PgBouncer container status:"
+container ps | grep nv-pgbouncer || echo "PgBouncer container not found"
 
 # Use PgBouncer container IP (not localhost/127.0.0.1)
 DB_HOST="$PGB_IP"
