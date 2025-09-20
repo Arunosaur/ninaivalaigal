@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## <small>1.4.11 (2025-09-20)</small>
+
+* docs: comprehensive checklist to prevent debugging cycles ([a68eedb9aa7db80b5fd972dbc18f58c54aaa38a4](https://github.com/Arunosaur/ninaivalaigal/commit/a68eedb9aa7db80b5fd972dbc18f58c54aaa38a4))
+* fix: use container-to-container networking in PgBouncer configuration ([67ff251a375a62e74e244faf64170d734e39a118](https://github.com/Arunosaur/ninaivalaigal/commit/67ff251a375a62e74e244faf64170d734e39a118))
+
 ## <small>1.4.10 (2025-09-20)</small>
 
 * fix: use correct environment variable name for API database connection ([28aececb084677bc91b49c31e7910cf1a4949259](https://github.com/Arunosaur/ninaivalaigal/commit/28aececb084677bc91b49c31e7910cf1a4949259))
