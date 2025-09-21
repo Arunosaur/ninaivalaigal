@@ -1,5 +1,6 @@
-import redis
 import time
+
+import redis
 
 r = redis.Redis(
     host="localhost",

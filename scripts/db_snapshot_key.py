@@ -1,4 +1,7 @@
-import hashlib, glob
+import glob
+import hashlib
+
+
 def hash_migrations():
     paths = sorted(glob.glob("alembic/versions/*.py") + glob.glob("server/memory/db/migrations/*.sql"))
     h = hashlib.sha256()

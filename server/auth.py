@@ -3,20 +3,19 @@ Authentication and user management for Ninaivalaigal
 Supports individual users, team members, and organization creators
 """
 
-import os
-import jwt
-import bcrypt
-import secrets
-import smtplib
 import json
+import os
 import re
+import secrets
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
-from fastapi import HTTPException, Depends, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Any
+
+import bcrypt
+import jwt
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
-from input_validation import get_api_validator, InputValidationError
-from email.mime.multipart import MIMEMultipart
+
 
 # Configuration loading (moved from main.py to avoid circular import)
 def load_config():
@@ -24,18 +23,18 @@ def load_config():
     env_database_url = os.getenv('NINAIVALAIGAL_DATABASE_URL')
     if env_database_url:
         return env_database_url
-    
+
     # PRIORITY 2: Config file
     config_path = "../ninaivalaigal.config.json"
     try:
         if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
+            with open(config_path) as f:
                 user_config = json.load(f)
                 if "storage" in user_config and "database_url" in user_config["storage"]:
                     return user_config["storage"]["database_url"]
     except Exception:
         pass
-    
+
     # PRIORITY 3: Fallback (should not be used in container)
     return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
 
@@ -100,8 +99,8 @@ class IndividualUserSignup(BaseModel):
     account_type: str = "individual"
 
 class OrganizationSignup(BaseModel):
-    user: Dict[str, Any]  # email, password, name
-    organization: Dict[str, Any]  # name, domain, size, industry
+    user: dict[str, Any]  # email, password, name
+    organization: dict[str, Any]  # name, domain, size, industry
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -109,41 +108,41 @@ class UserLogin(BaseModel):
 
 class InvitationAccept(BaseModel):
     invitation_token: str
-    user: Dict[str, Any]  # password, name
+    user: dict[str, Any]  # password, name
 
 class UserInvitation(BaseModel):
     email: EmailStr
-    team_ids: Optional[list] = []
+    team_ids: list | None = []
     role: str = "user"
-    message: Optional[str] = None
+    message: str | None = None
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 class TokenData(BaseModel):
-    username: Optional[str] = None
-    user_id: Optional[int] = None
+    username: str | None = None
+    user_id: int | None = None
 
 class ApiKeyCreate(BaseModel):
     name: str
     permissions: list = []
-    expiration: Optional[int] = None  # days, None for never expires
+    expiration: int | None = None  # days, None for never expires
 
 class ApiKeyResponse(BaseModel):
     id: str
     name: str
-    key: Optional[str] = None  # Only returned on creation
+    key: str | None = None  # Only returned on creation
     permissions: list
     created_at: datetime
-    expires_at: Optional[datetime] = None
-    last_used_at: Optional[datetime] = None
+    expires_at: datetime | None = None
+    last_used_at: datetime | None = None
     is_active: bool = True
 
 class TokenUsage(BaseModel):
     requests_today: int = 0
     requests_week: int = 0
-    last_used: Optional[datetime] = None
+    last_used: datetime | None = None
     rate_limit_remaining: int = 1000
     rate_limit_total: int = 1000
     recent_activity: list = []
@@ -151,52 +150,52 @@ class TokenUsage(BaseModel):
 # Security scheme
 security = HTTPBearer()
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(days=7)  # Default 7 days
     to_encode.update({"exp": expire})
-    
+
     # Get JWT secret from environment variable (required)
     jwt_secret = os.getenv('NINAIVALAIGAL_JWT_SECRET')
     if not jwt_secret:
         raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required")
-    
+
     encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
 def get_user_roles_for_token(db, user_id: int) -> dict:
     """Get user roles for JWT token inclusion"""
     from rbac_models import get_user_roles
-    
+
     try:
         # Get all active role assignments for the user
         role_assignments = get_user_roles(db, user_id)
-        
+
         roles = {}
         teams = {}
         org_id = None
-        
+
         for assignment in role_assignments:
             scope_key = f"{assignment.scope_type}:{assignment.scope_id}" if assignment.scope_id else assignment.scope_type
             roles[scope_key] = assignment.role.name
-            
+
             # Track team memberships
             if assignment.scope_type == 'team' and assignment.scope_id:
                 teams[assignment.scope_id] = assignment.role.name
-            
+
             # Track organization membership
             if assignment.scope_type == 'org' and assignment.scope_id:
                 org_id = assignment.scope_id
-        
+
         return {
             'roles': roles,
             'teams': teams,
             'org_id': org_id
         }
-    except Exception as e:
+    except Exception:
         # Fallback to basic role if RBAC lookup fails
         return {
             'roles': {'global': 'MEMBER'},
@@ -251,7 +250,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
     """Create individual user account"""
     db = get_db()
     session = db.get_session()
-    
+
     try:
         # Validate input data
         validated_data = {
@@ -260,18 +259,18 @@ def create_individual_user(signup_data: IndividualUserSignup):
             'name': signup_data.name,
             'account_type': signup_data.account_type
         }
-        
+
         # Check if user already exists
         existing_user = db.get_user_by_email(validated_data['email'])
         if existing_user:
             raise HTTPException(status_code=400, detail="User already exists")
-        
+
         # Generate verification token
         verification_token = generate_verification_token()
-        
+
         # Hash password
         hashed_password = hash_password(validated_data['password'])
-        
+
         # Create user in database
         from database import User
         new_user = User(
@@ -282,15 +281,15 @@ def create_individual_user(signup_data: IndividualUserSignup):
             verification_token=verification_token,
             account_type=validated_data['account_type']
         )
-        
+
         session.add(new_user)
         session.commit()
-        
+
         # Create default RBAC role assignment
         try:
-            from rbac_models import RoleAssignment
             from rbac.permissions import Role
-            
+            from rbac_models import RoleAssignment
+
             role_assignment = RoleAssignment(
                 user_id=new_user.id,
                 role=Role.MEMBER,
@@ -303,7 +302,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
             session.commit()
         except Exception as rbac_error:
             print(f"Warning: Failed to create RBAC role assignment: {rbac_error}")
-        
+
         # Generate JWT token
         jwt_payload = {
             "user_id": new_user.id,
@@ -312,7 +311,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
             "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
         }
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-        
+
         return {
             "user_id": new_user.id,
             "email": new_user.email,
@@ -323,7 +322,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
             "email_verified": False,
             "verification_token": verification_token
         }
-        
+
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
@@ -337,20 +336,20 @@ def authenticate_user(email: str, password: str):
     try:
         from database import User
         user = session.query(User).filter_by(email=email, is_active=True).first()
-        
+
         if not user or not user.password_hash:
             return None
-            
+
         if not verify_password(password, user.password_hash):
             return None
-            
+
         # Update last login
         user.last_login = datetime.utcnow()
         session.commit()
-        
+
         # Get user roles for token
         role_data = get_user_roles_for_token(db, user.id)
-        
+
         # Generate JWT token with RBAC roles
         jwt_payload = {
             "user_id": user.id,
@@ -361,7 +360,7 @@ def authenticate_user(email: str, password: str):
             **role_data  # Include roles, teams, org_id
         }
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-        
+
         return {
             "user_id": user.id,
             "email": user.email,
@@ -373,7 +372,7 @@ def authenticate_user(email: str, password: str):
             "rbac_roles": role_data.get('roles', {}),
             "is_system_admin": getattr(user, 'is_system_admin', False)
         }
-        
+
     finally:
         session.close()
 
@@ -391,16 +390,16 @@ def verify_email_token(verification_token: str) -> bool:
     try:
         from database import User
         user = session.query(User).filter_by(verification_token=verification_token).first()
-        
+
         if not user:
             return False
-            
+
         user.email_verified = True
         user.verification_token = None
         session.commit()
-        
+
         return True
-        
+
     except Exception:
         session.rollback()
         return False

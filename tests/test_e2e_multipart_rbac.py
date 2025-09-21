@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.parametrize("role,expected", [
     ("viewer", 403),
     ("org_editor", 200),

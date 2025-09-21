@@ -3,7 +3,6 @@ Memory Preloading API Endpoints - SPEC-038
 RESTful API for memory preloading management and monitoring
 """
 
-from typing import Optional
 
 import structlog
 from auth import get_current_user
@@ -25,8 +24,8 @@ router = APIRouter(prefix="/memory/preload", tags=["memory-preloading"])
 
 # Request/Response models
 class PreloadTriggerRequest(BaseModel):
-    user_ids: Optional[list[str]] = None
-    strategies: Optional[list[str]] = None
+    user_ids: list[str] | None = None
+    strategies: list[str] | None = None
     force_refresh: bool = False
 
 
@@ -34,13 +33,13 @@ class PreloadConfigRequest(BaseModel):
     enabled: bool = True
     max_memories_per_user: int = 100
     refresh_interval_minutes: int = 30
-    strategy_weights: Optional[dict] = None
+    strategy_weights: dict | None = None
 
 
 class PreloadStatusResponse(BaseModel):
     user_id: str
     status: str
-    last_preload: Optional[str]
+    last_preload: str | None
     total_memories: int
     preload_stats: dict
     config: dict

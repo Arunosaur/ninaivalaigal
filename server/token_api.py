@@ -3,20 +3,20 @@ Token Management API for Ninaivalaigal
 Handles JWT token operations, API key management, and usage analytics
 """
 
-import os
-import secrets
 import hashlib
+import secrets
 from datetime import datetime, timedelta
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials
-from pydantic import BaseModel
 
 from auth import (
-    security, get_current_user, create_access_token, 
-    ApiKeyCreate, ApiKeyResponse, TokenUsage
+    ApiKeyCreate,
+    ApiKeyResponse,
+    TokenUsage,
+    create_access_token,
+    get_current_user,
 )
 from database import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["token-management"])
 
@@ -27,7 +27,7 @@ class TokenRegenerateResponse(BaseModel):
 
 class UserSettings(BaseModel):
     auto_token_rotation: bool = False
-    ip_restrictions: List[str] = []
+    ip_restrictions: list[str] = []
 
 @router.get("/me")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
@@ -52,34 +52,34 @@ async def regenerate_jwt_token(current_user: dict = Depends(get_current_user)):
             "username": current_user.get("username"),
             "account_type": current_user.get("account_type", "individual")
         }
-        
+
         # Create new token with 7-day expiration
         expires_delta = timedelta(days=7)
         new_token = create_access_token(data=token_data, expires_delta=expires_delta)
         expires_at = datetime.utcnow() + expires_delta
-        
+
         # TODO: Invalidate old token in database (add to blacklist)
         # This would require storing token JTIs in database
-        
+
         return TokenRegenerateResponse(
             token=new_token,
             expires_at=expires_at,
             message="Token regenerated successfully. Please update your applications with the new token."
         )
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to regenerate token: {str(e)}"
         )
 
-@router.get("/api-keys", response_model=List[ApiKeyResponse])
+@router.get("/api-keys", response_model=list[ApiKeyResponse])
 async def list_api_keys(current_user: dict = Depends(get_current_user)):
     """List all API keys for the current user"""
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual database query
         # For now, return sample data
         sample_keys = [
@@ -93,7 +93,7 @@ async def list_api_keys(current_user: dict = Depends(get_current_user)):
                 is_active=True
             ),
             ApiKeyResponse(
-                id="key_2", 
+                id="key_2",
                 name="Development Testing",
                 permissions=["memory:read"],
                 created_at=datetime.utcnow() - timedelta(days=15),
@@ -102,9 +102,9 @@ async def list_api_keys(current_user: dict = Depends(get_current_user)):
                 is_active=True
             )
         ]
-        
+
         return sample_keys
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -120,16 +120,16 @@ async def create_api_key(
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # Generate secure API key
         key_id = f"nv_{secrets.token_urlsafe(16)}"
         api_key = f"nvk_{secrets.token_urlsafe(32)}"
-        
+
         # Calculate expiration
         expires_at = None
         if api_key_data.expiration:
             expires_at = datetime.utcnow() + timedelta(days=api_key_data.expiration)
-        
+
         # TODO: Store in database
         # For now, return the created key
         new_key = ApiKeyResponse(
@@ -142,9 +142,9 @@ async def create_api_key(
             last_used_at=None,
             is_active=True
         )
-        
+
         return new_key
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -160,12 +160,12 @@ async def revoke_api_key(
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual database deletion/deactivation
         # For now, just return success
-        
+
         return {"message": f"API key {key_id} has been revoked successfully"}
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -178,7 +178,7 @@ async def get_token_usage(current_user: dict = Depends(get_current_user)):
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual usage tracking from database
         # For now, return sample data
         sample_usage = TokenUsage(
@@ -205,9 +205,9 @@ async def get_token_usage(current_user: dict = Depends(get_current_user)):
                 }
             ]
         )
-        
+
         return sample_usage
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -223,15 +223,15 @@ async def update_user_settings(
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual settings storage in database
         # For now, just return success
-        
+
         return {
             "message": "Settings updated successfully",
             "settings": settings.dict()
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -244,13 +244,13 @@ async def revoke_all_tokens(current_user: dict = Depends(get_current_user)):
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual token/API key revocation in database
         # This should:
         # 1. Add current JWT to blacklist
         # 2. Deactivate all API keys
         # 3. Log security event
-        
+
         return {
             "message": "All tokens and API keys have been revoked successfully",
             "revoked_at": datetime.utcnow(),
@@ -259,7 +259,7 @@ async def revoke_all_tokens(current_user: dict = Depends(get_current_user)):
                 "api_keys": 2  # Sample count
             }
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

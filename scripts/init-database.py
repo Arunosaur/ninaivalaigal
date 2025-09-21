@@ -3,8 +3,8 @@
 Initialize database with all required tables
 """
 
-import sys
 import os
+import sys
 
 # Add server directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "server"))

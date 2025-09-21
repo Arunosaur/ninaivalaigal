@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+import os
+
+from fastapi import APIRouter
 from pydantic import BaseModel
-import os, asyncio
-from server.memory.stores.postgres_store import PostgresStore, PGConfig
+
+from server.memory.stores.postgres_store import PGConfig, PostgresStore
 
 router = APIRouter(prefix="/demo/memory", tags=["memory-demo"])
 

@@ -1,4 +1,7 @@
-import json, sys, os, hashlib
+import hashlib
+import json
+import os
+import sys
 
 BASELINE_FILE = "multipart_policy_baseline.json"
 APPROVAL_FILE = ".multipart_changes_approved"

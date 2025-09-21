@@ -5,10 +5,10 @@ Comprehensive audit trail for all redaction events with immutable logging.
 """
 
 import json
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
 from enum import Enum
+from typing import Any
 
 from .config import ContextSensitivity
 from .processors import RedactionResult
@@ -29,21 +29,21 @@ class RedactionAuditEvent:
     id: str
     timestamp: datetime
     event_type: AuditEventType
-    user_id: Optional[int]
-    context_id: Optional[int]
-    request_id: Optional[str]
+    user_id: int | None
+    context_id: int | None
+    request_id: str | None
     redaction_applied: bool
-    redaction_type: Optional[str]
+    redaction_type: str | None
     sensitivity_tier: ContextSensitivity
-    patterns_matched: List[str]
-    entropy_score: Optional[float]
+    patterns_matched: list[str]
+    entropy_score: float | None
     original_length: int
     redacted_length: int
     processing_time_ms: float
-    confidence_scores: Dict[str, float]
-    metadata: Dict[str, Any]
-    
-    def to_dict(self) -> Dict[str, Any]:
+    confidence_scores: dict[str, float]
+    metadata: dict[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for storage"""
         return {
             'id': self.id,
@@ -67,18 +67,18 @@ class RedactionAuditEvent:
 
 class RedactionAuditLogger:
     """Audit logger for redaction events"""
-    
+
     def __init__(self, database_manager=None):
         self.database_manager = database_manager
         self._event_buffer = []
         self._buffer_size = 100
         self.events = []  # For testing purposes
-    
-    def log_redaction_event(self, 
+
+    def log_redaction_event(self,
                            redaction_result: RedactionResult,
-                           user_id: Optional[int] = None,
-                           context_id: Optional[int] = None,
-                           request_id: Optional[str] = None) -> str:
+                           user_id: int | None = None,
+                           context_id: int | None = None,
+                           request_id: str | None = None) -> str:
         """
         Log a redaction event to the audit trail.
         
@@ -92,20 +92,20 @@ class RedactionAuditLogger:
             Audit event ID
         """
         import uuid
-        
+
         event_id = str(uuid.uuid4())
-        
+
         # Extract patterns and confidence scores from redaction result
         patterns_matched = []
         confidence_scores = {}
-        
+
         for redaction in redaction_result.redactions_applied:
             if redaction.get('pattern_name'):
                 patterns_matched.append(redaction['pattern_name'])
-            
+
             secret_type = redaction.get('secret_type', 'unknown')
             confidence_scores[secret_type] = redaction.get('confidence', 0.0)
-        
+
         audit_event = RedactionAuditEvent(
             id=event_id,
             timestamp=datetime.utcnow(),
@@ -127,27 +127,27 @@ class RedactionAuditLogger:
                 'redaction_details': redaction_result.redactions_applied
             }
         )
-        
+
         # Store the audit event
         self._store_audit_event(audit_event)
         self.events.append(audit_event)  # For testing
-        
+
         return event_id
-    
+
     async def log_redaction_applied(self,
-                                   user_id: Optional[int],
-                                   context_id: Optional[int],
+                                   user_id: int | None,
+                                   context_id: int | None,
                                    original_text: str,
                                    redacted_text: str,
                                    secrets_found: int,
                                    sensitivity_tier: str,
                                    processing_time_ms: float,
-                                   request_id: Optional[str] = None) -> str:
+                                   request_id: str | None = None) -> str:
         """Log a redaction applied event"""
         import uuid
-        
+
         event_id = str(uuid.uuid4())
-        
+
         audit_event = RedactionAuditEvent(
             id=event_id,
             timestamp=datetime.utcnow(),
@@ -169,22 +169,22 @@ class RedactionAuditLogger:
                 'redaction_ratio': len(redacted_text) / len(original_text) if len(original_text) > 0 else 0
             }
         )
-        
+
         self._store_audit_event(audit_event)
         self.events.append(audit_event)  # For testing
         return event_id
 
     async def log_policy_violation(self,
-                                  user_id: Optional[int],
+                                  user_id: int | None,
                                   violation_type: str,
-                                  details: Dict[str, Any],
-                                  context_id: Optional[int] = None,
-                                  request_id: Optional[str] = None) -> str:
+                                  details: dict[str, Any],
+                                  context_id: int | None = None,
+                                  request_id: str | None = None) -> str:
         """Log a policy violation event"""
         import uuid
-        
+
         event_id = str(uuid.uuid4())
-        
+
         audit_event = RedactionAuditEvent(
             id=event_id,
             timestamp=datetime.utcnow(),
@@ -206,22 +206,22 @@ class RedactionAuditLogger:
                 'violation_details': details
             }
         )
-        
+
         self._store_audit_event(audit_event)
         self.events.append(audit_event)  # For testing
         return event_id
-    
+
     async def log_redaction_failure(self,
-                                   user_id: Optional[int],
+                                   user_id: int | None,
                                    error_message: str,
-                                   context_data: Optional[Dict[str, Any]] = None,
-                                   context_id: Optional[int] = None,
-                                   request_id: Optional[str] = None) -> str:
+                                   context_data: dict[str, Any] | None = None,
+                                   context_id: int | None = None,
+                                   request_id: str | None = None) -> str:
         """Log a redaction failure event"""
         import uuid
-        
+
         event_id = str(uuid.uuid4())
-        
+
         audit_event = RedactionAuditEvent(
             id=event_id,
             timestamp=datetime.utcnow(),
@@ -244,11 +244,11 @@ class RedactionAuditLogger:
                 'context_data': context_data or {}
             }
         )
-        
+
         self._store_audit_event(audit_event)
         self.events.append(audit_event)  # For testing
         return event_id
-    
+
     def _store_audit_event(self, event: RedactionAuditEvent):
         """Store audit event in database or buffer"""
         if self.database_manager:
@@ -260,7 +260,7 @@ class RedactionAuditLogger:
                 print(f"Failed to store audit event in database: {e}")
         else:
             self._add_to_buffer(event)
-    
+
     def _store_in_database(self, event: RedactionAuditEvent):
         """Store audit event in database"""
         # This would integrate with the existing database manager
@@ -269,7 +269,7 @@ class RedactionAuditLogger:
         try:
             # Insert into redaction_audits table
             audit_data = event.to_dict()
-            
+
             # Convert to database format
             db_record = {
                 'id': event.id,
@@ -286,30 +286,30 @@ class RedactionAuditLogger:
                 'redacted_length': event.redacted_length,
                 'metadata': json.dumps(event.metadata)
             }
-            
+
             # This would use SQLAlchemy to insert the record
             # session.execute(insert_statement, db_record)
             # session.commit()
-            
+
         except Exception as e:
             session.rollback()
             raise e
         finally:
             session.close()
-    
+
     def _add_to_buffer(self, event: RedactionAuditEvent):
         """Add event to in-memory buffer"""
         self._event_buffer.append(event)
-        
+
         # Flush buffer if it's full
         if len(self._event_buffer) >= self._buffer_size:
             self._flush_buffer()
-    
+
     def _flush_buffer(self):
         """Flush buffered events to storage"""
         if not self._event_buffer:
             return
-        
+
         # Try to store buffered events
         for event in self._event_buffer:
             try:
@@ -317,17 +317,17 @@ class RedactionAuditLogger:
                     self._store_in_database(event)
             except Exception as e:
                 print(f"Failed to flush audit event {event.id}: {e}")
-        
+
         # Clear buffer after flushing
         self._event_buffer.clear()
-    
-    def get_audit_events(self, 
-                        user_id: Optional[int] = None,
-                        context_id: Optional[int] = None,
-                        start_time: Optional[datetime] = None,
-                        end_time: Optional[datetime] = None,
-                        event_type: Optional[AuditEventType] = None,
-                        limit: int = 100) -> List[RedactionAuditEvent]:
+
+    def get_audit_events(self,
+                        user_id: int | None = None,
+                        context_id: int | None = None,
+                        start_time: datetime | None = None,
+                        end_time: datetime | None = None,
+                        event_type: AuditEventType | None = None,
+                        limit: int = 100) -> list[RedactionAuditEvent]:
         """
         Retrieve audit events with filtering.
         
@@ -345,7 +345,7 @@ class RedactionAuditLogger:
         # This would query the database with the given filters
         # For now, return buffered events that match filters
         filtered_events = []
-        
+
         for event in self._event_buffer:
             if user_id and event.user_id != user_id:
                 continue
@@ -357,14 +357,14 @@ class RedactionAuditLogger:
                 continue
             if event_type and event.event_type != event_type:
                 continue
-            
+
             filtered_events.append(event)
-        
+
         return filtered_events[:limit]
-    
-    def get_redaction_statistics(self, 
-                               user_id: Optional[int] = None,
-                               time_period_hours: int = 24) -> Dict[str, Any]:
+
+    def get_redaction_statistics(self,
+                               user_id: int | None = None,
+                               time_period_hours: int = 24) -> dict[str, Any]:
         """
         Get redaction statistics for monitoring and alerting.
         
@@ -377,12 +377,12 @@ class RedactionAuditLogger:
         """
         cutoff_time = datetime.utcnow().replace(microsecond=0) - \
                      datetime.timedelta(hours=time_period_hours)
-        
+
         events = self.get_audit_events(
             user_id=user_id,
             start_time=cutoff_time
         )
-        
+
         stats = {
             'total_events': len(events),
             'redactions_applied': len([e for e in events if e.redaction_applied]),
@@ -394,15 +394,15 @@ class RedactionAuditLogger:
             'sensitivity_tiers': {},
             'time_period_hours': time_period_hours
         }
-        
+
         # Count patterns and tiers
         for event in events:
             for pattern in event.patterns_matched:
                 stats['patterns_detected'][pattern] = stats['patterns_detected'].get(pattern, 0) + 1
-            
+
             tier = event.sensitivity_tier.value
             stats['sensitivity_tiers'][tier] = stats['sensitivity_tiers'].get(tier, 0) + 1
-        
+
         return stats
 
 

@@ -14,7 +14,6 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 import asyncpg
 
@@ -42,9 +41,9 @@ class LifecycleStatus(Enum):
 class LifecyclePolicy:
     id: str
     scope: str
-    user_id: Optional[str]
-    team_id: Optional[str]
-    org_id: Optional[str]
+    user_id: str | None
+    team_id: str | None
+    org_id: str | None
     policy_type: str
     policy_config: dict
     enabled: bool
@@ -70,7 +69,7 @@ class MemoryGarbageCollector:
     def __init__(self, database_url: str, dry_run: bool = False):
         self.database_url = database_url
         self.dry_run = dry_run
-        self.pool: Optional[asyncpg.Pool] = None
+        self.pool: asyncpg.Pool | None = None
 
     async def initialize(self):
         """Initialize database connection pool"""
@@ -309,10 +308,10 @@ class MemoryGarbageCollector:
 
     async def get_lifecycle_stats(
         self,
-        scope: Optional[str] = None,
-        user_id: Optional[str] = None,
-        team_id: Optional[str] = None,
-        org_id: Optional[str] = None,
+        scope: str | None = None,
+        user_id: str | None = None,
+        team_id: str | None = None,
+        org_id: str | None = None,
     ) -> MemoryLifecycleStats:
         """Get lifecycle statistics for a given scope"""
         async with self.pool.acquire() as conn:

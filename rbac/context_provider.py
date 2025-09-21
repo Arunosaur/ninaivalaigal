@@ -1,6 +1,9 @@
 from __future__ import annotations
-from typing import Callable
-from fastapi import Request, HTTPException, status
+
+from collections.abc import Callable
+
+from fastapi import HTTPException, Request, status
+
 
 def install_subject_ctx_provider(app, provider: Callable):
     app.state.subject_ctx_provider = provider

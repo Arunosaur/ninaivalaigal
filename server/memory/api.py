@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, Request
-from .models import MemoryRecord, MemoryQuery, MemoryShare
+from fastapi import APIRouter, Request
+
+from .models import MemoryQuery, MemoryRecord, MemoryShare
 from .store import memory_store
 
 router = APIRouter(prefix="/memory")

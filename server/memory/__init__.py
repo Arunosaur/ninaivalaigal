@@ -7,11 +7,11 @@ Provides pluggable memory providers for different storage backends:
 - Future: Redis, Elasticsearch, etc.
 """
 
-from .interfaces import MemoryProvider, MemoryItem
 from .factory import get_memory_provider
+from .interfaces import MemoryItem, MemoryProvider
 
 __all__ = [
     'MemoryProvider',
-    'MemoryItem', 
+    'MemoryItem',
     'get_memory_provider'
 ]

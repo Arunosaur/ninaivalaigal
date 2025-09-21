@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 try:
     from opentelemetry import trace
 except Exception:  # pragma: no cover

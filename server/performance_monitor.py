@@ -4,16 +4,16 @@ mem0 Performance Monitoring and Metrics Collection
 Provides comprehensive performance monitoring for server, database, client, and shell components
 """
 
-import time
-import psutil
-import threading
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
 import json
-import os
-from collections import defaultdict
-from dataclasses import dataclass, asdict
 import logging
+import threading
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any
+
+import psutil
+
 
 @dataclass
 class PerformanceMetric:
@@ -21,7 +21,7 @@ class PerformanceMetric:
     name: str
     value: Any
     timestamp: datetime
-    tags: Dict[str, str]
+    tags: dict[str, str]
     metric_type: str  # 'gauge', 'counter', 'histogram', 'summary'
 
 @dataclass
@@ -40,11 +40,11 @@ class PerformanceMonitor:
     """Central performance monitoring system for mem0"""
 
     def __init__(self, retention_hours: int = 24):
-        self.metrics: List[PerformanceMetric] = []
-        self.snapshots: List[PerformanceSnapshot] = []
+        self.metrics: list[PerformanceMetric] = []
+        self.snapshots: list[PerformanceSnapshot] = []
         self.retention_hours = retention_hours
         self.is_monitoring = False
-        self.monitor_thread: Optional[threading.Thread] = None
+        self.monitor_thread: threading.Thread | None = None
         self._lock = threading.Lock()
 
         # Configure logging
@@ -79,7 +79,7 @@ class PerformanceMonitor:
             self.monitor_thread.join(timeout=5)
         self.logger.info("Performance monitoring stopped")
 
-    def record_metric(self, name: str, value: Any, tags: Dict[str, str] = None, metric_type: str = 'gauge'):
+    def record_metric(self, name: str, value: Any, tags: dict[str, str] = None, metric_type: str = 'gauge'):
         """Record a performance metric"""
         if tags is None:
             tags = {}
@@ -164,7 +164,7 @@ class PerformanceMonitor:
             cpu_percent = psutil.cpu_percent(interval=0.1)  # Reduced interval
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage('/')
-            
+
             # Get process-specific metrics with error handling
             try:
                 process = psutil.Process()
@@ -175,7 +175,7 @@ class PerformanceMonitor:
                 connections = 0
                 threads = 0
                 open_files = 0
-            
+
             return PerformanceSnapshot(
                 timestamp=datetime.utcnow(),
                 cpu_percent=cpu_percent,
@@ -186,7 +186,7 @@ class PerformanceMonitor:
                 active_threads=threads,
                 open_files=open_files
             )
-        except Exception as e:
+        except Exception:
             # Silently return default snapshot to avoid startup issues
             return PerformanceSnapshot(
                 timestamp=datetime.utcnow(),
@@ -199,7 +199,7 @@ class PerformanceMonitor:
                 open_files=0
             )
 
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """Get a summary of current performance metrics"""
         with self._lock:
             now = datetime.now()
@@ -231,7 +231,7 @@ class PerformanceMonitor:
 
             return summary
 
-    def get_detailed_metrics(self, metric_name: str = None, hours: int = 1) -> List[Dict[str, Any]]:
+    def get_detailed_metrics(self, metric_name: str = None, hours: int = 1) -> list[dict[str, Any]]:
         """Get detailed metrics for analysis"""
         with self._lock:
             cutoff_time = datetime.now() - timedelta(hours=hours)
@@ -253,7 +253,7 @@ class PerformanceMonitor:
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2, default=str)
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get system health status based on metrics"""
         summary = self.get_metrics_summary()
 
@@ -320,10 +320,10 @@ def stop_performance_monitoring():
     """Convenience function to stop monitoring"""
     performance_monitor.stop_monitoring()
 
-def get_performance_summary() -> Dict[str, Any]:
+def get_performance_summary() -> dict[str, Any]:
     """Convenience function to get performance summary"""
     return performance_monitor.get_metrics_summary()
 
-def get_health_status() -> Dict[str, Any]:
+def get_health_status() -> dict[str, Any]:
     """Convenience function to get health status"""
     return performance_monitor.get_health_status()

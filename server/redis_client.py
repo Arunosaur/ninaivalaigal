@@ -6,7 +6,7 @@ Provides Redis connection management, caching, and session storage
 import json
 import os
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import redis.asyncio as redis
 import structlog
@@ -19,7 +19,7 @@ class RedisClient:
     """Redis client with connection pooling and caching utilities"""
 
     def __init__(self):
-        self.redis: Optional[Redis] = None
+        self.redis: Redis | None = None
         self.connection_pool = None
         self._connected = False
 
@@ -116,7 +116,7 @@ class MemoryTokenCache:
         """Generate Redis key for memory token"""
         return f"{self.key_prefix}{memory_id}"
 
-    async def get(self, memory_id: str) -> Optional[dict[str, Any]]:
+    async def get(self, memory_id: str) -> dict[str, Any] | None:
         """Get memory token from cache"""
         if not self.redis.is_connected:
             return None
@@ -137,7 +137,7 @@ class MemoryTokenCache:
             return None
 
     async def set(
-        self, memory_id: str, memory_data: dict[str, Any], ttl: Optional[int] = None
+        self, memory_id: str, memory_data: dict[str, Any], ttl: int | None = None
     ) -> bool:
         """Set memory token in cache"""
         if not self.redis.is_connected:
@@ -212,7 +212,7 @@ class SessionStore:
         """Generate Redis key for user session"""
         return f"{self.key_prefix}{user_id}"
 
-    async def get_session(self, user_id: str) -> Optional[dict[str, Any]]:
+    async def get_session(self, user_id: str) -> dict[str, Any] | None:
         """Get user session from Redis"""
         if not self.redis.is_connected:
             return None
@@ -230,7 +230,7 @@ class SessionStore:
             return None
 
     async def set_session(
-        self, user_id: str, session_data: dict[str, Any], ttl: Optional[int] = None
+        self, user_id: str, session_data: dict[str, Any], ttl: int | None = None
     ) -> bool:
         """Set user session in Redis"""
         if not self.redis.is_connected:

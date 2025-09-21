@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict
+
 
 @dataclass(frozen=True)
 class SubjectContext:
-    user_id: Optional[str] = None
-    org_id: Optional[str] = None
-    team_id: Optional[str] = None
-    roles: List[str] = field(default_factory=list)
-    claims: Dict[str, object] = field(default_factory=dict)
+    user_id: str | None = None
+    org_id: str | None = None
+    team_id: str | None = None
+    roles: list[str] = field(default_factory=list)
+    claims: dict[str, object] = field(default_factory=dict)

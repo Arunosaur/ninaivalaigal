@@ -5,29 +5,30 @@ Provides explicit dependency injection for subject context resolution
 with FastAPI integration and customizable JWT/claims processing.
 """
 
-from typing import Callable, Optional, Dict, Any, Awaitable
-from fastapi import FastAPI, Depends, Request, HTTPException
+from collections.abc import Awaitable, Callable
+
+from fastapi import Depends, FastAPI, Request
+
 from .context import SubjectContext, resolve_jwt_claims
 
-
 # Type alias for subject context provider function
-SubjectContextProvider = Callable[[Request], Awaitable[Optional[SubjectContext]]]
+SubjectContextProvider = Callable[[Request], Awaitable[SubjectContext | None]]
 
 
 class SubjectContextRegistry:
     """Registry for subject context providers per FastAPI app."""
-    
+
     def __init__(self):
-        self._providers: Dict[id, SubjectContextProvider] = {}
-    
+        self._providers: dict[id, SubjectContextProvider] = {}
+
     def register(self, app: FastAPI, provider: SubjectContextProvider):
         """Register a subject context provider for an app."""
         self._providers[id(app)] = provider
-    
-    def get(self, app: FastAPI) -> Optional[SubjectContextProvider]:
+
+    def get(self, app: FastAPI) -> SubjectContextProvider | None:
         """Get the registered provider for an app."""
         return self._providers.get(id(app))
-    
+
     def unregister(self, app: FastAPI):
         """Unregister provider for an app."""
         self._providers.pop(id(app), None)
@@ -46,11 +47,11 @@ def install_subject_ctx_provider(app: FastAPI, provider: SubjectContextProvider)
         provider: Async function that takes Request and returns Optional[SubjectContext]
     """
     _subject_context_registry.register(app, provider)
-    
+
     # Store reference in app state for cleanup
     if not hasattr(app.state, 'subject_ctx_provider_installed'):
         app.state.subject_ctx_provider_installed = True
-        
+
         # Add cleanup on app shutdown
         @app.on_event("shutdown")
         async def cleanup_subject_ctx_provider():
@@ -70,16 +71,16 @@ def get_subject_ctx_dep(app: FastAPI):
         async def protected_route(ctx: SubjectContext = Depends(subject_ctx_dep)):
             return {"user_id": ctx.user_id}
     """
-    
-    async def subject_context_dependency(request: Request) -> Optional[SubjectContext]:
+
+    async def subject_context_dependency(request: Request) -> SubjectContext | None:
         """FastAPI dependency for subject context resolution."""
-        
+
         provider = _subject_context_registry.get(app)
-        
+
         if provider is None:
             # Fallback to default JWT resolution if no provider registered
             return await default_jwt_subject_provider(request)
-        
+
         try:
             return await provider(request)
         except Exception as e:
@@ -87,32 +88,32 @@ def get_subject_ctx_dep(app: FastAPI):
             import logging
             logging.warning(f"Subject context provider failed: {e}")
             return None
-    
+
     return subject_context_dependency
 
 
-async def default_jwt_subject_provider(request: Request) -> Optional[SubjectContext]:
+async def default_jwt_subject_provider(request: Request) -> SubjectContext | None:
     """
     Default subject context provider using JWT resolution.
     
     Extracts JWT from Authorization header and resolves claims to SubjectContext.
     """
-    
+
     # Extract Authorization header
     auth_header = request.headers.get("Authorization", "")
-    
+
     if not auth_header.startswith("Bearer "):
         return None
-    
+
     token = auth_header[7:]  # Remove "Bearer " prefix
-    
+
     try:
         # Use existing JWT claims resolution
         claims = resolve_jwt_claims(token)
-        
+
         if not claims:
             return None
-        
+
         # Extract subject context from claims
         return SubjectContext(
             user_id=claims.get("sub"),
@@ -122,7 +123,7 @@ async def default_jwt_subject_provider(request: Request) -> Optional[SubjectCont
             permissions=claims.get("permissions", []),
             raw_claims=claims
         )
-        
+
     except Exception:
         # JWT verification failed - return None for anonymous access
         return None
@@ -146,26 +147,26 @@ def create_verified_jwt_provider(
     Returns:
         SubjectContextProvider function
     """
-    
-    async def verified_jwt_provider(request: Request) -> Optional[SubjectContext]:
+
+    async def verified_jwt_provider(request: Request) -> SubjectContext | None:
         """Subject context provider with full JWT verification."""
-        
+
         # Extract Authorization header
         auth_header = request.headers.get("Authorization", "")
-        
+
         if not auth_header.startswith("Bearer "):
             return None
-        
+
         token = auth_header[7:]
-        
+
         try:
             import jwt
             from jwt.exceptions import InvalidTokenError
-            
+
             # Get signing key from JWKS
             unverified_header = jwt.get_unverified_header(token)
             kid = unverified_header.get("kid")
-            
+
             if not kid:
                 if require_verification:
                     return None
@@ -181,7 +182,7 @@ def create_verified_jwt_provider(
                     audience=audience,
                     issuer=issuer
                 )
-            
+
             # Create subject context
             return SubjectContext(
                 user_id=claims.get("sub"),
@@ -191,7 +192,7 @@ def create_verified_jwt_provider(
                 permissions=claims.get("permissions", []),
                 raw_claims=claims
             )
-            
+
         except InvalidTokenError:
             if require_verification:
                 return None
@@ -208,10 +209,10 @@ def create_verified_jwt_provider(
                 )
             except Exception:
                 return None
-        
+
         except Exception:
             return None
-    
+
     return verified_jwt_provider
 
 
@@ -231,20 +232,20 @@ def create_mock_subject_provider(
     Returns:
         SubjectContextProvider function for testing
     """
-    
+
     if default_roles is None:
         default_roles = ["user"]
-    
-    async def mock_provider(request: Request) -> Optional[SubjectContext]:
+
+    async def mock_provider(request: Request) -> SubjectContext | None:
         """Mock subject context provider for testing."""
-        
+
         # Check for test headers to override defaults
         user_id = request.headers.get("X-Test-User-Id", default_user_id)
         org_id = request.headers.get("X-Test-Org-Id", default_org_id)
         roles = request.headers.get("X-Test-Roles", ",".join(default_roles)).split(",")
-        
+
         from .context import Role
-        
+
         # Map first role to Role enum
         role = None
         if roles:
@@ -252,7 +253,7 @@ def create_mock_subject_provider(
                 role = Role(roles[0].lower())
             except ValueError:
                 role = Role.USER
-        
+
         ctx = SubjectContext(
             user_id=user_id,
             organization_id=org_id,
@@ -260,7 +261,7 @@ def create_mock_subject_provider(
             role=role,
             permissions=roles  # Store roles as permissions for compatibility
         )
-        
+
         # Add raw_claims as attribute
         ctx.raw_claims = {
             "sub": user_id,
@@ -268,50 +269,50 @@ def create_mock_subject_provider(
             "roles": roles,
             "mock": True
         }
-        
+
         return ctx
-    
+
     return mock_provider
 
 
 def test_subject_context_provider():
     """Test subject context provider functionality."""
-    
+
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
-    
+
     # Create test app
     app = FastAPI()
-    
+
     # Create mock provider
     mock_provider = create_mock_subject_provider(
         default_user_id="test_123",
         default_org_id="org_456",
         default_roles=["admin", "user"]
     )
-    
+
     # Install provider
     install_subject_ctx_provider(app, mock_provider)
-    
+
     # Get dependency
     subject_ctx_dep = get_subject_ctx_dep(app)
-    
+
     # Create test route
     @app.get("/test")
-    async def test_route(ctx: Optional[SubjectContext] = Depends(subject_ctx_dep)):
+    async def test_route(ctx: SubjectContext | None = Depends(subject_ctx_dep)):
         if ctx is None:
             return {"authenticated": False}
-        
+
         return {
             "authenticated": True,
             "user_id": ctx.user_id,
             "org_id": ctx.organization_id,
             "roles": ctx.roles
         }
-    
+
     # Test with client
     client = TestClient(app)
-    
+
     # Test default context
     response = client.get("/test")
     assert response.status_code == 200
@@ -320,7 +321,7 @@ def test_subject_context_provider():
     assert data["user_id"] == "test_123"
     assert data["org_id"] == "org_456"
     assert "admin" in data["roles"]
-    
+
     # Test with custom headers
     response = client.get("/test", headers={
         "X-Test-User-Id": "custom_user",
@@ -332,7 +333,7 @@ def test_subject_context_provider():
     assert data["user_id"] == "custom_user"
     assert data["org_id"] == "custom_org"
     assert data["roles"] == ["viewer"]
-    
+
     return {
         "test_passed": True,
         "provider_installed": True,

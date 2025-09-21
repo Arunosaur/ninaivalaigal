@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Dict
 
 ALLOWED_ROUTES = {
     "/contexts/{id}/memories",
@@ -9,7 +8,7 @@ ALLOWED_ROUTES = {
 def normalize_route_template(raw_path: str, template: str | None) -> str:
     return template or raw_path.split("?",1)[0]
 
-def validate_metric_labels(labels: Dict[str, str]) -> None:
+def validate_metric_labels(labels: dict[str, str]) -> None:
     route = labels.get("route") or ""
     if route and route not in ALLOWED_ROUTES:
         raise ValueError("route label must be a known template, not a concrete path")

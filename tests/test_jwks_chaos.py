@@ -1,4 +1,3 @@
-import pytest
 
 def test_jwks_failure(monkeypatch, client):
     # Simulate JWKS offline by monkeypatching fetch

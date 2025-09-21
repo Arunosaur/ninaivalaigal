@@ -1,7 +1,12 @@
 import pytest
 from rbac.permissions import (
-    Role, Action, Resource, SubjectContext,
-    authorize, effective_role, is_allowed
+    Action,
+    Resource,
+    Role,
+    SubjectContext,
+    authorize,
+    effective_role,
+    is_allowed,
 )
 
 

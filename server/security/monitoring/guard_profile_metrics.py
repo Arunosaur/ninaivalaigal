@@ -6,9 +6,9 @@ security guard modes to track operational behavior and performance.
 """
 
 import time
-from typing import Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class GuardMode(Enum):
@@ -28,9 +28,9 @@ class GuardProfileEvent:
     mode: GuardMode
     action: str  # "allowed", "blocked", "error"
     duration_ms: float
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
     timestamp: float = None
-    
+
     def __post_init__(self):
         if self.timestamp is None:
             self.timestamp = time.time()
@@ -38,64 +38,64 @@ class GuardProfileEvent:
 
 class GuardProfileCollector:
     """Collects and aggregates guard profile metrics."""
-    
+
     def __init__(self):
-        self.events: Dict[str, list] = {}
-        self.counters: Dict[str, int] = {}
-        self.durations: Dict[str, list] = {}
-    
+        self.events: dict[str, list] = {}
+        self.counters: dict[str, int] = {}
+        self.durations: dict[str, list] = {}
+
     def record_event(self, event: GuardProfileEvent):
         """Record a guard profile event."""
         key = f"{event.mode.value}:{event.action}"
-        
+
         # Store event
         if key not in self.events:
             self.events[key] = []
         self.events[key].append(event)
-        
+
         # Update counters
         if key not in self.counters:
             self.counters[key] = 0
         self.counters[key] += 1
-        
+
         # Track durations
         if key not in self.durations:
             self.durations[key] = []
         self.durations[key].append(event.duration_ms)
-    
+
     def get_prometheus_metrics(self) -> str:
         """Export metrics in Prometheus format."""
         lines = []
-        
+
         # Counter metrics
         lines.append("# HELP security_guard_profile_total Total security guard operations by mode and action")
         lines.append("# TYPE security_guard_profile_total counter")
-        
+
         for key, count in self.counters.items():
             mode, action = key.split(":", 1)
             lines.append(f'security_guard_profile_total{{mode="{mode}",action="{action}"}} {count}')
-        
+
         # Duration metrics
         lines.append("# HELP security_guard_profile_duration_ms Security guard operation duration in milliseconds")
         lines.append("# TYPE security_guard_profile_duration_ms histogram")
-        
+
         for key, durations in self.durations.items():
             if durations:
                 mode, action = key.split(":", 1)
                 avg_duration = sum(durations) / len(durations)
                 max_duration = max(durations)
                 min_duration = min(durations)
-                
+
                 lines.append(f'security_guard_profile_duration_ms_avg{{mode="{mode}",action="{action}"}} {avg_duration:.2f}')
                 lines.append(f'security_guard_profile_duration_ms_max{{mode="{mode}",action="{action}"}} {max_duration:.2f}')
                 lines.append(f'security_guard_profile_duration_ms_min{{mode="{mode}",action="{action}"}} {min_duration:.2f}')
-        
+
         return "\n".join(lines)
-    
-    def get_summary_stats(self) -> Dict[str, Any]:
+
+    def get_summary_stats(self) -> dict[str, Any]:
         """Get summary statistics for all guard profiles."""
         stats = {}
-        
+
         for mode in GuardMode:
             mode_stats = {
                 "total_events": 0,
@@ -105,25 +105,25 @@ class GuardProfileCollector:
                 "avg_duration_ms": 0.0,
                 "max_duration_ms": 0.0
             }
-            
+
             mode_durations = []
-            
+
             for action in ["allowed", "blocked", "error"]:
                 key = f"{mode.value}:{action}"
                 count = self.counters.get(key, 0)
                 mode_stats[action] = count
                 mode_stats["total_events"] += count
-                
+
                 if key in self.durations:
                     mode_durations.extend(self.durations[key])
-            
+
             if mode_durations:
                 mode_stats["avg_duration_ms"] = sum(mode_durations) / len(mode_durations)
                 mode_stats["max_duration_ms"] = max(mode_durations)
-            
+
             if mode_stats["total_events"] > 0:
                 stats[mode.value] = mode_stats
-        
+
         return stats
 
 
@@ -147,7 +147,7 @@ def get_guard_profile_metrics() -> str:
     return _guard_profile_collector.get_prometheus_metrics()
 
 
-def get_guard_profile_stats() -> Dict[str, Any]:
+def get_guard_profile_stats() -> dict[str, Any]:
     """Get summary statistics."""
     return _guard_profile_collector.get_summary_stats()
 
@@ -155,30 +155,30 @@ def get_guard_profile_stats() -> Dict[str, Any]:
 # Context manager for timing guard operations
 class GuardProfileTimer:
     """Context manager for timing guard profile operations."""
-    
+
     def __init__(self, mode: GuardMode, **metadata):
         self.mode = mode
         self.metadata = metadata
         self.start_time = None
         self.action = "allowed"  # Default, can be changed
-    
+
     def __enter__(self):
         self.start_time = time.time()
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         duration_ms = (time.time() - self.start_time) * 1000
-        
+
         # Determine action based on exception
         if exc_type is not None:
             self.action = "error"
-        
+
         record_guard_profile(self.mode, self.action, duration_ms, **self.metadata)
-    
+
     def block(self):
         """Mark this operation as blocked."""
         self.action = "blocked"
-    
+
     def allow(self):
         """Mark this operation as allowed."""
         self.action = "allowed"
@@ -186,7 +186,7 @@ class GuardProfileTimer:
 
 def test_guard_profile_metrics():
     """Test guard profile metrics collection."""
-    
+
     # Simulate various guard operations
     test_cases = [
         (GuardMode.EDGE_DECOMPRESS, "allowed", 1.5, {"content_encoding": "gzip"}),
@@ -196,20 +196,20 @@ def test_guard_profile_metrics():
         (GuardMode.MULTIPART_STRICT, "blocked", 2.1, {"violation": "binary_masquerade"}),
         (GuardMode.TIER_FAIL_CLOSED, "blocked", 0.1, {"tier": 3, "detector_error": "timeout"}),
     ]
-    
+
     # Record test events
     for mode, action, duration, metadata in test_cases:
         record_guard_profile(mode, action, duration, **metadata)
-    
+
     # Test context manager
     with GuardProfileTimer(GuardMode.BINARY_MASQUERADE, file_type="png") as timer:
         time.sleep(0.001)  # Simulate processing
         timer.block()  # Mark as blocked
-    
+
     # Get metrics and stats
     prometheus_metrics = get_guard_profile_metrics()
     summary_stats = get_guard_profile_stats()
-    
+
     return {
         "test_events_recorded": len(test_cases) + 1,
         "prometheus_metrics": prometheus_metrics,
@@ -221,14 +221,14 @@ def test_guard_profile_metrics():
 if __name__ == "__main__":
     # Run test
     results = test_guard_profile_metrics()
-    
+
     print("Guard Profile Metrics Test Results:")
     print(f"Events recorded: {results['test_events_recorded']}")
     print(f"Modes tracked: {results['modes_tracked']}")
-    
+
     print("\nPrometheus Metrics:")
     print(results['prometheus_metrics'])
-    
+
     print("\nSummary Stats:")
     for mode, stats in results['summary_stats'].items():
         print(f"{mode}: {stats['total_events']} events, {stats['avg_duration_ms']:.2f}ms avg")

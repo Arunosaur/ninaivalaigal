@@ -5,13 +5,14 @@ Creates memory providers based on configuration.
 """
 
 import os
-from typing import Optional
+
 from .interfaces import MemoryProvider
-from .providers.postgres import PostgresMemoryProvider
 from .providers.mem0_http import Mem0HttpMemoryProvider
+from .providers.postgres import PostgresMemoryProvider
+
 
 def get_memory_provider(
-    provider_type: Optional[str] = None,
+    provider_type: str | None = None,
     **kwargs
 ) -> MemoryProvider:
     """
@@ -26,7 +27,7 @@ def get_memory_provider(
     """
     if provider_type is None:
         provider_type = os.getenv("MEMORY_PROVIDER", "native")
-    
+
     if provider_type == "http":
         return Mem0HttpMemoryProvider(
             base_url=kwargs.get("base_url") or os.getenv("MEM0_URL", "http://127.0.0.1:7070"),
@@ -42,7 +43,7 @@ def get_memory_provider(
         raise ValueError(f"Unknown memory provider type: {provider_type}")
 
 # Global provider instance (lazy-loaded)
-_provider_instance: Optional[MemoryProvider] = None
+_provider_instance: MemoryProvider | None = None
 
 def get_default_memory_provider() -> MemoryProvider:
     """Get the default memory provider instance (singleton)"""

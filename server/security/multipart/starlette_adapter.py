@@ -1,22 +1,18 @@
 # server/security/multipart/starlette_adapter.py
 from __future__ import annotations
-from typing import Callable, Optional
+
+from collections.abc import Callable
 
 from fastapi import HTTPException, status
-from starlette.requests import Request
 from starlette.formparsers import MultiPartParser
+from starlette.requests import Request
 
 from server.security.multipart.strict_limits_hardened import (
-    DEFAULT_MAX_TEXT_PART_BYTES,
     DEFAULT_MAX_BINARY_PART_BYTES,
     DEFAULT_MAX_PARTS_PER_REQUEST,
-    HardenedPartLimitConfig,
-    StreamLimitState,
-    _looks_binary_enhanced as looks_binary,
+    DEFAULT_MAX_TEXT_PART_BYTES,
     detect_enhanced_magic_bytes,
     require_utf8_text,
-    reject_content_transfer_encoding,
-    disallow_archives_for_text,
 )
 
 REASON_ENGINE_ERROR = "engine_error"
@@ -30,7 +26,7 @@ REASON_ARCHIVE_BLOCKED = "archive_blocked"
 def _emit_multipart_reject(reason: str) -> None:
     """Emit multipart rejection metrics with bounded reasons."""
     # Wire to metrics counter: multipart_reject_total{reason}
-    # Bounded reasons: engine_error, policy_denied, magic_mismatch, 
+    # Bounded reasons: engine_error, policy_denied, magic_mismatch,
     # part_too_large, too_many_parts, invalid_encoding, archive_blocked
     try:
         from server.observability.metrics_label_guard import validate_reason_bucket
@@ -44,7 +40,7 @@ def _emit_multipart_reject(reason: str) -> None:
 async def scan_with_starlette(
     request: Request,
     text_handler: Callable[[str, dict], None],
-    binary_handler: Optional[Callable[[bytes, dict], None]] = None,
+    binary_handler: Callable[[bytes, dict], None] | None = None,
     *,
     max_text_part_bytes: int = DEFAULT_MAX_TEXT_PART_BYTES,
     max_binary_part_bytes: int = DEFAULT_MAX_BINARY_PART_BYTES,

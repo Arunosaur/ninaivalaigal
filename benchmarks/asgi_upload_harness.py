@@ -1,12 +1,21 @@
 from __future__ import annotations
-import asyncio, time, os, math
-from typing import Iterable
+
+import asyncio
+import math
+import os
+import time
+
+from httpx import AsyncClient
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
 from starlette.routing import Route
-from httpx import AsyncClient
-from server.security.middleware.fastapi_redaction import RedactionASGIMiddleware  # reuse request MW if present
-from server.security.middleware.response_redaction import ResponseRedactionASGIMiddleware
+
+from server.security.middleware.fastapi_redaction import (
+    RedactionASGIMiddleware,  # reuse request MW if present
+)
+from server.security.middleware.response_redaction import (
+    ResponseRedactionASGIMiddleware,
+)
 
 SECRET = "AKIAIOSFODNN7EXAMPLE"
 PAYLOAD_MB = float(os.environ.get("PAYLOAD_MB", "8"))  # default 8 MB

@@ -6,39 +6,45 @@ Native implementation using PostgreSQL with pgvector for embeddings.
 
 import json
 import uuid
+from collections.abc import Mapping, Sequence
 from datetime import datetime
-from typing import Sequence, Mapping, Any, Optional
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
+from typing import Any
 
-from ..interfaces import MemoryProvider, MemoryItem, MemoryProviderError, MemoryNotFoundError, MemoryProviderConnectionError
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import sessionmaker
+
+from ..interfaces import (
+    MemoryItem,
+    MemoryProviderError,
+)
+
 
 class PostgresMemoryProvider:
     """PostgreSQL-based memory provider with pgvector support"""
-    
+
     def __init__(self, database_url: str, **kwargs):
         if not database_url:
             raise ValueError("database_url is required for PostgresMemoryProvider")
-        
+
         self.database_url = database_url
         self.engine = create_engine(database_url, pool_pre_ping=True)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-    
+
     async def remember(
-        self, 
-        *, 
-        text: str, 
-        meta: Optional[Mapping[str, Any]] = None,
-        user_id: Optional[int] = None,
-        context_id: Optional[str] = None
+        self,
+        *,
+        text: str,
+        meta: Mapping[str, Any] | None = None,
+        user_id: int | None = None,
+        context_id: str | None = None
     ) -> MemoryItem:
         """Store a memory item in PostgreSQL"""
         try:
             memory_id = str(uuid.uuid4())
             created_at = datetime.utcnow()
             meta_json = json.dumps(meta or {})
-            
+
             with self.SessionLocal() as session:
                 # Insert into memories table
                 # Note: In a real implementation, you'd generate embeddings here
@@ -58,7 +64,7 @@ class PostgresMemoryProvider:
                     }
                 )
                 session.commit()
-                
+
                 return MemoryItem(
                     id=memory_id,
                     text=text,
@@ -67,17 +73,17 @@ class PostgresMemoryProvider:
                     context_id=context_id,
                     created_at=created_at.isoformat()
                 )
-                
+
         except SQLAlchemyError as e:
             raise MemoryProviderError(f"Failed to store memory: {e}")
-    
+
     async def recall(
-        self, 
-        *, 
-        query: str, 
+        self,
+        *,
+        query: str,
         k: int = 5,
-        user_id: Optional[int] = None,
-        context_id: Optional[str] = None
+        user_id: int | None = None,
+        context_id: str | None = None
     ) -> Sequence[MemoryItem]:
         """Retrieve memory items by similarity search"""
         try:
@@ -89,21 +95,21 @@ class PostgresMemoryProvider:
                     WHERE content ILIKE :query
                 """
                 params = {"query": f"%{query}%", "limit": k}
-                
+
                 # Add user/context filters if provided
                 if user_id is not None:
                     sql_query += " AND user_id = :user_id"
                     params["user_id"] = user_id
-                
+
                 if context_id is not None:
                     sql_query += " AND context_id = :context_id"
                     params["context_id"] = context_id
-                
+
                 sql_query += " ORDER BY created_at DESC LIMIT :limit"
-                
+
                 result = session.execute(text(sql_query), params)
                 rows = result.fetchall()
-                
+
                 memories = []
                 for row in rows:
                     memories.append(MemoryItem(
@@ -114,42 +120,42 @@ class PostgresMemoryProvider:
                         context_id=row.context_id,
                         created_at=row.created_at.isoformat() if row.created_at else None
                     ))
-                
+
                 return memories
-                
+
         except SQLAlchemyError as e:
             raise MemoryProviderError(f"Failed to recall memories: {e}")
-    
+
     async def delete(
-        self, 
-        *, 
+        self,
+        *,
         id: str,
-        user_id: Optional[int] = None
+        user_id: int | None = None
     ) -> bool:
         """Delete a memory item"""
         try:
             with self.SessionLocal() as session:
                 sql_query = "DELETE FROM memories WHERE id = :id"
                 params = {"id": id}
-                
+
                 # Add user filter for security
                 if user_id is not None:
                     sql_query += " AND user_id = :user_id"
                     params["user_id"] = user_id
-                
+
                 result = session.execute(text(sql_query), params)
                 session.commit()
-                
+
                 return result.rowcount > 0
-                
+
         except SQLAlchemyError as e:
             raise MemoryProviderError(f"Failed to delete memory: {e}")
-    
+
     async def list_memories(
         self,
         *,
-        user_id: Optional[int] = None,
-        context_id: Optional[str] = None,
+        user_id: int | None = None,
+        context_id: str | None = None,
         limit: int = 100,
         offset: int = 0
     ) -> Sequence[MemoryItem]:
@@ -162,20 +168,20 @@ class PostgresMemoryProvider:
                     WHERE 1=1
                 """
                 params = {"limit": limit, "offset": offset}
-                
+
                 if user_id is not None:
                     sql_query += " AND user_id = :user_id"
                     params["user_id"] = user_id
-                
+
                 if context_id is not None:
                     sql_query += " AND context_id = :context_id"
                     params["context_id"] = context_id
-                
+
                 sql_query += " ORDER BY created_at DESC LIMIT :limit OFFSET :offset"
-                
+
                 result = session.execute(text(sql_query), params)
                 rows = result.fetchall()
-                
+
                 memories = []
                 for row in rows:
                     memories.append(MemoryItem(
@@ -186,12 +192,12 @@ class PostgresMemoryProvider:
                         context_id=row.context_id,
                         created_at=row.created_at.isoformat() if row.created_at else None
                     ))
-                
+
                 return memories
-                
+
         except SQLAlchemyError as e:
             raise MemoryProviderError(f"Failed to list memories: {e}")
-    
+
     async def health_check(self) -> bool:
         """Check if PostgreSQL connection is healthy"""
         try:

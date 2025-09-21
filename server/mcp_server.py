@@ -4,25 +4,27 @@ Ninaivalaigal MCP Server - Model Context Protocol implementation
 Provides e^M (exponential Memory) management capabilities as MCP tools, resources, and prompts
 """
 
-import asyncio
 import json
-from typing import Any, Optional, List, Dict
-from mcp.server.fastmcp import FastMCP
-from mcp.types import Resource, TextResourceContents, Tool, Prompt
-from datetime import datetime
+import os
 
 # Import existing mem0 components
 import sys
-import os
+from datetime import datetime
+from typing import Any
+
+from mcp.server.fastmcp import FastMCP
+from mcp.types import Prompt, Resource, TextResourceContents
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from database import DatabaseManager
 from approval_workflow import ApprovalWorkflowManager
-from universal_ai_wrapper import UniversalAIWrapper
 from auto_recording import get_auto_recorder
-from secret_redaction import redact_memory_before_storage, redact_log_message
+from database import DatabaseManager
 from main import load_config
-from spec_kit import SpecKitContextManager, ContextSpec, ContextScope, ContextPermissionSpec, PermissionLevel
+from secret_redaction import redact_memory_before_storage
+from spec_kit import (
+    SpecKitContextManager,
+)
 
 # Initialize MCP server
 mcp = FastMCP("e^m")
@@ -37,15 +39,16 @@ auto_recorder = get_auto_recorder(db)
 
 # JWT token handling for user authentication
 import os
+
 import jwt
-import json
+
 
 def get_user_from_jwt():
     """Extract user ID from JWT token with proper verification"""
     token = os.getenv('NINAIVALAIGAL_USER_TOKEN')
     if not token:
         return int(os.getenv('NINAIVALAIGAL_USER_ID', '1'))  # Fallback
-    
+
     try:
         # Get JWT secret for verification
         jwt_secret = os.getenv('NINAIVALAIGAL_JWT_SECRET')
@@ -55,7 +58,7 @@ def get_user_from_jwt():
         else:
             # Properly verify JWT signature
             decoded = jwt.decode(token, jwt_secret, algorithms=['HS256'])
-        
+
         return decoded.get('user_id', 1)
     except jwt.ExpiredSignatureError:
         print("JWT token expired")
@@ -92,19 +95,19 @@ async def remember(text: str, context: str = None) -> str:
             memory_type = "note"
             source = "mcp"
             memory_data = {"text": text}
-        
+
         # Use default context if none provided
         if not context:
             context = "default"
-            
+
         try:
             # Apply secret redaction before storage
             memory_data = {"text": text, "timestamp": str(datetime.now()), "context": context, "user_id": DEFAULT_USER_ID}
             redacted_memory_data = redact_memory_before_storage(memory_data)
             redacted_text = redacted_memory_data.get("text", text)
-            
+
             db.add_memory(context, "note", "mcp", {"text": redacted_text, "timestamp": str(datetime.now()), "context": context, "user_id": DEFAULT_USER_ID})
-            
+
             # If CCTV recording is active, also record this interaction
             if context in auto_recorder.active_contexts:
                 await auto_recorder.record_interaction(
@@ -113,16 +116,16 @@ async def remember(text: str, context: str = None) -> str:
                     content=text,
                     metadata={"source": "mcp_remember", "user_id": DEFAULT_USER_ID}
                 )
-            
+
             return f"📝 Memory stored successfully in context: {context} (User ID: {DEFAULT_USER_ID})"
         except Exception as e:
             return f"Error storing memory: {e}"
-        
+
     except Exception as e:
         return f"Error storing memory: {str(e)}"
 
 @mcp.tool()
-async def recall(context: str = None, query: str = None) -> List[Dict[str, Any]]:
+async def recall(context: str = None, query: str = None) -> list[dict[str, Any]]:
     """Retrieve memories from context, optionally filtered by query
     
     Args:
@@ -135,14 +138,14 @@ async def recall(context: str = None, query: str = None) -> List[Dict[str, Any]]
     try:
         # Auto-record this recall operation
         await auto_record_tool_usage("recall", f"Context: {context}, Query: {query}")
-        
+
         if context:
             # Get memories from specific context
             memories = db.get_memories(context)
         else:
             # Get all memories across contexts
             memories = db.get_all_memories()
-        
+
         # Apply text filtering if query provided
         if query and memories:
             filtered_memories = []
@@ -154,16 +157,16 @@ async def recall(context: str = None, query: str = None) -> List[Dict[str, Any]]
                     memory_text = memory["data"].get("text", "")
                 elif isinstance(memory.get("data"), str):
                     memory_text = memory["data"]
-                
+
                 if query_lower in memory_text.lower():
                     filtered_memories.append(memory)
             memories = filtered_memories
-        
+
         # Record the result
         await auto_record_tool_usage("recall", f"Found {len(memories)} memories", memories)
-        
+
         return memories
-        
+
     except Exception as e:
         return [{"error": f"Error retrieving memories: {str(e)}"}]
 
@@ -180,7 +183,7 @@ async def context_start(context_name: str) -> str:
     try:
         # Start automatic CCTV recording with user ID from environment
         result = await auto_recorder.start_recording(context_name, user_id=DEFAULT_USER_ID)
-        
+
         if result["success"]:
             # Record the context start event
             await auto_recorder.record_interaction(
@@ -192,7 +195,7 @@ async def context_start(context_name: str) -> str:
             return result["message"]
         else:
             return f"❌ Error starting recording: {result['error']}"
-        
+
     except Exception as e:
         return f"❌ Error starting context: {str(e)}"
 
@@ -222,12 +225,12 @@ async def context_stop(context_name: str = None) -> str:
                 result = await auto_recorder.stop_recording(ctx_name)
                 if result["success"]:
                     stopped_contexts.append(ctx_name)
-            
+
             if stopped_contexts:
                 return f"🛑 Stopped recording for contexts: {', '.join(stopped_contexts)}"
             else:
                 return "🔴 No active recordings to stop"
-        
+
     except Exception as e:
         return f"❌ Error stopping context: {str(e)}"
 
@@ -241,24 +244,24 @@ async def list_contexts() -> str:
     try:
         # Auto-record this operation
         await auto_record_tool_usage("list_contexts", "User requested context list")
-        
+
         user_info = get_current_user()
         result = spec_context_manager.list_contexts(user_info['user_id'])
-        
+
         if result.success:
             contexts = result.data
             if not contexts:
                 response = "No contexts found."
                 await auto_record_tool_usage("list_contexts", "No contexts found", response)
                 return response
-            
+
             context_list = []
             for ctx in contexts:
                 scope = ctx.get('scope', 'personal')
                 scope_icon = {'personal': '👤', 'team': '👥', 'organization': '🏢'}.get(scope, '📁')
                 status = " Active" if ctx.get('is_active') else " Inactive"
                 context_list.append(f"{scope_icon} {ctx['name']} ({scope}, {status}) - {ctx.get('description', 'No description')}")
-            
+
             response = "Available contexts:\n" + "\n".join(context_list)
             await auto_record_tool_usage("list_contexts", f"Found {len(contexts)} contexts", response)
             return response
@@ -277,7 +280,7 @@ async def cross_team_share_memory(
     target_team: str,
     access_level: str = "read",
     justification: str = ""
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Share memory context with another team (requires approval)
     
@@ -288,7 +291,7 @@ async def cross_team_share_memory(
         justification: Justification for sharing
     """
     user_info = get_current_user()
-    
+
     try:
         # Create cross-team sharing request
         request_id = db.create_cross_team_request(
@@ -299,16 +302,16 @@ async def cross_team_share_memory(
             access_level=access_level,
             justification=justification
         )
-        
+
         return {
             "status": "success",
-            "message": f"Cross-team sharing request created",
+            "message": "Cross-team sharing request created",
             "request_id": request_id,
             "context": context_name,
             "target_team": target_team,
             "access_level": access_level
         }
-        
+
     except Exception as e:
         return {
             "status": "error",
@@ -318,10 +321,10 @@ async def cross_team_share_memory(
 @mcp.tool()
 async def team_merger_initiate(
     merger_type: str,
-    source_teams: List[str],
-    target_teams: List[str],
-    memory_policy: Optional[Dict] = None
-) -> Dict[str, Any]:
+    source_teams: list[str],
+    target_teams: list[str],
+    memory_policy: dict | None = None
+) -> dict[str, Any]:
     """
     Initiate team merger process
     
@@ -332,14 +335,14 @@ async def team_merger_initiate(
         memory_policy: Memory migration policy configuration
     """
     user_info = get_current_user()
-    
+
     try:
         from .team_merger_manager import TeamMergerManager
-        
+
         # Validate user permissions
         if not db.user_has_permission(user_info['user_id'], 'team_management'):
             raise PermissionError("Insufficient permissions for team merger")
-        
+
         merger_config = {
             'type': merger_type,
             'source_teams': source_teams,
@@ -347,12 +350,12 @@ async def team_merger_initiate(
             'initiated_by': user_info['user_id'],
             'memory_policy': memory_policy or {}
         }
-        
+
         merger_manager = TeamMergerManager(db)
         merger_id = merger_manager.initiate_team_merger(
             user_info['organization_id'], merger_config
         )
-        
+
         return {
             'status': 'success',
             'merger_id': merger_id,
@@ -365,7 +368,7 @@ async def team_merger_initiate(
                 'Execute merger when ready'
             ]
         }
-        
+
     except Exception as e:
         return {
             "status": "error",
@@ -373,7 +376,7 @@ async def team_merger_initiate(
         }
 
 @mcp.tool()
-async def team_merger_execute(merger_id: int) -> Dict[str, Any]:
+async def team_merger_execute(merger_id: int) -> dict[str, Any]:
     """
     Execute approved team merger
     
@@ -381,16 +384,16 @@ async def team_merger_execute(merger_id: int) -> Dict[str, Any]:
         merger_id: ID of the merger to execute
     """
     user_info = get_current_user()
-    
+
     try:
         from .team_merger_manager import TeamMergerManager
-        
+
         merger_manager = TeamMergerManager(db)
         merger = db.get_team_merger(merger_id)
-        
+
         if not merger:
             raise ValueError(f"Merger {merger_id} not found")
-        
+
         if merger['merger_type'] == 'consolidation':
             result = merger_manager.execute_team_consolidation(merger_id)
         elif merger['merger_type'] == 'split':
@@ -401,12 +404,12 @@ async def team_merger_execute(merger_id: int) -> Dict[str, Any]:
             result = merger_manager.execute_team_rename(merger_id)
         else:
             raise ValueError(f"Unknown merger type: {merger['merger_type']}")
-        
+
         return {
             'status': 'success',
             'execution_result': result
         }
-        
+
     except Exception as e:
         return {
             "status": "error",
@@ -414,7 +417,7 @@ async def team_merger_execute(merger_id: int) -> Dict[str, Any]:
         }
 
 @mcp.tool()
-async def team_merger_status(merger_id: int) -> Dict[str, Any]:
+async def team_merger_status(merger_id: int) -> dict[str, Any]:
     """
     Get status of team merger
     
@@ -422,16 +425,16 @@ async def team_merger_status(merger_id: int) -> Dict[str, Any]:
         merger_id: ID of the merger to check
     """
     user_info = get_current_user()
-    
+
     try:
         merger = db.get_team_merger(merger_id)
         if not merger:
             raise ValueError(f"Merger {merger_id} not found")
-        
+
         # Get detailed status
         status_info = db.get_team_merger_status(merger_id)
         audit_trail = db.get_merger_audit_trail(merger_id)
-        
+
         return {
             'status': 'success',
             'merger_info': merger,
@@ -439,7 +442,7 @@ async def team_merger_status(merger_id: int) -> Dict[str, Any]:
             'audit_trail': audit_trail[-5:] if audit_trail else [],  # Last 5 entries
             'can_rollback': merger['status'] == 'completed'
         }
-        
+
     except Exception as e:
         return {
             "status": "error",
@@ -447,7 +450,7 @@ async def team_merger_status(merger_id: int) -> Dict[str, Any]:
         }
 
 @mcp.tool()
-async def team_merger_rollback(merger_id: int, rollback_reason: str) -> Dict[str, Any]:
+async def team_merger_rollback(merger_id: int, rollback_reason: str) -> dict[str, Any]:
     """
     Rollback completed team merger
     
@@ -456,22 +459,22 @@ async def team_merger_rollback(merger_id: int, rollback_reason: str) -> Dict[str
         rollback_reason: Reason for rollback
     """
     user_info = get_current_user()
-    
+
     try:
         from .team_merger_manager import TeamMergerManager
-        
+
         # Validate permissions
         if not db.user_has_permission(user_info['user_id'], 'team_management'):
             raise PermissionError("Insufficient permissions for merger rollback")
-        
+
         merger_manager = TeamMergerManager(db)
         result = merger_manager.rollback_merger(merger_id, rollback_reason)
-        
+
         return {
             'status': 'success',
             'rollback_result': result
         }
-        
+
     except Exception as e:
         return {
             "status": "error",
@@ -484,19 +487,19 @@ async def approve_cross_team_request(request_id: int, action: str, reason: str =
     try:
         # Note: In real implementation, we'd get user_id from authentication
         user_id = 1  # This should come from authentication context
-        
+
         if action.lower() == "approve":
             result = approval_manager.approve_request(request_id, user_id)
         elif action.lower() == "reject":
             result = approval_manager.reject_request(request_id, user_id, reason)
         else:
             return " Error: Action must be 'approve' or 'reject'"
-        
+
         if result["success"]:
             return f" Request {action}d successfully: {result['message']}"
         else:
             return f" Error: {result['error']}"
-            
+
     except Exception as e:
         return f" Error processing approval action: {str(e)}"
 
@@ -506,17 +509,17 @@ async def list_pending_approvals() -> str:
     try:
         # Note: In real implementation, we'd get user_id from authentication
         user_id = 1  # This should come from authentication context
-        
+
         user_teams = db.get_user_teams(user_id)
         all_requests = []
-        
+
         for team in user_teams:
             team_requests = approval_manager.get_pending_requests_for_team(team.id)
             all_requests.extend(team_requests)
-        
+
         if not all_requests:
             return "No pending approval requests found."
-        
+
         request_list = []
         for req in all_requests:
             request_list.append(
@@ -524,9 +527,9 @@ async def list_pending_approvals() -> str:
                 f"  Permission: {req['permission_level']} | Expires: {req['expires_at'][:10]}\n"
                 f"  Justification: {req['justification'] or 'None provided'}"
             )
-        
+
         return "Pending Cross-Team Access Requests:\n\n" + "\n\n".join(request_list)
-        
+
     except Exception as e:
         return f" Error listing pending approvals: {str(e)}"
 
@@ -563,9 +566,9 @@ async def enhance_ai_prompt_tool(
             ide_name=ide_name,
             workspace_path=workspace_path
         )
-        
+
         return result
-        
+
     except Exception as e:
         return f"❌ Error enhancing AI prompt: {str(e)}"
 
@@ -575,16 +578,16 @@ async def get_ai_context(user_id: int = None, project_context: str = None) -> st
     try:
         # Get recording status
         status = await auto_recorder.get_recording_status()
-        
+
         result = []
         result.append(f"🎥 CCTV Status: {'Active' if status['active_contexts'] > 0 else 'Inactive'}")
         result.append(f"📊 Active Contexts: {status['active_contexts']}")
-        
+
         if status["contexts"]:
             result.append("\n🔴 Currently Recording:")
             for ctx_name, ctx_info in status["contexts"].items():
                 result.append(f"  • {ctx_name}: {ctx_info['messages_recorded']} messages recorded")
-        
+
         # Get all available contexts
         all_contexts = db.get_all_contexts()
         if all_contexts:
@@ -593,9 +596,9 @@ async def get_ai_context(user_id: int = None, project_context: str = None) -> st
                 result.append(f"  • {ctx.get('name', 'Unknown')}")
             if len(all_contexts) > 5:
                 result.append(f"  ... and {len(all_contexts) - 5} more")
-        
+
         return "\n".join(result)
-        
+
     except Exception as e:
         return f"❌ Error getting AI context: {str(e)}"
 
@@ -620,19 +623,19 @@ async def store_ai_feedback(
             "language": language,
             "timestamp": datetime.now().isoformat()
         }
-        
+
         # Store feedback as memory
         context_name = f"ai_feedback_{project_context or 'default'}"
-        
+
         feedback_text = f"AI {ai_model} {'accepted' if user_accepted else 'rejected'} for {language}"
         if not user_accepted:
             feedback_text += f" - Original: {original_prompt[:100]}..."
-        
+
         # This would typically call the remember function
         # For now, just return success
-        
+
         return f"✅ AI feedback stored: {feedback_text}"
-        
+
     except Exception as e:
         return f"❌ Error storing AI feedback: {str(e)}"
 
@@ -642,7 +645,7 @@ async def list_all_contexts() -> Resource:
     try:
         contexts = db.get_contexts()
         content = "\n".join(f"- {context}" for context in contexts)
-        
+
         return Resource(
             uri="ninaivalaigal://contexts",
             name="Available Contexts",
@@ -663,7 +666,7 @@ async def get_context_memories(context_name: str) -> Resource:
     try:
         memories = db.get_memories(context_name)
         content = json.dumps(memories, indent=2)
-        
+
         return Resource(
             uri=f"ninaivalaigal://context/{context_name}",
             name=f"Context: {context_name}",
@@ -684,7 +687,7 @@ async def get_recent_memories() -> Resource:
     try:
         memories = db.get_recent_memories(limit=50)
         content = json.dumps(memories, indent=2)
-        
+
         return Resource(
             uri="ninaivalaigal://recent",
             name="Recent Memories",
@@ -694,7 +697,7 @@ async def get_recent_memories() -> Resource:
     except Exception as e:
         return Resource(
             uri="ninaivalaigal://recent",
-            name="Recent Memories Error", 
+            name="Recent Memories Error",
             description=f"Error retrieving recent memories: {str(e)}",
             mimeType="text/plain"
         )
@@ -705,7 +708,7 @@ async def analyze_context(context_name: str) -> Prompt:
     try:
         memories = db.get_memories(context_name)
         memory_count = len(memories)
-        
+
         prompt_text = f"""Analyze the memories in context '{context_name}':
 
 Context: {context_name}
@@ -720,7 +723,7 @@ Please analyze these memories and provide insights about:
 Recent memories from this context:
 {json.dumps(memories[:10], indent=2)}
 """
-        
+
         return Prompt(
             name=f"analyze-context-{context_name}",
             description=f"Analyze memories in context '{context_name}'",
@@ -740,7 +743,7 @@ async def summarize_session() -> Prompt:
     """Generate a prompt to summarize current session memories"""
     try:
         recent_memories = db.get_recent_memories(limit=20)
-        
+
         prompt_text = f"""Summarize the current development session:
 
 Recent activity ({len(recent_memories)} memories):
@@ -754,7 +757,7 @@ Please provide a summary including:
 Recent memories:
 {json.dumps(recent_memories, indent=2)}
 """
-        
+
         return Prompt(
             name="summarize-session",
             description="Summarize current development session",
@@ -820,7 +823,7 @@ approve_cross_team_request(
 - All actions are logged and auditable
 - Granular permission controls
 """
-    
+
     return Resource(
         uri="ninaivalaigal://approval-workflow",
         name="Cross-Team Approval Workflow Guide",
@@ -836,7 +839,7 @@ async def auto_record_tool_usage(tool_name: str, content: str, response: Any = N
             full_content = f"Tool: {tool_name} - {content}"
             if response:
                 full_content += f" | Response: {str(response)[:100]}..."
-            
+
             await auto_recorder.record_interaction(
                 context_name=context_name,
                 interaction_type="mcp_tool_call",
@@ -860,11 +863,11 @@ async def store_memory(text: str, context: str = None):
             "timestamp": datetime.now().isoformat(),
             "source": "mcp_tool"
         }
-        
+
         # Apply secret redaction before storage
         redacted_memory_data = redact_memory_before_storage(memory_data)
         redacted_text = redacted_memory_data.get("text", text)
-        
+
         # Store in database
         memory_id = db.add_memory(
             user_id=DEFAULT_USER_ID,
@@ -875,5 +878,4 @@ async def store_memory(text: str, context: str = None):
         print(f"Error storing memory: {e}")
 
 if __name__ == "__main__":
-    import asyncio
     mcp.run()

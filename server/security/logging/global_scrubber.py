@@ -5,12 +5,14 @@ Comprehensive secret detection and redaction for logs, telemetry,
 and structured data to prevent sensitive information leakage.
 """
 
-import re
 import json
 import logging
-from typing import Any, Dict, List, Pattern, Union, Optional, Callable
-from dataclasses import dataclass
+import re
+from collections.abc import Callable
 from contextlib import contextmanager
+from dataclasses import dataclass
+from re import Pattern
+from typing import Any
 
 
 @dataclass
@@ -24,12 +26,12 @@ class ScrubPattern:
 
 class GlobalLogScrubber:
     """Global scrubber for logs and telemetry data."""
-    
+
     def __init__(self):
-        self.patterns: List[ScrubPattern] = []
+        self.patterns: list[ScrubPattern] = []
         self.enabled = True
         self._setup_default_patterns()
-    
+
     def _setup_default_patterns(self):
         """Setup default secret detection patterns."""
         # AWS Access Keys
@@ -38,7 +40,7 @@ class GlobalLogScrubber:
             re.compile(r'AKIA[0-9A-Z]{16}', re.IGNORECASE),
             "[REDACTED_AWS_KEY]"
         )
-        
+
         # Generic API Keys (high entropy alphanumeric)
         self.add_pattern(
             "generic_api_key",
@@ -46,14 +48,14 @@ class GlobalLogScrubber:
             "[REDACTED_API_KEY]",
             confidence=0.7
         )
-        
+
         # JWT Tokens
         self.add_pattern(
             "jwt_token",
             re.compile(r'eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*'),
             "[REDACTED_JWT]"
         )
-        
+
         # Base64 encoded secrets (high entropy)
         self.add_pattern(
             "base64_secret",
@@ -61,28 +63,28 @@ class GlobalLogScrubber:
             "[REDACTED_BASE64]",
             confidence=0.6
         )
-    
+
     def add_pattern(self, name: str, pattern: Pattern[str], replacement: str, confidence: float = 1.0):
         """Add a new scrubbing pattern."""
         self.patterns.append(ScrubPattern(name, pattern, replacement, confidence))
-    
+
     def scrub_text(self, text: str) -> str:
         """Scrub secrets from text content."""
         if not self.enabled or not text:
             return text
-        
+
         result = text
         for pattern in self.patterns:
             if pattern.confidence >= 0.8:  # Only apply high-confidence patterns
                 result = pattern.pattern.sub(pattern.replacement, result)
-        
+
         return result
-    
-    def scrub_dict(self, data: Dict[str, Any]) -> Dict[str, Any]:
+
+    def scrub_dict(self, data: dict[str, Any]) -> dict[str, Any]:
         """Recursively scrub secrets from dictionary data."""
         if not self.enabled:
             return data
-        
+
         result = {}
         for key, value in data.items():
             if isinstance(value, str):
@@ -93,14 +95,14 @@ class GlobalLogScrubber:
                 result[key] = self.scrub_list(value)
             else:
                 result[key] = value
-        
+
         return result
-    
-    def scrub_list(self, data: List[Any]) -> List[Any]:
+
+    def scrub_list(self, data: list[Any]) -> list[Any]:
         """Recursively scrub secrets from list data."""
         if not self.enabled:
             return data
-        
+
         result = []
         for item in data:
             if isinstance(item, str):
@@ -111,14 +113,14 @@ class GlobalLogScrubber:
                 result.append(self.scrub_list(item))
             else:
                 result.append(item)
-        
+
         return result
-    
+
     def scrub_json(self, json_str: str) -> str:
         """Scrub secrets from JSON string."""
         if not self.enabled:
             return json_str
-        
+
         try:
             data = json.loads(json_str)
             scrubbed_data = self.scrub_dict(data) if isinstance(data, dict) else self.scrub_list(data)
@@ -126,7 +128,7 @@ class GlobalLogScrubber:
         except (json.JSONDecodeError, TypeError):
             # Fallback to text scrubbing if JSON parsing fails
             return self.scrub_text(json_str)
-    
+
     @contextmanager
     def temporarily_disabled(self):
         """Context manager to temporarily disable scrubbing."""
@@ -147,7 +149,7 @@ def scrub_text(text: str) -> str:
     return _global_scrubber.scrub_text(text)
 
 
-def scrub_dict(data: Dict[str, Any]) -> Dict[str, Any]:
+def scrub_dict(data: dict[str, Any]) -> dict[str, Any]:
     """Global function to scrub dictionary."""
     return _global_scrubber.scrub_dict(data)
 
@@ -164,19 +166,19 @@ def add_scrub_pattern(name: str, pattern: Pattern[str], replacement: str, confid
 
 class ScrubberLogHandler(logging.Handler):
     """Log handler that scrubs secrets before logging."""
-    
+
     def __init__(self, target_handler: logging.Handler):
         super().__init__()
         self.target_handler = target_handler
         self.setLevel(target_handler.level)
         self.setFormatter(target_handler.formatter)
-    
+
     def emit(self, record: logging.LogRecord):
         """Emit log record after scrubbing."""
         # Scrub the message
         if hasattr(record, 'msg') and isinstance(record.msg, str):
             record.msg = scrub_text(record.msg)
-        
+
         # Scrub arguments
         if hasattr(record, 'args') and record.args:
             scrubbed_args = []
@@ -188,18 +190,18 @@ class ScrubberLogHandler(logging.Handler):
                 else:
                     scrubbed_args.append(arg)
             record.args = tuple(scrubbed_args)
-        
+
         self.target_handler.emit(record)
 
 
 def install_global_scrubber():
     """Install global log scrubbing for all loggers."""
     root_logger = logging.getLogger()
-    
+
     # Wrap existing handlers
     original_handlers = root_logger.handlers[:]
     root_logger.handlers.clear()
-    
+
     for handler in original_handlers:
         scrubber_handler = ScrubberLogHandler(handler)
         root_logger.addHandler(scrubber_handler)
@@ -218,11 +220,11 @@ def scrubbing_decorator(func: Callable) -> Callable:
 
 
 # OpenTelemetry integration
-def scrub_span_attributes(attributes: Dict[str, Any]) -> Dict[str, Any]:
+def scrub_span_attributes(attributes: dict[str, Any]) -> dict[str, Any]:
     """Scrub OpenTelemetry span attributes."""
     return scrub_dict(attributes)
 
 
-def scrub_telemetry_event(event_data: Dict[str, Any]) -> Dict[str, Any]:
+def scrub_telemetry_event(event_data: dict[str, Any]) -> dict[str, Any]:
     """Scrub telemetry event data."""
     return scrub_dict(event_data)

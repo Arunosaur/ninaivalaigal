@@ -1,5 +1,8 @@
-import os, pytest, asyncio
-from server.memory.stores.postgres_store import PostgresStore, PGConfig
+import os
+
+import pytest
+
+from server.memory.stores.postgres_store import PGConfig, PostgresStore
 
 pytestmark = pytest.mark.skipif(not os.getenv("DATABASE_URL"), reason="set DATABASE_URL to run PG tests")
 

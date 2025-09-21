@@ -6,12 +6,11 @@ Shannon entropy calculation for detecting high-entropy strings that may be secre
 
 import math
 from collections import Counter
-from typing import Dict
 
 
 class EntropyCalculator:
     """Calculate Shannon entropy for secret detection"""
-    
+
     @staticmethod
     def calculate_shannon_entropy(text: str) -> float:
         """
@@ -25,20 +24,20 @@ class EntropyCalculator:
         """
         if not text:
             return 0.0
-        
+
         # Count character frequencies
         char_counts = Counter(text)
         text_length = len(text)
-        
+
         # Calculate entropy
         entropy = 0.0
         for count in char_counts.values():
             probability = count / text_length
             if probability > 0:
                 entropy -= probability * math.log2(probability)
-        
+
         return entropy
-    
+
     @staticmethod
     def calculate_base64_entropy(text: str) -> float:
         """
@@ -52,18 +51,18 @@ class EntropyCalculator:
         """
         if not text:
             return 0.0
-        
+
         # Base64 character set
         base64_chars = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=')
-        
+
         # Filter to only base64 characters
         filtered_text = ''.join(c for c in text if c in base64_chars)
-        
+
         if not filtered_text:
             return 0.0
-        
+
         return EntropyCalculator.calculate_shannon_entropy(filtered_text)
-    
+
     @staticmethod
     def calculate_hex_entropy(text: str) -> float:
         """
@@ -77,20 +76,20 @@ class EntropyCalculator:
         """
         if not text:
             return 0.0
-        
+
         # Hex character set
         hex_chars = set('0123456789abcdefABCDEF')
-        
+
         # Filter to only hex characters
         filtered_text = ''.join(c for c in text if c in hex_chars)
-        
+
         if not filtered_text:
             return 0.0
-        
+
         return EntropyCalculator.calculate_shannon_entropy(filtered_text)
-    
+
     @staticmethod
-    def get_entropy_metrics(text: str) -> Dict[str, float]:
+    def get_entropy_metrics(text: str) -> dict[str, float]:
         """
         Get comprehensive entropy metrics for a string.
         

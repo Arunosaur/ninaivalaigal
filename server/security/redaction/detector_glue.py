@@ -3,9 +3,9 @@ Detector glue system that provides a unified interface for the redaction engine.
 Attempts to import and use the existing redaction engine, falls back to basic detectors.
 """
 from __future__ import annotations
-import typing as t
+
 import re
-from typing import Optional
+
 
 def detector_fn(text: str) -> str:
     """
@@ -17,7 +17,7 @@ def detector_fn(text: str) -> str:
         # Try to use existing redaction engine
         from server.security.redaction import RedactionEngine
         from server.security.redaction.config import ContextSensitivity
-        
+
         engine = RedactionEngine()
         result = engine.redact(text, ContextSensitivity.CONFIDENTIAL)
         return result.redacted_text
@@ -30,7 +30,7 @@ def _fallback_redaction(text: str) -> str:
     patterns = [
         # AWS Access Keys
         (r'AKIA[0-9A-Z]{16}', '[REDACTED-AWS-KEY]'),
-        # GitHub Personal Access Tokens  
+        # GitHub Personal Access Tokens
         (r'ghp_[A-Za-z0-9]{36}', '[REDACTED-GITHUB-TOKEN]'),
         # OpenAI API Keys
         (r'sk-[A-Za-z0-9]{48}', '[REDACTED-OPENAI-KEY]'),
@@ -47,11 +47,11 @@ def _fallback_redaction(text: str) -> str:
         # Phone numbers
         (r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', '[REDACTED-PHONE]'),
     ]
-    
+
     redacted = text
     for pattern, replacement in patterns:
         redacted = re.sub(pattern, replacement, redacted, flags=re.IGNORECASE)
-    
+
     return redacted
 
 # High-entropy string detection fallback
@@ -59,26 +59,26 @@ def _has_high_entropy(text: str, threshold: float = 4.0) -> bool:
     """Simple entropy calculation for fallback detection"""
     if len(text) < 8:
         return False
-    
+
     import math
     from collections import Counter
-    
+
     # Calculate Shannon entropy
     counts = Counter(text)
     length = len(text)
     entropy = -sum((count / length) * math.log2(count / length) for count in counts.values())
-    
+
     return entropy > threshold
 
 def enhanced_detector_fn(text: str) -> str:
     """Enhanced detector with entropy-based detection"""
     # First apply pattern-based redaction
     redacted = detector_fn(text)
-    
+
     # Then check for high-entropy strings that might be secrets
     words = redacted.split()
     for i, word in enumerate(words):
         if len(word) > 16 and _has_high_entropy(word):
             words[i] = '[REDACTED-HIGH-ENTROPY]'
-    
+
     return ' '.join(words)

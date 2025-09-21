@@ -1,5 +1,5 @@
-import os, time
 import pytest
+
 
 @pytest.mark.parametrize("mode", ["jwks"])
 def test_jwks_offline_graceful_degradation(monkeypatch, mode):

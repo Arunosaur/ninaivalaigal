@@ -3,7 +3,7 @@ Redis Queue API Endpoints - SPEC-033
 RESTful API for background task management and monitoring
 """
 
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 from auth import get_current_user
@@ -39,11 +39,11 @@ class TaskResponse(BaseModel):
 class JobStatusResponse(BaseModel):
     id: str
     status: str
-    created_at: Optional[str]
-    started_at: Optional[str]
-    ended_at: Optional[str]
-    result: Optional[dict[str, Any]]
-    error: Optional[str]
+    created_at: str | None
+    started_at: str | None
+    ended_at: str | None
+    result: dict[str, Any] | None
+    error: str | None
 
 
 class QueueStatsResponse(BaseModel):
@@ -204,7 +204,7 @@ async def get_queue_stats(
 async def process_memory_async(
     memory_id: str,
     text: str,
-    metadata: Optional[dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
     current_user: User = Depends(get_current_user),
 ):
     """Enqueue memory processing task (convenience endpoint)"""
@@ -230,7 +230,7 @@ async def process_memory_async(
 
 @router.post("/relevance/calculate")
 async def calculate_relevance_async(
-    context_id: Optional[str] = None, current_user: User = Depends(get_current_user)
+    context_id: str | None = None, current_user: User = Depends(get_current_user)
 ):
     """Enqueue relevance calculation task (convenience endpoint)"""
     try:

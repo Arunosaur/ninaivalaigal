@@ -1,5 +1,6 @@
-from server.security.rbac.replay_store import seen_before
 from server.security.rbac.metrics_jwt import jwt_replay_total
+from server.security.rbac.replay_store import seen_before
+
 
 def test_jwt_replay_counter_increments_on_repeat():
     jti = "abc123"

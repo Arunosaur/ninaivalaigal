@@ -4,27 +4,27 @@ Test script for mem0 signup and login functionality
 Tests individual user signup, organization signup, and login
 """
 
-import requests
 import json
-import time
+
+import requests
 
 BASE_URL = "http://localhost:8000"
 
 def test_individual_signup():
     """Test individual user signup"""
     print("🧪 Testing Individual User Signup...")
-    
+
     signup_data = {
         "email": "john.doe@example.com",
         "password": "SecurePass123",
         "name": "John Doe",
         "account_type": "individual"
     }
-    
+
     try:
         response = requests.post(f"{BASE_URL}/auth/signup/individual", json=signup_data)
         print(f"Status Code: {response.status_code}")
-        
+
         if response.status_code == 200:
             result = response.json()
             print("✅ Individual signup successful!")
@@ -35,7 +35,7 @@ def test_individual_signup():
         else:
             print(f"❌ Individual signup failed: {response.text}")
             return None
-            
+
     except Exception as e:
         print(f"❌ Error during individual signup: {e}")
         return None
@@ -43,7 +43,7 @@ def test_individual_signup():
 def test_organization_signup():
     """Test organization signup"""
     print("\n🧪 Testing Organization Signup...")
-    
+
     signup_data = {
         "user": {
             "email": "admin@acmecorp.com",
@@ -57,11 +57,11 @@ def test_organization_signup():
             "industry": "Technology"
         }
     }
-    
+
     try:
         response = requests.post(f"{BASE_URL}/auth/signup/organization", json=signup_data)
         print(f"Status Code: {response.status_code}")
-        
+
         if response.status_code == 200:
             result = response.json()
             print("✅ Organization signup successful!")
@@ -72,7 +72,7 @@ def test_organization_signup():
         else:
             print(f"❌ Organization signup failed: {response.text}")
             return None
-            
+
     except Exception as e:
         print(f"❌ Error during organization signup: {e}")
         return None
@@ -80,16 +80,16 @@ def test_organization_signup():
 def test_login(email, password):
     """Test user login"""
     print(f"\n🧪 Testing Login for {email}...")
-    
+
     login_data = {
         "email": email,
         "password": password
     }
-    
+
     try:
         response = requests.post(f"{BASE_URL}/auth/login", json=login_data)
         print(f"Status Code: {response.status_code}")
-        
+
         if response.status_code == 200:
             result = response.json()
             print("✅ Login successful!")
@@ -100,23 +100,23 @@ def test_login(email, password):
         else:
             print(f"❌ Login failed: {response.text}")
             return None
-            
+
     except Exception as e:
         print(f"❌ Error during login: {e}")
         return None
 
 def test_protected_endpoint(token):
     """Test accessing protected endpoint with JWT token"""
-    print(f"\n🧪 Testing Protected Endpoint Access...")
-    
+    print("\n🧪 Testing Protected Endpoint Access...")
+
     headers = {
         "Authorization": f"Bearer {token}"
     }
-    
+
     try:
         response = requests.get(f"{BASE_URL}/auth/me", headers=headers)
         print(f"Status Code: {response.status_code}")
-        
+
         if response.status_code == 200:
             result = response.json()
             print("✅ Protected endpoint access successful!")
@@ -125,7 +125,7 @@ def test_protected_endpoint(token):
         else:
             print(f"❌ Protected endpoint access failed: {response.text}")
             return False
-            
+
     except Exception as e:
         print(f"❌ Error accessing protected endpoint: {e}")
         return False
@@ -133,7 +133,7 @@ def test_protected_endpoint(token):
 def test_server_health():
     """Test if server is running"""
     print("🧪 Testing Server Health...")
-    
+
     try:
         response = requests.get(f"{BASE_URL}/health")
         if response.status_code == 200:
@@ -149,30 +149,30 @@ def test_server_health():
 def main():
     """Run all tests"""
     print("🚀 Starting Mem0 Signup System Tests\n")
-    
+
     # Test server health first
     if not test_server_health():
         print("❌ Server is not running. Please start the server first.")
         return
-    
+
     # Test individual signup
     individual_token = test_individual_signup()
-    
+
     # Test organization signup
     org_token = test_organization_signup()
-    
+
     # Test login for individual user
     if individual_token:
         login_token = test_login("john.doe@example.com", "SecurePass123")
         if login_token:
             test_protected_endpoint(login_token)
-    
+
     # Test login for organization admin
     if org_token:
         admin_login_token = test_login("admin@acmecorp.com", "AdminPass123")
         if admin_login_token:
             test_protected_endpoint(admin_login_token)
-    
+
     print("\n🏁 Test Suite Complete!")
 
 if __name__ == "__main__":

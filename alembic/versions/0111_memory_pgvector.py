@@ -1,6 +1,7 @@
 """init pgvector memory schema"""
+
 from alembic import op
-import sqlalchemy as sa
+
 revision = '0111_memory_pgvector'
 down_revision = None
 branch_labels = None

@@ -1,14 +1,15 @@
+
 from pydantic import BaseModel
-from typing import Optional, List
+
 
 class MemoryRecord(BaseModel):
     content: str
     scope: str  # personal, team, org
-    tags: Optional[List[str]] = []
+    tags: list[str] | None = []
 
 class MemoryQuery(BaseModel):
     scope: str
-    filter: Optional[str] = None
+    filter: str | None = None
 
 class MemoryShare(BaseModel):
     target_scope: str

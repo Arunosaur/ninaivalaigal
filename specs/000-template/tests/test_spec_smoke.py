@@ -1,4 +1,7 @@
-import os, time, httpx
+import os
+import time
+
+import httpx
 
 BASE = os.getenv("API_BASE", "http://localhost:13370")
 

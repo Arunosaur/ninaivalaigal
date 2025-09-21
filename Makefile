@@ -504,6 +504,28 @@ test-health:
 	@echo "🏥 Testing Memory Health & Orphaned Token System (SPEC-042)"
 	@conda run -n nina python scripts/test_memory_health_system.py
 
+## test memory access control (ACL) system (SPEC-043)
+test-acl:
+	@echo "🔐 Testing Memory Access Control (ACL) Per Token System (SPEC-043)"
+	@conda run -n nina python scripts/test_memory_acl_system.py
+
+## test memory drift & diff detection system (SPEC-044)
+test-drift:
+	@echo "🔍 Testing Memory Drift & Diff Detection System (SPEC-044)"
+	@conda run -n nina python scripts/test_memory_drift_system.py
+
+## SPEC-051: Developer Experience Improvements
+lint-fix:
+	@echo "🔧 Auto-fixing code formatting issues (SPEC-051)"
+	@ruff check --fix .
+	@ruff format .
+	@echo "✅ Code formatting fixed"
+
+lint-explain:
+	@echo "📋 Explaining lint issues (SPEC-051)"
+	@ruff check . --output-format=github || true
+	@echo "💡 Run 'make lint-fix' to auto-fix most issues"
+
 test-preload-status:
 	@echo "🚀 Testing Preloading Status"
 	@echo "============================"

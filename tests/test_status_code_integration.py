@@ -1,12 +1,14 @@
 """Integration tests to verify HTTP status codes per rejection reason."""
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
+from fake_objects import FakePart, FakeRequest
 from fastapi import HTTPException
-from fake_objects import FakeRequest, FakePart
+
 from server.security.multipart.starlette_adapter import scan_with_starlette
 
 
@@ -20,9 +22,9 @@ class TestStatusCodeIntegration:
         big_content = b"x" * (16 * 1024 * 1024 + 100)  # Over 16MB default
         parts = [FakePart({"content-type": "text/plain"}, [big_content])]
         req = FakeRequest(parts)
-        
+
         async def text_handler(s, h): pass
-        
+
         with pytest.raises(HTTPException) as ei:
             await scan_with_starlette(req, text_handler)
         assert ei.value.status_code == 413
@@ -34,9 +36,9 @@ class TestStatusCodeIntegration:
         # Create too many parts
         parts = [FakePart({"content-type": "text/plain"}, [b"test"]) for _ in range(300)]
         req = FakeRequest(parts)
-        
+
         async def text_handler(s, h): pass
-        
+
         with pytest.raises(HTTPException) as ei:
             await scan_with_starlette(req, text_handler, max_parts_per_request=256)
         assert ei.value.status_code == 413
@@ -45,16 +47,16 @@ class TestStatusCodeIntegration:
     @pytest.mark.asyncio
     async def test_415_encoding_cte_magic_mismatch(self):
         """Test 415 status for encoding/CTE/magic mismatch violations."""
-        
+
         # Test Content-Transfer-Encoding rejection
         parts = [FakePart({
             "content-type": "text/plain",
             "content-transfer-encoding": "base64"
         }, [b"hello"])]
         req = FakeRequest(parts)
-        
+
         async def text_handler(s, h): pass
-        
+
         with pytest.raises(HTTPException) as ei:
             await scan_with_starlette(req, text_handler)
         assert ei.value.status_code == 415
@@ -67,9 +69,9 @@ class TestStatusCodeIntegration:
         pe_magic = b"MZ\x90\x00"
         parts = [FakePart({"content-type": "text/plain"}, [pe_magic + b"fake_pe_content"])]
         req = FakeRequest(parts)
-        
+
         async def text_handler(s, h): pass
-        
+
         with pytest.raises(HTTPException) as ei:
             await scan_with_starlette(req, text_handler)
         assert ei.value.status_code == 415
@@ -83,9 +85,9 @@ class TestStatusCodeIntegration:
         zip_magic = b"PK\x03\x04"
         parts = [FakePart({"content-type": "text/plain"}, [zip_magic + b"fake_zip_content"])]
         req = FakeRequest(parts)
-        
+
         async def text_handler(s, h): pass
-        
+
         with pytest.raises(HTTPException) as ei:
             await scan_with_starlette(req, text_handler)
         assert ei.value.status_code == 415
@@ -97,9 +99,9 @@ class TestStatusCodeIntegration:
         utf16_content = "hello".encode("utf-16le")
         parts = [FakePart({"content-type": "text/plain"}, [utf16_content])]
         req = FakeRequest(parts)
-        
+
         async def text_handler(s, h): pass
-        
+
         with pytest.raises(HTTPException) as ei:
             await scan_with_starlette(req, text_handler)
         assert ei.value.status_code == 415
@@ -110,10 +112,10 @@ class TestStatusCodeIntegration:
         """Test 415 status for binary uploads on text-only endpoints."""
         parts = [FakePart({"content-type": "application/octet-stream"}, [b"binary_data"])]
         req = FakeRequest(parts)
-        
+
         async def text_handler(s, h): pass
         # No binary handler = text-only endpoint
-        
+
         with pytest.raises(HTTPException) as ei:
             await scan_with_starlette(req, text_handler)
         assert ei.value.status_code == 415
@@ -124,8 +126,11 @@ class TestStatusCodeIntegration:
         """Test 400 status for malformed multipart stream."""
         # This test would require mocking parser exceptions
         # For now, verify the pattern exists in the code
-        from server.security.multipart.starlette_adapter import _emit_multipart_reject, REASON_ENGINE_ERROR
-        
+        from server.security.multipart.starlette_adapter import (
+            REASON_ENGINE_ERROR,
+            _emit_multipart_reject,
+        )
+
         # Verify the function exists and can be called
         _emit_multipart_reject(REASON_ENGINE_ERROR)
         # In real scenarios, this would trigger HTTP 400

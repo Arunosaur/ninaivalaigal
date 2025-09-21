@@ -1,10 +1,14 @@
 from __future__ import annotations
+
+import json
+import os
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Sequence
-import os, json
+from typing import Any
 
 import psycopg
 from psycopg.rows import dict_row
+
 
 # --- tiny embedding stub (swap for your embedding service) ------------------
 def embed(text: str, dim: int = 8) -> list[float]:
@@ -54,7 +58,7 @@ class PostgresStore:
                 await cur.execute(sql)
                 await conn.commit()
 
-    async def write(self, rec: Dict[str, Any]) -> Dict[str, Any]:
+    async def write(self, rec: dict[str, Any]) -> dict[str, Any]:
         await self.ensure_schema()
         emb = embed(rec.get("text", ""), self.cfg.dim) if self.cfg.use_vectors else None
         sql = f"""
@@ -80,7 +84,7 @@ class PostgresStore:
                 await conn.commit()
         return row
 
-    async def query(self, q: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def query(self, q: dict[str, Any]) -> list[dict[str, Any]]:
         filters = ["scope = %(scope)s"]
         if q.get("scope") == "personal":
             filters.append("user_id = %(user_id)s")
@@ -116,7 +120,7 @@ class PostgresStore:
                 rows = await cur.fetchall()
         return rows
 
-    async def share(self, record_ids: Sequence[str], to_scope: str, target: Dict[str, Any]) -> int:
+    async def share(self, record_ids: Sequence[str], to_scope: str, target: dict[str, Any]) -> int:
         if not record_ids:
             return 0
         ids_tuple = tuple(record_ids)

@@ -3,12 +3,11 @@
 Fixed pytest version of signup and login functionality tests
 """
 
-import pytest
-import requests
-import json
-from fastapi.testclient import TestClient
-import sys
 import os
+import sys
+
+import pytest
+from fastapi.testclient import TestClient
 
 # Add server to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'server'))
@@ -53,17 +52,17 @@ def test_individual_signup(client, test_user_data):
     """Test individual user signup"""
     try:
         response = client.post("/auth/signup/individual", json=test_user_data)
-        
+
         # Should either succeed or fail gracefully
         assert response.status_code in [200, 201, 400, 409], f"Unexpected status: {response.status_code}"
-        
+
         if response.status_code in [200, 201]:
             result = response.json()
             assert "user" in result or "user_id" in result
             print("✅ Individual signup successful")
         else:
             print(f"ℹ️ Individual signup returned {response.status_code} (expected for existing user)")
-            
+
     except Exception as e:
         pytest.skip(f"Individual signup test skipped: {e}")
 
@@ -71,17 +70,17 @@ def test_organization_signup(client, test_org_data):
     """Test organization signup"""
     try:
         response = client.post("/auth/signup/organization", json=test_org_data)
-        
+
         # Should either succeed or fail gracefully
         assert response.status_code in [200, 201, 400, 409], f"Unexpected status: {response.status_code}"
-        
+
         if response.status_code in [200, 201]:
             result = response.json()
             assert "user_id" in result or "organization_id" in result
             print("✅ Organization signup successful")
         else:
             print(f"ℹ️ Organization signup returned {response.status_code} (expected for existing org)")
-            
+
     except Exception as e:
         pytest.skip(f"Organization signup test skipped: {e}")
 
@@ -92,20 +91,20 @@ def test_login_functionality(client):
         "email": "test@example.com",
         "password": "testpass"
     }
-    
+
     try:
         response = client.post("/auth/login", json=login_data)
-        
+
         # Should return a valid HTTP status
         assert response.status_code in [200, 401, 404, 422], f"Unexpected status: {response.status_code}"
-        
+
         if response.status_code == 200:
             result = response.json()
             assert "token" in result or "jwt_token" in result or "access_token" in result
             print("✅ Login successful")
         else:
             print(f"ℹ️ Login returned {response.status_code} (expected for test credentials)")
-            
+
     except Exception as e:
         pytest.skip(f"Login test skipped: {e}")
 
@@ -114,10 +113,10 @@ def test_protected_endpoint_structure(client):
     # Test without token (should get 401 or similar)
     try:
         response = client.get("/api/protected")
-        assert response.status_code in [401, 403, 404, 422], f"Protected endpoint should require auth"
+        assert response.status_code in [401, 403, 404, 422], "Protected endpoint should require auth"
         print("✅ Protected endpoint properly secured")
-        
-    except Exception as e:
+
+    except Exception:
         # If endpoint doesn't exist, that's also fine
         print("ℹ️ Protected endpoint test - endpoint may not exist")
 

@@ -2,10 +2,10 @@
 Redaction package for sensitive data detection and redaction
 """
 
-from .detectors import CombinedSecretDetector, SecretMatch, ContextAwareDetector
-from .processors import ContextualRedactor, RedactionResult
-from .audit import RedactionAuditLogger, RedactionAuditEvent, AuditEventType
+from .audit import AuditEventType, RedactionAuditEvent, RedactionAuditLogger
 from .config import ContextSensitivity, redaction_config
+from .detectors import CombinedSecretDetector, ContextAwareDetector, SecretMatch
+from .processors import ContextualRedactor, RedactionResult
 
 # Create global audit logger instance
 redaction_audit_logger = RedactionAuditLogger()
@@ -13,11 +13,11 @@ redaction_audit_logger = RedactionAuditLogger()
 
 class RedactionEngine:
     """Main redaction engine that combines detection and processing"""
-    
+
     def __init__(self):
         self.detector = CombinedSecretDetector()
         self.processor = ContextualRedactor()
-    
+
     def redact(self, text: str, sensitivity_tier: ContextSensitivity) -> RedactionResult:
         """Redact sensitive data from text"""
         # Process redaction using the contextual processor (which handles detection internally)
@@ -26,7 +26,7 @@ class RedactionEngine:
 
 __all__ = [
     'CombinedSecretDetector',
-    'SecretMatch', 
+    'SecretMatch',
     'ContextAwareDetector',
     'ContextualRedactor',
     'RedactionResult',

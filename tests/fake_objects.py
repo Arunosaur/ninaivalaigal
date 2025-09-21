@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 class FakePart:
     def __init__(self, headers: dict, chunks: list[bytes]):
         self.headers = headers

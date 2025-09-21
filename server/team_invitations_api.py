@@ -7,54 +7,53 @@ import os
 import secrets
 import smtplib
 from datetime import datetime, timedelta
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from auth import get_current_user
 from database import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/teams", tags=["team-invitations"])
 
 class TeamInvitationCreate(BaseModel):
     email: EmailStr
-    team_ids: List[str]
+    team_ids: list[str]
     role: str = "member"  # member, admin, viewer
-    message: Optional[str] = None
-    expiration: Optional[int] = 14  # days, None for never expires
+    message: str | None = None
+    expiration: int | None = 14  # days, None for never expires
 
 class TeamInvitationResponse(BaseModel):
     id: str
     email: str
-    name: Optional[str] = None
-    teams: List[str]
+    name: str | None = None
+    teams: list[str]
     role: str
     status: str  # pending, accepted, expired, revoked
     sent_at: datetime
-    expires_at: Optional[datetime] = None
-    accepted_at: Optional[datetime] = None
-    message: Optional[str] = None
+    expires_at: datetime | None = None
+    accepted_at: datetime | None = None
+    message: str | None = None
     sent_by: str
-    invitation_link: Optional[str] = None
+    invitation_link: str | None = None
 
 class TeamInvitationAccept(BaseModel):
     token: str
     user_data: dict  # name, password if new user
 
 class BulkInvitationAction(BaseModel):
-    invitation_ids: List[str]
+    invitation_ids: list[str]
     action: str  # resend, revoke, extend
-    extend_days: Optional[int] = 14
+    extend_days: int | None = 14
 
-@router.get("/invitations", response_model=List[TeamInvitationResponse])
+@router.get("/invitations", response_model=list[TeamInvitationResponse])
 async def list_team_invitations(current_user: dict = Depends(get_current_user)):
     """List all team invitations sent by the current user"""
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual database query
         # For now, return sample data
         sample_invitations = [
@@ -97,9 +96,9 @@ async def list_team_invitations(current_user: dict = Depends(get_current_user)):
                 sent_by=current_user.get("email", "current-user@company.com")
             )
         ]
-        
+
         return sample_invitations
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -115,20 +114,20 @@ async def send_team_invitation(
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # Generate invitation token
         invitation_id = f"inv_{secrets.token_urlsafe(16)}"
         invitation_token = secrets.token_urlsafe(32)
-        
+
         # Calculate expiration
         expires_at = None
         if invitation_data.expiration:
             expires_at = datetime.utcnow() + timedelta(days=invitation_data.expiration)
-        
+
         # TODO: Store invitation in database
         # TODO: Get actual team names from team_ids
         team_names = [f"Team {team_id}" for team_id in invitation_data.team_ids]
-        
+
         # Create invitation response
         new_invitation = TeamInvitationResponse(
             id=invitation_id,
@@ -142,12 +141,12 @@ async def send_team_invitation(
             sent_by=current_user.get("email", "current-user@company.com"),
             invitation_link=f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/accept-invitation?token={invitation_token}"
         )
-        
+
         # Send email invitation
         await send_invitation_email(new_invitation, invitation_token)
-        
+
         return new_invitation
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -163,15 +162,15 @@ async def resend_team_invitation(
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual resend logic
         # For now, just return success
-        
+
         return {
             "message": f"Invitation {invitation_id} has been resent successfully",
             "resent_at": datetime.utcnow()
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -188,15 +187,15 @@ async def extend_team_invitation(
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual extension logic
         new_expiry = datetime.utcnow() + timedelta(days=extend_days)
-        
+
         return {
             "message": f"Invitation {invitation_id} has been extended successfully",
             "new_expires_at": new_expiry
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -212,14 +211,14 @@ async def revoke_team_invitation(
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual revocation logic
-        
+
         return {
             "message": f"Invitation {invitation_id} has been revoked successfully",
             "revoked_at": datetime.utcnow()
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -235,15 +234,15 @@ async def bulk_invitation_action(
     try:
         db = get_db()
         user_id = current_user.get("user_id")
-        
+
         # TODO: Implement actual bulk actions
-        
+
         return {
             "message": f"Bulk {bulk_action.action} completed successfully",
             "affected_invitations": len(bulk_action.invitation_ids),
             "processed_at": datetime.utcnow()
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -255,7 +254,7 @@ async def accept_team_invitation(invitation_data: TeamInvitationAccept):
     """Accept a team invitation"""
     try:
         db = get_db()
-        
+
         # TODO: Implement actual invitation acceptance logic
         # This would involve:
         # 1. Validate invitation token
@@ -263,14 +262,14 @@ async def accept_team_invitation(invitation_data: TeamInvitationAccept):
         # 3. Create user account if needed
         # 4. Add user to specified teams
         # 5. Mark invitation as accepted
-        
+
         return {
             "message": "Invitation accepted successfully",
             "user_created": False,  # or True if new user was created
             "teams_joined": ["Development Team", "QA Team"],
             "accepted_at": datetime.utcnow()
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -282,10 +281,10 @@ async def validate_invitation_token(token: str):
     """Validate an invitation token and return invitation details"""
     try:
         db = get_db()
-        
+
         # TODO: Implement actual token validation
         # For now, return sample data
-        
+
         return {
             "valid": True,
             "invitation": {
@@ -299,7 +298,7 @@ async def validate_invitation_token(token: str):
                 "organization": "Acme Corp"
             }
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -316,14 +315,14 @@ async def send_invitation_email(invitation: TeamInvitationResponse, token: str):
         smtp_username = os.getenv('SMTP_USERNAME')
         smtp_password = os.getenv('SMTP_PASSWORD')
         from_email = os.getenv('FROM_EMAIL', 'noreply@ninaivalaigal.com')
-        
+
         if not smtp_username or not smtp_password:
-            print(f"Email sending skipped - SMTP credentials not configured")
+            print("Email sending skipped - SMTP credentials not configured")
             return
-        
+
         # Create email content
         subject = f"Team Invitation - Join {', '.join(invitation.teams)}"
-        
+
         html_content = f"""
         <html>
         <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -368,25 +367,25 @@ async def send_invitation_email(invitation: TeamInvitationResponse, token: str):
         </body>
         </html>
         """
-        
+
         # Create message
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From'] = from_email
         msg['To'] = invitation.email
-        
+
         # Add HTML content
         html_part = MIMEText(html_content, 'html')
         msg.attach(html_part)
-        
+
         # Send email
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(smtp_username, smtp_password)
             server.send_message(msg)
-        
+
         print(f"Invitation email sent to {invitation.email}")
-        
+
     except Exception as e:
         print(f"Failed to send invitation email: {str(e)}")
         # Don't raise exception - invitation should still be created even if email fails
@@ -395,7 +394,7 @@ def generate_invitation_token() -> str:
     """Generate a secure invitation token"""
     return secrets.token_urlsafe(32)
 
-def validate_invitation_expiry(expires_at: Optional[datetime]) -> bool:
+def validate_invitation_expiry(expires_at: datetime | None) -> bool:
     """Check if invitation is still valid"""
     if not expires_at:
         return True  # Never expires

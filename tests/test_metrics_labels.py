@@ -1,5 +1,7 @@
 import pytest
+
 from server.observability.metrics_labels import validate_metric_labels
+
 
 def test_route_template_only():
     with pytest.raises(ValueError):

@@ -5,21 +5,19 @@ RESTful API for generating and managing intelligent memory suggestions.
 Integrates with multiple algorithms and provides personalized recommendations.
 """
 
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any
+
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
 from auth import get_current_user
 from database import User
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 from suggestions_engine import (
-    get_suggestions_engine,
     IntelligentSuggestionsEngine,
     SuggestionRequest,
     SuggestionType,
-    SuggestionReason,
-    MemorySuggestion,
-    SuggestionResponse
+    get_suggestions_engine,
 )
 
 logger = structlog.get_logger(__name__)
@@ -29,13 +27,25 @@ router = APIRouter(prefix="/suggestions", tags=["suggestions"])
 
 # Request/Response models
 class GetSuggestionsRequest(BaseModel):
-    memory_id: Optional[str] = Field(None, description="Base memory for similarity suggestions")
-    query: Optional[str] = Field(None, description="Query for content-based suggestions")
-    context_id: Optional[str] = Field(None, description="Context for contextual suggestions")
+    memory_id: str | None = Field(
+        None, description="Base memory for similarity suggestions"
+    )
+    query: str | None = Field(
+        None, description="Query for content-based suggestions"
+    )
+    context_id: str | None = Field(
+        None, description="Context for contextual suggestions"
+    )
     limit: int = Field(10, ge=1, le=50, description="Maximum number of suggestions")
-    suggestion_types: Optional[List[str]] = Field(None, description="Algorithm types to use")
-    exclude_memory_ids: Optional[List[str]] = Field(None, description="Memory IDs to exclude")
-    min_confidence: float = Field(0.3, ge=0.0, le=1.0, description="Minimum confidence threshold")
+    suggestion_types: list[str] | None = Field(
+        None, description="Algorithm types to use"
+    )
+    exclude_memory_ids: list[str] | None = Field(
+        None, description="Memory IDs to exclude"
+    )
+    min_confidence: float = Field(
+        0.3, ge=0.0, le=1.0, description="Minimum confidence threshold"
+    )
 
 
 class MemorySuggestionResponse(BaseModel):
@@ -44,30 +54,30 @@ class MemorySuggestionResponse(BaseModel):
     content_preview: str
     similarity_score: float
     suggestion_type: str
-    reasons: List[str]
+    reasons: list[str]
     confidence: float
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     created_at: datetime
-    last_accessed: Optional[datetime] = None
-    feedback_score: Optional[float] = None
-    relevance_score: Optional[float] = None
+    last_accessed: datetime | None = None
+    feedback_score: float | None = None
+    relevance_score: float | None = None
 
 
 class SuggestionsListResponse(BaseModel):
-    suggestions: List[MemorySuggestionResponse]
+    suggestions: list[MemorySuggestionResponse]
     total_found: int
-    algorithms_used: List[str]
+    algorithms_used: list[str]
     generation_time_ms: float
     cached: bool
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 class SuggestionStatsResponse(BaseModel):
     total_suggestions_generated: int
     cache_hit_rate: float
     avg_generation_time_ms: float
-    popular_algorithms: List[str]
-    user_preferences: Dict[str, Any]
+    popular_algorithms: list[str]
+    user_preferences: dict[str, Any]
 
 
 class SimilarMemoriesRequest(BaseModel):
@@ -79,7 +89,7 @@ class SimilarMemoriesRequest(BaseModel):
 class RelatedByQueryRequest(BaseModel):
     query: str
     limit: int = Field(10, ge=1, le=30)
-    context_id: Optional[str] = None
+    context_id: str | None = None
 
 
 # Dependency to get suggestions engine
@@ -100,18 +110,14 @@ async def suggestions_health():
             "redis_connected": engine.redis_client is not None if engine else False,
             "algorithms_available": [
                 "content_similarity",
-                "collaborative_filtering", 
+                "collaborative_filtering",
                 "feedback_based",
-                "context_aware"
-            ]
+                "context_aware",
+            ],
         }
     except Exception as e:
         logger.error("Suggestions health check failed", error=str(e))
-        return {
-            "status": "unhealthy",
-            "service": "suggestions-api",
-            "error": str(e)
-        }
+        return {"status": "unhealthy", "service": "suggestions-api", "error": str(e)}
 
 
 @router.post("/generate", response_model=SuggestionsListResponse)
@@ -130,13 +136,12 @@ async def generate_suggestions(
                 "collaborative_filtering": SuggestionType.COLLABORATIVE_FILTERING,
                 "feedback_based": SuggestionType.FEEDBACK_BASED,
                 "context_aware": SuggestionType.CONTEXT_AWARE,
-                "hybrid": SuggestionType.HYBRID
+                "hybrid": SuggestionType.HYBRID,
             }
             suggestion_types = [
-                type_map.get(t) for t in request.suggestion_types 
-                if t in type_map
+                type_map.get(t) for t in request.suggestion_types if t in type_map
             ]
-        
+
         # Create suggestion request
         suggestion_request = SuggestionRequest(
             user_id=current_user.id,
@@ -146,12 +151,12 @@ async def generate_suggestions(
             limit=request.limit,
             suggestion_types=suggestion_types,
             exclude_memory_ids=request.exclude_memory_ids or [],
-            min_confidence=request.min_confidence
+            min_confidence=request.min_confidence,
         )
-        
+
         # Generate suggestions
         response = await engine.generate_suggestions(suggestion_request)
-        
+
         # Convert to API response format
         suggestion_responses = [
             MemorySuggestionResponse(
@@ -166,25 +171,23 @@ async def generate_suggestions(
                 created_at=s.created_at,
                 last_accessed=s.last_accessed,
                 feedback_score=s.feedback_score,
-                relevance_score=s.relevance_score
+                relevance_score=s.relevance_score,
             )
             for s in response.suggestions
         ]
-        
+
         return SuggestionsListResponse(
             suggestions=suggestion_responses,
             total_found=response.total_found,
             algorithms_used=[a.value for a in response.algorithms_used],
             generation_time_ms=response.generation_time_ms,
             cached=response.cached,
-            metadata=response.metadata
+            metadata=response.metadata,
         )
-        
+
     except Exception as e:
         logger.error(
-            "Failed to generate suggestions",
-            user_id=current_user.id,
-            error=str(e)
+            "Failed to generate suggestions", user_id=current_user.id, error=str(e)
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -204,11 +207,11 @@ async def get_similar_memories(
             memory_id=memory_id,
             limit=limit,
             suggestion_types=[SuggestionType.CONTENT_SIMILARITY],
-            min_confidence=min_similarity
+            min_confidence=min_similarity,
         )
-        
+
         response = await engine.generate_suggestions(suggestion_request)
-        
+
         suggestion_responses = [
             MemorySuggestionResponse(
                 memory_id=s.memory_id,
@@ -222,26 +225,26 @@ async def get_similar_memories(
                 created_at=s.created_at,
                 last_accessed=s.last_accessed,
                 feedback_score=s.feedback_score,
-                relevance_score=s.relevance_score
+                relevance_score=s.relevance_score,
             )
             for s in response.suggestions
         ]
-        
+
         return SuggestionsListResponse(
             suggestions=suggestion_responses,
             total_found=response.total_found,
             algorithms_used=[a.value for a in response.algorithms_used],
             generation_time_ms=response.generation_time_ms,
             cached=response.cached,
-            metadata=response.metadata
+            metadata=response.metadata,
         )
-        
+
     except Exception as e:
         logger.error(
             "Failed to get similar memories",
             user_id=current_user.id,
             memory_id=memory_id,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -261,12 +264,12 @@ async def get_suggestions_by_query(
             limit=request.limit,
             suggestion_types=[
                 SuggestionType.CONTENT_SIMILARITY,
-                SuggestionType.CONTEXT_AWARE
-            ]
+                SuggestionType.CONTEXT_AWARE,
+            ],
         )
-        
+
         response = await engine.generate_suggestions(suggestion_request)
-        
+
         suggestion_responses = [
             MemorySuggestionResponse(
                 memory_id=s.memory_id,
@@ -280,26 +283,26 @@ async def get_suggestions_by_query(
                 created_at=s.created_at,
                 last_accessed=s.last_accessed,
                 feedback_score=s.feedback_score,
-                relevance_score=s.relevance_score
+                relevance_score=s.relevance_score,
             )
             for s in response.suggestions
         ]
-        
+
         return SuggestionsListResponse(
             suggestions=suggestion_responses,
             total_found=response.total_found,
             algorithms_used=[a.value for a in response.algorithms_used],
             generation_time_ms=response.generation_time_ms,
             cached=response.cached,
-            metadata=response.metadata
+            metadata=response.metadata,
         )
-        
+
     except Exception as e:
         logger.error(
             "Failed to get query-based suggestions",
             user_id=current_user.id,
             query=request.query,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -317,13 +320,13 @@ async def get_trending_memories(
             limit=limit,
             suggestion_types=[
                 SuggestionType.FEEDBACK_BASED,
-                SuggestionType.COLLABORATIVE_FILTERING
+                SuggestionType.COLLABORATIVE_FILTERING,
             ],
-            min_confidence=0.6
+            min_confidence=0.6,
         )
-        
+
         response = await engine.generate_suggestions(suggestion_request)
-        
+
         suggestion_responses = [
             MemorySuggestionResponse(
                 memory_id=s.memory_id,
@@ -337,25 +340,23 @@ async def get_trending_memories(
                 created_at=s.created_at,
                 last_accessed=s.last_accessed,
                 feedback_score=s.feedback_score,
-                relevance_score=s.relevance_score
+                relevance_score=s.relevance_score,
             )
             for s in response.suggestions
         ]
-        
+
         return SuggestionsListResponse(
             suggestions=suggestion_responses,
             total_found=response.total_found,
             algorithms_used=[a.value for a in response.algorithms_used],
             generation_time_ms=response.generation_time_ms,
             cached=response.cached,
-            metadata=response.metadata
+            metadata=response.metadata,
         )
-        
+
     except Exception as e:
         logger.error(
-            "Failed to get trending memories",
-            user_id=current_user.id,
-            error=str(e)
+            "Failed to get trending memories", user_id=current_user.id, error=str(e)
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -363,7 +364,7 @@ async def get_trending_memories(
 @router.get("/personalized", response_model=SuggestionsListResponse)
 async def get_personalized_suggestions(
     limit: int = Query(15, ge=1, le=50),
-    context_id: Optional[str] = Query(None),
+    context_id: str | None = Query(None),
     current_user: User = Depends(get_current_user),
     engine: IntelligentSuggestionsEngine = Depends(get_suggestions_engine_dep),
 ):
@@ -377,13 +378,13 @@ async def get_personalized_suggestions(
                 SuggestionType.CONTENT_SIMILARITY,
                 SuggestionType.COLLABORATIVE_FILTERING,
                 SuggestionType.FEEDBACK_BASED,
-                SuggestionType.CONTEXT_AWARE
+                SuggestionType.CONTEXT_AWARE,
             ],
-            min_confidence=0.4
+            min_confidence=0.4,
         )
-        
+
         response = await engine.generate_suggestions(suggestion_request)
-        
+
         suggestion_responses = [
             MemorySuggestionResponse(
                 memory_id=s.memory_id,
@@ -397,25 +398,25 @@ async def get_personalized_suggestions(
                 created_at=s.created_at,
                 last_accessed=s.last_accessed,
                 feedback_score=s.feedback_score,
-                relevance_score=s.relevance_score
+                relevance_score=s.relevance_score,
             )
             for s in response.suggestions
         ]
-        
+
         return SuggestionsListResponse(
             suggestions=suggestion_responses,
             total_found=response.total_found,
             algorithms_used=[a.value for a in response.algorithms_used],
             generation_time_ms=response.generation_time_ms,
             cached=response.cached,
-            metadata=response.metadata
+            metadata=response.metadata,
         )
-        
+
     except Exception as e:
         logger.error(
             "Failed to get personalized suggestions",
             user_id=current_user.id,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -435,22 +436,20 @@ async def get_suggestion_stats(
             popular_algorithms=[
                 "content_similarity",
                 "feedback_based",
-                "collaborative_filtering"
+                "collaborative_filtering",
             ],
             user_preferences={
                 "preferred_algorithms": ["content_similarity"],
                 "avg_confidence_threshold": 0.5,
-                "typical_limit": 10
-            }
+                "typical_limit": 10,
+            },
         )
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(
-            "Failed to get suggestion stats",
-            user_id=current_user.id,
-            error=str(e)
+            "Failed to get suggestion stats", user_id=current_user.id, error=str(e)
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -466,19 +465,19 @@ async def record_suggestion_feedback(
     try:
         # This would integrate with the feedback system
         # For now, just acknowledge the feedback
-        
+
         return {
             "message": f"Feedback recorded for memory {memory_id}",
             "helpful": helpful,
             "suggestion_type": suggestion_type,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.utcnow(),
         }
-        
+
     except Exception as e:
         logger.error(
             "Failed to record suggestion feedback",
             user_id=current_user.id,
             memory_id=memory_id,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))

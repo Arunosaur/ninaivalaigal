@@ -1,5 +1,8 @@
+import hashlib
+import json
+import os
+
 from fastapi import APIRouter
-import hashlib, json, os
 
 router = APIRouter()
 

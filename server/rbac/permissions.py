@@ -1,11 +1,12 @@
 from __future__ import annotations
-from enum import Enum, auto
+
 from dataclasses import dataclass
-from typing import Dict, Set, Tuple, Optional
+from enum import Enum, auto
+
 
 class Role(Enum):
     VIEWER = auto()      # Read-only access
-    MEMBER = auto()      # Basic user permissions  
+    MEMBER = auto()      # Basic user permissions
     MAINTAINER = auto()  # Advanced user permissions
     ADMIN = auto()       # Administrative permissions
     OWNER = auto()       # Full access
@@ -42,7 +43,7 @@ class Resource(Enum):
 
 ROLE_PRECEDENCE = [Role.VIEWER, Role.MEMBER, Role.MAINTAINER, Role.ADMIN, Role.OWNER, Role.SYSTEM]
 
-POLICY: Dict[Tuple[Role, Resource], Set[Action]] = {}
+POLICY: dict[tuple[Role, Resource], set[Action]] = {}
 
 def allow(role: Role, res: Resource, *actions: Action):
     POLICY.setdefault((role, res), set()).update(actions)
@@ -97,38 +98,38 @@ allow(Role.VIEWER, Resource.API, Action.READ)
 @dataclass(frozen=True)
 class SubjectContext:
     org_id: str
-    team_ids: Set[str]
-    roles: Dict[str, Role]
+    team_ids: set[str]
+    roles: dict[str, Role]
 
-def _resolve_effective_role(ctx: SubjectContext, scope: str) -> Optional[Role]:
+def _resolve_effective_role(ctx: SubjectContext, scope: str) -> Role | None:
     role = ctx.roles.get(scope)
     return role
 
-def effective_role(ctx: SubjectContext, team_id: Optional[str] = None) -> Optional[Role]:
+def effective_role(ctx: SubjectContext, team_id: str | None = None) -> Role | None:
     """Get the effective role for a user in a given context"""
     # Priority: team-specific role > org role > global role
     if team_id and team_id in ctx.roles:
         return ctx.roles[team_id]
-    
+
     if ctx.org_id in ctx.roles:
         return ctx.roles[ctx.org_id]
-    
+
     # Check for global role
     if 'global' in ctx.roles:
         return ctx.roles['global']
-    
+
     # Default to highest precedence role if no specific scope
     if ctx.roles:
         return max(ctx.roles.values(), key=lambda r: ROLE_PRECEDENCE.index(r))
-    
+
     return None
 
-def authorize(ctx: SubjectContext, res: Resource, action: Action, team_id: Optional[str] = None) -> bool:
+def authorize(ctx: SubjectContext, res: Resource, action: Action, team_id: str | None = None) -> bool:
     """Check if a user is authorized to perform an action on a resource"""
     role = effective_role(ctx, team_id)
     if not role:
         return False
-    
+
     # Check if the role has permission for this action on this resource
     allowed_actions = POLICY.get((role, res), set())
     return action in allowed_actions
@@ -140,7 +141,7 @@ def has_role_precedence(role1: Role, role2: Role) -> bool:
     except ValueError:
         return False
 
-def get_user_permissions(role: Role) -> Dict[Resource, Set[Action]]:
+def get_user_permissions(role: Role) -> dict[Resource, set[Action]]:
     """Get all permissions for a given role"""
     permissions = {}
     for (r, resource), actions in POLICY.items():
@@ -156,12 +157,12 @@ def can_delegate_permission(delegator_role: Role, action: Action, resource: Reso
     allowed_actions = POLICY.get((delegator_role, resource), set())
     if action not in allowed_actions:
         return False
-    
+
     # Additional restrictions: only ADMIN and above can delegate administrative actions
     admin_actions = {Action.ADMINISTER, Action.CONFIGURE, Action.APPROVE}
     if action in admin_actions:
         return has_role_precedence(delegator_role, Role.ADMIN)
-    
+
     return True
 
 def require_permission(resource: Resource, action: Action):

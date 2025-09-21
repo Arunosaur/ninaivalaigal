@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 try:
     from prometheus_client import Counter
 except Exception:  # pragma: no cover

@@ -3,19 +3,34 @@ User signup and registration API endpoints
 Supports individual users, team members, and organization creators
 """
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from fastapi.responses import JSONResponse
-from typing import Dict, Any, Optional
-from auth import (
-    IndividualUserSignup, OrganizationSignup, UserLogin, InvitationAccept,
-    create_individual_user, authenticate_user, send_verification_email,
-    verify_email_token, generate_invitation_token, validate_email,
-    hash_password, generate_verification_token, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
-)
-from database import DatabaseManager, User, Organization, Team, OrganizationRegistration, UserInvitation
 from datetime import datetime, timedelta
+from typing import Any
+
 import jwt
-import os
+from auth import (
+    JWT_ALGORITHM,
+    JWT_EXPIRATION_HOURS,
+    JWT_SECRET,
+    IndividualUserSignup,
+    InvitationAccept,
+    OrganizationSignup,
+    UserLogin,
+    authenticate_user,
+    create_individual_user,
+    generate_invitation_token,
+    generate_verification_token,
+    hash_password,
+    send_verification_email,
+    validate_email,
+    verify_email_token,
+)
+from database import (
+    Organization,
+    OrganizationRegistration,
+    User,
+    UserInvitation,
+)
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 # Initialize router
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -30,7 +45,7 @@ def get_db():
 async def signup_individual_user(
     signup_data: IndividualUserSignup,
     background_tasks: BackgroundTasks
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Sign up as individual user for personal memory management
     
@@ -38,17 +53,17 @@ async def signup_individual_user(
     """
     try:
         result = create_individual_user(signup_data)
-        
+
         # Send verification email in background
         background_tasks.add_task(
             send_verification_email,
             result["email"],
             result["verification_token"]
         )
-        
+
         # Remove sensitive data from response
         result.pop("verification_token", None)
-        
+
         return {
             "success": True,
             "message": "Individual user account created successfully",
@@ -59,7 +74,7 @@ async def signup_individual_user(
                 "install_tools"
             ]
         }
-        
+
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -69,7 +84,7 @@ async def signup_individual_user(
 async def signup_organization(
     signup_data: OrganizationSignup,
     background_tasks: BackgroundTasks
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Sign up as organization creator
     
@@ -78,11 +93,11 @@ async def signup_organization(
     try:
         user_data = signup_data.user
         org_data = signup_data.organization
-        
+
         # Validate user data
         if not validate_email(user_data["email"]):
             raise HTTPException(status_code=400, detail="Invalid email format")
-        
+
         db = get_db()
         session = db.get_session()
         try:
@@ -90,7 +105,7 @@ async def signup_organization(
             existing_user = session.query(User).filter_by(email=user_data["email"]).first()
             if existing_user:
                 raise HTTPException(status_code=400, detail="User with this email already exists")
-            
+
             # Create organization
             new_org = Organization(
                 name=org_data["name"],
@@ -103,11 +118,11 @@ async def signup_organization(
             )
             session.add(new_org)
             session.flush()  # Get organization ID
-            
+
             # Create admin user
             password_hash = hash_password(user_data["password"])
             verification_token = generate_verification_token()
-            
+
             admin_user = User(
                 email=user_data["email"],
                 name=user_data["name"],
@@ -121,7 +136,7 @@ async def signup_organization(
             )
             session.add(admin_user)
             session.flush()  # Get user ID
-            
+
             # Create organization registration record
             org_registration = OrganizationRegistration(
                 organization_id=new_org.id,
@@ -136,9 +151,9 @@ async def signup_organization(
                 industry=org_data.get("industry")
             )
             session.add(org_registration)
-            
+
             session.commit()
-            
+
             # Generate JWT token
             jwt_payload = {
                 "user_id": admin_user.id,
@@ -149,14 +164,14 @@ async def signup_organization(
                 "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
             }
             jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-            
+
             # Send verification email in background
             background_tasks.add_task(
                 send_verification_email,
                 admin_user.email,
                 verification_token
             )
-            
+
             return {
                 "success": True,
                 "message": "Organization and admin account created successfully",
@@ -171,20 +186,20 @@ async def signup_organization(
                     "create_org_contexts"
                 ]
             }
-            
+
         except Exception as e:
             session.rollback()
             raise e
         finally:
             session.close()
-            
+
     except HTTPException as e:
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Organization signup failed: {str(e)}")
 
 @router.post("/login")
-async def login_user(login_data: UserLogin) -> Dict[str, Any]:
+async def login_user(login_data: UserLogin) -> dict[str, Any]:
     """
     User login for all account types
     
@@ -192,23 +207,23 @@ async def login_user(login_data: UserLogin) -> Dict[str, Any]:
     """
     try:
         result = authenticate_user(login_data.email, login_data.password)
-        
+
         if not result:
             raise HTTPException(status_code=401, detail="Invalid email or password")
-        
+
         return {
             "success": True,
             "message": "Login successful",
             "user": result
         }
-        
+
     except HTTPException as e:
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 @router.get("/verify-email")
-async def verify_email(token: str) -> Dict[str, Any]:
+async def verify_email(token: str) -> dict[str, Any]:
     """
     Verify user email address
     
@@ -216,16 +231,16 @@ async def verify_email(token: str) -> Dict[str, Any]:
     """
     try:
         success = verify_email_token(token)
-        
+
         if not success:
             raise HTTPException(status_code=400, detail="Invalid or expired verification token")
-        
+
         return {
             "success": True,
             "message": "Email verified successfully",
             "email_verified": True
         }
-        
+
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -234,10 +249,10 @@ async def verify_email(token: str) -> Dict[str, Any]:
 @router.post("/organizations/{org_id}/invitations")
 async def create_invitation(
     org_id: int,
-    invitation_data: Dict[str, Any],
+    invitation_data: dict[str, Any],
     background_tasks: BackgroundTasks,
     current_user: User = Depends(lambda: None)  # TODO: Add proper auth dependency
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Create invitation for team member to join organization
     
@@ -245,15 +260,15 @@ async def create_invitation(
     """
     try:
         # TODO: Verify current_user is admin of org_id
-        
+
         email = invitation_data["email"]
         team_ids = invitation_data.get("team_ids", [])
         role = invitation_data.get("role", "user")
         message = invitation_data.get("message", "")
-        
+
         if not validate_email(email):
             raise HTTPException(status_code=400, detail="Invalid email format")
-        
+
         db = get_db()
         session = db.get_session()
         try:
@@ -261,10 +276,10 @@ async def create_invitation(
             existing_user = session.query(User).filter_by(email=email).first()
             if existing_user:
                 raise HTTPException(status_code=400, detail="User with this email already exists")
-            
+
             # Create invitation
             invitation_token = generate_invitation_token()
-            
+
             invitation = UserInvitation(
                 email=email,
                 organization_id=org_id,
@@ -278,12 +293,12 @@ async def create_invitation(
             )
             session.add(invitation)
             session.commit()
-            
+
             # Send invitation email in background
             invitation_url = f"http://localhost:8000/auth/signup/invitation?token={invitation_token}"
             # TODO: Send actual invitation email
             print(f"Invitation URL for {email}: {invitation_url}")
-            
+
             return {
                 "success": True,
                 "message": f"Invitation sent to {email}",
@@ -291,13 +306,13 @@ async def create_invitation(
                 "invitation_url": invitation_url,
                 "expires_at": invitation.expires_at.isoformat()
             }
-            
+
         except Exception as e:
             session.rollback()
             raise e
         finally:
             session.close()
-            
+
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -307,7 +322,7 @@ async def create_invitation(
 async def accept_invitation(
     accept_data: InvitationAccept,
     background_tasks: BackgroundTasks
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Accept team invitation and create user account
     
@@ -316,7 +331,7 @@ async def accept_invitation(
     try:
         invitation_token = accept_data.invitation_token
         user_data = accept_data.user
-        
+
         db = get_db()
         session = db.get_session()
         try:
@@ -325,14 +340,14 @@ async def accept_invitation(
                 invitation_token=invitation_token,
                 status="pending"
             ).first()
-            
+
             if not invitation:
                 raise HTTPException(status_code=400, detail="Invalid or expired invitation")
-            
+
             # Check if invitation is expired
             if invitation.expires_at < datetime.utcnow():
                 raise HTTPException(status_code=400, detail="Invitation has expired")
-            
+
             # Create user account
             password_hash = hash_password(user_data["password"])
             try:
@@ -344,12 +359,12 @@ async def accept_invitation(
                     password=user_data["password"],
                     account_type="team_member"
                 )
-                
+
                 # Create default role assignment
-                from rbac_models import RoleAssignment
                 from rbac.permissions import Role
+                from rbac_models import RoleAssignment
                 db_session = db.get_session()
-                
+
                 role_assignment = RoleAssignment(
                     user_id=user.id,
                     role=Role.MEMBER,
@@ -360,13 +375,13 @@ async def accept_invitation(
                 )
                 db_session.add(role_assignment)
                 db_session.commit()  # Get user ID
-                
+
                 # Update invitation status
                 invitation.status = "accepted"
                 invitation.accepted_at = datetime.utcnow()
-                
+
                 session.commit()
-                
+
                 # Generate JWT token
                 jwt_payload = {
                     "user_id": user.id,
@@ -377,18 +392,18 @@ async def accept_invitation(
                     "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
                 }
                 jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-                
+
             except Exception as e:
                 session.rollback()
                 raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
-            
+
             # Send verification email
             background_tasks.add_task(
                 send_verification_email,
                 new_user.email,
                 verification_token
             )
-            
+
             return {
                 "success": True,
                 "message": "Invitation accepted successfully",
@@ -402,13 +417,13 @@ async def accept_invitation(
                     "organization": ["org-wide-contexts"]
                 }
             }
-            
+
         except Exception as e:
             session.rollback()
             raise e
         finally:
             session.close()
-            
+
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -417,7 +432,7 @@ async def accept_invitation(
 @router.get("/me")
 async def get_current_user_info(
     current_user: User = Depends(lambda: None)  # TODO: Add proper auth dependency
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get current user information and context access
     """
@@ -439,6 +454,6 @@ async def get_current_user_info(
                 "organization": []
             }
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get user info: {str(e)}")

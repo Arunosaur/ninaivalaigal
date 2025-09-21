@@ -1,7 +1,8 @@
 from __future__ import annotations
-from enum import Enum, auto
+
 from dataclasses import dataclass
-from typing import Dict, Set, Tuple, Optional
+from enum import Enum, auto
+
 
 class Role(Enum):
     OWNER = auto()
@@ -28,7 +29,7 @@ class Resource(Enum):
 
 ROLE_PRECEDENCE = [Role.VIEWER, Role.MEMBER, Role.MAINTAINER, Role.ADMIN, Role.OWNER]
 
-POLICY: Dict[Tuple[Role, Resource], Set[Action]] = {}
+POLICY: dict[tuple[Role, Resource], set[Action]] = {}
 
 def allow(role: Role, res: Resource, *actions: Action):
     POLICY.setdefault((role, res), set()).update(actions)
@@ -56,20 +57,20 @@ allow(Role.VIEWER, Resource.MEMORY, Action.READ, Action.EXPORT)
 @dataclass(frozen=True)
 class SubjectContext:
     org_id: str
-    team_ids: Set[str]
-    roles: Dict[str, Role]
+    team_ids: set[str]
+    roles: dict[str, Role]
 
-def _resolve_effective_role(ctx: SubjectContext, scope: str) -> Optional[Role]:
+def _resolve_effective_role(ctx: SubjectContext, scope: str) -> Role | None:
     role = ctx.roles.get(scope)
     return role
 
-def _max_role(roles: Set[Role]) -> Optional[Role]:
+def _max_role(roles: set[Role]) -> Role | None:
     if not roles:
         return None
     return sorted(roles, key=lambda r: ROLE_PRECEDENCE.index(r))[-1]
 
-def effective_role(ctx: SubjectContext, team_id: Optional[str] = None) -> Optional[Role]:
-    roles: Set[Role] = set()
+def effective_role(ctx: SubjectContext, team_id: str | None = None) -> Role | None:
+    roles: set[Role] = set()
     org_role = _resolve_effective_role(ctx, 'org')
     if org_role:
         roles.add(org_role)
@@ -87,7 +88,7 @@ def effective_role(ctx: SubjectContext, team_id: Optional[str] = None) -> Option
 def is_allowed(role: Role, resource: Resource, action: Action) -> bool:
     return action in POLICY.get((role, resource), set())
 
-def authorize(ctx: SubjectContext, resource: Resource, action: Action, team_id: Optional[str] = None) -> bool:
+def authorize(ctx: SubjectContext, resource: Resource, action: Action, team_id: str | None = None) -> bool:
     role = effective_role(ctx, team_id=team_id)
     if role is None:
         return False

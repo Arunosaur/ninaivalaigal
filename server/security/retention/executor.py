@@ -1,7 +1,9 @@
 from __future__ import annotations
+
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Callable, Dict, Iterable, Optional
 from datetime import datetime, timedelta
+
 
 @dataclass
 class RetentionPolicy:
@@ -10,10 +12,10 @@ class RetentionPolicy:
 class RetentionExecutor:
     def __init__(
         self,
-        tier_policy: Dict[int, RetentionPolicy],
+        tier_policy: dict[int, RetentionPolicy],
         query_expired: Callable[[datetime, int], Iterable[int]],
         delete_ids: Callable[[Iterable[int]], int],
-        metrics: Optional[Callable[[str, Dict], None]] = None,
+        metrics: Callable[[str, dict], None] | None = None,
         page_size: int = 1000,
     ):
         self.tier_policy = tier_policy
@@ -22,7 +24,7 @@ class RetentionExecutor:
         self.metrics = metrics or (lambda name, tags: None)
         self.page_size = page_size
 
-    def run(self, tier: int, now: Optional[datetime] = None, dry_run: bool = False) -> int:
+    def run(self, tier: int, now: datetime | None = None, dry_run: bool = False) -> int:
         now = now or datetime.utcnow()
         policy = self.tier_policy.get(tier)
         if not policy or policy.days < 0:

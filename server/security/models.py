@@ -2,13 +2,21 @@
 Database models for security and redaction audit system
 """
 
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Float, JSON
-from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
-from sqlalchemy import ForeignKey
 import uuid
-from datetime import datetime
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
+from sqlalchemy.dialects.postgresql import INET, JSONB, UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from ..database import Base
 
@@ -16,7 +24,7 @@ from ..database import Base
 class RedactionAudit(Base):
     """Audit trail for redaction operations"""
     __tablename__ = "redaction_audits"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -33,7 +41,7 @@ class RedactionAudit(Base):
     confidence_scores = Column(JSONB, nullable=True)
     metadata = Column(JSONB, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     user = relationship("User", foreign_keys=[user_id])
     context = relationship("Context", foreign_keys=[context_id])
@@ -42,7 +50,7 @@ class RedactionAudit(Base):
 class AlertEvent(Base):
     """Security alert events"""
     __tablename__ = "alert_events"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     severity = Column(String(20), nullable=False)
@@ -56,7 +64,7 @@ class AlertEvent(Base):
     resolved_at = Column(DateTime(timezone=True), nullable=True)
     resolved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     user = relationship("User", foreign_keys=[user_id])
     context = relationship("Context", foreign_keys=[context_id])
@@ -66,7 +74,7 @@ class AlertEvent(Base):
 class SecurityEvent(Base):
     """Detailed security event tracking"""
     __tablename__ = "security_events"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     event_type = Column(String(50), nullable=False)
@@ -79,7 +87,7 @@ class SecurityEvent(Base):
     status_code = Column(Integer, nullable=True)
     metadata = Column(JSONB, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     user = relationship("User", foreign_keys=[user_id])
     context = relationship("Context", foreign_keys=[context_id])

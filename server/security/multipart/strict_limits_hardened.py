@@ -11,10 +11,10 @@ Implements critical security enhancements identified in external review:
 """
 
 from __future__ import annotations
-from typing import Optional, Dict, Any, Tuple, Set
-from dataclasses import dataclass
+
 import logging
-import codecs
+from dataclasses import dataclass
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +30,13 @@ ENHANCED_MAGIC_SIGNATURES = {
     b"\xfe\xed\xfa\xce": "application/x-mach-binary",  # Mach-O 32-bit big-endian reverse (P0)
     b"\xcf\xfa\xed\xfe": "application/x-mach-binary",  # Mach-O 64-bit (P0)
     b"\xcf\xfa\xed\xfe": "application/x-mach-binary",  # Mach-O 64-bit reverse (P0)
-    
+
     # Documents
     b"%PDF": "application/pdf",
     b"PK\x03\x04": "application/zip",  # ZIP/Office docs
     b"PK\x05\x06": "application/zip",  # Empty ZIP
     b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1": "application/msword",  # MS Office
-    
+
     # Images
     b"\x89PNG\r\n\x1a\n": "image/png",
     b"\xff\xd8\xff": "image/jpeg",
@@ -44,13 +44,13 @@ ENHANCED_MAGIC_SIGNATURES = {
     b"GIF89a": "image/gif",
     b"BM": "image/bmp",
     b"\x00\x00\x01\x00": "image/x-icon",
-    
+
     # Audio/Video
     b"RIFF": "audio/wav",
     b"ID3": "audio/mpeg",
     b"\xff\xfb": "audio/mpeg",
     # MP4/ISO-BMFF handled separately with offset detection
-    
+
     # Archives (P0: Enhanced for blocking)
     b"\x1f\x8b\x08": "application/gzip",
     b"7z\xbc\xaf\x27\x1c": "application/x-7z-compressed",
@@ -60,7 +60,7 @@ ENHANCED_MAGIC_SIGNATURES = {
 # Archive types to block for text-only endpoints (P0)
 ARCHIVE_TYPES = {
     "application/zip",
-    "application/gzip", 
+    "application/gzip",
     "application/x-7z-compressed",
     "application/x-rar-compressed"
 }
@@ -75,7 +75,7 @@ EXECUTABLE_TYPES = {
 
 # Default constants for adapter compatibility
 DEFAULT_MAX_TEXT_PART_BYTES = 1 * 1024 * 1024  # 1MB for text
-DEFAULT_MAX_BINARY_PART_BYTES = 10 * 1024 * 1024  # 10MB for binary  
+DEFAULT_MAX_BINARY_PART_BYTES = 10 * 1024 * 1024  # 10MB for binary
 DEFAULT_MAX_PARTS_PER_REQUEST = 256  # P0: Part count DoS prevention
 
 @dataclass
@@ -85,27 +85,27 @@ class HardenedPartLimitConfig:
     max_text_part_bytes: int = DEFAULT_MAX_TEXT_PART_BYTES
     max_binary_part_bytes: int = DEFAULT_MAX_BINARY_PART_BYTES
     max_parts_per_request: int = DEFAULT_MAX_PARTS_PER_REQUEST
-    
+
     # Magic byte detection
     enforce_magic_byte_checks: bool = True
     block_executable_magic_bytes: bool = True
     block_archives_for_text: bool = True  # P0: Block archives on text endpoints
-    
+
     # Text validation (P0)
     require_utf8_text: bool = True  # P0: UTF-8 only policy
     reject_content_transfer_encoding: bool = True  # P0: Block base64/quoted-printable
-    
+
     # Detection thresholds
     printable_threshold: float = 0.30
     mp4_scan_bytes: int = 32  # P0: MP4 offset detection within first 32 bytes
 
-@dataclass 
+@dataclass
 class StreamLimitState:
     """State for stream-time per-part limit enforcement."""
     bytes_seen: int = 0
     limit_exceeded: bool = False
     part_number: int = 0
-    
+
 def detect_mp4_iso_bmff(payload: bytes, max_scan_bytes: int = 32) -> bool:
     """
     P0: Enhanced MP4/ISO-BMFF detection with offset awareness.
@@ -115,17 +115,17 @@ def detect_mp4_iso_bmff(payload: bytes, max_scan_bytes: int = 32) -> bool:
     """
     if len(payload) < 12:
         return False
-    
+
     scan_window = payload[:max_scan_bytes]
-    
+
     # Look for 'ftyp' signature within scan window
     for i in range(len(scan_window) - 4):
         if scan_window[i:i+4] == b"ftyp":
             return True
-    
+
     return False
 
-def detect_enhanced_magic_bytes(payload: bytes, max_check_bytes: int = 512) -> Dict[str, Any]:
+def detect_enhanced_magic_bytes(payload: bytes, max_check_bytes: int = 512) -> dict[str, Any]:
     """
     P0: Enhanced magic byte detection with Mach-O, Java, and MP4 offset detection.
     """
@@ -138,9 +138,9 @@ def detect_enhanced_magic_bytes(payload: bytes, max_check_bytes: int = 512) -> D
             "is_archive": False,
             "confidence": 0.0
         }
-    
+
     check_bytes = payload[:max_check_bytes]
-    
+
     # Check standard magic byte signatures
     for signature, file_type in ENHANCED_MAGIC_SIGNATURES.items():
         if check_bytes.startswith(signature):
@@ -152,7 +152,7 @@ def detect_enhanced_magic_bytes(payload: bytes, max_check_bytes: int = 512) -> D
                 "is_archive": file_type in ARCHIVE_TYPES,
                 "confidence": 0.95
             }
-    
+
     # P0: Special case for MP4/ISO-BMFF (offset detection)
     if detect_mp4_iso_bmff(check_bytes):
         return {
@@ -163,7 +163,7 @@ def detect_enhanced_magic_bytes(payload: bytes, max_check_bytes: int = 512) -> D
             "is_archive": False,
             "confidence": 0.90
         }
-    
+
     # No magic bytes detected
     return {
         "detected": False,
@@ -174,7 +174,7 @@ def detect_enhanced_magic_bytes(payload: bytes, max_check_bytes: int = 512) -> D
         "confidence": 0.0
     }
 
-def require_utf8_text(content: bytes) -> Dict[str, Any]:
+def require_utf8_text(content: bytes) -> dict[str, Any]:
     """
     P0: UTF-8 only policy for text parts.
     
@@ -185,7 +185,7 @@ def require_utf8_text(content: bytes) -> Dict[str, Any]:
         "encoding": "utf-8",
         "violations": []
     }
-    
+
     # Check for UTF-16 BOM first (common bypass attempt)
     if content.startswith(b'\xff\xfe') or content.startswith(b'\xfe\xff'):
         result["valid"] = False
@@ -196,7 +196,7 @@ def require_utf8_text(content: bytes) -> Dict[str, Any]:
         })
         result["encoding"] = "utf-16"
         return result
-    
+
     # Check for UTF-16LE without BOM (common case)
     if len(content) >= 2 and content[1:2] == b'\x00' and content[0:1] != b'\x00':
         result["valid"] = False
@@ -207,11 +207,11 @@ def require_utf8_text(content: bytes) -> Dict[str, Any]:
         })
         result["encoding"] = "utf-16le"
         return result
-    
+
     try:
         # Attempt UTF-8 decode
         decoded = content.decode('utf-8')
-        
+
     except UnicodeDecodeError as e:
         result["valid"] = False
         result["violations"].append({
@@ -220,10 +220,10 @@ def require_utf8_text(content: bytes) -> Dict[str, Any]:
             "severity": "high"
         })
         result["encoding"] = "unknown"
-    
+
     return result
 
-def reject_content_transfer_encoding(cte_header: Optional[str]) -> Dict[str, Any]:
+def reject_content_transfer_encoding(cte_header: str | None) -> dict[str, Any]:
     """
     P0: Content-Transfer-Encoding guard.
     
@@ -234,15 +234,15 @@ def reject_content_transfer_encoding(cte_header: Optional[str]) -> Dict[str, Any
         "valid": True,
         "violations": []
     }
-    
+
     if not cte_header:
         return result
-    
+
     cte_lower = cte_header.lower().strip()
-    
+
     # Block problematic encodings
     blocked_encodings = {"base64", "quoted-printable", "7bit", "8bit"}
-    
+
     if cte_lower in blocked_encodings:
         result["valid"] = False
         result["violations"].append({
@@ -251,10 +251,10 @@ def reject_content_transfer_encoding(cte_header: Optional[str]) -> Dict[str, Any
             "severity": "high",
             "encoding": cte_header
         })
-    
+
     return result
 
-def disallow_archives_for_text(magic_result: Dict[str, Any], declared_content_type: str) -> Dict[str, Any]:
+def disallow_archives_for_text(magic_result: dict[str, Any], declared_content_type: str) -> dict[str, Any]:
     """
     P0: Archive blocking for text-only endpoints.
     
@@ -264,13 +264,13 @@ def disallow_archives_for_text(magic_result: Dict[str, Any], declared_content_ty
         "valid": True,
         "violations": []
     }
-    
+
     if not magic_result.get("detected") or not magic_result.get("is_archive"):
         return result
-    
+
     # Check if declared as text type
     declared_main = declared_content_type.split('/')[0].lower()
-    
+
     if declared_main == "text" or declared_content_type.lower() in ["application/json", "application/xml"]:
         result["valid"] = False
         result["violations"].append({
@@ -280,14 +280,14 @@ def disallow_archives_for_text(magic_result: Dict[str, Any], declared_content_ty
             "detected_type": magic_result["detected_type"],
             "declared_type": declared_content_type
         })
-    
+
     return result
 
 def enforce_part_limits_stream(
     stream_state: StreamLimitState,
     chunk_bytes: int,
     config: HardenedPartLimitConfig
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     P0: Stream-time per-part limit enforcement.
     
@@ -300,10 +300,10 @@ def enforce_part_limits_stream(
         "bytes_seen": stream_state.bytes_seen,
         "violations": []
     }
-    
+
     # Update stream state
     stream_state.bytes_seen += chunk_bytes
-    
+
     # Check if limit exceeded
     if stream_state.bytes_seen > config.max_part_bytes:
         stream_state.limit_exceeded = True
@@ -316,17 +316,17 @@ def enforce_part_limits_stream(
             "bytes_seen": stream_state.bytes_seen,
             "limit": config.max_part_bytes
         })
-    
+
     result["bytes_seen"] = stream_state.bytes_seen
     return result
 
 def enforce_part_limits_buffer(
     content: bytes,
     content_type: str,
-    filename: Optional[str] = None,
-    config: Optional[HardenedPartLimitConfig] = None,
-    cte_header: Optional[str] = None
-) -> Dict[str, Any]:
+    filename: str | None = None,
+    config: HardenedPartLimitConfig | None = None,
+    cte_header: str | None = None
+) -> dict[str, Any]:
     """
     P0: Enhanced buffer-time limit enforcement with hardening.
     
@@ -334,7 +334,7 @@ def enforce_part_limits_buffer(
     """
     if config is None:
         config = HardenedPartLimitConfig()
-    
+
     result = {
         "valid": True,
         "size_bytes": len(content),
@@ -344,7 +344,7 @@ def enforce_part_limits_buffer(
         "content_type": content_type,
         "filename": filename
     }
-    
+
     # Basic size check
     if len(content) > config.max_part_bytes:
         result["valid"] = False
@@ -354,12 +354,12 @@ def enforce_part_limits_buffer(
             "severity": "critical"
         })
         return result  # Early return on size violation
-    
+
     # P0: Enhanced magic byte detection
     if config.enforce_magic_byte_checks:
         magic_result = detect_enhanced_magic_bytes(content, config.mp4_scan_bytes)
         result["magic_result"] = magic_result
-        
+
         # P0: Block executables (including Mach-O and Java)
         if config.block_executable_magic_bytes and magic_result.get("is_executable"):
             result["valid"] = False
@@ -369,34 +369,34 @@ def enforce_part_limits_buffer(
                 "severity": "critical",
                 "detected_type": magic_result["detected_type"]
             })
-        
+
         # P0: Block archives for text endpoints
         if config.block_archives_for_text:
             archive_check = disallow_archives_for_text(magic_result, content_type)
             if not archive_check["valid"]:
                 result["valid"] = False
                 result["violations"].extend(archive_check["violations"])
-    
+
     # Determine if content is binary
     result["is_binary"] = _looks_binary_enhanced(content, config.printable_threshold)
-    
+
     # P0: Text-specific validations (check content-type, not binary detection)
     if content_type.startswith("text/") or content_type in ["application/json", "application/xml"]:
-        
+
         # P0: UTF-8 validation
         if config.require_utf8_text:
             utf8_check = require_utf8_text(content)
             if not utf8_check["valid"]:
                 result["valid"] = False
                 result["violations"].extend(utf8_check["violations"])
-        
+
         # P0: Content-Transfer-Encoding validation
         if config.reject_content_transfer_encoding and cte_header:
             cte_check = reject_content_transfer_encoding(cte_header)
             if not cte_check["valid"]:
                 result["valid"] = False
                 result["violations"].extend(cte_check["violations"])
-    
+
     # Type-specific size limits
     if result["is_binary"]:
         if len(content) > config.max_binary_part_bytes:
@@ -410,33 +410,33 @@ def enforce_part_limits_buffer(
         if len(content) > config.max_text_part_bytes:
             result["valid"] = False
             result["violations"].append({
-                "type": "text_size_exceeded", 
+                "type": "text_size_exceeded",
                 "message": f"Text part size {len(content)} exceeds limit {config.max_text_part_bytes}",
                 "severity": "medium"
             })
-    
+
     return result
 
 def _looks_binary_enhanced(payload: bytes, printable_threshold: float = 0.30) -> bool:
     """Enhanced binary detection with magic byte awareness."""
     if not payload:
         return False
-    
+
     # Check for null bytes (strong binary indicator)
     if b"\x00" in payload:
         return True
-    
+
     # Check enhanced magic bytes
     magic_result = detect_enhanced_magic_bytes(payload)
     if magic_result.get("detected"):
         return True
-    
+
     # Check printable character ratio
     nonprint = sum((b < 9) or (13 < b < 32) for b in payload)
     ratio = nonprint / max(1, len(payload))
     return ratio > printable_threshold
 
-def enforce_max_parts_per_request(part_count: int, config: HardenedPartLimitConfig) -> Dict[str, Any]:
+def enforce_max_parts_per_request(part_count: int, config: HardenedPartLimitConfig) -> dict[str, Any]:
     """
     P0: Part count DoS prevention.
     
@@ -447,7 +447,7 @@ def enforce_max_parts_per_request(part_count: int, config: HardenedPartLimitConf
         "part_count": part_count,
         "violations": []
     }
-    
+
     if part_count > config.max_parts_per_request:
         result["valid"] = False
         result["violations"].append({
@@ -457,7 +457,7 @@ def enforce_max_parts_per_request(part_count: int, config: HardenedPartLimitConf
             "part_count": part_count,
             "limit": config.max_parts_per_request
         })
-    
+
     return result
 
 # Convenience functions for integration
@@ -478,13 +478,13 @@ def create_hardened_config(
         reject_content_transfer_encoding=text_only_endpoint
     )
 
-def validate_multipart_headers(headers: Dict[str, str]) -> Dict[str, Any]:
+def validate_multipart_headers(headers: dict[str, str]) -> dict[str, Any]:
     """Validate multipart headers for security issues."""
     result = {
         "valid": True,
         "violations": []
     }
-    
+
     # Check Content-Transfer-Encoding
     cte = headers.get("content-transfer-encoding")
     if cte:
@@ -492,5 +492,5 @@ def validate_multipart_headers(headers: Dict[str, str]) -> Dict[str, Any]:
         if not cte_check["valid"]:
             result["valid"] = False
             result["violations"].extend(cte_check["violations"])
-    
+
     return result

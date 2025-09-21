@@ -1,6 +1,6 @@
-import io
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.testclient import TestClient
+
 
 def build_upload_app():
     app = FastAPI()

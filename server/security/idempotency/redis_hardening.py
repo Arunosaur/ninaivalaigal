@@ -8,9 +8,10 @@ and rate-limit protection to prevent duplicate key abuse.
 import asyncio
 import logging
 import time
-from typing import Optional, Dict, Any, Callable
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class RedisHealthStatus(Enum):
@@ -28,12 +29,12 @@ class RedisOutageEvent:
     error_message: str
     operation: str
     fallback_used: bool
-    duration_ms: Optional[float] = None
+    duration_ms: float | None = None
 
 
 class HardenedRedisStore:
     """Redis store with graceful outage handling and fallback behavior."""
-    
+
     def __init__(
         self,
         redis_client,
@@ -46,23 +47,23 @@ class HardenedRedisStore:
         self.redis = redis_client
         self.fallback_store = fallback_store or {}  # In-memory fallback
         self.key_prefix = key_prefix
-        
+
         # Health monitoring
         self.health_status = RedisHealthStatus.HEALTHY
         self.health_check_interval = health_check_interval
         self.last_health_check = 0
-        
+
         # Circuit breaker
         self.failure_count = 0
         self.circuit_breaker_threshold = circuit_breaker_threshold
         self.circuit_open_until = 0
-        
+
         # Retry configuration
         self.max_retry_attempts = max_retry_attempts
-        
+
         # Logging
         self.logger = logging.getLogger("redis.hardening")
-        
+
         # Metrics
         self.metrics = {
             "operations_total": 0,
@@ -71,8 +72,8 @@ class HardenedRedisStore:
             "circuit_breaker_trips": 0,
             "outage_events": []
         }
-    
-    async def get(self, key: str) -> Optional[Dict[str, Any]]:
+
+    async def get(self, key: str) -> dict[str, Any] | None:
         """Get with graceful Redis outage handling."""
         return await self._execute_with_fallback(
             operation="get",
@@ -80,8 +81,8 @@ class HardenedRedisStore:
             fallback_operation=lambda: self._fallback_get(key),
             key=key
         )
-    
-    async def set(self, key: str, response_data: Dict[str, Any], ttl: int = 3600) -> None:
+
+    async def set(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> None:
         """Set with graceful Redis outage handling."""
         await self._execute_with_fallback(
             operation="set",
@@ -89,7 +90,7 @@ class HardenedRedisStore:
             fallback_operation=lambda: self._fallback_set(key, response_data, ttl),
             key=key
         )
-    
+
     async def exists(self, key: str) -> bool:
         """Check existence with graceful Redis outage handling."""
         result = await self._execute_with_fallback(
@@ -99,7 +100,7 @@ class HardenedRedisStore:
             key=key
         )
         return bool(result)
-    
+
     async def _execute_with_fallback(
         self,
         operation: str,
@@ -110,35 +111,35 @@ class HardenedRedisStore:
         """Execute operation with Redis fallback handling."""
         self.metrics["operations_total"] += 1
         start_time = time.time()
-        
+
         # Check circuit breaker
         if self._is_circuit_open():
             self.logger.warning(f"Circuit breaker open, using fallback for {operation}")
             self.metrics["fallback_used_total"] += 1
             return await fallback_operation()
-        
+
         # Check Redis health periodically
         await self._check_redis_health()
-        
+
         # Try Redis operation with retries
         for attempt in range(self.max_retry_attempts):
             try:
                 result = await redis_operation()
-                
+
                 # Reset failure count on success
                 if self.failure_count > 0:
                     self.logger.info(f"Redis recovered after {self.failure_count} failures")
                     self.failure_count = 0
                     self.health_status = RedisHealthStatus.HEALTHY
-                
+
                 return result
-                
+
             except Exception as e:
                 self.failure_count += 1
                 self.metrics["failures_total"] += 1
-                
+
                 duration_ms = (time.time() - start_time) * 1000
-                
+
                 # Log structured outage event
                 outage_event = RedisOutageEvent(
                     timestamp=time.time(),
@@ -148,9 +149,9 @@ class HardenedRedisStore:
                     fallback_used=attempt == self.max_retry_attempts - 1,
                     duration_ms=duration_ms
                 )
-                
+
                 self._log_outage_event(outage_event)
-                
+
                 if attempt < self.max_retry_attempts - 1:
                     # Exponential backoff
                     await asyncio.sleep(0.1 * (2 ** attempt))
@@ -159,104 +160,104 @@ class HardenedRedisStore:
                     self._trigger_circuit_breaker()
                     self.metrics["fallback_used_total"] += 1
                     return await fallback_operation()
-        
+
         # Should not reach here
         return await fallback_operation()
-    
-    async def _redis_get(self, key: str) -> Optional[Dict[str, Any]]:
+
+    async def _redis_get(self, key: str) -> dict[str, Any] | None:
         """Redis get operation."""
         full_key = f"{self.key_prefix}{key}"
         data = await self.redis.get(full_key)
-        
+
         if data:
             import json
             return json.loads(data)
         return None
-    
-    async def _redis_set(self, key: str, response_data: Dict[str, Any], ttl: int) -> None:
+
+    async def _redis_set(self, key: str, response_data: dict[str, Any], ttl: int) -> None:
         """Redis set operation."""
         full_key = f"{self.key_prefix}{key}"
         import json
         serialized_data = json.dumps(response_data, default=str)
         await self.redis.setex(full_key, ttl, serialized_data)
-    
+
     async def _redis_exists(self, key: str) -> bool:
         """Redis exists operation."""
         full_key = f"{self.key_prefix}{key}"
         result = await self.redis.exists(full_key)
         return bool(result)
-    
-    async def _fallback_get(self, key: str) -> Optional[Dict[str, Any]]:
+
+    async def _fallback_get(self, key: str) -> dict[str, Any] | None:
         """Fallback get operation using in-memory store."""
         return self.fallback_store.get(key)
-    
-    async def _fallback_set(self, key: str, response_data: Dict[str, Any], ttl: int) -> None:
+
+    async def _fallback_set(self, key: str, response_data: dict[str, Any], ttl: int) -> None:
         """Fallback set operation using in-memory store."""
         self.fallback_store[key] = {
             **response_data,
             "_fallback_created_at": time.time(),
             "_fallback_ttl": ttl
         }
-    
+
     async def _fallback_exists(self, key: str) -> bool:
         """Fallback exists operation using in-memory store."""
         return key in self.fallback_store
-    
+
     async def _check_redis_health(self) -> None:
         """Periodic Redis health check."""
         current_time = time.time()
-        
+
         if current_time - self.last_health_check < self.health_check_interval:
             return
-        
+
         self.last_health_check = current_time
-        
+
         try:
             # Simple ping to check Redis health
             await self.redis.ping()
-            
+
             if self.health_status != RedisHealthStatus.HEALTHY:
                 self.logger.info("Redis health check passed, status restored to healthy")
                 self.health_status = RedisHealthStatus.HEALTHY
-                
+
         except Exception as e:
             if self.health_status == RedisHealthStatus.HEALTHY:
                 self.logger.warning(f"Redis health check failed: {e}")
                 self.health_status = RedisHealthStatus.DEGRADED
-    
+
     def _is_circuit_open(self) -> bool:
         """Check if circuit breaker is open."""
         if self.circuit_open_until > time.time():
             return True
-        
+
         # Reset circuit breaker if timeout expired
         if self.circuit_open_until > 0:
             self.logger.info("Circuit breaker timeout expired, attempting Redis operations")
             self.circuit_open_until = 0
-        
+
         return False
-    
+
     def _trigger_circuit_breaker(self) -> None:
         """Trigger circuit breaker after too many failures."""
         if self.failure_count >= self.circuit_breaker_threshold:
             self.circuit_open_until = time.time() + 60  # 1 minute circuit breaker
             self.metrics["circuit_breaker_trips"] += 1
-            
+
             self.logger.error(
                 f"Circuit breaker triggered after {self.failure_count} failures, "
                 f"Redis operations suspended for 60 seconds"
             )
-            
+
             self.health_status = RedisHealthStatus.UNAVAILABLE
-    
+
     def _log_outage_event(self, event: RedisOutageEvent) -> None:
         """Log structured outage event."""
         self.metrics["outage_events"].append(event)
-        
+
         # Keep only last 100 events
         if len(self.metrics["outage_events"]) > 100:
             self.metrics["outage_events"] = self.metrics["outage_events"][-100:]
-        
+
         # Structured logging for monitoring systems
         log_data = {
             "event_type": "redis_outage",
@@ -269,13 +270,13 @@ class HardenedRedisStore:
             "failure_count": self.failure_count,
             "circuit_breaker_active": self._is_circuit_open()
         }
-        
+
         if event.status == RedisHealthStatus.UNAVAILABLE:
             self.logger.error(f"Redis unavailable: {log_data}")
         else:
             self.logger.warning(f"Redis degraded: {log_data}")
-    
-    def get_health_status(self) -> Dict[str, Any]:
+
+    def get_health_status(self) -> dict[str, Any]:
         """Get current Redis health status."""
         return {
             "status": self.health_status.value,
@@ -285,8 +286,8 @@ class HardenedRedisStore:
             "last_health_check": self.last_health_check,
             "metrics": self.metrics.copy()
         }
-    
-    async def force_health_check(self) -> Dict[str, Any]:
+
+    async def force_health_check(self) -> dict[str, Any]:
         """Force immediate health check."""
         self.last_health_check = 0  # Reset to force check
         await self._check_redis_health()
@@ -295,20 +296,20 @@ class HardenedRedisStore:
 
 class RateLimitedRedisStore(HardenedRedisStore):
     """Redis store with rate limiting to prevent abuse."""
-    
+
     def __init__(self, *args, rate_limit_per_minute: int = 1000, **kwargs):
         super().__init__(*args, **kwargs)
         self.rate_limit_per_minute = rate_limit_per_minute
         self.request_timestamps = []
-    
+
     async def _check_rate_limit(self, operation: str) -> None:
         """Check rate limit before operation."""
         current_time = time.time()
-        
+
         # Remove timestamps older than 1 minute
         cutoff_time = current_time - 60
         self.request_timestamps = [ts for ts in self.request_timestamps if ts > cutoff_time]
-        
+
         # Check if rate limit exceeded
         if len(self.request_timestamps) >= self.rate_limit_per_minute:
             self.logger.warning(
@@ -316,16 +317,16 @@ class RateLimitedRedisStore(HardenedRedisStore):
                 f"{len(self.request_timestamps)} requests in last minute"
             )
             raise Exception(f"Rate limit exceeded: {self.rate_limit_per_minute} requests/minute")
-        
+
         # Add current request
         self.request_timestamps.append(current_time)
-    
-    async def get(self, key: str) -> Optional[Dict[str, Any]]:
+
+    async def get(self, key: str) -> dict[str, Any] | None:
         """Get with rate limiting."""
         await self._check_rate_limit("get")
         return await super().get(key)
-    
-    async def set(self, key: str, response_data: Dict[str, Any], ttl: int = 3600) -> None:
+
+    async def set(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> None:
         """Set with rate limiting."""
         await self._check_rate_limit("set")
         await super().set(key, response_data, ttl)
@@ -341,7 +342,7 @@ def create_hardened_redis_store(
     try:
         import redis.asyncio as redis
         redis_client = redis.from_url(redis_url)
-        
+
         if enable_rate_limiting:
             return RateLimitedRedisStore(
                 redis_client,
@@ -350,7 +351,7 @@ def create_hardened_redis_store(
             )
         else:
             return HardenedRedisStore(redis_client, **kwargs)
-            
+
     except ImportError:
         raise ImportError("redis package required for HardenedRedisStore")
 
@@ -361,23 +362,23 @@ async def monitor_redis_health(store: HardenedRedisStore, interval: int = 60) ->
     while True:
         try:
             health_status = await store.force_health_check()
-            
+
             if health_status["status"] != "healthy":
                 logging.getLogger("redis.monitor").warning(
                     f"Redis health check: {health_status}"
                 )
-            
+
             await asyncio.sleep(interval)
-            
+
         except Exception as e:
             logging.getLogger("redis.monitor").error(f"Health monitoring error: {e}")
             await asyncio.sleep(interval)
 
 
-def get_redis_metrics(store: HardenedRedisStore) -> Dict[str, Any]:
+def get_redis_metrics(store: HardenedRedisStore) -> dict[str, Any]:
     """Get Redis store metrics for Grafana."""
     health_status = store.get_health_status()
-    
+
     return {
         "redis_operations_total": health_status["metrics"]["operations_total"],
         "redis_failures_total": health_status["metrics"]["failures_total"],

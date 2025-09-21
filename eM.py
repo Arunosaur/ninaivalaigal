@@ -5,11 +5,11 @@ Exponential Memory: commands, compounding memory, exponential action
 Part of Ninaivalaigal by Medhays (www.medhasys.com)
 """
 
-import sys
-import os
 import json
+import os
+import sys
+
 import requests
-from datetime import datetime
 
 # Add vendor directory to path for dependencies
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'client', 'vendor'))
@@ -62,7 +62,7 @@ class Mem0Client:
         params = {'context': name}
         if scope:
             params['scope'] = scope
-        
+
         response = self.make_request('POST', '/context/start', params=params)
         if response.status_code == 200:
             print(f"✅ Now recording to context: {name}")
@@ -157,12 +157,12 @@ class Mem0Client:
             "scope": scope,
             "description": description or f"{scope.title()} context: {name}"
         }
-        
+
         if team_id:
             data["team_id"] = team_id
         if organization_id:
             data["organization_id"] = organization_id
-        
+
         response = self.make_request('POST', '/contexts', json=data)
         if response.status_code == 200:
             result = response.json()
@@ -200,11 +200,11 @@ def main():
                 i += 2
             else:
                 i += 1
-        
+
         if not context:
             print("Usage: mem0 start --context <name> [--scope personal|team|organization]")
             sys.exit(1)
-        
+
         client.context_start(context, scope)
 
     elif command == "stop":
@@ -217,7 +217,7 @@ def main():
         if len(sys.argv) < 4 or sys.argv[2] != "--context":
             print("Usage: mem0 delete --context <name1> [name2] [name3] ...")
             sys.exit(1)
-        
+
         names = sys.argv[3:]
         client.context_delete(names)
 
@@ -244,18 +244,18 @@ def main():
         if len(sys.argv) >= 4 and sys.argv[2] == "--context":
             context = sys.argv[3]
         client.recall(context)
-    
+
     elif command == "create":
         if len(sys.argv) < 4 or sys.argv[2] != "--context":
             print("Usage: mem0 create --context <name> [--scope personal|team|organization] [--description <desc>] [--team-id <id>] [--org-id <id>]")
             sys.exit(1)
-        
+
         name = sys.argv[3]
         scope = "personal"
         description = None
         team_id = None
         org_id = None
-        
+
         i = 4
         while i < len(sys.argv):
             if sys.argv[i] == "--scope" and i + 1 < len(sys.argv):
@@ -272,7 +272,7 @@ def main():
                 i += 2
             else:
                 i += 1
-        
+
         client.create_context(name, scope, description, team_id, org_id)
 
 

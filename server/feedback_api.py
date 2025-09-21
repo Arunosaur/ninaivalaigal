@@ -5,20 +5,20 @@ RESTful API for collecting and managing user feedback on memory relevance.
 Supports both implicit and explicit feedback mechanisms.
 """
 
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any
+
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from pydantic import BaseModel, Field
 from auth import get_current_user
 from database import User
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from feedback_engine import (
-    get_feedback_engine,
-    FeedbackType,
-    FeedbackSentiment,
     FeedbackEngine,
-    MemoryFeedbackScore
+    FeedbackSentiment,
+    FeedbackType,
+    get_feedback_engine,
 )
+from pydantic import BaseModel, Field
 
 logger = structlog.get_logger(__name__)
 
@@ -30,36 +30,40 @@ class ImplicitFeedbackRequest(BaseModel):
     memory_id: str
     feedback_type: str = Field(..., description="Type: dwell, click, navigation")
     value: float = Field(..., ge=0.0, description="Raw feedback value")
-    metadata: Optional[Dict[str, Any]] = None
-    context_id: Optional[str] = None
-    query: Optional[str] = None
-    session_id: Optional[str] = None
+    metadata: dict[str, Any] | None = None
+    context_id: str | None = None
+    query: str | None = None
+    session_id: str | None = None
 
 
 class ExplicitFeedbackRequest(BaseModel):
     memory_id: str
-    feedback_type: str = Field(..., description="Type: thumbs_up, thumbs_down, quality_note")
+    feedback_type: str = Field(
+        ..., description="Type: thumbs_up, thumbs_down, quality_note"
+    )
     sentiment: str = Field(..., description="Sentiment: positive, negative, neutral")
-    notes: Optional[str] = None
-    context_id: Optional[str] = None
-    query: Optional[str] = None
-    session_id: Optional[str] = None
+    notes: str | None = None
+    context_id: str | None = None
+    query: str | None = None
+    session_id: str | None = None
 
 
 class DwellTimeFeedbackRequest(BaseModel):
     memory_id: str
-    dwell_time_seconds: float = Field(..., ge=0.0, description="Time spent viewing memory")
-    context_id: Optional[str] = None
-    query: Optional[str] = None
-    session_id: Optional[str] = None
+    dwell_time_seconds: float = Field(
+        ..., ge=0.0, description="Time spent viewing memory"
+    )
+    context_id: str | None = None
+    query: str | None = None
+    session_id: str | None = None
 
 
 class MemoryRatingRequest(BaseModel):
     memory_id: str
     rating: str = Field(..., description="Rating: thumbs_up or thumbs_down")
-    notes: Optional[str] = None
-    context_id: Optional[str] = None
-    query: Optional[str] = None
+    notes: str | None = None
+    context_id: str | None = None
+    query: str | None = None
 
 
 class FeedbackResponse(BaseModel):
@@ -86,7 +90,7 @@ class FeedbackStatsResponse(BaseModel):
     negative_feedback: int
     neutral_feedback: int
     avg_dwell_time: float
-    top_memories: List[Dict[str, Any]]
+    top_memories: list[dict[str, Any]]
 
 
 # Dependency to get feedback engine
@@ -104,15 +108,11 @@ async def feedback_health():
             "status": "healthy",
             "service": "feedback-api",
             "engine_initialized": engine is not None,
-            "redis_connected": engine.redis_client is not None if engine else False
+            "redis_connected": engine.redis_client is not None if engine else False,
         }
     except Exception as e:
         logger.error("Feedback health check failed", error=str(e))
-        return {
-            "status": "unhealthy",
-            "service": "feedback-api",
-            "error": str(e)
-        }
+        return {"status": "unhealthy", "service": "feedback-api", "error": str(e)}
 
 
 @router.post("/implicit", response_model=FeedbackResponse)
@@ -130,14 +130,14 @@ async def record_implicit_feedback(
             "click": FeedbackType.IMPLICIT_CLICK,
             "navigation": FeedbackType.IMPLICIT_NAVIGATION,
         }
-        
+
         feedback_type = feedback_type_map.get(request.feedback_type)
         if not feedback_type:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid feedback type: {request.feedback_type}"
+                detail=f"Invalid feedback type: {request.feedback_type}",
             )
-        
+
         event_id = await engine.record_implicit_feedback(
             user_id=current_user.id,
             memory_id=request.memory_id,
@@ -146,21 +146,21 @@ async def record_implicit_feedback(
             metadata=request.metadata or {},
             context_id=request.context_id,
             query=request.query,
-            session_id=request.session_id
+            session_id=request.session_id,
         )
-        
+
         return FeedbackResponse(
             event_id=event_id,
             message="Implicit feedback recorded successfully",
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
-        
+
     except Exception as e:
         logger.error(
             "Failed to record implicit feedback",
             user_id=current_user.id,
             memory_id=request.memory_id,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -180,28 +180,27 @@ async def record_explicit_feedback(
             "thumbs_down": FeedbackType.EXPLICIT_THUMBS_DOWN,
             "quality_note": FeedbackType.EXPLICIT_QUALITY_NOTE,
         }
-        
+
         sentiment_map = {
             "positive": FeedbackSentiment.POSITIVE,
             "negative": FeedbackSentiment.NEGATIVE,
             "neutral": FeedbackSentiment.NEUTRAL,
         }
-        
+
         feedback_type = feedback_type_map.get(request.feedback_type)
         sentiment = sentiment_map.get(request.sentiment)
-        
+
         if not feedback_type:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid feedback type: {request.feedback_type}"
+                detail=f"Invalid feedback type: {request.feedback_type}",
             )
-        
+
         if not sentiment:
             raise HTTPException(
-                status_code=400,
-                detail=f"Invalid sentiment: {request.sentiment}"
+                status_code=400, detail=f"Invalid sentiment: {request.sentiment}"
             )
-        
+
         event_id = await engine.record_explicit_feedback(
             user_id=current_user.id,
             memory_id=request.memory_id,
@@ -210,21 +209,21 @@ async def record_explicit_feedback(
             notes=request.notes,
             context_id=request.context_id,
             query=request.query,
-            session_id=request.session_id
+            session_id=request.session_id,
         )
-        
+
         return FeedbackResponse(
             event_id=event_id,
             message="Explicit feedback recorded successfully",
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
-        
+
     except Exception as e:
         logger.error(
             "Failed to record explicit feedback",
             user_id=current_user.id,
             memory_id=request.memory_id,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -246,21 +245,21 @@ async def record_dwell_time(
             metadata={"dwell_time_seconds": request.dwell_time_seconds},
             context_id=request.context_id,
             query=request.query,
-            session_id=request.session_id
+            session_id=request.session_id,
         )
-        
+
         return FeedbackResponse(
             event_id=event_id,
             message=f"Dwell time feedback recorded: {request.dwell_time_seconds}s",
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
-        
+
     except Exception as e:
         logger.error(
             "Failed to record dwell time feedback",
             user_id=current_user.id,
             memory_id=request.memory_id,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -284,9 +283,9 @@ async def rate_memory(
         else:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid rating: {request.rating}. Use 'thumbs_up' or 'thumbs_down'"
+                detail=f"Invalid rating: {request.rating}. Use 'thumbs_up' or 'thumbs_down'",
             )
-        
+
         event_id = await engine.record_explicit_feedback(
             user_id=current_user.id,
             memory_id=request.memory_id,
@@ -294,21 +293,21 @@ async def rate_memory(
             sentiment=sentiment,
             notes=request.notes,
             context_id=request.context_id,
-            query=request.query
+            query=request.query,
         )
-        
+
         return FeedbackResponse(
             event_id=event_id,
             message=f"Memory rated: {request.rating}",
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
-        
+
     except Exception as e:
         logger.error(
             "Failed to rate memory",
             user_id=current_user.id,
             memory_id=request.memory_id,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -322,17 +321,17 @@ async def get_memory_feedback_score(
     """Get aggregated feedback score for a specific memory"""
     try:
         score = await engine.get_memory_feedback_score(current_user.id, memory_id)
-        
+
         if not score:
             raise HTTPException(
                 status_code=404,
-                detail=f"No feedback score found for memory {memory_id}"
+                detail=f"No feedback score found for memory {memory_id}",
             )
-        
+
         # Calculate feedback multiplier for display
         feedback_multiplier = 1.0 + (score.total_score * 0.2)
         feedback_multiplier = max(0.5, min(1.5, feedback_multiplier))
-        
+
         return MemoryFeedbackScoreResponse(
             memory_id=score.memory_id,
             user_id=score.user_id,
@@ -342,9 +341,9 @@ async def get_memory_feedback_score(
             implicit_score=score.implicit_score,
             explicit_score=score.explicit_score,
             last_updated=score.last_updated,
-            feedback_multiplier=feedback_multiplier
+            feedback_multiplier=feedback_multiplier,
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -352,7 +351,7 @@ async def get_memory_feedback_score(
             "Failed to get memory feedback score",
             user_id=current_user.id,
             memory_id=memory_id,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -372,14 +371,12 @@ async def get_feedback_stats(
             negative_feedback=0,
             neutral_feedback=0,
             avg_dwell_time=0.0,
-            top_memories=[]
+            top_memories=[],
         )
-        
+
     except Exception as e:
         logger.error(
-            "Failed to get feedback stats",
-            user_id=current_user.id,
-            error=str(e)
+            "Failed to get feedback stats", user_id=current_user.id, error=str(e)
         )
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -395,17 +392,17 @@ async def process_memory_feedback(
     try:
         # This would trigger reprocessing of all feedback for a memory
         # Implementation would depend on additional methods in feedback engine
-        
+
         return {
             "message": f"Feedback processing triggered for memory {memory_id}",
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.utcnow(),
         }
-        
+
     except Exception as e:
         logger.error(
             "Failed to process memory feedback",
             user_id=current_user.id,
             memory_id=memory_id,
-            error=str(e)
+            error=str(e),
         )
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,11 +1,12 @@
 """Tests for filename sanitization utilities."""
 
 import pytest
+
 from server.utils.filename_sanitizer import (
-    sanitize_filename,
-    normalize_content_disposition_filename,
     is_archive_extension,
-    validate_filename_safety
+    normalize_content_disposition_filename,
+    sanitize_filename,
+    validate_filename_safety,
 )
 
 

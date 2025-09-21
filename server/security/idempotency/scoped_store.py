@@ -7,9 +7,8 @@ to prevent cross-route collisions and enhance security isolation.
 
 import hashlib
 import json
-from typing import Optional, Dict, Any, Protocol
-from urllib.parse import urlparse
 from dataclasses import dataclass
+from typing import Any, Protocol
 
 
 @dataclass
@@ -18,27 +17,27 @@ class IdempotencyScope:
     method: str
     path_template: str
     subject_user_id: str
-    organization_id: Optional[str] = None
-    additional_context: Optional[Dict[str, str]] = None
+    organization_id: str | None = None
+    additional_context: dict[str, str] | None = None
 
 
 class ScopedIdempotencyStore(Protocol):
     """Protocol for scoped idempotency key storage."""
-    
-    async def get_scoped(self, key: str, scope: IdempotencyScope) -> Optional[Dict[str, Any]]:
+
+    async def get_scoped(self, key: str, scope: IdempotencyScope) -> dict[str, Any] | None:
         """Get stored response for scoped idempotency key."""
         ...
-    
+
     async def set_scoped(
-        self, 
-        key: str, 
-        scope: IdempotencyScope, 
-        response_data: Dict[str, Any], 
+        self,
+        key: str,
+        scope: IdempotencyScope,
+        response_data: dict[str, Any],
         ttl: int = 3600
     ) -> None:
         """Store response data for scoped idempotency key."""
         ...
-    
+
     async def exists_scoped(self, key: str, scope: IdempotencyScope) -> bool:
         """Check if scoped idempotency key exists."""
         ...
@@ -46,7 +45,7 @@ class ScopedIdempotencyStore(Protocol):
 
 class IdempotencyKeyGenerator:
     """Enhanced idempotency key generator with scoping."""
-    
+
     @staticmethod
     def generate_scoped_key(base_key: str, scope: IdempotencyScope) -> str:
         """
@@ -61,24 +60,24 @@ class IdempotencyKeyGenerator:
             scope.subject_user_id,
             scope.organization_id or "global"
         ]
-        
+
         # Add additional context if provided
         if scope.additional_context:
             context_str = json.dumps(scope.additional_context, sort_keys=True)
             scope_parts.append(hashlib.sha256(context_str.encode()).hexdigest()[:8])
-        
+
         # Hash the base key for consistent length
         base_key_hash = hashlib.sha256(base_key.encode()).hexdigest()[:16]
         scope_parts.append(base_key_hash)
-        
+
         # Join with separator that won't appear in components
         scoped_key = ":".join(scope_parts)
-        
+
         # Final hash to ensure consistent key length and prevent injection
         return hashlib.sha256(scoped_key.encode()).hexdigest()
-    
+
     @staticmethod
-    def extract_path_template(path: str, route_patterns: Optional[Dict[str, str]] = None) -> str:
+    def extract_path_template(path: str, route_patterns: dict[str, str] | None = None) -> str:
         """
         Extract path template from actual path for consistent scoping.
         
@@ -91,34 +90,34 @@ class IdempotencyKeyGenerator:
             for pattern, template in route_patterns.items():
                 if pattern in path:
                     return template
-        
+
         # Fallback: simple ID replacement
         import re
-        
+
         # Replace numeric IDs
         path_template = re.sub(r'/\d+', '/{id}', path)
-        
+
         # Replace UUID patterns
         uuid_pattern = r'/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
         path_template = re.sub(uuid_pattern, '/{uuid}', path_template, flags=re.IGNORECASE)
-        
+
         # Replace common ID patterns
         path_template = re.sub(r'/[a-zA-Z0-9_-]{20,}', '/{long_id}', path_template)
-        
+
         return path_template
-    
+
     @staticmethod
     def create_scope_from_request(
         method: str,
         path: str,
         subject_user_id: str,
-        organization_id: Optional[str] = None,
-        route_patterns: Optional[Dict[str, str]] = None,
-        additional_context: Optional[Dict[str, str]] = None
+        organization_id: str | None = None,
+        route_patterns: dict[str, str] | None = None,
+        additional_context: dict[str, str] | None = None
     ) -> IdempotencyScope:
         """Create idempotency scope from request context."""
         path_template = IdempotencyKeyGenerator.extract_path_template(path, route_patterns)
-        
+
         return IdempotencyScope(
             method=method,
             path_template=path_template,
@@ -130,19 +129,19 @@ class IdempotencyKeyGenerator:
 
 class ScopedMemoryStore:
     """In-memory scoped idempotency store for development."""
-    
+
     def __init__(self):
-        self._store: Dict[str, Dict[str, Any]] = {}
-    
-    async def get_scoped(self, key: str, scope: IdempotencyScope) -> Optional[Dict[str, Any]]:
+        self._store: dict[str, dict[str, Any]] = {}
+
+    async def get_scoped(self, key: str, scope: IdempotencyScope) -> dict[str, Any] | None:
         scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
         return self._store.get(scoped_key)
-    
+
     async def set_scoped(
-        self, 
-        key: str, 
-        scope: IdempotencyScope, 
-        response_data: Dict[str, Any], 
+        self,
+        key: str,
+        scope: IdempotencyScope,
+        response_data: dict[str, Any],
         ttl: int = 3600
     ) -> None:
         scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
@@ -151,12 +150,12 @@ class ScopedMemoryStore:
             "_scope": scope.__dict__,
             "_created_at": __import__("time").time()
         }
-    
+
     async def exists_scoped(self, key: str, scope: IdempotencyScope) -> bool:
         scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
         return scoped_key in self._store
-    
-    def get_stats(self) -> Dict[str, Any]:
+
+    def get_stats(self) -> dict[str, Any]:
         """Get store statistics."""
         return {
             "total_keys": len(self._store),
@@ -169,74 +168,74 @@ class ScopedMemoryStore:
 
 class ScopedRedisStore:
     """Redis-backed scoped idempotency store."""
-    
+
     def __init__(self, redis_client, key_prefix: str = "scoped_idempotency:"):
         self.redis = redis_client
         self.key_prefix = key_prefix
-    
-    async def get_scoped(self, key: str, scope: IdempotencyScope) -> Optional[Dict[str, Any]]:
+
+    async def get_scoped(self, key: str, scope: IdempotencyScope) -> dict[str, Any] | None:
         try:
             scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
             full_key = f"{self.key_prefix}{scoped_key}"
-            
+
             data = await self.redis.get(full_key)
             if data:
                 return json.loads(data)
             return None
-        
+
         except Exception:
             return None
-    
+
     async def set_scoped(
-        self, 
-        key: str, 
-        scope: IdempotencyScope, 
-        response_data: Dict[str, Any], 
+        self,
+        key: str,
+        scope: IdempotencyScope,
+        response_data: dict[str, Any],
         ttl: int = 3600
     ) -> None:
         try:
             scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
             full_key = f"{self.key_prefix}{scoped_key}"
-            
+
             # Add scope metadata
             enriched_data = {
                 **response_data,
                 "_scope": scope.__dict__,
                 "_scoped_key": scoped_key
             }
-            
+
             serialized_data = json.dumps(enriched_data, default=str)
             await self.redis.setex(full_key, ttl, serialized_data)
-        
+
         except Exception:
             pass  # Fail silently for idempotency
-    
+
     async def exists_scoped(self, key: str, scope: IdempotencyScope) -> bool:
         try:
             scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
             full_key = f"{self.key_prefix}{scoped_key}"
-            
+
             result = await self.redis.exists(full_key)
             return bool(result)
-        
+
         except Exception:
             return False
-    
-    async def get_scope_stats(self, subject_user_id: str) -> Dict[str, Any]:
+
+    async def get_scope_stats(self, subject_user_id: str) -> dict[str, Any]:
         """Get statistics for user's idempotency usage."""
         try:
             pattern = f"{self.key_prefix}*:{subject_user_id}:*"
             keys = []
-            
+
             async for key in self.redis.scan_iter(match=pattern):
                 keys.append(key.decode())
-            
+
             return {
                 "user_id": subject_user_id,
                 "active_keys": len(keys),
                 "sample_keys": keys[:5]  # First 5 for debugging
             }
-        
+
         except Exception:
             return {"user_id": subject_user_id, "active_keys": 0, "error": True}
 
@@ -262,7 +261,7 @@ def create_scoped_store(redis_client=None) -> ScopedIdempotencyStore:
 # Test utilities
 def test_key_scoping():
     """Test idempotency key scoping functionality."""
-    
+
     # Test scope creation
     scope1 = IdempotencyScope(
         method="POST",
@@ -270,27 +269,27 @@ def test_key_scoping():
         subject_user_id="user_123",
         organization_id="org_456"
     )
-    
+
     scope2 = IdempotencyScope(
-        method="POST", 
+        method="POST",
         path_template="/api/v1/users/{user_id}/memories",
         subject_user_id="user_789",  # Different user
         organization_id="org_456"
     )
-    
+
     # Test key generation
     base_key = "idempotency-key-123"
-    
+
     key1 = IdempotencyKeyGenerator.generate_scoped_key(base_key, scope1)
     key2 = IdempotencyKeyGenerator.generate_scoped_key(base_key, scope2)
-    
+
     # Keys should be different for different users
     assert key1 != key2, "Keys should differ for different users"
-    
+
     # Same scope should generate same key
     key1_repeat = IdempotencyKeyGenerator.generate_scoped_key(base_key, scope1)
     assert key1 == key1_repeat, "Same scope should generate same key"
-    
+
     return {
         "scope1_key": key1,
         "scope2_key": key2,
@@ -307,7 +306,7 @@ def test_path_template_extraction():
         ("/api/v1/contexts/uuid-123-456", "/api/v1/contexts/{long_id}"),
         ("/static/path", "/static/path")  # No IDs to replace
     ]
-    
+
     results = []
     for path, expected in test_cases:
         template = IdempotencyKeyGenerator.extract_path_template(path)
@@ -317,5 +316,5 @@ def test_path_template_extraction():
             "expected": expected,
             "matches": template == expected
         })
-    
+
     return results

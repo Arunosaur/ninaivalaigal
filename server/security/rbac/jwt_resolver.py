@@ -1,6 +1,9 @@
 from __future__ import annotations
-import time, json, base64, threading
-from typing import Dict, Optional, List, Tuple
+
+import base64
+import json
+import threading
+import time
 
 try:
     import jwt
@@ -9,11 +12,14 @@ except Exception:  # pragma: no cover
     jwt = None
     PyJWKClient = None
 
-from .subject_ctx import SubjectContext
 from ..observability.tracing import start_span
 from .metrics import (
-    jwt_unknown_kid_total, jwt_jwks_fetch_failures_total, jwt_neg_kid_cache_hits_total
+    jwt_jwks_fetch_failures_total,
+    jwt_neg_kid_cache_hits_total,
+    jwt_unknown_kid_total,
 )
+from .subject_ctx import SubjectContext
+
 
 class Backoff:
     def __init__(self, base=0.2, cap=5.0):
@@ -32,7 +38,7 @@ class Backoff:
 class NegativeKidCache:
     def __init__(self, ttl_seconds: int = 600):
         self.ttl = ttl_seconds
-        self._store: Dict[str, float] = {}
+        self._store: dict[str, float] = {}
         self._lock = threading.Lock()
 
     def add(self, kid: str) -> None:
@@ -52,15 +58,15 @@ class NegativeKidCache:
 class JWTClaimsResolver:
     def __init__(
         self,
-        secret: Optional[str] = None,
-        algorithms: Optional[List[str]] = None,
-        jwks_url: Optional[str] = None,
-        audience: Optional[str] = None,
-        issuer: Optional[str] = None,
+        secret: str | None = None,
+        algorithms: list[str] | None = None,
+        jwks_url: str | None = None,
+        audience: str | None = None,
+        issuer: str | None = None,
         leeway_seconds: int = 120,
         negative_kid_ttl: int = 600,
-        require_claims: Optional[List[str]] = None,
-        max_token_lifetime_s: Optional[int] = None,
+        require_claims: list[str] | None = None,
+        max_token_lifetime_s: int | None = None,
     ) -> None:
         self.secret = secret
         self.algorithms = algorithms or ["HS256"]
@@ -74,7 +80,7 @@ class JWTClaimsResolver:
         self.require_claims = set(require_claims or ["sub", "org_id", "team_id", "roles", "exp"])
         self.max_token_lifetime_s = max_token_lifetime_s  # e.g., 3600 for 1h
 
-    def _header(self, token: str) -> Dict[str, object]:
+    def _header(self, token: str) -> dict[str, object]:
         try:
             seg = token.split(".")[0]
             pad = "=" * (-len(seg) % 4)
@@ -93,7 +99,7 @@ class JWTClaimsResolver:
             if self.audience: kwargs["audience"] = self.audience
             if self.issuer: kwargs["issuer"] = self.issuer
 
-            claims: Dict[str, object] = {}
+            claims: dict[str, object] = {}
             used_jwks = False
 
             if self._jwks_client:

@@ -4,11 +4,10 @@ JWT Token Generator for Ninaivalaigal Users
 Generates JWT tokens for user authentication without sharing database passwords
 """
 
-import jwt
-import json
-from datetime import datetime, timedelta
-import os
 import sys
+from datetime import datetime, timedelta
+
+import jwt
 
 # JWT Secret (should match NINAIVALAIGAL_JWT_SECRET)
 JWT_SECRET = "ninaivalaigal-super-secret-jwt-signing-key-min-32-chars-2024"
@@ -29,7 +28,7 @@ def generate_user_token(user_id, organization_id, teams=None, role="member", exp
     """
     if teams is None:
         teams = []
-    
+
     # Token payload
     payload = {
         'user_id': user_id,
@@ -39,7 +38,7 @@ def generate_user_token(user_id, organization_id, teams=None, role="member", exp
         'iat': datetime.utcnow(),
         'exp': datetime.utcnow() + timedelta(days=expires_days)
     }
-    
+
     # Generate token
     token = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
     return token
@@ -66,9 +65,9 @@ def decode_token(token):
 
 def main():
     """Generate tokens for common test scenarios"""
-    
+
     print("=== Ninaivalaigal JWT Token Generator ===\n")
-    
+
     # Example tokens for testing
     test_users = [
         {
@@ -98,9 +97,9 @@ def main():
             'role': 'member'
         }
     ]
-    
+
     print("Generated JWT Tokens:\n")
-    
+
     for user in test_users:
         token = generate_user_token(
             user['user_id'],
@@ -108,34 +107,34 @@ def main():
             user['teams'],
             user['role']
         )
-        
+
         print(f"User: {user['user_id']} ({user['organization_id']})")
         print(f"Teams: {[t['team_id'] for t in user['teams']]}")
         print(f"Token: {token}")
         print(f"Length: {len(token)} characters")
-        
+
         # Verify token
         decoded = decode_token(token)
         if decoded:
             exp_date = datetime.fromtimestamp(decoded['exp'])
             print(f"Expires: {exp_date.strftime('%Y-%m-%d %H:%M:%S')}")
-        
+
         print("-" * 80)
-    
+
     # Interactive token generation
     print("\n=== Interactive Token Generation ===")
-    
+
     if len(sys.argv) > 1 and sys.argv[1] == '--interactive':
         while True:
             print("\nEnter user details (or 'quit' to exit):")
-            
+
             user_id = input("User ID: ").strip()
             if user_id.lower() == 'quit':
                 break
-                
+
             org_id = input("Organization ID: ").strip()
             team_input = input("Teams (comma-separated team_id:role pairs, e.g. 'engineering:lead,product:member'): ").strip()
-            
+
             teams = []
             if team_input:
                 for team_pair in team_input.split(','):
@@ -144,16 +143,16 @@ def main():
                         teams.append({'team_id': team_id.strip(), 'role': role.strip()})
                     else:
                         teams.append({'team_id': team_pair.strip(), 'role': 'member'})
-            
+
             user_role = input("User role (member/lead/admin) [member]: ").strip() or 'member'
             expires_days = input("Expires in days [30]: ").strip()
             expires_days = int(expires_days) if expires_days.isdigit() else 30
-            
+
             token = generate_user_token(user_id, org_id, teams, user_role, expires_days)
-            
-            print(f"\nGenerated Token:")
+
+            print("\nGenerated Token:")
             print(f"NINAIVALAIGAL_USER_TOKEN={token}")
-            print(f"\nAdd this to your .vscode/mcp.json or environment variables")
+            print("\nAdd this to your .vscode/mcp.json or environment variables")
 
 if __name__ == "__main__":
     main()

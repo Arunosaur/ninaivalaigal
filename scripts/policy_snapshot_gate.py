@@ -1,5 +1,9 @@
 from __future__ import annotations
-import hashlib, json, os, sys
+
+import hashlib
+import json
+import os
+import sys
 
 SNAPSHOT_FILE = os.getenv("POLICY_SNAPSHOT_FILE", "rbac/POLICY_SNAPSHOT.sha256")
 ALLOW_ENV = os.getenv("ALLOW_POLICY_HASH_CHANGE", "false").lower() == "true"

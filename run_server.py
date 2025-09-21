@@ -16,12 +16,12 @@ os.chdir(server_dir)
 
 if __name__ == "__main__":
     try:
-        from main import app
         import uvicorn
-        
+        from main import app
+
         print("🚀 Starting Ninaivalaigal server...")
         print("✅ All imports successful")
-        
+
         # Run with uvicorn
         uvicorn.run(
             "main:app",

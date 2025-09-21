@@ -14,7 +14,6 @@ import asyncio
 import json
 import os
 from datetime import datetime
-from typing import Optional
 
 import asyncpg
 import click
@@ -56,10 +55,10 @@ def lifecycle_cli():
     help="Output format",
 )
 def stats_command(
-    scope: Optional[str],
-    user_id: Optional[str],
-    team_id: Optional[str],
-    org_id: Optional[str],
+    scope: str | None,
+    user_id: str | None,
+    team_id: str | None,
+    org_id: str | None,
     output_format: str,
 ):
     """Show memory lifecycle statistics"""
@@ -171,7 +170,7 @@ def gc_command(dry_run: bool, verbose: bool):
     help="Only archive memories from specific scope",
 )
 @click.option("--dry-run", is_flag=True, help="Show what would be archived")
-def archive_command(older_than: int, scope: Optional[str], dry_run: bool):
+def archive_command(older_than: int, scope: str | None, dry_run: bool):
     """Archive old memories"""
 
     async def run_archive():
@@ -264,7 +263,7 @@ def purge_command(older_than: int, dry_run: bool):
     help="Filter by policy type",
 )
 def policies_command(
-    list_policies: bool, scope: Optional[str], policy_type: Optional[str]
+    list_policies: bool, scope: str | None, policy_type: str | None
 ):
     """Manage lifecycle policies"""
 

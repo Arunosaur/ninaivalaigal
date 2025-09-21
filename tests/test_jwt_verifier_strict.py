@@ -1,11 +1,13 @@
 import time
+
 import jwt
 import pytest
+
 from server.security.jwt.verifier_strict import (
-    verify_jwt_strict, 
-    JWTValidationError, 
+    JWTValidationError,
     StrictJWTConfig,
-    create_production_jwt_config
+    create_production_jwt_config,
+    verify_jwt_strict,
 )
 
 SECRET = "dev-secret-key-for-testing-purposes-only"
@@ -21,7 +23,7 @@ def mk(aud="test-audience", iss="https://test.issuer.com", iat=None, exp=None, n
         "exp": exp or now + 600,
         **extra_claims
     }
-    if nbf is not None: 
+    if nbf is not None:
         payload["nbf"] = nbf
     if jti is not None:
         payload["jti"] = jti
@@ -43,9 +45,9 @@ def test_legacy_parameter_compatibility():
     """Test backward compatibility with legacy parameters."""
     token = mk()
     claims = verify_jwt_strict(
-        token, 
-        key=SECRET, 
-        audience_allowlist={"test-audience"}, 
+        token,
+        key=SECRET,
+        audience_allowlist={"test-audience"},
         issuer_allowlist={"https://test.issuer.com"}
     )
     assert claims["sub"] == "test-user"
@@ -57,7 +59,7 @@ def test_audience_allowlist_validation():
     config = StrictJWTConfig(audience_allowlist={"allowed-audience", "other-allowed"})
     claims = verify_jwt_strict(token, key=SECRET, config=config)
     assert claims["aud"] == "allowed-audience"
-    
+
     # Invalid audience
     token = mk(aud="forbidden-audience")
     with pytest.raises(JWTValidationError, match="No valid audience found"):
@@ -77,7 +79,7 @@ def test_issuer_allowlist_validation():
     config = StrictJWTConfig(issuer_allowlist={"https://trusted.issuer.com"})
     claims = verify_jwt_strict(token, key=SECRET, config=config)
     assert claims["iss"] == "https://trusted.issuer.com"
-    
+
     # Invalid issuer
     token = mk(iss="https://malicious.issuer.com")
     with pytest.raises(JWTValidationError, match="Invalid issuer"):
@@ -86,13 +88,13 @@ def test_issuer_allowlist_validation():
 def test_bounded_leeway_validation():
     """Test bounded clock skew (leeway) validation."""
     now = int(time.time())
-    
+
     # Token valid with leeway
     token = mk(nbf=now + 60)
     config = StrictJWTConfig(leeway_seconds=120)
     claims = verify_jwt_strict(token, key=SECRET, config=config)
     assert claims["sub"] == "test-user"
-    
+
     # Token invalid with smaller leeway
     config = StrictJWTConfig(leeway_seconds=30)
     with pytest.raises(JWTValidationError, match="Invalid token"):
@@ -103,11 +105,11 @@ def test_bounded_leeway_limits():
     # Valid leeway
     config = StrictJWTConfig(leeway_seconds=60)
     assert config.leeway_seconds == 60
-    
+
     # Invalid leeway - too high
     with pytest.raises(ValueError, match="leeway_seconds must be 0-300"):
         StrictJWTConfig(leeway_seconds=400)
-    
+
     # Invalid leeway - negative
     with pytest.raises(ValueError, match="leeway_seconds must be 0-300"):
         StrictJWTConfig(leeway_seconds=-10)
@@ -115,13 +117,13 @@ def test_bounded_leeway_limits():
 def test_token_age_validation():
     """Test maximum token age validation."""
     now = int(time.time())
-    
+
     # Fresh token should pass
     token = mk(iat=now - 300)  # 5 minutes old
     config = StrictJWTConfig(max_token_age_seconds=600)  # 10 minutes max
     claims = verify_jwt_strict(token, key=SECRET, config=config)
     assert claims["sub"] == "test-user"
-    
+
     # Old token should fail
     token = mk(iat=now - 7200)  # 2 hours old
     config = StrictJWTConfig(max_token_age_seconds=3600)  # 1 hour max
@@ -133,7 +135,7 @@ def test_future_token_validation():
     now = int(time.time())
     token = mk(iat=now + 300)  # 5 minutes in future
     config = StrictJWTConfig(leeway_seconds=60)  # Only 1 minute leeway
-    
+
     with pytest.raises(JWTValidationError, match="Invalid token"):
         verify_jwt_strict(token, key=SECRET, config=config)
 
@@ -144,12 +146,12 @@ def test_jti_requirement():
     config = StrictJWTConfig(require_jti=True)
     with pytest.raises(JWTValidationError, match="Token missing required 'jti' claim"):
         verify_jwt_strict(token, key=SECRET, config=config)
-    
+
     # Token with valid JTI should pass
     token = mk(jti="unique-jwt-id-12345678")
     claims = verify_jwt_strict(token, key=SECRET, config=config)
     assert claims["jti"] == "unique-jwt-id-12345678"
-    
+
     # Token with short JTI should fail
     token = mk(jti="short")
     with pytest.raises(JWTValidationError, match="JWT ID 'jti' too short"):
@@ -162,7 +164,7 @@ def test_nbf_requirement():
     config = StrictJWTConfig(require_nbf=True)
     with pytest.raises(JWTValidationError, match="Token missing required 'nbf' claim"):
         verify_jwt_strict(token, key=SECRET, config=config)
-    
+
     # Token with valid NBF should pass
     now = int(time.time())
     token = mk(nbf=now - 60)
@@ -177,12 +179,12 @@ def test_suspicious_claims_detection():
     # Should pass but log warning (we can't easily test logging here)
     claims = verify_jwt_strict(token, key=SECRET, config=config)
     assert claims["sub"] == "admin-user"
-    
+
     # Test dangerous scopes
     token = mk(scope="read write admin")
     claims = verify_jwt_strict(token, key=SECRET, config=config)
     assert "admin" in claims["scope"]
-    
+
     # Test privileged roles
     token = mk(roles=["user", "admin", "editor"])
     claims = verify_jwt_strict(token, key=SECRET, config=config)
@@ -197,7 +199,7 @@ def test_production_config():
         max_token_age_seconds=900,  # 15 minutes
         require_jti=True
     )
-    
+
     assert config.audience_allowlist == {"prod-app"}
     assert config.issuer_allowlist == {"https://prod.auth.com"}
     assert config.leeway_seconds == 30
@@ -211,14 +213,14 @@ def test_missing_required_claims():
     # Missing subject
     payload = {"aud": "test", "iss": "test", "iat": int(time.time()), "exp": int(time.time()) + 600}
     token = jwt.encode(payload, SECRET, algorithm="HS256")
-    
+
     with pytest.raises(JWTValidationError, match="Invalid token"):
         verify_jwt_strict(token, key=SECRET)
 
 def test_algorithm_restrictions():
     """Test algorithm restrictions in config."""
     config = StrictJWTConfig(algorithms=("RS256",))
-    
+
     # HS256 token should fail with RS256-only config
     token = mk()  # Uses HS256
     with pytest.raises(JWTValidationError, match="Invalid token"):
@@ -243,9 +245,9 @@ if __name__ == "__main__":
         test_missing_required_claims,
         test_algorithm_restrictions,
     ]
-    
+
     print("Running strict JWT verifier tests...")
-    
+
     for test_func in test_functions:
         try:
             test_func()
@@ -253,6 +255,6 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"✗ {test_func.__name__}: {e}")
             raise
-    
+
     print(f"\nAll {len(test_functions)} strict JWT verifier tests passed!")
     print("Enhanced JWT verifier with bounded leeway and comprehensive validation ready for production.")

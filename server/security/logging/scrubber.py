@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 import re
-from typing import Any, Dict
+from typing import Any
 
 BLOCKLIST_FIELDS = {
     "authorization","auth","access_token","refresh_token","password","secret","api_key",
@@ -31,7 +32,7 @@ def _scrub(obj: Any) -> Any:
         return obj
     return obj
 
-def safe_log_dict(d: Dict[str, Any]) -> Dict[str, Any]:
+def safe_log_dict(d: dict[str, Any]) -> dict[str, Any]:
     try:
         return _scrub(dict(d))
     except Exception:

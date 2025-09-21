@@ -1,4 +1,5 @@
-from server.security.multipart.strict_limits import looks_binary, enforce_part_limits
+from server.security.multipart.strict_limits import enforce_part_limits, looks_binary
+
 
 def test_pe_header_is_binary():
     assert looks_binary(b"MZ\x90\x00...."[:10])

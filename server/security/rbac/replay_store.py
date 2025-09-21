@@ -1,4 +1,5 @@
-import time, os
+import os
+import time
 from collections import OrderedDict
 
 TTL = int(os.getenv("JWT_REPLAY_TTL", "300"))

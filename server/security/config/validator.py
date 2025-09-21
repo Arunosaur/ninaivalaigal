@@ -6,21 +6,23 @@ production requirements with safe /healthz/config endpoint for SREs.
 """
 
 from __future__ import annotations
+
 import os
 import re
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, HTTPException
+from typing import Any
+
+from fastapi import APIRouter
 
 
 @dataclass
 class SecurityConfig:
     """Security configuration loaded from environment variables."""
     env: str
-    jwks_url: Optional[str]
-    jwt_aud: Optional[str]
-    jwt_iss: Optional[str]
-    redis_url: Optional[str]
+    jwks_url: str | None
+    jwt_aud: str | None
+    jwt_iss: str | None
+    redis_url: str | None
     fail_closed_tier_threshold: int
     guard_profile: str
     max_body_bytes: int
@@ -33,7 +35,7 @@ class SecurityConfig:
 def load_security_config() -> SecurityConfig:
     """Load security configuration from environment variables."""
     env = os.getenv("APP_ENV", "development").lower()
-    
+
     return SecurityConfig(
         env=env,
         jwks_url=os.getenv("NINAIVALAIGAL_JWKS_URL"),
@@ -64,7 +66,7 @@ def validate_or_raise(cfg: SecurityConfig) -> None:
     """
     errors = []
     warnings = []
-    
+
     # Production-specific validations
     if cfg.env == "production":
         # Required production settings
@@ -72,54 +74,52 @@ def validate_or_raise(cfg: SecurityConfig) -> None:
             errors.append("NINAIVALAIGAL_JWKS_URL required in production")
         elif not _is_valid_url(cfg.jwks_url):
             errors.append("NINAIVALAIGAL_JWKS_URL must be valid HTTPS URL")
-        
+
         if not cfg.jwt_aud:
             errors.append("NINAIVALAIGAL_JWT_AUDIENCE required in production")
-        
+
         if not cfg.jwt_iss:
             errors.append("NINAIVALAIGAL_JWT_ISSUER required in production")
-        
+
         if not cfg.redis_url:
             errors.append("REDIS_URL required for distributed idempotency in production")
         elif not _is_valid_redis_url(cfg.redis_url):
             errors.append("REDIS_URL must be valid redis:// or rediss:// URL")
-        
+
         # Security thresholds
         if cfg.fail_closed_tier_threshold < 3:
-            errors.append("FAIL_CLOSED_TIER_THRESHOLD must be >= 3 in production (current: {})".format(
-                cfg.fail_closed_tier_threshold
-            ))
-        
+            errors.append(f"FAIL_CLOSED_TIER_THRESHOLD must be >= 3 in production (current: {cfg.fail_closed_tier_threshold})")
+
         # Body size limits
         if cfg.max_body_bytes > 50 * 1024 * 1024:  # 50MB
             warnings.append("MAX_BODY_BYTES > 50MB may impact performance")
-        
+
         # Security guards
         if not cfg.enable_compression_guard:
             warnings.append("ENABLE_COMPRESSION_GUARD=false reduces security in production")
-        
+
         if not cfg.enable_global_scrubbing:
             warnings.append("ENABLE_GLOBAL_SCRUBBING=false may leak secrets in logs")
-    
+
     # Environment-agnostic validations
     if cfg.fail_closed_tier_threshold < 1 or cfg.fail_closed_tier_threshold > 5:
         errors.append("FAIL_CLOSED_TIER_THRESHOLD must be between 1-5")
-    
+
     if cfg.max_body_bytes < 1024:  # 1KB minimum
         errors.append("MAX_BODY_BYTES must be at least 1024 bytes")
-    
+
     if cfg.idempotency_ttl_seconds < 60:  # 1 minute minimum
         errors.append("IDEMPOTENCY_TTL_SECONDS must be at least 60 seconds")
-    
+
     # Guard profile validation
     valid_profiles = ["edge-decompress", "reject-encoding", "content-type-strict", "multipart-strict"]
     if cfg.guard_profile not in valid_profiles:
         errors.append(f"SECURITY_GUARD_PROFILE must be one of: {valid_profiles}")
-    
+
     # Raise errors if any found
     if errors:
         raise ConfigError("Security configuration errors: " + "; ".join(errors))
-    
+
     # Log warnings (in real implementation, use proper logging)
     if warnings:
         import logging
@@ -150,9 +150,9 @@ def make_health_router(cfg: SecurityConfig) -> APIRouter:
     Returns configuration snapshot without exposing secrets for SRE debugging.
     """
     router = APIRouter()
-    
+
     @router.get("/healthz/config")
-    def healthz_config() -> Dict[str, Any]:
+    def healthz_config() -> dict[str, Any]:
         """Safe configuration snapshot for SRE debugging (no secrets exposed)."""
         return {
             "status": "healthy",
@@ -174,9 +174,9 @@ def make_health_router(cfg: SecurityConfig) -> APIRouter:
             },
             "validation_status": "passed"
         }
-    
+
     @router.get("/healthz/config/validate")
-    def healthz_config_validate() -> Dict[str, Any]:
+    def healthz_config_validate() -> dict[str, Any]:
         """Validate current configuration and return status."""
         try:
             validate_or_raise(cfg)
@@ -195,15 +195,15 @@ def make_health_router(cfg: SecurityConfig) -> APIRouter:
                 "errors": str(e).split("; "),
                 "timestamp": _get_timestamp()
             }
-    
+
     return router
 
 
-def _extract_domain(url: str) -> Optional[str]:
+def _extract_domain(url: str) -> str | None:
     """Extract domain from URL for safe logging."""
     if not url:
         return None
-    
+
     try:
         from urllib.parse import urlparse
         parsed = urlparse(url)
@@ -212,11 +212,11 @@ def _extract_domain(url: str) -> Optional[str]:
         return "invalid_url"
 
 
-def _extract_scheme(url: str) -> Optional[str]:
+def _extract_scheme(url: str) -> str | None:
     """Extract scheme from URL for safe logging."""
     if not url:
         return None
-    
+
     try:
         from urllib.parse import urlparse
         return urlparse(url).scheme
@@ -232,7 +232,7 @@ def _get_timestamp() -> str:
 
 def test_config_validator():
     """Test security config validator functionality."""
-    
+
     # Test valid production config
     os.environ.update({
         "APP_ENV": "production",
@@ -242,39 +242,39 @@ def test_config_validator():
         "REDIS_URL": "redis://localhost:6379/0",
         "FAIL_CLOSED_TIER_THRESHOLD": "3"
     })
-    
+
     try:
         cfg = load_security_config()
         validate_or_raise(cfg)
         production_test_passed = True
     except ConfigError:
         production_test_passed = False
-    
+
     # Test invalid production config
     os.environ["NINAIVALAIGAL_JWKS_URL"] = ""  # Remove required setting
-    
+
     try:
         cfg = load_security_config()
         validate_or_raise(cfg)
         validation_test_passed = False  # Should have failed
     except ConfigError:
         validation_test_passed = True  # Correctly caught error
-    
+
     # Test development config (more lenient)
     os.environ["APP_ENV"] = "development"
-    
+
     try:
         cfg = load_security_config()
         validate_or_raise(cfg)
         development_test_passed = True
     except ConfigError:
         development_test_passed = False
-    
+
     # Clean up environment
-    for key in ["APP_ENV", "NINAIVALAIGAL_JWKS_URL", "NINAIVALAIGAL_JWT_AUDIENCE", 
+    for key in ["APP_ENV", "NINAIVALAIGAL_JWKS_URL", "NINAIVALAIGAL_JWT_AUDIENCE",
                 "NINAIVALAIGAL_JWT_ISSUER", "REDIS_URL", "FAIL_CLOSED_TIER_THRESHOLD"]:
         os.environ.pop(key, None)
-    
+
     return {
         "production_validation_passed": production_test_passed,
         "error_detection_passed": validation_test_passed,

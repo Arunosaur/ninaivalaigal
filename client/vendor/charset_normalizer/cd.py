@@ -3,8 +3,8 @@ from __future__ import annotations
 import importlib
 from codecs import IncrementalDecoder
 from collections import Counter
+from collections import Counter as TypeCounter
 from functools import lru_cache
-from typing import Counter as TypeCounter
 
 from .constant import (
     FREQUENCIES,
@@ -76,7 +76,7 @@ def unicode_range_languages(primary_range: str) -> list[str]:
     return languages
 
 
-@lru_cache()
+@lru_cache
 def encoding_languages(iana_name: str) -> list[str]:
     """
     Single-byte encoding language association. Some code page are heavily linked to particular language(s).
@@ -96,7 +96,7 @@ def encoding_languages(iana_name: str) -> list[str]:
     return unicode_range_languages(primary_range)
 
 
-@lru_cache()
+@lru_cache
 def mb_encoding_languages(iana_name: str) -> list[str]:
     """
     Multi-byte encoding language association. Some code page are heavily linked to particular language(s).
@@ -189,7 +189,7 @@ def characters_popularity_compare(
     large_alphabet: bool = target_language_characters_count > 26
 
     for character, character_rank in zip(
-        ordered_characters, range(0, ordered_characters_count)
+        ordered_characters, range(0, ordered_characters_count), strict=False
     ):
         if character not in FREQUENCIES_language_set:
             continue

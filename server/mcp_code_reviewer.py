@@ -4,22 +4,22 @@ MCP Code Reviewer Server for mem0
 Comprehensive code analysis with security, performance, and maintainability reviews
 """
 
-import os
-import sys
 import ast
-import re
-import json
-import subprocess
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
 import asyncio
+import json
+import os
+import re
+import sys
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any
 
 # Add the server directory to the path
 sys.path.insert(0, os.path.dirname(__file__))
 
 from mcp_server import Server
+
 
 @dataclass
 class CodeIssue:
@@ -39,9 +39,9 @@ class CodeReviewResult:
     file_path: str
     language: str
     total_lines: int
-    issues: List[CodeIssue]
-    metrics: Dict[str, Any]
-    summary: Dict[str, int]
+    issues: list[CodeIssue]
+    metrics: dict[str, Any]
+    summary: dict[str, int]
 
 class CodeAnalyzer:
     """Advanced code analysis engine"""
@@ -60,7 +60,7 @@ class CodeAnalyzer:
         language = self._detect_language(path)
 
         # Read file content
-        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+        with open(path, encoding='utf-8', errors='ignore') as f:
             content = f.read()
 
         lines = content.splitlines()
@@ -121,7 +121,7 @@ class CodeAnalyzer:
         }
         return ext_map.get(ext, 'unknown')
 
-    def _analyze_python_code(self, content: str, file_path: str) -> List[CodeIssue]:
+    def _analyze_python_code(self, content: str, file_path: str) -> list[CodeIssue]:
         """Comprehensive Python code analysis"""
         issues = []
 
@@ -156,7 +156,7 @@ class CodeAnalyzer:
 
         return issues
 
-    def _analyze_python_security(self, tree: ast.AST, content: str, file_path: str) -> List[CodeIssue]:
+    def _analyze_python_security(self, tree: ast.AST, content: str, file_path: str) -> list[CodeIssue]:
         """Security-focused analysis for Python code"""
         issues = []
 
@@ -214,7 +214,7 @@ class CodeAnalyzer:
 
         return issues
 
-    def _analyze_python_performance(self, tree: ast.AST, content: str, file_path: str) -> List[CodeIssue]:
+    def _analyze_python_performance(self, tree: ast.AST, content: str, file_path: str) -> list[CodeIssue]:
         """Performance-focused analysis for Python code"""
         issues = []
 
@@ -257,7 +257,7 @@ class CodeAnalyzer:
 
         return issues
 
-    def _analyze_python_quality(self, tree: ast.AST, content: str, file_path: str) -> List[CodeIssue]:
+    def _analyze_python_quality(self, tree: ast.AST, content: str, file_path: str) -> list[CodeIssue]:
         """Code quality analysis for Python code"""
         issues = []
 
@@ -296,7 +296,7 @@ class CodeAnalyzer:
 
         return issues
 
-    def _analyze_python_best_practices(self, tree: ast.AST, content: str, file_path: str) -> List[CodeIssue]:
+    def _analyze_python_best_practices(self, tree: ast.AST, content: str, file_path: str) -> list[CodeIssue]:
         """Best practices analysis for Python code"""
         issues = []
 
@@ -345,7 +345,7 @@ class CodeAnalyzer:
 
         return issues
 
-    def _analyze_js_code(self, content: str, file_path: str) -> List[CodeIssue]:
+    def _analyze_js_code(self, content: str, file_path: str) -> list[CodeIssue]:
         """JavaScript/TypeScript code analysis"""
         issues = []
 
@@ -399,7 +399,7 @@ class CodeAnalyzer:
 
         return issues
 
-    def _analyze_shell_code(self, content: str, file_path: str) -> List[CodeIssue]:
+    def _analyze_shell_code(self, content: str, file_path: str) -> list[CodeIssue]:
         """Shell script analysis"""
         issues = []
 
@@ -453,7 +453,7 @@ class CodeAnalyzer:
 
         return issues
 
-    def _analyze_generic(self, content: str, file_path: str) -> List[CodeIssue]:
+    def _analyze_generic(self, content: str, file_path: str) -> list[CodeIssue]:
         """Generic code analysis applicable to all languages"""
         issues = []
 
@@ -555,7 +555,7 @@ class CodeAnalyzer:
 
         return "\n".join(snippet_lines)
 
-    def _calculate_metrics(self, content: str, language: str) -> Dict[str, Any]:
+    def _calculate_metrics(self, content: str, language: str) -> dict[str, Any]:
         """Calculate code metrics"""
         lines = content.splitlines()
         total_lines = len(lines)
@@ -578,7 +578,7 @@ class CodeAnalyzer:
             'comment_ratio': comment_lines / non_empty_lines if non_empty_lines > 0 else 0,
         }
 
-    def _create_summary(self, issues: List[CodeIssue]) -> Dict[str, int]:
+    def _create_summary(self, issues: list[CodeIssue]) -> dict[str, int]:
         """Create summary of issues by severity and category"""
         summary = {
             'total_issues': len(issues),
@@ -890,7 +890,7 @@ class CodeReviewerServer(Server):
 
             return {"content": [{"type": "text", "text": f"Unknown tool: {name}"}]}
 
-    def _generate_report(self, analysis_results: List[Dict], output_format: str) -> str:
+    def _generate_report(self, analysis_results: list[dict], output_format: str) -> str:
         """Generate a comprehensive code review report"""
 
         if output_format == "json":
@@ -905,7 +905,7 @@ class CodeReviewerServer(Server):
         else:
             return f"Unsupported format: {output_format}"
 
-    def _generate_markdown_report(self, analysis_results: List[Dict]) -> str:
+    def _generate_markdown_report(self, analysis_results: list[dict]) -> str:
         """Generate markdown report"""
         lines = ["# Code Review Report\n"]
 
@@ -925,7 +925,7 @@ class CodeReviewerServer(Server):
             severity_counts["info"] += summary.get("severity_breakdown", {}).get("info", 0)
 
         lines.extend([
-            f"## Summary\n",
+            "## Summary\n",
             f"- **Total Files Analyzed**: {total_files}\n",
             f"- **Total Issues Found**: {total_issues}\n",
             f"- **High Severity**: {severity_counts['high']}\n",
@@ -970,7 +970,7 @@ class CodeReviewerServer(Server):
 
         return "".join(lines)
 
-    def _generate_html_report(self, analysis_results: List[Dict]) -> str:
+    def _generate_html_report(self, analysis_results: list[dict]) -> str:
         """Generate HTML report"""
         html = ["""<!DOCTYPE html>
 <html>
@@ -1008,7 +1008,7 @@ class CodeReviewerServer(Server):
 
         html.extend([
             '<div class="summary">',
-            f'<h2>Summary</h2>',
+            '<h2>Summary</h2>',
             f'<p><strong>Total Files Analyzed:</strong> {total_files}</p>',
             f'<p><strong>Total Issues Found:</strong> {total_issues}</p>',
             f'<p><strong>High Severity:</strong> {severity_counts["high"]}</p>',
@@ -1022,7 +1022,7 @@ class CodeReviewerServer(Server):
         for result in analysis_results:
             if "error" in result:
                 html.extend([
-                    f'<div class="file">',
+                    '<div class="file">',
                     f'<h3>{result["file_path"]}</h3>',
                     f'<p><strong>Error:</strong> {result["error"]}</p>',
                     '</div>'
@@ -1036,7 +1036,7 @@ class CodeReviewerServer(Server):
             metrics = result.get("metrics", {})
 
             html.extend([
-                f'<div class="file">',
+                '<div class="file">',
                 f'<h3>{file_path}</h3>',
                 f'<p><strong>Language:</strong> {language}</p>',
                 f'<p><strong>Lines:</strong> {total_lines}</p>',

@@ -14,6 +14,7 @@ from .utils import (
     is_arabic_isolated_form,
     is_case_variable,
     is_cjk,
+    is_cjk_uncommon,
     is_emoticon,
     is_hangul,
     is_hiragana,
@@ -26,7 +27,6 @@ from .utils import (
     is_unprintable,
     remove_accent,
     unicode_range,
-    is_cjk_uncommon,
 )
 
 
@@ -319,7 +319,7 @@ class SuperWeirdWordPlugin(MessDetectorPlugin):
             if buffer_length >= 24 and self._foreign_long_watch:
                 camel_case_dst = [
                     i
-                    for c, i in zip(self._buffer, range(0, buffer_length))
+                    for c, i in zip(self._buffer, range(0, buffer_length), strict=False)
                     if c.isupper()
                 ]
                 probable_camel_cased: bool = False
@@ -602,7 +602,7 @@ def mess_ratio(
     else:
         intermediary_mean_mess_ratio_calc = 128
 
-    for character, index in zip(decoded_sequence + "\n", range(length)):
+    for character, index in zip(decoded_sequence + "\n", range(length), strict=False):
         for detector in detectors:
             if detector.eligible(character):
                 detector.feed(character)

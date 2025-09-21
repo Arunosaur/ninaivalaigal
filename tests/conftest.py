@@ -1,4 +1,3 @@
-import types
 import pytest
 
 # We monkeypatch starlette.formparsers.MultiPartParser used by the adapter
@@ -16,10 +15,10 @@ class FakeMultiPartParser:
         else:
             # Try to get request from stream coroutine
             req = getattr(self._stream, '__request__', None)
-        
+
         if req is None:
             return
-            
+
         parts = getattr(req, "_parts", [])
         for p in parts:
             yield p

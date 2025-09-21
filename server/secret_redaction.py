@@ -5,14 +5,13 @@ Critical P0 security fix identified in external code review
 """
 
 import re
-import os
-import json
-from typing import Dict, List, Any, Optional
 from datetime import datetime
+from typing import Any
+
 
 class SecretDetector:
     """Detects various types of secrets and credentials"""
-    
+
     def __init__(self):
         self.patterns = {
             'jwt_token': [
@@ -44,11 +43,11 @@ class SecretDetector:
                 r'(?i)aws[_-]?secret[_-]?access[_-]?key["\s]*[:=]["\s]*[A-Za-z0-9/+=]{40}'
             ]
         }
-    
-    def detect_secrets(self, text: str) -> List[Dict[str, Any]]:
+
+    def detect_secrets(self, text: str) -> list[dict[str, Any]]:
         """Detect secrets in text and return findings"""
         findings = []
-        
+
         for secret_type, patterns in self.patterns.items():
             for pattern in patterns:
                 matches = re.finditer(pattern, text)
@@ -60,84 +59,84 @@ class SecretDetector:
                         'matched_text': match.group(),
                         'pattern': pattern
                     })
-        
+
         return findings
-    
+
     def redact_secrets(self, text: str, replacement: str = "[REDACTED]") -> str:
         """Redact detected secrets from text"""
         findings = self.detect_secrets(text)
-        
+
         # Sort by position (reverse order to maintain indices)
         findings.sort(key=lambda x: x['start'], reverse=True)
-        
+
         redacted_text = text
         for finding in findings:
             redacted_text = (
-                redacted_text[:finding['start']] + 
-                f"[REDACTED_{finding['type'].upper()}]" + 
+                redacted_text[:finding['start']] +
+                f"[REDACTED_{finding['type'].upper()}]" +
                 redacted_text[finding['end']:]
             )
-        
+
         return redacted_text
 
 class SecretRedactionPipeline:
     """Main pipeline for secret redaction across the system"""
-    
+
     def __init__(self):
         self.detector = SecretDetector()
         self.redaction_log = []
         self.enabled = True
-    
-    def redact_memory_data(self, memory_data: Dict[str, Any]) -> Dict[str, Any]:
+
+    def redact_memory_data(self, memory_data: dict[str, Any]) -> dict[str, Any]:
         """Redact secrets from memory data before storage"""
         if not self.enabled:
             return memory_data
-        
+
         redacted_data = memory_data.copy()
-        
+
         # Redact text content
         if 'text' in redacted_data:
             original_text = redacted_data['text']
             redacted_text = self.detector.redact_secrets(original_text)
-            
+
             if original_text != redacted_text:
                 self._log_redaction('memory_storage', original_text, redacted_text)
                 redacted_data['text'] = redacted_text
-        
+
         # Redact JSON data recursively
         if 'data' in redacted_data and isinstance(redacted_data['data'], dict):
             redacted_data['data'] = self._redact_dict_recursive(redacted_data['data'])
-        
+
         return redacted_data
-    
+
     def redact_log_message(self, message: str) -> str:
         """Redact secrets from log messages"""
         if not self.enabled:
             return message
-        
+
         redacted_message = self.detector.redact_secrets(message)
-        
+
         if message != redacted_message:
             self._log_redaction('log_message', message, redacted_message)
-        
+
         return redacted_message
-    
+
     def redact_api_response(self, response_data: Any) -> Any:
         """Redact secrets from API responses"""
         if not self.enabled:
             return response_data
-        
+
         if isinstance(response_data, dict):
             return self._redact_dict_recursive(response_data)
         elif isinstance(response_data, str):
             return self.detector.redact_secrets(response_data)
         else:
             return response_data
-    
-    def _redact_dict_recursive(self, data: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _redact_dict_recursive(self, data: dict[str, Any]) -> dict[str, Any]:
         """Recursively redact secrets from dictionary"""
         redacted = {}
-        
+
         for key, value in data.items():
             if isinstance(value, str):
                 redacted[key] = self.detector.redact_secrets(value)
@@ -152,9 +151,9 @@ class SecretRedactionPipeline:
                 ]
             else:
                 redacted[key] = value
-        
+
         return redacted
-    
+
     def _log_redaction(self, source: str, original: str, redacted: str):
         """Log redaction events for security monitoring"""
         redaction_event = {
@@ -164,36 +163,36 @@ class SecretRedactionPipeline:
             'redacted_length': len(redacted),
             'secrets_found': len(self.detector.detect_secrets(original))
         }
-        
+
         self.redaction_log.append(redaction_event)
-        
+
         # Keep only last 1000 events
         if len(self.redaction_log) > 1000:
             self.redaction_log = self.redaction_log[-1000:]
-    
-    def get_redaction_stats(self) -> Dict[str, Any]:
+
+    def get_redaction_stats(self) -> dict[str, Any]:
         """Get statistics about redaction activity"""
         if not self.redaction_log:
             return {'total_redactions': 0, 'sources': {}}
-        
+
         stats = {
             'total_redactions': len(self.redaction_log),
             'sources': {},
             'last_24h': 0
         }
-        
+
         # Count by source
         for event in self.redaction_log:
             source = event['source']
             stats['sources'][source] = stats['sources'].get(source, 0) + 1
-        
+
         # Count last 24 hours
         now = datetime.utcnow()
         for event in self.redaction_log:
             event_time = datetime.fromisoformat(event['timestamp'])
             if (now - event_time).total_seconds() < 86400:  # 24 hours
                 stats['last_24h'] += 1
-        
+
         return stats
 
 # Global instance
@@ -206,7 +205,7 @@ def get_redaction_pipeline() -> SecretRedactionPipeline:
         _redaction_pipeline = SecretRedactionPipeline()
     return _redaction_pipeline
 
-def redact_memory_before_storage(memory_data: Dict[str, Any]) -> Dict[str, Any]:
+def redact_memory_before_storage(memory_data: dict[str, Any]) -> dict[str, Any]:
     """Convenience function for memory redaction"""
     pipeline = get_redaction_pipeline()
     return pipeline.redact_memory_data(memory_data)
@@ -231,9 +230,9 @@ def test_secret_detection():
         "Password: 'mySecretPassword123'",
         "AWS key: AKIAIOSFODNN7EXAMPLE"
     ]
-    
+
     detector = SecretDetector()
-    
+
     for test_case in test_cases:
         print(f"Original: {test_case}")
         redacted = detector.redact_secrets(test_case)

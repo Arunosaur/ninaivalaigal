@@ -11,7 +11,7 @@ Provides REST endpoints for memory lifecycle operations:
 import logging
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -45,25 +45,25 @@ class SetMemoryTTLRequest(BaseModel):
 
 class CreateLifecyclePolicyRequest(BaseModel):
     scope: str = Field(..., pattern="^(personal|team|organization)$")
-    user_id: Optional[str] = None
-    team_id: Optional[str] = None
-    org_id: Optional[str] = None
+    user_id: str | None = None
+    team_id: str | None = None
+    org_id: str | None = None
     policy_type: LifecyclePolicyType
     policy_config: dict[str, Any] = Field(default_factory=dict)
     enabled: bool = True
 
 
 class UpdateLifecyclePolicyRequest(BaseModel):
-    policy_config: Optional[dict[str, Any]] = None
-    enabled: Optional[bool] = None
+    policy_config: dict[str, Any] | None = None
+    enabled: bool | None = None
 
 
 class LifecyclePolicyResponse(BaseModel):
     id: str
     scope: str
-    user_id: Optional[str]
-    team_id: Optional[str]
-    org_id: Optional[str]
+    user_id: str | None
+    team_id: str | None
+    org_id: str | None
     policy_type: str
     policy_config: dict[str, Any]
     enabled: bool
@@ -97,9 +97,9 @@ class MemoryLifecycleInfo(BaseModel):
     created_at: datetime
     last_accessed_at: datetime
     access_count: int
-    expires_at: Optional[datetime]
-    archived_at: Optional[datetime]
-    days_until_expiry: Optional[int]
+    expires_at: datetime | None
+    archived_at: datetime | None
+    days_until_expiry: int | None
     days_since_access: int
 
 
@@ -283,10 +283,10 @@ async def get_memory_lifecycle_info(
     summary="Get lifecycle statistics",
 )
 async def get_lifecycle_stats(
-    scope: Optional[str] = Query(None, regex="^(personal|team|organization)$"),
-    user_id: Optional[str] = Query(None),
-    team_id: Optional[str] = Query(None),
-    org_id: Optional[str] = Query(None),
+    scope: str | None = Query(None, regex="^(personal|team|organization)$"),
+    user_id: str | None = Query(None),
+    team_id: str | None = Query(None),
+    org_id: str | None = Query(None),
     gc: MemoryGarbageCollector = Depends(get_memory_gc),
 ):
     """Get memory lifecycle statistics for a scope"""
@@ -399,9 +399,9 @@ async def create_lifecycle_policy(
     summary="List lifecycle policies",
 )
 async def list_lifecycle_policies(
-    scope: Optional[str] = Query(None, regex="^(personal|team|organization)$"),
-    policy_type: Optional[LifecyclePolicyType] = Query(None),
-    enabled: Optional[bool] = Query(None),
+    scope: str | None = Query(None, regex="^(personal|team|organization)$"),
+    policy_type: LifecyclePolicyType | None = Query(None),
+    enabled: bool | None = Query(None),
     gc: MemoryGarbageCollector = Depends(get_memory_gc),
 ):
     """List lifecycle policies with optional filtering"""

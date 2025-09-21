@@ -1,4 +1,9 @@
-import os, json, subprocess, sys, pathlib, shutil
+import json
+import os
+import pathlib
+import shutil
+import subprocess
+import sys
 
 SCRIPT = "scripts/multipart_policy_snapshot_gate.py"
 

@@ -4,9 +4,9 @@ Simple Code Review Runner for mem0
 Direct execution of code analysis without MCP server
 """
 
-import sys
-import os
 import json
+import os
+import sys
 from pathlib import Path
 
 # Add the server directory to the path
@@ -100,7 +100,7 @@ def main():
     print(f"ℹ️  Low Severity: {severity_breakdown['low']}")
     print(f"💡 Info: {severity_breakdown['info']}")
 
-    print(f"\n📂 Category Breakdown:")
+    print("\n📂 Category Breakdown:")
     for category, count in sorted(category_breakdown.items(), key=lambda x: x[1], reverse=True):
         print(f"   {category}: {count}")
 

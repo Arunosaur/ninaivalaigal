@@ -5,6 +5,7 @@ Runs the MCP server with proper stdio transport
 """
 
 import asyncio
+
 from mcp_server import mcp
 
 if __name__ == "__main__":

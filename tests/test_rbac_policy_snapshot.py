@@ -5,11 +5,11 @@ Creates RBAC policy snapshot with JSON serialization for policy drift detection
 and compliance validation as requested in external code review.
 """
 
-import json
 import hashlib
-from typing import Dict, Any, List
-from dataclasses import dataclass, asdict
+import json
+from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class Role(Enum):
@@ -41,10 +41,10 @@ class PolicyRule:
     """Individual RBAC policy rule."""
     role: Role
     resource: Resource
-    permissions: List[Permission]
-    conditions: Dict[str, Any] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    permissions: list[Permission]
+    conditions: dict[str, Any] = None
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "role": self.role.value,
@@ -56,21 +56,21 @@ class PolicyRule:
 
 class RBACPolicySnapshot:
     """RBAC policy snapshot for drift detection."""
-    
+
     def __init__(self):
-        self.rules: List[PolicyRule] = []
+        self.rules: list[PolicyRule] = []
         self.version = "1.0.0"
         self.created_at = None
         self.policy_hash = None
-    
-    def add_rule(self, role: Role, resource: Resource, permissions: List[Permission], conditions: Dict[str, Any] = None):
+
+    def add_rule(self, role: Role, resource: Resource, permissions: list[Permission], conditions: dict[str, Any] = None):
         """Add policy rule to snapshot."""
         rule = PolicyRule(role, resource, permissions, conditions)
         self.rules.append(rule)
-    
-    def generate_policy_matrix(self) -> Dict[str, Any]:
+
+    def generate_policy_matrix(self) -> dict[str, Any]:
         """Generate complete RBAC policy matrix."""
-        
+
         # Define the complete policy matrix
         policy_matrix = {
             Role.ADMIN: {
@@ -95,10 +95,10 @@ class RBACPolicySnapshot:
                 Resource.TEAM: [Permission.READ],
             }
         }
-        
+
         # Clear existing rules and rebuild from matrix
         self.rules.clear()
-        
+
         for role, resources in policy_matrix.items():
             for resource, permissions in resources.items():
                 # Add ownership conditions for non-admin roles
@@ -108,21 +108,21 @@ class RBACPolicySnapshot:
                         conditions["owner_only"] = True
                     elif resource == Resource.TEAM:
                         conditions["member_only"] = True
-                
+
                 self.add_rule(role, resource, permissions, conditions)
-        
+
         return policy_matrix
-    
+
     def to_json(self) -> str:
         """Serialize policy snapshot to JSON."""
         import time
-        
+
         self.created_at = time.time()
-        
+
         # Calculate policy hash for drift detection
         policy_content = json.dumps([rule.to_dict() for rule in self.rules], sort_keys=True)
         self.policy_hash = hashlib.sha256(policy_content.encode()).hexdigest()
-        
+
         snapshot_data = {
             "version": self.version,
             "created_at": self.created_at,
@@ -135,43 +135,43 @@ class RBACPolicySnapshot:
                 "permissions": [permission.value for permission in Permission]
             }
         }
-        
+
         return json.dumps(snapshot_data, indent=2, sort_keys=True)
-    
+
     @classmethod
     def from_json(cls, json_str: str) -> 'RBACPolicySnapshot':
         """Deserialize policy snapshot from JSON."""
         data = json.loads(json_str)
-        
+
         snapshot = cls()
         snapshot.version = data["version"]
         snapshot.created_at = data["created_at"]
         snapshot.policy_hash = data["policy_hash"]
-        
+
         for rule_data in data["rules"]:
             role = Role(rule_data["role"])
             resource = Resource(rule_data["resource"])
             permissions = [Permission(p) for p in rule_data["permissions"]]
             conditions = rule_data.get("conditions")
-            
+
             snapshot.add_rule(role, resource, permissions, conditions)
-        
+
         return snapshot
-    
-    def compare_with(self, other: 'RBACPolicySnapshot') -> Dict[str, Any]:
+
+    def compare_with(self, other: 'RBACPolicySnapshot') -> dict[str, Any]:
         """Compare with another policy snapshot for drift detection."""
-        
+
         # Quick hash comparison
         if self.policy_hash == other.policy_hash:
             return {"identical": True, "changes": []}
-        
+
         # Detailed comparison
         changes = []
-        
+
         # Convert rules to comparable format
         self_rules = {self._rule_key(rule): rule for rule in self.rules}
         other_rules = {self._rule_key(rule): rule for rule in other.rules}
-        
+
         # Find added rules
         for key in other_rules:
             if key not in self_rules:
@@ -179,15 +179,15 @@ class RBACPolicySnapshot:
                     "type": "added",
                     "rule": other_rules[key].to_dict()
                 })
-        
+
         # Find removed rules
         for key in self_rules:
             if key not in other_rules:
                 changes.append({
-                    "type": "removed", 
+                    "type": "removed",
                     "rule": self_rules[key].to_dict()
                 })
-        
+
         # Find modified rules
         for key in self_rules:
             if key in other_rules:
@@ -197,7 +197,7 @@ class RBACPolicySnapshot:
                         "old_rule": self_rules[key].to_dict(),
                         "new_rule": other_rules[key].to_dict()
                     })
-        
+
         return {
             "identical": False,
             "changes_count": len(changes),
@@ -205,25 +205,25 @@ class RBACPolicySnapshot:
             "old_hash": self.policy_hash,
             "new_hash": other.policy_hash
         }
-    
+
     def _rule_key(self, rule: PolicyRule) -> str:
         """Generate unique key for rule comparison."""
         return f"{rule.role.value}:{rule.resource.value}"
-    
-    def validate_completeness(self) -> Dict[str, Any]:
+
+    def validate_completeness(self) -> dict[str, Any]:
         """Validate that policy matrix is complete."""
         expected_combinations = len(Role) * len(Resource)
         actual_combinations = len(self.rules)
-        
+
         missing_combinations = []
         existing_keys = {self._rule_key(rule) for rule in self.rules}
-        
+
         for role in Role:
             for resource in Resource:
                 key = f"{role.value}:{resource.value}"
                 if key not in existing_keys:
                     missing_combinations.append({"role": role.value, "resource": resource.value})
-        
+
         return {
             "complete": len(missing_combinations) == 0,
             "expected_combinations": expected_combinations,
@@ -235,38 +235,38 @@ class RBACPolicySnapshot:
 
 def test_rbac_policy_snapshot():
     """Test RBAC policy snapshot functionality."""
-    
+
     # Create baseline policy snapshot
     baseline = RBACPolicySnapshot()
     baseline.generate_policy_matrix()
-    
+
     # Serialize to JSON
     baseline_json = baseline.to_json()
-    
+
     # Deserialize from JSON
     restored = RBACPolicySnapshot.from_json(baseline_json)
-    
+
     # Compare baseline with itself (should be identical)
     comparison = baseline.compare_with(restored)
-    
+
     # Validate completeness
     completeness = baseline.validate_completeness()
-    
+
     # Create modified policy for drift testing
     modified = RBACPolicySnapshot()
     modified.generate_policy_matrix()
-    
+
     # Add a new rule to simulate policy drift
     modified.add_rule(
-        Role.USER, 
-        Resource.ORGANIZATION, 
+        Role.USER,
+        Resource.ORGANIZATION,
         [Permission.READ, Permission.WRITE],  # Added WRITE permission
         {"drift_test": True}
     )
-    
+
     # Compare baseline with modified
     drift_comparison = baseline.compare_with(modified)
-    
+
     return {
         "baseline_rules_count": len(baseline.rules),
         "baseline_hash": baseline.policy_hash,
@@ -275,8 +275,8 @@ def test_rbac_policy_snapshot():
         "drift_detected": not drift_comparison["identical"],
         "drift_changes": drift_comparison["changes_count"],
         "test_passed": (
-            comparison["identical"] and 
-            completeness["complete"] and 
+            comparison["identical"] and
+            completeness["complete"] and
             drift_comparison["changes_count"] > 0
         )
     }
@@ -289,19 +289,19 @@ def create_production_policy_snapshot() -> str:
     return snapshot.to_json()
 
 
-def validate_policy_against_snapshot(current_policy_json: str, baseline_json: str) -> Dict[str, Any]:
+def validate_policy_against_snapshot(current_policy_json: str, baseline_json: str) -> dict[str, Any]:
     """Validate current policy against baseline snapshot."""
-    
+
     current = RBACPolicySnapshot.from_json(current_policy_json)
     baseline = RBACPolicySnapshot.from_json(baseline_json)
-    
+
     comparison = baseline.compare_with(current)
     completeness = current.validate_completeness()
-    
+
     # Determine if changes are acceptable
     acceptable_changes = []
     concerning_changes = []
-    
+
     for change in comparison.get("changes", []):
         if change["type"] == "added":
             # New permissions might be acceptable
@@ -312,7 +312,7 @@ def validate_policy_against_snapshot(current_policy_json: str, baseline_json: st
         elif change["type"] == "modified":
             # Modified permissions need review
             concerning_changes.append(change)
-    
+
     return {
         "policy_valid": len(concerning_changes) == 0,
         "completeness": completeness,
@@ -328,7 +328,7 @@ if __name__ == "__main__":
     test_results = test_rbac_policy_snapshot()
     print("RBAC Policy Snapshot Test Results:")
     print(json.dumps(test_results, indent=2))
-    
+
     # Create production snapshot
     production_snapshot = create_production_policy_snapshot()
     print("\nProduction Policy Snapshot:")

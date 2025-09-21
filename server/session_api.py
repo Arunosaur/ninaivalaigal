@@ -4,7 +4,7 @@ RESTful API for intelligent session management and analytics
 """
 
 import json
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 from auth import get_current_user
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/auth/session", tags=["intelligent-sessions"])
 class SessionPreferencesRequest(BaseModel):
     auto_renew: bool = True
     notification_preferences: dict[str, bool] = {}
-    timeout_preference: Optional[str] = None  # 'short', 'medium', 'long'
+    timeout_preference: str | None = None  # 'short', 'medium', 'long'
 
 
 class SessionAnalyticsResponse(BaseModel):
@@ -147,7 +147,7 @@ async def renew_session_intelligently(
 @router.post("/activity")
 async def track_session_activity(
     activity_type: str,
-    metadata: Optional[dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
     request: Request = None,
     current_user: User = Depends(get_current_user),
     session_manager: IntelligentSessionManager = Depends(get_session_manager),

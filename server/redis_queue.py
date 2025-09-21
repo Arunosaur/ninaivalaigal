@@ -5,10 +5,11 @@ Handles background tasks, memory processing, and async operations
 
 import os
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import redis
 import structlog
+
 try:
     from rq import Job, Queue
 except ImportError:
@@ -33,7 +34,7 @@ class RedisQueueManager:
         if not self.rq_available:
             logger.warning("RQ not available, queue operations will be disabled")
             return False
-            
+
         try:
             redis_url = os.getenv("REDIS_URL") or os.getenv("NINAIVALAIGAL_REDIS_URL")
 
@@ -98,7 +99,7 @@ class RedisQueueManager:
         job_timeout: int = 300,
         result_ttl: int = 3600,
         **kwargs,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Enqueue a background task"""
         if not self.is_connected:
             logger.error("Cannot enqueue task - Redis Queue not connected")
@@ -333,7 +334,7 @@ def get_queue_manager() -> RedisQueueManager:
 # Convenience functions for common tasks
 def enqueue_memory_processing(
     memory_id: str, text: str, metadata: dict[str, Any] = None
-) -> Optional[str]:
+) -> str | None:
     """Enqueue memory processing task"""
     return queue_manager.enqueue_task(
         "memory_processing",
@@ -347,7 +348,7 @@ def enqueue_memory_processing(
 
 def enqueue_relevance_calculation(
     user_id: str, context_id: str = None
-) -> Optional[str]:
+) -> str | None:
     """Enqueue relevance score calculation"""
     return queue_manager.enqueue_task(
         "analytics",
@@ -360,7 +361,7 @@ def enqueue_relevance_calculation(
 
 def enqueue_notification(
     user_id: str, notification_type: str, data: dict[str, Any]
-) -> Optional[str]:
+) -> str | None:
     """Enqueue notification sending"""
     return queue_manager.enqueue_task(
         "notifications",
@@ -372,7 +373,7 @@ def enqueue_notification(
     )
 
 
-def enqueue_cleanup_task(days_old: int = 90) -> Optional[str]:
+def enqueue_cleanup_task(days_old: int = 90) -> str | None:
     """Enqueue memory cleanup task"""
     return queue_manager.enqueue_task(
         "default",

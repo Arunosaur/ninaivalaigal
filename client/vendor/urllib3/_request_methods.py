@@ -12,8 +12,8 @@ from .response import BaseHTTPResponse
 __all__ = ["RequestMethods"]
 
 _TYPE_ENCODE_URL_FIELDS = typing.Union[
-    typing.Sequence[tuple[str, typing.Union[str, bytes]]],
-    typing.Mapping[str, typing.Union[str, bytes]],
+    typing.Sequence[tuple[str, str | bytes]],
+    typing.Mapping[str, str | bytes],
 ]
 
 
@@ -120,7 +120,7 @@ class RequestMethods:
             if headers is None:
                 headers = self.headers
 
-            if not ("content-type" in map(str.lower, headers.keys())):
+            if "content-type" not in map(str.lower, headers.keys()):
                 headers = HTTPHeaderDict(headers)
                 headers["Content-Type"] = "application/json"
 

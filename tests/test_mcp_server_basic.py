@@ -6,14 +6,13 @@ Tests core MCP server functionality and tool availability
 
 import json
 import subprocess
-import time
-import os
 import sys
+
 
 def test_mcp_server_initialization():
     """Test that MCP server starts and responds to initialization"""
     server_path = "/Users/asrajag/Workspace/mem0/server/mcp_server.py"
-    
+
     # Start MCP server process
     process = subprocess.Popen(
         [sys.executable, server_path],
@@ -23,7 +22,7 @@ def test_mcp_server_initialization():
         text=True,
         cwd="/Users/asrajag/Workspace/mem0/server"
     )
-    
+
     try:
         # Send initialization request
         init_request = {
@@ -39,16 +38,16 @@ def test_mcp_server_initialization():
                 }
             }
         }
-        
+
         # Send request
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        
+
         # Read response with timeout
         response_line = process.stdout.readline()
         if response_line:
             response = json.loads(response_line.strip())
-            
+
             if "result" in response:
                 print("✅ MCP server initialization successful")
                 print(f"Server capabilities: {response['result'].get('capabilities', {})}")
@@ -59,7 +58,7 @@ def test_mcp_server_initialization():
         else:
             print("❌ No response from server")
             return False
-            
+
     except Exception as e:
         print(f"❌ Test failed with error: {e}")
         return False
@@ -70,7 +69,7 @@ def test_mcp_server_initialization():
 def test_mcp_tools_list():
     """Test that MCP server returns available tools"""
     server_path = "/Users/asrajag/Workspace/mem0/server/mcp_server.py"
-    
+
     process = subprocess.Popen(
         [sys.executable, server_path],
         stdin=subprocess.PIPE,
@@ -79,7 +78,7 @@ def test_mcp_tools_list():
         text=True,
         cwd="/Users/asrajag/Workspace/mem0/server"
     )
-    
+
     try:
         # Initialize first
         init_request = {
@@ -92,22 +91,22 @@ def test_mcp_tools_list():
                 "clientInfo": {"name": "test-client", "version": "1.0.0"}
             }
         }
-        
+
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        
+
         # Read init response
         init_response = process.stdout.readline()
-        
+
         # Send initialized notification (required by MCP protocol)
         initialized_notification = {
             "jsonrpc": "2.0",
             "method": "notifications/initialized"
         }
-        
+
         process.stdin.write(json.dumps(initialized_notification) + "\n")
         process.stdin.flush()
-        
+
         # Send tools/list request
         tools_request = {
             "jsonrpc": "2.0",
@@ -115,21 +114,21 @@ def test_mcp_tools_list():
             "method": "tools/list",
             "params": {}
         }
-        
+
         process.stdin.write(json.dumps(tools_request) + "\n")
         process.stdin.flush()
-        
+
         # Read tools response
         tools_response_line = process.stdout.readline()
         if tools_response_line:
             tools_response = json.loads(tools_response_line.strip())
-            
+
             if "result" in tools_response and "tools" in tools_response["result"]:
                 tools = tools_response["result"]["tools"]
                 print(f"✅ Found {len(tools)} MCP tools:")
                 for tool in tools:
                     print(f"  - {tool['name']}: {tool.get('description', 'No description')}")
-                
+
                 # Check for expected tools
                 tool_names = [tool['name'] for tool in tools]
                 expected_tools = [
@@ -139,13 +138,13 @@ def test_mcp_tools_list():
                     "list_contexts",
                     "enhance_ai_prompt_tool"
                 ]
-                
+
                 missing_tools = [tool for tool in expected_tools if tool not in tool_names]
                 if missing_tools:
                     print(f"⚠️  Missing expected tools: {missing_tools}")
                 else:
                     print("✅ All expected tools are available")
-                
+
                 return True
             else:
                 print(f"❌ Invalid tools response: {tools_response}")
@@ -153,7 +152,7 @@ def test_mcp_tools_list():
         else:
             print("❌ No tools response received")
             return False
-            
+
     except Exception as e:
         print(f"❌ Tools test failed: {e}")
         return False
@@ -164,7 +163,7 @@ def test_mcp_tools_list():
 def test_basic_memory_operation():
     """Test basic memory operations via MCP"""
     server_path = "/Users/asrajag/Workspace/mem0/server/mcp_server.py"
-    
+
     process = subprocess.Popen(
         [sys.executable, server_path],
         stdin=subprocess.PIPE,
@@ -173,7 +172,7 @@ def test_basic_memory_operation():
         text=True,
         cwd="/Users/asrajag/Workspace/mem0/server"
     )
-    
+
     try:
         # Initialize
         init_request = {
@@ -186,20 +185,20 @@ def test_basic_memory_operation():
                 "clientInfo": {"name": "test-client", "version": "1.0.0"}
             }
         }
-        
+
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
         process.stdout.readline()  # Read init response
-        
+
         # Send initialized notification
         initialized_notification = {
             "jsonrpc": "2.0",
             "method": "notifications/initialized"
         }
-        
+
         process.stdin.write(json.dumps(initialized_notification) + "\n")
         process.stdin.flush()
-        
+
         # Test context_start
         context_request = {
             "jsonrpc": "2.0",
@@ -212,10 +211,10 @@ def test_basic_memory_operation():
                 }
             }
         }
-        
+
         process.stdin.write(json.dumps(context_request) + "\n")
         process.stdin.flush()
-        
+
         context_response_line = process.stdout.readline()
         if context_response_line:
             context_response = json.loads(context_response_line.strip())
@@ -228,7 +227,7 @@ def test_basic_memory_operation():
         else:
             print("❌ No context response received")
             return False
-            
+
     except Exception as e:
         print(f"❌ Memory operation test failed: {e}")
         return False
@@ -239,20 +238,20 @@ def test_basic_memory_operation():
 def main():
     """Run all MCP server tests"""
     print("🧪 Testing MCP Server Functionality\n")
-    
+
     tests = [
         ("MCP Server Initialization", test_mcp_server_initialization),
         ("MCP Tools List", test_mcp_tools_list),
         ("Basic Memory Operation", test_basic_memory_operation)
     ]
-    
+
     results = []
     for test_name, test_func in tests:
         print(f"Running: {test_name}")
         result = test_func()
         results.append((test_name, result))
         print()
-    
+
     # Summary
     print("📊 Test Results:")
     passed = 0
@@ -261,9 +260,9 @@ def main():
         print(f"  {status}: {test_name}")
         if result:
             passed += 1
-    
+
     print(f"\n🎯 {passed}/{len(tests)} tests passed")
-    
+
     if passed == len(tests):
         print("🎉 All tests passed! MCP server is working correctly.")
         return 0

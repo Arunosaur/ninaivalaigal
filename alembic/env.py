@@ -1,7 +1,9 @@
-from __future__ import with_statement
-from alembic import context
-from sqlalchemy import engine_from_config, pool
 import os
+
+from sqlalchemy import engine_from_config, pool
+
+from alembic import context
+
 config = context.config
 config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL","postgresql://postgres:postgres@localhost:5432/postgres"))
 target_metadata = None

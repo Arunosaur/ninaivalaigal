@@ -4,7 +4,6 @@ import json
 import os
 import time
 from datetime import datetime
-from typing import Optional
 
 import structlog
 import uvicorn
@@ -19,14 +18,13 @@ from observability import MetricsMiddleware, health_router, metrics_router
 from performance_monitor import get_performance_monitor, start_performance_monitoring
 from pydantic import BaseModel
 from rate_limiting import rate_limit_middleware
+from rbac.permissions import Action, Resource
 from rbac_middleware import get_rbac_context, rbac_middleware, require_permission
 from redis_client import redis_client
 from redis_queue import queue_manager
 from security_integration import configure_security, log_admin_action, redact_text
 from signup_api import router as signup_router
 from spec_kit import ContextScope, ContextSpec, SpecKitContextManager
-
-from rbac.permissions import Action, Resource
 
 # Initialize logger
 logger = structlog.get_logger(__name__)
@@ -106,13 +104,13 @@ class MemoryPayload(BaseModel):
 
 class OrganizationCreate(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class TeamCreate(BaseModel):
     name: str
-    organization_id: Optional[int] = None
-    description: Optional[str] = None
+    organization_id: int | None = None
+    description: str | None = None
 
 
 class TeamMemberAdd(BaseModel):
@@ -122,10 +120,10 @@ class TeamMemberAdd(BaseModel):
 
 class ContextCreate(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     scope: str = "personal"  # "personal", "team", "organization"
-    team_id: Optional[int] = None
-    organization_id: Optional[int] = None
+    team_id: int | None = None
+    organization_id: int | None = None
 
 
 class ContextShare(BaseModel):
@@ -143,13 +141,13 @@ class CrossTeamAccessRequest(BaseModel):
     context_id: int
     target_team_id: int
     permission_level: str  # "read", "write", "admin"
-    justification: Optional[str] = None
+    justification: str | None = None
 
 
 class ApprovalAction(BaseModel):
     request_id: int
     action: str  # "approve" or "reject"
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 # --- Configuration ---
@@ -244,6 +242,7 @@ app.include_router(memory_router)
 
 # Include memory lifecycle router (SPEC-011)
 from memory.lifecycle import lifecycle_router
+
 app.include_router(lifecycle_router)
 
 # Include token management router
@@ -258,27 +257,43 @@ app.include_router(team_invitations_router)
 
 # Include Redis Queue router
 from queue_api import router as queue_router
+
 app.include_router(queue_router)
 
 # Include Memory Preloading router (SPEC-038)
 from preload_api import router as preload_router
+
 app.include_router(preload_router)
 
 # Include Intelligent Session Management router (SPEC-045)
 from session_api import router as session_router
+
 app.include_router(session_router)
 
 # Include Feedback Loop System router (SPEC-040)
 from feedback_api import router as feedback_router
+
 app.include_router(feedback_router)
 
 # Include Intelligent Suggestions router (SPEC-041)
 from suggestions_api import router as suggestions_router
+
 app.include_router(suggestions_router)
 
 # Include Memory Health & Orphaned Token router (SPEC-042)
-from memory_health_api import router as health_router
-app.include_router(health_router)
+from memory_health_api import router as memory_health_router
+
+app.include_router(memory_health_router)
+
+# Include Memory Access Control router (SPEC-043)
+from memory_acl_api import router as acl_router
+
+app.include_router(acl_router)
+
+# Include Memory Drift & Diff Detection router (SPEC-044)
+from memory_drift_api import router as drift_router
+
+app.include_router(drift_router)
 
 # Remove duplicate auth endpoints - handled by signup_router and token_router
 

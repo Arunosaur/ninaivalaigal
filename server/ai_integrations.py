@@ -5,23 +5,21 @@ Provides seamless integration with various AI tools and platforms
 """
 
 import asyncio
-import json
+import logging
 import os
 import sys
 import time
-from typing import Dict, List, Any, Optional, Callable
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
-import logging
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Any
+
 import aiohttp
-import websockets
-from urllib.parse import urlparse, parse_qs
 
 # Import existing mem0 components
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from database import DatabaseManager
 from main import load_config
-from performance_monitor import record_request, record_memory_operation
+from performance_monitor import record_memory_operation, record_request
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -33,7 +31,7 @@ class AIToolConfig:
     name: str
     api_endpoint: str
     api_key_env: str
-    supported_features: List[str]
+    supported_features: list[str]
     rate_limit_per_minute: int
     timeout_seconds: int
     retry_attempts: int
@@ -44,10 +42,10 @@ class AIInteraction:
     tool_name: str
     interaction_type: str  # 'query', 'response', 'error', 'completion'
     content: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     timestamp: datetime
-    context_id: Optional[str] = None
-    user_id: Optional[int] = None
+    context_id: str | None = None
+    user_id: int | None = None
 
 class AIToolIntegration:
     """Base class for AI tool integrations"""
@@ -63,11 +61,11 @@ class AIToolIntegration:
         """Initialize the AI tool connection"""
         raise NotImplementedError
 
-    async def send_query(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def send_query(self, query: str, context: dict[str, Any] = None) -> dict[str, Any]:
         """Send a query to the AI tool"""
         raise NotImplementedError
 
-    async def get_context(self, context_id: str) -> Dict[str, Any]:
+    async def get_context(self, context_id: str) -> dict[str, Any]:
         """Get context information from the AI tool"""
         raise NotImplementedError
 
@@ -117,7 +115,7 @@ class OpenAIIntegration(AIToolIntegration):
             }
         )
 
-    async def send_query(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def send_query(self, query: str, context: dict[str, Any] = None) -> dict[str, Any]:
         if not self._check_rate_limit():
             self._wait_for_rate_limit()
 
@@ -164,7 +162,7 @@ class OpenAIIntegration(AIToolIntegration):
                 "response_time": response_time
             }
 
-    async def get_context(self, context_id: str) -> Dict[str, Any]:
+    async def get_context(self, context_id: str) -> dict[str, Any]:
         # OpenAI doesn't have persistent contexts, return empty
         return {"context_id": context_id, "conversations": []}
 
@@ -184,7 +182,7 @@ class AnthropicIntegration(AIToolIntegration):
             }
         )
 
-    async def send_query(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def send_query(self, query: str, context: dict[str, Any] = None) -> dict[str, Any]:
         if not self._check_rate_limit():
             self._wait_for_rate_limit()
 
@@ -230,7 +228,7 @@ class AnthropicIntegration(AIToolIntegration):
                 "response_time": response_time
             }
 
-    async def get_context(self, context_id: str) -> Dict[str, Any]:
+    async def get_context(self, context_id: str) -> dict[str, Any]:
         # Anthropic doesn't have persistent contexts, return empty
         return {"context_id": context_id, "conversations": []}
 
@@ -242,7 +240,7 @@ class GitHubCopilotIntegration(AIToolIntegration):
         # This is a placeholder for potential API integration
         self.session = None
 
-    async def send_query(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def send_query(self, query: str, context: dict[str, Any] = None) -> dict[str, Any]:
         # GitHub Copilot doesn't have a direct API
         # This would need to be integrated through VS Code extension
         return {
@@ -251,15 +249,15 @@ class GitHubCopilotIntegration(AIToolIntegration):
             "response_time": 0
         }
 
-    async def get_context(self, context_id: str) -> Dict[str, Any]:
+    async def get_context(self, context_id: str) -> dict[str, Any]:
         return {"context_id": context_id, "tool": "github_copilot", "status": "extension_required"}
 
 class AIIntegrationManager:
     """Manages all AI tool integrations"""
 
     def __init__(self):
-        self.integrations: Dict[str, AIToolIntegration] = {}
-        self.interactions: List[AIInteraction] = []
+        self.integrations: dict[str, AIToolIntegration] = {}
+        self.interactions: list[AIInteraction] = []
         self.db = DatabaseManager(load_config())
 
         # Define supported AI tools
@@ -316,7 +314,7 @@ class AIIntegrationManager:
             else:
                 logger.debug(f"Skipping {tool_name} - API key not configured")
 
-    async def query_ai_tool(self, tool_name: str, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def query_ai_tool(self, tool_name: str, query: str, context: dict[str, Any] = None) -> dict[str, Any]:
         """Query a specific AI tool"""
         if tool_name not in self.integrations:
             return {
@@ -407,11 +405,11 @@ class AIIntegrationManager:
             logger.error(f"Failed to store AI interaction: {e}")
             record_memory_operation("ai_interaction_stored", False)
 
-    def get_supported_tools(self) -> List[str]:
+    def get_supported_tools(self) -> list[str]:
         """Get list of supported AI tools"""
         return list(self.integrations.keys())
 
-    def get_tool_capabilities(self, tool_name: str) -> Dict[str, Any]:
+    def get_tool_capabilities(self, tool_name: str) -> dict[str, Any]:
         """Get capabilities of a specific AI tool"""
         if tool_name not in self.integrations:
             return {"error": f"Tool '{tool_name}' not available"}
@@ -428,7 +426,7 @@ class AIIntegrationManager:
             "configured": True
         }
 
-    def get_interaction_history(self, tool_name: str = None, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_interaction_history(self, tool_name: str = None, limit: int = 100) -> list[dict[str, Any]]:
         """Get interaction history"""
         filtered_interactions = self.interactions
 
@@ -453,19 +451,19 @@ async def get_ai_manager() -> AIIntegrationManager:
     return ai_manager
 
 # Convenience functions for easy integration
-async def query_ai_tool(tool_name: str, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+async def query_ai_tool(tool_name: str, query: str, context: dict[str, Any] = None) -> dict[str, Any]:
     """Convenience function to query an AI tool"""
     return await ai_manager.query_ai_tool(tool_name, query, context)
 
-def get_supported_ai_tools() -> List[str]:
+def get_supported_ai_tools() -> list[str]:
     """Convenience function to get supported AI tools"""
     return ai_manager.get_supported_tools()
 
-def get_ai_tool_capabilities(tool_name: str) -> Dict[str, Any]:
+def get_ai_tool_capabilities(tool_name: str) -> dict[str, Any]:
     """Convenience function to get AI tool capabilities"""
     return ai_manager.get_tool_capabilities(tool_name)
 
-def get_ai_interaction_history(tool_name: str = None, limit: int = 100) -> List[Dict[str, Any]]:
+def get_ai_interaction_history(tool_name: str = None, limit: int = 100) -> list[dict[str, Any]]:
     """Convenience function to get AI interaction history"""
     return ai_manager.get_interaction_history(tool_name, limit)
 

@@ -5,9 +5,8 @@ Defines redaction rules by context sensitivity tier and configurable parameters.
 """
 
 import os
-from enum import Enum
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from enum import Enum
 
 
 class ContextSensitivity(Enum):
@@ -24,7 +23,7 @@ class RedactionRule:
     """Configuration for a specific redaction rule"""
     name: str
     enabled: bool
-    pattern: Optional[str] = None
+    pattern: str | None = None
     replacement: str = "<REDACTED>"
     min_confidence: float = 0.7
     description: str = ""
@@ -32,18 +31,18 @@ class RedactionRule:
 
 class RedactionConfig:
     """Centralized redaction configuration"""
-    
+
     def __init__(self):
         self.enabled = os.getenv('REDACTION_ENABLED', 'true').lower() == 'true'
         self.default_tier = ContextSensitivity(os.getenv('REDACTION_DEFAULT_TIER', 'internal'))
         self.audit_enabled = os.getenv('REDACTION_AUDIT_ENABLED', 'true').lower() == 'true'
         self.min_entropy = float(os.getenv('REDACTION_MIN_ENTROPY', '4.5'))
         self.min_length = int(os.getenv('REDACTION_MIN_LENGTH', '20'))
-    
-    def get_rules_for_tier(self, tier: ContextSensitivity) -> List[str]:
+
+    def get_rules_for_tier(self, tier: ContextSensitivity) -> list[str]:
         """Get applicable redaction rules for a sensitivity tier"""
         return REDACTION_RULES.get(tier, [])
-    
+
     def get_tier_rules(self, tier: ContextSensitivity) -> 'TierRules':
         """Get tier rules object for compatibility"""
         rules = self.get_rules_for_tier(tier)
@@ -53,8 +52,8 @@ class RedactionConfig:
 @dataclass
 class TierRules:
     """Tier rules for compatibility"""
-    allowed_patterns: List[str]
-    redaction_patterns: List[str]
+    allowed_patterns: list[str]
+    redaction_patterns: list[str]
 
 
 # Redaction rules by sensitivity tier

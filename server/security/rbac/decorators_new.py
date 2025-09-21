@@ -1,14 +1,16 @@
 from __future__ import annotations
+
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Optional
-from fastapi import Request, HTTPException, status
 
-from .jwt_resolver import JWTClaimsResolver
-from .subject_ctx import SubjectContext
-from .metrics import rbac_denials_total
+from fastapi import HTTPException, Request, status
+
 from ..observability.tracing import start_span
+from .jwt_resolver import JWTClaimsResolver
+from .metrics import rbac_denials_total
+from .subject_ctx import SubjectContext
 
-_resolver: Optional[JWTClaimsResolver] = None
+_resolver: JWTClaimsResolver | None = None
 
 def set_jwt_resolver(resolver: JWTClaimsResolver) -> None:
     global _resolver

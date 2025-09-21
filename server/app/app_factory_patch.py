@@ -1,7 +1,9 @@
-from fastapi import FastAPI, APIRouter, Depends
-from pydantic import BaseModel
-from typing import Any, Dict
+from typing import Any
+
+from fastapi import APIRouter, Depends, FastAPI
 from memory.store_factory import get_memory_store
+from pydantic import BaseModel
+
 
 class WriteBody(BaseModel):
     scope: str = "personal"
@@ -10,7 +12,7 @@ class WriteBody(BaseModel):
     org_id: str | None = None
     kind: str = "note"
     text: str
-    metadata: Dict[str, Any] = {}
+    metadata: dict[str, Any] = {}
 
 def wire_memory_store(app: FastAPI) -> None:
     app.state.memory_store = get_memory_store()

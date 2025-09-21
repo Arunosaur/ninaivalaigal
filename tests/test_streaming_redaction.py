@@ -1,5 +1,7 @@
 import asyncio
+
 from server.security.middleware.streaming_redaction import StreamingRedactor
+
 
 def simple_detector(text: str) -> str:
     return text.replace("SECRET_TOKEN", "<MASK>")

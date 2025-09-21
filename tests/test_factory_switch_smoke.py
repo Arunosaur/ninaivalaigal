@@ -1,6 +1,10 @@
-import os, importlib, pytest
+import importlib
+import os
+
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
 
 @pytest.fixture(autouse=True)
 def restore_env():

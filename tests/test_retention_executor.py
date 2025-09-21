@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from server.security.retention.executor import RetentionExecutor, RetentionPolicy
+
 
 def test_retention_deletes_in_pages():
     store = list(range(1, 2501))

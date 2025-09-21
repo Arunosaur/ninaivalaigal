@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from server.health.config_hash_guard import router, compute_hash
+
+from server.health.config_hash_guard import compute_hash, router
+
 
 def test_health_config_hash_endpoint_exposes_hash(monkeypatch):
     monkeypatch.setenv("JWT_SECRET", "s1")
