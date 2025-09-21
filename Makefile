@@ -483,3 +483,30 @@ test-memory-access:
 	@echo "🧠 Testing Memory Access Tracking"
 	@echo "================================="
 	@curl -s -X POST "http://localhost:13370/memory/memories/test-memory-123/access?context=testing" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
+
+## Memory Preloading Testing Commands (SPEC-038)
+test-preloading:
+	@echo "🚀 Testing Memory Preloading System"
+	@echo "==================================="
+	@echo "Testing preloading trigger..."
+	@curl -s -X POST "http://localhost:13370/memory/preload/trigger" -H "Authorization: Bearer test-token" -H "Content-Type: application/json" -d '{}' | jq . || echo "❌ API not responding"
+
+test-preload-status:
+	@echo "🚀 Testing Preloading Status"
+	@echo "============================"
+	@curl -s "http://localhost:13370/memory/preload/status" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
+
+test-preload-config:
+	@echo "🚀 Testing Preloading Configuration"
+	@echo "==================================="
+	@curl -s "http://localhost:13370/memory/preload/config" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
+
+test-preload-stats:
+	@echo "🚀 Testing Preloading Statistics"
+	@echo "==============================="
+	@curl -s "http://localhost:13370/memory/preload/stats" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
+
+test-preload-health:
+	@echo "🚀 Testing Preloading Health"
+	@echo "============================"
+	@curl -s "http://localhost:13370/memory/preload/health" | jq . || echo "❌ API not responding"

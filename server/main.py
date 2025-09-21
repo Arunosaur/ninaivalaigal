@@ -251,8 +251,11 @@ app.include_router(team_invitations_router)
 
 # Include Redis Queue router
 from queue_api import router as queue_router
-
 app.include_router(queue_router)
+
+# Include Memory Preloading router (SPEC-038)
+from preload_api import router as preload_router
+app.include_router(preload_router)
 
 # Remove duplicate auth endpoints - handled by signup_router and token_router
 
