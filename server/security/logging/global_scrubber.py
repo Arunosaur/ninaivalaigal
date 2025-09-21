@@ -18,6 +18,7 @@ from typing import Any
 @dataclass
 class ScrubPattern:
     """Pattern definition for secret detection."""
+
     name: str
     pattern: Pattern[str]
     replacement: str
@@ -37,34 +38,40 @@ class GlobalLogScrubber:
         # AWS Access Keys
         self.add_pattern(
             "aws_access_key",
-            re.compile(r'AKIA[0-9A-Z]{16}', re.IGNORECASE),
-            "[REDACTED_AWS_KEY]"
+            re.compile(r"AKIA[0-9A-Z]{16}", re.IGNORECASE),
+            "[REDACTED_AWS_KEY]",
         )
 
         # Generic API Keys (high entropy alphanumeric)
         self.add_pattern(
             "generic_api_key",
-            re.compile(r'[a-zA-Z0-9]{32,}', re.IGNORECASE),
+            re.compile(r"[a-zA-Z0-9]{32,}", re.IGNORECASE),
             "[REDACTED_API_KEY]",
-            confidence=0.7
+            confidence=0.7,
         )
 
         # JWT Tokens
         self.add_pattern(
             "jwt_token",
-            re.compile(r'eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*'),
-            "[REDACTED_JWT]"
+            re.compile(r"eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*"),
+            "[REDACTED_JWT]",
         )
 
         # Base64 encoded secrets (high entropy)
         self.add_pattern(
             "base64_secret",
-            re.compile(r'[A-Za-z0-9+/]{40,}={0,2}'),
+            re.compile(r"[A-Za-z0-9+/]{40,}={0,2}"),
             "[REDACTED_BASE64]",
-            confidence=0.6
+            confidence=0.6,
         )
 
-    def add_pattern(self, name: str, pattern: Pattern[str], replacement: str, confidence: float = 1.0):
+    def add_pattern(
+        self,
+        name: str,
+        pattern: Pattern[str],
+        replacement: str,
+        confidence: float = 1.0,
+    ):
         """Add a new scrubbing pattern."""
         self.patterns.append(ScrubPattern(name, pattern, replacement, confidence))
 
@@ -123,7 +130,11 @@ class GlobalLogScrubber:
 
         try:
             data = json.loads(json_str)
-            scrubbed_data = self.scrub_dict(data) if isinstance(data, dict) else self.scrub_list(data)
+            scrubbed_data = (
+                self.scrub_dict(data)
+                if isinstance(data, dict)
+                else self.scrub_list(data)
+            )
             return json.dumps(scrubbed_data)
         except (json.JSONDecodeError, TypeError):
             # Fallback to text scrubbing if JSON parsing fails
@@ -159,7 +170,9 @@ def scrub_json(json_str: str) -> str:
     return _global_scrubber.scrub_json(json_str)
 
 
-def add_scrub_pattern(name: str, pattern: Pattern[str], replacement: str, confidence: float = 1.0):
+def add_scrub_pattern(
+    name: str, pattern: Pattern[str], replacement: str, confidence: float = 1.0
+):
     """Add a pattern to the global scrubber."""
     _global_scrubber.add_pattern(name, pattern, replacement, confidence)
 
@@ -176,11 +189,11 @@ class ScrubberLogHandler(logging.Handler):
     def emit(self, record: logging.LogRecord):
         """Emit log record after scrubbing."""
         # Scrub the message
-        if hasattr(record, 'msg') and isinstance(record.msg, str):
+        if hasattr(record, "msg") and isinstance(record.msg, str):
             record.msg = scrub_text(record.msg)
 
         # Scrub arguments
-        if hasattr(record, 'args') and record.args:
+        if hasattr(record, "args") and record.args:
             scrubbed_args = []
             for arg in record.args:
                 if isinstance(arg, str):
@@ -209,6 +222,7 @@ def install_global_scrubber():
 
 def scrubbing_decorator(func: Callable) -> Callable:
     """Decorator to scrub function return values."""
+
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         if isinstance(result, str):
@@ -216,6 +230,7 @@ def scrubbing_decorator(func: Callable) -> Callable:
         elif isinstance(result, dict):
             return scrub_dict(result)
         return result
+
     return wrapper
 
 

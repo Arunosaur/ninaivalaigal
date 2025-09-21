@@ -10,6 +10,7 @@ import requests
 
 BASE_URL = "http://localhost:8000"
 
+
 def test_individual_signup():
     """Test individual user signup"""
     print("🧪 Testing Individual User Signup...")
@@ -18,7 +19,7 @@ def test_individual_signup():
         "email": "john.doe@example.com",
         "password": "SecurePass123",
         "name": "John Doe",
-        "account_type": "individual"
+        "account_type": "individual",
     }
 
     try:
@@ -31,7 +32,7 @@ def test_individual_signup():
             print(f"User ID: {result.get('user', {}).get('user_id')}")
             print(f"Email: {result.get('user', {}).get('email')}")
             print(f"Account Type: {result.get('user', {}).get('account_type')}")
-            return result.get('user', {}).get('jwt_token')
+            return result.get("user", {}).get("jwt_token")
         else:
             print(f"❌ Individual signup failed: {response.text}")
             return None
@@ -39,6 +40,7 @@ def test_individual_signup():
     except Exception as e:
         print(f"❌ Error during individual signup: {e}")
         return None
+
 
 def test_organization_signup():
     """Test organization signup"""
@@ -48,18 +50,20 @@ def test_organization_signup():
         "user": {
             "email": "admin@acmecorp.com",
             "password": "AdminPass123",
-            "name": "Jane Admin"
+            "name": "Jane Admin",
         },
         "organization": {
             "name": "Acme Corporation",
             "domain": "acmecorp.com",
             "size": "51-200",
-            "industry": "Technology"
-        }
+            "industry": "Technology",
+        },
     }
 
     try:
-        response = requests.post(f"{BASE_URL}/auth/signup/organization", json=signup_data)
+        response = requests.post(
+            f"{BASE_URL}/auth/signup/organization", json=signup_data
+        )
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:
@@ -68,7 +72,7 @@ def test_organization_signup():
             print(f"User ID: {result.get('user_id')}")
             print(f"Organization ID: {result.get('organization_id')}")
             print(f"Role: {result.get('role')}")
-            return result.get('jwt_token')
+            return result.get("jwt_token")
         else:
             print(f"❌ Organization signup failed: {response.text}")
             return None
@@ -77,14 +81,12 @@ def test_organization_signup():
         print(f"❌ Error during organization signup: {e}")
         return None
 
+
 def test_login(email, password):
     """Test user login"""
     print(f"\n🧪 Testing Login for {email}...")
 
-    login_data = {
-        "email": email,
-        "password": password
-    }
+    login_data = {"email": email, "password": password}
 
     try:
         response = requests.post(f"{BASE_URL}/auth/login", json=login_data)
@@ -96,7 +98,7 @@ def test_login(email, password):
             print(f"User ID: {result.get('user', {}).get('user_id')}")
             print(f"Email: {result.get('user', {}).get('email')}")
             print(f"Account Type: {result.get('user', {}).get('account_type')}")
-            return result.get('user', {}).get('jwt_token')
+            return result.get("user", {}).get("jwt_token")
         else:
             print(f"❌ Login failed: {response.text}")
             return None
@@ -105,13 +107,12 @@ def test_login(email, password):
         print(f"❌ Error during login: {e}")
         return None
 
+
 def test_protected_endpoint(token):
     """Test accessing protected endpoint with JWT token"""
     print("\n🧪 Testing Protected Endpoint Access...")
 
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
+    headers = {"Authorization": f"Bearer {token}"}
 
     try:
         response = requests.get(f"{BASE_URL}/auth/me", headers=headers)
@@ -130,6 +131,7 @@ def test_protected_endpoint(token):
         print(f"❌ Error accessing protected endpoint: {e}")
         return False
 
+
 def test_server_health():
     """Test if server is running"""
     print("🧪 Testing Server Health...")
@@ -145,6 +147,7 @@ def test_server_health():
     except Exception as e:
         print(f"❌ Server is not accessible: {e}")
         return False
+
 
 def main():
     """Run all tests"""
@@ -174,6 +177,7 @@ def main():
             test_protected_endpoint(admin_login_token)
 
     print("\n🏁 Test Suite Complete!")
+
 
 if __name__ == "__main__":
     main()

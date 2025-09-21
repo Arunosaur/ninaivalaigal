@@ -20,7 +20,9 @@ class AutoRecorder:
         self.recording_buffer = {}  # context_name -> [messages]
         self.auto_save_interval = 30  # seconds
 
-    async def start_recording(self, context_name: str, user_id: int = None, token: str = None) -> dict:
+    async def start_recording(
+        self, context_name: str, user_id: int = None, token: str = None
+    ) -> dict:
         """Start automatic recording for a context (CCTV ON)"""
         try:
             # Create or activate context with correct parameters
@@ -28,11 +30,11 @@ class AutoRecorder:
             context_id = f"{context_name}_{user_id or 'default'}"
 
             self.active_contexts[context_name] = {
-                'context_id': context_id,
-                'user_id': user_id,
-                'started_at': datetime.utcnow(),
-                'message_count': 0,
-                'auto_save_enabled': True
+                "context_id": context_id,
+                "user_id": user_id,
+                "started_at": datetime.utcnow(),
+                "message_count": 0,
+                "auto_save_enabled": True,
             }
 
             self.recording_buffer[context_name] = []
@@ -50,14 +52,11 @@ class AutoRecorder:
                 "message": f"🎥 CCTV Recording STARTED for context: {context_name}",
                 "context_id": context_id,
                 "auto_recording": True,
-                "token_protection": bool(user_id and token)
+                "token_protection": bool(user_id and token),
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Failed to start recording: {str(e)}"
-            }
+            return {"success": False, "error": f"Failed to start recording: {str(e)}"}
 
     async def stop_recording(self, context_name: str) -> dict:
         """Stop automatic recording for a context (CCTV OFF)"""
@@ -65,7 +64,7 @@ class AutoRecorder:
             if context_name not in self.active_contexts:
                 return {
                     "success": False,
-                    "error": f"Context '{context_name}' is not actively recording"
+                    "error": f"Context '{context_name}' is not actively recording",
                 }
 
             # Save any remaining buffered messages
@@ -75,6 +74,7 @@ class AutoRecorder:
             session = self.db.get_session()
             try:
                 from database import Context
+
                 context = session.query(Context).filter_by(name=context_name).first()
                 if context:
                     context.is_active = False
@@ -89,21 +89,23 @@ class AutoRecorder:
             return {
                 "success": True,
                 "message": f"🛑 CCTV Recording STOPPED for context: {context_name}",
-                "messages_recorded": recording_info['message_count'],
-                "duration": str(datetime.utcnow() - recording_info['started_at'])
+                "messages_recorded": recording_info["message_count"],
+                "duration": str(datetime.utcnow() - recording_info["started_at"]),
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Failed to stop recording: {str(e)}"
-            }
+            return {"success": False, "error": f"Failed to stop recording: {str(e)}"}
 
-    async def record_interaction(self, context_name: str, interaction_type: str,
-                               content: str, metadata: dict = None) -> bool:
+    async def record_interaction(
+        self,
+        context_name: str,
+        interaction_type: str,
+        content: str,
+        metadata: dict = None,
+    ) -> bool:
         """
         Automatically record an AI interaction (CCTV capture)
-        
+
         Args:
             context_name: Active recording context
             interaction_type: 'user_message', 'ai_response', 'system_event'
@@ -115,14 +117,14 @@ class AutoRecorder:
 
         try:
             timestamp = datetime.utcnow()
-            user_id = self.active_contexts[context_name].get('user_id')
+            user_id = self.active_contexts[context_name].get("user_id")
 
             # Create memory entry
             memory_data = {
                 "timestamp": timestamp.isoformat(),
                 "type": interaction_type,
                 "content": content,
-                "metadata": metadata or {}
+                "metadata": metadata or {},
             }
 
             # Update token manager session activity and buffer memory
@@ -134,12 +136,16 @@ class AutoRecorder:
             self.recording_buffer[context_name].append(memory_data)
 
             # Increment message count and check for auto-save
-            self.active_contexts[context_name]['message_count'] += 1
+            self.active_contexts[context_name]["message_count"] += 1
 
             # Auto-save every 10 messages or when AI responds
             AUTO_SAVE_THRESHOLD = 10
-            if (self.active_contexts[context_name]['message_count'] % AUTO_SAVE_THRESHOLD == 0 or
-                interaction_type in ['ai_response', 'system_event']):
+            if self.active_contexts[context_name][
+                "message_count"
+            ] % AUTO_SAVE_THRESHOLD == 0 or interaction_type in [
+                "ai_response",
+                "system_event",
+            ]:
                 await self._flush_buffer_with_token_check(context_name)
 
             return True
@@ -154,32 +160,30 @@ class AutoRecorder:
             "active_contexts": len(self.active_contexts),
             "contexts": {
                 name: {
-                    "started_at": info['started_at'].isoformat(),
-                    "messages_recorded": info['message_count'],
-                    "user_id": info['user_id']
+                    "started_at": info["started_at"].isoformat(),
+                    "messages_recorded": info["message_count"],
+                    "user_id": info["user_id"],
                 }
                 for name, info in self.active_contexts.items()
-            }
+            },
         }
 
-    async def recall_hierarchical(self, query: str, user_id: int,
-                                context_name: str = None) -> dict:
+    async def recall_hierarchical(
+        self, query: str, user_id: int, context_name: str = None
+    ) -> dict:
         """
         Recall memories with hierarchical context search
         Personal -> Team -> Organization contexts
         """
         try:
-            results = {
-                "personal": [],
-                "team": [],
-                "organization": [],
-                "query": query
-            }
+            results = {"personal": [], "team": [], "organization": [], "query": query}
 
             # 1. Personal context memories
             if context_name:
                 personal_memories = self.db.get_memories(context_name, user_id)
-                results["personal"] = self._format_memories(personal_memories, "Personal")
+                results["personal"] = self._format_memories(
+                    personal_memories, "Personal"
+                )
 
             # 2. Team context memories
             user_teams = self.db.get_user_teams(user_id)
@@ -210,7 +214,7 @@ class AutoRecorder:
                 "error": f"Failed to recall hierarchical memories: {str(e)}",
                 "personal": [],
                 "team": [],
-                "organization": []
+                "organization": [],
             }
 
     async def _auto_save_loop(self, context_name: str):
@@ -238,11 +242,11 @@ class AutoRecorder:
             for memory_data in buffer:
                 self.db.add_memory(
                     context=context_name,
-                    content=memory_data['content'],
-                    memory_type=memory_data['type'],
-                    source='auto_recording',
-                    user_id=context_info['user_id'],
-                    metadata=memory_data.get('metadata', {})
+                    content=memory_data["content"],
+                    memory_type=memory_data["type"],
+                    source="auto_recording",
+                    user_id=context_info["user_id"],
+                    metadata=memory_data.get("metadata", {}),
                 )
 
             # Clear buffer after successful save
@@ -262,7 +266,7 @@ class AutoRecorder:
 
         try:
             context_info = self.active_contexts[context_name]
-            user_id = context_info.get('user_id')
+            user_id = context_info.get("user_id")
 
             # Check token status if user is authenticated
             if user_id:
@@ -271,7 +275,9 @@ class AutoRecorder:
 
                 if not valid_token:
                     # Token expired/invalid - use emergency save
-                    print(f"Token expired during recording for user {user_id}, using emergency save")
+                    print(
+                        f"Token expired during recording for user {user_id}, using emergency save"
+                    )
                     token_manager.flush_memory_buffer(user_id, self.db)
                     return
 
@@ -287,21 +293,25 @@ class AutoRecorder:
         """Format memories for hierarchical display"""
         formatted = []
         for memory in memories:
-            formatted.append({
-                "source": source,
-                "content": memory.get('data', ''),
-                "type": memory.get('type', 'unknown'),
-                "created_at": memory.get('created_at', ''),
-                "context": memory.get('context', '')
-            })
+            formatted.append(
+                {
+                    "source": source,
+                    "content": memory.get("data", ""),
+                    "type": memory.get("type", "unknown"),
+                    "created_at": memory.get("created_at", ""),
+                    "context": memory.get("context", ""),
+                }
+            )
         return formatted
 
     def _matches_query(self, text: str, query: str) -> bool:
         """Simple query matching for context search"""
         return query.lower() in text.lower()
 
+
 # Global auto-recorder instance
 auto_recorder = None
+
 
 def get_auto_recorder(db_manager: DatabaseManager) -> AutoRecorder:
     """Get or create global auto-recorder instance"""

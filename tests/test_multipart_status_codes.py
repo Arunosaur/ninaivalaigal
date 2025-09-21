@@ -8,7 +8,7 @@ def build_upload_app():
     @app.post("/upload-text")
     async def upload_text(file: UploadFile = File(...)):
         # Simulate validation pipeline decisions:
-        if file.content_type not in ("text/plain","application/json"):
+        if file.content_type not in ("text/plain", "application/json"):
             raise HTTPException(status_code=415, detail="unsupported media type")
         data = await file.read()
         if len(data) > 1024 * 1024:
@@ -17,12 +17,14 @@ def build_upload_app():
 
     return app
 
+
 def test_unsupported_media_type_415():
     app = build_upload_app()
     c = TestClient(app)
     data = {"file": ("x.bin", b"\x00\x01", "application/octet-stream")}
     r = c.post("/upload-text", files=data)
     assert r.status_code == 415
+
 
 def test_payload_too_large_413():
     app = build_upload_app()
@@ -31,6 +33,7 @@ def test_payload_too_large_413():
     data = {"file": ("x.txt", big, "text/plain")}
     r = c.post("/upload-text", files=data)
     assert r.status_code == 413
+
 
 def test_malformed_400():
     app = build_upload_app()

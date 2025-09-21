@@ -14,10 +14,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
-from ..interfaces import (
-    MemoryItem,
-    MemoryProviderError,
-)
+from ..interfaces import MemoryItem, MemoryProviderError
 
 
 class PostgresMemoryProvider:
@@ -29,7 +26,9 @@ class PostgresMemoryProvider:
 
         self.database_url = database_url
         self.engine = create_engine(database_url, pool_pre_ping=True)
-        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+        self.SessionLocal = sessionmaker(
+            autocommit=False, autoflush=False, bind=self.engine
+        )
 
     async def remember(
         self,
@@ -37,7 +36,7 @@ class PostgresMemoryProvider:
         text: str,
         meta: Mapping[str, Any] | None = None,
         user_id: int | None = None,
-        context_id: str | None = None
+        context_id: str | None = None,
     ) -> MemoryItem:
         """Store a memory item in PostgreSQL"""
         try:
@@ -49,19 +48,21 @@ class PostgresMemoryProvider:
                 # Insert into memories table
                 # Note: In a real implementation, you'd generate embeddings here
                 result = session.execute(
-                    text("""
+                    text(
+                        """
                         INSERT INTO memories (id, user_id, context_id, content, metadata, created_at)
                         VALUES (:id, :user_id, :context_id, :content, :metadata, :created_at)
                         RETURNING id
-                    """),
+                    """
+                    ),
                     {
                         "id": memory_id,
                         "user_id": user_id,
                         "context_id": context_id,
                         "content": text,
                         "metadata": meta_json,
-                        "created_at": created_at
-                    }
+                        "created_at": created_at,
+                    },
                 )
                 session.commit()
 
@@ -71,7 +72,7 @@ class PostgresMemoryProvider:
                     meta=meta or {},
                     user_id=user_id,
                     context_id=context_id,
-                    created_at=created_at.isoformat()
+                    created_at=created_at.isoformat(),
                 )
 
         except SQLAlchemyError as e:
@@ -83,7 +84,7 @@ class PostgresMemoryProvider:
         query: str,
         k: int = 5,
         user_id: int | None = None,
-        context_id: str | None = None
+        context_id: str | None = None,
     ) -> Sequence[MemoryItem]:
         """Retrieve memory items by similarity search"""
         try:
@@ -112,26 +113,25 @@ class PostgresMemoryProvider:
 
                 memories = []
                 for row in rows:
-                    memories.append(MemoryItem(
-                        id=str(row.id),
-                        text=row.content,
-                        meta=json.loads(row.metadata) if row.metadata else {},
-                        user_id=row.user_id,
-                        context_id=row.context_id,
-                        created_at=row.created_at.isoformat() if row.created_at else None
-                    ))
+                    memories.append(
+                        MemoryItem(
+                            id=str(row.id),
+                            text=row.content,
+                            meta=json.loads(row.metadata) if row.metadata else {},
+                            user_id=row.user_id,
+                            context_id=row.context_id,
+                            created_at=row.created_at.isoformat()
+                            if row.created_at
+                            else None,
+                        )
+                    )
 
                 return memories
 
         except SQLAlchemyError as e:
             raise MemoryProviderError(f"Failed to recall memories: {e}")
 
-    async def delete(
-        self,
-        *,
-        id: str,
-        user_id: int | None = None
-    ) -> bool:
+    async def delete(self, *, id: str, user_id: int | None = None) -> bool:
         """Delete a memory item"""
         try:
             with self.SessionLocal() as session:
@@ -157,7 +157,7 @@ class PostgresMemoryProvider:
         user_id: int | None = None,
         context_id: str | None = None,
         limit: int = 100,
-        offset: int = 0
+        offset: int = 0,
     ) -> Sequence[MemoryItem]:
         """List memory items with pagination"""
         try:
@@ -184,14 +184,18 @@ class PostgresMemoryProvider:
 
                 memories = []
                 for row in rows:
-                    memories.append(MemoryItem(
-                        id=str(row.id),
-                        text=row.content,
-                        meta=json.loads(row.metadata) if row.metadata else {},
-                        user_id=row.user_id,
-                        context_id=row.context_id,
-                        created_at=row.created_at.isoformat() if row.created_at else None
-                    ))
+                    memories.append(
+                        MemoryItem(
+                            id=str(row.id),
+                            text=row.content,
+                            meta=json.loads(row.metadata) if row.metadata else {},
+                            user_id=row.user_id,
+                            context_id=row.context_id,
+                            created_at=row.created_at.isoformat()
+                            if row.created_at
+                            else None,
+                        )
+                    )
 
                 return memories
 

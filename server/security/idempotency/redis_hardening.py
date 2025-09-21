@@ -16,6 +16,7 @@ from typing import Any
 
 class RedisHealthStatus(Enum):
     """Redis connection health status."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNAVAILABLE = "unavailable"
@@ -24,6 +25,7 @@ class RedisHealthStatus(Enum):
 @dataclass
 class RedisOutageEvent:
     """Redis outage event for structured logging."""
+
     timestamp: float
     status: RedisHealthStatus
     error_message: str
@@ -42,7 +44,7 @@ class HardenedRedisStore:
         health_check_interval: int = 30,
         max_retry_attempts: int = 3,
         circuit_breaker_threshold: int = 5,
-        key_prefix: str = "idempotency:"
+        key_prefix: str = "idempotency:",
     ):
         self.redis = redis_client
         self.fallback_store = fallback_store or {}  # In-memory fallback
@@ -70,7 +72,7 @@ class HardenedRedisStore:
             "failures_total": 0,
             "fallback_used_total": 0,
             "circuit_breaker_trips": 0,
-            "outage_events": []
+            "outage_events": [],
         }
 
     async def get(self, key: str) -> dict[str, Any] | None:
@@ -79,16 +81,18 @@ class HardenedRedisStore:
             operation="get",
             redis_operation=lambda: self._redis_get(key),
             fallback_operation=lambda: self._fallback_get(key),
-            key=key
+            key=key,
         )
 
-    async def set(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> None:
+    async def set(
+        self, key: str, response_data: dict[str, Any], ttl: int = 3600
+    ) -> None:
         """Set with graceful Redis outage handling."""
         await self._execute_with_fallback(
             operation="set",
             redis_operation=lambda: self._redis_set(key, response_data, ttl),
             fallback_operation=lambda: self._fallback_set(key, response_data, ttl),
-            key=key
+            key=key,
         )
 
     async def exists(self, key: str) -> bool:
@@ -97,7 +101,7 @@ class HardenedRedisStore:
             operation="exists",
             redis_operation=lambda: self._redis_exists(key),
             fallback_operation=lambda: self._fallback_exists(key),
-            key=key
+            key=key,
         )
         return bool(result)
 
@@ -106,7 +110,7 @@ class HardenedRedisStore:
         operation: str,
         redis_operation: Callable,
         fallback_operation: Callable,
-        key: str
+        key: str,
     ) -> Any:
         """Execute operation with Redis fallback handling."""
         self.metrics["operations_total"] += 1
@@ -128,7 +132,9 @@ class HardenedRedisStore:
 
                 # Reset failure count on success
                 if self.failure_count > 0:
-                    self.logger.info(f"Redis recovered after {self.failure_count} failures")
+                    self.logger.info(
+                        f"Redis recovered after {self.failure_count} failures"
+                    )
                     self.failure_count = 0
                     self.health_status = RedisHealthStatus.HEALTHY
 
@@ -143,18 +149,20 @@ class HardenedRedisStore:
                 # Log structured outage event
                 outage_event = RedisOutageEvent(
                     timestamp=time.time(),
-                    status=RedisHealthStatus.DEGRADED if attempt < self.max_retry_attempts - 1 else RedisHealthStatus.UNAVAILABLE,
+                    status=RedisHealthStatus.DEGRADED
+                    if attempt < self.max_retry_attempts - 1
+                    else RedisHealthStatus.UNAVAILABLE,
                     error_message=str(e),
                     operation=operation,
                     fallback_used=attempt == self.max_retry_attempts - 1,
-                    duration_ms=duration_ms
+                    duration_ms=duration_ms,
                 )
 
                 self._log_outage_event(outage_event)
 
                 if attempt < self.max_retry_attempts - 1:
                     # Exponential backoff
-                    await asyncio.sleep(0.1 * (2 ** attempt))
+                    await asyncio.sleep(0.1 * (2**attempt))
                 else:
                     # Final attempt failed, use fallback
                     self._trigger_circuit_breaker()
@@ -171,13 +179,17 @@ class HardenedRedisStore:
 
         if data:
             import json
+
             return json.loads(data)
         return None
 
-    async def _redis_set(self, key: str, response_data: dict[str, Any], ttl: int) -> None:
+    async def _redis_set(
+        self, key: str, response_data: dict[str, Any], ttl: int
+    ) -> None:
         """Redis set operation."""
         full_key = f"{self.key_prefix}{key}"
         import json
+
         serialized_data = json.dumps(response_data, default=str)
         await self.redis.setex(full_key, ttl, serialized_data)
 
@@ -191,12 +203,14 @@ class HardenedRedisStore:
         """Fallback get operation using in-memory store."""
         return self.fallback_store.get(key)
 
-    async def _fallback_set(self, key: str, response_data: dict[str, Any], ttl: int) -> None:
+    async def _fallback_set(
+        self, key: str, response_data: dict[str, Any], ttl: int
+    ) -> None:
         """Fallback set operation using in-memory store."""
         self.fallback_store[key] = {
             **response_data,
             "_fallback_created_at": time.time(),
-            "_fallback_ttl": ttl
+            "_fallback_ttl": ttl,
         }
 
     async def _fallback_exists(self, key: str) -> bool:
@@ -217,7 +231,9 @@ class HardenedRedisStore:
             await self.redis.ping()
 
             if self.health_status != RedisHealthStatus.HEALTHY:
-                self.logger.info("Redis health check passed, status restored to healthy")
+                self.logger.info(
+                    "Redis health check passed, status restored to healthy"
+                )
                 self.health_status = RedisHealthStatus.HEALTHY
 
         except Exception as e:
@@ -232,7 +248,9 @@ class HardenedRedisStore:
 
         # Reset circuit breaker if timeout expired
         if self.circuit_open_until > 0:
-            self.logger.info("Circuit breaker timeout expired, attempting Redis operations")
+            self.logger.info(
+                "Circuit breaker timeout expired, attempting Redis operations"
+            )
             self.circuit_open_until = 0
 
         return False
@@ -268,7 +286,7 @@ class HardenedRedisStore:
             "fallback_used": event.fallback_used,
             "duration_ms": event.duration_ms,
             "failure_count": self.failure_count,
-            "circuit_breaker_active": self._is_circuit_open()
+            "circuit_breaker_active": self._is_circuit_open(),
         }
 
         if event.status == RedisHealthStatus.UNAVAILABLE:
@@ -284,7 +302,7 @@ class HardenedRedisStore:
             "circuit_breaker_active": self._is_circuit_open(),
             "circuit_open_until": self.circuit_open_until,
             "last_health_check": self.last_health_check,
-            "metrics": self.metrics.copy()
+            "metrics": self.metrics.copy(),
         }
 
     async def force_health_check(self) -> dict[str, Any]:
@@ -308,7 +326,9 @@ class RateLimitedRedisStore(HardenedRedisStore):
 
         # Remove timestamps older than 1 minute
         cutoff_time = current_time - 60
-        self.request_timestamps = [ts for ts in self.request_timestamps if ts > cutoff_time]
+        self.request_timestamps = [
+            ts for ts in self.request_timestamps if ts > cutoff_time
+        ]
 
         # Check if rate limit exceeded
         if len(self.request_timestamps) >= self.rate_limit_per_minute:
@@ -316,7 +336,9 @@ class RateLimitedRedisStore(HardenedRedisStore):
                 f"Rate limit exceeded for {operation}: "
                 f"{len(self.request_timestamps)} requests in last minute"
             )
-            raise Exception(f"Rate limit exceeded: {self.rate_limit_per_minute} requests/minute")
+            raise Exception(
+                f"Rate limit exceeded: {self.rate_limit_per_minute} requests/minute"
+            )
 
         # Add current request
         self.request_timestamps.append(current_time)
@@ -326,7 +348,9 @@ class RateLimitedRedisStore(HardenedRedisStore):
         await self._check_rate_limit("get")
         return await super().get(key)
 
-    async def set(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> None:
+    async def set(
+        self, key: str, response_data: dict[str, Any], ttl: int = 3600
+    ) -> None:
         """Set with rate limiting."""
         await self._check_rate_limit("set")
         await super().set(key, response_data, ttl)
@@ -336,18 +360,17 @@ def create_hardened_redis_store(
     redis_url: str,
     enable_rate_limiting: bool = True,
     rate_limit_per_minute: int = 1000,
-    **kwargs
+    **kwargs,
 ) -> HardenedRedisStore:
     """Create hardened Redis store with outage handling."""
     try:
         import redis.asyncio as redis
+
         redis_client = redis.from_url(redis_url)
 
         if enable_rate_limiting:
             return RateLimitedRedisStore(
-                redis_client,
-                rate_limit_per_minute=rate_limit_per_minute,
-                **kwargs
+                redis_client, rate_limit_per_minute=rate_limit_per_minute, **kwargs
             )
         else:
             return HardenedRedisStore(redis_client, **kwargs)
@@ -383,8 +406,12 @@ def get_redis_metrics(store: HardenedRedisStore) -> dict[str, Any]:
         "redis_operations_total": health_status["metrics"]["operations_total"],
         "redis_failures_total": health_status["metrics"]["failures_total"],
         "redis_fallback_used_total": health_status["metrics"]["fallback_used_total"],
-        "redis_circuit_breaker_trips_total": health_status["metrics"]["circuit_breaker_trips"],
+        "redis_circuit_breaker_trips_total": health_status["metrics"][
+            "circuit_breaker_trips"
+        ],
         "redis_health_status": 1 if health_status["status"] == "healthy" else 0,
         "redis_failure_count": health_status["failure_count"],
-        "redis_circuit_breaker_active": 1 if health_status["circuit_breaker_active"] else 0
+        "redis_circuit_breaker_active": 1
+        if health_status["circuit_breaker_active"]
+        else 0,
     }

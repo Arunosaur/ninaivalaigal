@@ -22,9 +22,11 @@ from main import load_config
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class CopilotContext:
     """Context information for Copilot enhancement"""
+
     file_path: str
     language: str
     cursor_position: int
@@ -33,6 +35,7 @@ class CopilotContext:
     team_id: int | None = None
     project_context: str | None = None
 
+
 class Mem0CopilotWrapper:
     """Wrapper that enhances Copilot with mem0 memories via MCP"""
 
@@ -40,7 +43,9 @@ class Mem0CopilotWrapper:
         self.db = DatabaseManager(load_config())
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
-    async def enhance_copilot_prompt(self, context: CopilotContext, original_prompt: str) -> str:
+    async def enhance_copilot_prompt(
+        self, context: CopilotContext, original_prompt: str
+    ) -> str:
         """Enhance Copilot prompt with relevant mem0 memories"""
         try:
             # Get relevant memories from mem0
@@ -51,9 +56,7 @@ class Mem0CopilotWrapper:
 
             # Build enhanced prompt
             enhanced_prompt = self._build_enhanced_prompt(
-                original_prompt,
-                relevant_memories,
-                context
+                original_prompt, relevant_memories, context
             )
 
             logger.info(f"Enhanced prompt with {len(relevant_memories)} memories")
@@ -63,36 +66,44 @@ class Mem0CopilotWrapper:
             logger.error(f"Error enhancing prompt: {e}")
             return original_prompt
 
-    async def _get_relevant_memories(self, context: CopilotContext) -> list[dict[str, Any]]:
+    async def _get_relevant_memories(
+        self, context: CopilotContext
+    ) -> list[dict[str, Any]]:
         """Get relevant memories based on context"""
         memories = []
 
         try:
             # Get personal memories
             if context.user_id:
-                personal_memories = await self._query_mcp_server("recall", {
-                    "context": "personal",
-                    "user_id": context.user_id,
-                    "language": context.language,
-                    "file_type": self._get_file_type(context.file_path)
-                })
+                personal_memories = await self._query_mcp_server(
+                    "recall",
+                    {
+                        "context": "personal",
+                        "user_id": context.user_id,
+                        "language": context.language,
+                        "file_type": self._get_file_type(context.file_path),
+                    },
+                )
                 memories.extend(personal_memories)
 
             # Get team memories
             if context.team_id:
-                team_memories = await self._query_mcp_server("recall", {
-                    "context": "team",
-                    "team_id": context.team_id,
-                    "language": context.language
-                })
+                team_memories = await self._query_mcp_server(
+                    "recall",
+                    {
+                        "context": "team",
+                        "team_id": context.team_id,
+                        "language": context.language,
+                    },
+                )
                 memories.extend(team_memories)
 
             # Get project-specific memories
             if context.project_context:
-                project_memories = await self._query_mcp_server("recall", {
-                    "context": context.project_context,
-                    "language": context.language
-                })
+                project_memories = await self._query_mcp_server(
+                    "recall",
+                    {"context": context.project_context, "language": context.language},
+                )
                 memories.extend(project_memories)
 
             # Filter and rank memories by relevance
@@ -104,7 +115,9 @@ class Mem0CopilotWrapper:
             logger.error(f"Error getting relevant memories: {e}")
             return []
 
-    async def _query_mcp_server(self, tool: str, params: dict[str, Any]) -> list[dict[str, Any]]:
+    async def _query_mcp_server(
+        self, tool: str, params: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Query mem0 MCP server for memories"""
         try:
             # Build MCP request
@@ -112,18 +125,16 @@ class Mem0CopilotWrapper:
                 "jsonrpc": "2.0",
                 "id": 1,
                 "method": "tools/call",
-                "params": {
-                    "name": tool,
-                    "arguments": params
-                }
+                "params": {"name": tool, "arguments": params},
             }
 
             # Execute MCP server query
             process = await asyncio.create_subprocess_exec(
-                sys.executable, self.mcp_server_path,
+                sys.executable,
+                self.mcp_server_path,
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
 
             stdout, stderr = await process.communicate(
@@ -146,18 +157,18 @@ class Mem0CopilotWrapper:
         memories = []
         try:
             # Parse the response text to extract memories
-            lines = response.split('\n')
+            lines = response.split("\n")
             current_memory = {}
 
             for line in lines:
                 line = line.strip()
-                if line.startswith('•') or line.startswith('-'):
+                if line.startswith("•") or line.startswith("-"):
                     if current_memory:
                         memories.append(current_memory)
                     current_memory = {
                         "content": line[1:].strip(),
                         "relevance": 1.0,
-                        "type": "memory"
+                        "type": "memory",
                     }
                 elif line and current_memory:
                     current_memory["content"] += " " + line
@@ -170,7 +181,9 @@ class Mem0CopilotWrapper:
 
         return memories
 
-    def _filter_relevant_memories(self, memories: list[dict[str, Any]], context: CopilotContext) -> list[dict[str, Any]]:
+    def _filter_relevant_memories(
+        self, memories: list[dict[str, Any]], context: CopilotContext
+    ) -> list[dict[str, Any]]:
         """Filter and rank memories by relevance to current context"""
         relevant = []
 
@@ -201,7 +214,12 @@ class Mem0CopilotWrapper:
         relevant.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
         return relevant
 
-    def _build_enhanced_prompt(self, original_prompt: str, memories: list[dict[str, Any]], context: CopilotContext) -> str:
+    def _build_enhanced_prompt(
+        self,
+        original_prompt: str,
+        memories: list[dict[str, Any]],
+        context: CopilotContext,
+    ) -> str:
         """Build enhanced prompt with mem0 memories"""
         if not memories:
             return original_prompt
@@ -226,7 +244,7 @@ class Mem0CopilotWrapper:
     def _get_file_type(self, file_path: str) -> str:
         """Extract file type from path"""
         _, ext = os.path.splitext(file_path)
-        return ext.lower().lstrip('.')
+        return ext.lower().lstrip(".")
 
     def _extract_code_keywords(self, code: str) -> list[str]:
         """Extract relevant keywords from surrounding code"""
@@ -234,11 +252,37 @@ class Mem0CopilotWrapper:
 
         # Common programming keywords to look for
         common_patterns = [
-            'function', 'class', 'interface', 'type', 'const', 'let', 'var',
-            'async', 'await', 'promise', 'callback', 'event', 'handler',
-            'component', 'props', 'state', 'hook', 'effect', 'context',
-            'api', 'request', 'response', 'http', 'fetch', 'axios',
-            'database', 'query', 'model', 'schema', 'table', 'collection'
+            "function",
+            "class",
+            "interface",
+            "type",
+            "const",
+            "let",
+            "var",
+            "async",
+            "await",
+            "promise",
+            "callback",
+            "event",
+            "handler",
+            "component",
+            "props",
+            "state",
+            "hook",
+            "effect",
+            "context",
+            "api",
+            "request",
+            "response",
+            "http",
+            "fetch",
+            "axios",
+            "database",
+            "query",
+            "model",
+            "schema",
+            "table",
+            "collection",
         ]
 
         code_lower = code.lower()
@@ -248,7 +292,9 @@ class Mem0CopilotWrapper:
 
         return keywords
 
-    async def store_copilot_interaction(self, context: CopilotContext, prompt: str, suggestion: str, accepted: bool):
+    async def store_copilot_interaction(
+        self, context: CopilotContext, prompt: str, suggestion: str, accepted: bool
+    ):
         """Store Copilot interaction in mem0 for future reference"""
         try:
             interaction_data = {
@@ -258,20 +304,26 @@ class Mem0CopilotWrapper:
                 "accepted": accepted,
                 "language": context.language,
                 "file_path": context.file_path,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
             # Store via MCP server
-            await self._query_mcp_server("remember", {
-                "text": f"Copilot {'accepted' if accepted else 'rejected'}: {suggestion[:100]}...",
-                "context": context.project_context or "copilot_interactions",
-                "metadata": interaction_data
-            })
+            await self._query_mcp_server(
+                "remember",
+                {
+                    "text": f"Copilot {'accepted' if accepted else 'rejected'}: {suggestion[:100]}...",
+                    "context": context.project_context or "copilot_interactions",
+                    "metadata": interaction_data,
+                },
+            )
 
-            logger.info(f"Stored Copilot interaction: {'accepted' if accepted else 'rejected'}")
+            logger.info(
+                f"Stored Copilot interaction: {'accepted' if accepted else 'rejected'}"
+            )
 
         except Exception as e:
             logger.error(f"Error storing Copilot interaction: {e}")
+
 
 class VSCodeCopilotBridge:
     """Bridge between VS Code, Copilot, and mem0"""
@@ -279,7 +331,9 @@ class VSCodeCopilotBridge:
     def __init__(self):
         self.wrapper = Mem0CopilotWrapper()
 
-    async def handle_copilot_request(self, request_data: dict[str, Any]) -> dict[str, Any]:
+    async def handle_copilot_request(
+        self, request_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Handle Copilot completion request with mem0 enhancement"""
         try:
             # Extract context from VS Code request
@@ -287,23 +341,25 @@ class VSCodeCopilotBridge:
                 file_path=request_data.get("document", {}).get("uri", ""),
                 language=request_data.get("document", {}).get("languageId", ""),
                 cursor_position=request_data.get("position", {}).get("character", 0),
-                surrounding_code=request_data.get("context", {}).get("prefix", "") +
-                               request_data.get("context", {}).get("suffix", ""),
+                surrounding_code=request_data.get("context", {}).get("prefix", "")
+                + request_data.get("context", {}).get("suffix", ""),
                 user_id=request_data.get("user_id"),
                 team_id=request_data.get("team_id"),
-                project_context=request_data.get("project_context")
+                project_context=request_data.get("project_context"),
             )
 
             # Get original prompt (this would come from Copilot's internal prompt)
             original_prompt = request_data.get("prompt", "Generate code completion")
 
             # Enhance prompt with mem0 memories
-            enhanced_prompt = await self.wrapper.enhance_copilot_prompt(context, original_prompt)
+            enhanced_prompt = await self.wrapper.enhance_copilot_prompt(
+                context, original_prompt
+            )
 
             return {
                 "success": True,
                 "enhanced_prompt": enhanced_prompt,
-                "context": context.__dict__
+                "context": context.__dict__,
             }
 
         except Exception as e:
@@ -311,15 +367,18 @@ class VSCodeCopilotBridge:
             return {
                 "success": False,
                 "error": str(e),
-                "original_prompt": request_data.get("prompt", "")
+                "original_prompt": request_data.get("prompt", ""),
             }
+
 
 # Global instance
 copilot_bridge = VSCodeCopilotBridge()
 
+
 async def enhance_copilot_with_mem0(request_data: dict[str, Any]) -> dict[str, Any]:
     """Main function to enhance Copilot with mem0 memories"""
     return await copilot_bridge.handle_copilot_request(request_data)
+
 
 if __name__ == "__main__":
     # Test the wrapper
@@ -330,13 +389,12 @@ if __name__ == "__main__":
             cursor_position=100,
             surrounding_code="function handleUserAuth() {\n  // cursor here\n}",
             user_id=1,
-            project_context="auth-system"
+            project_context="auth-system",
         )
 
         wrapper = Mem0CopilotWrapper()
         enhanced = await wrapper.enhance_copilot_prompt(
-            context,
-            "Complete the user authentication function"
+            context, "Complete the user authentication function"
         )
 
         print("Enhanced prompt:")

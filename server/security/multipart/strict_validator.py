@@ -17,6 +17,7 @@ from .strict_limits import PartLimitConfig, enforce_part_limits
 @dataclass
 class MultipartPolicy:
     """Multipart validation policy configuration."""
+
     allowed_text_types: set[str]
     allowed_binary_types: set[str]
     max_filename_length: int = 255
@@ -32,36 +33,56 @@ class StrictMultipartValidator:
     DEFAULT_TEXT_TYPES = {
         "text/plain",
         "application/json",
-        "application/x-www-form-urlencoded"
+        "application/x-www-form-urlencoded",
     }
 
-    DEFAULT_BINARY_TYPES = {
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "application/pdf"
-    }
+    DEFAULT_BINARY_TYPES = {"image/jpeg", "image/png", "image/gif", "application/pdf"}
 
     # Dangerous file extensions to block
     EXECUTABLE_EXTENSIONS = {
-        ".exe", ".bat", ".cmd", ".com", ".scr", ".pif", ".vbs", ".js", ".jar",
-        ".sh", ".py", ".pl", ".php", ".asp", ".jsp", ".dll", ".so", ".dylib"
+        ".exe",
+        ".bat",
+        ".cmd",
+        ".com",
+        ".scr",
+        ".pif",
+        ".vbs",
+        ".js",
+        ".jar",
+        ".sh",
+        ".py",
+        ".pl",
+        ".php",
+        ".asp",
+        ".jsp",
+        ".dll",
+        ".so",
+        ".dylib",
     }
 
     def __init__(self, policy: MultipartPolicy | None = None):
         self.policy = policy or MultipartPolicy(
             allowed_text_types=self.DEFAULT_TEXT_TYPES.copy(),
-            allowed_binary_types=self.DEFAULT_BINARY_TYPES.copy()
+            allowed_binary_types=self.DEFAULT_BINARY_TYPES.copy(),
         )
 
         # Compile regex patterns for efficiency
-        self._filename_pattern = re.compile(r'^[a-zA-Z0-9._-]+$')
-        self._content_type_pattern = re.compile(r'^([a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_]*)/([a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_]*)$')
+        self._filename_pattern = re.compile(r"^[a-zA-Z0-9._-]+$")
+        self._content_type_pattern = re.compile(
+            r"^([a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_]*)/([a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_]*)$"
+        )
 
-    def validate_part(self, field_name: str, content_type: str, filename: str | None = None, content: bytes | None = None, part_limit_config: PartLimitConfig | None = None) -> dict[str, Any]:
+    def validate_part(
+        self,
+        field_name: str,
+        content_type: str,
+        filename: str | None = None,
+        content: bytes | None = None,
+        part_limit_config: PartLimitConfig | None = None,
+    ) -> dict[str, Any]:
         """
         Validate individual multipart part against policy.
-        
+
         Returns validation result with details.
         """
         result = {
@@ -70,7 +91,7 @@ class StrictMultipartValidator:
             "violations": [],
             "content_type": content_type,
             "filename": filename,
-            "part_type": None
+            "part_type": None,
         }
 
         # Validate content type format
@@ -106,7 +127,7 @@ class StrictMultipartValidator:
                     content,
                     content_type,
                     filename,
-                    part_limit_config or PartLimitConfig()
+                    part_limit_config or PartLimitConfig(),
                 )
 
                 # Merge limit validation results
@@ -143,7 +164,9 @@ class StrictMultipartValidator:
             result["violations"].append("filename_invalid_characters")
 
         # Check for executable extensions
-        if self.policy.block_executable_extensions and self._is_executable_extension(filename):
+        if self.policy.block_executable_extensions and self._is_executable_extension(
+            filename
+        ):
             result["valid"] = False
             result["violations"].append("executable_extension")
 
@@ -159,21 +182,23 @@ class StrictMultipartValidator:
 
     def _is_executable_extension(self, filename: str) -> bool:
         """Check if filename has executable extension."""
-        if '.' not in filename:
+        if "." not in filename:
             return False
-        extension = "." + filename.split('.')[-1].lower()
+        extension = "." + filename.split(".")[-1].lower()
         return extension in self.EXECUTABLE_EXTENSIONS
 
     def _get_file_extension(self, filename: str) -> str:
         """Extract file extension in lowercase."""
-        if '.' not in filename:
+        if "." not in filename:
             return ""
-        return "." + filename.split('.')[-1].lower()
+        return "." + filename.split(".")[-1].lower()
 
-    def _detect_content_type_mismatch(self, filename: str, content_type: str) -> dict[str, str] | None:
+    def _detect_content_type_mismatch(
+        self, filename: str, content_type: str
+    ) -> dict[str, str] | None:
         """
         Detect filename/content-type mismatches that could indicate evasion.
-        
+
         Returns mismatch details if detected, None otherwise.
         """
         file_ext = self._get_file_extension(filename)
@@ -190,7 +215,7 @@ class StrictMultipartValidator:
             ".html": "text/html",
             ".css": "text/css",
             ".js": "application/javascript",
-            ".xml": "application/xml"
+            ".xml": "application/xml",
         }
 
         expected_type = extension_mappings.get(file_ext)
@@ -199,15 +224,19 @@ class StrictMultipartValidator:
                 "filename": filename,
                 "file_extension": file_ext,
                 "declared_content_type": content_type,
-                "expected_content_type": expected_type
+                "expected_content_type": expected_type,
             }
 
         return None
 
-    def validate_multipart_request(self, parts: list[dict[str, Any]], part_limit_config: PartLimitConfig | None = None) -> dict[str, Any]:
+    def validate_multipart_request(
+        self,
+        parts: list[dict[str, Any]],
+        part_limit_config: PartLimitConfig | None = None,
+    ) -> dict[str, Any]:
         """
         Validate entire multipart request against policy.
-        
+
         Args:
             parts: List of part dictionaries with keys: field_name, content_type, filename, content (optional)
             part_limit_config: Configuration for per-part limits
@@ -217,11 +246,7 @@ class StrictMultipartValidator:
             "total_parts": len(parts),
             "violations": [],
             "part_results": [],
-            "summary": {
-                "text_parts": 0,
-                "binary_parts": 0,
-                "invalid_parts": 0
-            }
+            "summary": {"text_parts": 0, "binary_parts": 0, "invalid_parts": 0},
         }
 
         # Check total parts limit
@@ -236,7 +261,7 @@ class StrictMultipartValidator:
                 part["content_type"],
                 part.get("filename"),
                 part.get("content"),
-                part_limit_config
+                part_limit_config,
             )
 
             result["part_results"].append(part_result)
@@ -260,46 +285,50 @@ class StrictMultipartValidator:
         for part_result in validation_result["part_results"]:
             if not part_result["valid"]:
                 part_violations = ", ".join(part_result["violations"])
-                violations.append(f"Field '{part_result['field_name']}': {part_violations}")
+                violations.append(
+                    f"Field '{part_result['field_name']}': {part_violations}"
+                )
 
         global_violations = validation_result.get("violations", [])
         if global_violations:
             violations.extend([f"Global: {v}" for v in global_violations])
 
-        return "❌ Multipart validation failed:\n" + "\n".join(f"  - {v}" for v in violations)
+        return "❌ Multipart validation failed:\n" + "\n".join(
+            f"  - {v}" for v in violations
+        )
 
 
 def create_strict_policy(
     allow_binary: bool = False,
     custom_text_types: set[str] | None = None,
-    custom_binary_types: set[str] | None = None
+    custom_binary_types: set[str] | None = None,
 ) -> MultipartPolicy:
     """Create strict multipart policy for production."""
 
     text_types = custom_text_types or StrictMultipartValidator.DEFAULT_TEXT_TYPES
-    binary_types = custom_binary_types or (StrictMultipartValidator.DEFAULT_BINARY_TYPES if allow_binary else set())
+    binary_types = custom_binary_types or (
+        StrictMultipartValidator.DEFAULT_BINARY_TYPES if allow_binary else set()
+    )
 
     return MultipartPolicy(
         allowed_text_types=text_types,
         allowed_binary_types=binary_types,
         require_content_type_match=True,
         block_executable_extensions=True,
-        max_parts=50  # Strict limit
+        max_parts=50,  # Strict limit
     )
 
 
 def create_permissive_policy() -> MultipartPolicy:
     """Create permissive policy for development."""
     return MultipartPolicy(
-        allowed_text_types=StrictMultipartValidator.DEFAULT_TEXT_TYPES | {
-            "text/html", "text/css", "application/javascript", "application/xml"
-        },
-        allowed_binary_types=StrictMultipartValidator.DEFAULT_BINARY_TYPES | {
-            "image/svg+xml", "application/zip", "text/csv"
-        },
+        allowed_text_types=StrictMultipartValidator.DEFAULT_TEXT_TYPES
+        | {"text/html", "text/css", "application/javascript", "application/xml"},
+        allowed_binary_types=StrictMultipartValidator.DEFAULT_BINARY_TYPES
+        | {"image/svg+xml", "application/zip", "text/csv"},
         require_content_type_match=False,
         block_executable_extensions=True,
-        max_parts=100
+        max_parts=100,
     )
 
 
@@ -308,7 +337,7 @@ async def validate_starlette_multipart(
     request,
     policy: MultipartPolicy | None = None,
     part_limit_config: PartLimitConfig | None = None,
-    read_content: bool = True
+    read_content: bool = True,
 ) -> dict[str, Any]:
     """Validate Starlette multipart request with content analysis."""
     validator = StrictMultipartValidator(policy)
@@ -325,24 +354,29 @@ async def validate_starlette_multipart(
                 content = await field_value.read()
                 await field_value.seek(0)  # Reset for downstream processing
 
-            parts.append({
-                "field_name": field_name,
-                "content_type": field_value.content_type or "application/octet-stream",
-                "filename": field_value.filename,
-                "content": content
-            })
+            parts.append(
+                {
+                    "field_name": field_name,
+                    "content_type": field_value.content_type
+                    or "application/octet-stream",
+                    "filename": field_value.filename,
+                    "content": content,
+                }
+            )
         else:
             # Text field
             content = None
-            if read_content and hasattr(field_value, 'encode'):
-                content = field_value.encode('utf-8')
+            if read_content and hasattr(field_value, "encode"):
+                content = field_value.encode("utf-8")
 
-            parts.append({
-                "field_name": field_name,
-                "content_type": "text/plain",
-                "filename": None,
-                "content": content
-            })
+            parts.append(
+                {
+                    "field_name": field_name,
+                    "content_type": "text/plain",
+                    "filename": None,
+                    "content": content,
+                }
+            )
 
     return validator.validate_multipart_request(parts)
 
@@ -357,18 +391,14 @@ def test_multipart_validation():
         {
             "field_name": "document",
             "content_type": "application/pdf",
-            "filename": "report.pdf"
+            "filename": "report.pdf",
         },
         {
             "field_name": "malicious",
             "content_type": "text/plain",
-            "filename": "script.exe"  # Mismatch!
+            "filename": "script.exe",  # Mismatch!
         },
-        {
-            "field_name": "data",
-            "content_type": "application/json",
-            "filename": None
-        }
+        {"field_name": "data", "content_type": "application/json", "filename": None},
     ]
 
     result = validator.validate_multipart_request(test_parts)
@@ -377,7 +407,7 @@ def test_multipart_validation():
     return {
         "validation_result": result,
         "security_report": report,
-        "test_passed": not result["valid"]  # Should fail due to mismatch
+        "test_passed": not result["valid"],  # Should fail due to mismatch
     }
 
 
@@ -387,10 +417,10 @@ def test_content_type_mismatch():
 
     test_cases = [
         ("document.pdf", "application/pdf", False),  # Match
-        ("image.jpg", "image/jpeg", False),          # Match
-        ("script.js", "text/plain", True),           # Mismatch
-        ("data.json", "application/pdf", True),      # Mismatch
-        ("file.txt", "text/plain", False),           # Match
+        ("image.jpg", "image/jpeg", False),  # Match
+        ("script.js", "text/plain", True),  # Mismatch
+        ("data.json", "application/pdf", True),  # Mismatch
+        ("file.txt", "text/plain", False),  # Match
     ]
 
     results = []
@@ -398,13 +428,15 @@ def test_content_type_mismatch():
         mismatch = validator._detect_content_type_mismatch(filename, content_type)
         detected_mismatch = mismatch is not None
 
-        results.append({
-            "filename": filename,
-            "content_type": content_type,
-            "expected_mismatch": should_mismatch,
-            "detected_mismatch": detected_mismatch,
-            "correct": should_mismatch == detected_mismatch,
-            "mismatch_details": mismatch
-        })
+        results.append(
+            {
+                "filename": filename,
+                "content_type": content_type,
+                "expected_mismatch": should_mismatch,
+                "detected_mismatch": detected_mismatch,
+                "correct": should_mismatch == detected_mismatch,
+                "mismatch_details": mismatch,
+            }
+        )
 
     return results

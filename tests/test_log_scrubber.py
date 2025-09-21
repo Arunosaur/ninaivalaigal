@@ -5,7 +5,6 @@ from server.security.logging.scrubber import safe_log_dict
 
 
 class TestLogScrubber:
-
     def test_safe_log_masks(self):
         """Test basic log scrubbing functionality"""
         payload = {

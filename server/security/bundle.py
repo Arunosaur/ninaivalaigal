@@ -40,9 +40,13 @@ class ContentTypeGuardMiddleware:
     def __init__(
         self,
         app,
-        allowed_prefixes: tuple = ("text/", "application/json", "application/x-www-form-urlencoded"),
+        allowed_prefixes: tuple = (
+            "text/",
+            "application/json",
+            "application/x-www-form-urlencoded",
+        ),
         max_body_bytes: int = 10 * 1024 * 1024,
-        reject_disallowed: bool = True
+        reject_disallowed: bool = True,
     ):
         self.app = app
         self.allowed_prefixes = allowed_prefixes
@@ -61,23 +65,27 @@ class ContentTypeGuardMiddleware:
         # Check content length
         if content_length > self.max_body_bytes:
             from starlette.responses import Response
+
             response = Response(
                 content='{"error": "Request body too large"}',
                 status_code=413,
-                headers={"content-type": "application/json"}
+                headers={"content-type": "application/json"},
             )
             await response(scope, receive, send)
             return
 
         # Check content type allowlist
         if self.reject_disallowed and content_type:
-            allowed = any(content_type.startswith(prefix) for prefix in self.allowed_prefixes)
+            allowed = any(
+                content_type.startswith(prefix) for prefix in self.allowed_prefixes
+            )
             if not allowed:
                 from starlette.responses import Response
+
                 response = Response(
                     content='{"error": "Content-Type not allowed"}',
                     status_code=415,
-                    headers={"content-type": "application/json"}
+                    headers={"content-type": "application/json"},
                 )
                 await response(scope, receive, send)
                 return
@@ -141,9 +149,9 @@ class ResponseRedactionASGIMiddleware:
                 if not message.get("more_body", False):
                     try:
                         # Apply redaction to response body
-                        text_content = response_body.decode('utf-8', errors='ignore')
+                        text_content = response_body.decode("utf-8", errors="ignore")
                         redacted_content = self.detector_fn(text_content)
-                        redacted_body = redacted_content.encode('utf-8')
+                        redacted_body = redacted_content.encode("utf-8")
 
                         message["body"] = redacted_body
                     except Exception:
@@ -165,19 +173,23 @@ class SecurityBundle:
         app: FastAPI,
         *,
         subject_ctx_provider: Callable = default_subject_ctx,
-        allowed_prefixes: Iterable[str] = ("text/", "application/json", "application/x-www-form-urlencoded"),
+        allowed_prefixes: Iterable[str] = (
+            "text/",
+            "application/json",
+            "application/x-www-form-urlencoded",
+        ),
         max_body_bytes: int = 10 * 1024 * 1024,
         reject_disallowed: bool = True,
-        idempotency_store = None,                 # supply Redis store to enable cross-instance safety
+        idempotency_store=None,  # supply Redis store to enable cross-instance safety
         redact_overlap: int = 64,
-        fail_closed_tier_threshold: int = 3,      # Tier >= threshold => fail-closed on engine errors
+        fail_closed_tier_threshold: int = 3,  # Tier >= threshold => fail-closed on engine errors
         enable_multipart_adapter: bool = True,
         enable_compression_guard: bool = True,
         enable_global_scrubbing: bool = True,
     ) -> None:
         """
         Apply comprehensive security middleware stack.
-        
+
         Wiring order:
           1) Content-Type guard (size + allowlist)
           2) Compression guard (prevent redaction bypass)
@@ -200,7 +212,7 @@ class SecurityBundle:
             app.add_middleware(
                 CompressionGuardMiddleware,
                 strict_mode=True,  # Reject compressed requests by default
-                allowed_encodings=set()  # No compressed encodings allowed
+                allowed_encodings=set(),  # No compressed encodings allowed
             )
 
         # 3) Idempotency (optional)
@@ -212,8 +224,7 @@ class SecurityBundle:
 
         # 4) Request redaction
         detector_with_policy = _wrap_detector_with_policy(
-            _create_detector_fn(),
-            fail_closed_tier_threshold
+            _create_detector_fn(), fail_closed_tier_threshold
         )
 
         app.add_middleware(
@@ -235,22 +246,26 @@ class SecurityBundle:
 
         # 7) Optional Starlette multipart adapter (route-level hook)
         if enable_multipart_adapter:
+
             @app.middleware("http")
             async def _multipart_adapter(request: Request, call_next):
-                if request.headers.get("content-type", "").startswith("multipart/form-data"):
+                if request.headers.get("content-type", "").startswith(
+                    "multipart/form-data"
+                ):
                     # Route text parts through detector (normalization+redaction should live inside detector_fn)
                     try:
                         processed_data = await process_multipart_securely(
                             request,
                             text_processor=detector_with_policy,
                             allow_binary=False,  # Security policy: reject binary uploads
-                            max_parts=100
+                            max_parts=100,
                         )
                         # Attach processed data to request state
                         request.state.processed_multipart = processed_data
                     except Exception as e:
                         # Log error but continue processing
                         import logging
+
                         logging.warning(f"Multipart processing failed: {e}")
 
                 return await call_next(request)
@@ -289,23 +304,27 @@ def _create_detector_fn() -> Callable[[str], str]:
         import re
 
         # AWS Access Keys
-        aws_pattern = re.compile(r'AKIA[0-9A-Z]{16}', re.IGNORECASE)
-        normalized_text = aws_pattern.sub('[REDACTED_AWS_KEY]', normalized_text)
+        aws_pattern = re.compile(r"AKIA[0-9A-Z]{16}", re.IGNORECASE)
+        normalized_text = aws_pattern.sub("[REDACTED_AWS_KEY]", normalized_text)
 
         # JWT Tokens
-        jwt_pattern = re.compile(r'eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*')
-        normalized_text = jwt_pattern.sub('[REDACTED_JWT]', normalized_text)
+        jwt_pattern = re.compile(
+            r"eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*"
+        )
+        normalized_text = jwt_pattern.sub("[REDACTED_JWT]", normalized_text)
 
         # Generic high-entropy strings (potential API keys)
-        entropy_pattern = re.compile(r'[a-zA-Z0-9]{32,}')
-        normalized_text = entropy_pattern.sub('[REDACTED_API_KEY]', normalized_text)
+        entropy_pattern = re.compile(r"[a-zA-Z0-9]{32,}")
+        normalized_text = entropy_pattern.sub("[REDACTED_API_KEY]", normalized_text)
 
         return normalized_text
 
     return detector_fn
 
 
-def _wrap_detector_with_policy(detector: Callable[[str], str], fail_closed_tier_threshold: int):
+def _wrap_detector_with_policy(
+    detector: Callable[[str], str], fail_closed_tier_threshold: int
+):
     """Wraps detector so that Tier >= threshold fails closed on errors."""
 
     def fn(text: str, tier: int | None = None) -> str:
@@ -318,6 +337,7 @@ def _wrap_detector_with_policy(detector: Callable[[str], str], fail_closed_tier_
 
             # Fallback: best-effort for low tiers
             import logging
+
             logging.warning(f"Detector failed for tier {tier}, using fallback: {e}")
             return text  # Return original text as fallback
 
@@ -334,6 +354,7 @@ def apply_production_security(app: FastAPI, redis_url: str | None = None) -> Non
             import redis.asyncio as redis
 
             from server.security.idempotency.redis_store import RedisKeyStore
+
             redis_client = redis.from_url(redis_url)
             idempotency_store = RedisKeyStore(redis_client)
         except ImportError:
@@ -347,7 +368,7 @@ def apply_production_security(app: FastAPI, redis_url: str | None = None) -> Non
         enable_multipart_adapter=True,
         enable_compression_guard=True,
         enable_global_scrubbing=True,
-        reject_disallowed=True
+        reject_disallowed=True,
     )
 
 
@@ -359,5 +380,5 @@ def apply_development_security(app: FastAPI):
         enable_multipart_adapter=True,
         fail_closed_tier_threshold=5,  # More lenient in dev
         enable_global_scrubbing=True,
-        reject_disallowed=False  # Allow all content types in dev
+        reject_disallowed=False,  # Allow all content types in dev
     )

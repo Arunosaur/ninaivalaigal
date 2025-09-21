@@ -24,6 +24,7 @@ def build_app():
                 raise HTTPException(status_code=401, detail="missing/invalid token")
             if perm == "write" and "editor" not in request.state.user["roles"]:
                 raise HTTPException(status_code=403, detail="insufficient role")
+
         return dep
 
     @app.get("/read", dependencies=[Depends(require_permission("read"))])
@@ -36,6 +37,7 @@ def build_app():
 
     return app
 
+
 def test_401_vs_403_semantics():
     app = build_app()
     c = TestClient(app)
@@ -45,8 +47,16 @@ def test_401_vs_403_semantics():
     assert c.post("/write").status_code == 401
 
     # Auth but insufficient role -> 403 on write
-    assert c.get("/read", headers={"Authorization":"Bearer valid"}).status_code in (200, 204)
-    assert c.post("/write", headers={"Authorization":"Bearer valid"}).status_code == 403
+    assert c.get("/read", headers={"Authorization": "Bearer valid"}).status_code in (
+        200,
+        204,
+    )
+    assert (
+        c.post("/write", headers={"Authorization": "Bearer valid"}).status_code == 403
+    )
 
     # Editor -> 200 on write
-    assert c.post("/write", headers={"Authorization":"Bearer editor"}).status_code in (200, 204)
+    assert c.post("/write", headers={"Authorization": "Bearer editor"}).status_code in (
+        200,
+        204,
+    )

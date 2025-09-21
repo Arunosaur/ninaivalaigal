@@ -7,8 +7,16 @@ import sys
 
 SCRIPT = "scripts/multipart_policy_snapshot_gate.py"
 
+
 def run(py, *args, cwd=None, env=None):
-    return subprocess.run([py, *args], cwd=cwd, env=env or os.environ.copy(), capture_output=True, text=True)
+    return subprocess.run(
+        [py, *args],
+        cwd=cwd,
+        env=env or os.environ.copy(),
+        capture_output=True,
+        text=True,
+    )
+
 
 def test_policy_gate_creates_and_updates_baseline(tmp_path):
     repo = tmp_path

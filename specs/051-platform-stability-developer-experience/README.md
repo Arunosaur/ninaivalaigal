@@ -1,10 +1,10 @@
 # SPEC-051: Platform Stability & Developer Experience
 
-**Title:** Comprehensive Platform Stability, Technical Debt Management & Developer Experience Enhancement  
-**Status:** DRAFT  
-**Created On:** 2025-09-21  
-**Category:** Platform Stability, Maintenance & Developer Experience  
-**Author:** ninaivalaigal/core  
+**Title:** Comprehensive Platform Stability, Technical Debt Management & Developer Experience Enhancement
+**Status:** DRAFT
+**Created On:** 2025-09-21
+**Category:** Platform Stability, Maintenance & Developer Experience
+**Author:** ninaivalaigal/core
 **Related SPECs:** SPEC-033, SPEC-040, SPEC-043, SPEC-045
 
 ---

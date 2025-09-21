@@ -14,6 +14,7 @@ from typing import Any
 
 class Role(Enum):
     """User roles in the system."""
+
     ADMIN = "admin"
     USER = "user"
     VIEWER = "viewer"
@@ -21,6 +22,7 @@ class Role(Enum):
 
 class Permission(Enum):
     """Permissions in the system."""
+
     READ = "read"
     WRITE = "write"
     DELETE = "delete"
@@ -29,6 +31,7 @@ class Permission(Enum):
 
 class Resource(Enum):
     """Resources in the system."""
+
     MEMORY = "memory"
     CONTEXT = "context"
     USER = "user"
@@ -39,6 +42,7 @@ class Resource(Enum):
 @dataclass
 class PolicyRule:
     """Individual RBAC policy rule."""
+
     role: Role
     resource: Resource
     permissions: list[Permission]
@@ -50,7 +54,7 @@ class PolicyRule:
             "role": self.role.value,
             "resource": self.resource.value,
             "permissions": [p.value for p in self.permissions],
-            "conditions": self.conditions or {}
+            "conditions": self.conditions or {},
         }
 
 
@@ -63,7 +67,13 @@ class RBACPolicySnapshot:
         self.created_at = None
         self.policy_hash = None
 
-    def add_rule(self, role: Role, resource: Resource, permissions: list[Permission], conditions: dict[str, Any] = None):
+    def add_rule(
+        self,
+        role: Role,
+        resource: Resource,
+        permissions: list[Permission],
+        conditions: dict[str, Any] = None,
+    ):
         """Add policy rule to snapshot."""
         rule = PolicyRule(role, resource, permissions, conditions)
         self.rules.append(rule)
@@ -74,11 +84,36 @@ class RBACPolicySnapshot:
         # Define the complete policy matrix
         policy_matrix = {
             Role.ADMIN: {
-                Resource.MEMORY: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN],
-                Resource.CONTEXT: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN],
-                Resource.USER: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN],
-                Resource.ORGANIZATION: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN],
-                Resource.TEAM: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN],
+                Resource.MEMORY: [
+                    Permission.READ,
+                    Permission.WRITE,
+                    Permission.DELETE,
+                    Permission.ADMIN,
+                ],
+                Resource.CONTEXT: [
+                    Permission.READ,
+                    Permission.WRITE,
+                    Permission.DELETE,
+                    Permission.ADMIN,
+                ],
+                Resource.USER: [
+                    Permission.READ,
+                    Permission.WRITE,
+                    Permission.DELETE,
+                    Permission.ADMIN,
+                ],
+                Resource.ORGANIZATION: [
+                    Permission.READ,
+                    Permission.WRITE,
+                    Permission.DELETE,
+                    Permission.ADMIN,
+                ],
+                Resource.TEAM: [
+                    Permission.READ,
+                    Permission.WRITE,
+                    Permission.DELETE,
+                    Permission.ADMIN,
+                ],
             },
             Role.USER: {
                 Resource.MEMORY: [Permission.READ, Permission.WRITE],
@@ -93,7 +128,7 @@ class RBACPolicySnapshot:
                 Resource.USER: [Permission.READ],
                 Resource.ORGANIZATION: [Permission.READ],
                 Resource.TEAM: [Permission.READ],
-            }
+            },
         }
 
         # Clear existing rules and rebuild from matrix
@@ -120,7 +155,9 @@ class RBACPolicySnapshot:
         self.created_at = time.time()
 
         # Calculate policy hash for drift detection
-        policy_content = json.dumps([rule.to_dict() for rule in self.rules], sort_keys=True)
+        policy_content = json.dumps(
+            [rule.to_dict() for rule in self.rules], sort_keys=True
+        )
         self.policy_hash = hashlib.sha256(policy_content.encode()).hexdigest()
 
         snapshot_data = {
@@ -132,14 +169,14 @@ class RBACPolicySnapshot:
             "metadata": {
                 "roles": [role.value for role in Role],
                 "resources": [resource.value for resource in Resource],
-                "permissions": [permission.value for permission in Permission]
-            }
+                "permissions": [permission.value for permission in Permission],
+            },
         }
 
         return json.dumps(snapshot_data, indent=2, sort_keys=True)
 
     @classmethod
-    def from_json(cls, json_str: str) -> 'RBACPolicySnapshot':
+    def from_json(cls, json_str: str) -> "RBACPolicySnapshot":
         """Deserialize policy snapshot from JSON."""
         data = json.loads(json_str)
 
@@ -158,7 +195,7 @@ class RBACPolicySnapshot:
 
         return snapshot
 
-    def compare_with(self, other: 'RBACPolicySnapshot') -> dict[str, Any]:
+    def compare_with(self, other: "RBACPolicySnapshot") -> dict[str, Any]:
         """Compare with another policy snapshot for drift detection."""
 
         # Quick hash comparison
@@ -175,35 +212,31 @@ class RBACPolicySnapshot:
         # Find added rules
         for key in other_rules:
             if key not in self_rules:
-                changes.append({
-                    "type": "added",
-                    "rule": other_rules[key].to_dict()
-                })
+                changes.append({"type": "added", "rule": other_rules[key].to_dict()})
 
         # Find removed rules
         for key in self_rules:
             if key not in other_rules:
-                changes.append({
-                    "type": "removed",
-                    "rule": self_rules[key].to_dict()
-                })
+                changes.append({"type": "removed", "rule": self_rules[key].to_dict()})
 
         # Find modified rules
         for key in self_rules:
             if key in other_rules:
                 if self_rules[key].to_dict() != other_rules[key].to_dict():
-                    changes.append({
-                        "type": "modified",
-                        "old_rule": self_rules[key].to_dict(),
-                        "new_rule": other_rules[key].to_dict()
-                    })
+                    changes.append(
+                        {
+                            "type": "modified",
+                            "old_rule": self_rules[key].to_dict(),
+                            "new_rule": other_rules[key].to_dict(),
+                        }
+                    )
 
         return {
             "identical": False,
             "changes_count": len(changes),
             "changes": changes,
             "old_hash": self.policy_hash,
-            "new_hash": other.policy_hash
+            "new_hash": other.policy_hash,
         }
 
     def _rule_key(self, rule: PolicyRule) -> str:
@@ -222,14 +255,16 @@ class RBACPolicySnapshot:
             for resource in Resource:
                 key = f"{role.value}:{resource.value}"
                 if key not in existing_keys:
-                    missing_combinations.append({"role": role.value, "resource": resource.value})
+                    missing_combinations.append(
+                        {"role": role.value, "resource": resource.value}
+                    )
 
         return {
             "complete": len(missing_combinations) == 0,
             "expected_combinations": expected_combinations,
             "actual_combinations": actual_combinations,
             "missing_combinations": missing_combinations,
-            "coverage_percentage": (actual_combinations / expected_combinations) * 100
+            "coverage_percentage": (actual_combinations / expected_combinations) * 100,
         }
 
 
@@ -261,7 +296,7 @@ def test_rbac_policy_snapshot():
         Role.USER,
         Resource.ORGANIZATION,
         [Permission.READ, Permission.WRITE],  # Added WRITE permission
-        {"drift_test": True}
+        {"drift_test": True},
     )
 
     # Compare baseline with modified
@@ -275,10 +310,10 @@ def test_rbac_policy_snapshot():
         "drift_detected": not drift_comparison["identical"],
         "drift_changes": drift_comparison["changes_count"],
         "test_passed": (
-            comparison["identical"] and
-            completeness["complete"] and
-            drift_comparison["changes_count"] > 0
-        )
+            comparison["identical"]
+            and completeness["complete"]
+            and drift_comparison["changes_count"] > 0
+        ),
     }
 
 
@@ -289,7 +324,9 @@ def create_production_policy_snapshot() -> str:
     return snapshot.to_json()
 
 
-def validate_policy_against_snapshot(current_policy_json: str, baseline_json: str) -> dict[str, Any]:
+def validate_policy_against_snapshot(
+    current_policy_json: str, baseline_json: str
+) -> dict[str, Any]:
     """Validate current policy against baseline snapshot."""
 
     current = RBACPolicySnapshot.from_json(current_policy_json)
@@ -319,7 +356,9 @@ def validate_policy_against_snapshot(current_policy_json: str, baseline_json: st
         "comparison": comparison,
         "acceptable_changes": len(acceptable_changes),
         "concerning_changes": len(concerning_changes),
-        "recommendation": "APPROVE" if len(concerning_changes) == 0 else "REVIEW_REQUIRED"
+        "recommendation": "APPROVE"
+        if len(concerning_changes) == 0
+        else "REVIEW_REQUIRED",
     }
 
 

@@ -28,18 +28,19 @@ def app():
 
     return app
 
+
 @pytest.fixture
 def client(app):
     """Create test client"""
     return TestClient(app)
 
-class TestFastAPIRedactionMiddleware:
 
+class TestFastAPIRedactionMiddleware:
     def test_basic_secret_redaction(self, client):
         """Test basic secret redaction in request body"""
         payload = {
             "message": "Here is my API key: sk-1234567890abcdef1234567890abcdef12345678",
-            "user": "test@example.com"
+            "user": "test@example.com",
         }
 
         response = client.post("/echo", json=payload)
@@ -53,10 +54,7 @@ class TestFastAPIRedactionMiddleware:
     def test_aws_key_redaction(self, client):
         """Test AWS access key redaction"""
         payload = {
-            "config": {
-                "aws_access_key": "AKIAIOSFODNN7EXAMPLE",
-                "region": "us-east-1"
-            }
+            "config": {"aws_access_key": "AKIAIOSFODNN7EXAMPLE", "region": "us-east-1"}
         }
 
         response = client.post("/test", json=payload)
@@ -70,7 +68,7 @@ class TestFastAPIRedactionMiddleware:
         """Test GitHub token redaction"""
         payload = {
             "github_token": "ghp_1234567890abcdef1234567890abcdef12345678",
-            "repo": "test/repo"
+            "repo": "test/repo",
         }
 
         response = client.post("/echo", json=payload)
@@ -87,7 +85,7 @@ class TestFastAPIRedactionMiddleware:
             "aws": "AKIAIOSFODNN7EXAMPLE",
             "github": "ghp_1234567890abcdef1234567890abcdef12345678",
             "email": "user@example.com",
-            "phone": "555-123-4567"
+            "phone": "555-123-4567",
         }
 
         response = client.post("/test", json=payload)
@@ -108,7 +106,7 @@ class TestFastAPIRedactionMiddleware:
             "message": "Hello world",
             "count": 42,
             "active": True,
-            "tags": ["test", "demo"]
+            "tags": ["test", "demo"],
         }
 
         response = client.post("/echo", json=payload)
@@ -137,9 +135,11 @@ class TestFastAPIRedactionMiddleware:
     def test_malformed_json_handling(self, client):
         """Test handling of malformed JSON"""
         # Send raw text instead of JSON
-        response = client.post("/test",
-                             data="This contains a secret: sk-1234567890abcdef1234567890abcdef12345678",
-                             headers={"Content-Type": "text/plain"})
+        response = client.post(
+            "/test",
+            data="This contains a secret: sk-1234567890abcdef1234567890abcdef12345678",
+            headers={"Content-Type": "text/plain"},
+        )
 
         # Should handle gracefully (may return error but shouldn't crash)
         assert response.status_code in [200, 422, 400]  # Various valid responses
@@ -159,7 +159,7 @@ class TestFastAPIRedactionMiddleware:
                 "level2": {
                     "level3": {
                         "secret": "sk-1234567890abcdef1234567890abcdef12345678",
-                        "normal": "data"
+                        "normal": "data",
                     }
                 }
             }

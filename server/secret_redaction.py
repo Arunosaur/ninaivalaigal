@@ -14,34 +14,34 @@ class SecretDetector:
 
     def __init__(self):
         self.patterns = {
-            'jwt_token': [
-                r'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+',  # JWT tokens
-                r'Bearer\s+[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+'
+            "jwt_token": [
+                r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+",  # JWT tokens
+                r"Bearer\s+[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+",
             ],
-            'api_key': [
+            "api_key": [
                 r'(?i)api[_-]?key["\s]*[:=]["\s]*[A-Za-z0-9_-]{20,}',
                 r'(?i)secret[_-]?key["\s]*[:=]["\s]*[A-Za-z0-9_-]{20,}',
                 r'(?i)access[_-]?token["\s]*[:=]["\s]*[A-Za-z0-9_-]{20,}',
-                r'sk-[A-Za-z0-9]{32,}',  # OpenAI-style API keys
-                r'[A-Za-z0-9_-]{32,64}'  # Generic long tokens
+                r"sk-[A-Za-z0-9]{32,}",  # OpenAI-style API keys
+                r"[A-Za-z0-9_-]{32,64}",  # Generic long tokens
             ],
-            'password': [
+            "password": [
                 r'(?i)password["\s]*[:=]["\s]*["\'][^"\']{8,}["\']',
-                r'(?i)passwd["\s]*[:=]["\s]*["\'][^"\']{8,}["\']'
+                r'(?i)passwd["\s]*[:=]["\s]*["\'][^"\']{8,}["\']',
             ],
-            'database_url': [
-                r'postgresql://[^:]+:[^@]+@[^/]+/\w+',
-                r'mysql://[^:]+:[^@]+@[^/]+/\w+',
-                r'mongodb://[^:]+:[^@]+@[^/]+/\w+'
+            "database_url": [
+                r"postgresql://[^:]+:[^@]+@[^/]+/\w+",
+                r"mysql://[^:]+:[^@]+@[^/]+/\w+",
+                r"mongodb://[^:]+:[^@]+@[^/]+/\w+",
             ],
-            'private_key': [
-                r'-----BEGIN [A-Z ]+PRIVATE KEY-----[\s\S]*?-----END [A-Z ]+PRIVATE KEY-----',
-                r'-----BEGIN RSA PRIVATE KEY-----[\s\S]*?-----END RSA PRIVATE KEY-----'
+            "private_key": [
+                r"-----BEGIN [A-Z ]+PRIVATE KEY-----[\s\S]*?-----END [A-Z ]+PRIVATE KEY-----",
+                r"-----BEGIN RSA PRIVATE KEY-----[\s\S]*?-----END RSA PRIVATE KEY-----",
             ],
-            'aws_credentials': [
-                r'AKIA[0-9A-Z]{16}',  # AWS Access Key ID
-                r'(?i)aws[_-]?secret[_-]?access[_-]?key["\s]*[:=]["\s]*[A-Za-z0-9/+=]{40}'
-            ]
+            "aws_credentials": [
+                r"AKIA[0-9A-Z]{16}",  # AWS Access Key ID
+                r'(?i)aws[_-]?secret[_-]?access[_-]?key["\s]*[:=]["\s]*[A-Za-z0-9/+=]{40}',
+            ],
         }
 
     def detect_secrets(self, text: str) -> list[dict[str, Any]]:
@@ -52,13 +52,15 @@ class SecretDetector:
             for pattern in patterns:
                 matches = re.finditer(pattern, text)
                 for match in matches:
-                    findings.append({
-                        'type': secret_type,
-                        'start': match.start(),
-                        'end': match.end(),
-                        'matched_text': match.group(),
-                        'pattern': pattern
-                    })
+                    findings.append(
+                        {
+                            "type": secret_type,
+                            "start": match.start(),
+                            "end": match.end(),
+                            "matched_text": match.group(),
+                            "pattern": pattern,
+                        }
+                    )
 
         return findings
 
@@ -67,17 +69,18 @@ class SecretDetector:
         findings = self.detect_secrets(text)
 
         # Sort by position (reverse order to maintain indices)
-        findings.sort(key=lambda x: x['start'], reverse=True)
+        findings.sort(key=lambda x: x["start"], reverse=True)
 
         redacted_text = text
         for finding in findings:
             redacted_text = (
-                redacted_text[:finding['start']] +
-                f"[REDACTED_{finding['type'].upper()}]" +
-                redacted_text[finding['end']:]
+                redacted_text[: finding["start"]]
+                + f"[REDACTED_{finding['type'].upper()}]"
+                + redacted_text[finding["end"] :]
             )
 
         return redacted_text
+
 
 class SecretRedactionPipeline:
     """Main pipeline for secret redaction across the system"""
@@ -95,17 +98,17 @@ class SecretRedactionPipeline:
         redacted_data = memory_data.copy()
 
         # Redact text content
-        if 'text' in redacted_data:
-            original_text = redacted_data['text']
+        if "text" in redacted_data:
+            original_text = redacted_data["text"]
             redacted_text = self.detector.redact_secrets(original_text)
 
             if original_text != redacted_text:
-                self._log_redaction('memory_storage', original_text, redacted_text)
-                redacted_data['text'] = redacted_text
+                self._log_redaction("memory_storage", original_text, redacted_text)
+                redacted_data["text"] = redacted_text
 
         # Redact JSON data recursively
-        if 'data' in redacted_data and isinstance(redacted_data['data'], dict):
-            redacted_data['data'] = self._redact_dict_recursive(redacted_data['data'])
+        if "data" in redacted_data and isinstance(redacted_data["data"], dict):
+            redacted_data["data"] = self._redact_dict_recursive(redacted_data["data"])
 
         return redacted_data
 
@@ -117,7 +120,7 @@ class SecretRedactionPipeline:
         redacted_message = self.detector.redact_secrets(message)
 
         if message != redacted_message:
-            self._log_redaction('log_message', message, redacted_message)
+            self._log_redaction("log_message", message, redacted_message)
 
         return redacted_message
 
@@ -144,8 +147,10 @@ class SecretRedactionPipeline:
                 redacted[key] = self._redact_dict_recursive(value)
             elif isinstance(value, list):
                 redacted[key] = [
-                    self.detector.redact_secrets(item) if isinstance(item, str)
-                    else self._redact_dict_recursive(item) if isinstance(item, dict)
+                    self.detector.redact_secrets(item)
+                    if isinstance(item, str)
+                    else self._redact_dict_recursive(item)
+                    if isinstance(item, dict)
                     else item
                     for item in value
                 ]
@@ -157,11 +162,11 @@ class SecretRedactionPipeline:
     def _log_redaction(self, source: str, original: str, redacted: str):
         """Log redaction events for security monitoring"""
         redaction_event = {
-            'timestamp': datetime.utcnow().isoformat(),
-            'source': source,
-            'original_length': len(original),
-            'redacted_length': len(redacted),
-            'secrets_found': len(self.detector.detect_secrets(original))
+            "timestamp": datetime.utcnow().isoformat(),
+            "source": source,
+            "original_length": len(original),
+            "redacted_length": len(redacted),
+            "secrets_found": len(self.detector.detect_secrets(original)),
         }
 
         self.redaction_log.append(redaction_event)
@@ -173,30 +178,32 @@ class SecretRedactionPipeline:
     def get_redaction_stats(self) -> dict[str, Any]:
         """Get statistics about redaction activity"""
         if not self.redaction_log:
-            return {'total_redactions': 0, 'sources': {}}
+            return {"total_redactions": 0, "sources": {}}
 
         stats = {
-            'total_redactions': len(self.redaction_log),
-            'sources': {},
-            'last_24h': 0
+            "total_redactions": len(self.redaction_log),
+            "sources": {},
+            "last_24h": 0,
         }
 
         # Count by source
         for event in self.redaction_log:
-            source = event['source']
-            stats['sources'][source] = stats['sources'].get(source, 0) + 1
+            source = event["source"]
+            stats["sources"][source] = stats["sources"].get(source, 0) + 1
 
         # Count last 24 hours
         now = datetime.utcnow()
         for event in self.redaction_log:
-            event_time = datetime.fromisoformat(event['timestamp'])
+            event_time = datetime.fromisoformat(event["timestamp"])
             if (now - event_time).total_seconds() < 86400:  # 24 hours
-                stats['last_24h'] += 1
+                stats["last_24h"] += 1
 
         return stats
 
+
 # Global instance
 _redaction_pipeline = None
+
 
 def get_redaction_pipeline() -> SecretRedactionPipeline:
     """Get global redaction pipeline instance"""
@@ -205,20 +212,24 @@ def get_redaction_pipeline() -> SecretRedactionPipeline:
         _redaction_pipeline = SecretRedactionPipeline()
     return _redaction_pipeline
 
+
 def redact_memory_before_storage(memory_data: dict[str, Any]) -> dict[str, Any]:
     """Convenience function for memory redaction"""
     pipeline = get_redaction_pipeline()
     return pipeline.redact_memory_data(memory_data)
+
 
 def redact_log_message(message: str) -> str:
     """Convenience function for log redaction"""
     pipeline = get_redaction_pipeline()
     return pipeline.redact_log_message(message)
 
+
 def redact_api_response(response_data: Any) -> Any:
     """Convenience function for API response redaction"""
     pipeline = get_redaction_pipeline()
     return pipeline.redact_api_response(response_data)
+
 
 # Test function
 def test_secret_detection():
@@ -228,7 +239,7 @@ def test_secret_detection():
         "API key: sk-1234567890abcdef1234567890abcdef",
         "Database: postgresql://user:password123@localhost:5432/db",
         "Password: 'mySecretPassword123'",
-        "AWS key: AKIAIOSFODNN7EXAMPLE"
+        "AWS key: AKIAIOSFODNN7EXAMPLE",
     ]
 
     detector = SecretDetector()
@@ -238,6 +249,7 @@ def test_secret_detection():
         redacted = detector.redact_secrets(test_case)
         print(f"Redacted: {redacted}")
         print("---")
+
 
 if __name__ == "__main__":
     test_secret_detection()

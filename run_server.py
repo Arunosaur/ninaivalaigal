@@ -24,11 +24,7 @@ if __name__ == "__main__":
 
         # Run with uvicorn
         uvicorn.run(
-            "main:app",
-            host="0.0.0.0",
-            port=8000,
-            reload=True,
-            log_level="info"
+            "main:app", host="0.0.0.0", port=8000, reload=True, log_level="info"
         )
     except ImportError as e:
         print(f"❌ Import error: {e}")

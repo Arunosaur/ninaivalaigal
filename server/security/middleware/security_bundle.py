@@ -19,11 +19,11 @@ class SecurityBundle:
     - ContentTypeGuardMiddleware (content-type filtering and size limits)
     - RedactionASGIMiddleware (request body redaction)
     - ResponseRedactionASGIMiddleware (response body redaction)
-    
+
     Usage:
         from server.security.middleware.security_bundle import SecurityBundle
         from server.security.redaction.detector_glue import detector_fn
-        
+
         app = FastAPI()
         SecurityBundle.apply(app, detector_fn=detector_fn)
     """
@@ -34,13 +34,17 @@ class SecurityBundle:
         app: ASGIApp,
         detector_fn: t.Callable[[str], str],
         overlap: int = 64,
-        allowed_content_types: t.Iterable[str] = ("text/", "application/json", "application/x-www-form-urlencoded"),
+        allowed_content_types: t.Iterable[str] = (
+            "text/",
+            "application/json",
+            "application/x-www-form-urlencoded",
+        ),
         max_body_bytes: int = 10 * 1024 * 1024,  # 10 MiB
-        reject_disallowed: bool = True
+        reject_disallowed: bool = True,
     ) -> None:
         """
         Apply the complete security middleware bundle to a FastAPI app.
-        
+
         Args:
             app: FastAPI application instance
             detector_fn: Function that takes text and returns redacted text
@@ -53,16 +57,12 @@ class SecurityBundle:
 
         # 3. Response redaction (outermost)
         app.add_middleware(
-            ResponseRedactionASGIMiddleware,
-            detector_fn=detector_fn,
-            overlap=overlap
+            ResponseRedactionASGIMiddleware, detector_fn=detector_fn, overlap=overlap
         )
 
         # 2. Request redaction (middle)
         app.add_middleware(
-            RedactionASGIMiddleware,
-            detector_fn=detector_fn,
-            overlap=overlap
+            RedactionASGIMiddleware, detector_fn=detector_fn, overlap=overlap
         )
 
         # 1. Content-type guard (innermost - runs first)
@@ -70,8 +70,9 @@ class SecurityBundle:
             ContentTypeGuardMiddleware,
             allowed_prefixes=allowed_content_types,
             max_body_bytes=max_body_bytes,
-            reject_disallowed=reject_disallowed
+            reject_disallowed=reject_disallowed,
         )
+
 
 class SecurityBundleMiddleware:
     """
@@ -84,9 +85,13 @@ class SecurityBundleMiddleware:
         app: ASGIApp,
         detector_fn: t.Callable[[str], str],
         overlap: int = 64,
-        allowed_content_types: t.Iterable[str] = ("text/", "application/json", "application/x-www-form-urlencoded"),
+        allowed_content_types: t.Iterable[str] = (
+            "text/",
+            "application/json",
+            "application/x-www-form-urlencoded",
+        ),
         max_body_bytes: int = 10 * 1024 * 1024,
-        reject_disallowed: bool = True
+        reject_disallowed: bool = True,
     ):
         self.app = app
         self.detector_fn = detector_fn
@@ -134,11 +139,7 @@ class SecurityBundleMiddleware:
 
                 # Size limit check
                 if total_size > self.max_body_bytes:
-                    return {
-                        "type": "http.request",
-                        "body": b"",
-                        "more_body": False
-                    }
+                    return {"type": "http.request", "body": b"", "more_body": False}
 
                 # Redact request body if allowed content type
                 if self._is_allowed_type(content_type) and body:
@@ -147,8 +148,12 @@ class SecurityBundleMiddleware:
 
                     more_body = message.get("more_body", False)
                     if len(text) >= self.overlap and more_body:
-                        request_tail = text[-self.overlap:]
-                        emit_text = redacted[:-len(request_tail)] if len(redacted) > len(request_tail) else ""
+                        request_tail = text[-self.overlap :]
+                        emit_text = (
+                            redacted[: -len(request_tail)]
+                            if len(redacted) > len(request_tail)
+                            else ""
+                        )
                     else:
                         emit_text = redacted
                         request_tail = ""
@@ -170,8 +175,12 @@ class SecurityBundleMiddleware:
                     redacted = self.detector_fn(text)
 
                     if len(text) >= self.overlap and more_body:
-                        response_tail = text[-self.overlap:]
-                        emit_text = redacted[:-len(response_tail)] if len(redacted) > len(response_tail) else ""
+                        response_tail = text[-self.overlap :]
+                        emit_text = (
+                            redacted[: -len(response_tail)]
+                            if len(redacted) > len(response_tail)
+                            else ""
+                        )
                     else:
                         emit_text = redacted
                         response_tail = ""
@@ -181,16 +190,22 @@ class SecurityBundleMiddleware:
                     # Handle final tail
                     if not more_body and response_tail:
                         final_redacted = self.detector_fn(response_tail)
-                        await send({
-                            "type": "http.response.body",
-                            "body": message["body"],
-                            "more_body": True
-                        })
-                        await send({
-                            "type": "http.response.body",
-                            "body": final_redacted.encode("utf-8", errors="replace"),
-                            "more_body": False
-                        })
+                        await send(
+                            {
+                                "type": "http.response.body",
+                                "body": message["body"],
+                                "more_body": True,
+                            }
+                        )
+                        await send(
+                            {
+                                "type": "http.response.body",
+                                "body": final_redacted.encode(
+                                    "utf-8", errors="replace"
+                                ),
+                                "more_body": False,
+                            }
+                        )
                         return
 
             await send(message)
@@ -203,13 +218,17 @@ class SecurityBundleMiddleware:
         return any(content_type.startswith(prefix) for prefix in self.allowed_types)
 
     async def _send_error(self, send, status: int, message: str):
-        await send({
-            "type": "http.response.start",
-            "status": status,
-            "headers": [(b"content-type", b"text/plain; charset=utf-8")],
-        })
-        await send({
-            "type": "http.response.body",
-            "body": message.encode("utf-8"),
-            "more_body": False
-        })
+        await send(
+            {
+                "type": "http.response.start",
+                "status": status,
+                "headers": [(b"content-type", b"text/plain; charset=utf-8")],
+            }
+        )
+        await send(
+            {
+                "type": "http.response.body",
+                "body": message.encode("utf-8"),
+                "more_body": False,
+            }
+        )

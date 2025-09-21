@@ -28,10 +28,10 @@ async def test_login_page():
             print(f"✅ Response URL: {response.url}")
 
             # Wait for page to load
-            await page.wait_for_load_state('networkidle')
+            await page.wait_for_load_state("networkidle")
 
             # Check if login form exists
-            login_form = await page.query_selector('#login-form')
+            login_form = await page.query_selector("#login-form")
             if login_form:
                 print("✅ Login form found")
             else:
@@ -42,7 +42,7 @@ async def test_login_page():
             print(f"📄 Page title: {title}")
 
             # Check for mem0 heading
-            heading = await page.query_selector('h1')
+            heading = await page.query_selector("h1")
             if heading:
                 heading_text = await heading.text_content()
                 print(f"📝 Main heading: {heading_text}")
@@ -51,13 +51,13 @@ async def test_login_page():
             print("\n🧪 Testing form interaction...")
 
             # Fill in test credentials
-            await page.fill('#email', 'john.developer@example.com')
-            await page.fill('#password', 'password123')
+            await page.fill("#email", "john.developer@example.com")
+            await page.fill("#password", "password123")
 
             print("✅ Form fields filled")
 
             # Take screenshot
-            await page.screenshot(path='login_test_screenshot.png')
+            await page.screenshot(path="login_test_screenshot.png")
             print("📸 Screenshot saved as login_test_screenshot.png")
 
             # Test form submission (but don't actually submit)
@@ -78,7 +78,7 @@ async def test_login_page():
 
             # Refresh to see network activity
             await page.reload()
-            await page.wait_for_load_state('networkidle')
+            await page.wait_for_load_state("networkidle")
 
             print("\n✅ Playwright test completed successfully!")
 
@@ -87,6 +87,7 @@ async def test_login_page():
 
         finally:
             await browser.close()
+
 
 async def test_signup_page():
     """Test the signup page as well"""
@@ -105,26 +106,26 @@ async def test_signup_page():
             print(f"✅ Response status: {response.status}")
 
             # Wait for page to load
-            await page.wait_for_load_state('networkidle')
+            await page.wait_for_load_state("networkidle")
 
             # Check for account type buttons
-            individual_btn = await page.query_selector('#individual-btn')
-            org_btn = await page.query_selector('#organization-btn')
+            individual_btn = await page.query_selector("#individual-btn")
+            org_btn = await page.query_selector("#organization-btn")
 
             if individual_btn and org_btn:
                 print("✅ Account type selection found")
 
                 # Test account type switching
-                await page.click('#individual-btn')
+                await page.click("#individual-btn")
                 await page.wait_for_timeout(500)
 
-                individual_form = await page.query_selector('#individual-form')
+                individual_form = await page.query_selector("#individual-form")
                 if individual_form:
                     is_visible = await individual_form.is_visible()
                     print(f"✅ Individual form visible: {is_visible}")
 
             # Take screenshot
-            await page.screenshot(path='signup_test_screenshot.png')
+            await page.screenshot(path="signup_test_screenshot.png")
             print("📸 Screenshot saved as signup_test_screenshot.png")
 
         except Exception as e:
@@ -132,6 +133,7 @@ async def test_signup_page():
 
         finally:
             await browser.close()
+
 
 async def main():
     """Run all tests"""
@@ -151,6 +153,7 @@ async def main():
     print("2. Clear browser cache")
     print("3. Try incognito/private mode")
     print("4. Check the exact URL in address bar")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

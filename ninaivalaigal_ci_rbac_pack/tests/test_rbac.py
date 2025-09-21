@@ -32,16 +32,19 @@ def test_precedence_best_team_if_no_org():
     assert effective_role(ctx, team_id="beta") == Role.MAINTAINER
 
 
-@pytest.mark.parametrize("role,resource,action,expected", [
-    (Role.VIEWER, Resource.MEMORY, Action.READ, True),
-    (Role.VIEWER, Resource.MEMORY, Action.UPDATE, False),
-    (Role.MEMBER, Resource.CONTEXT, Action.CREATE, True),
-    (Role.MEMBER, Resource.CONTEXT, Action.DELETE, False),
-    (Role.MAINTAINER, Resource.CONTEXT, Action.SHARE, True),
-    (Role.ADMIN, Resource.ORG, Action.ADMINISTER, True),
-    (Role.ADMIN, Resource.AUDIT, Action.READ, True),
-    (Role.MEMBER, Resource.AUDIT, Action.READ, False),
-])
+@pytest.mark.parametrize(
+    "role,resource,action,expected",
+    [
+        (Role.VIEWER, Resource.MEMORY, Action.READ, True),
+        (Role.VIEWER, Resource.MEMORY, Action.UPDATE, False),
+        (Role.MEMBER, Resource.CONTEXT, Action.CREATE, True),
+        (Role.MEMBER, Resource.CONTEXT, Action.DELETE, False),
+        (Role.MAINTAINER, Resource.CONTEXT, Action.SHARE, True),
+        (Role.ADMIN, Resource.ORG, Action.ADMINISTER, True),
+        (Role.ADMIN, Resource.AUDIT, Action.READ, True),
+        (Role.MEMBER, Resource.AUDIT, Action.READ, False),
+    ],
+)
 def test_policy_matrix(role, resource, action, expected):
     assert is_allowed(role, resource, action) is expected
 

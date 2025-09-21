@@ -9,11 +9,12 @@ import structlog
 from auth import get_current_user
 from database import User
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+
 from memory.factory import get_default_memory_provider
 
 # Import memory provider interfaces and factory
 from memory.interfaces import MemoryProvider, MemoryProviderError
-from pydantic import BaseModel
 
 logger = structlog.get_logger(__name__)
 

@@ -23,6 +23,7 @@ from ..database import Base
 
 class RedactionAudit(Base):
     """Audit trail for redaction operations"""
+
     __tablename__ = "redaction_audits"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -49,6 +50,7 @@ class RedactionAudit(Base):
 
 class AlertEvent(Base):
     """Security alert events"""
+
     __tablename__ = "alert_events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -73,6 +75,7 @@ class AlertEvent(Base):
 
 class SecurityEvent(Base):
     """Detailed security event tracking"""
+
     __tablename__ = "security_events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -96,15 +99,19 @@ class SecurityEvent(Base):
 # Add security-related fields to existing models via mixins
 class SecurityMixin:
     """Mixin to add security fields to existing models"""
-    sensitivity_tier = Column(String(50), default='internal')
+
+    sensitivity_tier = Column(String(50), default="internal")
     redaction_applied = Column(Boolean, default=False)
     original_entropy_score = Column(Float, nullable=True)
-    redaction_audit_id = Column(UUID(as_uuid=True), ForeignKey("redaction_audits.id"), nullable=True)
+    redaction_audit_id = Column(
+        UUID(as_uuid=True), ForeignKey("redaction_audits.id"), nullable=True
+    )
 
 
 class ContextSecurityMixin:
     """Security mixin for context models"""
-    sensitivity_tier = Column(String(50), default='internal')
+
+    sensitivity_tier = Column(String(50), default="internal")
     auto_classified = Column(Boolean, default=False)
     classification_confidence = Column(Float, nullable=True)
     last_sensitivity_review = Column(DateTime(timezone=True), nullable=True)

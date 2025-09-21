@@ -26,7 +26,7 @@ def test_same_template_different_paths_no_collision():
         path=path1,
         subject_user_id="user123",
         organization_id="org1",
-        idempotency_key="same_idem_key"
+        idempotency_key="same_idem_key",
     )
 
     key2 = ScopedKeyHelper.generate_scoped_key(
@@ -34,7 +34,7 @@ def test_same_template_different_paths_no_collision():
         path=path2,
         subject_user_id="user123",
         organization_id="org1",
-        idempotency_key="same_idem_key"
+        idempotency_key="same_idem_key",
     )
 
     # Keys should be different despite same template and idempotency key
@@ -58,7 +58,9 @@ def test_template_normalization_consistency():
 
     for concrete_path, expected_template in test_cases:
         actual_template = ScopedKeyHelper.extract_path_template(concrete_path)
-        assert actual_template == expected_template, f"Path {concrete_path} -> {actual_template}, expected {expected_template}"
+        assert (
+            actual_template == expected_template
+        ), f"Path {concrete_path} -> {actual_template}, expected {expected_template}"
 
 
 def test_cross_user_same_template_collision_prevention():
@@ -72,7 +74,7 @@ def test_cross_user_same_template_collision_prevention():
         path=template_path,
         subject_user_id="user_alice",
         organization_id="org1",
-        idempotency_key="create_post_123"
+        idempotency_key="create_post_123",
     )
 
     key_user2 = ScopedKeyHelper.generate_scoped_key(
@@ -80,7 +82,7 @@ def test_cross_user_same_template_collision_prevention():
         path=template_path,
         subject_user_id="user_bob",
         organization_id="org1",
-        idempotency_key="create_post_123"
+        idempotency_key="create_post_123",
     )
 
     # Should generate different keys
@@ -102,7 +104,7 @@ def test_cross_org_same_template_collision_prevention():
         path=template_path,
         subject_user_id="user_alice",
         organization_id="org_alpha",
-        idempotency_key="add_member_789"
+        idempotency_key="add_member_789",
     )
 
     key_org2 = ScopedKeyHelper.generate_scoped_key(
@@ -110,7 +112,7 @@ def test_cross_org_same_template_collision_prevention():
         path=template_path,
         subject_user_id="user_alice",
         organization_id="org_beta",
-        idempotency_key="add_member_789"
+        idempotency_key="add_member_789",
     )
 
     # Should generate different keys
@@ -131,7 +133,7 @@ def test_method_differentiation_same_template():
         path=template_path,
         subject_user_id="user1",
         organization_id="org1",
-        idempotency_key="action_123"
+        idempotency_key="action_123",
     )
 
     key_post = ScopedKeyHelper.generate_scoped_key(
@@ -139,7 +141,7 @@ def test_method_differentiation_same_template():
         path=template_path,
         subject_user_id="user1",
         organization_id="org1",
-        idempotency_key="action_123"
+        idempotency_key="action_123",
     )
 
     key_delete = ScopedKeyHelper.generate_scoped_key(
@@ -147,16 +149,24 @@ def test_method_differentiation_same_template():
         path=template_path,
         subject_user_id="user1",
         organization_id="org1",
-        idempotency_key="action_123"
+        idempotency_key="action_123",
     )
 
     # All should be different
     assert len({key_get, key_post, key_delete}) == 3
 
     # Verify no collisions between any pair
-    assert ScopedKeyHelper.get_collision_info(key_get, key_post)["full_collision"] == False
-    assert ScopedKeyHelper.get_collision_info(key_post, key_delete)["full_collision"] == False
-    assert ScopedKeyHelper.get_collision_info(key_get, key_delete)["full_collision"] == False
+    assert (
+        ScopedKeyHelper.get_collision_info(key_get, key_post)["full_collision"] == False
+    )
+    assert (
+        ScopedKeyHelper.get_collision_info(key_post, key_delete)["full_collision"]
+        == False
+    )
+    assert (
+        ScopedKeyHelper.get_collision_info(key_get, key_delete)["full_collision"]
+        == False
+    )
 
 
 def test_high_collision_scenario_detection():
@@ -172,13 +182,14 @@ def test_high_collision_scenario_detection():
             path=f"/api/items/{i}/actions",
             subject_user_id=f"user_{i % 10}",  # Only 10 different users
             organization_id="shared_org",
-            idempotency_key=f"action_{i % 5}"  # Only 5 different idempotency keys
+            idempotency_key=f"action_{i % 5}",  # Only 5 different idempotency keys
         )
         keys.append(key)
 
     # Should still have no collisions due to path differences
     # Check a few random pairs for collision
     import random
+
     for _ in range(10):
         key1, key2 = random.sample(keys, 2)
         collision_info = ScopedKeyHelper.get_collision_info(key1, key2)
@@ -192,24 +203,22 @@ def test_edge_case_path_templates():
         # Root paths
         ("/", "/"),
         ("/api", "/api"),
-
         # Single ID paths
         ("/123", "/{id}"),
         ("/api/123", "/api/{id}"),
-
         # UUID patterns
         ("/api/users/550e8400-e29b-41d4-a716-446655440000", "/api/users/{uuid}"),
-
         # Mixed patterns
         ("/api/v1/users/123/posts/abc-def", "/api/{id}/users/{id}/posts/{id}"),
-
         # Numeric-only segments
         ("/api/2023/01/15/reports/456", "/api/{id}/{id}/{id}/reports/{id}"),
     ]
 
     for concrete_path, expected in edge_cases:
         template = ScopedKeyHelper.extract_path_template(concrete_path)
-        assert template == expected, f"Path {concrete_path} -> {template}, expected {expected}"
+        assert (
+            template == expected
+        ), f"Path {concrete_path} -> {template}, expected {expected}"
 
 
 def test_collision_analysis_comprehensive():
@@ -218,16 +227,50 @@ def test_collision_analysis_comprehensive():
     # Create a mix of keys with potential collision patterns
     keys = [
         # Same user, different paths
-        ScopedKeyHelper.generate_scoped_key("POST", "/api/users/1", subject_user_id="user1", organization_id="org1", idempotency_key="key1"),
-        ScopedKeyHelper.generate_scoped_key("POST", "/api/users/2", subject_user_id="user1", organization_id="org1", idempotency_key="key1"),
-
+        ScopedKeyHelper.generate_scoped_key(
+            "POST",
+            "/api/users/1",
+            subject_user_id="user1",
+            organization_id="org1",
+            idempotency_key="key1",
+        ),
+        ScopedKeyHelper.generate_scoped_key(
+            "POST",
+            "/api/users/2",
+            subject_user_id="user1",
+            organization_id="org1",
+            idempotency_key="key1",
+        ),
         # Different users, same path template
-        ScopedKeyHelper.generate_scoped_key("POST", "/api/posts/123", subject_user_id="user1", organization_id="org1", idempotency_key="key2"),
-        ScopedKeyHelper.generate_scoped_key("POST", "/api/posts/456", subject_user_id="user2", organization_id="org1", idempotency_key="key2"),
-
+        ScopedKeyHelper.generate_scoped_key(
+            "POST",
+            "/api/posts/123",
+            subject_user_id="user1",
+            organization_id="org1",
+            idempotency_key="key2",
+        ),
+        ScopedKeyHelper.generate_scoped_key(
+            "POST",
+            "/api/posts/456",
+            subject_user_id="user2",
+            organization_id="org1",
+            idempotency_key="key2",
+        ),
         # Cross-org scenarios
-        ScopedKeyHelper.generate_scoped_key("POST", "/api/teams/1", subject_user_id="user1", organization_id="org1", idempotency_key="key3"),
-        ScopedKeyHelper.generate_scoped_key("POST", "/api/teams/1", subject_user_id="user1", organization_id="org2", idempotency_key="key3"),
+        ScopedKeyHelper.generate_scoped_key(
+            "POST",
+            "/api/teams/1",
+            subject_user_id="user1",
+            organization_id="org1",
+            idempotency_key="key3",
+        ),
+        ScopedKeyHelper.generate_scoped_key(
+            "POST",
+            "/api/teams/1",
+            subject_user_id="user1",
+            organization_id="org2",
+            idempotency_key="key3",
+        ),
     ]
 
     # Should detect no collisions between any pairs
@@ -261,4 +304,6 @@ if __name__ == "__main__":
             raise
 
     print(f"\nAll {len(test_functions)} collision prevention tests passed!")
-    print("Scoped idempotency keys successfully prevent collisions on same template with different paths.")
+    print(
+        "Scoped idempotency keys successfully prevent collisions on same template with different paths."
+    )

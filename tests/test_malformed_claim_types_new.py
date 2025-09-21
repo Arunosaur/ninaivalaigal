@@ -1,4 +1,3 @@
-
 def test_roles_string_normalization_allows_list_semantics():
     # Upstream sends roles as comma-separated string; your normalizer should coerce to list safely.
     # Pseudo-interface: normalize_claims({"roles": "editor,admin"}) -> {"roles": ["editor","admin"]}
@@ -10,5 +9,5 @@ def test_roles_string_normalization_allows_list_semantics():
             return v
         return []
 
-    assert normalize_roles("editor,admin") == ["editor","admin"]
+    assert normalize_roles("editor,admin") == ["editor", "admin"]
     assert normalize_roles(["viewer"]) == ["viewer"]

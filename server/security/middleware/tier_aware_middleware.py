@@ -16,6 +16,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 class DataTier(IntEnum):
     """Data sensitivity tiers for fail-closed policy."""
+
     PUBLIC = 1
     INTERNAL = 2
     CONFIDENTIAL = 3
@@ -30,17 +31,19 @@ class TierAwareDetectorWrapper:
         self,
         detector_fn: Callable[[str], str],
         fail_closed_threshold: int = 3,
-        fallback_tier: int = 2
+        fallback_tier: int = 2,
     ):
         self.detector_fn = detector_fn
         self.fail_closed_threshold = fail_closed_threshold
         self.fallback_tier = fallback_tier
         self.logger = logging.getLogger("tier.detector")
 
-    def __call__(self, text: str, tier: int | None = None, context: dict[str, Any] | None = None) -> str:
+    def __call__(
+        self, text: str, tier: int | None = None, context: dict[str, Any] | None = None
+    ) -> str:
         """
         Call detector with tier awareness.
-        
+
         Args:
             text: Text to process
             tier: Data sensitivity tier (1-5)
@@ -70,7 +73,7 @@ class TierAwareDetectorWrapper:
                 raise TierPolicyViolation(
                     f"Security detector failed for tier {effective_tier}: {e}",
                     tier=effective_tier,
-                    threshold=self.fail_closed_threshold
+                    threshold=self.fail_closed_threshold,
                 )
             else:
                 # Best effort for low tiers
@@ -97,7 +100,7 @@ class TierAwareMiddleware:
         self,
         app: ASGIApp,
         detector_wrapper: TierAwareDetectorWrapper,
-        tier_extractor: Callable[[Scope], int] | None = None
+        tier_extractor: Callable[[Scope], int] | None = None,
     ):
         self.app = app
         self.detector_wrapper = detector_wrapper
@@ -130,9 +133,9 @@ class TierAwareMiddleware:
                         "error": "Security policy violation",
                         "message": "Request blocked by security policy",
                         "tier": e.tier,
-                        "policy": f"fail_closed_threshold_{e.threshold}"
+                        "policy": f"fail_closed_threshold_{e.threshold}",
                     },
-                    status_code=422  # Unprocessable Entity
+                    status_code=422,  # Unprocessable Entity
                 )
                 await error_response(scope, receive, send)
                 return
@@ -169,32 +172,32 @@ class TierConfiguration:
                 "fail_closed": False,
                 "log_level": "INFO",
                 "cache_ttl": 3600,
-                "rate_limit": 1000
+                "rate_limit": 1000,
             },
             DataTier.INTERNAL: {
                 "fail_closed": False,
                 "log_level": "INFO",
                 "cache_ttl": 1800,
-                "rate_limit": 500
+                "rate_limit": 500,
             },
             DataTier.CONFIDENTIAL: {
                 "fail_closed": True,
                 "log_level": "WARNING",
                 "cache_ttl": 900,
-                "rate_limit": 100
+                "rate_limit": 100,
             },
             DataTier.RESTRICTED: {
                 "fail_closed": True,
                 "log_level": "ERROR",
                 "cache_ttl": 300,
-                "rate_limit": 50
+                "rate_limit": 50,
             },
             DataTier.TOP_SECRET: {
                 "fail_closed": True,
                 "log_level": "CRITICAL",
                 "cache_ttl": 60,
-                "rate_limit": 10
-            }
+                "rate_limit": 10,
+            },
         }
 
     def get_policy(self, tier: int) -> dict[str, Any]:
@@ -207,8 +210,7 @@ class TierConfiguration:
 
 
 def create_tier_aware_detector(
-    detector_fn: Callable[[str], str],
-    fail_closed_threshold: int = 3
+    detector_fn: Callable[[str], str], fail_closed_threshold: int = 3
 ) -> TierAwareDetectorWrapper:
     """Create tier-aware detector wrapper."""
     return TierAwareDetectorWrapper(detector_fn, fail_closed_threshold)
@@ -237,7 +239,7 @@ def extract_tier_from_jwt(scope: Scope) -> int:
             "internal": DataTier.INTERNAL,
             "confidential": DataTier.CONFIDENTIAL,
             "restricted": DataTier.RESTRICTED,
-            "top_secret": DataTier.TOP_SECRET
+            "top_secret": DataTier.TOP_SECRET,
         }
 
         return tier_mapping.get(tier_str.lower(), DataTier.PUBLIC)
@@ -262,6 +264,7 @@ def extract_tier_from_path(scope: Scope) -> int:
     ]
 
     import re
+
     for pattern, tier in tier_rules:
         if re.search(pattern, path):
             return tier
@@ -282,24 +285,30 @@ class TierMetrics:
 
     def record_request(self, tier: int):
         """Record request for tier."""
-        self.counters["requests_by_tier"][tier] = self.counters["requests_by_tier"].get(tier, 0) + 1
+        self.counters["requests_by_tier"][tier] = (
+            self.counters["requests_by_tier"].get(tier, 0) + 1
+        )
 
     def record_failure(self, tier: int, error_type: str):
         """Record failure for tier."""
         key = f"{tier}_{error_type}"
-        self.counters["failures_by_tier"][key] = self.counters["failures_by_tier"].get(key, 0) + 1
+        self.counters["failures_by_tier"][key] = (
+            self.counters["failures_by_tier"].get(key, 0) + 1
+        )
 
     def record_policy_violation(self, tier: int, threshold: int):
         """Record policy violation."""
         key = f"tier_{tier}_threshold_{threshold}"
-        self.counters["policy_violations"][key] = self.counters["policy_violations"].get(key, 0) + 1
+        self.counters["policy_violations"][key] = (
+            self.counters["policy_violations"].get(key, 0) + 1
+        )
 
     def get_metrics(self) -> dict[str, Any]:
         """Get all metrics."""
         return {
             "tier_requests_total": self.counters["requests_by_tier"],
             "tier_failures_total": self.counters["failures_by_tier"],
-            "tier_policy_violations_total": self.counters["policy_violations"]
+            "tier_policy_violations_total": self.counters["policy_violations"],
         }
 
 
@@ -345,13 +354,15 @@ def test_tier_awareness():
             success = False
             output = f"ERROR: {e}"
 
-        results.append({
-            "text": text,
-            "tier": tier,
-            "expected_success": should_succeed,
-            "actual_success": success,
-            "output": output,
-            "test_passed": success == should_succeed
-        })
+        results.append(
+            {
+                "text": text,
+                "tier": tier,
+                "expected_success": should_succeed,
+                "actual_success": success,
+                "output": output,
+                "test_passed": success == should_succeed,
+            }
+        )
 
     return results

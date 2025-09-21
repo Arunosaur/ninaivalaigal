@@ -14,11 +14,13 @@ def test_retention_deletes_in_pages():
         return []
 
     deleted_ids = []
+
     def delete_ids(ids):
         deleted_ids.extend(ids)
         return len(ids)
 
     metrics = []
+
     def record(name, tags):
         metrics.append((name, tags))
 
@@ -29,5 +31,5 @@ def test_retention_deletes_in_pages():
         metrics=record,
         page_size=1000,
     )
-    total = rex.run(2, now=datetime(2025,1,1), dry_run=False)
+    total = rex.run(2, now=datetime(2025, 1, 1), dry_run=False)
     assert total == 2500

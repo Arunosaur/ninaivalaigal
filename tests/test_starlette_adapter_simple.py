@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-sys.path.insert(0, '/Users/asrajag/Workspace/mem0')
+sys.path.insert(0, "/Users/asrajag/Workspace/mem0")
 
 from server.security.multipart.starlette_adapter import (
     DEFAULT_MAX_PARTS_PER_REQUEST,
@@ -52,7 +52,9 @@ class TestStarletteAdapterSimple:
             for _ in range(DEFAULT_MAX_PARTS_PER_REQUEST + 5)
         ]
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = MagicMock()
 
             # Create async generator for parts
@@ -79,7 +81,9 @@ class TestStarletteAdapterSimple:
         large_data = b"x" * (2 * 1024 * 1024)  # 2MB
         large_part = MockPart({"content-type": "text/plain"}, large_data)
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = MagicMock()
 
             async def mock_parse():
@@ -101,9 +105,11 @@ class TestStarletteAdapterSimple:
         text_handler = MagicMock()
 
         valid_text = "Hello, world! 🌍"
-        text_part = MockPart({"content-type": "text/plain"}, valid_text.encode('utf-8'))
+        text_part = MockPart({"content-type": "text/plain"}, valid_text.encode("utf-8"))
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = MagicMock()
 
             async def mock_parse():
@@ -113,22 +119,32 @@ class TestStarletteAdapterSimple:
             mock_parser_class.return_value = mock_parser
 
             # Mock the validation functions to pass
-            with patch('server.security.multipart.starlette_adapter.detect_enhanced_magic_bytes') as mock_magic:
+            with patch(
+                "server.security.multipart.starlette_adapter.detect_enhanced_magic_bytes"
+            ) as mock_magic:
                 mock_magic.return_value = {"detected": False}
 
-                with patch('server.security.multipart.starlette_adapter.looks_binary') as mock_binary:
+                with patch(
+                    "server.security.multipart.starlette_adapter.looks_binary"
+                ) as mock_binary:
                     mock_binary.return_value = False
 
-                    with patch('server.security.multipart.starlette_adapter.reject_content_transfer_encoding') as mock_cte:
+                    with patch(
+                        "server.security.multipart.starlette_adapter.reject_content_transfer_encoding"
+                    ) as mock_cte:
                         mock_cte.return_value = {"valid": True}
 
-                        with patch('server.security.multipart.starlette_adapter.require_utf8_text') as mock_utf8:
+                        with patch(
+                            "server.security.multipart.starlette_adapter.require_utf8_text"
+                        ) as mock_utf8:
                             mock_utf8.return_value = {"valid": True}
 
                             await scan_with_starlette(mock_request, text_handler)
 
                             # Verify text handler was called
-                            text_handler.assert_called_once_with(valid_text, {"content-type": "text/plain"})
+                            text_handler.assert_called_once_with(
+                                valid_text, {"content-type": "text/plain"}
+                            )
 
     @pytest.mark.asyncio
     async def test_binary_content_processing(self):
@@ -140,7 +156,9 @@ class TestStarletteAdapterSimple:
         binary_data = b"\x89PNG\r\n\x1a\n" + b"fake png data"
         binary_part = MockPart({"content-type": "image/png"}, binary_data)
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = MagicMock()
 
             async def mock_parse():
@@ -149,16 +167,24 @@ class TestStarletteAdapterSimple:
             mock_parser.parse = mock_parse
             mock_parser_class.return_value = mock_parser
 
-            with patch('server.security.multipart.starlette_adapter.detect_enhanced_magic_bytes') as mock_magic:
+            with patch(
+                "server.security.multipart.starlette_adapter.detect_enhanced_magic_bytes"
+            ) as mock_magic:
                 mock_magic.return_value = {"detected": False}
 
-                with patch('server.security.multipart.starlette_adapter.looks_binary') as mock_binary:
+                with patch(
+                    "server.security.multipart.starlette_adapter.looks_binary"
+                ) as mock_binary:
                     mock_binary.return_value = True
 
-                    await scan_with_starlette(mock_request, text_handler, binary_handler)
+                    await scan_with_starlette(
+                        mock_request, text_handler, binary_handler
+                    )
 
                     # Verify binary handler was called
-                    binary_handler.assert_called_once_with(binary_data, {"content-type": "image/png"})
+                    binary_handler.assert_called_once_with(
+                        binary_data, {"content-type": "image/png"}
+                    )
 
     @pytest.mark.asyncio
     async def test_custom_limits_respected(self):
@@ -169,7 +195,9 @@ class TestStarletteAdapterSimple:
         # Small text part
         text_part = MockPart({"content-type": "text/plain"}, b"small")
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = MagicMock()
 
             async def mock_parse():
@@ -179,16 +207,24 @@ class TestStarletteAdapterSimple:
             mock_parser_class.return_value = mock_parser
 
             # Mock validation functions
-            with patch('server.security.multipart.starlette_adapter.detect_enhanced_magic_bytes') as mock_magic:
+            with patch(
+                "server.security.multipart.starlette_adapter.detect_enhanced_magic_bytes"
+            ) as mock_magic:
                 mock_magic.return_value = {"detected": False}
 
-                with patch('server.security.multipart.starlette_adapter.looks_binary') as mock_binary:
+                with patch(
+                    "server.security.multipart.starlette_adapter.looks_binary"
+                ) as mock_binary:
                     mock_binary.return_value = False
 
-                    with patch('server.security.multipart.starlette_adapter.reject_content_transfer_encoding') as mock_cte:
+                    with patch(
+                        "server.security.multipart.starlette_adapter.reject_content_transfer_encoding"
+                    ) as mock_cte:
                         mock_cte.return_value = {"valid": True}
 
-                        with patch('server.security.multipart.starlette_adapter.require_utf8_text') as mock_utf8:
+                        with patch(
+                            "server.security.multipart.starlette_adapter.require_utf8_text"
+                        ) as mock_utf8:
                             mock_utf8.return_value = {"valid": True}
 
                             # Test with very small custom limits
@@ -197,7 +233,7 @@ class TestStarletteAdapterSimple:
                                 text_handler,
                                 max_text_part_bytes=1024,
                                 max_binary_part_bytes=2048,
-                                max_parts_per_request=5
+                                max_parts_per_request=5,
                             )
 
                             text_handler.assert_called_once()

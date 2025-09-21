@@ -16,6 +16,7 @@ import jwt
 
 class Role(Enum):
     """User roles in the system."""
+
     ADMIN = "admin"
     USER = "user"
     VIEWER = "viewer"
@@ -24,6 +25,7 @@ class Role(Enum):
 @dataclass
 class SubjectContext:
     """Subject context extracted from JWT claims."""
+
     user_id: str
     email: str | None = None
     role: Role | None = None
@@ -40,10 +42,12 @@ class JWTClaimsResolver:
         self,
         secret_key: str | None = None,
         verify_signature: bool = True,
-        algorithm: str = "HS256"
+        algorithm: str = "HS256",
     ):
         self.secret_key = secret_key or os.getenv("NINAIVALAIGAL_JWT_SECRET")
-        self.verify_signature = verify_signature and bool(os.getenv("NINAIVALAIGAL_JWT_VERIFY", "true").lower() == "true")
+        self.verify_signature = verify_signature and bool(
+            os.getenv("NINAIVALAIGAL_JWT_VERIFY", "true").lower() == "true"
+        )
         self.algorithm = algorithm
         self.logger = logging.getLogger("jwt.resolver")
 
@@ -56,14 +60,13 @@ class JWTClaimsResolver:
                     token,
                     self.secret_key,
                     algorithms=[self.algorithm],
-                    options={"verify_exp": True}
+                    options={"verify_exp": True},
                 )
                 self.logger.info("JWT signature verified successfully")
             else:
                 # Unverified parsing for development/testing
                 claims = jwt.decode(
-                    token,
-                    options={"verify_signature": False, "verify_exp": False}
+                    token, options={"verify_signature": False, "verify_exp": False}
                 )
                 self.logger.warning("JWT parsed without signature verification")
 
@@ -117,7 +120,7 @@ class JWTClaimsResolver:
             organization_id=organization_id,
             team_id=team_id,
             permissions=permissions,
-            tier=tier
+            tier=tier,
         )
 
 
@@ -145,7 +148,7 @@ def extract_user_context(token: str) -> dict[str, Any]:
         "organization_id": context.organization_id,
         "team_id": context.team_id,
         "permissions": context.permissions or [],
-        "tier": context.tier
+        "tier": context.tier,
     }
 
 
@@ -176,6 +179,7 @@ def is_token_expired(token: str) -> bool:
             return False
 
         import time
+
         return time.time() > expiry
     except Exception:
         return True
@@ -185,7 +189,7 @@ def create_test_context(
     user_id: str = "test_user",
     role: Role = Role.USER,
     organization_id: str | None = None,
-    team_id: str | None = None
+    team_id: str | None = None,
 ) -> SubjectContext:
     """Create test subject context for development."""
     return SubjectContext(
@@ -195,5 +199,5 @@ def create_test_context(
         organization_id=organization_id,
         team_id=team_id,
         permissions=["read", "write"] if role != Role.VIEWER else ["read"],
-        tier="standard"
+        tier="standard",
     )

@@ -21,17 +21,26 @@ class QuickTester:
         """Execute command and return structured result"""
         try:
             result = subprocess.run(
-                cmd, shell=True, capture_output=True, text=True,
-                cwd=cwd or self.base_path, timeout=30
+                cmd,
+                shell=True,
+                capture_output=True,
+                text=True,
+                cwd=cwd or self.base_path,
+                timeout=30,
             )
             return {
                 "success": result.returncode == 0,
                 "stdout": result.stdout.strip(),
                 "stderr": result.stderr.strip(),
-                "returncode": result.returncode
+                "returncode": result.returncode,
             }
         except subprocess.TimeoutExpired:
-            return {"success": False, "stdout": "", "stderr": "Command timeout", "returncode": -1}
+            return {
+                "success": False,
+                "stdout": "",
+                "stderr": "Command timeout",
+                "returncode": -1,
+            }
         except Exception as e:
             return {"success": False, "stdout": "", "stderr": str(e), "returncode": -1}
 
@@ -41,8 +50,8 @@ class QuickTester:
 
         result = self.run_cmd(
             'cd server && python -c "from database import DatabaseManager; from main import load_config; '
-            'db = DatabaseManager(load_config()); session = db.get_session(); '
-            'print(\'Database connected successfully\'); session.close()"'
+            "db = DatabaseManager(load_config()); session = db.get_session(); "
+            "print('Database connected successfully'); session.close()\""
         )
 
         if result["success"] and "connected successfully" in result["stdout"]:
@@ -61,7 +70,9 @@ class QuickTester:
             response = requests.get(f"{self.fastapi_url}/contexts", timeout=10)
             if response.status_code == 200:
                 contexts = response.json()
-                print(f"✅ FastAPI: Contexts endpoint working ({len(contexts.get('contexts', []))} contexts)")
+                print(
+                    f"✅ FastAPI: Contexts endpoint working ({len(contexts.get('contexts', []))} contexts)"
+                )
 
                 # Test memory endpoint
                 response = requests.get(f"{self.fastapi_url}/memory/all", timeout=10)
@@ -105,7 +116,9 @@ class QuickTester:
             return False
 
         # Test memory storage
-        result = self.run_cmd(f'./client/mem0 remember "Quick test memory" --context {test_context}')
+        result = self.run_cmd(
+            f'./client/mem0 remember "Quick test memory" --context {test_context}'
+        )
         if not result["success"]:
             print(f"❌ CLI: Memory storage failed - {result['stderr']}")
             return False
@@ -124,7 +137,9 @@ class QuickTester:
         print("🔍 Testing Shell Integration...")
 
         # Check if shell integration file exists and is sourceable
-        result = self.run_cmd("bash -c 'source client/mem0.zsh && echo \"Shell integration loaded\"'")
+        result = self.run_cmd(
+            "bash -c 'source client/mem0.zsh && echo \"Shell integration loaded\"'"
+        )
 
         if result["success"] and "loaded" in result["stdout"]:
             print("✅ Shell: Integration file working")
@@ -132,6 +147,7 @@ class QuickTester:
         else:
             print(f"❌ Shell: Integration failed - {result['stderr']}")
             return False
+
 
 class EnvironmentTester:
     """Test mem0 in different environment scenarios"""
@@ -201,10 +217,12 @@ class EnvironmentTester:
         if ansible_check["success"]:
             ansible_syntax = self.tester.run_cmd(
                 "ansible-playbook --syntax-check deploy/mem0-complete-deployment.yml",
-                cwd="/Users/asrajag/Workspace/mem0"
+                cwd="/Users/asrajag/Workspace/mem0",
             )
             checks["Ansible Syntax"] = ansible_syntax["success"]
-            print(f"{'✅' if ansible_syntax['success'] else '❌'} Ansible: Playbook syntax")
+            print(
+                f"{'✅' if ansible_syntax['success'] else '❌'} Ansible: Playbook syntax"
+            )
         else:
             checks["Ansible Syntax"] = True  # Skip test if not installed
             print("⏭️  Ansible: Not installed - skipping syntax check")
@@ -214,7 +232,7 @@ class EnvironmentTester:
         if compose_check["success"]:
             compose_config = self.tester.run_cmd(
                 "docker-compose -f deploy/docker-compose.yml config",
-                cwd="/Users/asrajag/Workspace/mem0"
+                cwd="/Users/asrajag/Workspace/mem0",
             )
         else:
             # Try newer docker compose syntax
@@ -224,10 +242,15 @@ class EnvironmentTester:
             if "available" in compose_config.get("stdout", ""):
                 compose_config = {"success": True, "stdout": "Docker compose available"}
             else:
-                compose_config = {"success": True, "stdout": "Docker compose syntax not testable"}
+                compose_config = {
+                    "success": True,
+                    "stdout": "Docker compose syntax not testable",
+                }
 
         checks["Docker Compose"] = compose_config["success"]
-        print(f"{'✅' if compose_config['success'] else '❌'} Docker: Compose configuration")
+        print(
+            f"{'✅' if compose_config['success'] else '❌'} Docker: Compose configuration"
+        )
 
         # Check required files exist
         required_files = [
@@ -235,12 +258,14 @@ class EnvironmentTester:
             "deploy/mem0-complete-deployment.yml",
             "deploy/templates/mem0.config.json.j2",
             "server/requirements.txt",
-            "mcp-client-config.json"
+            "mcp-client-config.json",
         ]
 
         files_exist = True
         for file_path in required_files:
-            if not os.path.exists(os.path.join("/Users/asrajag/Workspace/mem0", file_path)):
+            if not os.path.exists(
+                os.path.join("/Users/asrajag/Workspace/mem0", file_path)
+            ):
                 files_exist = False
                 print(f"❌ Missing: {file_path}")
 
@@ -249,6 +274,7 @@ class EnvironmentTester:
         checks["Deployment Files"] = files_exist
 
         return checks
+
 
 def main():
     """Run all environment tests"""
@@ -284,6 +310,7 @@ def main():
     else:
         print("⚠️  Some tests failed - check output above")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

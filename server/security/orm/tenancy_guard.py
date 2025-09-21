@@ -39,7 +39,7 @@ class TenantContext:
         self,
         tenant_id: str | None = None,
         user_id: str | None = None,
-        organization_id: str | None = None
+        organization_id: str | None = None,
     ):
         """Set tenant context."""
         self._tenant_id = tenant_id
@@ -72,13 +72,17 @@ class TenancyGuard:
     def register_model(self, model_class: type, tenant_column: str = "tenant_id"):
         """Register a model for tenant filtering."""
         self._registered_models[model_class.__name__] = tenant_column
-        self.logger.info(f"Registered model {model_class.__name__} with tenant column {tenant_column}")
+        self.logger.info(
+            f"Registered model {model_class.__name__} with tenant column {tenant_column}"
+        )
 
     def install_listeners(self, engine):
         """Install SQLAlchemy event listeners for tenant filtering."""
 
         @event.listens_for(engine, "before_cursor_execute")
-        def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        def before_cursor_execute(
+            conn, cursor, statement, parameters, context, executemany
+        ):
             """Intercept SQL execution to add tenant filtering."""
             if not self.enforce_context:
                 return
@@ -106,7 +110,9 @@ class TenancyGuard:
 
         current_tenant = _tenant_context.tenant_id
         if not current_tenant:
-            self.logger.error(f"No tenant context for {operation} operation on {model_name}")
+            self.logger.error(
+                f"No tenant context for {operation} operation on {model_name}"
+            )
             return False
 
         instance_tenant = getattr(model_instance, tenant_column, None)
@@ -153,7 +159,7 @@ def get_tenant_context() -> TenantContext:
 def set_tenant_context(
     tenant_id: str | None = None,
     user_id: str | None = None,
-    organization_id: str | None = None
+    organization_id: str | None = None,
 ):
     """Set tenant context."""
     _tenant_context.set_context(tenant_id, user_id, organization_id)
@@ -168,7 +174,7 @@ def clear_tenant_context():
 def tenant_context(
     tenant_id: str | None = None,
     user_id: str | None = None,
-    organization_id: str | None = None
+    organization_id: str | None = None,
 ):
     """Context manager for tenant context."""
     old_tenant = _tenant_context.tenant_id
@@ -184,19 +190,23 @@ def tenant_context(
 
 def require_tenant_context(func):
     """Decorator to require tenant context."""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if not _tenant_context.is_set():
             raise ValueError("Tenant context required")
         return func(*args, **kwargs)
+
     return wrapper
 
 
 def tenant_isolated(tenant_column: str = "tenant_id"):
     """Decorator to mark model as tenant-isolated."""
+
     def decorator(model_class):
         _tenancy_guard.register_model(model_class, tenant_column)
         return model_class
+
     return decorator
 
 
@@ -226,7 +236,7 @@ class TenantAwareSession(Session):
 
         # Apply tenant filtering to each entity
         for entity in entities:
-            if hasattr(entity, '__name__'):  # It's a model class
+            if hasattr(entity, "__name__"):  # It's a model class
                 query = filter_by_tenant(query, entity)
 
         return query
@@ -242,6 +252,7 @@ async def get_tenant_from_jwt(token: str) -> str | None:
     """Extract tenant ID from JWT token."""
     try:
         from .rbac.context import get_subject_ctx
+
         context = get_subject_ctx(token)
         return context.organization_id or context.user_id
     except Exception:

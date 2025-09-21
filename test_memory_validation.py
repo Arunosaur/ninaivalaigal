@@ -10,24 +10,21 @@ import requests
 
 BASE_URL = "http://localhost:8000"
 
+
 def get_jwt_token(email, password):
     """Login and get JWT token"""
-    login_data = {
-        "email": email,
-        "password": password
-    }
+    login_data = {"email": email, "password": password}
 
     print(f"🔐 Logging in as {email}...")
 
     try:
-        response = requests.post(f"{BASE_URL}/auth/login",
-                               json=login_data, timeout=10)
+        response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=10)
 
         if response.status_code == 200:
             result = response.json()
-            if result.get('success'):
-                user_info = result.get('user', {})
-                token = user_info.get('jwt_token') or result.get('access_token')
+            if result.get("success"):
+                user_info = result.get("user", {})
+                token = user_info.get("jwt_token") or result.get("access_token")
 
                 print("✅ Login successful!")
                 print(f"   User: {user_info.get('name')}")
@@ -48,20 +45,23 @@ def get_jwt_token(email, password):
         print(f"❌ Network error during login: {e}")
         return None, None
 
+
 def create_test_context(token, context_name):
     """Create a test recording context"""
     context_data = {
         "name": context_name,
-        "description": f"Test context for {context_name}"
+        "description": f"Test context for {context_name}",
     }
 
     print(f"\n📝 Creating context: {context_name}")
 
     try:
-        response = requests.post(f"{BASE_URL}/contexts",
-                               json=context_data,
-                               headers={"Authorization": f"Bearer {token}"},
-                               timeout=10)
+        response = requests.post(
+            f"{BASE_URL}/contexts",
+            json=context_data,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
 
         if response.status_code == 200:
             result = response.json()
@@ -78,21 +78,21 @@ def create_test_context(token, context_name):
         print(f"❌ Network error during context creation: {e}")
         return None
 
+
 def record_test_memory(token, context_name, memory_content):
     """Record a test memory in the context"""
-    memory_data = {
-        "content": memory_content,
-        "context": context_name
-    }
+    memory_data = {"content": memory_content, "context": context_name}
 
     print(f"\n💾 Recording memory in context '{context_name}':")
     print(f"   Content: {memory_content}")
 
     try:
-        response = requests.post(f"{BASE_URL}/memory/record",
-                               json=memory_data,
-                               headers={"Authorization": f"Bearer {token}"},
-                               timeout=10)
+        response = requests.post(
+            f"{BASE_URL}/memory/record",
+            json=memory_data,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
 
         if response.status_code == 200:
             result = response.json()
@@ -108,6 +108,7 @@ def record_test_memory(token, context_name, memory_content):
         print(f"❌ Network error during memory recording: {e}")
         return None
 
+
 def recall_memories(token, context_name, query=None):
     """Recall memories from a context"""
     params = {"context": context_name}
@@ -119,14 +120,16 @@ def recall_memories(token, context_name, query=None):
         print(f"   Query: {query}")
 
     try:
-        response = requests.get(f"{BASE_URL}/memory/recall",
-                              params=params,
-                              headers={"Authorization": f"Bearer {token}"},
-                              timeout=10)
+        response = requests.get(
+            f"{BASE_URL}/memory/recall",
+            params=params,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
 
         if response.status_code == 200:
             result = response.json()
-            memories = result.get('memories', [])
+            memories = result.get("memories", [])
 
             print(f"✅ Found {len(memories)} memories:")
             for i, memory in enumerate(memories, 1):
@@ -144,23 +147,28 @@ def recall_memories(token, context_name, query=None):
         print(f"❌ Network error during memory recall: {e}")
         return []
 
+
 def list_contexts(token):
     """List all contexts for the user"""
     print("\n📋 Listing all contexts...")
 
     try:
-        response = requests.get(f"{BASE_URL}/contexts",
-                              headers={"Authorization": f"Bearer {token}"},
-                              timeout=10)
+        response = requests.get(
+            f"{BASE_URL}/contexts",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
 
         if response.status_code == 200:
             result = response.json()
-            contexts = result.get('contexts', [])
+            contexts = result.get("contexts", [])
 
             print(f"✅ Found {len(contexts)} contexts:")
             for i, context in enumerate(contexts, 1):
                 print(f"   {i}. {context.get('name')} (ID: {context.get('id')})")
-                print(f"      Description: {context.get('description', 'No description')}")
+                print(
+                    f"      Description: {context.get('description', 'No description')}"
+                )
                 print(f"      Created: {context.get('created_at', 'Unknown')}")
 
             return contexts
@@ -173,13 +181,16 @@ def list_contexts(token):
         print(f"❌ Network error during context listing: {e}")
         return []
 
+
 def main():
     """Main testing function"""
     print("🎯 mem0 Memory Validation Suite")
     print("=" * 50)
 
     # Test user credentials (update these with your registered user)
-    test_email = input("Enter your test user email (or press Enter for john.developer@example.com): ").strip()
+    test_email = input(
+        "Enter your test user email (or press Enter for john.developer@example.com): "
+    ).strip()
     if not test_email:
         test_email = "john.developer@example.com"
 
@@ -209,7 +220,7 @@ def main():
             "Created FastAPI endpoints for signup, login, and dashboard",
             "Implemented PostgreSQL database with user isolation",
             "Built responsive frontend with Tailwind CSS",
-            "Testing memory storage and retrieval functionality"
+            "Testing memory storage and retrieval functionality",
         ]
 
         print(f"\n📚 Recording {len(test_memories)} test memories...")
@@ -234,6 +245,7 @@ def main():
     print("3. Try the MCP server with this user")
     print(f"\nYour JWT Token: {token}")
     print(f"Test Context: {test_context_name}")
+
 
 if __name__ == "__main__":
     main()

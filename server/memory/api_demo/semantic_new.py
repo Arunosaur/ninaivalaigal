@@ -7,6 +7,7 @@ from server.memory.stores.postgres_store import PGConfig, PostgresStore
 
 router = APIRouter(prefix="/demo/memory", tags=["memory-demo"])
 
+
 class DemoWrite(BaseModel):
     scope: str = "personal"
     user_id: str
@@ -16,6 +17,7 @@ class DemoWrite(BaseModel):
     text: str
     metadata: dict = {}
 
+
 class DemoSemanticQuery(BaseModel):
     scope: str = "personal"
     user_id: str | None = None
@@ -24,14 +26,23 @@ class DemoSemanticQuery(BaseModel):
     semantic_query: str
     limit: int = 5
 
+
 def store() -> PostgresStore:
-    return PostgresStore(PGConfig(dsn=os.getenv("DATABASE_URL","postgresql://postgres:postgres@localhost:5432/postgres")))
+    return PostgresStore(
+        PGConfig(
+            dsn=os.getenv(
+                "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
+            )
+        )
+    )
+
 
 @router.post("/write")
 async def demo_write(body: DemoWrite):
     s = store()
     row = await s.write(body.dict())
     return {"id": row["id"], "kind": row["kind"], "text": row["text"]}
+
 
 @router.post("/semantic_search")
 async def demo_semantic_search(q: DemoSemanticQuery):

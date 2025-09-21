@@ -25,7 +25,7 @@ def test_mock_provider_injection():
     mock_provider = create_mock_subject_provider(
         default_user_id="test_user_123",
         default_org_id="test_org_456",
-        default_roles=["admin", "user"]
+        default_roles=["admin", "user"],
     )
 
     # Install provider
@@ -46,7 +46,7 @@ def test_mock_provider_injection():
             "org_id": ctx.organization_id,
             "role": ctx.role.value if ctx.role else None,
             "permissions": ctx.permissions or [],
-            "mock": getattr(ctx, 'raw_claims', {}).get("mock", False)
+            "mock": getattr(ctx, "raw_claims", {}).get("mock", False),
         }
 
     # Test with client
@@ -73,6 +73,7 @@ def test_custom_header_provider():
     # Create custom provider that reads headers
     async def header_provider(request) -> SubjectContext:
         from server.security.rbac.context import Role
+
         user_id = request.headers.get("X-User-Id", "anonymous")
         org_id = request.headers.get("X-Org-Id", "default")
         role_str = request.headers.get("X-Role", "user")
@@ -84,11 +85,7 @@ def test_custom_header_provider():
         except ValueError:
             role = Role.USER
 
-        ctx = SubjectContext(
-            user_id=user_id,
-            organization_id=org_id,
-            role=role
-        )
+        ctx = SubjectContext(user_id=user_id, organization_id=org_id, role=role)
         # Add raw_claims as attribute
         ctx.raw_claims = {"source": "headers"}
         return ctx
@@ -106,18 +103,21 @@ def test_custom_header_provider():
             "user_id": ctx.user_id,
             "org_id": ctx.organization_id,
             "role": ctx.role.value if ctx.role else None,
-            "source": getattr(ctx, 'raw_claims', {}).get("source")
+            "source": getattr(ctx, "raw_claims", {}).get("source"),
         }
 
     # Test with client
     client = TestClient(app)
 
     # Test with custom headers
-    response = client.get("/protected", headers={
-        "X-User-Id": "custom_user",
-        "X-Org-Id": "custom_org",
-        "X-Role": "admin"
-    })
+    response = client.get(
+        "/protected",
+        headers={
+            "X-User-Id": "custom_user",
+            "X-Org-Id": "custom_org",
+            "X-Role": "admin",
+        },
+    )
 
     assert response.status_code == 200
     data = response.json()
@@ -142,11 +142,7 @@ def test_fallback_provider_behavior():
         if ctx is None:
             return {"fallback": True, "authenticated": False}
 
-        return {
-            "fallback": False,
-            "authenticated": True,
-            "user_id": ctx.user_id
-        }
+        return {"fallback": False, "authenticated": True, "user_id": ctx.user_id}
 
     # Test with client (no auth header)
     client = TestClient(app)
@@ -204,10 +200,9 @@ def test_multiple_apps_isolation():
     # Provider 1: Returns user "app1_user"
     async def provider1(request) -> SubjectContext:
         from server.security.rbac.context import Role
+
         ctx = SubjectContext(
-            user_id="app1_user",
-            organization_id="org1",
-            role=Role.USER
+            user_id="app1_user", organization_id="org1", role=Role.USER
         )
         ctx.raw_claims = {"app": "app1"}
         return ctx
@@ -215,10 +210,9 @@ def test_multiple_apps_isolation():
     # Provider 2: Returns user "app2_user"
     async def provider2(request) -> SubjectContext:
         from server.security.rbac.context import Role
+
         ctx = SubjectContext(
-            user_id="app2_user",
-            organization_id="org2",
-            role=Role.ADMIN
+            user_id="app2_user", organization_id="org2", role=Role.ADMIN
         )
         ctx.raw_claims = {"app": "app2"}
         return ctx
@@ -230,11 +224,17 @@ def test_multiple_apps_isolation():
     # Create routes
     @app1.get("/app1")
     async def app1_route(ctx: SubjectContext = Depends(get_subject_ctx_dep(app1))):
-        return {"user_id": ctx.user_id, "app": getattr(ctx, 'raw_claims', {}).get("app")}
+        return {
+            "user_id": ctx.user_id,
+            "app": getattr(ctx, "raw_claims", {}).get("app"),
+        }
 
     @app2.get("/app2")
     async def app2_route(ctx: SubjectContext = Depends(get_subject_ctx_dep(app2))):
-        return {"user_id": ctx.user_id, "app": getattr(ctx, 'raw_claims', {}).get("app")}
+        return {
+            "user_id": ctx.user_id,
+            "app": getattr(ctx, "raw_claims", {}).get("app"),
+        }
 
     # Test both apps
     client1 = TestClient(app1)

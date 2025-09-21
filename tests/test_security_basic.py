@@ -6,7 +6,8 @@ import os
 import sys
 
 # Add the server directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'server'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "server"))
+
 
 def test_entropy_calculation():
     """Test basic entropy calculation"""
@@ -110,7 +111,7 @@ def run_all_tests():
         test_entropy_calculation,
         test_redaction_config,
         test_security_middleware_imports,
-        test_secret_detection
+        test_secret_detection,
     ]
 
     passed = 0

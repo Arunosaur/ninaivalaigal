@@ -17,7 +17,9 @@ class PolicyVersionGate:
     """Policy version gate requiring explicit approval for changes."""
 
     # Expected policy hash - update this when policy changes are approved
-    EXPECTED_POLICY_HASH = "b974dd1d500e937930c1ad6333d8b5d72611f153d765f4e63606a1cc736ec162"
+    EXPECTED_POLICY_HASH = (
+        "b974dd1d500e937930c1ad6333d8b5d72611f153d765f4e63606a1cc736ec162"
+    )
 
     @classmethod
     def get_current_policy_hash(cls) -> str:
@@ -42,8 +44,8 @@ class PolicyVersionGate:
                     "user": ["read"],
                     "organization": ["read"],
                     "team": ["read"],
-                }
-            }
+                },
+            },
         }
 
         # Calculate hash
@@ -54,7 +56,7 @@ class PolicyVersionGate:
     def check_policy_version_gate(cls) -> dict[str, Any]:
         """
         Check if policy changes are allowed.
-        
+
         Returns gate status and requires ALLOW_POLICY_HASH_CHANGE=true for changes.
         """
         current_hash = cls.get_current_policy_hash()
@@ -68,7 +70,7 @@ class PolicyVersionGate:
             "current_hash": current_hash,
             "expected_hash": cls.EXPECTED_POLICY_HASH,
             "change_allowed": allow_change,
-            "gate_passed": hash_matches or allow_change
+            "gate_passed": hash_matches or allow_change,
         }
 
         if not result["gate_passed"]:
@@ -135,7 +137,7 @@ def test_policy_hash_calculation():
 
     return {
         "test_result": "PASS - Hash calculation is consistent",
-        "calculated_hash": hash1
+        "calculated_hash": hash1,
     }
 
 
@@ -146,55 +148,56 @@ def simulate_policy_change_workflow():
 
     # Step 1: Check current policy status
     gate_result = PolicyVersionGate.check_policy_version_gate()
-    workflow_steps.append({
-        "step": "check_current_policy",
-        "result": gate_result
-    })
+    workflow_steps.append({"step": "check_current_policy", "result": gate_result})
 
     # Step 2: If policy changed, show required action
     if not gate_result["policy_hash_matches"]:
-        workflow_steps.append({
-            "step": "policy_change_detected",
-            "action_required": "Set ALLOW_POLICY_HASH_CHANGE=true to proceed",
-            "current_hash": gate_result["current_hash"],
-            "expected_hash": gate_result["expected_hash"]
-        })
+        workflow_steps.append(
+            {
+                "step": "policy_change_detected",
+                "action_required": "Set ALLOW_POLICY_HASH_CHANGE=true to proceed",
+                "current_hash": gate_result["current_hash"],
+                "expected_hash": gate_result["expected_hash"],
+            }
+        )
 
         # Step 3: Simulate setting environment variable
         os.environ["ALLOW_POLICY_HASH_CHANGE"] = "true"
 
-        workflow_steps.append({
-            "step": "environment_variable_set",
-            "variable": "ALLOW_POLICY_HASH_CHANGE=true"
-        })
+        workflow_steps.append(
+            {
+                "step": "environment_variable_set",
+                "variable": "ALLOW_POLICY_HASH_CHANGE=true",
+            }
+        )
 
         # Step 4: Re-check gate
         gate_result_after = PolicyVersionGate.check_policy_version_gate()
-        workflow_steps.append({
-            "step": "recheck_after_env_var",
-            "result": gate_result_after
-        })
+        workflow_steps.append(
+            {"step": "recheck_after_env_var", "result": gate_result_after}
+        )
 
         # Step 5: Update expected hash (in real workflow, this would be a code change)
-        workflow_steps.append({
-            "step": "update_expected_hash",
-            "action": f"Update EXPECTED_POLICY_HASH to '{gate_result['current_hash']}'",
-            "note": "This should be done in code review process"
-        })
+        workflow_steps.append(
+            {
+                "step": "update_expected_hash",
+                "action": f"Update EXPECTED_POLICY_HASH to '{gate_result['current_hash']}'",
+                "note": "This should be done in code review process",
+            }
+        )
 
         # Clean up
         del os.environ["ALLOW_POLICY_HASH_CHANGE"]
 
     else:
-        workflow_steps.append({
-            "step": "no_policy_change",
-            "result": "Policy hash matches, no action required"
-        })
+        workflow_steps.append(
+            {
+                "step": "no_policy_change",
+                "result": "Policy hash matches, no action required",
+            }
+        )
 
-    return {
-        "workflow_completed": True,
-        "steps": workflow_steps
-    }
+    return {"workflow_completed": True, "steps": workflow_steps}
 
 
 if __name__ == "__main__":
@@ -215,4 +218,6 @@ if __name__ == "__main__":
     print("\nPolicy Change Workflow Simulation:")
     workflow = simulate_policy_change_workflow()
     for i, step in enumerate(workflow["steps"], 1):
-        print(f"{i}. {step['step']}: {step.get('result', step.get('action', step.get('note', 'completed')))}")
+        print(
+            f"{i}. {step['step']}: {step.get('result', step.get('action', step.get('note', 'completed')))}"
+        )

@@ -10,6 +10,7 @@ import requests
 
 BASE_URL = "http://localhost:8000"
 
+
 def test_server_health():
     """Check if server is running"""
     try:
@@ -24,21 +25,23 @@ def test_server_health():
         print(f"❌ Cannot connect to server: {e}")
         return False
 
+
 def create_test_individual_user():
     """Create a test individual user"""
     user_data = {
         "email": "john.developer@example.com",
         "password": "password123",
         "name": "John Developer",
-        "account_type": "individual"
+        "account_type": "individual",
     }
 
     print("\n🧪 Testing Individual User Signup...")
     print(f"Creating user: {user_data['name']} ({user_data['email']})")
 
     try:
-        response = requests.post(f"{BASE_URL}/auth/signup/individual",
-                               json=user_data, timeout=10)
+        response = requests.post(
+            f"{BASE_URL}/auth/signup/individual", json=user_data, timeout=10
+        )
 
         if response.status_code == 200:
             result = response.json()
@@ -55,20 +58,21 @@ def create_test_individual_user():
         print(f"❌ Network error during individual signup: {e}")
         return None
 
+
 def create_test_organization():
     """Create a test organization with admin user"""
     org_data = {
         "user": {
             "email": "sarah.admin@acmecorp.com",
             "password": "admin123",
-            "name": "Sarah Admin"
+            "name": "Sarah Admin",
         },
         "organization": {
             "name": "Acme Corporation",
             "domain": "acmecorp.com",
             "size": "11-50",
-            "industry": "Technology"
-        }
+            "industry": "Technology",
+        },
     }
 
     print("\n🏢 Testing Organization Signup...")
@@ -76,8 +80,9 @@ def create_test_organization():
     print(f"Admin user: {org_data['user']['name']} ({org_data['user']['email']})")
 
     try:
-        response = requests.post(f"{BASE_URL}/auth/signup/organization",
-                               json=org_data, timeout=10)
+        response = requests.post(
+            f"{BASE_URL}/auth/signup/organization", json=org_data, timeout=10
+        )
 
         if response.status_code == 200:
             result = response.json()
@@ -95,18 +100,15 @@ def create_test_organization():
         print(f"❌ Network error during organization signup: {e}")
         return None
 
+
 def test_login(email, password):
     """Test login functionality"""
-    login_data = {
-        "email": email,
-        "password": password
-    }
+    login_data = {"email": email, "password": password}
 
     print(f"\n🔐 Testing Login for {email}...")
 
     try:
-        response = requests.post(f"{BASE_URL}/auth/login",
-                               json=login_data, timeout=10)
+        response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=10)
 
         if response.status_code == 200:
             result = response.json()
@@ -124,11 +126,12 @@ def test_login(email, password):
         print(f"❌ Network error during login: {e}")
         return None
 
+
 def print_ui_test_instructions():
     """Print manual UI testing instructions"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🎯 MANUAL UI TESTING INSTRUCTIONS")
-    print("="*60)
+    print("=" * 60)
 
     print("\n1. 📝 SIGNUP PAGE TESTING:")
     print(f"   Open: {BASE_URL}/")
@@ -158,6 +161,7 @@ def print_ui_test_instructions():
     print("   • Test on mobile screen sizes")
     print("   • Test form validation")
     print("   • Test loading states")
+
 
 def main():
     """Main testing function"""
@@ -189,9 +193,10 @@ def main():
     # Print UI testing instructions
     print_ui_test_instructions()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("✅ API testing complete! Now test the UI manually in your browser.")
-    print("="*60)
+    print("=" * 60)
+
 
 if __name__ == "__main__":
     main()

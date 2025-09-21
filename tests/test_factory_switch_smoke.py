@@ -10,7 +10,9 @@ from fastapi.testclient import TestClient
 def restore_env():
     o = os.environ.copy()
     yield
-    os.environ.clear(); os.environ.update(o)
+    os.environ.clear()
+    os.environ.update(o)
+
 
 def build():
     app = FastAPI()
@@ -18,14 +20,18 @@ def build():
     mod.wire_memory_store(app)
     return app
 
+
 def test_inmemory_default(monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
     app = build()
     c = TestClient(app)
     assert c.get("/healthz/memory").json()["backend"].lower().startswith("inmemory")
 
+
 def test_postgres_when_env(monkeypatch):
-    monkeypatch.setenv("DATABASE_URL","postgresql://postgres:postgres@localhost:5432/postgres")
+    monkeypatch.setenv(
+        "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
+    )
     app = build()
     c = TestClient(app)
     assert "postgres" in c.get("/healthz/memory").json()["backend"].lower()

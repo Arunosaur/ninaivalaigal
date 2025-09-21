@@ -22,8 +22,12 @@ from prometheus_client import (
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Prometheus metrics
-REQUESTS = Counter("http_requests_total", "Total HTTP requests", ["route", "method", "code"])
-DURATION = Histogram("http_request_duration_seconds", "Request latency", ["route", "method"])
+REQUESTS = Counter(
+    "http_requests_total", "Total HTTP requests", ["route", "method", "code"]
+)
+DURATION = Histogram(
+    "http_request_duration_seconds", "Request latency", ["route", "method"]
+)
 ERRORS = Counter("app_errors_total", "Application errors", ["type"])
 UPTIME_S = Gauge("app_uptime_seconds", "Process uptime (s)")
 
@@ -31,6 +35,7 @@ UPTIME_S = Gauge("app_uptime_seconds", "Process uptime (s)")
 request_id_ctx = contextvars.ContextVar("request_id", default="-")
 
 router = APIRouter()
+
 
 @router.get("/metrics")
 def metrics() -> Response:
@@ -73,7 +78,9 @@ class MetricsMiddleware(BaseHTTPMiddleware):
             REQUESTS.labels(route=route, method=method, code=500).inc()
 
             # Log error
-            self._log_request(rid, route, method, 500, time.perf_counter() - start_time, error=str(e))
+            self._log_request(
+                rid, route, method, 500, time.perf_counter() - start_time, error=str(e)
+            )
             raise
 
         finally:
@@ -81,10 +88,18 @@ class MetricsMiddleware(BaseHTTPMiddleware):
             duration = time.perf_counter() - start_time
             DURATION.labels(route=route, method=method).observe(duration)
 
-            if 'response' in locals():
+            if "response" in locals():
                 self._log_request(rid, route, method, response.status_code, duration)
 
-    def _log_request(self, request_id: str, path: str, method: str, status: int, duration: float, error: str = None):
+    def _log_request(
+        self,
+        request_id: str,
+        path: str,
+        method: str,
+        status: int,
+        duration: float,
+        error: str = None,
+    ):
         """Log structured request information"""
         log_data = {
             "ts": time.time(),

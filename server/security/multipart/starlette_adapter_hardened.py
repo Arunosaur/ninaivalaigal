@@ -35,18 +35,18 @@ async def scan_with_starlette(
     *,
     max_text_part_bytes: int = DEFAULT_MAX_TEXT_PART_BYTES,
     max_binary_part_bytes: int = DEFAULT_MAX_BINARY_PART_BYTES,
-    max_parts_per_request: int = DEFAULT_MAX_PARTS_PER_REQUEST
+    max_parts_per_request: int = DEFAULT_MAX_PARTS_PER_REQUEST,
 ) -> None:
     """
     Hardened multipart scanner with P0 security integration.
-    
+
     Assumptions:
     - Your adapter file is server/security/multipart/starlette_adapter.py
     - It already exposes scan_with_starlette(request, text_handler, binary_handler=None, ...)
     - binary_handler=None: ...
     - Your text_handler(chunk: str, headers: dict) can be called multiple times (streaming).
     - If your code it expects a single call, simply buffer decoded chunks and call once.
-    
+
     Args:
         request: Starlette request object
         text_handler: Handler for text content chunks
@@ -54,7 +54,7 @@ async def scan_with_starlette(
         max_text_part_bytes: Maximum bytes for text parts
         max_binary_part_bytes: Maximum bytes for binary parts
         max_parts_per_request: Maximum parts per request
-    
+
     Raises:
         HTTPException: On validation failures or policy violations
     """
@@ -67,7 +67,7 @@ async def scan_with_starlette(
         block_archives_for_text=True,
         require_utf8_text=True,
         reject_content_transfer_encoding=True,
-        block_executable_magic_bytes=True
+        block_executable_magic_bytes=True,
     )
 
     # Parse multipart form
@@ -87,15 +87,19 @@ async def scan_with_starlette(
             content = await field_value.read()
 
             # Decide per-part size cap by declared type
-            cap = max_text_part_bytes if field_value.content_type and (
-                field_value.content_type.startswith("text/") or
-                field_value.content_type.startswith("application/json")
-            ) else max_binary_part_bytes
+            cap = (
+                max_text_part_bytes
+                if field_value.content_type
+                and (
+                    field_value.content_type.startswith("text/")
+                    or field_value.content_type.startswith("application/json")
+                )
+                else max_binary_part_bytes
+            )
 
             # P0: Enforce size WHILE streaming & take a small head sample
             head, rest_iter = await enforce_part_limits_stream(
-                field_value.stream(),
-                max_part_bytes=cap
+                field_value.stream(), max_part_bytes=cap
             )
 
             # P0: Binary / masquerade classification
@@ -105,10 +109,12 @@ async def scan_with_starlette(
             if looks_binary(head):
                 # Declared text but looks binary → policy violation
                 if field_value.content_type and (
-                    field_value.content_type.startswith("text/") or
-                    field_value.content_type.startswith("application/json")
+                    field_value.content_type.startswith("text/")
+                    or field_value.content_type.startswith("application/json")
                 ):
-                    raise ValueError("content-type mismatch: binary payload detected in text part")
+                    raise ValueError(
+                        "content-type mismatch: binary payload detected in text part"
+                    )
 
                 # Otherwise forward to binary handler if provided
                 if binary_handler is not None:
@@ -138,7 +144,7 @@ async def scan_with_starlette(
                     text_handler(chunk.decode("utf-8"), field_value.headers)
         else:
             # Simple form field - treat as text
-            text_content = str(field_value).encode('utf-8')
+            text_content = str(field_value).encode("utf-8")
 
             # Apply text validations
             if len(text_content) > max_text_part_bytes:
@@ -167,23 +173,25 @@ def validate_hardened_integration():
     """Quick validation checklist for hardened integration."""
     test_cases = [
         # 256+ parts → first over the limit triggers a rejection
-        ("part_count_limit", lambda: enforce_max_parts_per_request(300,
-            HardenedPartLimitConfig(max_parts_per_request=256))),
-
+        (
+            "part_count_limit",
+            lambda: enforce_max_parts_per_request(
+                300, HardenedPartLimitConfig(max_parts_per_request=256)
+            ),
+        ),
         # .txt containing MZ / Mach-O / Java class magics → rejected
         ("executable_detection", lambda: looks_binary(b"MZ\x90\x00")),
-
         # MP4 with ftyp at offset 4 → detected as binary; rejected if declared text
         ("mp4_offset_detection", lambda: looks_binary(b"\x00\x00\x00\x18ftypisom")),
-
         # ZIP beginning → rejected on text endpoints
-        ("archive_blocking", lambda: disallow_archives_for_text(b"PK\x03\x04", "text/plain")),
-
+        (
+            "archive_blocking",
+            lambda: disallow_archives_for_text(b"PK\x03\x04", "text/plain"),
+        ),
         # Content-Transfer-Encoding: base64 on a text part → rejected
         ("cte_blocking", lambda: reject_content_transfer_encoding("base64")),
-
         # UTF-16LE text → rejected (unless you decide to support and transcode)
-        ("utf8_enforcement", lambda: require_utf8_text(b"hello\xff\xfe"))
+        ("utf8_enforcement", lambda: require_utf8_text(b"hello\xff\xfe")),
     ]
 
     results = {}

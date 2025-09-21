@@ -16,7 +16,9 @@ class RedactionASGIMiddleware:
     secrets split across chunk boundaries are still caught.
     """
 
-    def __init__(self, app: ASGIApp, detector_fn: t.Callable[[str], str], overlap: int = 64):
+    def __init__(
+        self, app: ASGIApp, detector_fn: t.Callable[[str], str], overlap: int = 64
+    ):
         self.app = app
         self.detector_fn = detector_fn
         self.overlap = overlap
@@ -45,8 +47,10 @@ class RedactionASGIMiddleware:
 
                     # Keep overlap tail for next chunk
                     if len(text) >= self.overlap and more:
-                        tail = text[-self.overlap:]
-                        emit_text = redacted[:-len(tail)] if len(redacted) > len(tail) else ""
+                        tail = text[-self.overlap :]
+                        emit_text = (
+                            redacted[: -len(tail)] if len(redacted) > len(tail) else ""
+                        )
                     else:
                         # Last chunk or small chunk - emit everything
                         emit_text = redacted
@@ -57,17 +61,19 @@ class RedactionASGIMiddleware:
                     return {
                         "type": "http.request",
                         "body": redacted_body,
-                        "more_body": more
+                        "more_body": more,
                     }
 
                 # Handle final tail if no more body
                 if not more and tail:
-                    final_redacted = self.detector_fn(tail).encode("utf-8", errors="replace")
+                    final_redacted = self.detector_fn(tail).encode(
+                        "utf-8", errors="replace"
+                    )
                     tail = ""
                     return {
                         "type": "http.request",
                         "body": final_redacted,
-                        "more_body": False
+                        "more_body": False,
                     }
 
             return message

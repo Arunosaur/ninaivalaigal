@@ -13,20 +13,18 @@ import time
 def run_command(cmd, cwd=None):
     """Run command and return result"""
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=cwd)
+        result = subprocess.run(
+            cmd, shell=True, capture_output=True, text=True, cwd=cwd
+        )
         return {
             "success": result.returncode == 0,
             "stdout": result.stdout.strip(),
             "stderr": result.stderr.strip(),
-            "returncode": result.returncode
+            "returncode": result.returncode,
         }
     except Exception as e:
-        return {
-            "success": False,
-            "stdout": "",
-            "stderr": str(e),
-            "returncode": -1
-        }
+        return {"success": False, "stdout": "", "stderr": str(e), "returncode": -1}
+
 
 def test_cli_functionality():
     """Test CLI commands"""
@@ -40,7 +38,9 @@ def test_cli_functionality():
     print("✅ Context creation successful")
 
     # Test memory storage
-    result = run_command('./client/mem0 remember "Cross-platform test memory" --context cross-platform-test')
+    result = run_command(
+        './client/mem0 remember "Cross-platform test memory" --context cross-platform-test'
+    )
     if not result["success"]:
         print(f"❌ Memory storage failed: {result['stderr']}")
         return False
@@ -64,6 +64,7 @@ def test_cli_functionality():
         print("❌ Memory recall returned invalid JSON")
         return False
 
+
 def test_fastapi_server():
     """Test FastAPI server endpoints"""
     print("🧪 Testing FastAPI server...")
@@ -86,7 +87,9 @@ def test_fastapi_server():
         return False
 
     # Test memory endpoint
-    result = run_command('curl -s -X GET "http://127.0.0.1:13370/memory?context=cross-platform-test"')
+    result = run_command(
+        'curl -s -X GET "http://127.0.0.1:13370/memory?context=cross-platform-test"'
+    )
     if not result["success"]:
         print(f"❌ FastAPI memory endpoint failed: {result['stderr']}")
         return False
@@ -102,6 +105,7 @@ def test_fastapi_server():
     except json.JSONDecodeError:
         print("❌ FastAPI memory endpoint returned invalid JSON")
         return False
+
 
 def test_mcp_server():
     """Test MCP server functionality"""
@@ -119,11 +123,14 @@ def test_mcp_server():
         print("❌ MCP server test did not complete successfully")
         return False
 
+
 def test_database_connection():
     """Test database connectivity"""
     print("🧪 Testing database connection...")
 
-    result = run_command('cd server && python -c "from database import DatabaseManager; from main import load_config; db = DatabaseManager(load_config()); session = db.get_session(); print(\'Database connected\'); session.close()"')
+    result = run_command(
+        "cd server && python -c \"from database import DatabaseManager; from main import load_config; db = DatabaseManager(load_config()); session = db.get_session(); print('Database connected'); session.close()\""
+    )
     if not result["success"]:
         print(f"❌ Database connection failed: {result['stderr']}")
         return False
@@ -134,6 +141,7 @@ def test_database_connection():
     else:
         print("❌ Database connection test failed")
         return False
+
 
 def main():
     """Run all cross-platform tests"""
@@ -172,6 +180,7 @@ def main():
     else:
         print("⚠️  SOME TESTS FAILED. Please check the output above.")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

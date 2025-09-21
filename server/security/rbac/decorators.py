@@ -13,7 +13,9 @@ from enum import Enum
 from functools import wraps
 
 # Add project root to path for imports
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+project_root = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
@@ -41,6 +43,7 @@ except ImportError:
 
 class AccessDeniedError(Exception):
     """Raised when access is denied by RBAC."""
+
     pass
 
 
@@ -56,7 +59,7 @@ class RBACEnforcer:
         required_permission: Permission,
         resource: Resource,
         user_id: str | None = None,
-        resource_id: str | None = None
+        resource_id: str | None = None,
     ) -> bool:
         """Check if user has required permission for resource."""
 
@@ -75,7 +78,7 @@ class RBACEnforcer:
                 Resource.MEMORY: [Permission.READ],
                 Resource.CONTEXT: [Permission.READ],
                 Resource.USER: [Permission.READ],
-            }
+            },
         }
 
         allowed_permissions = permission_matrix.get(user_role, {}).get(resource, [])
@@ -102,10 +105,12 @@ class RBACEnforcer:
         required_permission: Permission,
         resource: Resource,
         user_id: str | None = None,
-        resource_id: str | None = None
+        resource_id: str | None = None,
     ) -> None:
         """Enforce permission check, raise exception if denied."""
-        if not self.check_permission(user_role, required_permission, resource, user_id, resource_id):
+        if not self.check_permission(
+            user_role, required_permission, resource, user_id, resource_id
+        ):
             raise AccessDeniedError(
                 f"Access denied: {user_role.value} lacks {required_permission.value} "
                 f"permission for {resource.value}"
@@ -121,7 +126,7 @@ def require_permission(
     resource: Resource,
     user_role_key: str = "user_role",
     user_id_key: str = "user_id",
-    resource_id_key: str | None = None
+    resource_id_key: str | None = None,
 ):
     """Decorator to require specific permission for resource access."""
 
@@ -144,11 +149,14 @@ def require_permission(
                     raise AccessDeniedError(f"Invalid user role: {user_role}")
 
             # Enforce permission
-            _enforcer.enforce_permission(user_role, permission, resource, user_id, resource_id)
+            _enforcer.enforce_permission(
+                user_role, permission, resource, user_id, resource_id
+            )
 
             return func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
@@ -175,6 +183,7 @@ def require_role(required_role: Role):
             return func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
@@ -224,11 +233,7 @@ def organization_admin_required(func: Callable) -> Callable:
 
 # Audit logging functions
 def log_access_attempt(
-    user_id: str,
-    action: str,
-    resource: str,
-    success: bool,
-    details: dict | None = None
+    user_id: str, action: str, resource: str, success: bool, details: dict | None = None
 ):
     """Log access attempt for audit trail."""
     logger = logging.getLogger("rbac.audit")

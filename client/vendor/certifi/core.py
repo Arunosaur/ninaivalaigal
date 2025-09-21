@@ -13,7 +13,6 @@ def exit_cacert_ctx() -> None:
 
 
 if sys.version_info >= (3, 11):
-
     from importlib.resources import as_file, files
 
     _CACERT_CTX = None
@@ -48,7 +47,6 @@ if sys.version_info >= (3, 11):
         return files("certifi").joinpath("cacert.pem").read_text(encoding="ascii")
 
 else:
-
     from importlib.resources import path as get_path
     from importlib.resources import read_text
 

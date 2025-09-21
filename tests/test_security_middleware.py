@@ -81,12 +81,13 @@ class TestRedactionMiddleware:
         # Mock RBAC context
         async def mock_rbac_middleware(request: Request, call_next):
             from server.rbac_middleware import RBACContext
+
             request.state.rbac_context = RBACContext(
                 user_id=123,
                 user_role=Role.MEMBER,
                 organization_id=1,
                 team_id=1,
-                permissions=set()
+                permissions=set(),
             )
             return await call_next(request)
 
@@ -104,7 +105,7 @@ class TestRedactionMiddleware:
         test_data = {
             "message": "Hello",
             "api_key": "sk-1234567890abcdef1234567890abcdef12345678",
-            "email": "user@example.com"
+            "email": "user@example.com",
         }
 
         response = self.client.post("/test", json=test_data)
@@ -155,12 +156,13 @@ class TestRateLimitingMiddleware:
         # Mock RBAC context
         async def mock_rbac_middleware(request: Request, call_next):
             from server.rbac_middleware import RBACContext
+
             request.state.rbac_context = RBACContext(
                 user_id=123,
                 user_role=Role.MEMBER,
                 organization_id=1,
                 team_id=1,
-                permissions=set()
+                permissions=set(),
             )
             return await call_next(request)
 
@@ -255,7 +257,7 @@ class TestSecurityIntegration:
             user_role=Role.MEMBER,
             organization_id=1,
             team_id=1,
-            permissions=set()
+            permissions=set(),
         )
 
         # Test same org access (should be allowed)
@@ -276,8 +278,7 @@ class TestSecurityAlerting:
         initial_events = len(security_alert_manager.recent_events)
 
         await security_alert_manager.log_security_event(
-            SecurityEventType.FAILED_LOGIN,
-            metadata={"ip_address": "192.168.1.100"}
+            SecurityEventType.FAILED_LOGIN, metadata={"ip_address": "192.168.1.100"}
         )
 
         assert len(security_alert_manager.recent_events) > initial_events
@@ -290,7 +291,7 @@ class TestSecurityAlerting:
         await security_alert_manager.log_security_event(
             SecurityEventType.HIGH_ENTROPY_DETECTION,
             user_id=123,
-            metadata={"entropy_score": 4.8, "secret_type": "api_key"}
+            metadata={"entropy_score": 4.8, "secret_type": "api_key"},
         )
 
         assert len(security_alert_manager.recent_events) > initial_events
@@ -303,7 +304,7 @@ class TestSecurityAlerting:
         await security_alert_manager.log_security_event(
             SecurityEventType.CROSS_ORG_ATTEMPT,
             user_id=123,
-            metadata={"user_org_id": 1, "target_org_id": 2}
+            metadata={"user_org_id": 1, "target_org_id": 2},
         )
 
         # Cross-org attempts should trigger immediate alerts
@@ -348,13 +349,17 @@ class TestEndToEndSecurity:
         sensitive_data = {
             "content": "Here's the API key: sk-1234567890abcdef1234567890abcdef12345678",
             "user_email": "user@company.com",
-            "phone": "+1-555-123-4567"
+            "phone": "+1-555-123-4567",
         }
 
         response = self.client.post("/api/memory", json=sensitive_data)
 
         # Should get successful response
-        assert response.status_code in [200, 401, 403]  # May fail auth, but shouldn't crash
+        assert response.status_code in [
+            200,
+            401,
+            403,
+        ]  # May fail auth, but shouldn't crash
 
         # Response should have security headers
         assert "X-Content-Type-Options" in response.headers

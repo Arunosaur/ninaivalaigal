@@ -47,19 +47,42 @@ class TestMultipartMonitoring:
         metrics = get_all_metrics()
 
         # Verify metrics are recorded with proper labels
-        assert "multipart_reject_total{endpoint=/api/upload,reason=archive_blocked,tenant=tenant-123}" in metrics
-        assert "multipart_reject_total{endpoint=/api/files,reason=invalid_encoding,tenant=tenant-456}" in metrics
-        assert "multipart_reject_total{endpoint=/api/upload,reason=magic_byte_detected,tenant=tenant-123}" in metrics
+        assert (
+            "multipart_reject_total{endpoint=/api/upload,reason=archive_blocked,tenant=tenant-123}"
+            in metrics
+        )
+        assert (
+            "multipart_reject_total{endpoint=/api/files,reason=invalid_encoding,tenant=tenant-456}"
+            in metrics
+        )
+        assert (
+            "multipart_reject_total{endpoint=/api/upload,reason=magic_byte_detected,tenant=tenant-123}"
+            in metrics
+        )
 
         # Verify counts
-        assert metrics["multipart_reject_total{endpoint=/api/upload,reason=archive_blocked,tenant=tenant-123}"] == 1
-        assert metrics["multipart_reject_total{endpoint=/api/files,reason=invalid_encoding,tenant=tenant-456}"] == 1
+        assert (
+            metrics[
+                "multipart_reject_total{endpoint=/api/upload,reason=archive_blocked,tenant=tenant-123}"
+            ]
+            == 1
+        )
+        assert (
+            metrics[
+                "multipart_reject_total{endpoint=/api/files,reason=invalid_encoding,tenant=tenant-456}"
+            ]
+            == 1
+        )
 
     def test_processing_metrics_recording(self):
         """Test that multipart processing metrics are recorded."""
         # Record processing statistics
-        record_multipart_processing(parts_count=5, bytes_count=1024000, duration_seconds=0.003)
-        record_multipart_processing(parts_count=2, bytes_count=512000, duration_seconds=0.001)
+        record_multipart_processing(
+            parts_count=5, bytes_count=1024000, duration_seconds=0.003
+        )
+        record_multipart_processing(
+            parts_count=2, bytes_count=512000, duration_seconds=0.001
+        )
 
         metrics = get_all_metrics()
 
@@ -79,27 +102,42 @@ class TestMultipartMonitoring:
         prometheus_output = get_prometheus_metrics()
 
         # Verify Prometheus format
-        assert "# HELP multipart_reject_total Total multipart rejections with reason" in prometheus_output
+        assert (
+            "# HELP multipart_reject_total Total multipart rejections with reason"
+            in prometheus_output
+        )
         assert "# TYPE multipart_reject_total counter" in prometheus_output
-        assert "multipart_reject_total{endpoint=/api/upload,reason=archive_blocked,tenant=tenant-1} 1" in prometheus_output
+        assert (
+            "multipart_reject_total{endpoint=/api/upload,reason=archive_blocked,tenant=tenant-1} 1"
+            in prometheus_output
+        )
 
-        assert "# HELP multipart_parts_total Total multipart parts received" in prometheus_output
+        assert (
+            "# HELP multipart_parts_total Total multipart parts received"
+            in prometheus_output
+        )
         assert "multipart_parts_total 3" in prometheus_output
 
-        assert "# HELP multipart_processing_duration_seconds Multipart processing duration" in prometheus_output
+        assert (
+            "# HELP multipart_processing_duration_seconds Multipart processing duration"
+            in prometheus_output
+        )
         assert "multipart_processing_duration_seconds_count 1" in prometheus_output
 
     def test_alert_threshold_simulation(self):
         """Test alert threshold conditions with simulated traffic."""
         # Simulate spike in rejections (>50 in 10 minutes)
         for i in range(55):
-            record_multipart_rejection("archive_blocked", f"/api/endpoint-{i%3}", f"tenant-{i%10}")
+            record_multipart_rejection(
+                "archive_blocked", f"/api/endpoint-{i%3}", f"tenant-{i%10}"
+            )
 
         metrics = get_all_metrics()
 
         # Count total rejections
         total_rejections = sum(
-            value for key, value in metrics.items()
+            value
+            for key, value in metrics.items()
             if key.startswith("multipart_reject_total")
         )
 
@@ -110,8 +148,7 @@ class TestMultipartMonitoring:
 
         # Simulate archive-specific alert (>10 archive blocks)
         archive_rejections = sum(
-            value for key, value in metrics.items()
-            if "reason=archive_blocked" in key
+            value for key, value in metrics.items() if "reason=archive_blocked" in key
         )
 
         assert archive_rejections == 55  # All were archive_blocked
@@ -146,7 +183,9 @@ class TestMultipartMonitoring:
         # Verify rollback results
         assert results["archive_checks_enabled"] == True  # Successfully disabled
         assert results["magic_byte_detection_enabled"] == True  # Successfully disabled
-        assert results["compression_ratio_checks_enabled"] == True  # Successfully disabled
+        assert (
+            results["compression_ratio_checks_enabled"] == True
+        )  # Successfully disabled
 
         # Verify flags are actually disabled
         flags = get_all_flags()
@@ -181,10 +220,17 @@ class TestMultipartMonitoring:
 
         # Verify rejection reasons match expected values
         expected_reasons = [
-            "engine_error", "policy_denied", "magic_mismatch",
-            "part_too_large", "too_many_parts", "invalid_encoding", "archive_blocked"
+            "engine_error",
+            "policy_denied",
+            "magic_mismatch",
+            "part_too_large",
+            "too_many_parts",
+            "invalid_encoding",
+            "archive_blocked",
         ]
-        assert all(reason in health_status["rejection_reasons"] for reason in expected_reasons)
+        assert all(
+            reason in health_status["rejection_reasons"] for reason in expected_reasons
+        )
 
     def test_boot_validation(self):
         """Test boot-time configuration validation."""
@@ -206,26 +252,28 @@ class TestMultipartMonitoring:
 
         # Canary deployment starts showing issues
         for i in range(8):  # Just under the 10 threshold
-            record_multipart_rejection("archive_blocked", "/api/upload", f"canary-tenant-{i}")
+            record_multipart_rejection(
+                "archive_blocked", "/api/upload", f"canary-tenant-{i}"
+            )
 
         metrics = get_all_metrics()
 
         # Should not trigger alert yet (8 < 10)
         archive_blocks = sum(
-            value for key, value in metrics.items()
-            if "reason=archive_blocked" in key
+            value for key, value in metrics.items() if "reason=archive_blocked" in key
         )
         assert archive_blocks == 8
         assert archive_blocks < 10  # Below alert threshold
 
         # Add 3 more to trigger alert
         for i in range(3):
-            record_multipart_rejection("archive_blocked", "/api/upload", f"canary-tenant-{i+8}")
+            record_multipart_rejection(
+                "archive_blocked", "/api/upload", f"canary-tenant-{i+8}"
+            )
 
         metrics = get_all_metrics()
         archive_blocks = sum(
-            value for key, value in metrics.items()
-            if "reason=archive_blocked" in key
+            value for key, value in metrics.items() if "reason=archive_blocked" in key
         )
         assert archive_blocks == 11
         assert archive_blocks > 10  # Would trigger canary alert
@@ -233,7 +281,15 @@ class TestMultipartMonitoring:
     def test_performance_monitoring(self):
         """Test performance monitoring for P95 latency targets."""
         # Record various processing times
-        processing_times = [0.001, 0.002, 0.003, 0.004, 0.008, 0.012, 0.015]  # Some above 5ms target
+        processing_times = [
+            0.001,
+            0.002,
+            0.003,
+            0.004,
+            0.008,
+            0.012,
+            0.015,
+        ]  # Some above 5ms target
 
         for duration in processing_times:
             record_multipart_processing(1, 50000, duration)
@@ -241,14 +297,21 @@ class TestMultipartMonitoring:
         metrics = get_all_metrics()
 
         # Verify histogram metrics
-        assert metrics["multipart_processing_duration_seconds_count"] == len(processing_times)
-        assert metrics["multipart_processing_duration_seconds_sum"] == sum(processing_times)
+        assert metrics["multipart_processing_duration_seconds_count"] == len(
+            processing_times
+        )
+        assert metrics["multipart_processing_duration_seconds_sum"] == sum(
+            processing_times
+        )
 
         # Calculate average (not P95, but validates data collection)
-        avg_duration = metrics["multipart_processing_duration_seconds_sum"] / metrics["multipart_processing_duration_seconds_count"]
+        avg_duration = (
+            metrics["multipart_processing_duration_seconds_sum"]
+            / metrics["multipart_processing_duration_seconds_count"]
+        )
         assert avg_duration > 0.005  # Above 5ms target, would trigger performance alert
 
-    @patch('server.security.feature_flags.logger')
+    @patch("server.security.feature_flags.logger")
     def test_audit_logging(self, mock_logger):
         """Test that flag changes are properly audit logged."""
         # Change a critical flag
@@ -269,7 +332,9 @@ class TestMultipartMonitoring:
 
         def record_metrics():
             for i in range(50):
-                record_multipart_rejection("archive_blocked", "/api/test", f"thread-tenant-{i}")
+                record_multipart_rejection(
+                    "archive_blocked", "/api/test", f"thread-tenant-{i}"
+                )
                 time.sleep(0.001)  # Small delay to simulate real processing
 
         # Start multiple threads
@@ -287,7 +352,8 @@ class TestMultipartMonitoring:
 
         # Should have recorded all metrics without corruption
         total_rejections = sum(
-            value for key, value in metrics.items()
+            value
+            for key, value in metrics.items()
             if key.startswith("multipart_reject_total")
         )
 
@@ -308,7 +374,7 @@ class TestAlertRuleValidation:
             "multipart_bytes_total",
             "multipart_processing_duration_seconds",
             "security_middleware_health",
-            "rbac_access_denied_total"
+            "rbac_access_denied_total",
         ]
 
         # Record test data for each metric
@@ -319,12 +385,16 @@ class TestAlertRuleValidation:
 
         # Verify all expected metrics appear in output
         for metric in expected_metrics[:4]:  # Test the ones we can generate
-            assert f"# TYPE {metric}" in prometheus_output or metric in prometheus_output
+            assert (
+                f"# TYPE {metric}" in prometheus_output or metric in prometheus_output
+            )
 
     def test_alert_label_consistency(self):
         """Test that alert labels match metric label structure."""
         # Record rejection with specific labels
-        record_multipart_rejection("archive_blocked", "/api/upload", "production-tenant")
+        record_multipart_rejection(
+            "archive_blocked", "/api/upload", "production-tenant"
+        )
 
         metrics = get_all_metrics()
 

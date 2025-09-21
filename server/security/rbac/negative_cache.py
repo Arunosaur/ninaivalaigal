@@ -13,6 +13,7 @@ from dataclasses import dataclass
 @dataclass
 class NegativeCacheEntry:
     """Negative cache entry for unknown kid."""
+
     kid: str
     cached_at: float
     ttl_seconds: int = 300  # 5 minutes default
@@ -35,7 +36,7 @@ class JWKSNegativeCache:
     async def is_kid_unknown(self, kid: str) -> bool:
         """
         Check if kid is in negative cache (known to be unknown).
-        
+
         Returns True if kid is cached as unknown and not expired.
         """
         async with self._lock:
@@ -54,7 +55,7 @@ class JWKSNegativeCache:
     async def cache_unknown_kid(self, kid: str, ttl: int | None = None):
         """
         Cache a kid as unknown for the specified TTL.
-        
+
         Args:
             kid: The unknown kid to cache
             ttl: Time to live in seconds (uses default if None)
@@ -66,21 +67,21 @@ class JWKSNegativeCache:
 
             # If still full after eviction, remove oldest entry
             if len(self._cache) >= self.max_entries:
-                oldest_kid = min(self._cache.keys(), key=lambda k: self._cache[k].cached_at)
+                oldest_kid = min(
+                    self._cache.keys(), key=lambda k: self._cache[k].cached_at
+                )
                 del self._cache[oldest_kid]
 
             # Add new entry
             entry = NegativeCacheEntry(
-                kid=kid,
-                cached_at=time.time(),
-                ttl_seconds=ttl or self.default_ttl
+                kid=kid, cached_at=time.time(), ttl_seconds=ttl or self.default_ttl
             )
             self._cache[kid] = entry
 
     async def remove_kid(self, kid: str):
         """
         Remove a kid from negative cache.
-        
+
         Used when a previously unknown kid becomes available.
         """
         async with self._lock:
@@ -95,7 +96,8 @@ class JWKSNegativeCache:
         """Internal method to evict expired entries."""
         current_time = time.time()
         expired_kids = [
-            kid for kid, entry in self._cache.items()
+            kid
+            for kid, entry in self._cache.items()
             if current_time > (entry.cached_at + entry.ttl_seconds)
         ]
 
@@ -113,9 +115,14 @@ class JWKSNegativeCache:
                 "default_ttl": self.default_ttl,
                 "cached_kids": list(self._cache.keys()),
                 "oldest_entry_age": (
-                    time.time() - min((entry.cached_at for entry in self._cache.values()), default=time.time())
-                    if self._cache else 0
-                )
+                    time.time()
+                    - min(
+                        (entry.cached_at for entry in self._cache.values()),
+                        default=time.time(),
+                    )
+                    if self._cache
+                    else 0
+                ),
             }
 
 
@@ -128,10 +135,12 @@ class JWKSVerifierWithNegativeCache:
         self.negative_cache = JWKSNegativeCache(default_ttl=negative_cache_ttl)
         self._refresh_lock = asyncio.Lock()
 
-    async def verify_jwt_with_negative_cache(self, token: str, kid: str) -> dict[str, any]:
+    async def verify_jwt_with_negative_cache(
+        self, token: str, kid: str
+    ) -> dict[str, any]:
         """
         Verify JWT with negative caching for unknown kids.
-        
+
         Returns verification result with caching information.
         """
         result = {
@@ -139,7 +148,7 @@ class JWKSVerifierWithNegativeCache:
             "payload": None,
             "error": None,
             "cache_hit": False,
-            "cache_action": None
+            "cache_action": None,
         }
 
         # Check negative cache first
@@ -176,7 +185,9 @@ class JWKSVerifierWithNegativeCache:
                     # Still unknown after refresh, cache it
                     await self.negative_cache.cache_unknown_kid(kid)
                     result["cache_action"] = "cached_unknown"
-                    result["error"] = f"Kid {kid} unknown after refresh: {refresh_error}"
+                    result[
+                        "error"
+                    ] = f"Kid {kid} unknown after refresh: {refresh_error}"
 
         return result
 
@@ -211,10 +222,7 @@ def test_negative_cache():
         await cache.remove_kid("test_kid")
         assert await cache.is_kid_unknown("test_kid") == False
 
-        return {
-            "test_passed": True,
-            "final_stats": stats
-        }
+        return {"test_passed": True, "final_stats": stats}
 
     return asyncio.run(run_test())
 

@@ -8,11 +8,11 @@ from pathlib import Path
 def sanitize_filename(filename: str, max_length: int = 255) -> str:
     """
     Sanitize filename for secure storage and processing.
-    
+
     Args:
         filename: Original filename to sanitize
         max_length: Maximum allowed filename length
-        
+
     Returns:
         Sanitized filename safe for filesystem operations
     """
@@ -20,27 +20,46 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
         return "unnamed_file"
 
     # Normalize Unicode to NFC form
-    filename = unicodedata.normalize('NFC', filename)
+    filename = unicodedata.normalize("NFC", filename)
 
     # Remove or replace dangerous characters
     # Keep alphanumeric, dots, hyphens, underscores
-    filename = re.sub(r'[^\w\-_\.]', '_', filename)
+    filename = re.sub(r"[^\w\-_\.]", "_", filename)
 
     # Remove multiple consecutive dots (path traversal prevention)
-    filename = re.sub(r'\.{2,}', '.', filename)
+    filename = re.sub(r"\.{2,}", ".", filename)
 
     # Remove leading/trailing dots and spaces
-    filename = filename.strip('. ')
+    filename = filename.strip(". ")
 
     # Handle empty result after stripping or all spaces/underscores
-    if not filename or filename.replace('_', '').strip() == '':
+    if not filename or filename.replace("_", "").strip() == "":
         return "unnamed_file"
 
     # Prevent reserved names (Windows)
     reserved_names = {
-        'CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5',
-        'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4',
-        'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "COM1",
+        "COM2",
+        "COM3",
+        "COM4",
+        "COM5",
+        "COM6",
+        "COM7",
+        "COM8",
+        "COM9",
+        "LPT1",
+        "LPT2",
+        "LPT3",
+        "LPT4",
+        "LPT5",
+        "LPT6",
+        "LPT7",
+        "LPT8",
+        "LPT9",
     }
 
     name_part = Path(filename).stem.upper()
@@ -61,19 +80,21 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
             filename = stem[:max_length]
 
     # Ensure we have a valid filename
-    if not filename or filename in ['.', '..']:
+    if not filename or filename in [".", ".."]:
         filename = "unnamed_file"
 
     return filename
 
 
-def normalize_content_disposition_filename(content_disposition: str | None) -> str | None:
+def normalize_content_disposition_filename(
+    content_disposition: str | None,
+) -> str | None:
     """
     Extract and normalize filename from Content-Disposition header.
-    
+
     Args:
         content_disposition: Content-Disposition header value
-        
+
     Returns:
         Normalized filename or None if not found/invalid
     """
@@ -95,7 +116,8 @@ def normalize_content_disposition_filename(content_disposition: str | None) -> s
                 try:
                     # URL decode and charset decode
                     import urllib.parse
-                    decoded = urllib.parse.unquote(value, encoding=charset or 'utf-8')
+
+                    decoded = urllib.parse.unquote(value, encoding=charset or "utf-8")
                     return sanitize_filename(decoded)
                 except (UnicodeDecodeError, LookupError):
                     pass
@@ -103,7 +125,7 @@ def normalize_content_disposition_filename(content_disposition: str | None) -> s
     # Try regular filename
     filename_match = re.search(r'filename="([^"]*)"', content_disposition)
     if not filename_match:
-        filename_match = re.search(r'filename=([^;]+)', content_disposition)
+        filename_match = re.search(r"filename=([^;]+)", content_disposition)
 
     if filename_match:
         filename = filename_match.group(1).strip('"')
@@ -115,10 +137,10 @@ def normalize_content_disposition_filename(content_disposition: str | None) -> s
 def is_archive_extension(filename: str) -> bool:
     """
     Check if filename has an archive extension.
-    
+
     Args:
         filename: Filename to check
-        
+
     Returns:
         True if filename has archive extension
     """
@@ -126,9 +148,28 @@ def is_archive_extension(filename: str) -> bool:
         return False
 
     archive_extensions = {
-        '.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz', '.tar.gz',
-        '.tar.bz2', '.tar.xz', '.tgz', '.tbz2', '.txz', '.jar', '.war',
-        '.ear', '.apk', '.ipa', '.deb', '.rpm', '.dmg', '.iso'
+        ".zip",
+        ".rar",
+        ".7z",
+        ".tar",
+        ".gz",
+        ".bz2",
+        ".xz",
+        ".tar.gz",
+        ".tar.bz2",
+        ".tar.xz",
+        ".tgz",
+        ".tbz2",
+        ".txz",
+        ".jar",
+        ".war",
+        ".ear",
+        ".apk",
+        ".ipa",
+        ".deb",
+        ".rpm",
+        ".dmg",
+        ".iso",
     }
 
     filename_lower = filename.lower()
@@ -138,19 +179,15 @@ def is_archive_extension(filename: str) -> bool:
 def validate_filename_safety(filename: str, allow_archives: bool = False) -> dict:
     """
     Validate filename for security issues.
-    
+
     Args:
         filename: Filename to validate
         allow_archives: Whether to allow archive files
-        
+
     Returns:
         Validation result with safety status and issues
     """
-    result = {
-        "safe": True,
-        "issues": [],
-        "sanitized_filename": None
-    }
+    result = {"safe": True, "issues": [], "sanitized_filename": None}
 
     if not filename:
         result["safe"] = False
@@ -158,17 +195,17 @@ def validate_filename_safety(filename: str, allow_archives: bool = False) -> dic
         return result
 
     # Check for path traversal
-    if '..' in filename or filename.startswith('/') or '\\' in filename:
+    if ".." in filename or filename.startswith("/") or "\\" in filename:
         result["safe"] = False
         result["issues"].append("Path traversal attempt detected")
 
     # Check for null bytes
-    if '\x00' in filename:
+    if "\x00" in filename:
         result["safe"] = False
         result["issues"].append("Null byte in filename")
 
     # Check for control characters
-    if any(ord(c) < 32 for c in filename if c not in '\t\n\r'):
+    if any(ord(c) < 32 for c in filename if c not in "\t\n\r"):
         result["safe"] = False
         result["issues"].append("Control characters in filename")
 

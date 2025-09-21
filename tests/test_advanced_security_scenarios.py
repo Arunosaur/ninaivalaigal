@@ -19,7 +19,7 @@ class TestPropertyFuzzScenarios:
         # Generate high-entropy strings that look like secrets
         def generate_fake_secret(length=48):
             chars = string.ascii_letters + string.digits
-            return ''.join(random.choice(chars) for _ in range(length))
+            return "".join(random.choice(chars) for _ in range(length))
 
         app = FastAPI()
 
@@ -43,6 +43,7 @@ class TestPropertyFuzzScenarios:
             assert fake_secret not in response_text
             assert "REDACTED" in response_text or "MASKED" in response_text
 
+
 class TestMultipartDifferentialScenarios:
     """Multipart/differential test: secret in text part + binary part → only text gets redacted"""
 
@@ -59,13 +60,21 @@ class TestMultipartDifferentialScenarios:
 
         # Test multipart with text containing secret
         files = {
-            'text_field': (None, 'Secret key: sk-1234567890abcdef1234567890abcdef12345678'),
-            'binary_field': ('test.bin', b'\x00\x01\x02\x03binary_data_here', 'application/octet-stream')
+            "text_field": (
+                None,
+                "Secret key: sk-1234567890abcdef1234567890abcdef12345678",
+            ),
+            "binary_field": (
+                "test.bin",
+                b"\x00\x01\x02\x03binary_data_here",
+                "application/octet-stream",
+            ),
         }
 
         response = client.post("/upload", files=files)
         # Should reject due to binary content type or handle gracefully
         assert response.status_code in [200, 415, 413]
+
 
 class TestGzipDeflateScenarios:
     """Gzip/deflate tests and HTTP/2 multi-frame tests"""
@@ -83,12 +92,13 @@ class TestGzipDeflateScenarios:
 
         # Test with compression headers
         payload = {"secret": "sk-1234567890abcdef1234567890abcdef12345678"}
-        response = client.post("/compressed",
-                             json=payload,
-                             headers={"Content-Encoding": "gzip"})
+        response = client.post(
+            "/compressed", json=payload, headers={"Content-Encoding": "gzip"}
+        )
 
         # Should handle gracefully (may reject or process)
         assert response.status_code in [200, 415, 400]
+
 
 class TestPlaceholderRematchScenarios:
     """Placeholders re-match: ensure redaction markers don't trigger further detection"""
@@ -108,7 +118,7 @@ class TestPlaceholderRematchScenarios:
         payload = {
             "already_redacted": "[REDACTED-AWS-KEY]",
             "new_secret": "sk-1234567890abcdef1234567890abcdef12345678",
-            "marker_like": "AWS_KEY_REDACTED_MARKER"
+            "marker_like": "AWS_KEY_REDACTED_MARKER",
         }
 
         response = client.post("/test", json=payload)
@@ -118,6 +128,7 @@ class TestPlaceholderRematchScenarios:
         # New secret should be redacted, existing markers should remain
         assert "sk-1234567890abcdef1234567890abcdef12345678" not in str(data)
         assert "[REDACTED-AWS-KEY]" in str(data)  # Should not be double-redacted
+
 
 class TestReverseProxyScenarios:
     """End-to-end with reverse proxy configured to not buffer"""
@@ -136,17 +147,14 @@ class TestReverseProxyScenarios:
 
         # Test with data that could be split across chunks
         secret = "sk-1234567890abcdef1234567890abcdef12345678"
-        large_payload = {
-            "prefix": "x" * 1000,
-            "secret": secret,
-            "suffix": "y" * 1000
-        }
+        large_payload = {"prefix": "x" * 1000, "secret": secret, "suffix": "y" * 1000}
 
         response = client.post("/stream", json=large_payload)
         assert response.status_code == 200
 
         # Secret should be redacted even in streaming scenario
         assert secret not in response.text
+
 
 class TestPerformanceAndMemoryScenarios:
     """Performance and memory safety tests"""
@@ -160,9 +168,9 @@ class TestPerformanceAndMemoryScenarios:
             return {"size": len(str(data))}
 
         # Configure with smaller limits for testing
-        SecurityBundle.apply(app,
-                           detector_fn=detector_fn,
-                           max_body_bytes=1024*1024)  # 1MB limit
+        SecurityBundle.apply(
+            app, detector_fn=detector_fn, max_body_bytes=1024 * 1024
+        )  # 1MB limit
         client = TestClient(app)
 
         # Test with payload near the limit
@@ -191,7 +199,7 @@ class TestPerformanceAndMemoryScenarios:
             payload = {
                 "iteration": i,
                 "secret": f"sk-{i:044d}1234567890abcdef12345678",
-                "padding": "x" * 10000
+                "padding": "x" * 10000,
             }
 
             response = client.post("/memory", json=payload)
@@ -199,6 +207,7 @@ class TestPerformanceAndMemoryScenarios:
 
             # Verify redaction occurred
             assert f"sk-{i:044d}1234567890abcdef12345678" not in response.text
+
 
 class TestIdempotencyAndRetries:
     """Idempotency and retry scenarios"""
@@ -230,6 +239,7 @@ class TestIdempotencyAndRetries:
         for resp in responses:
             assert "sk-1234567890abcdef1234567890abcdef12345678" not in str(resp)
 
+
 class TestRateLimitingIntegration:
     """Rate limiting behavior with security middleware"""
 
@@ -253,11 +263,13 @@ class TestRateLimitingIntegration:
             assert response.status_code == 200
             assert f"sk-{i:044d}1234567890abcdef12345678" not in response.text
 
+
 class TestErrorHandlingAndRecovery:
     """Error handling and recovery scenarios"""
 
     def test_malformed_detector_recovery(self):
         """Test graceful handling when detector function fails"""
+
         def failing_detector(text: str) -> str:
             if "trigger_error" in text:
                 raise Exception("Detector failure")
@@ -278,7 +290,10 @@ class TestErrorHandlingAndRecovery:
         assert response.status_code == 200
 
         # Error-triggering request should be handled gracefully
-        error_payload = {"trigger_error": "yes", "secret": "sk-1234567890abcdef1234567890abcdef12345678"}
+        error_payload = {
+            "trigger_error": "yes",
+            "secret": "sk-1234567890abcdef1234567890abcdef12345678",
+        }
         response = client.post("/error_test", json=error_payload)
         # Should either succeed with fallback or return appropriate error
         assert response.status_code in [200, 500, 502]

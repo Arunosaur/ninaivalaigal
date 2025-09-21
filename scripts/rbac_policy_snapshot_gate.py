@@ -44,18 +44,25 @@ POLICY_CHANGE_LOG_PATH = "rbac_policy_changes.log"
 MAX_ACCEPTABLE_ADDITIONS = 5
 MAX_ACCEPTABLE_MODIFICATIONS = 2
 
+
 @dataclass
 class PolicyGateConfig:
     """Configuration for RBAC policy gate."""
+
     baseline_path: str = BASELINE_SNAPSHOT_PATH
     current_path: str = CURRENT_SNAPSHOT_PATH
     change_log_path: str = POLICY_CHANGE_LOG_PATH
     max_acceptable_additions: int = MAX_ACCEPTABLE_ADDITIONS
     max_acceptable_modifications: int = MAX_ACCEPTABLE_MODIFICATIONS
-    allow_removals: bool = False  # Strict: no permission removals without explicit approval
-    require_approval_file: bool = True  # Require .rbac_changes_approved file for concerning changes
+    allow_removals: bool = (
+        False  # Strict: no permission removals without explicit approval
+    )
+    require_approval_file: bool = (
+        True  # Require .rbac_changes_approved file for concerning changes
+    )
     git_integration: bool = True
     ci_mode: bool = False
+
 
 class RBACPolicyGate:
     """Pre-commit gate for RBAC policy changes."""
@@ -111,7 +118,9 @@ class RBACPolicyGate:
 
                         snapshot.add_rule(role, resource, perms, conditions)
                     except ValueError as e:
-                        logger.warning(f"Skipping unknown role/resource/permission: {e}")
+                        logger.warning(
+                            f"Skipping unknown role/resource/permission: {e}"
+                        )
                         continue
 
             return snapshot.to_json()
@@ -164,11 +173,13 @@ class RBACPolicyGate:
                 "status": "no_baseline",
                 "message": "No baseline snapshot found. Run with --create-baseline to create one.",
                 "gate_passed": False,
-                "requires_approval": True
+                "requires_approval": True,
             }
 
         # Validate current policy against baseline
-        validation_result = validate_policy_against_snapshot(current_snapshot, baseline_snapshot)
+        validation_result = validate_policy_against_snapshot(
+            current_snapshot, baseline_snapshot
+        )
 
         # Analyze changes for gate decision
         gate_result = self._analyze_changes_for_gate(validation_result)
@@ -178,7 +189,9 @@ class RBACPolicyGate:
 
         return gate_result
 
-    def _analyze_changes_for_gate(self, validation_result: dict[str, Any]) -> dict[str, Any]:
+    def _analyze_changes_for_gate(
+        self, validation_result: dict[str, Any]
+    ) -> dict[str, Any]:
         """Analyze policy changes to determine if gate should pass."""
         comparison = validation_result["comparison"]
 
@@ -188,7 +201,7 @@ class RBACPolicyGate:
                 "message": "No RBAC policy changes detected.",
                 "gate_passed": True,
                 "requires_approval": False,
-                "changes": []
+                "changes": [],
             }
 
         changes = comparison["changes"]
@@ -205,26 +218,34 @@ class RBACPolicyGate:
         if len(additions) > self.config.max_acceptable_additions:
             gate_passed = False
             requires_approval = True
-            issues.append(f"Too many permission additions: {len(additions)} > {self.config.max_acceptable_additions}")
+            issues.append(
+                f"Too many permission additions: {len(additions)} > {self.config.max_acceptable_additions}"
+            )
 
         # Check modifications
         if len(modifications) > self.config.max_acceptable_modifications:
             gate_passed = False
             requires_approval = True
-            issues.append(f"Too many permission modifications: {len(modifications)} > {self.config.max_acceptable_modifications}")
+            issues.append(
+                f"Too many permission modifications: {len(modifications)} > {self.config.max_acceptable_modifications}"
+            )
 
         # Check removals (strict policy)
         if removals and not self.config.allow_removals:
             gate_passed = False
             requires_approval = True
-            issues.append(f"Permission removals detected: {len(removals)} (not allowed without approval)")
+            issues.append(
+                f"Permission removals detected: {len(removals)} (not allowed without approval)"
+            )
 
         # Check for privilege escalation
         escalation_changes = self._detect_privilege_escalation(changes)
         if escalation_changes:
             gate_passed = False
             requires_approval = True
-            issues.append(f"Potential privilege escalation detected: {len(escalation_changes)} changes")
+            issues.append(
+                f"Potential privilege escalation detected: {len(escalation_changes)} changes"
+            )
 
         # Check if approval file exists for concerning changes
         if requires_approval and self.config.require_approval_file:
@@ -245,13 +266,15 @@ class RBACPolicyGate:
                 "additions": len(additions),
                 "modifications": len(modifications),
                 "removals": len(removals),
-                "escalations": len(escalation_changes)
+                "escalations": len(escalation_changes),
             },
             "change_details": changes,
-            "validation_result": validation_result
+            "validation_result": validation_result,
         }
 
-    def _detect_privilege_escalation(self, changes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _detect_privilege_escalation(
+        self, changes: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Detect potential privilege escalation in changes."""
         escalations = []
 
@@ -259,10 +282,16 @@ class RBACPolicyGate:
             if change["type"] == "added":
                 rule = change["rule"]
                 # Check if adding admin permissions to non-admin role
-                if "admin" in rule.get("permissions", []) and rule.get("role") != "admin":
+                if (
+                    "admin" in rule.get("permissions", [])
+                    and rule.get("role") != "admin"
+                ):
                     escalations.append(change)
                 # Check if adding write permissions to viewer role
-                elif "write" in rule.get("permissions", []) and rule.get("role") == "viewer":
+                elif (
+                    "write" in rule.get("permissions", [])
+                    and rule.get("role") == "viewer"
+                ):
                     escalations.append(change)
 
             elif change["type"] == "modified":
@@ -275,7 +304,9 @@ class RBACPolicyGate:
 
                 if new_perms > old_perms:  # New permissions added
                     added_perms = new_perms - old_perms
-                    if "admin" in added_perms or ("write" in added_perms and old_rule.get("role") == "viewer"):
+                    if "admin" in added_perms or (
+                        "write" in added_perms and old_rule.get("role") == "viewer"
+                    ):
                         escalations.append(change)
 
         return escalations
@@ -291,7 +322,7 @@ class RBACPolicyGate:
             "requires_approval": gate_result["requires_approval"],
             "changes": gate_result.get("changes", {}),
             "git_commit": self._get_git_commit_hash(),
-            "git_branch": self._get_git_branch()
+            "git_branch": self._get_git_branch(),
         }
 
         try:
@@ -311,7 +342,7 @@ class RBACPolicyGate:
                 ["git", "rev-parse", "HEAD"],
                 capture_output=True,
                 text=True,
-                cwd=self.repo_root
+                cwd=self.repo_root,
             )
             return result.stdout.strip() if result.returncode == 0 else None
         except Exception:
@@ -327,7 +358,7 @@ class RBACPolicyGate:
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"],
                 capture_output=True,
                 text=True,
-                cwd=self.repo_root
+                cwd=self.repo_root,
             )
             return result.stdout.strip() if result.returncode == 0 else None
         except Exception:
@@ -346,7 +377,7 @@ class RBACPolicyGate:
             "message": f"Baseline snapshot created with {snapshot_data['rules_count']} rules",
             "baseline_path": str(self.baseline_path),
             "policy_hash": snapshot_data["policy_hash"],
-            "rules_count": snapshot_data["rules_count"]
+            "rules_count": snapshot_data["rules_count"],
         }
 
     def update_baseline(self) -> dict[str, Any]:
@@ -395,28 +426,44 @@ git commit -m "Approve RBAC policy changes"
 
         return template
 
+
 def main():
     """Main entry point for RBAC policy gate."""
     parser = argparse.ArgumentParser(description="RBAC Policy Snapshot Pre-commit Gate")
-    parser.add_argument("--create-baseline", action="store_true",
-                       help="Create new baseline policy snapshot")
-    parser.add_argument("--update-baseline", action="store_true",
-                       help="Update baseline to current policy state")
-    parser.add_argument("--check", action="store_true", default=True,
-                       help="Check current policy against baseline (default)")
-    parser.add_argument("--ci-mode", action="store_true",
-                       help="Run in CI mode with stricter validation")
-    parser.add_argument("--generate-approval", action="store_true",
-                       help="Generate approval template for changes")
-    parser.add_argument("--verbose", "-v", action="store_true",
-                       help="Enable verbose logging")
+    parser.add_argument(
+        "--create-baseline",
+        action="store_true",
+        help="Create new baseline policy snapshot",
+    )
+    parser.add_argument(
+        "--update-baseline",
+        action="store_true",
+        help="Update baseline to current policy state",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        default=True,
+        help="Check current policy against baseline (default)",
+    )
+    parser.add_argument(
+        "--ci-mode", action="store_true", help="Run in CI mode with stricter validation"
+    )
+    parser.add_argument(
+        "--generate-approval",
+        action="store_true",
+        help="Generate approval template for changes",
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose logging"
+    )
 
     args = parser.parse_args()
 
     # Configure logging
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING,
-        format="%(asctime)s - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(levelname)s - %(message)s",
     )
 
     # Configure gate
@@ -455,6 +502,7 @@ def main():
         logger.error(f"RBAC Policy Gate failed with error: {e}")
         print(f"❌ RBAC Policy Gate: ERROR - {e}")
         return 2
+
 
 if __name__ == "__main__":
     sys.exit(main())

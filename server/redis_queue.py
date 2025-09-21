@@ -346,9 +346,7 @@ def enqueue_memory_processing(
     )
 
 
-def enqueue_relevance_calculation(
-    user_id: str, context_id: str = None
-) -> str | None:
+def enqueue_relevance_calculation(user_id: str, context_id: str = None) -> str | None:
     """Enqueue relevance score calculation"""
     return queue_manager.enqueue_task(
         "analytics",

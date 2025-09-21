@@ -10,10 +10,10 @@ from .middleware import RedactionMiddleware, SecurityHeadersMiddleware
 from .redaction import ContextualRedactor, RedactionEngine, RedactionResult
 
 __all__ = [
-    'RedactionEngine',
-    'ContextualRedactor',
-    'RedactionResult',
-    'SecurityHeadersMiddleware',
-    'RedactionMiddleware',
-    'SecurityAlertManager'
+    "RedactionEngine",
+    "ContextualRedactor",
+    "RedactionResult",
+    "SecurityHeadersMiddleware",
+    "RedactionMiddleware",
+    "SecurityAlertManager",
 ]

@@ -17,6 +17,7 @@ def embed(text: str, dim: int = 8) -> list[float]:
         v[i % dim] += (ord(ch) % 97) / 97.0
     return v
 
+
 @dataclass
 class PGConfig:
     dsn: str
@@ -24,9 +25,13 @@ class PGConfig:
     dim: int = 8
     use_vectors: bool = True
 
+
 class PostgresStore:
     def __init__(self, cfg: PGConfig | None = None):
-        dsn = os.getenv("DATABASE_URL") or "postgresql://postgres:postgres@localhost:5432/postgres"
+        dsn = (
+            os.getenv("DATABASE_URL")
+            or "postgresql://postgres:postgres@localhost:5432/postgres"
+        )
         self.cfg = cfg or PGConfig(dsn=dsn)
 
     async def _conn(self):
@@ -120,7 +125,9 @@ class PostgresStore:
                 rows = await cur.fetchall()
         return rows
 
-    async def share(self, record_ids: Sequence[str], to_scope: str, target: dict[str, Any]) -> int:
+    async def share(
+        self, record_ids: Sequence[str], to_scope: str, target: dict[str, Any]
+    ) -> int:
         if not record_ids:
             return 0
         ids_tuple = tuple(record_ids)
@@ -132,7 +139,15 @@ class PostgresStore:
         """
         async with await self._conn() as conn:
             async with conn.cursor() as cur:
-                await cur.execute(sql, (ids_tuple,), {"to_scope": to_scope, "team_id": target.get("team_id"), "org_id": target.get("org_id")})
+                await cur.execute(
+                    sql,
+                    (ids_tuple,),
+                    {
+                        "to_scope": to_scope,
+                        "team_id": target.get("team_id"),
+                        "org_id": target.get("org_id"),
+                    },
+                )
                 count = cur.rowcount or 0
                 await conn.commit()
         return count

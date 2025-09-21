@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 class RetentionPolicy:
     days: int  # 0 for immediate discard
 
+
 class RetentionExecutor:
     def __init__(
         self,

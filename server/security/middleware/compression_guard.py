@@ -24,7 +24,7 @@ class CompressionGuardMiddleware:
         detector_fn: Callable[[str], str] | None = None,
         strict_mode: bool = True,
         allowed_encodings: set[str] | None = None,
-        max_decompressed_size: int = 10 * 1024 * 1024  # 10MB
+        max_decompressed_size: int = 10 * 1024 * 1024,  # 10MB
     ):
         self.app = app
         self.detector_fn = detector_fn
@@ -46,7 +46,7 @@ class CompressionGuardMiddleware:
                 response = Response(
                     content='{"error": "Compressed requests not allowed"}',
                     status_code=415,
-                    headers={"content-type": "application/json"}
+                    headers={"content-type": "application/json"},
                 )
                 await response(scope, receive, send)
                 return
@@ -89,7 +89,9 @@ def decompress_gzip(data: bytes, max_size: int = 10 * 1024 * 1024) -> bytes:
     try:
         decompressed = gzip.decompress(data)
         if len(decompressed) > max_size:
-            raise ValueError(f"Decompressed size {len(decompressed)} exceeds limit {max_size}")
+            raise ValueError(
+                f"Decompressed size {len(decompressed)} exceeds limit {max_size}"
+            )
         return decompressed
     except Exception as e:
         raise ValueError(f"Failed to decompress gzip data: {e}")
@@ -100,7 +102,9 @@ def decompress_deflate(data: bytes, max_size: int = 10 * 1024 * 1024) -> bytes:
     try:
         decompressed = zlib.decompress(data)
         if len(decompressed) > max_size:
-            raise ValueError(f"Decompressed size {len(decompressed)} exceeds limit {max_size}")
+            raise ValueError(
+                f"Decompressed size {len(decompressed)} exceeds limit {max_size}"
+            )
         return decompressed
     except Exception as e:
         raise ValueError(f"Failed to decompress deflate data: {e}")
@@ -109,7 +113,7 @@ def decompress_deflate(data: bytes, max_size: int = 10 * 1024 * 1024) -> bytes:
 def create_compression_guard(
     detector_fn: Callable[[str], str] | None = None,
     strict: bool = True,
-    allowed_encodings: set[str] | None = None
+    allowed_encodings: set[str] | None = None,
 ) -> type:
     """Factory function to create compression guard middleware."""
 
@@ -118,7 +122,7 @@ def create_compression_guard(
             app=app,
             detector_fn=detector_fn,
             strict_mode=strict,
-            allowed_encodings=allowed_encodings or set()
+            allowed_encodings=allowed_encodings or set(),
         )
 
     return middleware_factory
@@ -130,12 +134,9 @@ def strict_compression_guard(app: ASGIApp) -> CompressionGuardMiddleware:
 
 
 def permissive_compression_guard(
-    app: ASGIApp,
-    allowed_encodings: set[str] | None = None
+    app: ASGIApp, allowed_encodings: set[str] | None = None
 ) -> CompressionGuardMiddleware:
     """Permissive compression guard that allows specific encodings."""
     return CompressionGuardMiddleware(
-        app,
-        strict_mode=False,
-        allowed_encodings=allowed_encodings or {"gzip"}
+        app, strict_mode=False, allowed_encodings=allowed_encodings or {"gzip"}
     )

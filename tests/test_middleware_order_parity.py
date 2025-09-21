@@ -40,7 +40,9 @@ def test_middleware_order_parity():
     dev_chain = extract_middleware_chain(dev_app)
 
     # Compare chains
-    assert prod_chain == dev_chain, f"Middleware order mismatch:\nProd: {prod_chain}\nDev:  {dev_chain}"
+    assert (
+        prod_chain == dev_chain
+    ), f"Middleware order mismatch:\nProd: {prod_chain}\nDev:  {dev_chain}"
 
     # Verify expected middleware are present
     expected_middleware = [
@@ -48,16 +50,18 @@ def test_middleware_order_parity():
         "CompressionGuardMiddleware",
         "IdempotencyMiddleware",
         "RedactionASGIMiddleware",
-        "ResponseRedactionASGIMiddleware"
+        "ResponseRedactionASGIMiddleware",
     ]
 
     for expected in expected_middleware:
-        assert any(expected in mw for mw in prod_chain), f"Missing middleware: {expected}"
+        assert any(
+            expected in mw for mw in prod_chain
+        ), f"Missing middleware: {expected}"
 
     return {
         "test_passed": True,
         "middleware_count": len(prod_chain),
-        "chain_order": prod_chain
+        "chain_order": prod_chain,
     }
 
 
@@ -87,12 +91,14 @@ def test_security_bundle_consistency():
 
     for chain in chains:
         for base_mw in base_middleware:
-            assert any(base_mw in mw for mw in chain), f"Missing base middleware: {base_mw}"
+            assert any(
+                base_mw in mw for mw in chain
+            ), f"Missing base middleware: {base_mw}"
 
     return {
         "test_passed": True,
         "configurations_tested": len(configs),
-        "consistent_base_order": True
+        "consistent_base_order": True,
     }
 
 

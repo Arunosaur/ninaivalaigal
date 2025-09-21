@@ -20,7 +20,7 @@ def test_mcp_server_initialization():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        cwd="/Users/asrajag/Workspace/mem0/server"
+        cwd="/Users/asrajag/Workspace/mem0/server",
     )
 
     try:
@@ -32,11 +32,8 @@ def test_mcp_server_initialization():
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {
-                    "name": "test-client",
-                    "version": "1.0.0"
-                }
-            }
+                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+            },
         }
 
         # Send request
@@ -50,7 +47,9 @@ def test_mcp_server_initialization():
 
             if "result" in response:
                 print("✅ MCP server initialization successful")
-                print(f"Server capabilities: {response['result'].get('capabilities', {})}")
+                print(
+                    f"Server capabilities: {response['result'].get('capabilities', {})}"
+                )
                 return True
             else:
                 print(f"❌ Initialization failed: {response}")
@@ -66,6 +65,7 @@ def test_mcp_server_initialization():
         process.terminate()
         process.wait()
 
+
 def test_mcp_tools_list():
     """Test that MCP server returns available tools"""
     server_path = "/Users/asrajag/Workspace/mem0/server/mcp_server.py"
@@ -76,7 +76,7 @@ def test_mcp_tools_list():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        cwd="/Users/asrajag/Workspace/mem0/server"
+        cwd="/Users/asrajag/Workspace/mem0/server",
     )
 
     try:
@@ -88,8 +88,8 @@ def test_mcp_tools_list():
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"}
-            }
+                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+            },
         }
 
         process.stdin.write(json.dumps(init_request) + "\n")
@@ -101,7 +101,7 @@ def test_mcp_tools_list():
         # Send initialized notification (required by MCP protocol)
         initialized_notification = {
             "jsonrpc": "2.0",
-            "method": "notifications/initialized"
+            "method": "notifications/initialized",
         }
 
         process.stdin.write(json.dumps(initialized_notification) + "\n")
@@ -112,7 +112,7 @@ def test_mcp_tools_list():
             "jsonrpc": "2.0",
             "id": 2,
             "method": "tools/list",
-            "params": {}
+            "params": {},
         }
 
         process.stdin.write(json.dumps(tools_request) + "\n")
@@ -127,19 +127,23 @@ def test_mcp_tools_list():
                 tools = tools_response["result"]["tools"]
                 print(f"✅ Found {len(tools)} MCP tools:")
                 for tool in tools:
-                    print(f"  - {tool['name']}: {tool.get('description', 'No description')}")
+                    print(
+                        f"  - {tool['name']}: {tool.get('description', 'No description')}"
+                    )
 
                 # Check for expected tools
-                tool_names = [tool['name'] for tool in tools]
+                tool_names = [tool["name"] for tool in tools]
                 expected_tools = [
                     "context_start",
                     "remember",
                     "recall",
                     "list_contexts",
-                    "enhance_ai_prompt_tool"
+                    "enhance_ai_prompt_tool",
                 ]
 
-                missing_tools = [tool for tool in expected_tools if tool not in tool_names]
+                missing_tools = [
+                    tool for tool in expected_tools if tool not in tool_names
+                ]
                 if missing_tools:
                     print(f"⚠️  Missing expected tools: {missing_tools}")
                 else:
@@ -160,6 +164,7 @@ def test_mcp_tools_list():
         process.terminate()
         process.wait()
 
+
 def test_basic_memory_operation():
     """Test basic memory operations via MCP"""
     server_path = "/Users/asrajag/Workspace/mem0/server/mcp_server.py"
@@ -170,7 +175,7 @@ def test_basic_memory_operation():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        cwd="/Users/asrajag/Workspace/mem0/server"
+        cwd="/Users/asrajag/Workspace/mem0/server",
     )
 
     try:
@@ -182,8 +187,8 @@ def test_basic_memory_operation():
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"}
-            }
+                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+            },
         }
 
         process.stdin.write(json.dumps(init_request) + "\n")
@@ -193,7 +198,7 @@ def test_basic_memory_operation():
         # Send initialized notification
         initialized_notification = {
             "jsonrpc": "2.0",
-            "method": "notifications/initialized"
+            "method": "notifications/initialized",
         }
 
         process.stdin.write(json.dumps(initialized_notification) + "\n")
@@ -206,10 +211,8 @@ def test_basic_memory_operation():
             "method": "tools/call",
             "params": {
                 "name": "context_start",
-                "arguments": {
-                    "context_name": "test-context"
-                }
-            }
+                "arguments": {"context_name": "test-context"},
+            },
         }
 
         process.stdin.write(json.dumps(context_request) + "\n")
@@ -235,6 +238,7 @@ def test_basic_memory_operation():
         process.terminate()
         process.wait()
 
+
 def main():
     """Run all MCP server tests"""
     print("🧪 Testing MCP Server Functionality\n")
@@ -242,7 +246,7 @@ def main():
     tests = [
         ("MCP Server Initialization", test_mcp_server_initialization),
         ("MCP Tools List", test_mcp_tools_list),
-        ("Basic Memory Operation", test_basic_memory_operation)
+        ("Basic Memory Operation", test_basic_memory_operation),
     ]
 
     results = []
@@ -269,6 +273,7 @@ def main():
     else:
         print("⚠️  Some tests failed. Check the output above for details.")
         return 1
+
 
 if __name__ == "__main__":
     exit(main())

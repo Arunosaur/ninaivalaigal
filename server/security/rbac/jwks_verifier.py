@@ -18,6 +18,7 @@ from jwt.exceptions import InvalidKeyError, InvalidTokenError
 @dataclass
 class JWKSConfig:
     """JWKS configuration."""
+
     jwks_uri: str
     audience: str
     issuer: str
@@ -38,9 +39,7 @@ class JWKSVerifier:
 
         # Initialize PyJWKClient with caching
         self.jwks_client = PyJWKClient(
-            uri=config.jwks_uri,
-            cache_ttl=config.cache_ttl,
-            cache_jwks=True
+            uri=config.jwks_uri, cache_ttl=config.cache_ttl, cache_jwks=True
         )
 
         # Track key rotation events
@@ -50,7 +49,7 @@ class JWKSVerifier:
     async def verify_token(self, token: str) -> dict[str, Any]:
         """
         Verify JWT token with JWKS key rotation support.
-        
+
         Raises:
             InvalidTokenError: Token validation failed
             InvalidKeyError: Key not found or invalid
@@ -66,7 +65,9 @@ class JWKSVerifier:
             # Track key rotation
             if self._last_kid_seen and self._last_kid_seen != kid:
                 self._rotation_count += 1
-                self.logger.info(f"Key rotation detected: {self._last_kid_seen} -> {kid}")
+                self.logger.info(
+                    f"Key rotation detected: {self._last_kid_seen} -> {kid}"
+                )
 
             self._last_kid_seen = kid
 
@@ -85,14 +86,16 @@ class JWKSVerifier:
                     "verify_exp": True,
                     "verify_aud": True,
                     "verify_iss": True,
-                    "require": ["exp", "iat", "aud", "iss", "sub"]
-                }
+                    "require": ["exp", "iat", "aud", "iss", "sub"],
+                },
             )
 
             # Additional security checks
             self._validate_payload_security(payload)
 
-            self.logger.info(f"Token verified successfully for subject: {payload.get('sub')}")
+            self.logger.info(
+                f"Token verified successfully for subject: {payload.get('sub')}"
+            )
             return payload
 
         except InvalidTokenError as e:
@@ -119,17 +122,21 @@ class JWKSVerifier:
 
         # Check for suspicious claims
         if "admin" in payload.get("scope", "").lower():
-            self.logger.warning(f"Admin scope detected for subject: {payload.get('sub')}")
+            self.logger.warning(
+                f"Admin scope detected for subject: {payload.get('sub')}"
+            )
 
         # Validate subject format
         sub = payload.get("sub", "")
         if not sub or len(sub) < 3:
             raise InvalidTokenError("Invalid subject format")
 
-    async def verify_with_replay_guard(self, token: str, nonce: str | None = None) -> dict[str, Any]:
+    async def verify_with_replay_guard(
+        self, token: str, nonce: str | None = None
+    ) -> dict[str, Any]:
         """
         Verify token with replay attack protection.
-        
+
         For OAuth flows, validates nonce to prevent code replay.
         """
         payload = await self.verify_token(token)
@@ -147,7 +154,7 @@ class JWKSVerifier:
             "current_kid": self._last_kid_seen,
             "rotation_count": self._rotation_count,
             "cache_ttl": self.config.cache_ttl,
-            "jwks_uri": self.config.jwks_uri
+            "jwks_uri": self.config.jwks_uri,
         }
 
     async def prefetch_keys(self) -> None:
@@ -172,7 +179,9 @@ class JWKSVerifierPool:
         self.verifiers[issuer] = JWKSVerifier(config)
         self.logger.info(f"Added JWKS verifier for issuer: {issuer}")
 
-    async def verify_token(self, token: str, issuer: str | None = None) -> dict[str, Any]:
+    async def verify_token(
+        self, token: str, issuer: str | None = None
+    ) -> dict[str, Any]:
         """Verify token using appropriate verifier."""
 
         if issuer:
@@ -209,7 +218,7 @@ def configure_jwks_verifier(
     jwks_uri: str,
     audience: str,
     cache_ttl: int = 600,
-    algorithms: list[str] | None = None
+    algorithms: list[str] | None = None,
 ) -> None:
     """Configure JWKS verifier for issuer."""
     config = JWKSConfig(
@@ -217,7 +226,7 @@ def configure_jwks_verifier(
         audience=audience,
         issuer=issuer,
         cache_ttl=cache_ttl,
-        algorithms=algorithms
+        algorithms=algorithms,
     )
     _verifier_pool.add_verifier(issuer, config)
 
@@ -234,39 +243,35 @@ def get_jwks_stats() -> dict[str, Any]:
 
 # Test utilities
 def create_test_jwks_config(
-    issuer: str = "https://test.example.com",
-    audience: str = "test-audience"
+    issuer: str = "https://test.example.com", audience: str = "test-audience"
 ) -> JWKSConfig:
     """Create test JWKS configuration."""
     return JWKSConfig(
         jwks_uri=f"{issuer}/.well-known/jwks.json",
         audience=audience,
         issuer=issuer,
-        cache_ttl=300  # 5 minutes for testing
+        cache_ttl=300,  # 5 minutes for testing
     )
 
 
-async def test_jwks_rotation(verifier: JWKSVerifier, tokens: list[str]) -> dict[str, Any]:
+async def test_jwks_rotation(
+    verifier: JWKSVerifier, tokens: list[str]
+) -> dict[str, Any]:
     """Test JWKS key rotation with multiple tokens."""
     results = []
 
     for i, token in enumerate(tokens):
         try:
             payload = await verifier.verify_token(token)
-            results.append({
-                "token_index": i,
-                "success": True,
-                "subject": payload.get("sub"),
-                "kid": jwt.get_unverified_header(token).get("kid")
-            })
+            results.append(
+                {
+                    "token_index": i,
+                    "success": True,
+                    "subject": payload.get("sub"),
+                    "kid": jwt.get_unverified_header(token).get("kid"),
+                }
+            )
         except Exception as e:
-            results.append({
-                "token_index": i,
-                "success": False,
-                "error": str(e)
-            })
+            results.append({"token_index": i, "success": False, "error": str(e)})
 
-    return {
-        "test_results": results,
-        "rotation_stats": verifier.get_rotation_stats()
-    }
+    return {"test_results": results, "rotation_stats": verifier.get_rotation_stats()}

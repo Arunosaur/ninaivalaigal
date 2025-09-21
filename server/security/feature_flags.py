@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class FeatureFlag:
     """Individual feature flag configuration."""
+
     name: str
     enabled: bool
     description: str
@@ -32,8 +33,7 @@ class FeatureFlagManager:
 
     def __init__(self, config_file: str | None = None):
         self.config_file = config_file or os.getenv(
-            "FEATURE_FLAGS_CONFIG",
-            "/etc/ninaivalaigal/feature-flags.json"
+            "FEATURE_FLAGS_CONFIG", "/etc/ninaivalaigal/feature-flags.json"
         )
         self.flags: dict[str, FeatureFlag] = {}
         self.lock = Lock()
@@ -47,16 +47,36 @@ class FeatureFlagManager:
     def _initialize_default_flags(self):
         """Initialize default security feature flags."""
         default_flags = [
-            ("archive_checks_enabled", True, "Enable archive blocking on text endpoints"),
-            ("magic_byte_detection_enabled", True, "Enable magic byte detection for binaries"),
+            (
+                "archive_checks_enabled",
+                True,
+                "Enable archive blocking on text endpoints",
+            ),
+            (
+                "magic_byte_detection_enabled",
+                True,
+                "Enable magic byte detection for binaries",
+            ),
             ("unicode_normalization_enabled", True, "Enable Unicode normalization"),
-            ("compression_ratio_checks_enabled", True, "Enable compression ratio checks"),
+            (
+                "compression_ratio_checks_enabled",
+                True,
+                "Enable compression ratio checks",
+            ),
             ("filename_security_enabled", True, "Enable filename security validation"),
             ("multipart_size_limits_enabled", True, "Enable multipart size limits"),
             ("rbac_enforcement_enabled", True, "Enable RBAC permission enforcement"),
             ("log_scrubbing_enabled", True, "Enable sensitive data log scrubbing"),
-            ("idempotency_checks_enabled", True, "Enable idempotency replay protection"),
-            ("fail_closed_policy_enabled", True, "Enable fail-closed security policies"),
+            (
+                "idempotency_checks_enabled",
+                True,
+                "Enable idempotency replay protection",
+            ),
+            (
+                "fail_closed_policy_enabled",
+                True,
+                "Enable fail-closed security policies",
+            ),
         ]
 
         current_time = time.time()
@@ -67,7 +87,7 @@ class FeatureFlagManager:
                 description=description,
                 created_at=current_time,
                 updated_at=current_time,
-                updated_by="system_init"
+                updated_by="system_init",
             )
 
     def _load_from_file(self):
@@ -80,9 +100,15 @@ class FeatureFlagManager:
                 for name, flag_data in config_data.get("flags", {}).items():
                     if name in self.flags:
                         # Update existing flag
-                        self.flags[name].enabled = flag_data.get("enabled", self.flags[name].enabled)
-                        self.flags[name].updated_at = flag_data.get("updated_at", time.time())
-                        self.flags[name].updated_by = flag_data.get("updated_by", "config_file")
+                        self.flags[name].enabled = flag_data.get(
+                            "enabled", self.flags[name].enabled
+                        )
+                        self.flags[name].updated_at = flag_data.get(
+                            "updated_at", time.time()
+                        )
+                        self.flags[name].updated_by = flag_data.get(
+                            "updated_by", "config_file"
+                        )
 
                 logger.info(f"Loaded feature flags from {self.config_file}")
 
@@ -95,13 +121,11 @@ class FeatureFlagManager:
             os.makedirs(os.path.dirname(self.config_file), exist_ok=True)
 
             config_data = {
-                "flags": {
-                    name: asdict(flag) for name, flag in self.flags.items()
-                },
-                "last_updated": time.time()
+                "flags": {name: asdict(flag) for name, flag in self.flags.items()},
+                "last_updated": time.time(),
             }
 
-            with open(self.config_file, 'w') as f:
+            with open(self.config_file, "w") as f:
                 json.dump(config_data, f, indent=2)
 
             logger.info(f"Saved feature flags to {self.config_file}")
@@ -114,7 +138,9 @@ class FeatureFlagManager:
         with self.lock:
             flag = self.flags.get(flag_name)
             if flag is None:
-                logger.warning(f"Unknown feature flag: {flag_name}, defaulting to False")
+                logger.warning(
+                    f"Unknown feature flag: {flag_name}, defaulting to False"
+                )
                 return False
             return flag.enabled
 
@@ -144,9 +170,7 @@ class FeatureFlagManager:
     def get_all_flags(self) -> dict[str, dict[str, Any]]:
         """Get all feature flags with metadata."""
         with self.lock:
-            return {
-                name: asdict(flag) for name, flag in self.flags.items()
-            }
+            return {name: asdict(flag) for name, flag in self.flags.items()}
 
     def get_flag_status(self, flag_name: str) -> dict[str, Any] | None:
         """Get detailed status of a specific flag."""
@@ -154,7 +178,9 @@ class FeatureFlagManager:
             flag = self.flags.get(flag_name)
             return asdict(flag) if flag else None
 
-    def bulk_update(self, updates: dict[str, bool], updated_by: str = "bulk_api") -> dict[str, bool]:
+    def bulk_update(
+        self, updates: dict[str, bool], updated_by: str = "bulk_api"
+    ) -> dict[str, bool]:
         """Update multiple flags in a single operation."""
         results = {}
 
@@ -274,12 +300,14 @@ def get_feature_flag_health() -> dict[str, Any]:
     current_time = time.time()
     for name, flag in flags.items():
         if current_time - flag["updated_at"] < 300:  # 5 minutes
-            recent_changes.append({
-                "flag": name,
-                "enabled": flag["enabled"],
-                "updated_by": flag["updated_by"],
-                "updated_at": flag["updated_at"]
-            })
+            recent_changes.append(
+                {
+                    "flag": name,
+                    "enabled": flag["enabled"],
+                    "updated_by": flag["updated_by"],
+                    "updated_at": flag["updated_at"],
+                }
+            )
 
     return {
         "total_flags": total_count,
@@ -289,6 +317,6 @@ def get_feature_flag_health() -> dict[str, Any]:
         "critical_flags_status": {
             "archive_checks": is_enabled("archive_checks_enabled"),
             "rbac_enforcement": is_enabled("rbac_enforcement_enabled"),
-            "fail_closed_policy": is_enabled("fail_closed_policy_enabled")
-        }
+            "fail_closed_policy": is_enabled("fail_closed_policy_enabled"),
+        },
     }

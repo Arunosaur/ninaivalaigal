@@ -15,10 +15,10 @@ class EntropyCalculator:
     def calculate_shannon_entropy(text: str) -> float:
         """
         Calculate Shannon entropy of a string.
-        
+
         Args:
             text: Input string to analyze
-            
+
         Returns:
             Shannon entropy value (higher = more random/likely secret)
         """
@@ -42,10 +42,10 @@ class EntropyCalculator:
     def calculate_base64_entropy(text: str) -> float:
         """
         Calculate entropy specifically for base64-like strings.
-        
+
         Args:
             text: Input string to analyze
-            
+
         Returns:
             Adjusted entropy for base64 character set
         """
@@ -53,10 +53,12 @@ class EntropyCalculator:
             return 0.0
 
         # Base64 character set
-        base64_chars = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=')
+        base64_chars = set(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+        )
 
         # Filter to only base64 characters
-        filtered_text = ''.join(c for c in text if c in base64_chars)
+        filtered_text = "".join(c for c in text if c in base64_chars)
 
         if not filtered_text:
             return 0.0
@@ -67,10 +69,10 @@ class EntropyCalculator:
     def calculate_hex_entropy(text: str) -> float:
         """
         Calculate entropy for hexadecimal strings.
-        
+
         Args:
             text: Input string to analyze
-            
+
         Returns:
             Adjusted entropy for hex character set
         """
@@ -78,10 +80,10 @@ class EntropyCalculator:
             return 0.0
 
         # Hex character set
-        hex_chars = set('0123456789abcdefABCDEF')
+        hex_chars = set("0123456789abcdefABCDEF")
 
         # Filter to only hex characters
-        filtered_text = ''.join(c for c in text if c in hex_chars)
+        filtered_text = "".join(c for c in text if c in hex_chars)
 
         if not filtered_text:
             return 0.0
@@ -92,20 +94,20 @@ class EntropyCalculator:
     def get_entropy_metrics(text: str) -> dict[str, float]:
         """
         Get comprehensive entropy metrics for a string.
-        
+
         Args:
             text: Input string to analyze
-            
+
         Returns:
             Dictionary with various entropy measurements
         """
         return {
-            'shannon_entropy': EntropyCalculator.calculate_shannon_entropy(text),
-            'base64_entropy': EntropyCalculator.calculate_base64_entropy(text),
-            'hex_entropy': EntropyCalculator.calculate_hex_entropy(text),
-            'length': len(text),
-            'unique_chars': len(set(text)),
-            'char_diversity': len(set(text)) / len(text) if text else 0.0
+            "shannon_entropy": EntropyCalculator.calculate_shannon_entropy(text),
+            "base64_entropy": EntropyCalculator.calculate_base64_entropy(text),
+            "hex_entropy": EntropyCalculator.calculate_hex_entropy(text),
+            "length": len(text),
+            "unique_chars": len(set(text)),
+            "char_diversity": len(set(text)) / len(text) if text else 0.0,
         }
 
 

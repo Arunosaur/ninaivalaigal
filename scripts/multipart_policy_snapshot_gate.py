@@ -6,9 +6,11 @@ import sys
 BASELINE_FILE = "multipart_policy_baseline.json"
 APPROVAL_FILE = ".multipart_changes_approved"
 
+
 def compute_snapshot():
     config = {"UPLOAD_LIMIT": os.getenv("UPLOAD_LIMIT", "10MB")}
     return hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
+
 
 def main():
     snapshot = compute_snapshot()
@@ -29,6 +31,7 @@ def main():
         sys.exit(1)
     print("Policy unchanged.")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

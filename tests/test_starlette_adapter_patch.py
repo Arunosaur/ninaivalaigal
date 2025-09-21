@@ -21,8 +21,10 @@ class MockPart:
 
     def stream(self):
         """Return async iterator over stream data."""
+
         async def _stream():
             yield self._stream_data
+
         return _stream()
 
 
@@ -56,19 +58,23 @@ class TestStarletteAdapterPatch:
             for _ in range(DEFAULT_MAX_PARTS_PER_REQUEST + 5)
         ]
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = AsyncMock()
             mock_parser.parse.return_value = mock_parts
             mock_parser_class.return_value = mock_parser
 
-            with patch('server.security.multipart.starlette_adapter.enforce_part_limits_stream') as mock_enforce:
+            with patch(
+                "server.security.multipart.starlette_adapter.enforce_part_limits_stream"
+            ) as mock_enforce:
                 mock_enforce.return_value = (b"test", AsyncMock())
 
                 with pytest.raises(HTTPException) as exc_info:
                     await scan_with_starlette(
                         mock_request,
                         text_handler,
-                        max_parts_per_request=DEFAULT_MAX_PARTS_PER_REQUEST
+                        max_parts_per_request=DEFAULT_MAX_PARTS_PER_REQUEST,
                     )
 
                 assert exc_info.value.status_code == 413
@@ -79,13 +85,17 @@ class TestStarletteAdapterPatch:
         """Test that part size limiter blocks oversized parts."""
         mock_part = MockPart({"content-type": "text/plain"}, b"test data")
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = AsyncMock()
             mock_parser.parse.return_value = [mock_part]
             mock_parser_class.return_value = mock_parser
 
             # Mock enforce_part_limits_stream to raise ValueError (size exceeded)
-            with patch('server.security.multipart.starlette_adapter.enforce_part_limits_stream') as mock_enforce:
+            with patch(
+                "server.security.multipart.starlette_adapter.enforce_part_limits_stream"
+            ) as mock_enforce:
                 mock_enforce.side_effect = ValueError("Part too large")
 
                 with pytest.raises(HTTPException) as exc_info:
@@ -101,15 +111,21 @@ class TestStarletteAdapterPatch:
         zip_data = b"PK\x03\x04" + b"fake zip content"
         mock_part = MockPart({"content-type": "text/plain"}, zip_data)
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = AsyncMock()
             mock_parser.parse.return_value = [mock_part]
             mock_parser_class.return_value = mock_parser
 
-            with patch('server.security.multipart.starlette_adapter.enforce_part_limits_stream') as mock_enforce:
+            with patch(
+                "server.security.multipart.starlette_adapter.enforce_part_limits_stream"
+            ) as mock_enforce:
                 mock_enforce.return_value = (zip_data, AsyncMock())
 
-                with patch('server.security.multipart.starlette_adapter.disallow_archives_for_text') as mock_archive_check:
+                with patch(
+                    "server.security.multipart.starlette_adapter.disallow_archives_for_text"
+                ) as mock_archive_check:
                     mock_archive_check.return_value = True
 
                     with pytest.raises(HTTPException) as exc_info:
@@ -125,18 +141,26 @@ class TestStarletteAdapterPatch:
         binary_data = b"\x89PNG\r\n\x1a\n" + b"fake png data"
         mock_part = MockPart({"content-type": "text/plain"}, binary_data)
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = AsyncMock()
             mock_parser.parse.return_value = [mock_part]
             mock_parser_class.return_value = mock_parser
 
-            with patch('server.security.multipart.starlette_adapter.enforce_part_limits_stream') as mock_enforce:
+            with patch(
+                "server.security.multipart.starlette_adapter.enforce_part_limits_stream"
+            ) as mock_enforce:
                 mock_enforce.return_value = (binary_data, AsyncMock())
 
-                with patch('server.security.multipart.starlette_adapter.disallow_archives_for_text') as mock_archive_check:
+                with patch(
+                    "server.security.multipart.starlette_adapter.disallow_archives_for_text"
+                ) as mock_archive_check:
                     mock_archive_check.return_value = False
 
-                    with patch('server.security.multipart.starlette_adapter.looks_binary') as mock_binary_check:
+                    with patch(
+                        "server.security.multipart.starlette_adapter.looks_binary"
+                    ) as mock_binary_check:
                         mock_binary_check.return_value = True
 
                         with pytest.raises(HTTPException) as exc_info:
@@ -146,28 +170,40 @@ class TestStarletteAdapterPatch:
                         assert "content-type mismatch" in exc_info.value.detail
 
     @pytest.mark.asyncio
-    async def test_content_transfer_encoding_rejection(self, mock_request, text_handler):
+    async def test_content_transfer_encoding_rejection(
+        self, mock_request, text_handler
+    ):
         """Test rejection of prohibited Content-Transfer-Encoding."""
-        mock_part = MockPart({
-            "content-type": "text/plain",
-            "content-transfer-encoding": "base64"
-        }, b"dGVzdCBkYXRh")  # "test data" in base64
+        mock_part = MockPart(
+            {"content-type": "text/plain", "content-transfer-encoding": "base64"},
+            b"dGVzdCBkYXRh",
+        )  # "test data" in base64
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = AsyncMock()
             mock_parser.parse.return_value = [mock_part]
             mock_parser_class.return_value = mock_parser
 
-            with patch('server.security.multipart.starlette_adapter.enforce_part_limits_stream') as mock_enforce:
+            with patch(
+                "server.security.multipart.starlette_adapter.enforce_part_limits_stream"
+            ) as mock_enforce:
                 mock_enforce.return_value = (b"test data", AsyncMock())
 
-                with patch('server.security.multipart.starlette_adapter.disallow_archives_for_text') as mock_archive_check:
+                with patch(
+                    "server.security.multipart.starlette_adapter.disallow_archives_for_text"
+                ) as mock_archive_check:
                     mock_archive_check.return_value = False
 
-                    with patch('server.security.multipart.starlette_adapter.looks_binary') as mock_binary_check:
+                    with patch(
+                        "server.security.multipart.starlette_adapter.looks_binary"
+                    ) as mock_binary_check:
                         mock_binary_check.return_value = False
 
-                        with patch('server.security.multipart.starlette_adapter.reject_content_transfer_encoding') as mock_cte_check:
+                        with patch(
+                            "server.security.multipart.starlette_adapter.reject_content_transfer_encoding"
+                        ) as mock_cte_check:
                             mock_cte_check.side_effect = ValueError("Invalid CTE")
 
                             with pytest.raises(HTTPException) as exc_info:
@@ -183,28 +219,44 @@ class TestStarletteAdapterPatch:
         invalid_utf8 = b"\xff\xfe\x00\x00invalid utf8"
         mock_part = MockPart({"content-type": "text/plain"}, invalid_utf8)
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = AsyncMock()
             mock_parser.parse.return_value = [mock_part]
             mock_parser_class.return_value = mock_parser
 
-            with patch('server.security.multipart.starlette_adapter.enforce_part_limits_stream') as mock_enforce:
+            with patch(
+                "server.security.multipart.starlette_adapter.enforce_part_limits_stream"
+            ) as mock_enforce:
                 mock_enforce.return_value = (invalid_utf8, AsyncMock())
 
-                with patch('server.security.multipart.starlette_adapter.disallow_archives_for_text') as mock_archive_check:
+                with patch(
+                    "server.security.multipart.starlette_adapter.disallow_archives_for_text"
+                ) as mock_archive_check:
                     mock_archive_check.return_value = False
 
-                    with patch('server.security.multipart.starlette_adapter.looks_binary') as mock_binary_check:
+                    with patch(
+                        "server.security.multipart.starlette_adapter.looks_binary"
+                    ) as mock_binary_check:
                         mock_binary_check.return_value = False
 
-                        with patch('server.security.multipart.starlette_adapter.reject_content_transfer_encoding') as mock_cte_check:
+                        with patch(
+                            "server.security.multipart.starlette_adapter.reject_content_transfer_encoding"
+                        ) as mock_cte_check:
                             mock_cte_check.return_value = None
 
-                            with patch('server.security.multipart.starlette_adapter.require_utf8_text') as mock_utf8_check:
-                                mock_utf8_check.side_effect = ValueError("Invalid UTF-8")
+                            with patch(
+                                "server.security.multipart.starlette_adapter.require_utf8_text"
+                            ) as mock_utf8_check:
+                                mock_utf8_check.side_effect = ValueError(
+                                    "Invalid UTF-8"
+                                )
 
                                 with pytest.raises(HTTPException) as exc_info:
-                                    await scan_with_starlette(mock_request, text_handler)
+                                    await scan_with_starlette(
+                                        mock_request, text_handler
+                                    )
 
                                 assert exc_info.value.status_code == 415
                                 assert "UTF-8" in exc_info.value.detail
@@ -213,57 +265,86 @@ class TestStarletteAdapterPatch:
     async def test_successful_text_processing(self, mock_request, text_handler):
         """Test successful processing of valid text part."""
         valid_text = "Hello, world! 🌍"
-        mock_part = MockPart({"content-type": "text/plain"}, valid_text.encode('utf-8'))
+        mock_part = MockPart({"content-type": "text/plain"}, valid_text.encode("utf-8"))
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = AsyncMock()
             mock_parser.parse.return_value = [mock_part]
             mock_parser_class.return_value = mock_parser
 
-            with patch('server.security.multipart.starlette_adapter.enforce_part_limits_stream') as mock_enforce:
+            with patch(
+                "server.security.multipart.starlette_adapter.enforce_part_limits_stream"
+            ) as mock_enforce:
+
                 async def mock_rest_iter():
                     yield b""  # Empty chunk to test streaming
 
-                mock_enforce.return_value = (valid_text.encode('utf-8'), mock_rest_iter())
+                mock_enforce.return_value = (
+                    valid_text.encode("utf-8"),
+                    mock_rest_iter(),
+                )
 
-                with patch('server.security.multipart.starlette_adapter.disallow_archives_for_text') as mock_archive_check:
+                with patch(
+                    "server.security.multipart.starlette_adapter.disallow_archives_for_text"
+                ) as mock_archive_check:
                     mock_archive_check.return_value = False
 
-                    with patch('server.security.multipart.starlette_adapter.looks_binary') as mock_binary_check:
+                    with patch(
+                        "server.security.multipart.starlette_adapter.looks_binary"
+                    ) as mock_binary_check:
                         mock_binary_check.return_value = False
 
-                        with patch('server.security.multipart.starlette_adapter.reject_content_transfer_encoding') as mock_cte_check:
+                        with patch(
+                            "server.security.multipart.starlette_adapter.reject_content_transfer_encoding"
+                        ) as mock_cte_check:
                             mock_cte_check.return_value = None
 
-                            with patch('server.security.multipart.starlette_adapter.require_utf8_text') as mock_utf8_check:
+                            with patch(
+                                "server.security.multipart.starlette_adapter.require_utf8_text"
+                            ) as mock_utf8_check:
                                 mock_utf8_check.return_value = None
 
                                 await scan_with_starlette(mock_request, text_handler)
 
                                 # Verify text handler was called with decoded text
-                                text_handler.assert_called_with(valid_text, {"content-type": "text/plain"})
+                                text_handler.assert_called_with(
+                                    valid_text, {"content-type": "text/plain"}
+                                )
 
     @pytest.mark.asyncio
-    async def test_successful_binary_processing(self, mock_request, text_handler, binary_handler):
+    async def test_successful_binary_processing(
+        self, mock_request, text_handler, binary_handler
+    ):
         """Test successful processing of valid binary part."""
         binary_data = b"\x89PNG\r\n\x1a\n" + b"fake png data"
         mock_part = MockPart({"content-type": "image/png"}, binary_data)
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = AsyncMock()
             mock_parser.parse.return_value = [mock_part]
             mock_parser_class.return_value = mock_parser
 
-            with patch('server.security.multipart.starlette_adapter.enforce_part_limits_stream') as mock_enforce:
+            with patch(
+                "server.security.multipart.starlette_adapter.enforce_part_limits_stream"
+            ) as mock_enforce:
+
                 async def mock_rest_iter():
                     yield b"additional data"
 
                 mock_enforce.return_value = (binary_data, mock_rest_iter())
 
-                with patch('server.security.multipart.starlette_adapter.looks_binary') as mock_binary_check:
+                with patch(
+                    "server.security.multipart.starlette_adapter.looks_binary"
+                ) as mock_binary_check:
                     mock_binary_check.return_value = True
 
-                    await scan_with_starlette(mock_request, text_handler, binary_handler)
+                    await scan_with_starlette(
+                        mock_request, text_handler, binary_handler
+                    )
 
                     # Verify binary handler was called
                     binary_handler.assert_called_once()
@@ -274,7 +355,9 @@ class TestStarletteAdapterPatch:
     @pytest.mark.asyncio
     async def test_malformed_multipart_handling(self, mock_request, text_handler):
         """Test handling of malformed multipart requests."""
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser_class.side_effect = ValueError("Malformed multipart")
 
             with pytest.raises(HTTPException) as exc_info:
@@ -288,24 +371,36 @@ class TestStarletteAdapterPatch:
         """Test adapter with custom limits."""
         mock_part = MockPart({"content-type": "text/plain"}, b"test")
 
-        with patch('server.security.multipart.starlette_adapter.MultiPartParser') as mock_parser_class:
+        with patch(
+            "server.security.multipart.starlette_adapter.MultiPartParser"
+        ) as mock_parser_class:
             mock_parser = AsyncMock()
             mock_parser.parse.return_value = [mock_part]
             mock_parser_class.return_value = mock_parser
 
-            with patch('server.security.multipart.starlette_adapter.enforce_part_limits_stream') as mock_enforce:
+            with patch(
+                "server.security.multipart.starlette_adapter.enforce_part_limits_stream"
+            ) as mock_enforce:
                 mock_enforce.return_value = (b"test", AsyncMock())
 
-                with patch('server.security.multipart.starlette_adapter.disallow_archives_for_text') as mock_archive_check:
+                with patch(
+                    "server.security.multipart.starlette_adapter.disallow_archives_for_text"
+                ) as mock_archive_check:
                     mock_archive_check.return_value = False
 
-                    with patch('server.security.multipart.starlette_adapter.looks_binary') as mock_binary_check:
+                    with patch(
+                        "server.security.multipart.starlette_adapter.looks_binary"
+                    ) as mock_binary_check:
                         mock_binary_check.return_value = False
 
-                        with patch('server.security.multipart.starlette_adapter.reject_content_transfer_encoding') as mock_cte_check:
+                        with patch(
+                            "server.security.multipart.starlette_adapter.reject_content_transfer_encoding"
+                        ) as mock_cte_check:
                             mock_cte_check.return_value = None
 
-                            with patch('server.security.multipart.starlette_adapter.require_utf8_text') as mock_utf8_check:
+                            with patch(
+                                "server.security.multipart.starlette_adapter.require_utf8_text"
+                            ) as mock_utf8_check:
                                 mock_utf8_check.return_value = None
 
                                 await scan_with_starlette(
@@ -313,11 +408,13 @@ class TestStarletteAdapterPatch:
                                     text_handler,
                                     max_text_part_bytes=1024,
                                     max_binary_part_bytes=2048,
-                                    max_parts_per_request=10
+                                    max_parts_per_request=10,
                                 )
 
                                 # Verify enforce_part_limits_stream was called with text limit
-                                mock_enforce.assert_called_with(mock_part.stream(), max_part_bytes=1024)
+                                mock_enforce.assert_called_with(
+                                    mock_part.stream(), max_part_bytes=1024
+                                )
 
 
 if __name__ == "__main__":

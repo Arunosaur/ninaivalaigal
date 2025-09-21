@@ -66,14 +66,18 @@ class TestMachoAndJavaDetection:
 
         # Mach-O should be blocked
         macho_content = b"\xcf\xfa\xed\xfe" + b"fake_macho" * 100
-        result = enforce_part_limits_buffer(macho_content, "application/octet-stream", config=config)
+        result = enforce_part_limits_buffer(
+            macho_content, "application/octet-stream", config=config
+        )
 
         assert result["valid"] is False
         assert any(v["type"] == "executable_blocked" for v in result["violations"])
 
         # Java class should be blocked
         java_content = b"\xca\xfe\xba\xbe" + b"fake_class" * 100
-        result = enforce_part_limits_buffer(java_content, "application/octet-stream", config=config)
+        result = enforce_part_limits_buffer(
+            java_content, "application/octet-stream", config=config
+        )
 
         assert result["valid"] is False
         assert any(v["type"] == "executable_blocked" for v in result["violations"])
@@ -128,33 +132,37 @@ class TestArchiveBlockingForText:
         magic_result = {
             "detected": True,
             "detected_type": "application/zip",
-            "is_archive": True
+            "is_archive": True,
         }
 
         result = disallow_archives_for_text(magic_result, "text/plain")
 
         assert result["valid"] is False
-        assert any(v["type"] == "archive_blocked_for_text" for v in result["violations"])
+        assert any(
+            v["type"] == "archive_blocked_for_text" for v in result["violations"]
+        )
 
     def test_gzip_blocked_for_json_endpoint(self):
         """Test GZIP archive blocked for JSON endpoint."""
         magic_result = {
             "detected": True,
             "detected_type": "application/gzip",
-            "is_archive": True
+            "is_archive": True,
         }
 
         result = disallow_archives_for_text(magic_result, "application/json")
 
         assert result["valid"] is False
-        assert any(v["type"] == "archive_blocked_for_text" for v in result["violations"])
+        assert any(
+            v["type"] == "archive_blocked_for_text" for v in result["violations"]
+        )
 
     def test_archive_allowed_for_binary_endpoint(self):
         """Test archive allowed for binary endpoint."""
         magic_result = {
             "detected": True,
             "detected_type": "application/zip",
-            "is_archive": True
+            "is_archive": True,
         }
 
         result = disallow_archives_for_text(magic_result, "application/octet-stream")
@@ -171,7 +179,9 @@ class TestArchiveBlockingForText:
         result = enforce_part_limits_buffer(zip_content, "text/plain", config=config)
 
         assert result["valid"] is False
-        assert any(v["type"] == "archive_blocked_for_text" for v in result["violations"])
+        assert any(
+            v["type"] == "archive_blocked_for_text" for v in result["violations"]
+        )
 
 
 class TestUTF8OnlyPolicy:
@@ -188,7 +198,7 @@ class TestUTF8OnlyPolicy:
 
     def test_utf16_bom_rejected(self):
         """Test UTF-16 BOM is rejected."""
-        utf16_content = "hello".encode('utf-16')
+        utf16_content = "hello".encode("utf-16")
         result = require_utf8_text(utf16_content)
 
         assert result["valid"] is False
@@ -197,7 +207,9 @@ class TestUTF8OnlyPolicy:
 
     def test_invalid_utf8_rejected(self):
         """Test invalid UTF-8 bytes are rejected."""
-        invalid_utf8 = b"\xff\xfe\x00\x48\x00\x65\x00\x6c\x00\x6c\x00\x6f"  # UTF-16 content
+        invalid_utf8 = (
+            b"\xff\xfe\x00\x48\x00\x65\x00\x6c\x00\x6c\x00\x6f"  # UTF-16 content
+        )
         result = require_utf8_text(invalid_utf8)
 
         assert result["valid"] is False
@@ -219,7 +231,7 @@ class TestUTF8OnlyPolicy:
         config = HardenedPartLimitConfig(require_utf8_text=True)
 
         # UTF-16 content should be rejected for text parts
-        utf16_content = "hello world".encode('utf-16')
+        utf16_content = "hello world".encode("utf-16")
         result = enforce_part_limits_buffer(utf16_content, "text/plain", config=config)
 
         assert result["valid"] is False
@@ -245,7 +257,10 @@ class TestContentTransferEncodingGuard:
         result = reject_content_transfer_encoding("base64")
 
         assert result["valid"] is False
-        assert any(v["type"] == "blocked_content_transfer_encoding" for v in result["violations"])
+        assert any(
+            v["type"] == "blocked_content_transfer_encoding"
+            for v in result["violations"]
+        )
         assert any(v["encoding"] == "base64" for v in result["violations"])
 
     def test_quoted_printable_rejected(self):
@@ -253,7 +268,10 @@ class TestContentTransferEncodingGuard:
         result = reject_content_transfer_encoding("quoted-printable")
 
         assert result["valid"] is False
-        assert any(v["type"] == "blocked_content_transfer_encoding" for v in result["violations"])
+        assert any(
+            v["type"] == "blocked_content_transfer_encoding"
+            for v in result["violations"]
+        )
 
     def test_7bit_8bit_rejected(self):
         """Test 7bit and 8bit encodings are rejected."""
@@ -277,14 +295,14 @@ class TestContentTransferEncodingGuard:
         # base64 CTE should be rejected for text parts
         text_content = b"Hello, world!"
         result = enforce_part_limits_buffer(
-            text_content,
-            "text/plain",
-            config=config,
-            cte_header="base64"
+            text_content, "text/plain", config=config, cte_header="base64"
         )
 
         assert result["valid"] is False
-        assert any(v["type"] == "blocked_content_transfer_encoding" for v in result["violations"])
+        assert any(
+            v["type"] == "blocked_content_transfer_encoding"
+            for v in result["violations"]
+        )
 
 
 class TestStreamTimeLimitEnforcement:
@@ -409,10 +427,7 @@ class TestIntegrationScenarios:
         # Mach-O binary disguised as text
         macho_content = b"\xcf\xfa\xed\xfe" + b"malicious_payload" * 100
         result = enforce_part_limits_buffer(
-            macho_content,
-            "text/plain",
-            "innocent.txt",
-            config
+            macho_content, "text/plain", "innocent.txt", config
         )
 
         assert result["valid"] is False
@@ -427,15 +442,14 @@ class TestIntegrationScenarios:
         # Attempt to bypass with base64 encoding
         text_content = b"This looks like innocent text content"
         result = enforce_part_limits_buffer(
-            text_content,
-            "text/plain",
-            "data.txt",
-            config,
-            cte_header="base64"
+            text_content, "text/plain", "data.txt", config, cte_header="base64"
         )
 
         assert result["valid"] is False
-        assert any(v["type"] == "blocked_content_transfer_encoding" for v in result["violations"])
+        assert any(
+            v["type"] == "blocked_content_transfer_encoding"
+            for v in result["violations"]
+        )
 
     def test_comprehensive_validation_pass(self):
         """Test legitimate upload passes all validations."""
@@ -444,10 +458,7 @@ class TestIntegrationScenarios:
         # Legitimate UTF-8 text content
         text_content = b"Hello, world! This is valid UTF-8 text."
         result = enforce_part_limits_buffer(
-            text_content,
-            "text/plain",
-            "document.txt",
-            config
+            text_content, "text/plain", "document.txt", config
         )
 
         assert result["valid"] is True

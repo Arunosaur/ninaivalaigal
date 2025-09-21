@@ -18,26 +18,29 @@ import jwt
 def setup_environment():
     """Set up test environment with JWT secret and token"""
     # Set JWT secret
-    os.environ['MEM0_JWT_SECRET'] = 'dev-secret-key-change-in-production'
+    os.environ["MEM0_JWT_SECRET"] = "dev-secret-key-change-in-production"
 
     # Create test JWT token
     test_payload = {
-        'user_id': 8,
-        'email': 'durai@example.com',
-        'account_type': 'individual',
-        'role': 'user',
-        'exp': int((datetime.utcnow() + timedelta(hours=24)).timestamp())
+        "user_id": 8,
+        "email": "durai@example.com",
+        "account_type": "individual",
+        "role": "user",
+        "exp": int((datetime.utcnow() + timedelta(hours=24)).timestamp()),
     }
 
-    token = jwt.encode(test_payload, 'dev-secret-key-change-in-production', algorithm='HS256')
-    os.environ['NINAIVALAIGAL_USER_TOKEN'] = token
+    token = jwt.encode(
+        test_payload, "dev-secret-key-change-in-production", algorithm="HS256"
+    )
+    os.environ["NINAIVALAIGAL_USER_TOKEN"] = token
 
     print("✅ Environment configured with JWT token")
     return token
 
+
 def ensure_test_user_exists():
     """Ensure test user exists in database"""
-    db_path = '/Users/asrajag/Workspace/mem0/server/mem0.db'
+    db_path = "/Users/asrajag/Workspace/mem0/server/mem0.db"
 
     if not os.path.exists(db_path):
         print("❌ Database not found, please start the server first")
@@ -47,16 +50,19 @@ def ensure_test_user_exists():
     cursor = conn.cursor()
 
     # Check if user exists
-    cursor.execute('SELECT id FROM users WHERE id = 8')
+    cursor.execute("SELECT id FROM users WHERE id = 8")
     user = cursor.fetchone()
 
     if not user:
         # Create test user
-        password_hash = hashlib.sha256(b'testpass123').hexdigest()
-        cursor.execute('''
+        password_hash = hashlib.sha256(b"testpass123").hexdigest()
+        cursor.execute(
+            """
         INSERT INTO users (id, username, email, name, password_hash, account_type, role, is_active)
         VALUES (8, 'durai', 'durai@example.com', 'Durai', ?, 'individual', 'user', 1)
-        ''', (password_hash,))
+        """,
+            (password_hash,),
+        )
         conn.commit()
         print("✅ Test user created")
     else:
@@ -64,6 +70,7 @@ def ensure_test_user_exists():
 
     conn.close()
     return True
+
 
 def run_cli_command(command):
     """Run CLI command and return result"""
@@ -73,11 +80,12 @@ def run_cli_command(command):
             shell=True,
             capture_output=True,
             text=True,
-            cwd='/Users/asrajag/Workspace/mem0'
+            cwd="/Users/asrajag/Workspace/mem0",
         )
         return result.returncode == 0, result.stdout, result.stderr
     except Exception as e:
         return False, "", str(e)
+
 
 def test_jwt_authentication():
     """Test complete JWT authentication flow"""
@@ -111,8 +119,12 @@ def test_jwt_authentication():
 
     # Test 3: Store memory
     print("\n3. Testing remember command...")
-    memory_data = json.dumps({"type": "test", "data": {"message": "JWT auth test successful"}})
-    success, stdout, stderr = run_cli_command(f"eM remember '{memory_data}' --context jwt-test")
+    memory_data = json.dumps(
+        {"type": "test", "data": {"message": "JWT auth test successful"}}
+    )
+    success, stdout, stderr = run_cli_command(
+        f"eM remember '{memory_data}' --context jwt-test"
+    )
     if success and "Memory entry recorded" in stdout:
         print("✅ Remember command successful")
     else:
@@ -149,14 +161,15 @@ def test_jwt_authentication():
     print("\n🎉 All JWT authentication tests passed!")
     return True
 
+
 def test_without_jwt():
     """Test that commands fail without JWT token"""
     print("\n🚫 Testing without JWT token (should fail)")
     print("=" * 50)
 
     # Remove JWT token
-    if 'NINAIVALAIGAL_USER_TOKEN' in os.environ:
-        del os.environ['NINAIVALAIGAL_USER_TOKEN']
+    if "NINAIVALAIGAL_USER_TOKEN" in os.environ:
+        del os.environ["NINAIVALAIGAL_USER_TOKEN"]
 
     success, stdout, stderr = run_cli_command("eM contexts")
     if not success and ("401" in stderr or "Unauthorized" in stderr):
@@ -165,6 +178,7 @@ def test_without_jwt():
     else:
         print("❌ Commands should fail without JWT token but didn't")
         return False
+
 
 def main():
     """Main test function"""
@@ -187,6 +201,7 @@ def main():
     else:
         print("❌ SOME TESTS FAILED - JWT Authentication needs fixes")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

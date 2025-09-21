@@ -29,13 +29,14 @@ def app_with_bundle():
     async def secrets_endpoint():
         return {
             "openai_key": "sk-1234567890abcdef1234567890abcdef12345678",
-            "message": "Hello world"
+            "message": "Hello world",
         }
 
     # Apply security bundle
     SecurityBundle.apply(app, detector_fn=detector_fn)
 
     return app
+
 
 @pytest.fixture
 def app_with_single_middleware():
@@ -48,32 +49,32 @@ def app_with_single_middleware():
 
     @app.get("/secrets")
     async def secrets_endpoint():
-        return {
-            "openai_key": "sk-1234567890abcdef1234567890abcdef12345678"
-        }
+        return {"openai_key": "sk-1234567890abcdef1234567890abcdef12345678"}
 
     # Add single combined middleware
     app.add_middleware(SecurityBundleMiddleware, detector_fn=detector_fn)
 
     return app
 
+
 @pytest.fixture
 def client_bundle(app_with_bundle):
     """Create test client for bundle app"""
     return TestClient(app_with_bundle)
+
 
 @pytest.fixture
 def client_single(app_with_single_middleware):
     """Create test client for single middleware app"""
     return TestClient(app_with_single_middleware)
 
-class TestSecurityBundle:
 
+class TestSecurityBundle:
     def test_request_redaction_with_bundle(self, client_bundle):
         """Test request redaction works with SecurityBundle"""
         payload = {
             "message": "Here is my API key: sk-1234567890abcdef1234567890abcdef12345678",
-            "user": "test@example.com"
+            "user": "test@example.com",
         }
 
         response = client_bundle.post("/echo", json=payload)
@@ -96,9 +97,11 @@ class TestSecurityBundle:
 
     def test_content_type_rejection(self, client_bundle):
         """Test content-type guard rejects binary content"""
-        response = client_bundle.post("/test",
-                                    data=b"binary data with secret sk-1234567890abcdef1234567890abcdef12345678",
-                                    headers={"Content-Type": "application/octet-stream"})
+        response = client_bundle.post(
+            "/test",
+            data=b"binary data with secret sk-1234567890abcdef1234567890abcdef12345678",
+            headers={"Content-Type": "application/octet-stream"},
+        )
 
         assert response.status_code == 415  # Unsupported Media Type
 
@@ -116,18 +119,20 @@ class TestSecurityBundle:
         assert response.status_code == 200
 
         # Form data should be allowed
-        response = client_bundle.post("/test",
-                                    data="message=hello",
-                                    headers={"Content-Type": "application/x-www-form-urlencoded"})
+        response = client_bundle.post(
+            "/test",
+            data="message=hello",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
         assert response.status_code == 200
 
-class TestSecurityBundleMiddleware:
 
+class TestSecurityBundleMiddleware:
     def test_single_middleware_request_redaction(self, client_single):
         """Test request redaction with single middleware"""
         payload = {
             "secret": "sk-1234567890abcdef1234567890abcdef12345678",
-            "normal": "data"
+            "normal": "data",
         }
 
         response = client_single.post("/test", json=payload)
@@ -146,14 +151,14 @@ class TestSecurityBundleMiddleware:
 
     def test_single_middleware_content_type_guard(self, client_single):
         """Test content-type guard in single middleware"""
-        response = client_single.post("/test",
-                                    data=b"binary data",
-                                    headers={"Content-Type": "image/jpeg"})
+        response = client_single.post(
+            "/test", data=b"binary data", headers={"Content-Type": "image/jpeg"}
+        )
 
         assert response.status_code == 415
 
-class TestAdvancedSecurityFeatures:
 
+class TestAdvancedSecurityFeatures:
     def test_chunked_request_redaction(self, client_bundle):
         """Test redaction works with chunked requests"""
         # Simulate a large request that would be chunked
@@ -190,15 +195,17 @@ class TestAdvancedSecurityFeatures:
         assert json_response.status_code == 200
 
         # Form data request
-        form_response = client_bundle.post("/test",
-                                         data="type=form",
-                                         headers={"Content-Type": "application/x-www-form-urlencoded"})
+        form_response = client_bundle.post(
+            "/test",
+            data="type=form",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
         assert form_response.status_code == 200
 
         # Binary request (should be rejected)
-        binary_response = client_bundle.post("/test",
-                                           data=b"binary",
-                                           headers={"Content-Type": "application/pdf"})
+        binary_response = client_bundle.post(
+            "/test", data=b"binary", headers={"Content-Type": "application/pdf"}
+        )
         assert binary_response.status_code == 415
 
     def test_empty_and_malformed_requests(self, client_bundle):
@@ -216,7 +223,7 @@ class TestAdvancedSecurityFeatures:
         unicode_payload = {
             "message": "Hello 世界! Secret: sk-1234567890abcdef1234567890abcdef12345678",
             "emoji": "🔒🛡️🔐",
-            "special": "àáâãäåæçèéêë"
+            "special": "àáâãäåæçèéêë",
         }
 
         response = client_bundle.post("/test", json=unicode_payload)
@@ -226,4 +233,4 @@ class TestAdvancedSecurityFeatures:
         # Secret should be redacted, Unicode should be preserved
         assert "sk-1234567890abcdef1234567890abcdef12345678" not in str(data)
         assert "世界" in str(data)  # Unicode should be preserved
-        assert "🔒" in str(data)   # Emojis should be preserved
+        assert "🔒" in str(data)  # Emojis should be preserved

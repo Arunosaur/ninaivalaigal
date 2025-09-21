@@ -32,7 +32,9 @@ async def test_live_recording():
 
     # Test 3: Add explicit memory
     print("\n3. Adding explicit memory...")
-    memory_result = await remember("This is a manually added memory", "live-test-context")
+    memory_result = await remember(
+        "This is a manually added memory", "live-test-context"
+    )
     print(f"Memory result: {memory_result}")
 
     # Test 4: Use recall (which should auto-record)
@@ -51,13 +53,14 @@ async def test_live_recording():
     if final_memories and not any("error" in str(m) for m in final_memories):
         print(f"✅ Total memories found: {len(final_memories)}")
         for i, memory in enumerate(final_memories, 1):
-            content = memory.get('data', {}).get('text', str(memory))[:100]
+            content = memory.get("data", {}).get("text", str(memory))[:100]
             print(f"   {i}. {content}...")
     else:
         print(f"❌ No memories or error: {final_memories}")
 
     print("\n" + "=" * 50)
     print("🏁 Live Recording Test Complete")
+
 
 if __name__ == "__main__":
     asyncio.run(test_live_recording())

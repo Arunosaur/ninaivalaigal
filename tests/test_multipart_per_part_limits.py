@@ -111,10 +111,7 @@ class TestPartLimitEnforcement:
 
     def test_text_vs_binary_size_limits(self):
         """Test different size limits for text vs binary content."""
-        config = PartLimitConfig(
-            max_text_part_bytes=1000,
-            max_binary_part_bytes=5000
-        )
+        config = PartLimitConfig(max_text_part_bytes=1000, max_binary_part_bytes=5000)
 
         # Text content within text limit
         text_content = b"Plain text content" * 30  # ~540 bytes
@@ -163,12 +160,23 @@ class TestPartLimitEnforcement:
         # Should not fail validation but should log warning
         assert result["valid"] is True
         assert len(result["violations"]) > 0
-        assert any(v["type"] == "content_type_magic_mismatch" for v in result["violations"])
+        assert any(
+            v["type"] == "content_type_magic_mismatch" for v in result["violations"]
+        )
 
         # Correct content-type should not trigger warning
         result = enforce_part_limits(png_content, "image/png", config=config)
         assert result["valid"] is True
-        assert len([v for v in result["violations"] if v["type"] == "content_type_magic_mismatch"]) == 0
+        assert (
+            len(
+                [
+                    v
+                    for v in result["violations"]
+                    if v["type"] == "content_type_magic_mismatch"
+                ]
+            )
+            == 0
+        )
 
     def test_disable_magic_byte_checks(self):
         """Test disabling magic byte checks."""
@@ -225,11 +233,7 @@ class TestStrictValidatorIntegration:
         # Valid text content
         text_content = b"Valid text content" * 20
         result = validator.validate_part(
-            "text_field",
-            "text/plain",
-            "document.txt",
-            text_content,
-            config
+            "text_field", "text/plain", "document.txt", text_content, config
         )
 
         assert result["valid"] is True
@@ -239,11 +243,7 @@ class TestStrictValidatorIntegration:
         # Oversized text content
         large_text = b"x" * 2000
         result = validator.validate_part(
-            "large_field",
-            "text/plain",
-            "large.txt",
-            large_text,
-            config
+            "large_field", "text/plain", "large.txt", large_text, config
         )
 
         assert result["valid"] is False
@@ -258,11 +258,7 @@ class TestStrictValidatorIntegration:
         # PE executable should be blocked
         pe_content = b"MZ" + b"\x90\x00" + b"fake_pe_data" * 100
         result = validator.validate_part(
-            "exe_field",
-            "application/octet-stream",
-            "malware.exe",
-            pe_content,
-            config
+            "exe_field", "application/octet-stream", "malware.exe", pe_content, config
         )
 
         assert result["valid"] is False
@@ -276,10 +272,7 @@ class TestStrictValidatorIntegration:
         # PNG content
         png_content = b"\x89PNG\r\n\x1a\n" + b"fake_png_data" * 50
         result = validator.validate_part(
-            "image_field",
-            "image/png",
-            "image.png",
-            png_content
+            "image_field", "image/png", "image.png", png_content
         )
 
         assert result["valid"] is True
@@ -309,8 +302,12 @@ class TestPolicyConfigurations:
         """Test permissive policy creation."""
         policy = create_permissive_policy()
 
-        assert len(policy.allowed_text_types) > len(StrictMultipartValidator.DEFAULT_TEXT_TYPES)
-        assert len(policy.allowed_binary_types) > len(StrictMultipartValidator.DEFAULT_BINARY_TYPES)
+        assert len(policy.allowed_text_types) > len(
+            StrictMultipartValidator.DEFAULT_TEXT_TYPES
+        )
+        assert len(policy.allowed_binary_types) > len(
+            StrictMultipartValidator.DEFAULT_BINARY_TYPES
+        )
         assert policy.require_content_type_match is False
         assert policy.max_parts == 100
 
@@ -337,10 +334,7 @@ class TestEdgeCases:
 
     def test_multiple_violations(self):
         """Test content with multiple violations."""
-        config = PartLimitConfig(
-            max_part_bytes=1000,
-            block_executable_magic_bytes=True
-        )
+        config = PartLimitConfig(max_part_bytes=1000, block_executable_magic_bytes=True)
 
         # Large PE executable (multiple violations)
         large_pe = b"MZ" + b"x" * 2000
@@ -357,7 +351,7 @@ def test_comprehensive_multipart_validation():
     config = PartLimitConfig(
         max_text_part_bytes=2000,
         max_binary_part_bytes=10000,
-        block_executable_magic_bytes=True
+        block_executable_magic_bytes=True,
     )
 
     parts = [
@@ -365,20 +359,20 @@ def test_comprehensive_multipart_validation():
             "field_name": "text_field",
             "content_type": "text/plain",
             "filename": "document.txt",
-            "content": b"Valid text document content" * 30
+            "content": b"Valid text document content" * 30,
         },
         {
             "field_name": "image_field",
             "content_type": "image/png",
             "filename": "image.png",
-            "content": b"\x89PNG\r\n\x1a\n" + b"fake_png_data" * 100
+            "content": b"\x89PNG\r\n\x1a\n" + b"fake_png_data" * 100,
         },
         {
             "field_name": "pdf_field",
             "content_type": "application/pdf",
             "filename": "document.pdf",
-            "content": b"%PDF-1.4\nfake pdf content" * 50
-        }
+            "content": b"%PDF-1.4\nfake pdf content" * 50,
+        },
     ]
 
     result = validator.validate_multipart_request(parts, config)

@@ -17,10 +17,12 @@ class BoundedBinaryMasqueradeDetector(BinaryMasqueradeDetector):
         super().__init__(max_check_bytes=max_check_bytes)
         self.analysis_byte_cap = max_check_bytes
 
-    def detect_masquerade(self, content: bytes, declared_content_type: str, filename: str | None = None) -> dict[str, Any]:
+    def detect_masquerade(
+        self, content: bytes, declared_content_type: str, filename: str | None = None
+    ) -> dict[str, Any]:
         """
         Detect masquerade with CPU-bounded analysis.
-        
+
         Caps analysis to min(content_length, 256KB) to prevent CPU exhaustion
         on large files while maintaining detection accuracy.
         """
@@ -34,7 +36,7 @@ class BoundedBinaryMasqueradeDetector(BinaryMasqueradeDetector):
                 "evidence": [],
                 "analysis_bytes": 0,
                 "total_bytes": 0,
-                "byte_cap_applied": False
+                "byte_cap_applied": False,
             }
 
         # Apply byte cap
@@ -46,15 +48,21 @@ class BoundedBinaryMasqueradeDetector(BinaryMasqueradeDetector):
         capped_content = content[:analysis_bytes]
 
         # Use parent detection logic on capped content
-        result = super().detect_masquerade(capped_content, declared_content_type, filename)
+        result = super().detect_masquerade(
+            capped_content, declared_content_type, filename
+        )
 
         # Add byte cap metadata
-        result.update({
-            "analysis_bytes": analysis_bytes,
-            "total_bytes": total_bytes,
-            "byte_cap_applied": byte_cap_applied,
-            "analysis_percentage": (analysis_bytes / total_bytes * 100) if total_bytes > 0 else 0
-        })
+        result.update(
+            {
+                "analysis_bytes": analysis_bytes,
+                "total_bytes": total_bytes,
+                "byte_cap_applied": byte_cap_applied,
+                "analysis_percentage": (analysis_bytes / total_bytes * 100)
+                if total_bytes > 0
+                else 0,
+            }
+        )
 
         # Adjust confidence if byte cap was applied
         if byte_cap_applied and result["confidence"] > 0:
@@ -66,18 +74,23 @@ class BoundedBinaryMasqueradeDetector(BinaryMasqueradeDetector):
         return result
 
 
-def looks_binary_bounded(content: bytes, declared_content_type: str, filename: str | None = None,
-                        threshold: float = 0.6, max_analysis_bytes: int = 256 * 1024) -> bool:
+def looks_binary_bounded(
+    content: bytes,
+    declared_content_type: str,
+    filename: str | None = None,
+    threshold: float = 0.6,
+    max_analysis_bytes: int = 256 * 1024,
+) -> bool:
     """
     CPU-bounded binary masquerade detection.
-    
+
     Args:
         content: File content bytes
         declared_content_type: Declared MIME type
         filename: Optional filename
         threshold: Confidence threshold for binary detection
         max_analysis_bytes: Maximum bytes to analyze (default 256KB)
-    
+
     Returns:
         True if content appears to be binary masquerading as text
     """
@@ -90,8 +103,10 @@ def test_masquerade_byte_cap():
     """Test masquerade detection with byte capping."""
 
     # Create test content larger than cap
-    large_binary_content = b'\x89PNG\r\n\x1a\n' + b'\x00' * (300 * 1024)  # 300KB PNG-like content
-    large_text_content = b'This is normal text content. ' * (10 * 1024)  # ~290KB text
+    large_binary_content = b"\x89PNG\r\n\x1a\n" + b"\x00" * (
+        300 * 1024
+    )  # 300KB PNG-like content
+    large_text_content = b"This is normal text content. " * (10 * 1024)  # ~290KB text
 
     detector = BoundedBinaryMasqueradeDetector(max_check_bytes=256 * 1024)
 
@@ -102,7 +117,7 @@ def test_masquerade_byte_cap():
             "declared_type": "text/plain",
             "filename": "fake.txt",
             "should_detect": True,
-            "should_cap": True
+            "should_cap": True,
         },
         {
             "name": "large_text_content",
@@ -110,48 +125,48 @@ def test_masquerade_byte_cap():
             "declared_type": "text/plain",
             "filename": "document.txt",
             "should_detect": False,
-            "should_cap": True
+            "should_cap": True,
         },
         {
             "name": "small_binary_content",
-            "content": b'\x89PNG\r\n\x1a\n' + b'\x00' * 1000,  # 1KB
+            "content": b"\x89PNG\r\n\x1a\n" + b"\x00" * 1000,  # 1KB
             "declared_type": "text/plain",
             "filename": "small.txt",
             "should_detect": True,
-            "should_cap": False
-        }
+            "should_cap": False,
+        },
     ]
 
     results = []
 
     for case in test_cases:
         result = detector.detect_masquerade(
-            case["content"],
-            case["declared_type"],
-            case["filename"]
+            case["content"], case["declared_type"], case["filename"]
         )
 
         detection_correct = result["is_masquerade"] == case["should_detect"]
         cap_correct = result["byte_cap_applied"] == case["should_cap"]
 
-        results.append({
-            "test_name": case["name"],
-            "detection_correct": detection_correct,
-            "cap_correct": cap_correct,
-            "confidence": result["confidence"],
-            "analysis_bytes": result["analysis_bytes"],
-            "total_bytes": result["total_bytes"],
-            "analysis_percentage": result["analysis_percentage"],
-            "evidence": result["evidence"],
-            "test_passed": detection_correct and cap_correct
-        })
+        results.append(
+            {
+                "test_name": case["name"],
+                "detection_correct": detection_correct,
+                "cap_correct": cap_correct,
+                "confidence": result["confidence"],
+                "analysis_bytes": result["analysis_bytes"],
+                "total_bytes": result["total_bytes"],
+                "analysis_percentage": result["analysis_percentage"],
+                "evidence": result["evidence"],
+                "test_passed": detection_correct and cap_correct,
+            }
+        )
 
     # Test bounded function
     bounded_result = looks_binary_bounded(
         large_binary_content,
         "text/plain",
         "test.txt",
-        max_analysis_bytes=128 * 1024  # 128KB cap
+        max_analysis_bytes=128 * 1024,  # 128KB cap
     )
 
     return {
@@ -162,8 +177,8 @@ def test_masquerade_byte_cap():
         "performance_summary": {
             "max_analysis_bytes": detector.analysis_byte_cap,
             "largest_file_tested": max(r["total_bytes"] for r in results),
-            "cpu_bounded": True
-        }
+            "cpu_bounded": True,
+        },
     }
 
 
@@ -176,8 +191,12 @@ if __name__ == "__main__":
 
     for result in test_results["test_results"]:
         status = "✅" if result["test_passed"] else "❌"
-        print(f"{status} {result['test_name']}: {result['analysis_percentage']:.1f}% analyzed, "
-              f"confidence: {result['confidence']:.2f}")
+        print(
+            f"{status} {result['test_name']}: {result['analysis_percentage']:.1f}% analyzed, "
+            f"confidence: {result['confidence']:.2f}"
+        )
 
-    print(f"\nBounded function detected masquerade: {test_results['bounded_function_detected']}")
+    print(
+        f"\nBounded function detected masquerade: {test_results['bounded_function_detected']}"
+    )
     print(f"Performance: {test_results['performance_summary']}")

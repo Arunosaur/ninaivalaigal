@@ -3,9 +3,11 @@ from starlette.requests import Request
 
 try:
     from opentelemetry import trace
+
     tracer = trace.get_tracer(__name__)
 except ImportError:
     tracer = None
+
 
 class TracingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

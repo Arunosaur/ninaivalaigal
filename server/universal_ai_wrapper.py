@@ -24,6 +24,7 @@ from main import load_config
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class AIModel(Enum):
     COPILOT = "github_copilot"
     CLAUDE = "anthropic_claude"
@@ -31,9 +32,11 @@ class AIModel(Enum):
     GEMINI = "google_gemini"
     GENERIC = "generic_ai"
 
+
 @dataclass
 class AIContext:
     """Universal context for any AI model interaction"""
+
     # File context
     file_path: str
     language: str
@@ -57,15 +60,18 @@ class AIContext:
     ide_name: str | None = None
     workspace_path: str | None = None
 
+
 @dataclass
 class MemoryContext:
     """Memory retrieved from mem0"""
+
     content: str
     context_name: str
     memory_type: str
     relevance_score: float
     created_at: str
     source: str = "mem0"
+
 
 class UniversalAIWrapper:
     """Universal wrapper that enhances any AI model with mem0 memories via MCP"""
@@ -74,7 +80,9 @@ class UniversalAIWrapper:
         self.db = DatabaseManager(load_config())
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
-    async def enhance_ai_prompt(self, context: AIContext, original_prompt: str) -> dict[str, Any]:
+    async def enhance_ai_prompt(
+        self, context: AIContext, original_prompt: str
+    ) -> dict[str, Any]:
         """Enhance any AI prompt with relevant mem0 memories"""
         try:
             # Get relevant memories from all levels
@@ -84,26 +92,28 @@ class UniversalAIWrapper:
                 return {
                     "enhanced_prompt": original_prompt,
                     "memories_used": [],
-                    "enhancement_applied": False
+                    "enhancement_applied": False,
                 }
 
             # Build enhanced prompt
             enhanced_prompt = self._build_enhanced_prompt(
-                original_prompt,
-                memories,
-                context
+                original_prompt, memories, context
             )
 
             # Store interaction for learning
-            await self._store_ai_interaction(context, original_prompt, enhanced_prompt, memories)
+            await self._store_ai_interaction(
+                context, original_prompt, enhanced_prompt, memories
+            )
 
-            logger.info(f"Enhanced {context.ai_model.value} prompt with {len(memories)} memories")
+            logger.info(
+                f"Enhanced {context.ai_model.value} prompt with {len(memories)} memories"
+            )
 
             return {
                 "enhanced_prompt": enhanced_prompt,
                 "memories_used": [asdict(m) for m in memories],
                 "enhancement_applied": True,
-                "context": asdict(context)
+                "context": asdict(context),
             }
 
         except Exception as e:
@@ -112,17 +122,21 @@ class UniversalAIWrapper:
                 "enhanced_prompt": original_prompt,
                 "memories_used": [],
                 "enhancement_applied": False,
-                "error": str(e)
+                "error": str(e),
             }
 
-    async def _get_hierarchical_memories(self, context: AIContext) -> list[MemoryContext]:
+    async def _get_hierarchical_memories(
+        self, context: AIContext
+    ) -> list[MemoryContext]:
         """Get memories from all hierarchy levels: Personal → Team → Cross-Team → Organizational"""
         all_memories = []
 
         try:
             # 1. Personal memories (highest priority)
             if context.user_id:
-                personal_memories = await self._get_memories_by_level("personal", context)
+                personal_memories = await self._get_memories_by_level(
+                    "personal", context
+                )
                 all_memories.extend(personal_memories)
 
             # 2. Team memories
@@ -136,7 +150,9 @@ class UniversalAIWrapper:
 
             # 4. Organizational memories (lowest priority but broadest)
             if context.organization_id:
-                org_memories = await self._get_memories_by_level("organization", context)
+                org_memories = await self._get_memories_by_level(
+                    "organization", context
+                )
                 all_memories.extend(org_memories)
 
             # 5. Project-specific memories
@@ -153,7 +169,9 @@ class UniversalAIWrapper:
             logger.error(f"Error getting hierarchical memories: {e}")
             return []
 
-    async def _get_memories_by_level(self, level: str, context: AIContext) -> list[MemoryContext]:
+    async def _get_memories_by_level(
+        self, level: str, context: AIContext
+    ) -> list[MemoryContext]:
         """Get memories for a specific hierarchy level"""
         try:
             # Build query based on level and context
@@ -171,20 +189,24 @@ class UniversalAIWrapper:
             # Get memories from database
             raw_memories = self.db.get_memories(
                 context=query_filters.get("context"),
-                user_id=query_filters.get("user_id")
+                user_id=query_filters.get("user_id"),
             )
 
             # Convert to MemoryContext objects
             memories = []
             for memory in raw_memories:
-                memories.append(MemoryContext(
-                    content=memory.get("data", ""),
-                    context_name=memory.get("context", "unknown"),
-                    relevance_score=0.7,  # Will be calculated by ranking
-                    timestamp=datetime.fromisoformat(memory.get("created_at", datetime.now().isoformat())),
-                    memory_type=level,
-                    source=memory.get("source", "database")
-                ))
+                memories.append(
+                    MemoryContext(
+                        content=memory.get("data", ""),
+                        context_name=memory.get("context", "unknown"),
+                        relevance_score=0.7,  # Will be calculated by ranking
+                        timestamp=datetime.fromisoformat(
+                            memory.get("created_at", datetime.now().isoformat())
+                        ),
+                        memory_type=level,
+                        source=memory.get("source", "database"),
+                    )
+                )
 
             return memories
 
@@ -210,18 +232,16 @@ class UniversalAIWrapper:
                 "jsonrpc": "2.0",
                 "id": 1,
                 "method": "tools/call",
-                "params": {
-                    "name": tool,
-                    "arguments": params
-                }
+                "params": {"name": tool, "arguments": params},
             }
 
             # Execute MCP server query via subprocess
             process = await asyncio.create_subprocess_exec(
-                sys.executable, self.mcp_server_path,
+                sys.executable,
+                self.mcp_server_path,
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
 
             stdout, stderr = await process.communicate(
@@ -239,17 +259,19 @@ class UniversalAIWrapper:
             logger.error(f"Error querying MCP server: {e}")
             return ""
 
-    def _parse_memories_response(self, response: str, level: str) -> list[MemoryContext]:
+    def _parse_memories_response(
+        self, response: str, level: str
+    ) -> list[MemoryContext]:
         """Parse memory response from MCP server into MemoryContext objects"""
         memories = []
 
         try:
-            lines = response.split('\n')
+            lines = response.split("\n")
             current_memory = None
 
             for line in lines:
                 line = line.strip()
-                if line.startswith('•') or line.startswith('-'):
+                if line.startswith("•") or line.startswith("-"):
                     if current_memory:
                         memories.append(current_memory)
 
@@ -258,7 +280,7 @@ class UniversalAIWrapper:
                         context_name=level,
                         memory_type="memory",
                         relevance_score=1.0,
-                        created_at=datetime.now().isoformat()
+                        created_at=datetime.now().isoformat(),
                     )
                 elif line and current_memory:
                     current_memory.content += " " + line
@@ -271,7 +293,9 @@ class UniversalAIWrapper:
 
         return memories
 
-    def _rank_memories_by_relevance(self, memories: list[MemoryContext], context: AIContext) -> list[MemoryContext]:
+    def _rank_memories_by_relevance(
+        self, memories: list[MemoryContext], context: AIContext
+    ) -> list[MemoryContext]:
         """Rank memories by relevance to current context"""
         for memory in memories:
             score = 0
@@ -310,7 +334,9 @@ class UniversalAIWrapper:
         memories.sort(key=lambda x: x.relevance_score, reverse=True)
         return memories
 
-    def _build_enhanced_prompt(self, original_prompt: str, memories: list[MemoryContext], context: AIContext) -> str:
+    def _build_enhanced_prompt(
+        self, original_prompt: str, memories: list[MemoryContext], context: AIContext
+    ) -> str:
         """Build enhanced prompt with hierarchical memories"""
         if not memories:
             return original_prompt
@@ -377,7 +403,13 @@ class UniversalAIWrapper:
 
         return original_prompt
 
-    async def _store_ai_interaction(self, context: AIContext, original_prompt: str, enhanced_prompt: str, memories: list[MemoryContext]):
+    async def _store_ai_interaction(
+        self,
+        context: AIContext,
+        original_prompt: str,
+        enhanced_prompt: str,
+        memories: list[MemoryContext],
+    ):
         """Store AI interaction for future learning"""
         try:
             interaction_data = {
@@ -387,15 +419,18 @@ class UniversalAIWrapper:
                 "file_path": context.file_path,
                 "memories_count": len(memories),
                 "enhancement_applied": True,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
             # Store via MCP
-            await self._query_mcp_server("remember", {
-                "text": f"AI interaction enhanced with {len(memories)} memories for {context.language} in {context.ai_model.value}",
-                "context": f"ai_interactions_{context.project_context or 'default'}",
-                "metadata": interaction_data
-            })
+            await self._query_mcp_server(
+                "remember",
+                {
+                    "text": f"AI interaction enhanced with {len(memories)} memories for {context.language} in {context.ai_model.value}",
+                    "context": f"ai_interactions_{context.project_context or 'default'}",
+                    "metadata": interaction_data,
+                },
+            )
 
         except Exception as e:
             logger.error(f"Error storing AI interaction: {e}")
@@ -403,7 +438,7 @@ class UniversalAIWrapper:
     def _get_file_type(self, file_path: str) -> str:
         """Extract file type from path"""
         _, ext = os.path.splitext(file_path)
-        return ext.lower().lstrip('.')
+        return ext.lower().lstrip(".")
 
     def _extract_code_keywords(self, code: str) -> list[str]:
         """Extract relevant keywords from surrounding code"""
@@ -411,14 +446,70 @@ class UniversalAIWrapper:
 
         # Programming patterns to detect
         patterns = {
-            'javascript': ['function', 'const', 'let', 'var', 'async', 'await', 'promise', 'callback'],
-            'typescript': ['interface', 'type', 'class', 'enum', 'generic', 'decorator'],
-            'python': ['def', 'class', 'async', 'await', 'lambda', 'decorator', 'generator'],
-            'react': ['component', 'props', 'state', 'hook', 'useEffect', 'useState', 'jsx'],
-            'api': ['request', 'response', 'http', 'fetch', 'axios', 'endpoint', 'rest'],
-            'database': ['query', 'model', 'schema', 'table', 'collection', 'orm', 'sql'],
-            'testing': ['test', 'spec', 'mock', 'assert', 'expect', 'describe', 'it'],
-            'security': ['auth', 'token', 'jwt', 'oauth', 'encrypt', 'hash', 'validate']
+            "javascript": [
+                "function",
+                "const",
+                "let",
+                "var",
+                "async",
+                "await",
+                "promise",
+                "callback",
+            ],
+            "typescript": [
+                "interface",
+                "type",
+                "class",
+                "enum",
+                "generic",
+                "decorator",
+            ],
+            "python": [
+                "def",
+                "class",
+                "async",
+                "await",
+                "lambda",
+                "decorator",
+                "generator",
+            ],
+            "react": [
+                "component",
+                "props",
+                "state",
+                "hook",
+                "useEffect",
+                "useState",
+                "jsx",
+            ],
+            "api": [
+                "request",
+                "response",
+                "http",
+                "fetch",
+                "axios",
+                "endpoint",
+                "rest",
+            ],
+            "database": [
+                "query",
+                "model",
+                "schema",
+                "table",
+                "collection",
+                "orm",
+                "sql",
+            ],
+            "testing": ["test", "spec", "mock", "assert", "expect", "describe", "it"],
+            "security": [
+                "auth",
+                "token",
+                "jwt",
+                "oauth",
+                "encrypt",
+                "hash",
+                "validate",
+            ],
         }
 
         code_lower = code.lower()
@@ -428,6 +519,7 @@ class UniversalAIWrapper:
                     keywords.append(pattern)
 
         return list(set(keywords))  # Remove duplicates
+
 
 # MCP Tool Integration
 class MCPAIEnhancer:
@@ -441,26 +533,26 @@ class MCPAIEnhancer:
         try:
             # Parse context from MCP arguments
             context = AIContext(
-                file_path=kwargs.get('file_path', ''),
-                language=kwargs.get('language', ''),
-                cursor_position=kwargs.get('cursor_position', 0),
-                surrounding_code=kwargs.get('surrounding_code', ''),
-                user_id=kwargs.get('user_id'),
-                team_id=kwargs.get('team_id'),
-                organization_id=kwargs.get('organization_id'),
-                project_context=kwargs.get('project_context'),
-                ai_model=AIModel(kwargs.get('ai_model', 'generic_ai')),
-                interaction_type=kwargs.get('interaction_type', 'completion'),
-                ide_name=kwargs.get('ide_name'),
-                workspace_path=kwargs.get('workspace_path')
+                file_path=kwargs.get("file_path", ""),
+                language=kwargs.get("language", ""),
+                cursor_position=kwargs.get("cursor_position", 0),
+                surrounding_code=kwargs.get("surrounding_code", ""),
+                user_id=kwargs.get("user_id"),
+                team_id=kwargs.get("team_id"),
+                organization_id=kwargs.get("organization_id"),
+                project_context=kwargs.get("project_context"),
+                ai_model=AIModel(kwargs.get("ai_model", "generic_ai")),
+                interaction_type=kwargs.get("interaction_type", "completion"),
+                ide_name=kwargs.get("ide_name"),
+                workspace_path=kwargs.get("workspace_path"),
             )
 
-            original_prompt = kwargs.get('prompt', '')
+            original_prompt = kwargs.get("prompt", "")
 
             # Enhance prompt
             result = await self.wrapper.enhance_ai_prompt(context, original_prompt)
 
-            if result['enhancement_applied']:
+            if result["enhancement_applied"]:
                 return f"✅ Enhanced prompt with {len(result['memories_used'])} memories:\n\n{result['enhanced_prompt']}"
             else:
                 return f"ℹ️ No relevant memories found. Original prompt:\n\n{result['enhanced_prompt']}"
@@ -468,13 +560,16 @@ class MCPAIEnhancer:
         except Exception as e:
             return f"❌ Error enhancing prompt: {str(e)}"
 
+
 # Global instance for MCP integration
 mcp_ai_enhancer = MCPAIEnhancer()
+
 
 # Export functions for MCP server
 async def enhance_ai_prompt(**kwargs) -> str:
     """Main function for MCP integration"""
     return await mcp_ai_enhancer.enhance_prompt(**kwargs)
+
 
 if __name__ == "__main__":
     # Test the universal wrapper
@@ -488,13 +583,13 @@ if __name__ == "__main__":
             team_id=1,
             project_context="auth-system",
             ai_model=AIModel.COPILOT,
-            ide_name="vscode"
+            ide_name="vscode",
         )
 
         wrapper = UniversalAIWrapper()
         result = await wrapper.enhance_ai_prompt(
             context,
-            "Complete the user authentication function with proper error handling"
+            "Complete the user authentication function with proper error handling",
         )
 
         print("Enhanced AI Prompt Result:")

@@ -10,9 +10,11 @@ class FakePart:
         for c in self._chunks:
             yield c
 
+
 class FakeStream:
     def __init__(self, request):
         self.__request__ = request
+
 
 class FakeRequest:
     def __init__(self, parts: list[FakePart], headers: dict | None = None):

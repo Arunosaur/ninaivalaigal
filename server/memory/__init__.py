@@ -10,8 +10,4 @@ Provides pluggable memory providers for different storage backends:
 from .factory import get_memory_provider
 from .interfaces import MemoryItem, MemoryProvider
 
-__all__ = [
-    'MemoryProvider',
-    'MemoryItem',
-    'get_memory_provider'
-]
+__all__ = ["MemoryProvider", "MemoryItem", "get_memory_provider"]

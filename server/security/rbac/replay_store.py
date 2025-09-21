@@ -6,6 +6,7 @@ TTL = int(os.getenv("JWT_REPLAY_TTL", "300"))
 
 _seen = OrderedDict()
 
+
 def seen_before(jti: str) -> bool:
     now = time.time()
     if jti in _seen and now - _seen[jti] < TTL:

@@ -15,6 +15,7 @@ BASE_URL = "http://localhost:13370"
 TEST_USER_EMAIL = "test@example.com"
 TEST_USER_PASSWORD = "testpassword123"
 
+
 class RBACIntegrationTester:
     def __init__(self):
         self.session = requests.Session()
@@ -25,22 +26,21 @@ class RBACIntegrationTester:
     def log_test(self, test_name: str, success: bool, message: str = ""):
         """Log test result"""
         status = "✅ PASS" if success else "❌ FAIL"
-        self.test_results.append({
-            "test": test_name,
-            "success": success,
-            "message": message,
-            "timestamp": datetime.now().isoformat()
-        })
+        self.test_results.append(
+            {
+                "test": test_name,
+                "success": success,
+                "message": message,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
         print(f"{status} {test_name}: {message}")
 
     def test_authentication_with_rbac(self):
         """Test authentication returns RBAC roles in JWT token"""
         try:
             # Login with test user
-            login_data = {
-                "email": TEST_USER_EMAIL,
-                "password": TEST_USER_PASSWORD
-            }
+            login_data = {"email": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD}
 
             response = self.session.post(f"{BASE_URL}/login", json=login_data)
 
@@ -54,20 +54,32 @@ class RBACIntegrationTester:
 
                     # Check for RBAC roles
                     if "rbac_roles" in data["user"]:
-                        self.log_test("Authentication with RBAC", True,
-                                    f"User authenticated with roles: {data['user']['rbac_roles']}")
+                        self.log_test(
+                            "Authentication with RBAC",
+                            True,
+                            f"User authenticated with roles: {data['user']['rbac_roles']}",
+                        )
                         return True
                     else:
-                        self.log_test("Authentication with RBAC", False,
-                                    "RBAC roles not found in authentication response")
+                        self.log_test(
+                            "Authentication with RBAC",
+                            False,
+                            "RBAC roles not found in authentication response",
+                        )
                         return False
                 else:
-                    self.log_test("Authentication with RBAC", False,
-                                "JWT token not found in response")
+                    self.log_test(
+                        "Authentication with RBAC",
+                        False,
+                        "JWT token not found in response",
+                    )
                     return False
             else:
-                self.log_test("Authentication with RBAC", False,
-                            f"Login failed with status {response.status_code}: {response.text}")
+                self.log_test(
+                    "Authentication with RBAC",
+                    False,
+                    f"Login failed with status {response.status_code}: {response.text}",
+                )
                 return False
 
         except Exception as e:
@@ -88,11 +100,18 @@ class RBACIntegrationTester:
             response = self.session.get(f"{BASE_URL}/auth/me", headers=headers)
 
             if response.status_code == 200:
-                self.log_test("RBAC Middleware", True, "Middleware successfully processed JWT token")
+                self.log_test(
+                    "RBAC Middleware",
+                    True,
+                    "Middleware successfully processed JWT token",
+                )
                 return True
             else:
-                self.log_test("RBAC Middleware", False,
-                            f"Protected endpoint failed with status {response.status_code}")
+                self.log_test(
+                    "RBAC Middleware",
+                    False,
+                    f"Protected endpoint failed with status {response.status_code}",
+                )
                 return False
 
         except Exception as e:
@@ -109,31 +128,48 @@ class RBACIntegrationTester:
             headers = {"Authorization": f"Bearer {self.auth_token}"}
 
             # Test memory read endpoint (should work with MEMBER role)
-            response = self.session.get(f"{BASE_URL}/memory?context=test", headers=headers)
+            response = self.session.get(
+                f"{BASE_URL}/memory?context=test", headers=headers
+            )
 
             if response.status_code in [200, 404]:  # 404 is ok if no memories exist
-                self.log_test("Permission Decorators - Memory Read", True,
-                            "Memory read permission check passed")
+                self.log_test(
+                    "Permission Decorators - Memory Read",
+                    True,
+                    "Memory read permission check passed",
+                )
                 memory_test = True
             else:
-                self.log_test("Permission Decorators - Memory Read", False,
-                            f"Memory read failed with status {response.status_code}")
+                self.log_test(
+                    "Permission Decorators - Memory Read",
+                    False,
+                    f"Memory read failed with status {response.status_code}",
+                )
                 memory_test = False
 
             # Test organization read endpoint
             response = self.session.get(f"{BASE_URL}/organizations", headers=headers)
 
             if response.status_code == 200:
-                self.log_test("Permission Decorators - Org Read", True,
-                            "Organization read permission check passed")
+                self.log_test(
+                    "Permission Decorators - Org Read",
+                    True,
+                    "Organization read permission check passed",
+                )
                 org_test = True
             elif response.status_code == 403:
-                self.log_test("Permission Decorators - Org Read", True,
-                            "Organization read correctly denied (403)")
+                self.log_test(
+                    "Permission Decorators - Org Read",
+                    True,
+                    "Organization read correctly denied (403)",
+                )
                 org_test = True
             else:
-                self.log_test("Permission Decorators - Org Read", False,
-                            f"Unexpected status {response.status_code}")
+                self.log_test(
+                    "Permission Decorators - Org Read",
+                    False,
+                    f"Unexpected status {response.status_code}",
+                )
                 org_test = False
 
             return memory_test and org_test
@@ -157,40 +193,64 @@ class RBACIntegrationTester:
             if response.status_code == 200:
                 data = response.json()
                 if "rbac_enabled" in data and data["rbac_enabled"]:
-                    self.log_test("RBAC API - Status", True,
-                                f"RBAC system active with {data.get('statistics', {}).get('total_role_assignments', 0)} role assignments")
+                    self.log_test(
+                        "RBAC API - Status",
+                        True,
+                        f"RBAC system active with {data.get('statistics', {}).get('total_role_assignments', 0)} role assignments",
+                    )
                     status_test = True
                 else:
-                    self.log_test("RBAC API - Status", False, "RBAC not enabled in status response")
+                    self.log_test(
+                        "RBAC API - Status",
+                        False,
+                        "RBAC not enabled in status response",
+                    )
                     status_test = False
             elif response.status_code == 403:
-                self.log_test("RBAC API - Status", True,
-                            "RBAC status correctly denied (403) - user lacks SYSTEM permissions")
+                self.log_test(
+                    "RBAC API - Status",
+                    True,
+                    "RBAC status correctly denied (403) - user lacks SYSTEM permissions",
+                )
                 status_test = True
             else:
-                self.log_test("RBAC API - Status", False,
-                            f"Status endpoint failed with {response.status_code}")
+                self.log_test(
+                    "RBAC API - Status",
+                    False,
+                    f"Status endpoint failed with {response.status_code}",
+                )
                 status_test = False
 
             # Test user roles endpoint
-            response = self.session.get(f"{BASE_URL}/rbac/roles/user/{self.user_id}", headers=headers)
+            response = self.session.get(
+                f"{BASE_URL}/rbac/roles/user/{self.user_id}", headers=headers
+            )
 
             if response.status_code == 200:
                 data = response.json()
                 if "roles" in data:
-                    self.log_test("RBAC API - User Roles", True,
-                                f"Retrieved {len(data['roles'])} role assignments")
+                    self.log_test(
+                        "RBAC API - User Roles",
+                        True,
+                        f"Retrieved {len(data['roles'])} role assignments",
+                    )
                     roles_test = True
                 else:
-                    self.log_test("RBAC API - User Roles", False, "No roles in response")
+                    self.log_test(
+                        "RBAC API - User Roles", False, "No roles in response"
+                    )
                     roles_test = False
             elif response.status_code == 403:
-                self.log_test("RBAC API - User Roles", True,
-                            "User roles correctly denied (403)")
+                self.log_test(
+                    "RBAC API - User Roles", True, "User roles correctly denied (403)"
+                )
                 roles_test = True
             else:
-                self.log_test("RBAC API - User Roles", False,
-                            f"User roles failed with {response.status_code}")
+                self.log_test(
+                    "RBAC API - User Roles",
+                    False,
+                    f"User roles failed with {response.status_code}",
+                )
                 roles_test = False
 
             return status_test and roles_test
@@ -210,15 +270,23 @@ class RBACIntegrationTester:
             headers = {"Authorization": f"Bearer {self.auth_token}"}
 
             # Test audit log endpoint (if accessible)
-            response = self.session.get(f"{BASE_URL}/rbac/audit/permissions?limit=1", headers=headers)
+            response = self.session.get(
+                f"{BASE_URL}/rbac/audit/permissions?limit=1", headers=headers
+            )
 
             if response.status_code in [200, 403]:
-                self.log_test("Database Integration", True,
-                            "RBAC database tables accessible via API")
+                self.log_test(
+                    "Database Integration",
+                    True,
+                    "RBAC database tables accessible via API",
+                )
                 return True
             else:
-                self.log_test("Database Integration", False,
-                            f"Database integration test failed with {response.status_code}")
+                self.log_test(
+                    "Database Integration",
+                    False,
+                    f"Database integration test failed with {response.status_code}",
+                )
                 return False
 
         except Exception as e:
@@ -235,7 +303,7 @@ class RBACIntegrationTester:
             ("RBAC Middleware", self.test_rbac_middleware),
             ("Permission Decorators", self.test_permission_decorators),
             ("RBAC API Endpoints", self.test_rbac_api_endpoints),
-            ("Database Integration", self.test_database_integration)
+            ("Database Integration", self.test_database_integration),
         ]
 
         passed = 0
@@ -264,7 +332,7 @@ class RBACIntegrationTester:
             "total_tests": len(self.test_results),
             "passed_tests": len([r for r in self.test_results if r["success"]]),
             "failed_tests": len([r for r in self.test_results if not r["success"]]),
-            "results": self.test_results
+            "results": self.test_results,
         }
 
         with open("rbac_integration_test_report.json", "w") as f:
@@ -272,6 +340,7 @@ class RBACIntegrationTester:
 
         print("\n📄 Detailed report saved to: rbac_integration_test_report.json")
         return report
+
 
 def main():
     """Main test execution"""
@@ -299,6 +368,7 @@ def main():
 
     # Exit with appropriate code
     sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
     main()

@@ -22,17 +22,17 @@ def get_mem0_server() -> tuple[str, int]:
     """
 
     # 1. Environment variables (highest priority)
-    host = os.getenv('NINAIVALAIGAL_SERVER_HOST')
-    port = os.getenv('NINAIVALAIGAL_SERVER_PORT', '13371')
+    host = os.getenv("NINAIVALAIGAL_SERVER_HOST")
+    port = os.getenv("NINAIVALAIGAL_SERVER_PORT", "13371")
 
     if host:
         return host, int(port)
 
     # 2. Config file discovery
     config_paths = [
-        os.path.expanduser('~/.mem0/config.json'),
-        os.path.join(os.getcwd(), '.mem0.json'),
-        '/etc/mem0/config.json'
+        os.path.expanduser("~/.mem0/config.json"),
+        os.path.join(os.getcwd(), ".mem0.json"),
+        "/etc/mem0/config.json",
     ]
 
     for config_path in config_paths:
@@ -40,30 +40,35 @@ def get_mem0_server() -> tuple[str, int]:
             try:
                 with open(config_path) as f:
                     config = json.load(f)
-                    return config.get('host', 'localhost'), config.get('port', 13371)
+                    return config.get("host", "localhost"), config.get("port", 13371)
             except (OSError, json.JSONDecodeError):
                 continue
 
     # 3. Service discovery
     # Kubernetes service discovery
-    if os.getenv('KUBERNETES_SERVICE_HOST'):
-        return 'mem0-mcp-service', 13371
+    if os.getenv("KUBERNETES_SERVICE_HOST"):
+        return "mem0-mcp-service", 13371
 
     # Docker compose service discovery
-    if os.path.exists('/.dockerenv'):
-        return 'mem0-mcp', 13371
+    if os.path.exists("/.dockerenv"):
+        return "mem0-mcp", 13371
 
     # Docker network discovery
     try:
-        result = subprocess.run(['docker', 'network', 'ls', '--format', '{{.Name}}'],
-                              capture_output=True, text=True, timeout=5)
-        if 'mem0' in result.stdout:
-            return 'mem0-mcp', 13371
+        result = subprocess.run(
+            ["docker", "network", "ls", "--format", "{{.Name}}"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if "mem0" in result.stdout:
+            return "mem0-mcp", 13371
     except (subprocess.TimeoutExpired, FileNotFoundError):
         pass
 
     # 4. Default local development
-    return 'localhost', 13371
+    return "localhost", 13371
+
 
 def test_connection(host: str, port: int, timeout: int = 5) -> bool:
     """Test if mem0 server is reachable"""
@@ -76,21 +81,23 @@ def test_connection(host: str, port: int, timeout: int = 5) -> bool:
     except Exception:
         return False
 
+
 def create_config_file(host: str, port: int) -> None:
     """Create config file for future use"""
-    config_dir = os.path.expanduser('~/.mem0')
+    config_dir = os.path.expanduser("~/.mem0")
     os.makedirs(config_dir, exist_ok=True)
 
-    config_path = os.path.join(config_dir, 'config.json')
+    config_path = os.path.join(config_dir, "config.json")
     config = {
-        'host': host,
-        'port': port,
-        'created_at': '2025-09-12T16:40:00-05:00',
-        'version': '1.0.0'
+        "host": host,
+        "port": port,
+        "created_at": "2025-09-12T16:40:00-05:00",
+        "version": "1.0.0",
     }
 
-    with open(config_path, 'w') as f:
+    with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
+
 
 def proxy_mcp_connection(host: str, port: int) -> None:
     """Proxy MCP JSON-RPC communication between IDE and mem0 server"""
@@ -113,7 +120,7 @@ def proxy_mcp_connection(host: str, port: int) -> None:
                     data = sys.stdin.readline()
                     if not data:
                         break
-                    sock.send(data.encode('utf-8'))
+                    sock.send(data.encode("utf-8"))
                 except (BrokenPipeError, ConnectionResetError):
                     break
 
@@ -122,7 +129,7 @@ def proxy_mcp_connection(host: str, port: int) -> None:
                     response = sock.recv(4096)
                     if not response:
                         break
-                    sys.stdout.write(response.decode('utf-8'))
+                    sys.stdout.write(response.decode("utf-8"))
                     sys.stdout.flush()
                 except (BrokenPipeError, ConnectionResetError):
                     break
@@ -130,7 +137,10 @@ def proxy_mcp_connection(host: str, port: int) -> None:
     except ConnectionRefusedError:
         print(f"Error: Cannot connect to mem0 server at {host}:{port}", file=sys.stderr)
         print("Make sure the mem0 MCP server is running:", file=sys.stderr)
-        print(f"  python server/mcp_server.py --host {host} --port {port}", file=sys.stderr)
+        print(
+            f"  python server/mcp_server.py --host {host} --port {port}",
+            file=sys.stderr,
+        )
         sys.exit(1)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -141,13 +151,20 @@ def proxy_mcp_connection(host: str, port: int) -> None:
         except:
             pass
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Universal MCP client for mem0')
-    parser.add_argument('--host', help='mem0 server host (overrides discovery)')
-    parser.add_argument('--port', type=int, help='mem0 server port (overrides discovery)')
-    parser.add_argument('--test', action='store_true', help='Test connection and exit')
-    parser.add_argument('--config', action='store_true', help='Show current configuration')
-    parser.add_argument('--save-config', action='store_true', help='Save discovered config to file')
+    parser = argparse.ArgumentParser(description="Universal MCP client for mem0")
+    parser.add_argument("--host", help="mem0 server host (overrides discovery)")
+    parser.add_argument(
+        "--port", type=int, help="mem0 server port (overrides discovery)"
+    )
+    parser.add_argument("--test", action="store_true", help="Test connection and exit")
+    parser.add_argument(
+        "--config", action="store_true", help="Show current configuration"
+    )
+    parser.add_argument(
+        "--save-config", action="store_true", help="Save discovered config to file"
+    )
 
     args = parser.parse_args()
 
@@ -160,7 +177,7 @@ def main():
     # Handle special commands
     if args.config:
         print(f"mem0 server: {host}:{port}")
-        config_file = os.path.expanduser('~/.mem0/config.json')
+        config_file = os.path.expanduser("~/.mem0/config.json")
         if os.path.exists(config_file):
             print(f"Config file: {config_file}")
         else:
@@ -182,11 +199,14 @@ def main():
 
     # Test connection before proxying
     if not test_connection(host, port):
-        print(f"Warning: mem0 server at {host}:{port} is not reachable", file=sys.stderr)
+        print(
+            f"Warning: mem0 server at {host}:{port} is not reachable", file=sys.stderr
+        )
         print("Attempting connection anyway...", file=sys.stderr)
 
     # Proxy MCP communication
     proxy_mcp_connection(host, port)
+
 
 if __name__ == "__main__":
     main()

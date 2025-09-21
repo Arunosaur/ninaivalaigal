@@ -10,13 +10,17 @@ import jwt  # PyJWT
 
 logger = logging.getLogger(__name__)
 
+
 class JWTValidationError(Exception):
     """Strict JWT validation error with detailed context."""
+
     pass
+
 
 @dataclass
 class StrictJWTConfig:
     """Configuration for strict JWT verification."""
+
     audience_allowlist: set[str] | None = None
     issuer_allowlist: set[str] | None = None
     leeway_seconds: int = 120  # Bounded clock skew tolerance
@@ -31,8 +35,13 @@ class StrictJWTConfig:
             raise ValueError(f"leeway_seconds must be 0-300, got {self.leeway_seconds}")
 
         # Validate token age limit
-        if self.max_token_age_seconds < 300 or self.max_token_age_seconds > 86400:  # 5min - 24hrs
-            raise ValueError(f"max_token_age_seconds must be 300-86400, got {self.max_token_age_seconds}")
+        if (
+            self.max_token_age_seconds < 300 or self.max_token_age_seconds > 86400
+        ):  # 5min - 24hrs
+            raise ValueError(
+                f"max_token_age_seconds must be 300-86400, got {self.max_token_age_seconds}"
+            )
+
 
 def verify_jwt_strict(
     token: str,
@@ -47,7 +56,7 @@ def verify_jwt_strict(
 ) -> dict[str, Any]:
     """
     Strict JWT verification with bounded clock skew and comprehensive validation.
-    
+
     Args:
         token: JWT token to verify
         key: Signing key (string or bytes)
@@ -56,10 +65,10 @@ def verify_jwt_strict(
         audience_allowlist: Allowed audiences (legacy)
         issuer_allowlist: Allowed issuers (legacy)
         leeway_seconds: Clock skew tolerance (legacy)
-    
+
     Returns:
         Validated JWT claims
-        
+
     Raises:
         JWTValidationError: Validation failed with detailed reason
     """
@@ -69,7 +78,7 @@ def verify_jwt_strict(
             audience_allowlist=audience_allowlist,
             issuer_allowlist=issuer_allowlist,
             leeway_seconds=leeway_seconds or 120,
-            algorithms=tuple(algorithms) if algorithms else ("HS256",)
+            algorithms=tuple(algorithms) if algorithms else ("HS256",),
         )
 
     start_time = time.time()
@@ -81,7 +90,7 @@ def verify_jwt_strict(
             key=key,
             algorithms=list(config.algorithms),
             audience=None,  # We'll validate manually for better control
-            issuer=None,    # We'll validate manually for better control
+            issuer=None,  # We'll validate manually for better control
             options={
                 "require": ["exp", "iat", "sub"],
                 "verify_signature": True,
@@ -112,7 +121,9 @@ def verify_jwt_strict(
         audiences_to_check = aud if isinstance(aud, list) else [aud]
 
         # At least one audience must be in allowlist
-        valid_audiences = [a for a in audiences_to_check if a in config.audience_allowlist]
+        valid_audiences = [
+            a for a in audiences_to_check if a in config.audience_allowlist
+        ]
         if not valid_audiences:
             raise JWTValidationError(
                 f"No valid audience found. Token audiences: {audiences_to_check}, "
@@ -166,7 +177,9 @@ def verify_jwt_strict(
         raise JWTValidationError("Token missing or invalid 'sub' claim")
 
     # Check for suspicious subject patterns
-    if any(pattern in sub.lower() for pattern in ["admin", "root", "system", "service"]):
+    if any(
+        pattern in sub.lower() for pattern in ["admin", "root", "system", "service"]
+    ):
         logger.warning(f"Privileged subject detected: {sub}")
 
     # Validate JWT ID if required
@@ -180,9 +193,12 @@ def verify_jwt_strict(
     # Step 6: Validate claim structure
     _validate_claim_security(claims)
 
-    logger.info(f"Strict JWT validation completed successfully for sub={sub} in {time.time() - start_time:.3f}s")
+    logger.info(
+        f"Strict JWT validation completed successfully for sub={sub} in {time.time() - start_time:.3f}s"
+    )
 
     return claims
+
 
 def _validate_claim_security(claims: dict[str, Any]) -> None:
     """Additional security validation for JWT claims."""
@@ -199,7 +215,9 @@ def _validate_claim_security(claims: dict[str, Any]) -> None:
     roles = claims.get("roles", [])
     if isinstance(roles, list):
         privileged_roles = ["admin", "root", "superuser", "system"]
-        found_privileged = [r for r in roles if isinstance(r, str) and r.lower() in privileged_roles]
+        found_privileged = [
+            r for r in roles if isinstance(r, str) and r.lower() in privileged_roles
+        ]
         if found_privileged:
             logger.warning(f"Privileged roles detected: {found_privileged}")
 
@@ -208,6 +226,7 @@ def _validate_claim_security(claims: dict[str, Any]) -> None:
     found_suspicious = [claim for claim in suspicious_claims if claims.get(claim)]
     if found_suspicious:
         logger.warning(f"Suspicious claims detected: {found_suspicious}")
+
 
 def create_production_jwt_config(
     audience_allowlist: set[str],

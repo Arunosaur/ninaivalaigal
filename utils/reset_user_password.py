@@ -21,7 +21,7 @@ def reset_password_sqlite(email, new_password):
 
     try:
         # Hash the new password
-        password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+        password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
 
         # Connect to database
         conn = sqlite3.connect(str(db_path))
@@ -42,7 +42,7 @@ def reset_password_sqlite(email, new_password):
         # Update password
         cursor.execute(
             "UPDATE users SET password_hash = ? WHERE email = ?",
-            (password_hash.decode('utf-8'), email)
+            (password_hash.decode("utf-8"), email),
         )
 
         conn.commit()
@@ -62,6 +62,7 @@ def reset_password_sqlite(email, new_password):
         print(f"❌ Error updating password: {e}")
         return False
 
+
 def reset_password_postgresql(email, new_password):
     """Reset password using PostgreSQL database"""
     try:
@@ -70,7 +71,7 @@ def reset_password_postgresql(email, new_password):
         import psycopg2
 
         # Get database URL from environment
-        db_url = os.getenv('NINAIVALAIGAL_DATABASE_URL')
+        db_url = os.getenv("NINAIVALAIGAL_DATABASE_URL")
         if not db_url:
             print("❌ NINAIVALAIGAL_DATABASE_URL not set")
             return False
@@ -84,13 +85,13 @@ def reset_password_postgresql(email, new_password):
             port=parsed.port,
             database=parsed.path[1:],  # Remove leading slash
             user=parsed.username,
-            password=parsed.password
+            password=parsed.password,
         )
 
         cursor = conn.cursor()
 
         # Hash the new password
-        password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+        password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
 
         # Check if user exists
         cursor.execute("SELECT id, email FROM users WHERE email = %s", (email,))
@@ -107,7 +108,7 @@ def reset_password_postgresql(email, new_password):
         # Update password
         cursor.execute(
             "UPDATE users SET password_hash = %s WHERE email = %s",
-            (password_hash.decode('utf-8'), email)
+            (password_hash.decode("utf-8"), email),
         )
 
         conn.commit()
@@ -130,6 +131,7 @@ def reset_password_postgresql(email, new_password):
         print(f"❌ Error updating PostgreSQL password: {e}")
         return False
 
+
 def test_login_after_reset(email, password):
     """Test login after password reset"""
     import requests
@@ -137,7 +139,7 @@ def test_login_after_reset(email, password):
     try:
         response = requests.post(
             "http://localhost:8000/auth/login",
-            json={"email": email, "password": password}
+            json={"email": email, "password": password},
         )
 
         if response.status_code == 200:
@@ -153,6 +155,7 @@ def test_login_after_reset(email, password):
     except Exception as e:
         print(f"❌ Login test error: {e}")
         return False
+
 
 def main():
     """Reset password for test user"""
@@ -189,6 +192,7 @@ def main():
             return
 
     print("❌ Password reset failed on both databases")
+
 
 if __name__ == "__main__":
     main()

@@ -262,9 +262,7 @@ def purge_command(older_than: int, dry_run: bool):
     type=click.Choice(["ttl", "archival", "purge"]),
     help="Filter by policy type",
 )
-def policies_command(
-    list_policies: bool, scope: str | None, policy_type: str | None
-):
+def policies_command(list_policies: bool, scope: str | None, policy_type: str | None):
     """Manage lifecycle policies"""
 
     async def run_policies():

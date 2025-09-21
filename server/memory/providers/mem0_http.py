@@ -22,19 +22,17 @@ class Mem0HttpMemoryProvider:
     """HTTP-based memory provider that forwards to mem0 sidecar"""
 
     def __init__(self, base_url: str, auth_secret: str = "", **kwargs):
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.auth_secret = auth_secret
-        self.timeout = kwargs.get('timeout', 30.0)
+        self.timeout = kwargs.get("timeout", 30.0)
 
         # Create HTTP client
         headers = {}
         if auth_secret:
-            headers['Authorization'] = f'Bearer {auth_secret}'
+            headers["Authorization"] = f"Bearer {auth_secret}"
 
         self.client = httpx.AsyncClient(
-            base_url=self.base_url,
-            headers=headers,
-            timeout=self.timeout
+            base_url=self.base_url, headers=headers, timeout=self.timeout
         )
 
     async def remember(
@@ -43,7 +41,7 @@ class Mem0HttpMemoryProvider:
         text: str,
         meta: Mapping[str, Any] | None = None,
         user_id: int | None = None,
-        context_id: str | None = None
+        context_id: str | None = None,
     ) -> MemoryItem:
         """Store a memory item via mem0 HTTP API"""
         try:
@@ -51,7 +49,7 @@ class Mem0HttpMemoryProvider:
                 "text": text,
                 "metadata": meta or {},
                 "user_id": str(user_id) if user_id else None,
-                "context_id": context_id
+                "context_id": context_id,
             }
 
             response = await self.client.post("/add", json=payload)
@@ -66,7 +64,7 @@ class Mem0HttpMemoryProvider:
                 meta=meta or {},
                 user_id=user_id,
                 context_id=context_id,
-                created_at=datetime.utcnow().isoformat()
+                created_at=datetime.utcnow().isoformat(),
             )
 
         except httpx.HTTPError as e:
@@ -80,7 +78,7 @@ class Mem0HttpMemoryProvider:
         query: str,
         k: int = 5,
         user_id: int | None = None,
-        context_id: str | None = None
+        context_id: str | None = None,
     ) -> Sequence[MemoryItem]:
         """Retrieve memory items via mem0 HTTP API"""
         try:
@@ -88,7 +86,7 @@ class Mem0HttpMemoryProvider:
                 "query": query,
                 "limit": k,
                 "user_id": str(user_id) if user_id else None,
-                "context_id": context_id
+                "context_id": context_id,
             }
 
             response = await self.client.post("/search", json=payload)
@@ -99,14 +97,16 @@ class Mem0HttpMemoryProvider:
 
             # Transform mem0 response to our MemoryItem format
             for item in result.get("results", []):
-                memories.append(MemoryItem(
-                    id=item.get("id", ""),
-                    text=item.get("text", ""),
-                    meta=item.get("metadata", {}),
-                    user_id=user_id,
-                    context_id=context_id,
-                    created_at=item.get("created_at")
-                ))
+                memories.append(
+                    MemoryItem(
+                        id=item.get("id", ""),
+                        text=item.get("text", ""),
+                        meta=item.get("metadata", {}),
+                        user_id=user_id,
+                        context_id=context_id,
+                        created_at=item.get("created_at"),
+                    )
+                )
 
             return memories
 
@@ -115,18 +115,10 @@ class Mem0HttpMemoryProvider:
         except Exception as e:
             raise MemoryProviderError(f"Failed to recall memories: {e}")
 
-    async def delete(
-        self,
-        *,
-        id: str,
-        user_id: int | None = None
-    ) -> bool:
+    async def delete(self, *, id: str, user_id: int | None = None) -> bool:
         """Delete a memory item via mem0 HTTP API"""
         try:
-            payload = {
-                "memory_id": id,
-                "user_id": str(user_id) if user_id else None
-            }
+            payload = {"memory_id": id, "user_id": str(user_id) if user_id else None}
 
             response = await self.client.post("/delete", json=payload)
             response.raise_for_status()
@@ -147,14 +139,11 @@ class Mem0HttpMemoryProvider:
         user_id: int | None = None,
         context_id: str | None = None,
         limit: int = 100,
-        offset: int = 0
+        offset: int = 0,
     ) -> Sequence[MemoryItem]:
         """List memory items via mem0 HTTP API"""
         try:
-            params = {
-                "limit": limit,
-                "offset": offset
-            }
+            params = {"limit": limit, "offset": offset}
 
             if user_id is not None:
                 params["user_id"] = str(user_id)
@@ -169,14 +158,16 @@ class Mem0HttpMemoryProvider:
             memories = []
 
             for item in result.get("memories", []):
-                memories.append(MemoryItem(
-                    id=item.get("id", ""),
-                    text=item.get("text", ""),
-                    meta=item.get("metadata", {}),
-                    user_id=user_id,
-                    context_id=context_id,
-                    created_at=item.get("created_at")
-                ))
+                memories.append(
+                    MemoryItem(
+                        id=item.get("id", ""),
+                        text=item.get("text", ""),
+                        meta=item.get("metadata", {}),
+                        user_id=user_id,
+                        context_id=context_id,
+                        created_at=item.get("created_at"),
+                    )
+                )
 
             return memories
 

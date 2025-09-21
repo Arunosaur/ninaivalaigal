@@ -18,15 +18,15 @@ class TestFastAPIEndpoints:
     def setup_class(cls):
         """Start FastAPI server for testing"""
         env = os.environ.copy()
-        os.environ['NINAIVALAIGAL_DATABASE_URL'] = 'sqlite:///test.db'
-        os.environ['NINAIVALAIGAL_JWT_SECRET'] = 'test-secret-key'
+        os.environ["NINAIVALAIGAL_DATABASE_URL"] = "sqlite:///test.db"
+        os.environ["NINAIVALAIGAL_JWT_SECRET"] = "test-secret-key"
 
         cls.server_process = subprocess.Popen(
-            ['python', 'server/main.py'],
-            cwd='/Users/asrajag/Workspace/mem0',
+            ["python", "server/main.py"],
+            cwd="/Users/asrajag/Workspace/mem0",
             env=env,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
         )
 
         # Wait for server to start
@@ -44,15 +44,14 @@ class TestFastAPIEndpoints:
     @classmethod
     def teardown_class(cls):
         """Stop FastAPI server"""
-        if hasattr(cls, 'server_process'):
+        if hasattr(cls, "server_process"):
             cls.server_process.terminate()
             cls.server_process.wait()
 
     def test_start_recording_endpoint(self):
         """Test POST /context/start endpoint"""
         response = requests.post(
-            f"{self.BASE_URL}/context/start",
-            json={"context": "test-fastapi-context"}
+            f"{self.BASE_URL}/context/start", json={"context": "test-fastapi-context"}
         )
 
         assert response.status_code == 200
@@ -65,8 +64,7 @@ class TestFastAPIEndpoints:
         """Test GET /context/status endpoint"""
         # Start recording first
         requests.post(
-            f"{self.BASE_URL}/context/start",
-            json={"context": "status-test-context"}
+            f"{self.BASE_URL}/context/start", json={"context": "status-test-context"}
         )
 
         response = requests.get(f"{self.BASE_URL}/context/status")
@@ -81,13 +79,11 @@ class TestFastAPIEndpoints:
         """Test POST /context/stop endpoint"""
         # Start recording first
         requests.post(
-            f"{self.BASE_URL}/context/start",
-            json={"context": "stop-test-context"}
+            f"{self.BASE_URL}/context/start", json={"context": "stop-test-context"}
         )
 
         response = requests.post(
-            f"{self.BASE_URL}/context/stop",
-            json={"context": "stop-test-context"}
+            f"{self.BASE_URL}/context/stop", json={"context": "stop-test-context"}
         )
 
         assert response.status_code == 200
@@ -100,8 +96,7 @@ class TestFastAPIEndpoints:
         """Test POST /memory/record endpoint"""
         # Start recording first
         requests.post(
-            f"{self.BASE_URL}/context/start",
-            json={"context": "record-test-context"}
+            f"{self.BASE_URL}/context/start", json={"context": "record-test-context"}
         )
 
         response = requests.post(
@@ -110,8 +105,8 @@ class TestFastAPIEndpoints:
                 "context": "record-test-context",
                 "interaction_type": "ai_prompt",
                 "content": "How do I implement authentication?",
-                "metadata": {"source": "test"}
-            }
+                "metadata": {"source": "test"},
+            },
         )
 
         assert response.status_code == 200
@@ -127,8 +122,8 @@ class TestFastAPIEndpoints:
             json={
                 "context": "inactive-context",
                 "interaction_type": "ai_prompt",
-                "content": "This should not be recorded"
-            }
+                "content": "This should not be recorded",
+            },
         )
 
         assert response.status_code == 200
@@ -140,10 +135,7 @@ class TestFastAPIEndpoints:
         """Test GET /memory/recall endpoint"""
         response = requests.get(
             f"{self.BASE_URL}/memory/recall",
-            params={
-                "query": "authentication",
-                "context": "test-context"
-            }
+            params={"query": "authentication", "context": "test-context"},
         )
 
         assert response.status_code == 200
@@ -180,12 +172,12 @@ class TestFastAPIEndpoints:
     def test_invalid_context_start(self):
         """Test starting recording with invalid parameters"""
         response = requests.post(
-            f"{self.BASE_URL}/context/start",
-            json={}  # Missing context parameter
+            f"{self.BASE_URL}/context/start", json={}  # Missing context parameter
         )
 
         # Should handle gracefully
         assert response.status_code in [400, 422, 500]
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "-s"])

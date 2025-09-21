@@ -41,7 +41,7 @@ _subject_context_registry = SubjectContextRegistry()
 def install_subject_ctx_provider(app: FastAPI, provider: SubjectContextProvider):
     """
     Install a subject context provider for the FastAPI app.
-    
+
     Args:
         app: FastAPI application instance
         provider: Async function that takes Request and returns Optional[SubjectContext]
@@ -49,7 +49,7 @@ def install_subject_ctx_provider(app: FastAPI, provider: SubjectContextProvider)
     _subject_context_registry.register(app, provider)
 
     # Store reference in app state for cleanup
-    if not hasattr(app.state, 'subject_ctx_provider_installed'):
+    if not hasattr(app.state, "subject_ctx_provider_installed"):
         app.state.subject_ctx_provider_installed = True
 
         # Add cleanup on app shutdown
@@ -61,12 +61,12 @@ def install_subject_ctx_provider(app: FastAPI, provider: SubjectContextProvider)
 def get_subject_ctx_dep(app: FastAPI):
     """
     Get FastAPI dependency function for subject context resolution.
-    
+
     Returns a dependency function that can be used with Depends() in routes.
-    
+
     Usage:
         subject_ctx_dep = get_subject_ctx_dep(app)
-        
+
         @app.get("/protected")
         async def protected_route(ctx: SubjectContext = Depends(subject_ctx_dep)):
             return {"user_id": ctx.user_id}
@@ -86,6 +86,7 @@ def get_subject_ctx_dep(app: FastAPI):
         except Exception as e:
             # Log error but don't fail request - return None for anonymous access
             import logging
+
             logging.warning(f"Subject context provider failed: {e}")
             return None
 
@@ -95,7 +96,7 @@ def get_subject_ctx_dep(app: FastAPI):
 async def default_jwt_subject_provider(request: Request) -> SubjectContext | None:
     """
     Default subject context provider using JWT resolution.
-    
+
     Extracts JWT from Authorization header and resolves claims to SubjectContext.
     """
 
@@ -121,7 +122,7 @@ async def default_jwt_subject_provider(request: Request) -> SubjectContext | Non
             team_id=claims.get("team_id"),
             roles=claims.get("roles", []),
             permissions=claims.get("permissions", []),
-            raw_claims=claims
+            raw_claims=claims,
         )
 
     except Exception:
@@ -130,20 +131,17 @@ async def default_jwt_subject_provider(request: Request) -> SubjectContext | Non
 
 
 def create_verified_jwt_provider(
-    jwks_client,
-    audience: str,
-    issuer: str,
-    require_verification: bool = True
+    jwks_client, audience: str, issuer: str, require_verification: bool = True
 ) -> SubjectContextProvider:
     """
     Create a verified JWT subject context provider.
-    
+
     Args:
         jwks_client: JWKS client for key verification
         audience: Expected JWT audience
         issuer: Expected JWT issuer
         require_verification: If True, reject unverified tokens
-    
+
     Returns:
         SubjectContextProvider function
     """
@@ -180,7 +178,7 @@ def create_verified_jwt_provider(
                     signing_key.key,
                     algorithms=["RS256", "ES256"],
                     audience=audience,
-                    issuer=issuer
+                    issuer=issuer,
                 )
 
             # Create subject context
@@ -190,7 +188,7 @@ def create_verified_jwt_provider(
                 team_id=claims.get("team_id"),
                 roles=claims.get("roles", []),
                 permissions=claims.get("permissions", []),
-                raw_claims=claims
+                raw_claims=claims,
             )
 
         except InvalidTokenError:
@@ -205,7 +203,7 @@ def create_verified_jwt_provider(
                     team_id=claims.get("team_id"),
                     roles=claims.get("roles", []),
                     permissions=claims.get("permissions", []),
-                    raw_claims=claims
+                    raw_claims=claims,
                 )
             except Exception:
                 return None
@@ -219,16 +217,16 @@ def create_verified_jwt_provider(
 def create_mock_subject_provider(
     default_user_id: str = "test_user",
     default_org_id: str = "test_org",
-    default_roles: list = None
+    default_roles: list = None,
 ) -> SubjectContextProvider:
     """
     Create a mock subject context provider for testing.
-    
+
     Args:
         default_user_id: Default user ID for mock context
         default_org_id: Default organization ID
         default_roles: Default roles list
-    
+
     Returns:
         SubjectContextProvider function for testing
     """
@@ -259,7 +257,7 @@ def create_mock_subject_provider(
             organization_id=org_id,
             team_id=request.headers.get("X-Test-Team-Id"),
             role=role,
-            permissions=roles  # Store roles as permissions for compatibility
+            permissions=roles,  # Store roles as permissions for compatibility
         )
 
         # Add raw_claims as attribute
@@ -267,7 +265,7 @@ def create_mock_subject_provider(
             "sub": user_id,
             "org_id": org_id,
             "roles": roles,
-            "mock": True
+            "mock": True,
         }
 
         return ctx
@@ -288,7 +286,7 @@ def test_subject_context_provider():
     mock_provider = create_mock_subject_provider(
         default_user_id="test_123",
         default_org_id="org_456",
-        default_roles=["admin", "user"]
+        default_roles=["admin", "user"],
     )
 
     # Install provider
@@ -307,7 +305,7 @@ def test_subject_context_provider():
             "authenticated": True,
             "user_id": ctx.user_id,
             "org_id": ctx.organization_id,
-            "roles": ctx.roles
+            "roles": ctx.roles,
         }
 
     # Test with client
@@ -323,22 +321,21 @@ def test_subject_context_provider():
     assert "admin" in data["roles"]
 
     # Test with custom headers
-    response = client.get("/test", headers={
-        "X-Test-User-Id": "custom_user",
-        "X-Test-Org-Id": "custom_org",
-        "X-Test-Roles": "viewer"
-    })
+    response = client.get(
+        "/test",
+        headers={
+            "X-Test-User-Id": "custom_user",
+            "X-Test-Org-Id": "custom_org",
+            "X-Test-Roles": "viewer",
+        },
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["user_id"] == "custom_user"
     assert data["org_id"] == "custom_org"
     assert data["roles"] == ["viewer"]
 
-    return {
-        "test_passed": True,
-        "provider_installed": True,
-        "dependency_working": True
-    }
+    return {"test_passed": True, "provider_installed": True, "dependency_working": True}
 
 
 if __name__ == "__main__":

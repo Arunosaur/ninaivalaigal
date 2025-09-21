@@ -17,28 +17,28 @@ class ScopedKeyHelper:
     # Path template patterns for common route structures
     PATH_PATTERNS = [
         # Organization IDs (org_ prefix) - must come before generic alphanumeric
-        (r'/org_[a-zA-Z0-9-]+', '/{org_id}'),
+        (r"/org_[a-zA-Z0-9-]+", "/{org_id}"),
         # Team IDs (team_ prefix) - must come before generic alphanumeric
-        (r'/team_[a-zA-Z0-9-]+', '/{team_id}'),
+        (r"/team_[a-zA-Z0-9-]+", "/{team_id}"),
         # Memory IDs (mem_ prefix) - must come before generic alphanumeric
-        (r'/mem_[a-zA-Z0-9-]+', '/{memory_id}'),
+        (r"/mem_[a-zA-Z0-9-]+", "/{memory_id}"),
         # Context IDs (ctx_ prefix) - must come before generic alphanumeric
-        (r'/ctx_[a-zA-Z0-9-]+', '/{context_id}'),
+        (r"/ctx_[a-zA-Z0-9-]+", "/{context_id}"),
         # UUID patterns - must come before numeric IDs
-        (r'/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', '/{uuid}'),
+        (r"/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "/{uuid}"),
         # Numeric IDs (pure numbers)
-        (r'/\d+', '/{id}'),
+        (r"/\d+", "/{id}"),
         # Alphanumeric with hyphens that look like IDs
-        (r'/[a-zA-Z0-9]+-[a-zA-Z0-9-]+', '/{id}'),
+        (r"/[a-zA-Z0-9]+-[a-zA-Z0-9-]+", "/{id}"),
         # Mixed alphanumeric that contains numbers (likely IDs)
-        (r'/[a-zA-Z]*\d+[a-zA-Z0-9]*', '/{id}'),
+        (r"/[a-zA-Z]*\d+[a-zA-Z0-9]*", "/{id}"),
     ]
 
     @classmethod
     def extract_path_template(cls, path: str) -> str:
         """
         Extract path template from actual request path.
-        
+
         Converts /memories/123/contexts/456 -> /memories/{id}/contexts/{id}
         """
         if not path:
@@ -48,8 +48,8 @@ class ScopedKeyHelper:
         decoded_path = unquote(path)
 
         # Remove query parameters
-        if '?' in decoded_path:
-            decoded_path = decoded_path.split('?')[0]
+        if "?" in decoded_path:
+            decoded_path = decoded_path.split("?")[0]
 
         # Apply path patterns
         template = decoded_path
@@ -65,11 +65,11 @@ class ScopedKeyHelper:
         path: str,
         subject_user_id: str | None = None,
         organization_id: str | None = None,
-        idempotency_key: str | None = None
+        idempotency_key: str | None = None,
     ) -> str:
         """
         Generate scoped idempotency key.
-        
+
         Format: {method}:{path_template}:{user_id}:{org_id}:{path_hash}:{key_hash}
         """
         # Extract path template
@@ -110,11 +110,13 @@ class ScopedKeyHelper:
             "subject_user_id": parts[2] if parts[2] != "anonymous" else None,
             "organization_id": parts[3] if parts[3] != "default" else None,
             "path_hash": parts[4],
-            "key_hash": parts[5] if parts[5] != "no-key" else None
+            "key_hash": parts[5] if parts[5] != "no-key" else None,
         }
 
     @classmethod
-    def validate_key_scope(cls, scoped_key: str, method: str, path: str, user_id: str | None = None) -> bool:
+    def validate_key_scope(
+        cls, scoped_key: str, method: str, path: str, user_id: str | None = None
+    ) -> bool:
         """Validate that scoped key matches current request context."""
         try:
             parsed = cls.parse_scoped_key(scoped_key)
@@ -180,15 +182,11 @@ class ScopedKeyHelper:
                 "partial_collisions": collisions,
                 "collision_risk": len(collisions) / 6.0,
                 "key1_parsed": parsed1,
-                "key2_parsed": parsed2
+                "key2_parsed": parsed2,
             }
 
         except ValueError as e:
-            return {
-                "full_collision": False,
-                "error": str(e),
-                "collision_risk": 0.0
-            }
+            return {"full_collision": False, "error": str(e), "collision_risk": 0.0}
 
 
 def scope_get(method: str, path: str, user_id: str | None = None) -> str:
@@ -196,9 +194,16 @@ def scope_get(method: str, path: str, user_id: str | None = None) -> str:
     return ScopedKeyHelper.generate_scoped_key(method, path, user_id)
 
 
-def scope_post(method: str, path: str, user_id: str | None = None, idempotency_key: str | None = None) -> str:
+def scope_post(
+    method: str,
+    path: str,
+    user_id: str | None = None,
+    idempotency_key: str | None = None,
+) -> str:
     """Quick helper for POST request scoped keys with idempotency."""
-    return ScopedKeyHelper.generate_scoped_key(method, path, user_id, idempotency_key=idempotency_key)
+    return ScopedKeyHelper.generate_scoped_key(
+        method, path, user_id, idempotency_key=idempotency_key
+    )
 
 
 def test_scoped_key_helper():
@@ -208,15 +213,15 @@ def test_scoped_key_helper():
         # Path template extraction
         {
             "path": "/memories/123/contexts/456",
-            "expected_template": "/memories/{id}/contexts/{id}"
+            "expected_template": "/memories/{id}/contexts/{id}",
         },
         {
             "path": "/organizations/org_abc123/teams/team_xyz789",
-            "expected_template": "/organizations/{org_id}/teams/{team_id}"
+            "expected_template": "/organizations/{org_id}/teams/{team_id}",
         },
         {
             "path": "/users/550e8400-e29b-41d4-a716-446655440000/profile",
-            "expected_template": "/users/{uuid}/profile"
+            "expected_template": "/users/{uuid}/profile",
         },
         # Scoped key generation
         {
@@ -225,8 +230,8 @@ def test_scoped_key_helper():
             "user_id": "user_456",
             "org_id": "org_789",
             "key": "abc123",
-            "expected_format": "POST:/memories/{id}:user_456:org_789:"
-        }
+            "expected_format": "POST:/memories/{id}:user_456:org_789:",
+        },
     ]
 
     results = []
@@ -236,22 +241,20 @@ def test_scoped_key_helper():
         template = ScopedKeyHelper.extract_path_template(case["path"])
         test_passed = template == case["expected_template"]
 
-        results.append({
-            "test": "path_template",
-            "input": case["path"],
-            "expected": case["expected_template"],
-            "actual": template,
-            "passed": test_passed
-        })
+        results.append(
+            {
+                "test": "path_template",
+                "input": case["path"],
+                "expected": case["expected_template"],
+                "actual": template,
+                "passed": test_passed,
+            }
+        )
 
     # Test scoped key generation
     case = test_cases[3]
     scoped_key = ScopedKeyHelper.generate_scoped_key(
-        case["method"],
-        case["path"],
-        case["user_id"],
-        case["org_id"],
-        case["key"]
+        case["method"], case["path"], case["user_id"], case["org_id"], case["key"]
     )
 
     # Check format (first 4 components)
@@ -259,48 +262,56 @@ def test_scoped_key_helper():
     actual_prefix = ":".join(key_parts[:4]) + ":"
     test_passed = actual_prefix == case["expected_format"]
 
-    results.append({
-        "test": "scoped_key_generation",
-        "scoped_key": scoped_key,
-        "expected_prefix": case["expected_format"],
-        "actual_prefix": actual_prefix,
-        "passed": test_passed
-    })
+    results.append(
+        {
+            "test": "scoped_key_generation",
+            "scoped_key": scoped_key,
+            "expected_prefix": case["expected_format"],
+            "actual_prefix": actual_prefix,
+            "passed": test_passed,
+        }
+    )
 
     # Test key parsing and validation
     parsed = ScopedKeyHelper.parse_scoped_key(scoped_key)
     validation_passed = ScopedKeyHelper.validate_key_scope(
-        scoped_key,
-        case["method"],
-        case["path"],
-        case["user_id"]
+        scoped_key, case["method"], case["path"], case["user_id"]
     )
 
-    results.append({
-        "test": "key_parsing_validation",
-        "parsed": parsed,
-        "validation_passed": validation_passed,
-        "passed": validation_passed
-    })
+    results.append(
+        {
+            "test": "key_parsing_validation",
+            "parsed": parsed,
+            "validation_passed": validation_passed,
+            "passed": validation_passed,
+        }
+    )
 
     # Test collision detection
-    key1 = ScopedKeyHelper.generate_scoped_key("POST", "/memories/123", "user1", "org1", "key1")
-    key2 = ScopedKeyHelper.generate_scoped_key("POST", "/memories/456", "user1", "org1", "key2")
+    key1 = ScopedKeyHelper.generate_scoped_key(
+        "POST", "/memories/123", "user1", "org1", "key1"
+    )
+    key2 = ScopedKeyHelper.generate_scoped_key(
+        "POST", "/memories/456", "user1", "org1", "key2"
+    )
 
     collision_info = ScopedKeyHelper.get_collision_info(key1, key2)
 
-    results.append({
-        "test": "collision_detection",
-        "key1": key1,
-        "key2": key2,
-        "collision_info": collision_info,
-        "passed": not collision_info["full_collision"] and collision_info["collision_risk"] < 1.0
-    })
+    results.append(
+        {
+            "test": "collision_detection",
+            "key1": key1,
+            "key2": key2,
+            "collision_info": collision_info,
+            "passed": not collision_info["full_collision"]
+            and collision_info["collision_risk"] < 1.0,
+        }
+    )
 
     return {
         "total_tests": len(results),
         "passed_tests": sum(1 for r in results if r["passed"]),
-        "test_results": results
+        "test_results": results,
     }
 
 

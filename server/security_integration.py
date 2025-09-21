@@ -21,7 +21,7 @@ class SecurityManager:
     def __init__(self):
         self.redaction_engine = RedactionEngine()
         self.rate_limiter = EnhancedRateLimiter()
-        self.enabled = os.getenv('SECURITY_ENABLED', 'true').lower() == 'true'
+        self.enabled = os.getenv("SECURITY_ENABLED", "true").lower() == "true"
 
     def configure_app_security(self, app: FastAPI, development_mode: bool = False):
         """Configure security middleware for FastAPI application"""
@@ -32,6 +32,7 @@ class SecurityManager:
         # Add security headers middleware
         if development_mode:
             from .security.middleware.security_headers import DevelopmentSecurityHeaders
+
             app.add_middleware(DevelopmentSecurityHeaders)
         else:
             app.add_middleware(SecurityHeadersMiddleware)
@@ -56,29 +57,36 @@ class SecurityManager:
                 response = await call_next(request)
 
                 # Log failed authentication attempts
-                if request.url.path.startswith('/auth/') and response.status_code == 401:
+                if (
+                    request.url.path.startswith("/auth/")
+                    and response.status_code == 401
+                ):
                     await security_alert_manager.log_security_event(
                         SecurityEventType.FAILED_LOGIN,
                         metadata={
-                            'endpoint': request.url.path,
-                            'ip_address': request.client.host if request.client else 'unknown',
-                            'user_agent': request.headers.get('user-agent', 'unknown')
-                        }
+                            "endpoint": request.url.path,
+                            "ip_address": request.client.host
+                            if request.client
+                            else "unknown",
+                            "user_agent": request.headers.get("user-agent", "unknown"),
+                        },
                     )
 
                 # Log permission denials
                 elif response.status_code == 403:
-                    rbac_context = getattr(request.state, 'rbac_context', None)
+                    rbac_context = getattr(request.state, "rbac_context", None)
                     user_id = rbac_context.user_id if rbac_context else None
 
                     await security_alert_manager.log_security_event(
                         SecurityEventType.PERMISSION_DENIED,
                         user_id=user_id,
                         metadata={
-                            'endpoint': request.url.path,
-                            'method': request.method,
-                            'user_role': rbac_context.user_role.value if rbac_context else 'unknown'
-                        }
+                            "endpoint": request.url.path,
+                            "method": request.method,
+                            "user_role": rbac_context.user_role.value
+                            if rbac_context
+                            else "unknown",
+                        },
                     )
 
                 return response
@@ -88,25 +96,27 @@ class SecurityManager:
                 await security_alert_manager.log_security_event(
                     SecurityEventType.SUSPICIOUS_PATTERN,
                     metadata={
-                        'error': str(e),
-                        'endpoint': request.url.path,
-                        'method': request.method
-                    }
+                        "error": str(e),
+                        "endpoint": request.url.path,
+                        "method": request.method,
+                    },
                 )
                 raise
 
-    async def redact_sensitive_data(self,
-                                   text: str,
-                                   context_tier: ContextSensitivity | None = None,
-                                   rbac_context: RBACContext | None = None) -> str:
+    async def redact_sensitive_data(
+        self,
+        text: str,
+        context_tier: ContextSensitivity | None = None,
+        rbac_context: RBACContext | None = None,
+    ) -> str:
         """
         Redact sensitive data from text with RBAC context awareness.
-        
+
         Args:
             text: Text to redact
             context_tier: Sensitivity tier (optional)
             rbac_context: RBAC context for user-aware redaction
-            
+
         Returns:
             Redacted text
         """
@@ -130,15 +140,17 @@ class SecurityManager:
                 SecurityEventType.HIGH_ENTROPY_DETECTION,
                 user_id=rbac_context.user_id if rbac_context else None,
                 metadata={
-                    'secrets_found': result.total_secrets_found,
-                    'sensitivity_tier': tier.value,
-                    'entropy_score': result.entropy_score
-                }
+                    "secrets_found": result.total_secrets_found,
+                    "sensitivity_tier": tier.value,
+                    "entropy_score": result.entropy_score,
+                },
             )
 
         return result.redacted_text
 
-    def _determine_tier_from_rbac(self, rbac_context: RBACContext) -> ContextSensitivity:
+    def _determine_tier_from_rbac(
+        self, rbac_context: RBACContext
+    ) -> ContextSensitivity:
         """Determine sensitivity tier based on RBAC context"""
 
         from .rbac.permissions import Role
@@ -150,21 +162,23 @@ class SecurityManager:
             Role.ADMIN: ContextSensitivity.CONFIDENTIAL,
             Role.MAINTAINER: ContextSensitivity.INTERNAL,
             Role.MEMBER: ContextSensitivity.INTERNAL,
-            Role.VIEWER: ContextSensitivity.PUBLIC
+            Role.VIEWER: ContextSensitivity.PUBLIC,
         }
 
-        return role_tier_mapping.get(rbac_context.user_role, ContextSensitivity.INTERNAL)
+        return role_tier_mapping.get(
+            rbac_context.user_role, ContextSensitivity.INTERNAL
+        )
 
-    async def check_cross_org_access(self,
-                                    rbac_context: RBACContext,
-                                    target_org_id: int) -> bool:
+    async def check_cross_org_access(
+        self, rbac_context: RBACContext, target_org_id: int
+    ) -> bool:
         """
         Check for cross-organization access attempts and log security events.
-        
+
         Args:
             rbac_context: User's RBAC context
             target_org_id: Organization being accessed
-            
+
         Returns:
             True if access is allowed, False otherwise
         """
@@ -173,6 +187,7 @@ class SecurityManager:
 
         # Allow system users to access any organization
         from .rbac.permissions import Role
+
         if rbac_context.user_role == Role.SYSTEM:
             return True
 
@@ -183,46 +198,48 @@ class SecurityManager:
                 SecurityEventType.CROSS_ORG_ATTEMPT,
                 user_id=rbac_context.user_id,
                 metadata={
-                    'user_org_id': user_org_id,
-                    'target_org_id': target_org_id,
-                    'user_role': rbac_context.user_role.value
-                }
+                    "user_org_id": user_org_id,
+                    "target_org_id": target_org_id,
+                    "user_role": rbac_context.user_role.value,
+                },
             )
             return False
 
         return True
 
-    async def log_admin_action(self,
-                              rbac_context: RBACContext,
-                              action: str,
-                              target_resource: str,
-                              metadata: dict | None = None):
+    async def log_admin_action(
+        self,
+        rbac_context: RBACContext,
+        action: str,
+        target_resource: str,
+        metadata: dict | None = None,
+    ):
         """Log administrative actions for audit purposes"""
 
         await security_alert_manager.log_security_event(
             SecurityEventType.ADMIN_ACTION,
             user_id=rbac_context.user_id,
             metadata={
-                'action': action,
-                'target_resource': target_resource,
-                'user_role': rbac_context.user_role.value,
-                'organization_id': rbac_context.organization_id,
-                **(metadata or {})
-            }
+                "action": action,
+                "target_resource": target_resource,
+                "user_role": rbac_context.user_role.value,
+                "organization_id": rbac_context.organization_id,
+                **(metadata or {}),
+            },
         )
 
     def get_security_status(self) -> dict:
         """Get current security system status"""
 
         return {
-            'security_enabled': self.enabled,
-            'redaction_enabled': redaction_config.enabled,
-            'rate_limiting_enabled': True,
-            'security_headers_enabled': True,
-            'audit_logging_enabled': redaction_config.audit_enabled,
-            'active_alerts': len(security_alert_manager.get_active_alerts()),
-            'critical_alerts': len(security_alert_manager.get_active_alerts()),
-            'recent_events': len(security_alert_manager.recent_events)
+            "security_enabled": self.enabled,
+            "redaction_enabled": redaction_config.enabled,
+            "rate_limiting_enabled": True,
+            "security_headers_enabled": True,
+            "audit_logging_enabled": redaction_config.audit_enabled,
+            "active_alerts": len(security_alert_manager.get_active_alerts()),
+            "critical_alerts": len(security_alert_manager.get_active_alerts()),
+            "recent_events": len(security_alert_manager.recent_events),
         }
 
 
@@ -231,11 +248,15 @@ security_manager = SecurityManager()
 
 
 # Utility functions for easy integration
-async def redact_text(text: str,
-                     sensitivity_tier: ContextSensitivity | None = None,
-                     rbac_context: RBACContext | None = None) -> str:
+async def redact_text(
+    text: str,
+    sensitivity_tier: ContextSensitivity | None = None,
+    rbac_context: RBACContext | None = None,
+) -> str:
     """Convenience function for text redaction"""
-    return await security_manager.redact_sensitive_data(text, sensitivity_tier, rbac_context)
+    return await security_manager.redact_sensitive_data(
+        text, sensitivity_tier, rbac_context
+    )
 
 
 async def check_cross_org_access(rbac_context: RBACContext, target_org_id: int) -> bool:
@@ -243,10 +264,16 @@ async def check_cross_org_access(rbac_context: RBACContext, target_org_id: int) 
     return await security_manager.check_cross_org_access(rbac_context, target_org_id)
 
 
-async def log_admin_action(rbac_context: RBACContext, action: str,
-                          target_resource: str, metadata: dict | None = None):
+async def log_admin_action(
+    rbac_context: RBACContext,
+    action: str,
+    target_resource: str,
+    metadata: dict | None = None,
+):
     """Convenience function for logging admin actions"""
-    await security_manager.log_admin_action(rbac_context, action, target_resource, metadata)
+    await security_manager.log_admin_action(
+        rbac_context, action, target_resource, metadata
+    )
 
 
 def configure_security(app: FastAPI, development_mode: bool = False):

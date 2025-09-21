@@ -22,7 +22,7 @@ class TokenManager:
         """Check if token will expire within refresh buffer time"""
         try:
             payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-            exp_timestamp = payload.get('exp')
+            exp_timestamp = payload.get("exp")
             if not exp_timestamp:
                 return True
 
@@ -38,7 +38,12 @@ class TokenManager:
         """Create a new token with extended expiration based on old token data"""
         try:
             # Decode old token (ignoring expiration for refresh)
-            payload = jwt.decode(old_token, JWT_SECRET, algorithms=[JWT_ALGORITHM], options={"verify_exp": False})
+            payload = jwt.decode(
+                old_token,
+                JWT_SECRET,
+                algorithms=[JWT_ALGORITHM],
+                options={"verify_exp": False},
+            )
 
             # Create new payload with fresh expiration
             new_payload = {
@@ -46,7 +51,7 @@ class TokenManager:
                 "email": payload.get("email"),
                 "account_type": payload.get("account_type"),
                 "role": payload.get("role"),
-                "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+                "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
             }
 
             # Generate new token
@@ -64,7 +69,7 @@ class TokenManager:
             "token": token,
             "started_at": datetime.utcnow(),
             "last_activity": datetime.utcnow(),
-            "memory_buffer": []
+            "memory_buffer": [],
         }
 
     def update_session_activity(self, user_id: int, memory_data: dict = None):
@@ -90,7 +95,9 @@ class TokenManager:
                 return refreshed_token
             else:
                 # Token refresh failed - preserve memory buffer
-                print(f"Token refresh failed for user {user_id}, preserving memory buffer")
+                print(
+                    f"Token refresh failed for user {user_id}, preserving memory buffer"
+                )
                 return None
 
         return current_token
@@ -112,16 +119,18 @@ class TokenManager:
             for memory_data in memory_buffer:
                 db_manager.add_memory(
                     context=context_name,
-                    content=memory_data.get('content', ''),
-                    memory_type=memory_data.get('type', 'auto_save'),
-                    source='token_expiry_save',
+                    content=memory_data.get("content", ""),
+                    memory_type=memory_data.get("type", "auto_save"),
+                    source="token_expiry_save",
                     user_id=user_id,
-                    metadata=memory_data.get('metadata', {})
+                    metadata=memory_data.get("metadata", {}),
                 )
 
             # Clear buffer after successful save
             session["memory_buffer"] = []
-            print(f"Flushed {len(memory_buffer)} memories for user {user_id} before token expiry")
+            print(
+                f"Flushed {len(memory_buffer)} memories for user {user_id} before token expiry"
+            )
             return True
 
         except Exception as e:
@@ -151,12 +160,15 @@ class TokenManager:
             del self.active_sessions[user_id]
             print(f"Cleaned up expired session for user {user_id}")
 
+
 # Global token manager instance
 token_manager = TokenManager()
+
 
 def get_token_manager() -> TokenManager:
     """Get global token manager instance"""
     return token_manager
+
 
 async def auto_refresh_tokens(db_manager):
     """Background task to automatically refresh tokens and save memories"""
@@ -177,7 +189,9 @@ async def auto_refresh_tokens(db_manager):
                     else:
                         # Refresh failed - save memories before expiry
                         token_manager.flush_memory_buffer(user_id, db_manager)
-                        print(f"Token refresh failed for user {user_id}, memories saved")
+                        print(
+                            f"Token refresh failed for user {user_id}, memories saved"
+                        )
 
             # Sleep for 30 minutes before next check
             await asyncio.sleep(1800)

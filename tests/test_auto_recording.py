@@ -8,7 +8,7 @@ from unittest.mock import Mock
 import pytest
 
 # Add server directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'server'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "server"))
 
 from auto_recording import AutoRecorder, get_auto_recorder
 from database import DatabaseManager
@@ -74,7 +74,7 @@ class TestAutoRecording:
             "test-project",
             "ai_prompt",
             "How do I implement authentication?",
-            {"source": "vscode"}
+            {"source": "vscode"},
         )
 
         assert success is True
@@ -87,9 +87,7 @@ class TestAutoRecording:
     async def test_record_interaction_inactive_context(self, auto_recorder):
         """Test recording to inactive context returns False"""
         success = await auto_recorder.record_interaction(
-            "inactive-project",
-            "ai_prompt",
-            "This should not be recorded"
+            "inactive-project", "ai_prompt", "This should not be recorded"
         )
 
         assert success is False
@@ -102,9 +100,7 @@ class TestAutoRecording:
         # Record multiple interactions to trigger auto-save
         for i in range(12):  # Exceeds AUTO_SAVE_THRESHOLD of 10
             await auto_recorder.record_interaction(
-                "test-project",
-                "ai_prompt",
-                f"Test message {i}"
+                "test-project", "ai_prompt", f"Test message {i}"
             )
 
         # Verify messages were recorded (auto-save happens in background)
@@ -118,7 +114,7 @@ class TestAutoRecording:
         mock_db.get_memories.side_effect = [
             [{"content": "Personal memory", "context": "personal"}],
             [{"content": "Team memory", "context": "team"}],
-            [{"content": "Org memory", "context": "organization"}]
+            [{"content": "Org memory", "context": "organization"}],
         ]
 
         results = await auto_recorder.recall_hierarchical("authentication", user_id=1)
@@ -160,8 +156,8 @@ class TestAutoRecording:
             {
                 "source": "claude",
                 "timestamp": "2024-01-15T10:30:00Z",
-                "token_count": 150
-            }
+                "token_count": 150,
+            },
         )
 
         # Verify formatting includes metadata
@@ -191,6 +187,7 @@ class TestAutoRecording:
 
         assert result["success"] is False
         assert "not actively recording" in result["error"]
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

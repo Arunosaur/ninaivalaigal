@@ -8,11 +8,14 @@ from database import Context, DatabaseManager, Memory
 
 logger = logging.getLogger(__name__)
 
+
 class ContextMerger:
     def __init__(self, db_manager: DatabaseManager):
         self.db = db_manager
 
-    def merge_duplicate_contexts(self, context_name: str, user_id: int) -> dict[str, Any]:
+    def merge_duplicate_contexts(
+        self, context_name: str, user_id: int
+    ) -> dict[str, Any]:
         """
         Merge duplicate contexts with same name/owner/scope, keeping the most recent one
         and transferring all memories to it.
@@ -20,14 +23,19 @@ class ContextMerger:
         session = self.db.get_session()
         try:
             # Find all contexts with same name and owner
-            contexts = session.query(Context).filter_by(
-                name=context_name,
-                owner_id=user_id,
-                scope="personal"
-            ).order_by(Context.created_at.asc()).all()
+            contexts = (
+                session.query(Context)
+                .filter_by(name=context_name, owner_id=user_id, scope="personal")
+                .order_by(Context.created_at.asc())
+                .all()
+            )
 
             if len(contexts) <= 1:
-                return {"success": True, "message": "No duplicates found", "merged_count": 0}
+                return {
+                    "success": True,
+                    "message": "No duplicates found",
+                    "merged_count": 0,
+                }
 
             # Keep the most recent context (last in chronological order)
             target_context = contexts[-1]
@@ -38,7 +46,11 @@ class ContextMerger:
             # Transfer memories from older contexts to the target context
             for old_context in contexts_to_merge:
                 # Update memories to point to target context
-                memories = session.query(Memory).filter_by(context=context_name, user_id=user_id).all()
+                memories = (
+                    session.query(Memory)
+                    .filter_by(context=context_name, user_id=user_id)
+                    .all()
+                )
 
                 for memory in memories:
                     # Ensure memory points to the correct context (by name, not ID)
@@ -56,7 +68,7 @@ class ContextMerger:
                 "message": f"Merged {len(contexts_to_merge)} duplicate contexts",
                 "merged_count": len(contexts_to_merge),
                 "memory_count": merged_memory_count,
-                "target_context_id": target_context.id
+                "target_context_id": target_context.id,
             }
 
         except Exception as e:
@@ -72,7 +84,7 @@ class ContextMerger:
         try:
             query = """
             SELECT name, owner_id, scope, COUNT(*) as duplicate_count
-            FROM contexts 
+            FROM contexts
             WHERE owner_id IS NOT NULL
             """
             if user_id:
@@ -87,12 +99,14 @@ class ContextMerger:
             duplicates = []
 
             for row in result:
-                duplicates.append({
-                    "name": row[0],
-                    "owner_id": row[1],
-                    "scope": row[2],
-                    "duplicate_count": row[3]
-                })
+                duplicates.append(
+                    {
+                        "name": row[0],
+                        "owner_id": row[1],
+                        "scope": row[2],
+                        "duplicate_count": row[3],
+                    }
+                )
 
             return duplicates
 

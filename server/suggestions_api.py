@@ -30,9 +30,7 @@ class GetSuggestionsRequest(BaseModel):
     memory_id: str | None = Field(
         None, description="Base memory for similarity suggestions"
     )
-    query: str | None = Field(
-        None, description="Query for content-based suggestions"
-    )
+    query: str | None = Field(None, description="Query for content-based suggestions")
     context_id: str | None = Field(
         None, description="Context for contextual suggestions"
     )

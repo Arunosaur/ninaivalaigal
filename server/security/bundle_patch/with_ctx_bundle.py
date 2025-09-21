@@ -31,7 +31,11 @@ def apply_security_bundle_with_ctx(
     app: FastAPI,
     *,
     subject_ctx_provider: SubjectContextProvider,
-    allowed_prefixes: Iterable[str] = ("text/", "application/json", "application/x-www-form-urlencoded"),
+    allowed_prefixes: Iterable[str] = (
+        "text/",
+        "application/json",
+        "application/x-www-form-urlencoded",
+    ),
     max_body_bytes: int = 10 * 1024 * 1024,
     reject_disallowed: bool = True,
     enable_compression_guard: bool = True,
@@ -43,10 +47,10 @@ def apply_security_bundle_with_ctx(
 ) -> None:
     """
     Apply security bundle with explicit subject context provider.
-    
+
     Same middleware chain as SecurityBundle.apply() but with explicit
     subject_ctx_provider injection for deterministic RBAC context.
-    
+
     Args:
         app: FastAPI application
         subject_ctx_provider: Explicit subject context provider function
@@ -80,9 +84,7 @@ def apply_security_bundle_with_ctx(
             return text  # Return original text for lower tiers
 
     app.add_middleware(
-        RedactionASGIMiddleware,
-        detector_fn=tier_aware_detector,
-        overlap=redact_overlap
+        RedactionASGIMiddleware, detector_fn=tier_aware_detector, overlap=redact_overlap
     )
 
     # 5) Install subject context provider (explicit injection point)
@@ -92,14 +94,13 @@ def apply_security_bundle_with_ctx(
     app.add_middleware(
         ResponseRedactionASGIMiddleware,
         detector_fn=tier_aware_detector,
-        overlap=redact_overlap
+        overlap=redact_overlap,
     )
 
     # 7) Multipart adapter middleware
     if enable_multipart_adapter:
         multipart_adapter = MultipartStarletteAdapter(
-            text_handler=lambda text, headers: detector_fn(text),
-            binary_handler=None
+            text_handler=lambda text, headers: detector_fn(text), binary_handler=None
         )
         app.add_middleware(type(multipart_adapter), adapter=multipart_adapter)
 

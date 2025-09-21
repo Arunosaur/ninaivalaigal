@@ -7,12 +7,16 @@ import asyncio
 import os
 import sys
 
-sys.path.append('/Users/asrajag/Workspace/mem0/server')
+sys.path.append("/Users/asrajag/Workspace/mem0/server")
 
 # Set environment variables for testing
-os.environ['NINAIVALAIGAL_USER_TOKEN'] = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo4LCJlbWFpbCI6ImR1cmFpQGV4YW1wbGUuY29tIiwiYWNjb3VudF90eXBlIjoiaW5kaXZpZHVhbCIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzU3ODc5NjI5fQ.FQulmDLPK2WaBLuW-NIZ5TsKutnqP4E7iMKigVKoWaI'
-os.environ['NINAIVALAIGAL_USER_ID'] = '8'
-os.environ['NINAIVALAIGAL_DATABASE_URL'] = 'postgresql://mem0user:mem0pass@localhost:5432/mem0db'
+os.environ[
+    "NINAIVALAIGAL_USER_TOKEN"
+] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo4LCJlbWFpbCI6ImR1cmFpQGV4YW1wbGUuY29tIiwiYWNjb3VudF90eXBlIjoiaW5kaXZpZHVhbCIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzU3ODc5NjI5fQ.FQulmDLPK2WaBLuW-NIZ5TsKutnqP4E7iMKigVKoWaI"
+os.environ["NINAIVALAIGAL_USER_ID"] = "8"
+os.environ[
+    "NINAIVALAIGAL_DATABASE_URL"
+] = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
 
 from auth import load_config
 from database import DatabaseManager
@@ -39,9 +43,9 @@ async def test_jwt_authentication():
     print("\n3. Testing create_context directly...")
     config = load_config()
     if isinstance(config, dict):
-        database_url = config.get('database_url', 'sqlite:///./mem0.db')
+        database_url = config.get("database_url", "sqlite:///./mem0.db")
     else:
-        database_url = 'postgresql://mem0user:mem0pass@localhost:5432/mem0db'
+        database_url = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
     db = DatabaseManager(database_url)
 
     # Call create_context directly with user_id
@@ -53,6 +57,7 @@ async def test_jwt_authentication():
     session = db.get_session()
     try:
         from database import RecordingContext
+
         context = session.query(RecordingContext).filter_by(name="CIP Analysis").first()
         if context:
             print(f"   Context found: {context.name}")
@@ -63,7 +68,9 @@ async def test_jwt_authentication():
             if context.owner_id == user_id:
                 print("   ✅ SUCCESS: Context ownership matches JWT user_id!")
             else:
-                print(f"   ❌ FAILED: Expected owner_id={user_id}, got {context.owner_id}")
+                print(
+                    f"   ❌ FAILED: Expected owner_id={user_id}, got {context.owner_id}"
+                )
         else:
             print("   ❌ FAILED: Context not found")
     finally:
@@ -71,6 +78,7 @@ async def test_jwt_authentication():
 
     print("\n" + "=" * 50)
     print("JWT Authentication Test Complete")
+
 
 if __name__ == "__main__":
     asyncio.run(test_jwt_authentication())

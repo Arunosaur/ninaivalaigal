@@ -23,10 +23,7 @@ import structlog
 from auth import get_current_user
 from database import User
 from fastapi import APIRouter, Depends, HTTPException, Query
-from memory_drift_engine import (
-    MemoryDriftEngine,
-    get_drift_engine,
-)
+from memory_drift_engine import MemoryDriftEngine, get_drift_engine
 from pydantic import BaseModel, Field
 
 logger = structlog.get_logger(__name__)
@@ -40,18 +37,14 @@ class DriftDetectionRequest(BaseModel):
     memory_id: str = Field(..., description="Memory ID to analyze")
     content: str = Field(..., description="Current memory content")
     metadata: dict[str, Any] | None = Field(None, description="Memory metadata")
-    embedding: list[float] | None = Field(
-        None, description="Content embedding vector"
-    )
+    embedding: list[float] | None = Field(None, description="Content embedding vector")
 
 
 class SnapshotRequest(BaseModel):
     memory_id: str = Field(..., description="Memory ID")
     content: str = Field(..., description="Memory content")
     metadata: dict[str, Any] | None = Field(None, description="Memory metadata")
-    embedding: list[float] | None = Field(
-        None, description="Content embedding vector"
-    )
+    embedding: list[float] | None = Field(None, description="Content embedding vector")
 
 
 class DriftDetectionResponse(BaseModel):

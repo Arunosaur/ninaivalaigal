@@ -20,7 +20,7 @@ from pydantic import BaseModel, EmailStr
 # Configuration loading (moved from main.py to avoid circular import)
 def load_config():
     # PRIORITY 1: Environment variable (for container deployment)
-    env_database_url = os.getenv('NINAIVALAIGAL_DATABASE_URL')
+    env_database_url = os.getenv("NINAIVALAIGAL_DATABASE_URL")
     if env_database_url:
         return env_database_url
 
@@ -30,7 +30,10 @@ def load_config():
         if os.path.exists(config_path):
             with open(config_path) as f:
                 user_config = json.load(f)
-                if "storage" in user_config and "database_url" in user_config["storage"]:
+                if (
+                    "storage" in user_config
+                    and "database_url" in user_config["storage"]
+                ):
                     return user_config["storage"]["database_url"]
     except Exception:
         pass
@@ -38,58 +41,73 @@ def load_config():
     # PRIORITY 3: Fallback (should not be used in container)
     return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
 
+
 # Database helper to avoid circular imports
 def get_db():
     """Get database instance"""
     from database import DatabaseManager
+
     database_url = load_config()  # load_config returns string directly
     return DatabaseManager(database_url)
 
+
 # JWT Secret from environment (REQUIRED - no fallback for security)
-JWT_SECRET = os.getenv('NINAIVALAIGAL_JWT_SECRET')
+JWT_SECRET = os.getenv("NINAIVALAIGAL_JWT_SECRET")
 if not JWT_SECRET:
-    raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required for security")
-JWT_ALGORITHM = 'HS256'
-JWT_EXPIRATION_HOURS = int(os.getenv('NINAIVALAIGAL_JWT_EXPIRATION_HOURS', '168'))  # Default 7 days
+    raise ValueError(
+        "NINAIVALAIGAL_JWT_SECRET environment variable is required for security"
+    )
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = int(
+    os.getenv("NINAIVALAIGAL_JWT_EXPIRATION_HOURS", "168")
+)  # Default 7 days
+
 
 # Password validation
 def validate_password(password: str) -> bool:
     """Validate password strength"""
     if len(password) < 8:
         return False
-    if not re.search(r'[A-Za-z]', password):
+    if not re.search(r"[A-Za-z]", password):
         return False
-    if not re.search(r'\d', password):
+    if not re.search(r"\d", password):
         return False
     return True
+
 
 # Email validation
 def validate_email(email: str) -> str:
     """Validate email format"""
     import re
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     if not re.match(pattern, email):
         raise HTTPException(status_code=400, detail="Invalid email format")
     return email.lower().strip()
+
 
 # Password hashing
 def hash_password(password: str) -> str:
     """Hash password using bcrypt"""
     salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
 
 def verify_password(password: str, hashed: str) -> bool:
     """Verify password against hash"""
-    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+
 
 # Token generation
 def generate_verification_token() -> str:
     """Generate secure verification token"""
     return secrets.token_urlsafe(32)
 
+
 def generate_invitation_token() -> str:
     """Generate secure invitation token"""
     return secrets.token_urlsafe(32)
+
 
 # Pydantic models for signup and auth
 class IndividualUserSignup(BaseModel):
@@ -98,17 +116,21 @@ class IndividualUserSignup(BaseModel):
     name: str
     account_type: str = "individual"
 
+
 class OrganizationSignup(BaseModel):
     user: dict[str, Any]  # email, password, name
     organization: dict[str, Any]  # name, domain, size, industry
+
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+
 class InvitationAccept(BaseModel):
     invitation_token: str
     user: dict[str, Any]  # password, name
+
 
 class UserInvitation(BaseModel):
     email: EmailStr
@@ -116,18 +138,22 @@ class UserInvitation(BaseModel):
     role: str = "user"
     message: str | None = None
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class TokenData(BaseModel):
     username: str | None = None
     user_id: int | None = None
 
+
 class ApiKeyCreate(BaseModel):
     name: str
     permissions: list = []
     expiration: int | None = None  # days, None for never expires
+
 
 class ApiKeyResponse(BaseModel):
     id: str
@@ -139,6 +165,7 @@ class ApiKeyResponse(BaseModel):
     last_used_at: datetime | None = None
     is_active: bool = True
 
+
 class TokenUsage(BaseModel):
     requests_today: int = 0
     requests_week: int = 0
@@ -147,8 +174,10 @@ class TokenUsage(BaseModel):
     rate_limit_total: int = 1000
     recent_activity: list = []
 
+
 # Security scheme
 security = HTTPBearer()
+
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
@@ -159,12 +188,13 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
 
     # Get JWT secret from environment variable (required)
-    jwt_secret = os.getenv('NINAIVALAIGAL_JWT_SECRET')
+    jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
     if not jwt_secret:
         raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required")
 
     encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=JWT_ALGORITHM)
     return encoded_jwt
+
 
 def get_user_roles_for_token(db, user_id: int) -> dict:
     """Get user roles for JWT token inclusion"""
@@ -179,29 +209,26 @@ def get_user_roles_for_token(db, user_id: int) -> dict:
         org_id = None
 
         for assignment in role_assignments:
-            scope_key = f"{assignment.scope_type}:{assignment.scope_id}" if assignment.scope_id else assignment.scope_type
+            scope_key = (
+                f"{assignment.scope_type}:{assignment.scope_id}"
+                if assignment.scope_id
+                else assignment.scope_type
+            )
             roles[scope_key] = assignment.role.name
 
             # Track team memberships
-            if assignment.scope_type == 'team' and assignment.scope_id:
+            if assignment.scope_type == "team" and assignment.scope_id:
                 teams[assignment.scope_id] = assignment.role.name
 
             # Track organization membership
-            if assignment.scope_type == 'org' and assignment.scope_id:
+            if assignment.scope_type == "org" and assignment.scope_id:
                 org_id = assignment.scope_id
 
-        return {
-            'roles': roles,
-            'teams': teams,
-            'org_id': org_id
-        }
+        return {"roles": roles, "teams": teams, "org_id": org_id}
     except Exception:
         # Fallback to basic role if RBAC lookup fails
-        return {
-            'roles': {'global': 'MEMBER'},
-            'teams': {},
-            'org_id': None
-        }
+        return {"roles": {"global": "MEMBER"}, "teams": {}, "org_id": None}
+
 
 def verify_token(token: str) -> TokenData:
     """Verify JWT token and return token data"""
@@ -216,11 +243,16 @@ def verify_token(token: str) -> TokenData:
         return None
     return token_data
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
     """Get current authenticated user"""
     token_data = verify_token(credentials.credentials)
     if token_data is None:
-        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        raise HTTPException(
+            status_code=401, detail="Invalid authentication credentials"
+        )
 
     # Get user from database
     db = get_db()
@@ -229,6 +261,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="User not found")
 
     return user
+
 
 async def get_current_user_optional(request: Request):
     """Get current user if authenticated, None otherwise"""
@@ -245,6 +278,7 @@ async def get_current_user_optional(request: Request):
     except:
         return None
 
+
 # User management functions
 def create_individual_user(signup_data: IndividualUserSignup):
     """Create individual user account"""
@@ -254,14 +288,14 @@ def create_individual_user(signup_data: IndividualUserSignup):
     try:
         # Validate input data
         validated_data = {
-            'email': validate_email(signup_data.email),
-            'password': signup_data.password,
-            'name': signup_data.name,
-            'account_type': signup_data.account_type
+            "email": validate_email(signup_data.email),
+            "password": signup_data.password,
+            "name": signup_data.name,
+            "account_type": signup_data.account_type,
         }
 
         # Check if user already exists
-        existing_user = db.get_user_by_email(validated_data['email'])
+        existing_user = db.get_user_by_email(validated_data["email"])
         if existing_user:
             raise HTTPException(status_code=400, detail="User already exists")
 
@@ -269,17 +303,18 @@ def create_individual_user(signup_data: IndividualUserSignup):
         verification_token = generate_verification_token()
 
         # Hash password
-        hashed_password = hash_password(validated_data['password'])
+        hashed_password = hash_password(validated_data["password"])
 
         # Create user in database
         from database import User
+
         new_user = User(
             username=None,
-            email=validated_data['email'],
-            name=validated_data['name'],
+            email=validated_data["email"],
+            name=validated_data["name"],
             password_hash=hashed_password,
             verification_token=verification_token,
-            account_type=validated_data['account_type']
+            account_type=validated_data["account_type"],
         )
 
         session.add(new_user)
@@ -287,8 +322,9 @@ def create_individual_user(signup_data: IndividualUserSignup):
 
         # Create default RBAC role assignment
         try:
-            from rbac.permissions import Role
             from rbac_models import RoleAssignment
+
+            from rbac.permissions import Role
 
             role_assignment = RoleAssignment(
                 user_id=new_user.id,
@@ -296,7 +332,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
                 scope_type="global",
                 scope_id=None,
                 assigned_by=new_user.id,
-                is_active=True
+                is_active=True,
             )
             session.add(role_assignment)
             session.commit()
@@ -308,7 +344,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
             "user_id": new_user.id,
             "email": new_user.email,
             "account_type": new_user.account_type,
-            "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+            "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
         }
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -320,7 +356,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
             "personal_contexts_limit": new_user.personal_contexts_limit,
             "jwt_token": jwt_token,
             "email_verified": False,
-            "verification_token": verification_token
+            "verification_token": verification_token,
         }
 
     except Exception as e:
@@ -329,12 +365,14 @@ def create_individual_user(signup_data: IndividualUserSignup):
     finally:
         session.close()
 
+
 def authenticate_user(email: str, password: str):
     """Authenticate user login"""
     db = get_db()
     session = db.get_session()
     try:
         from database import User
+
         user = session.query(User).filter_by(email=email, is_active=True).first()
 
         if not user or not user.password_hash:
@@ -357,7 +395,7 @@ def authenticate_user(email: str, password: str):
             "account_type": user.account_type,
             "role": user.role,
             "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
-            **role_data  # Include roles, teams, org_id
+            **role_data,  # Include roles, teams, org_id
         }
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -369,19 +407,23 @@ def authenticate_user(email: str, password: str):
             "role": user.role,
             "jwt_token": jwt_token,
             "email_verified": user.email_verified,
-            "rbac_roles": role_data.get('roles', {}),
-            "is_system_admin": getattr(user, 'is_system_admin', False)
+            "rbac_roles": role_data.get("roles", {}),
+            "is_system_admin": getattr(user, "is_system_admin", False),
         }
 
     finally:
         session.close()
 
+
 def send_verification_email(email: str, verification_token: str):
     """Send email verification (placeholder - implement with actual email service)"""
     # In production, integrate with SendGrid, AWS SES, etc.
-    verification_url = f"http://localhost:8000/auth/verify-email?token={verification_token}"
+    verification_url = (
+        f"http://localhost:8000/auth/verify-email?token={verification_token}"
+    )
     print(f"Email verification URL for {email}: {verification_url}")
     # TODO: Implement actual email sending
+
 
 def verify_email_token(verification_token: str) -> bool:
     """Verify email verification token"""
@@ -389,7 +431,10 @@ def verify_email_token(verification_token: str) -> bool:
     session = db.get_session()
     try:
         from database import User
-        user = session.query(User).filter_by(verification_token=verification_token).first()
+
+        user = (
+            session.query(User).filter_by(verification_token=verification_token).first()
+        )
 
         if not user:
             return False
@@ -406,10 +451,12 @@ def verify_email_token(verification_token: str) -> bool:
     finally:
         session.close()
 
+
 def hash_password(password: str) -> str:
     """Hash password using bcrypt"""
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
 
 def verify_password(password: str, hashed: str) -> bool:
     """Verify password against hash"""
-    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))

@@ -13,6 +13,7 @@ from typing import Any
 
 class GuardMode(Enum):
     """Security guard operational modes."""
+
     EDGE_DECOMPRESS = "edge-decompress"
     REJECT_ENCODING = "reject-encoding"
     CONTENT_TYPE_STRICT = "content-type-strict"
@@ -25,6 +26,7 @@ class GuardMode(Enum):
 @dataclass
 class GuardProfileEvent:
     """Security guard profile event."""
+
     mode: GuardMode
     action: str  # "allowed", "blocked", "error"
     duration_ms: float
@@ -68,15 +70,21 @@ class GuardProfileCollector:
         lines = []
 
         # Counter metrics
-        lines.append("# HELP security_guard_profile_total Total security guard operations by mode and action")
+        lines.append(
+            "# HELP security_guard_profile_total Total security guard operations by mode and action"
+        )
         lines.append("# TYPE security_guard_profile_total counter")
 
         for key, count in self.counters.items():
             mode, action = key.split(":", 1)
-            lines.append(f'security_guard_profile_total{{mode="{mode}",action="{action}"}} {count}')
+            lines.append(
+                f'security_guard_profile_total{{mode="{mode}",action="{action}"}} {count}'
+            )
 
         # Duration metrics
-        lines.append("# HELP security_guard_profile_duration_ms Security guard operation duration in milliseconds")
+        lines.append(
+            "# HELP security_guard_profile_duration_ms Security guard operation duration in milliseconds"
+        )
         lines.append("# TYPE security_guard_profile_duration_ms histogram")
 
         for key, durations in self.durations.items():
@@ -86,9 +94,15 @@ class GuardProfileCollector:
                 max_duration = max(durations)
                 min_duration = min(durations)
 
-                lines.append(f'security_guard_profile_duration_ms_avg{{mode="{mode}",action="{action}"}} {avg_duration:.2f}')
-                lines.append(f'security_guard_profile_duration_ms_max{{mode="{mode}",action="{action}"}} {max_duration:.2f}')
-                lines.append(f'security_guard_profile_duration_ms_min{{mode="{mode}",action="{action}"}} {min_duration:.2f}')
+                lines.append(
+                    f'security_guard_profile_duration_ms_avg{{mode="{mode}",action="{action}"}} {avg_duration:.2f}'
+                )
+                lines.append(
+                    f'security_guard_profile_duration_ms_max{{mode="{mode}",action="{action}"}} {max_duration:.2f}'
+                )
+                lines.append(
+                    f'security_guard_profile_duration_ms_min{{mode="{mode}",action="{action}"}} {min_duration:.2f}'
+                )
 
         return "\n".join(lines)
 
@@ -103,7 +117,7 @@ class GuardProfileCollector:
                 "blocked": 0,
                 "errors": 0,
                 "avg_duration_ms": 0.0,
-                "max_duration_ms": 0.0
+                "max_duration_ms": 0.0,
             }
 
             mode_durations = []
@@ -118,7 +132,9 @@ class GuardProfileCollector:
                     mode_durations.extend(self.durations[key])
 
             if mode_durations:
-                mode_stats["avg_duration_ms"] = sum(mode_durations) / len(mode_durations)
+                mode_stats["avg_duration_ms"] = sum(mode_durations) / len(
+                    mode_durations
+                )
                 mode_stats["max_duration_ms"] = max(mode_durations)
 
             if mode_stats["total_events"] > 0:
@@ -134,10 +150,7 @@ _guard_profile_collector = GuardProfileCollector()
 def record_guard_profile(mode: GuardMode, action: str, duration_ms: float, **metadata):
     """Record a guard profile event."""
     event = GuardProfileEvent(
-        mode=mode,
-        action=action,
-        duration_ms=duration_ms,
-        metadata=metadata
+        mode=mode, action=action, duration_ms=duration_ms, metadata=metadata
     )
     _guard_profile_collector.record_event(event)
 
@@ -191,10 +204,30 @@ def test_guard_profile_metrics():
     test_cases = [
         (GuardMode.EDGE_DECOMPRESS, "allowed", 1.5, {"content_encoding": "gzip"}),
         (GuardMode.EDGE_DECOMPRESS, "blocked", 0.8, {"content_encoding": "deflate"}),
-        (GuardMode.CONTENT_TYPE_STRICT, "allowed", 0.3, {"content_type": "application/json"}),
-        (GuardMode.CONTENT_TYPE_STRICT, "blocked", 0.5, {"content_type": "application/octet-stream"}),
-        (GuardMode.MULTIPART_STRICT, "blocked", 2.1, {"violation": "binary_masquerade"}),
-        (GuardMode.TIER_FAIL_CLOSED, "blocked", 0.1, {"tier": 3, "detector_error": "timeout"}),
+        (
+            GuardMode.CONTENT_TYPE_STRICT,
+            "allowed",
+            0.3,
+            {"content_type": "application/json"},
+        ),
+        (
+            GuardMode.CONTENT_TYPE_STRICT,
+            "blocked",
+            0.5,
+            {"content_type": "application/octet-stream"},
+        ),
+        (
+            GuardMode.MULTIPART_STRICT,
+            "blocked",
+            2.1,
+            {"violation": "binary_masquerade"},
+        ),
+        (
+            GuardMode.TIER_FAIL_CLOSED,
+            "blocked",
+            0.1,
+            {"tier": 3, "detector_error": "timeout"},
+        ),
     ]
 
     # Record test events
@@ -214,7 +247,7 @@ def test_guard_profile_metrics():
         "test_events_recorded": len(test_cases) + 1,
         "prometheus_metrics": prometheus_metrics,
         "summary_stats": summary_stats,
-        "modes_tracked": list(summary_stats.keys())
+        "modes_tracked": list(summary_stats.keys()),
     }
 
 
@@ -227,8 +260,10 @@ if __name__ == "__main__":
     print(f"Modes tracked: {results['modes_tracked']}")
 
     print("\nPrometheus Metrics:")
-    print(results['prometheus_metrics'])
+    print(results["prometheus_metrics"])
 
     print("\nSummary Stats:")
-    for mode, stats in results['summary_stats'].items():
-        print(f"{mode}: {stats['total_events']} events, {stats['avg_duration_ms']:.2f}ms avg")
+    for mode, stats in results["summary_stats"].items():
+        print(
+            f"{mode}: {stats['total_events']} events, {stats['avg_duration_ms']:.2f}ms avg"
+        )

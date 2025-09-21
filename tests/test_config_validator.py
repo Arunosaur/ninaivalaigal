@@ -25,8 +25,12 @@ def test_production_requires_core_envs():
     # Save original environment
     original_env = {}
     required_vars = [
-        "APP_ENV", "NINAIVALAIGAL_JWKS_URL", "NINAIVALAIGAL_JWT_AUDIENCE",
-        "NINAIVALAIGAL_JWT_ISSUER", "REDIS_URL", "FAIL_CLOSED_TIER_THRESHOLD"
+        "APP_ENV",
+        "NINAIVALAIGAL_JWKS_URL",
+        "NINAIVALAIGAL_JWT_AUDIENCE",
+        "NINAIVALAIGAL_JWT_ISSUER",
+        "REDIS_URL",
+        "FAIL_CLOSED_TIER_THRESHOLD",
     ]
 
     for var in required_vars:
@@ -112,13 +116,15 @@ def test_invalid_urls_rejected():
 
     try:
         # Set production with invalid URLs
-        os.environ.update({
-            "APP_ENV": "production",
-            "NINAIVALAIGAL_JWKS_URL": "not-a-valid-url",
-            "NINAIVALAIGAL_JWT_AUDIENCE": "test-audience",
-            "NINAIVALAIGAL_JWT_ISSUER": "test-issuer",
-            "REDIS_URL": "invalid-redis-url"
-        })
+        os.environ.update(
+            {
+                "APP_ENV": "production",
+                "NINAIVALAIGAL_JWKS_URL": "not-a-valid-url",
+                "NINAIVALAIGAL_JWT_AUDIENCE": "test-audience",
+                "NINAIVALAIGAL_JWT_ISSUER": "test-issuer",
+                "REDIS_URL": "invalid-redis-url",
+            }
+        )
 
         cfg = load_security_config()
 
@@ -152,14 +158,16 @@ def test_tier_threshold_validation():
 
     try:
         # Test invalid tier threshold in production
-        os.environ.update({
-            "APP_ENV": "production",
-            "NINAIVALAIGAL_JWKS_URL": "https://auth.example.com/.well-known/jwks.json",
-            "NINAIVALAIGAL_JWT_AUDIENCE": "test-audience",
-            "NINAIVALAIGAL_JWT_ISSUER": "https://auth.example.com",
-            "REDIS_URL": "redis://localhost:6379/0",
-            "FAIL_CLOSED_TIER_THRESHOLD": "1"  # Too low for production
-        })
+        os.environ.update(
+            {
+                "APP_ENV": "production",
+                "NINAIVALAIGAL_JWKS_URL": "https://auth.example.com/.well-known/jwks.json",
+                "NINAIVALAIGAL_JWT_AUDIENCE": "test-audience",
+                "NINAIVALAIGAL_JWT_ISSUER": "https://auth.example.com",
+                "REDIS_URL": "redis://localhost:6379/0",
+                "FAIL_CLOSED_TIER_THRESHOLD": "1",  # Too low for production
+            }
+        )
 
         cfg = load_security_config()
 
@@ -198,12 +206,14 @@ def test_health_router_endpoints():
 
     try:
         # Set test environment
-        os.environ.update({
-            "APP_ENV": "development",
-            "NINAIVALAIGAL_JWKS_URL": "https://auth.example.com/.well-known/jwks.json",
-            "REDIS_URL": "redis://localhost:6379/0",
-            "SECURITY_GUARD_PROFILE": "edge-decompress"
-        })
+        os.environ.update(
+            {
+                "APP_ENV": "development",
+                "NINAIVALAIGAL_JWKS_URL": "https://auth.example.com/.well-known/jwks.json",
+                "REDIS_URL": "redis://localhost:6379/0",
+                "SECURITY_GUARD_PROFILE": "edge-decompress",
+            }
+        )
 
         cfg = load_security_config()
         health_router = make_health_router(cfg)
@@ -256,10 +266,18 @@ def test_config_loading_defaults():
 
     original_env = {}
     all_vars = [
-        "APP_ENV", "NINAIVALAIGAL_JWKS_URL", "NINAIVALAIGAL_JWT_AUDIENCE",
-        "NINAIVALAIGAL_JWT_ISSUER", "REDIS_URL", "FAIL_CLOSED_TIER_THRESHOLD",
-        "SECURITY_GUARD_PROFILE", "MAX_BODY_BYTES", "ENABLE_COMPRESSION_GUARD",
-        "ENABLE_MULTIPART_ADAPTER", "ENABLE_GLOBAL_SCRUBBING", "IDEMPOTENCY_TTL_SECONDS"
+        "APP_ENV",
+        "NINAIVALAIGAL_JWKS_URL",
+        "NINAIVALAIGAL_JWT_AUDIENCE",
+        "NINAIVALAIGAL_JWT_ISSUER",
+        "REDIS_URL",
+        "FAIL_CLOSED_TIER_THRESHOLD",
+        "SECURITY_GUARD_PROFILE",
+        "MAX_BODY_BYTES",
+        "ENABLE_COMPRESSION_GUARD",
+        "ENABLE_MULTIPART_ADAPTER",
+        "ENABLE_GLOBAL_SCRUBBING",
+        "IDEMPOTENCY_TTL_SECONDS",
     ]
 
     for var in all_vars:

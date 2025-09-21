@@ -15,7 +15,7 @@ from server.security.multipart.strict_limits_hardened import (
 def get_multipart_config_health() -> dict[str, Any]:
     """
     Get multipart configuration for health endpoint.
-    
+
     Returns:
         Configuration status and limits for monitoring
     """
@@ -42,12 +42,12 @@ def get_multipart_config_health() -> dict[str, Any]:
             "part_too_large",
             "too_many_parts",
             "invalid_encoding",
-            "archive_blocked"
+            "archive_blocked",
         ],
         "boundary_limits": {
             "max_boundary_length": 200,  # chars
-            "max_header_lines": 8192     # lines per part
-        }
+            "max_header_lines": 8192,  # lines per part
+        },
     }
 
     # Validate configuration sanity
@@ -84,7 +84,7 @@ def get_multipart_config_health() -> dict[str, Any]:
     config_for_hash = {
         "limits": config["limits"],
         "security_features": config["security_features"],
-        "boundary_limits": config["boundary_limits"]
+        "boundary_limits": config["boundary_limits"],
     }
     config_json = json.dumps(config_for_hash, sort_keys=True)
     config["config_hash"] = hashlib.sha256(config_json.encode()).hexdigest()[:16]
@@ -95,16 +95,11 @@ def get_multipart_config_health() -> dict[str, Any]:
 def validate_multipart_boot_config() -> dict[str, Any]:
     """
     Validate multipart configuration at boot time.
-    
+
     Returns:
         Boot validation results with actionable messages
     """
-    result = {
-        "valid": True,
-        "errors": [],
-        "warnings": [],
-        "actionable_messages": []
-    }
+    result = {"valid": True, "errors": [], "warnings": [], "actionable_messages": []}
 
     try:
         # Test imports
@@ -144,7 +139,9 @@ def validate_multipart_boot_config() -> dict[str, Any]:
         # Test magic byte detection
         test_result = detect_enhanced_magic_bytes(b"MZ\x90\x00")
         if not test_result.get("detected"):
-            result["warnings"].append("Magic byte detection may not be working correctly")
+            result["warnings"].append(
+                "Magic byte detection may not be working correctly"
+            )
 
         # Test UTF-8 validation
         utf8_result = require_utf8_text(b"hello world")

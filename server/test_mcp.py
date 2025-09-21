@@ -35,5 +35,6 @@ async def test_mcp_tools():
 
     print("\nMCP server tools test completed!")
 
+
 if __name__ == "__main__":
     asyncio.run(test_mcp_tools())

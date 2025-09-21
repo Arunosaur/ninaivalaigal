@@ -38,7 +38,9 @@ class RedisKeyStore:
             # Fallback: treat as cache miss
             return None
 
-    async def set(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> None:
+    async def set(
+        self, key: str, response_data: dict[str, Any], ttl: int = 3600
+    ) -> None:
         """Store response data for idempotency key with TTL."""
         try:
             full_key = f"{self.key_prefix}{key}"
@@ -60,7 +62,9 @@ class RedisKeyStore:
         except Exception:
             return False
 
-    async def set_if_absent(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> bool:
+    async def set_if_absent(
+        self, key: str, response_data: dict[str, Any], ttl: int = 3600
+    ) -> bool:
         """Set key only if it doesn't exist. Returns True if set, False if already exists."""
         try:
             full_key = f"{self.key_prefix}{key}"

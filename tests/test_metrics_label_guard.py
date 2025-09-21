@@ -75,9 +75,7 @@ class TestMetricsLabelGuardConfig:
     def test_custom_config(self):
         """Test custom configuration values."""
         config = MetricsLabelGuardConfig(
-            max_route_templates=50,
-            max_reason_buckets=25,
-            strict_mode=False
+            max_route_templates=50, max_reason_buckets=25, strict_mode=False
         )
 
         assert config.max_route_templates == 50
@@ -103,7 +101,7 @@ class TestMetricsLabelGuard:
         labels = {
             "route": "/memories/{id}",
             "reason": "jwt_invalid",
-            "user_id": "user123"
+            "user_id": "user123",
         }
 
         result = guard.validate_labels(labels, "test_metric")
@@ -116,13 +114,12 @@ class TestMetricsLabelGuard:
 
     def test_invalid_route_template_fails(self):
         """Test invalid route template fails validation."""
-        config = MetricsLabelGuardConfig(strict_mode=False)  # Use permissive mode for testing
+        config = MetricsLabelGuardConfig(
+            strict_mode=False
+        )  # Use permissive mode for testing
         guard = MetricsLabelGuard(config)
 
-        labels = {
-            "route": "/invalid/concrete/path/123",
-            "reason": "jwt_invalid"
-        }
+        labels = {"route": "/invalid/concrete/path/123", "reason": "jwt_invalid"}
 
         result = guard.validate_labels(labels, "test_metric")
 
@@ -132,13 +129,12 @@ class TestMetricsLabelGuard:
 
     def test_invalid_reason_bucket_fails(self):
         """Test invalid reason bucket fails validation."""
-        config = MetricsLabelGuardConfig(strict_mode=False)  # Use permissive mode for testing
+        config = MetricsLabelGuardConfig(
+            strict_mode=False
+        )  # Use permissive mode for testing
         guard = MetricsLabelGuard(config)
 
-        labels = {
-            "route": "/memories/{id}",
-            "reason": "invalid_reason_bucket"
-        }
+        labels = {"route": "/memories/{id}", "reason": "invalid_reason_bucket"}
 
         result = guard.validate_labels(labels, "test_metric")
 
@@ -154,22 +150,21 @@ class TestMetricsLabelGuard:
         labels = {
             "route": "/healthz",  # Use shorter route that fits in 10 chars
             "reason": "timeout",  # Use shorter reason that fits in 10 chars
-            "custom_label": "this_is_a_very_long_label_value_that_exceeds_limit"
+            "custom_label": "this_is_a_very_long_label_value_that_exceeds_limit",
         }
 
         result = guard.validate_labels(labels, "test_metric")
 
         assert result["valid"] is False
-        assert any("exceeds maximum length" in v["message"] for v in result["violations"])
+        assert any(
+            "exceeds maximum length" in v["message"] for v in result["violations"]
+        )
 
     def test_user_id_anonymization(self):
         """Test user ID gets anonymized for metrics."""
         guard = MetricsLabelGuard()
 
-        labels = {
-            "route": "/memories/{id}",
-            "user_id": "sensitive_user_id_12345"
-        }
+        labels = {"route": "/memories/{id}", "user_id": "sensitive_user_id_12345"}
 
         result = guard.validate_labels(labels, "test_metric")
 
@@ -185,7 +180,7 @@ class TestMetricsLabelGuard:
         test_cases = [
             ("memories/{id}", "/memories/{id}"),  # Add leading slash
             ("/memories/{id}/", "/memories/{id}"),  # Remove trailing slash
-            ("/memories/{id}?param=value", "/memories/{id}")  # Remove query params
+            ("/memories/{id}?param=value", "/memories/{id}"),  # Remove query params
         ]
 
         for input_route, expected in test_cases:
@@ -197,7 +192,7 @@ class TestMetricsLabelGuard:
         config = MetricsLabelGuardConfig(
             max_route_templates=2,
             max_reason_buckets=2,
-            strict_mode=False  # Don't raise exceptions for this test
+            strict_mode=False,  # Don't raise exceptions for this test
         )
         guard = MetricsLabelGuard(config)
 
@@ -211,17 +206,16 @@ class TestMetricsLabelGuard:
         # Add third route template - should exceed bounds
         result3 = guard.validate_labels({"route": "/users/{id}/contexts"}, "metric3")
         assert result3["valid"] is False
-        assert any(v["type"] == "route_cardinality_exceeded" for v in result3["violations"])
+        assert any(
+            v["type"] == "route_cardinality_exceeded" for v in result3["violations"]
+        )
 
     def test_strict_mode_raises_exceptions(self):
         """Test strict mode raises exceptions on violations."""
         config = MetricsLabelGuardConfig(strict_mode=True)
         guard = MetricsLabelGuard(config)
 
-        labels = {
-            "route": "/invalid/route",
-            "reason": "jwt_invalid"
-        }
+        labels = {"route": "/invalid/route", "reason": "jwt_invalid"}
 
         with pytest.raises(ValueError, match="not in allowlist"):
             guard.validate_labels(labels, "test_metric")
@@ -231,10 +225,7 @@ class TestMetricsLabelGuard:
         config = MetricsLabelGuardConfig(strict_mode=False)
         guard = MetricsLabelGuard(config)
 
-        labels = {
-            "route": "/invalid/route",
-            "reason": "jwt_invalid"
-        }
+        labels = {"route": "/invalid/route", "reason": "jwt_invalid"}
 
         result = guard.validate_labels(labels, "test_metric")
 
@@ -247,8 +238,12 @@ class TestMetricsLabelGuard:
         guard = MetricsLabelGuard()
 
         # Add some labels
-        guard.validate_labels({"route": "/memories/{id}", "reason": "jwt_invalid"}, "metric1")
-        guard.validate_labels({"route": "/contexts/{id}/memories", "reason": "rbac_denied"}, "metric2")
+        guard.validate_labels(
+            {"route": "/memories/{id}", "reason": "jwt_invalid"}, "metric1"
+        )
+        guard.validate_labels(
+            {"route": "/contexts/{id}/memories", "reason": "rbac_denied"}, "metric2"
+        )
 
         stats = guard.get_cardinality_stats()
 
@@ -264,10 +259,7 @@ class TestConvenienceFunctions:
 
     def test_validate_metric_labels_success(self):
         """Test successful label validation returns sanitized labels."""
-        labels = {
-            "route": "/memories/{id}",
-            "reason": "jwt_invalid"
-        }
+        labels = {"route": "/memories/{id}", "reason": "jwt_invalid"}
 
         sanitized = validate_metric_labels(labels, "test_metric")
 
@@ -278,10 +270,7 @@ class TestConvenienceFunctions:
 
     def test_validate_metric_labels_failure(self):
         """Test failed label validation raises ValueError."""
-        labels = {
-            "route": "/invalid/route",
-            "reason": "jwt_invalid"
-        }
+        labels = {"route": "/invalid/route", "reason": "jwt_invalid"}
 
         with pytest.raises(ValueError, match="not in allowlist"):
             validate_metric_labels(labels, "test_metric")
@@ -289,27 +278,19 @@ class TestConvenienceFunctions:
     def test_legacy_compatibility_function(self):
         """Test legacy compatibility function works."""
         # Valid labels should pass
-        valid_labels = {
-            "route": "/memories/{id}",
-            "reason": "jwt_invalid"
-        }
+        valid_labels = {"route": "/memories/{id}", "reason": "jwt_invalid"}
 
         # Should not raise
         validate_metric_labels_legacy(valid_labels)
 
         # Invalid route should raise with legacy message
-        invalid_route_labels = {
-            "route": "/invalid/route"
-        }
+        invalid_route_labels = {"route": "/invalid/route"}
 
         with pytest.raises(ValueError, match="route label must be a known template"):
             validate_metric_labels_legacy(invalid_route_labels)
 
         # Invalid reason should raise with legacy message
-        invalid_reason_labels = {
-            "route": "/memories/{id}",
-            "reason": "invalid_reason"
-        }
+        invalid_reason_labels = {"route": "/memories/{id}", "reason": "invalid_reason"}
 
         with pytest.raises(ValueError, match="invalid reason label"):
             validate_metric_labels_legacy(invalid_reason_labels)
@@ -343,21 +324,25 @@ class TestAllowedTemplatesAndBuckets:
             "/contexts/{id}/memories",
             "/users/{user_id}/contexts/{context_id}",
             "/admin/users",
-            "/healthz/config"
+            "/healthz/config",
         ]
 
         for pattern in valid_patterns:
-            assert guard._route_template_pattern.match(pattern), f"Pattern {pattern} should be valid"
+            assert guard._route_template_pattern.match(
+                pattern
+            ), f"Pattern {pattern} should be valid"
 
         invalid_patterns = [
             "memories/{id}",  # Missing leading slash
             "/memories/{id}/}",  # Malformed template
             "/memories/{{id}}",  # Double braces
-            "/memories/{id with spaces}"  # Spaces in template
+            "/memories/{id with spaces}",  # Spaces in template
         ]
 
         for pattern in invalid_patterns:
-            assert not guard._route_template_pattern.match(pattern), f"Pattern {pattern} should be invalid"
+            assert not guard._route_template_pattern.match(
+                pattern
+            ), f"Pattern {pattern} should be invalid"
 
 
 class TestThreadSafety:
@@ -374,7 +359,7 @@ class TestThreadSafety:
             labels = {
                 "route": "/memories/{id}",
                 "reason": "jwt_invalid",
-                "user_id": f"user_{worker_id}"
+                "user_id": f"user_{worker_id}",
             }
             result = guard.validate_labels(labels, f"metric_{worker_id}")
             return result["valid"]
@@ -382,7 +367,9 @@ class TestThreadSafety:
         # Run concurrent validations
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(validate_labels_worker, i) for i in range(50)]
-            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+            results = [
+                future.result() for future in concurrent.futures.as_completed(futures)
+            ]
 
         # All validations should succeed
         assert all(results)
@@ -390,8 +377,8 @@ class TestThreadSafety:
         # Check cardinality tracking worked correctly
         stats = guard.get_cardinality_stats()
         assert stats["cardinality"]["route_templates"] == 1  # Same route for all
-        assert stats["cardinality"]["reason_buckets"] == 1   # Same reason for all
-        assert stats["cardinality"]["user_buckets"] == 50    # Different users
+        assert stats["cardinality"]["reason_buckets"] == 1  # Same reason for all
+        assert stats["cardinality"]["user_buckets"] == 50  # Different users
 
 
 if __name__ == "__main__":

@@ -25,27 +25,31 @@ def detector_fn(text: str) -> str:
         # Fallback to basic regex patterns
         return _fallback_redaction(text)
 
+
 def _fallback_redaction(text: str) -> str:
     """Fallback redaction using basic regex patterns"""
     patterns = [
         # AWS Access Keys
-        (r'AKIA[0-9A-Z]{16}', '[REDACTED-AWS-KEY]'),
+        (r"AKIA[0-9A-Z]{16}", "[REDACTED-AWS-KEY]"),
         # GitHub Personal Access Tokens
-        (r'ghp_[A-Za-z0-9]{36}', '[REDACTED-GITHUB-TOKEN]'),
+        (r"ghp_[A-Za-z0-9]{36}", "[REDACTED-GITHUB-TOKEN]"),
         # OpenAI API Keys
-        (r'sk-[A-Za-z0-9]{48}', '[REDACTED-OPENAI-KEY]'),
+        (r"sk-[A-Za-z0-9]{48}", "[REDACTED-OPENAI-KEY]"),
         # Slack Bot Tokens
-        (r'xoxb-[0-9]+-[0-9]+-[A-Za-z0-9]+', '[REDACTED-SLACK-TOKEN]'),
+        (r"xoxb-[0-9]+-[0-9]+-[A-Za-z0-9]+", "[REDACTED-SLACK-TOKEN]"),
         # JWT Tokens (basic pattern)
-        (r'eyJ[A-Za-z0-9+/=]+\.eyJ[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=_-]+', '[REDACTED-JWT]'),
+        (
+            r"eyJ[A-Za-z0-9+/=]+\.eyJ[A-Za-z0-9+/=]+\.[A-Za-z0-9+/=_-]+",
+            "[REDACTED-JWT]",
+        ),
         # PEM Keys
-        (r'-----BEGIN [A-Z ]+-----[\s\S]*?-----END [A-Z ]+-----', '[REDACTED-PEM-KEY]'),
+        (r"-----BEGIN [A-Z ]+-----[\s\S]*?-----END [A-Z ]+-----", "[REDACTED-PEM-KEY]"),
         # Credit Card Numbers (basic)
-        (r'\b(?:\d{4}[-\s]?){3}\d{4}\b', '[REDACTED-CC]'),
+        (r"\b(?:\d{4}[-\s]?){3}\d{4}\b", "[REDACTED-CC]"),
         # Email addresses (partial redaction)
-        (r'([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})', r'[REDACTED]@\2'),
+        (r"([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", r"[REDACTED]@\2"),
         # Phone numbers
-        (r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', '[REDACTED-PHONE]'),
+        (r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b", "[REDACTED-PHONE]"),
     ]
 
     redacted = text
@@ -53,6 +57,7 @@ def _fallback_redaction(text: str) -> str:
         redacted = re.sub(pattern, replacement, redacted, flags=re.IGNORECASE)
 
     return redacted
+
 
 # High-entropy string detection fallback
 def _has_high_entropy(text: str, threshold: float = 4.0) -> bool:
@@ -66,9 +71,12 @@ def _has_high_entropy(text: str, threshold: float = 4.0) -> bool:
     # Calculate Shannon entropy
     counts = Counter(text)
     length = len(text)
-    entropy = -sum((count / length) * math.log2(count / length) for count in counts.values())
+    entropy = -sum(
+        (count / length) * math.log2(count / length) for count in counts.values()
+    )
 
     return entropy > threshold
+
 
 def enhanced_detector_fn(text: str) -> str:
     """Enhanced detector with entropy-based detection"""
@@ -79,6 +87,6 @@ def enhanced_detector_fn(text: str) -> str:
     words = redacted.split()
     for i, word in enumerate(words):
         if len(word) > 16 and _has_high_entropy(word):
-            words[i] = '[REDACTED-HIGH-ENTROPY]'
+            words[i] = "[REDACTED-HIGH-ENTROPY]"
 
-    return ' '.join(words)
+    return " ".join(words)

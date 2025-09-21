@@ -11,10 +11,12 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class ContextScope(Enum):
     PERSONAL = "personal"
     TEAM = "team"
     ORGANIZATION = "organization"
+
 
 class PermissionLevel(Enum):
     READ = "read"
@@ -22,9 +24,11 @@ class PermissionLevel(Enum):
     ADMIN = "admin"
     OWNER = "owner"
 
+
 class EntityType(Enum):
     TEAM = "team"
     ORGANIZATION = "organization"
+
 
 class OwnershipRole(Enum):
     OWNER = "owner"
@@ -32,9 +36,11 @@ class OwnershipRole(Enum):
     MEMBER = "member"
     VIEWER = "viewer"
 
+
 @dataclass
 class ContextSpec:
     """Standard context specification"""
+
     id: int | None = None
     name: str = ""
     description: str | None = None
@@ -47,9 +53,11 @@ class ContextSpec:
     created_at: str | None = None
     updated_at: str | None = None
 
+
 @dataclass
 class ContextPermissionSpec:
     """Standard context permission specification"""
+
     context_id: int
     user_id: int | None = None
     team_id: int | None = None
@@ -57,9 +65,11 @@ class ContextPermissionSpec:
     permission_level: PermissionLevel = PermissionLevel.READ
     granted_by: int | None = None
 
+
 @dataclass
 class OwnershipSpec:
     """Standard ownership specification"""
+
     entity_type: EntityType
     entity_id: int
     current_owner_id: int
@@ -67,9 +77,11 @@ class OwnershipSpec:
     transfer_message: str | None = None
     expires_at: str | None = None
 
+
 @dataclass
 class TeamSpec:
     """Standard team specification"""
+
     id: int | None = None
     name: str = ""
     organization_id: int | None = None
@@ -77,9 +89,11 @@ class TeamSpec:
     initial_owners: list[int] = None
     created_at: str | None = None
 
+
 @dataclass
 class OrganizationSpec:
     """Standard organization specification"""
+
     id: int | None = None
     name: str = ""
     domain: str | None = None
@@ -88,33 +102,46 @@ class OrganizationSpec:
     settings: dict[str, Any] | None = None
     created_at: str | None = None
 
+
 @dataclass
 class ContextOperationResult:
     """Standard result for context operations"""
+
     success: bool
     message: str
     data: dict[str, Any] | None = None
     error_code: str | None = None
 
+
 class ContextValidationError(Exception):
     """Context validation error"""
+
     pass
+
 
 class ContextPermissionError(Exception):
     """Context permission error"""
+
     pass
+
 
 class OwnershipError(Exception):
     """Ownership management error"""
+
     pass
+
 
 class TeamManagementError(Exception):
     """Team management error"""
+
     pass
+
 
 class OrganizationManagementError(Exception):
     """Organization management error"""
+
     pass
+
 
 class ContextInterface(ABC):
     """Standard interface for context operations"""
@@ -130,12 +157,16 @@ class ContextInterface(ABC):
         pass
 
     @abstractmethod
-    def list_contexts(self, user_id: int, scope: ContextScope | None = None) -> ContextOperationResult:
+    def list_contexts(
+        self, user_id: int, scope: ContextScope | None = None
+    ) -> ContextOperationResult:
         """List user-accessible contexts"""
         pass
 
     @abstractmethod
-    def update_context(self, context_id: int, updates: dict[str, Any], user_id: int) -> ContextOperationResult:
+    def update_context(
+        self, context_id: int, updates: dict[str, Any], user_id: int
+    ) -> ContextOperationResult:
         """Update context"""
         pass
 
@@ -145,17 +176,23 @@ class ContextInterface(ABC):
         pass
 
     @abstractmethod
-    def resolve_context(self, name: str, user_id: int, scope_hint: ContextScope | None = None) -> ContextOperationResult:
+    def resolve_context(
+        self, name: str, user_id: int, scope_hint: ContextScope | None = None
+    ) -> ContextOperationResult:
         """Resolve context by name with scope priority"""
         pass
 
     @abstractmethod
-    def share_context(self, context_id: int, permission: ContextPermissionSpec, user_id: int) -> ContextOperationResult:
+    def share_context(
+        self, context_id: int, permission: ContextPermissionSpec, user_id: int
+    ) -> ContextOperationResult:
         """Share context with permissions"""
         pass
 
     @abstractmethod
-    def transfer_context(self, context_id: int, target_type: str, target_id: int, user_id: int) -> ContextOperationResult:
+    def transfer_context(
+        self, context_id: int, target_type: str, target_id: int, user_id: int
+    ) -> ContextOperationResult:
         """Transfer context ownership"""
         pass
 
@@ -165,9 +202,12 @@ class ContextInterface(ABC):
         pass
 
     @abstractmethod
-    def deactivate_context(self, context_id: int, user_id: int) -> ContextOperationResult:
+    def deactivate_context(
+        self, context_id: int, user_id: int
+    ) -> ContextOperationResult:
         """Deactivate context"""
         pass
+
 
 class ContextValidator:
     """Standard context validation logic"""
@@ -190,31 +230,44 @@ class ContextValidator:
                 raise ContextValidationError("Team context must have team_id only")
         elif spec.scope == ContextScope.ORGANIZATION:
             if not spec.organization_id or spec.owner_id or spec.team_id:
-                raise ContextValidationError("Organization context must have organization_id only")
+                raise ContextValidationError(
+                    "Organization context must have organization_id only"
+                )
 
     @staticmethod
     def validate_permission_spec(permission: ContextPermissionSpec) -> None:
         """Validate permission specification"""
-        target_count = sum([
-            1 if permission.user_id else 0,
-            1 if permission.team_id else 0,
-            1 if permission.organization_id else 0
-        ])
+        target_count = sum(
+            [
+                1 if permission.user_id else 0,
+                1 if permission.team_id else 0,
+                1 if permission.organization_id else 0,
+            ]
+        )
 
         if target_count != 1:
-            raise ContextValidationError("Permission must target exactly one entity (user, team, or organization)")
+            raise ContextValidationError(
+                "Permission must target exactly one entity (user, team, or organization)"
+            )
+
 
 class ContextResolver:
     """Standard context resolution logic"""
 
     @staticmethod
-    def resolve_priority(contexts: list[ContextSpec], user_id: int) -> ContextSpec | None:
+    def resolve_priority(
+        contexts: list[ContextSpec], user_id: int
+    ) -> ContextSpec | None:
         """Resolve context with priority: personal > team > organization > shared"""
         if not contexts:
             return None
 
         # Priority 1: Personal contexts owned by user
-        personal = [c for c in contexts if c.scope == ContextScope.PERSONAL and c.owner_id == user_id]
+        personal = [
+            c
+            for c in contexts
+            if c.scope == ContextScope.PERSONAL and c.owner_id == user_id
+        ]
         if personal:
             return personal[0]
 
@@ -230,6 +283,7 @@ class ContextResolver:
 
         # Priority 4: Shared contexts
         return contexts[0]
+
 
 class SpecKitContextManager(ContextInterface):
     """Spec-kit compliant context manager implementation"""
@@ -249,11 +303,15 @@ class SpecKitContextManager(ContextInterface):
             # Check permissions for non-personal contexts
             if spec.scope == ContextScope.TEAM and spec.team_id:
                 if not self._check_team_admin_permission(user_id, spec.team_id):
-                    raise ContextPermissionError("Only team admins can create team contexts")
+                    raise ContextPermissionError(
+                        "Only team admins can create team contexts"
+                    )
 
             elif spec.scope == ContextScope.ORGANIZATION and spec.organization_id:
                 if not self._check_org_admin_permission(user_id):
-                    raise ContextPermissionError("Only organization admins can create org contexts")
+                    raise ContextPermissionError(
+                        "Only organization admins can create org contexts"
+                    )
 
             # Create context using database manager
             context = self.db.create_context(
@@ -262,30 +320,30 @@ class SpecKitContextManager(ContextInterface):
                 user_id=spec.owner_id,
                 team_id=spec.team_id,
                 organization_id=spec.organization_id,
-                scope=spec.scope.value
+                scope=spec.scope.value,
             )
 
             return ContextOperationResult(
                 success=True,
                 message=f"Context '{spec.name}' created successfully",
-                data={"context": self._context_to_dict(context)}
+                data={"context": self._context_to_dict(context)},
             )
 
         except (ContextValidationError, ContextPermissionError) as e:
             return ContextOperationResult(
-                success=False,
-                message=str(e),
-                error_code="VALIDATION_ERROR"
+                success=False, message=str(e), error_code="VALIDATION_ERROR"
             )
         except Exception as e:
             logger.error(f"Context creation failed: {e}")
             return ContextOperationResult(
                 success=False,
                 message="Internal server error",
-                error_code="INTERNAL_ERROR"
+                error_code="INTERNAL_ERROR",
             )
 
-    def resolve_context(self, name: str, user_id: int, scope_hint: ContextScope | None = None) -> ContextOperationResult:
+    def resolve_context(
+        self, name: str, user_id: int, scope_hint: ContextScope | None = None
+    ) -> ContextOperationResult:
         """Resolve context by name with scope priority"""
         try:
             # Get all contexts with matching name that user can access
@@ -295,7 +353,7 @@ class SpecKitContextManager(ContextInterface):
                 return ContextOperationResult(
                     success=False,
                     message=f"No accessible context found with name '{name}'",
-                    error_code="NOT_FOUND"
+                    error_code="NOT_FOUND",
                 )
 
             # Convert to specs for resolution
@@ -313,7 +371,7 @@ class SpecKitContextManager(ContextInterface):
             return ContextOperationResult(
                 success=True,
                 message=f"Context '{name}' resolved",
-                data={"context": self._spec_to_dict(resolved)}
+                data={"context": self._spec_to_dict(resolved)},
             )
 
         except Exception as e:
@@ -321,7 +379,7 @@ class SpecKitContextManager(ContextInterface):
             return ContextOperationResult(
                 success=False,
                 message="Context resolution failed",
-                error_code="RESOLUTION_ERROR"
+                error_code="RESOLUTION_ERROR",
             )
 
     def _check_team_admin_permission(self, user_id: int, team_id: int) -> bool:
@@ -346,7 +404,7 @@ class SpecKitContextManager(ContextInterface):
             organization_id=context.organization_id,
             visibility=context.visibility,
             is_active=context.is_active,
-            created_at=context.created_at.isoformat() if context.created_at else None
+            created_at=context.created_at.isoformat() if context.created_at else None,
         )
 
     def _context_to_dict(self, context) -> dict[str, Any]:
@@ -361,7 +419,9 @@ class SpecKitContextManager(ContextInterface):
             "organization_id": context.organization_id,
             "visibility": context.visibility,
             "is_active": context.is_active,
-            "created_at": context.created_at.isoformat() if context.created_at else None
+            "created_at": context.created_at.isoformat()
+            if context.created_at
+            else None,
         }
 
     def _spec_to_dict(self, spec: ContextSpec) -> dict[str, Any]:
@@ -376,7 +436,7 @@ class SpecKitContextManager(ContextInterface):
             "organization_id": spec.organization_id,
             "visibility": spec.visibility,
             "is_active": spec.is_active,
-            "created_at": spec.created_at
+            "created_at": spec.created_at,
         }
 
     def get_context(self, context_id: int, user_id: int) -> ContextOperationResult:
@@ -387,47 +447,51 @@ class SpecKitContextManager(ContextInterface):
                 return ContextOperationResult(
                     success=False,
                     message="Context not found or access denied",
-                    error_code="NOT_FOUND"
+                    error_code="NOT_FOUND",
                 )
 
             return ContextOperationResult(
                 success=True,
                 message="Context retrieved successfully",
-                data={"context": self._context_to_dict(context)}
+                data={"context": self._context_to_dict(context)},
             )
         except Exception as e:
             logger.error(f"Get context failed: {e}")
             return ContextOperationResult(
                 success=False,
                 message="Failed to retrieve context",
-                error_code="INTERNAL_ERROR"
+                error_code="INTERNAL_ERROR",
             )
 
-    def list_contexts(self, user_id: int, scope: ContextScope | None = None) -> ContextOperationResult:
+    def list_contexts(
+        self, user_id: int, scope: ContextScope | None = None
+    ) -> ContextOperationResult:
         """List user-accessible contexts"""
         try:
             contexts = self.db.get_user_contexts(user_id)
 
             # Filter by scope if specified
             if scope:
-                contexts = [c for c in contexts if c.get('scope') == scope.value]
+                contexts = [c for c in contexts if c.get("scope") == scope.value]
 
             context_list = [self._context_dict_to_spec_dict(c) for c in contexts]
 
             return ContextOperationResult(
                 success=True,
                 message=f"Retrieved {len(context_list)} contexts",
-                data={"contexts": context_list}
+                data={"contexts": context_list},
             )
         except Exception as e:
             logger.error(f"List contexts failed: {e}")
             return ContextOperationResult(
                 success=False,
                 message="Failed to list contexts",
-                error_code="INTERNAL_ERROR"
+                error_code="INTERNAL_ERROR",
             )
 
-    def _context_dict_to_spec_dict(self, context_dict: dict[str, Any]) -> dict[str, Any]:
+    def _context_dict_to_spec_dict(
+        self, context_dict: dict[str, Any]
+    ) -> dict[str, Any]:
         """Convert context dictionary to spec format"""
         return {
             "id": context_dict.get("id"),
@@ -439,53 +503,72 @@ class SpecKitContextManager(ContextInterface):
             "organization_id": context_dict.get("organization_id"),
             "visibility": context_dict.get("visibility", "private"),
             "is_active": context_dict.get("is_active", False),
-            "created_at": context_dict.get("created_at")
+            "created_at": context_dict.get("created_at"),
         }
 
-    def update_context(self, context_id: int, updates: dict[str, Any], user_id: int) -> ContextOperationResult:
+    def update_context(
+        self, context_id: int, updates: dict[str, Any], user_id: int
+    ) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")
 
     def delete_context(self, context_id: int, user_id: int) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")
 
-    def share_context(self, context_id: int, permission: ContextPermissionSpec, user_id: int) -> ContextOperationResult:
+    def share_context(
+        self, context_id: int, permission: ContextPermissionSpec, user_id: int
+    ) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")
 
-    def transfer_context(self, context_id: int, target_type: str, target_id: int, user_id: int) -> ContextOperationResult:
+    def transfer_context(
+        self, context_id: int, target_type: str, target_id: int, user_id: int
+    ) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")
 
     def activate_context(self, context_id: int, user_id: int) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")
 
-    def deactivate_context(self, context_id: int, user_id: int) -> ContextOperationResult:
+    def deactivate_context(
+        self, context_id: int, user_id: int
+    ) -> ContextOperationResult:
         """Deactivate context"""
         return ContextOperationResult(success=False, message="Not implemented")
+
 
 class OwnershipInterface(ABC):
     """Standard interface for ownership operations"""
 
     @abstractmethod
-    def create_team_with_owners(self, team_spec: TeamSpec, owner_ids: list[int]) -> ContextOperationResult:
+    def create_team_with_owners(
+        self, team_spec: TeamSpec, owner_ids: list[int]
+    ) -> ContextOperationResult:
         """Create team with initial owners"""
         pass
 
     @abstractmethod
-    def create_organization_with_owner(self, org_spec: OrganizationSpec, owner_id: int) -> ContextOperationResult:
+    def create_organization_with_owner(
+        self, org_spec: OrganizationSpec, owner_id: int
+    ) -> ContextOperationResult:
         """Create organization with initial owner"""
         pass
 
     @abstractmethod
-    def transfer_ownership(self, ownership_spec: OwnershipSpec, user_id: int) -> ContextOperationResult:
+    def transfer_ownership(
+        self, ownership_spec: OwnershipSpec, user_id: int
+    ) -> ContextOperationResult:
         """Initiate ownership transfer"""
         pass
 
     @abstractmethod
-    def accept_ownership_transfer(self, transfer_id: int, user_id: int) -> ContextOperationResult:
+    def accept_ownership_transfer(
+        self, transfer_id: int, user_id: int
+    ) -> ContextOperationResult:
         """Accept ownership transfer"""
         pass
 
     @abstractmethod
-    def reject_ownership_transfer(self, transfer_id: int, user_id: int, reason: str) -> ContextOperationResult:
+    def reject_ownership_transfer(
+        self, transfer_id: int, user_id: int, reason: str
+    ) -> ContextOperationResult:
         """Reject ownership transfer"""
         pass
 
@@ -495,9 +578,17 @@ class OwnershipInterface(ABC):
         pass
 
     @abstractmethod
-    def change_member_role(self, entity_type: EntityType, entity_id: int, user_id: int, new_role: OwnershipRole, changed_by: int) -> ContextOperationResult:
+    def change_member_role(
+        self,
+        entity_type: EntityType,
+        entity_id: int,
+        user_id: int,
+        new_role: OwnershipRole,
+        changed_by: int,
+    ) -> ContextOperationResult:
         """Change member role in team or organization"""
         pass
+
 
 class SpecKitOwnershipManager(OwnershipInterface):
     """Spec-kit compliant ownership manager implementation"""
@@ -505,7 +596,9 @@ class SpecKitOwnershipManager(OwnershipInterface):
     def __init__(self, database_manager):
         self.db = database_manager
 
-    def create_team_with_owners(self, team_spec: TeamSpec, owner_ids: list[int]) -> ContextOperationResult:
+    def create_team_with_owners(
+        self, team_spec: TeamSpec, owner_ids: list[int]
+    ) -> ContextOperationResult:
         """Create team with initial owners through spec-kit"""
         try:
             if not owner_ids:
@@ -515,7 +608,7 @@ class SpecKitOwnershipManager(OwnershipInterface):
             team = self.db.create_team(
                 name=team_spec.name,
                 organization_id=team_spec.organization_id,
-                description=team_spec.description
+                description=team_spec.description,
             )
 
             # Add owners
@@ -525,27 +618,29 @@ class SpecKitOwnershipManager(OwnershipInterface):
             return ContextOperationResult(
                 success=True,
                 message=f"Team '{team_spec.name}' created with {len(owner_ids)} owners",
-                data={"team": self._team_to_dict(team)}
+                data={"team": self._team_to_dict(team)},
             )
 
         except TeamManagementError as e:
             return ContextOperationResult(
-                success=False,
-                message=str(e),
-                error_code="TEAM_MANAGEMENT_ERROR"
+                success=False, message=str(e), error_code="TEAM_MANAGEMENT_ERROR"
             )
         except Exception:
             return ContextOperationResult(
                 success=False,
                 message="Failed to create team",
-                error_code="INTERNAL_ERROR"
+                error_code="INTERNAL_ERROR",
             )
 
-    def transfer_ownership(self, ownership_spec: OwnershipSpec, user_id: int) -> ContextOperationResult:
+    def transfer_ownership(
+        self, ownership_spec: OwnershipSpec, user_id: int
+    ) -> ContextOperationResult:
         """Initiate ownership transfer through spec-kit"""
         try:
             # Validate current ownership
-            if not self._is_owner(ownership_spec.entity_type, ownership_spec.entity_id, user_id):
+            if not self._is_owner(
+                ownership_spec.entity_type, ownership_spec.entity_id, user_id
+            ):
                 raise OwnershipError("Only owners can transfer ownership")
 
             # Create transfer request
@@ -554,26 +649,24 @@ class SpecKitOwnershipManager(OwnershipInterface):
                 entity_id=ownership_spec.entity_id,
                 current_owner_id=ownership_spec.current_owner_id,
                 new_owner_id=ownership_spec.new_owner_id,
-                message=ownership_spec.transfer_message
+                message=ownership_spec.transfer_message,
             )
 
             return ContextOperationResult(
                 success=True,
                 message="Ownership transfer initiated",
-                data={"transfer_id": transfer_id}
+                data={"transfer_id": transfer_id},
             )
 
         except OwnershipError as e:
             return ContextOperationResult(
-                success=False,
-                message=str(e),
-                error_code="OWNERSHIP_ERROR"
+                success=False, message=str(e), error_code="OWNERSHIP_ERROR"
             )
         except Exception:
             return ContextOperationResult(
                 success=False,
                 message="Failed to initiate ownership transfer",
-                error_code="INTERNAL_ERROR"
+                error_code="INTERNAL_ERROR",
             )
 
     def _is_owner(self, entity_type: EntityType, entity_id: int, user_id: int) -> bool:
@@ -591,21 +684,34 @@ class SpecKitOwnershipManager(OwnershipInterface):
             "name": team.name,
             "organization_id": team.organization_id,
             "description": team.description,
-            "created_at": team.created_at.isoformat() if team.created_at else None
+            "created_at": team.created_at.isoformat() if team.created_at else None,
         }
 
     # Placeholder implementations
-    def create_organization_with_owner(self, org_spec: OrganizationSpec, owner_id: int) -> ContextOperationResult:
+    def create_organization_with_owner(
+        self, org_spec: OrganizationSpec, owner_id: int
+    ) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")
 
-    def accept_ownership_transfer(self, transfer_id: int, user_id: int) -> ContextOperationResult:
+    def accept_ownership_transfer(
+        self, transfer_id: int, user_id: int
+    ) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")
 
-    def reject_ownership_transfer(self, transfer_id: int, user_id: int, reason: str) -> ContextOperationResult:
+    def reject_ownership_transfer(
+        self, transfer_id: int, user_id: int, reason: str
+    ) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")
 
     def get_ownership_transfers(self, user_id: int) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")
 
-    def change_member_role(self, entity_type: EntityType, entity_id: int, user_id: int, new_role: OwnershipRole, changed_by: int) -> ContextOperationResult:
+    def change_member_role(
+        self,
+        entity_type: EntityType,
+        entity_id: int,
+        user_id: int,
+        new_role: OwnershipRole,
+        changed_by: int,
+    ) -> ContextOperationResult:
         return ContextOperationResult(success=False, message="Not implemented")

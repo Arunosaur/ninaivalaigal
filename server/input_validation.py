@@ -14,7 +14,9 @@ from email_validator import validate_email
 
 class InputValidationError(Exception):
     """Custom exception for input validation errors"""
+
     pass
+
 
 class InputValidator:
     """Comprehensive input validation and sanitization"""
@@ -22,51 +24,57 @@ class InputValidator:
     def __init__(self):
         # Maximum lengths for various input types
         self.max_lengths = {
-            'name': 100,
-            'email': 254,  # RFC 5321 limit
-            'password': 128,
-            'description': 1000,
-            'context_name': 100,
-            'memory_text': 10000,
-            'organization_name': 100,
-            'team_name': 100,
-            'message': 2000,
-            'url': 2048,
-            'filename': 255
+            "name": 100,
+            "email": 254,  # RFC 5321 limit
+            "password": 128,
+            "description": 1000,
+            "context_name": 100,
+            "memory_text": 10000,
+            "organization_name": 100,
+            "team_name": 100,
+            "message": 2000,
+            "url": 2048,
+            "filename": 255,
         }
 
         # Regex patterns for validation
         self.patterns = {
-            'name': r'^[a-zA-Z0-9\s\-_.]{1,100}$',
-            'username': r'^[a-zA-Z0-9_-]{3,50}$',
-            'context_name': r'^[a-zA-Z0-9\s\-_.]{1,100}$',
-            'team_name': r'^[a-zA-Z0-9\s\-_.]{1,100}$',
-            'organization_name': r'^[a-zA-Z0-9\s\-_.]{1,100}$',
-            'alphanumeric': r'^[a-zA-Z0-9]+$',
-            'safe_filename': r'^[a-zA-Z0-9\-_.]{1,255}$'
+            "name": r"^[a-zA-Z0-9\s\-_.]{1,100}$",
+            "username": r"^[a-zA-Z0-9_-]{3,50}$",
+            "context_name": r"^[a-zA-Z0-9\s\-_.]{1,100}$",
+            "team_name": r"^[a-zA-Z0-9\s\-_.]{1,100}$",
+            "organization_name": r"^[a-zA-Z0-9\s\-_.]{1,100}$",
+            "alphanumeric": r"^[a-zA-Z0-9]+$",
+            "safe_filename": r"^[a-zA-Z0-9\-_.]{1,255}$",
         }
 
         # Dangerous patterns to block
         self.dangerous_patterns = [
-            r'<script[^>]*>.*?</script>',  # Script tags
-            r'javascript:',               # JavaScript URLs
-            r'on\w+\s*=',                # Event handlers
-            r'<iframe[^>]*>',            # Iframes
-            r'<object[^>]*>',            # Objects
-            r'<embed[^>]*>',             # Embeds
-            r'eval\s*\(',                # eval() calls
-            r'document\.',               # DOM access
-            r'window\.',                 # Window object access
-            r'\.innerHTML',              # innerHTML manipulation
-            r'UNION\s+SELECT',           # SQL injection
-            r'DROP\s+TABLE',             # SQL injection
-            r'DELETE\s+FROM',            # SQL injection
-            r'INSERT\s+INTO',            # SQL injection
-            r'UPDATE\s+SET',             # SQL injection
+            r"<script[^>]*>.*?</script>",  # Script tags
+            r"javascript:",  # JavaScript URLs
+            r"on\w+\s*=",  # Event handlers
+            r"<iframe[^>]*>",  # Iframes
+            r"<object[^>]*>",  # Objects
+            r"<embed[^>]*>",  # Embeds
+            r"eval\s*\(",  # eval() calls
+            r"document\.",  # DOM access
+            r"window\.",  # Window object access
+            r"\.innerHTML",  # innerHTML manipulation
+            r"UNION\s+SELECT",  # SQL injection
+            r"DROP\s+TABLE",  # SQL injection
+            r"DELETE\s+FROM",  # SQL injection
+            r"INSERT\s+INTO",  # SQL injection
+            r"UPDATE\s+SET",  # SQL injection
         ]
 
-    def validate_string(self, value: str, field_name: str, max_length: int | None = None,
-                       pattern: str | None = None, allow_empty: bool = False) -> str:
+    def validate_string(
+        self,
+        value: str,
+        field_name: str,
+        max_length: int | None = None,
+        pattern: str | None = None,
+        allow_empty: bool = False,
+    ) -> str:
         """Validate and sanitize string input"""
         if not isinstance(value, str):
             raise InputValidationError(f"{field_name} must be a string")
@@ -78,12 +86,16 @@ class InputValidator:
         # Check length
         max_len = max_length or self.max_lengths.get(field_name, 1000)
         if len(value) > max_len:
-            raise InputValidationError(f"{field_name} exceeds maximum length of {max_len}")
+            raise InputValidationError(
+                f"{field_name} exceeds maximum length of {max_len}"
+            )
 
         # Check for dangerous patterns
         for dangerous_pattern in self.dangerous_patterns:
             if re.search(dangerous_pattern, value, re.IGNORECASE):
-                raise InputValidationError(f"{field_name} contains potentially dangerous content")
+                raise InputValidationError(
+                    f"{field_name} contains potentially dangerous content"
+                )
 
         # Apply pattern validation
         if pattern:
@@ -102,7 +114,7 @@ class InputValidator:
             raise InputValidationError("Email must be a string")
 
         # Basic email validation using regex (fallback if email-validator not available)
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, email):
             raise InputValidationError("Invalid email address format")
 
@@ -116,14 +128,16 @@ class InputValidator:
         if len(password) < 8:
             raise InputValidationError("Password must be at least 8 characters long")
 
-        if len(password) > self.max_lengths['password']:
-            raise InputValidationError(f"Password exceeds maximum length of {self.max_lengths['password']}")
+        if len(password) > self.max_lengths["password"]:
+            raise InputValidationError(
+                f"Password exceeds maximum length of {self.max_lengths['password']}"
+            )
 
         # Check for at least one letter and one number
-        if not re.search(r'[A-Za-z]', password):
+        if not re.search(r"[A-Za-z]", password):
             raise InputValidationError("Password must contain at least one letter")
 
-        if not re.search(r'\d', password):
+        if not re.search(r"\d", password):
             raise InputValidationError("Password must contain at least one number")
 
         # Check for dangerous patterns
@@ -133,8 +147,13 @@ class InputValidator:
 
         return password  # Don't escape passwords
 
-    def validate_integer(self, value: Any, field_name: str, min_value: int | None = None,
-                        max_value: int | None = None) -> int:
+    def validate_integer(
+        self,
+        value: Any,
+        field_name: str,
+        min_value: int | None = None,
+        max_value: int | None = None,
+    ) -> int:
         """Validate integer input"""
         try:
             int_value = int(value)
@@ -164,14 +183,21 @@ class InputValidator:
 
         return parsed_json
 
-    def validate_list(self, value: Any, field_name: str, max_items: int = 100,
-                     item_validator: callable | None = None) -> list[Any]:
+    def validate_list(
+        self,
+        value: Any,
+        field_name: str,
+        max_items: int = 100,
+        item_validator: callable | None = None,
+    ) -> list[Any]:
         """Validate list input"""
         if not isinstance(value, list):
             raise InputValidationError(f"{field_name} must be a list")
 
         if len(value) > max_items:
-            raise InputValidationError(f"{field_name} cannot have more than {max_items} items")
+            raise InputValidationError(
+                f"{field_name} cannot have more than {max_items} items"
+            )
 
         if item_validator:
             validated_items = []
@@ -194,8 +220,10 @@ class InputValidator:
         sanitized = html.escape(value)
 
         # Additional sanitization for specific patterns
-        sanitized = re.sub(r'javascript:', '', sanitized, flags=re.IGNORECASE)
-        sanitized = re.sub(r'on\w+\s*=\s*["\'][^"\']*["\']', '', sanitized, flags=re.IGNORECASE)
+        sanitized = re.sub(r"javascript:", "", sanitized, flags=re.IGNORECASE)
+        sanitized = re.sub(
+            r'on\w+\s*=\s*["\'][^"\']*["\']', "", sanitized, flags=re.IGNORECASE
+        )
 
         return sanitized
 
@@ -231,7 +259,10 @@ class InputValidator:
             # Check for dangerous patterns in string values
             for dangerous_pattern in self.dangerous_patterns:
                 if re.search(dangerous_pattern, obj, re.IGNORECASE):
-                    raise InputValidationError(f"{field_name} contains potentially dangerous content")
+                    raise InputValidationError(
+                        f"{field_name} contains potentially dangerous content"
+                    )
+
 
 class APIInputValidator:
     """Specialized validator for API inputs"""
@@ -243,15 +274,17 @@ class APIInputValidator:
         """Validate user signup data"""
         validated = {}
 
-        validated['email'] = self.validator.validate_email(data.get('email', ''))
-        validated['password'] = self.validator.validate_password(data.get('password', ''))
-        validated['name'] = self.validator.validate_string(data.get('name', ''), 'name')
+        validated["email"] = self.validator.validate_email(data.get("email", ""))
+        validated["password"] = self.validator.validate_password(
+            data.get("password", "")
+        )
+        validated["name"] = self.validator.validate_string(data.get("name", ""), "name")
 
-        if 'account_type' in data:
-            account_type = data['account_type']
-            if account_type not in ['individual', 'organization']:
+        if "account_type" in data:
+            account_type = data["account_type"]
+            if account_type not in ["individual", "organization"]:
                 raise InputValidationError("Invalid account type")
-            validated['account_type'] = account_type
+            validated["account_type"] = account_type
 
         return validated
 
@@ -259,9 +292,9 @@ class APIInputValidator:
         """Validate user login data"""
         validated = {}
 
-        validated['email'] = self.validator.validate_email(data.get('email', ''))
-        validated['password'] = self.validator.validate_string(
-            data.get('password', ''), 'password', max_length=128, allow_empty=False
+        validated["email"] = self.validator.validate_email(data.get("email", ""))
+        validated["password"] = self.validator.validate_string(
+            data.get("password", ""), "password", max_length=128, allow_empty=False
         )
 
         return validated
@@ -270,13 +303,13 @@ class APIInputValidator:
         """Validate memory storage data"""
         validated = {}
 
-        validated['text'] = self.validator.validate_string(
-            data.get('text', ''), 'memory_text', max_length=10000
+        validated["text"] = self.validator.validate_string(
+            data.get("text", ""), "memory_text", max_length=10000
         )
 
-        if 'context' in data:
-            validated['context'] = self.validator.validate_string(
-                data['context'], 'context_name', allow_empty=True
+        if "context" in data:
+            validated["context"] = self.validator.validate_string(
+                data["context"], "context_name", allow_empty=True
             )
 
         return validated
@@ -285,24 +318,28 @@ class APIInputValidator:
         """Validate context creation data"""
         validated = {}
 
-        validated['name'] = self.validator.validate_string(data.get('name', ''), 'context_name')
+        validated["name"] = self.validator.validate_string(
+            data.get("name", ""), "context_name"
+        )
 
-        if 'description' in data:
-            validated['description'] = self.validator.validate_string(
-                data['description'], 'description', allow_empty=True
+        if "description" in data:
+            validated["description"] = self.validator.validate_string(
+                data["description"], "description", allow_empty=True
             )
 
-        if 'scope' in data:
-            scope = data['scope']
-            if scope not in ['personal', 'team', 'organization']:
+        if "scope" in data:
+            scope = data["scope"]
+            if scope not in ["personal", "team", "organization"]:
                 raise InputValidationError("Invalid context scope")
-            validated['scope'] = scope
+            validated["scope"] = scope
 
         return validated
+
 
 # Global instance
 _input_validator = None
 _api_validator = None
+
 
 def get_input_validator() -> InputValidator:
     """Get global input validator instance"""
@@ -311,6 +348,7 @@ def get_input_validator() -> InputValidator:
         _input_validator = InputValidator()
     return _input_validator
 
+
 def get_api_validator() -> APIInputValidator:
     """Get global API input validator instance"""
     global _api_validator
@@ -318,21 +356,25 @@ def get_api_validator() -> APIInputValidator:
         _api_validator = APIInputValidator()
     return _api_validator
 
+
 # Convenience functions
 def validate_string(value: str, field_name: str, **kwargs) -> str:
     """Convenience function for string validation"""
     validator = get_input_validator()
     return validator.validate_string(value, field_name, **kwargs)
 
+
 def validate_email(email: str) -> str:
     """Convenience function for email validation"""
     validator = get_input_validator()
     return validator.validate_email(email)
 
+
 def validate_password(password: str) -> str:
     """Convenience function for password validation"""
     validator = get_input_validator()
     return validator.validate_password(password)
+
 
 # Test function
 def test_input_validation():
@@ -345,7 +387,7 @@ def test_input_validation():
         "javascript:alert('xss')",
         "'; DROP TABLE users; --",
         "UNION SELECT * FROM passwords",
-        "<iframe src='evil.com'></iframe>"
+        "<iframe src='evil.com'></iframe>",
     ]
 
     print("Testing dangerous input detection:")
@@ -360,7 +402,7 @@ def test_input_validation():
     valid_inputs = [
         ("test@example.com", "email"),
         ("ValidName123", "name"),
-        ("SecurePass123", "password")
+        ("SecurePass123", "password"),
     ]
 
     print("\nTesting valid inputs:")
@@ -375,6 +417,7 @@ def test_input_validation():
             print(f"PASSED: Valid {field_type}: {value}")
         except Exception as e:
             print(f"FAILED: Valid {field_type} rejected: {value} - {e}")
+
 
 if __name__ == "__main__":
     test_input_validation()

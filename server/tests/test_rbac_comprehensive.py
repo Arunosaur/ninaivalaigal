@@ -13,6 +13,7 @@ from main import app
 # Test client setup
 client = TestClient(app)
 
+
 class TestRBACComprehensive:
     """Comprehensive RBAC system tests"""
 
@@ -22,7 +23,7 @@ class TestRBACComprehensive:
         self.test_user_data = {
             "email": "rbac_comprehensive_test@example.com",
             "password": "testpass123",
-            "name": "RBAC Comprehensive Test User"
+            "name": "RBAC Comprehensive Test User",
         }
         self.auth_token = None
 
@@ -36,10 +37,13 @@ class TestRBACComprehensive:
         assert "jwt_token" in data["user"]
 
         # Login to get RBAC roles
-        login_response = client.post("/auth/login", json={
-            "email": self.test_user_data["email"],
-            "password": self.test_user_data["password"]
-        })
+        login_response = client.post(
+            "/auth/login",
+            json={
+                "email": self.test_user_data["email"],
+                "password": self.test_user_data["password"],
+            },
+        )
         assert login_response.status_code == 200
 
         login_data = login_response.json()
@@ -59,7 +63,7 @@ class TestRBACComprehensive:
         context_data = {
             "name": "personal-sensitive-context",
             "description": "Personal context with sensitive data",
-            "scope": "personal"
+            "scope": "personal",
         }
         response = client.post("/contexts", json=context_data, headers=headers)
         assert response.status_code == 200
@@ -68,7 +72,7 @@ class TestRBACComprehensive:
         memory_data = {
             "type": "conversation",
             "source": "test",
-            "data": {"content": "Test sensitive memory data"}
+            "data": {"content": "Test sensitive memory data"},
         }
         response = client.post("/memory", json=memory_data, headers=headers)
         assert response.status_code in [200, 201]
@@ -118,7 +122,7 @@ class TestRBACComprehensive:
         admin_operations = [
             ("/rbac/status", "GET"),
             ("/rbac/roles/assign", "POST"),
-            ("/users", "GET")
+            ("/users", "GET"),
         ]
 
         for endpoint, method in admin_operations:
@@ -141,7 +145,7 @@ class TestRBACComprehensive:
         personal_context = {
             "name": "personal-scope-test",
             "scope": "personal",
-            "description": "Personal scope test"
+            "description": "Personal scope test",
         }
         response = client.post("/contexts", json=personal_context, headers=headers)
         assert response.status_code == 200
@@ -151,7 +155,7 @@ class TestRBACComprehensive:
             "name": "team-scope-test",
             "scope": "team",
             "team_id": 999,  # Non-existent team
-            "description": "Team scope test"
+            "description": "Team scope test",
         }
         response = client.post("/contexts", json=team_context, headers=headers)
         # Should fail due to invalid team or insufficient permissions
@@ -168,9 +172,11 @@ class TestRBACComprehensive:
         access_request = {
             "resource": "TEAM",
             "action": "ADMINISTER",
-            "justification": "Need to manage team settings for project"
+            "justification": "Need to manage team settings for project",
         }
-        response = client.post("/rbac/access-request", json=access_request, headers=headers)
+        response = client.post(
+            "/rbac/access-request", json=access_request, headers=headers
+        )
         # Should create access request
         assert response.status_code in [200, 201]
 
@@ -191,52 +197,59 @@ class TestRBACComprehensive:
         response = client.get("/contexts", headers=invalid_headers)
         assert response.status_code == 401
 
+
 @pytest.mark.asyncio
 async def test_async_rbac_operations():
     """Test RBAC with async operations"""
     async with AsyncClient(app=app, base_url="http://test") as ac:
         # Test async signup
-        response = await ac.post("/auth/signup/individual", json={
-            "email": "async_rbac_test@example.com",
-            "password": "testpass123",
-            "name": "Async RBAC Test"
-        })
+        response = await ac.post(
+            "/auth/signup/individual",
+            json={
+                "email": "async_rbac_test@example.com",
+                "password": "testpass123",
+                "name": "Async RBAC Test",
+            },
+        )
         assert response.status_code == 200
 
         # Test async login
-        login_response = await ac.post("/auth/login", json={
-            "email": "async_rbac_test@example.com",
-            "password": "testpass123"
-        })
+        login_response = await ac.post(
+            "/auth/login",
+            json={"email": "async_rbac_test@example.com", "password": "testpass123"},
+        )
         assert login_response.status_code == 200
 
         token = login_response.json()["user"]["jwt_token"]
         headers = {"Authorization": f"Bearer {token}"}
 
         # Test async context operations
-        context_response = await ac.post("/contexts",
-            json={"name": "async-test-context"},
-            headers=headers
+        context_response = await ac.post(
+            "/contexts", json={"name": "async-test-context"}, headers=headers
         )
         assert context_response.status_code == 200
+
 
 def test_rbac_performance():
     """Test RBAC system performance doesn't degrade significantly"""
     import time
 
     # Create test user
-    signup_response = client.post("/auth/signup/individual", json={
-        "email": "perf_test@example.com",
-        "password": "testpass123",
-        "name": "Performance Test User"
-    })
+    signup_response = client.post(
+        "/auth/signup/individual",
+        json={
+            "email": "perf_test@example.com",
+            "password": "testpass123",
+            "name": "Performance Test User",
+        },
+    )
     assert signup_response.status_code == 200
 
     # Login
-    login_response = client.post("/auth/login", json={
-        "email": "perf_test@example.com",
-        "password": "testpass123"
-    })
+    login_response = client.post(
+        "/auth/login",
+        json={"email": "perf_test@example.com", "password": "testpass123"},
+    )
     token = login_response.json()["user"]["jwt_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -249,6 +262,7 @@ def test_rbac_performance():
 
     # Should complete 10 operations in reasonable time (< 5 seconds)
     assert (end_time - start_time) < 5.0
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

