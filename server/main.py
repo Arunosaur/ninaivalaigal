@@ -4,9 +4,10 @@ import json
 import os
 import time
 from datetime import datetime
+from typing import Optional
 
-import uvicorn
 import structlog
+import uvicorn
 from approval_workflow import ApprovalWorkflowManager
 from auth import get_current_user
 from auto_recording import get_auto_recorder
@@ -14,10 +15,9 @@ from database import Context, ContextPermission, DatabaseManager, TeamMember, Us
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from typing import Optional
 from observability import MetricsMiddleware, health_router, metrics_router
 from performance_monitor import get_performance_monitor, start_performance_monitoring
+from pydantic import BaseModel
 from rate_limiting import rate_limit_middleware
 from rbac_middleware import get_rbac_context, rbac_middleware, require_permission
 from redis_client import redis_client
@@ -30,6 +30,7 @@ from rbac.permissions import Action, Resource
 
 # Initialize logger
 logger = structlog.get_logger(__name__)
+
 
 # Configuration loading
 def load_config():
@@ -243,7 +244,6 @@ app.include_router(memory_router)
 
 # Include memory lifecycle router (SPEC-011)
 from memory.lifecycle import lifecycle_router
-
 app.include_router(lifecycle_router)
 
 # Include token management router
@@ -267,6 +267,18 @@ app.include_router(preload_router)
 # Include Intelligent Session Management router (SPEC-045)
 from session_api import router as session_router
 app.include_router(session_router)
+
+# Include Feedback Loop System router (SPEC-040)
+from feedback_api import router as feedback_router
+app.include_router(feedback_router)
+
+# Include Intelligent Suggestions router (SPEC-041)
+from suggestions_api import router as suggestions_router
+app.include_router(suggestions_router)
+
+# Include Memory Health & Orphaned Token router (SPEC-042)
+from memory_health_api import router as health_router
+app.include_router(health_router)
 
 # Remove duplicate auth endpoints - handled by signup_router and token_router
 

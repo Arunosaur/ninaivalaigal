@@ -54,6 +54,7 @@ class SecurityAlertManager:
     """Manage security-related alerts and notifications"""
     
     def __init__(self):
+        self.recent_events = []  # Store recent security events
         self.alert_thresholds = {
             'failed_logins_per_minute': 10,
             'permission_denials_per_minute': 50,

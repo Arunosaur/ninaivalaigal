@@ -409,6 +409,113 @@ class RelevanceEngine:
             logger.error("Error getting relevance stats", user_id=user_id, error=str(e))
             return {"error": str(e)}
 
+    async def update_memory_feedback_score(
+        self,
+        user_id: int,
+        memory_id: str,
+        feedback_multiplier: float,
+        feedback_data: dict
+    ):
+        """Update memory relevance score based on feedback (SPEC-040 integration)"""
+        try:
+            # Get current relevance score
+            score_key = f"relevance:{user_id}:{memory_id}"
+            current_score = await self.redis_client.get(score_key)
+            
+            if current_score:
+                current_score = float(current_score)
+            else:
+                # Calculate base relevance score if not cached
+                current_score = await self._calculate_base_relevance_score(
+                    user_id, memory_id
+                )
+            
+            # Apply feedback multiplier
+            adjusted_score = current_score * feedback_multiplier
+            
+            # Store updated score with feedback metadata
+            feedback_key = f"feedback:relevance:{user_id}:{memory_id}"
+            feedback_info = {
+                "base_score": current_score,
+                "feedback_multiplier": feedback_multiplier,
+                "adjusted_score": adjusted_score,
+                "feedback_data": feedback_data,
+                "updated_at": datetime.utcnow().isoformat()
+            }
+            
+            # Update relevance score with feedback adjustment
+            await self.redis_client.setex(
+                score_key,
+                self.score_ttl,
+                str(adjusted_score)
+            )
+            
+            # Store feedback metadata
+            await self.redis_client.setex(
+                feedback_key,
+                self.score_ttl,
+                json.dumps(feedback_info)
+            )
+            
+            # Invalidate top-N cache to force recalculation
+            top_key = f"relevance:top:{user_id}"
+            await self.redis_client.delete(top_key)
+            
+            logger.info(
+                "Memory relevance score updated with feedback",
+                user_id=user_id,
+                memory_id=memory_id,
+                base_score=current_score,
+                feedback_multiplier=feedback_multiplier,
+                adjusted_score=adjusted_score
+            )
+            
+        except Exception as e:
+            logger.error(
+                "Error updating memory feedback score",
+                user_id=user_id,
+                memory_id=memory_id,
+                error=str(e)
+            )
+            raise
+
+    async def _calculate_base_relevance_score(
+        self, 
+        user_id: int, 
+        memory_id: str
+    ) -> float:
+        """Calculate base relevance score for a memory"""
+        try:
+            # This is a simplified version - in practice, this would use
+            # the full relevance calculation logic
+            
+            # Get access frequency
+            access_key = f"access:{user_id}:{memory_id}"
+            access_count = await self.redis_client.zcard(access_key)
+            
+            # Calculate basic score based on access frequency
+            frequency_score = min(access_count * 0.1, 1.0)
+            
+            # Apply time decay (assume recent if no specific timestamp)
+            time_score = 0.8  # Default recent score
+            
+            # Calculate base score
+            base_score = (
+                frequency_score * self.weights["frequency"] +
+                time_score * self.weights["time_decay"]
+            )
+            
+            return base_score
+            
+        except Exception as e:
+            logger.error(
+                "Error calculating base relevance score",
+                user_id=user_id,
+                memory_id=memory_id,
+                error=str(e)
+            )
+            return 0.5  # Default neutral score
+
 
 # Global relevance engine instance
 relevance_engine = None

@@ -56,7 +56,7 @@ else
   # Clean up any stopped Redis container first
   container stop nv-redis >/dev/null 2>&1 || true
   container delete nv-redis >/dev/null 2>&1 || true
-  
+
   container run -d --name nv-redis -p 6379:6379 \
     -e REDIS_PASSWORD=nina_redis_dev_password \
     -v nv_redis_data:/data \

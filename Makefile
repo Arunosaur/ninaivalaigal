@@ -484,12 +484,25 @@ test-memory-access:
 	@echo "================================="
 	@curl -s -X POST "http://localhost:13370/memory/memories/test-memory-123/access?context=testing" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
 
-## Memory Preloading Testing Commands (SPEC-038)
+## test memory preloading system (SPEC-038)
 test-preloading:
-	@echo "🚀 Testing Memory Preloading System"
-	@echo "==================================="
-	@echo "Testing preloading trigger..."
-	@curl -s -X POST "http://localhost:13370/memory/preload/trigger" -H "Authorization: Bearer test-token" -H "Content-Type: application/json" -d '{}' | jq . || echo "❌ API not responding"
+	@echo "🧠 Testing Memory Preloading System (SPEC-038)"
+	@conda run -n nina python scripts/test_preloading_system.py
+
+## test feedback loop system (SPEC-040)
+test-feedback:
+	@echo "🔁 Testing Feedback Loop System (SPEC-040)"
+	@conda run -n nina python scripts/test_feedback_system.py
+
+## test intelligent suggestions system (SPEC-041)
+test-suggestions:
+	@echo "🧠 Testing Intelligent Suggestions System (SPEC-041)"
+	@conda run -n nina python scripts/test_suggestions_system.py
+
+## test memory health & orphaned token system (SPEC-042)
+test-health:
+	@echo "🏥 Testing Memory Health & Orphaned Token System (SPEC-042)"
+	@conda run -n nina python scripts/test_memory_health_system.py
 
 test-preload-status:
 	@echo "🚀 Testing Preloading Status"
