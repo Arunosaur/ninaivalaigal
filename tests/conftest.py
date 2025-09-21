@@ -1,44 +1,83 @@
+"""Test configuration and fixtures."""
 import pytest
+import asyncio
+from typing import AsyncGenerator, Generator
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
-# We monkeypatch starlette.formparsers.MultiPartParser used by the adapter
-# to avoid depending on Starlette internals and to feed our fake parts.
-
-
-class FakeMultiPartParser:
-    def __init__(self, headers=None, stream=None):
-        # headers/stream are ignored for tests
-        self._stream = stream
-
-    async def parse(self):
-        # The adapter passes request.stream(); get request from stream
-        if hasattr(self._stream, "__request__"):
-            req = self._stream.__request__
-        else:
-            # Try to get request from stream coroutine
-            req = getattr(self._stream, "__request__", None)
-
-        if req is None:
-            return
-
-        parts = getattr(req, "_parts", [])
-        for p in parts:
-            yield p
+# Test database setup
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture(autouse=True)
-def patch_multipart_parser(monkeypatch):
-    # Patch where the adapter imports it
-    monkeypatch.setenv("STARLETTE_FAKE", "1")
-    try:
-        import sys
-        import os
-        # Add project root to Python path
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if project_root not in sys.path:
-            sys.path.insert(0, project_root)
-        import server.security.multipart.starlette_adapter as adapter
-        monkeypatch.setattr(adapter, "MultiPartParser", FakeMultiPartParser, raising=True)
-    except ImportError:
-        # Skip if server module not available
-        pass
-    yield
+@pytest.fixture(scope="session")
+def event_loop() -> Generator:
+    """Create an instance of the default event loop for the test session."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture
+def db_session():
+    """Create a test database session."""
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+
+    yield session
+
+    session.close()
+    transaction.rollback()
+    connection.close()
+
+
+@pytest.fixture
+def client(db_session):
+    """Create a test client."""
+    from server.main import app
+    from server.database import get_db
+
+    def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    with TestClient(app) as test_client:
+        yield test_client
+
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def auth_headers():
+    """Create authentication headers for testing."""
+    return {"Authorization": "Bearer test_token"}  # pragma: allowlist secret
+
+
+@pytest.fixture
+def test_user_data():
+    """Test user data."""
+    return {
+        "email": "test@example.com",
+        "password": "TestPassword123!",  # pragma: allowlist secret
+        "account_type": "individual",
+    }
+
+
+@pytest.fixture
+def test_memory_data():
+    """Test memory data."""
+    return {
+        "content": "Test memory content",
+        "context": "test_context",
+        "tags": ["test", "memory"],
+        "metadata": {"source": "test"},
+    }
