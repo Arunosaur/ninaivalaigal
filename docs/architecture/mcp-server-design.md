@@ -16,19 +16,19 @@ Convert mem0 from a FastAPI server to a Model Context Protocol (MCP) server for 
 @mcp.tool()
 async def remember(text: str, context: str = None) -> str:
     """Store a memory in the specified context"""
-    
-@mcp.tool() 
+
+@mcp.tool()
 async def recall(context: str = None, query: str = None) -> list[dict]:
     """Retrieve memories from context, optionally filtered by query"""
-    
+
 @mcp.tool()
 async def context_start(context_name: str) -> str:
     """Start recording to a specific context"""
-    
+
 @mcp.tool()
 async def context_stop() -> str:
     """Stop active recording"""
-    
+
 @mcp.tool()
 async def list_contexts() -> list[str]:
     """List all available contexts"""
@@ -39,11 +39,11 @@ async def list_contexts() -> list[str]:
 @mcp.resource("mem0://contexts")
 async def list_all_contexts():
     """Provide list of all contexts as a resource"""
-    
+
 @mcp.resource("mem0://context/{context_name}")
 async def get_context_memories(context_name: str):
     """Provide all memories for a specific context"""
-    
+
 @mcp.resource("mem0://recent")
 async def get_recent_memories():
     """Provide recently added memories across all contexts"""
@@ -54,7 +54,7 @@ async def get_recent_memories():
 @mcp.prompt()
 async def analyze_context(context_name: str):
     """Generate a prompt to analyze memories in a context"""
-    
+
 @mcp.prompt()
 async def summarize_session():
     """Generate a prompt to summarize current session memories"""
@@ -130,7 +130,7 @@ db = MemoryDatabase()
 
 ## Estimated Effort
 - **Core MCP Server**: 2-3 days
-- **Shell Integration Update**: 1 day  
+- **Shell Integration Update**: 1 day
 - **VS Code Extension Update**: 1-2 days
 - **Testing & Documentation**: 1 day
 

@@ -91,7 +91,7 @@ services:
   # PgBouncer for connection pooling
   pgbouncer:
     image: bitnami/pgbouncer:latest
-    depends_on: 
+    depends_on:
       postgres: { condition: service_healthy }
     environment:
       POSTGRESQL_HOST: postgres
@@ -233,26 +233,26 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      matrix: 
+      matrix:
         python-version: ['3.10','3.11','3.12']
-    
+
     env:
       DATABASE_URL: postgresql://medhasys:${{ secrets.POSTGRES_PASSWORD }}@localhost:5433/medhasys_test
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
-          
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
-          
+
       - name: Start test database
         run: |
           docker run -d --name postgres-test \
@@ -261,20 +261,20 @@ jobs:
             -e POSTGRES_DB=medhasys_test \
             -p 5433:5432 \
             pgvector/pgvector:pg16
-          
+
       - name: Wait for database
         run: |
           timeout 30 bash -c 'until pg_isready -h localhost -p 5433 -U medhasys; do sleep 1; done'
-          
+
       - name: Run migrations
         run: alembic upgrade head
-        
+
       - name: Run tests
         run: |
           pytest tests/test_factory_switch_smoke.py -v
           pytest tests/test_security_basic.py -v
           pytest tests/test_auto_recording.py -v
-          
+
       - name: Cleanup
         if: always()
         run: docker rm -f postgres-test || true

@@ -83,7 +83,7 @@ In VS Code chat, try these commands:
 Test that all 15+ MCP tools are available:
 ```
 @e^m remember
-@e^m recall  
+@e^m recall
 @e^m context_start
 @e^m context_stop
 @e^m list_contexts
@@ -145,7 +145,7 @@ psql -U ninaivalaigal_user -d ninaivalaigal_db -c "\dt"
 
 ## Performance Benchmarks
 - **Memory retrieval**: < 100ms
-- **Context switching**: < 50ms  
+- **Context switching**: < 50ms
 - **Team merger initiation**: < 200ms
 - **Cross-team sharing**: < 150ms
 

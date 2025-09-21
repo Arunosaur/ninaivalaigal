@@ -47,7 +47,7 @@ Based on comprehensive testing and the memory context provided, here's the defin
 
 ### **SPEC 012-015: Advanced Memory Features** - **PLANNED**
 - **SPEC 012**: Team Rollup Layer - Not yet implemented
-- **SPEC 013**: Org Memory Graph - Not yet implemented  
+- **SPEC 013**: Org Memory Graph - Not yet implemented
 - **SPEC 014**: Memory Sharing/Transfer - Not yet implemented
 - **SPEC 015**: AI Alignment Hooks - Not yet implemented
 - **Memory Context**: "PROPOSED ROADMAP (Specs 011-015)" - These are the next phase

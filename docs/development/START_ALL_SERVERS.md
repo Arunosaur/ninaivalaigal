@@ -230,7 +230,7 @@ cd /Users/asrajag/Workspace/mem0
 ```bash
 # Required for production
 export NINAIVALAIGAL_JWT_SECRET="secure-random-secret-key"
-export NINAIVALAIGAL_DATABASE_URL="postgresql://user:pass@host:port/db"
+export NINAIVALAIGAL_DATABASE_URL="postgresql://user:pass@  # pragma: allowlist secrethost:port/db"
 export NINAIVALAIGAL_JWT_EXPIRATION_HOURS="24"
 ```
 

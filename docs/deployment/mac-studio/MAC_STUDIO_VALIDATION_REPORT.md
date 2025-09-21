@@ -1,14 +1,14 @@
 # Mac Studio Apple Container CLI Validation Report
 
-**Date**: September 17, 2025  
-**System**: Mac Studio M1 Ultra, 128GB RAM, macOS 26.0  
-**Container Runtime**: Apple Container CLI v0.4.1  
+**Date**: September 17, 2025
+**System**: Mac Studio M1 Ultra, 128GB RAM, macOS 26.0
+**Container Runtime**: Apple Container CLI v0.4.1
 
 ## ✅ **VALIDATION SUCCESS**
 
 ### **System Specifications**
 - **Hardware**: Mac Studio M1 Ultra with 128GB RAM
-- **OS**: macOS 26.0 (Build 25A353) 
+- **OS**: macOS 26.0 (Build 25A353)
 - **Container CLI**: Apple Container CLI v0.4.1 (build: release, commit: 4ac18b5)
 - **Container System**: Running and operational
 
@@ -45,7 +45,7 @@ SELECT id, embedding <-> '[1,2,3]' AS distance FROM test_vectors ORDER BY distan
 
 #### **Key Command Differences from Docker**
 - `container list` (not `container ps`)
-- `container delete` (not `container rm`) 
+- `container delete` (not `container rm`)
 - `container images list` (not `container images ls`)
 - `container images pull` (works as expected)
 - `container run` (works as expected)

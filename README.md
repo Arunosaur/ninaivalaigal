@@ -45,7 +45,7 @@ make dev-down
 ```bash
 # Virtual Machine Deployment (Full Stack)
 KEY_NAME=my-key make deploy-aws-vm
-PROJECT_ID=my-project make deploy-gcp-vm  
+PROJECT_ID=my-project make deploy-gcp-vm
 RESOURCE_GROUP=my-rg make deploy-azure-vm
 
 # Cloud-Native Container Services (GHCR Images)
@@ -565,3 +565,19 @@ The system is designed with three key principles:
 ## License
 
 [Add your license information here]
+
+## 📚 Documentation
+
+Complete documentation is available in the [`docs/`](docs/) directory:
+
+- **[Getting Started](docs/development/setup.md)** - 5-minute developer setup
+- **[API Documentation](docs/api/README.md)** - Complete API reference
+- **[Architecture](docs/architecture/README.md)** - System design overview
+- **[Security](docs/security/README.md)** - Security implementation guide
+- **[Deployment](docs/deployment/)** - Production deployment guides
+- **[Testing](docs/testing/README.md)** - Testing strategy and tools
+
+### 🎯 Quick Links
+- [SPEC Status](SPEC_AUDIT_2024.md) - Complete feature roadmap (61 SPECs)
+- [Contributing](CONTRIBUTING.md) - How to contribute
+- [Security Policy](SECURITY.md) - Security guidelines

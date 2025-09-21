@@ -14,7 +14,7 @@ This guide documents the incremental deployment strategy for ninaivalaigal on Ma
 - Improved database performance under load
 - Connection pooling and query routing
 
-### **Phase 3: API Server** 🚧 **READY TO DEPLOY**  
+### **Phase 3: API Server** 🚧 **READY TO DEPLOY**
 - FastAPI application server
 - Complete ninaivalaigal functionality
 - RESTful API with documentation
@@ -104,7 +104,7 @@ cp .env.example .env
 
 ### **Port Allocation**
 - **5433**: PostgreSQL (direct access)
-- **6432**: PgBouncer (pooled access)  
+- **6432**: PgBouncer (pooled access)
 - **13370**: FastAPI API server
 
 ### **Connection Strings**
@@ -130,7 +130,7 @@ API_BASE=http://localhost:13370
 # Test direct connection
 psql "postgresql://nina:password@localhost:5433/nina" -c "SELECT 'direct';"
 
-# Test pooled connection  
+# Test pooled connection
 psql "postgresql://nina:password@localhost:6432/nina" -c "SELECT 'pooled';"
 
 # Check PgBouncer stats
@@ -162,7 +162,7 @@ pytest tests/
 
 # Individual service logs
 container logs nv-db
-container logs nv-pgbouncer  
+container logs nv-pgbouncer
 container logs nv-api
 ```
 

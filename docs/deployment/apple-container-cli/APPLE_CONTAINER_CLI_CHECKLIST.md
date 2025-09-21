@@ -14,7 +14,7 @@
   - Health checks and readiness detection
 - **Evidence**: Status report shows "✔ DB: nv-db running"
 
-### ✅ **PgBouncer (nv-pgbouncer)**  
+### ✅ **PgBouncer (nv-pgbouncer)**
 **Status**: ✅ **WORKING** (Confirmed in status report)
 - **What Worked**:
   - Custom ARM64 image (nina-pgbouncer:arm64)
@@ -65,7 +65,7 @@
 **❌ All Previous Attempts Failed**:
 1. **❌ host.docker.internal**: DNS lookup failed
    - Evidence: Logs show "DNS lookup failed: host.docker.internal"
-2. **❌ host.lima.internal**: DNS lookup failed  
+2. **❌ host.lima.internal**: DNS lookup failed
    - Evidence: Logs show "DNS lookup failed: host.lima.internal"
 3. **❌ 127.0.0.1**: Connection failed
    - Evidence: Logs show "connect failed" to 127.0.0.1:5433
@@ -94,7 +94,7 @@
    - **✅ Fixed**: Added NINAIVALAIGAL_JWT_SECRET="test-jwt-secret-for-ci"
    - Evidence: Commit 8732bc4
 2. **❌ Wrong DATABASE_URL variable**: API expects NINAIVALAIGAL_DATABASE_URL
-   - **✅ Fixed**: Changed DATABASE_URL → NINAIVALAIGAL_DATABASE_URL  
+   - **✅ Fixed**: Changed DATABASE_URL → NINAIVALAIGAL_DATABASE_URL
    - Evidence: Commit 28aecec
 
 #### **Networking Issues - IN PROGRESS**:
@@ -167,7 +167,7 @@ container exec nv-api sh -c "nc -zv ${PGB_IP} 6432"
 
 # Always dump logs on failure
 container logs nv-pgbouncer
-container logs nv-db  
+container logs nv-db
 container logs nv-api
 ```
 
@@ -177,7 +177,7 @@ container logs nv-api
 
 ### **Successful Commits**:
 - `20f47e1`: Self-contained PgBouncer (eliminated build issues)
-- `8732bc4`: Added JWT_SECRET (eliminated API startup issue)  
+- `8732bc4`: Added JWT_SECRET (eliminated API startup issue)
 - `28aecec`: Fixed DATABASE_URL variable name (eliminated API config issue)
 - `96c3db5`: Dynamic container IP networking (PgBouncer working)
 - `32ef2f9`: Template substitution with envsubst (PgBouncer connects to DB)
@@ -197,7 +197,7 @@ container logs nv-api
 **Real Issue**: Container IP detection not working in Apple Container CLI
 
 ### **CONTAINER INSPECT FAILING**:
-1. ❌ **PgBouncer container inspect returns nothing** 
+1. ❌ **PgBouncer container inspect returns nothing**
 2. ❌ **Falls back to 127.0.0.1** (our fallback value)
 3. ❌ **API tries to connect to 127.0.0.1:6432** (container itself, not PgBouncer)
 4. ❌ **Connection refused** (no service on API container port 6432)
