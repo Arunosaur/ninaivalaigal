@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.19.0 (2025-09-21)
+
+* fix: Apply code formatting fixes from SPEC-051 lint-fix implementation ([cfdadebe06b1a6205c7ef4498404418086c05969](https://github.com/Arunosaur/ninaivalaigal/commit/cfdadebe06b1a6205c7ef4498404418086c05969))
+* feat: Add SPEC-044 Memory Drift Detection + Merged SPEC-051 Platform Stability ([b11512acf208e3521e5f47147afd87e88ef91045](https://github.com/Arunosaur/ninaivalaigal/commit/b11512acf208e3521e5f47147afd87e88ef91045))
+
 ## 1.18.0 (2025-09-21)
 
 * feat: Complete SPEC-040, SPEC-041, SPEC-042 + Add SPEC-046, SPEC-047, SPEC-048 ([e3f996e39159479c41d333fbb12d19b8ce14106b](https://github.com/Arunosaur/ninaivalaigal/commit/e3f996e39159479c41d333fbb12d19b8ce14106b))
