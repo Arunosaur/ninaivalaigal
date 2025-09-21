@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.18.0 (2025-09-21)
+
+* feat: Complete SPEC-040, SPEC-041, SPEC-042 + Add SPEC-046, SPEC-047, SPEC-048 ([e3f996e39159479c41d333fbb12d19b8ce14106b](https://github.com/Arunosaur/ninaivalaigal/commit/e3f996e39159479c41d333fbb12d19b8ce14106b))
+* 🚀 COMPLETE: API Startup Issues Resolved + Redis Stack Integration ([2f1e1afbe98ea5386ac75c8175f0d1c109d958c6](https://github.com/Arunosaur/ninaivalaigal/commit/2f1e1afbe98ea5386ac75c8175f0d1c109d958c6))
+* Complete SPEC-021 ArgoCD implementation with comprehensive testing and analysis ([dbedeb695fe6a546a6b1c7cc642dbd762c7aac5f](https://github.com/Arunosaur/ninaivalaigal/commit/dbedeb695fe6a546a6b1c7cc642dbd762c7aac5f))
+* Fix API Dependencies and Import Issues ([fb301617f6d847afcdec5f831f1f2cb190d1a84c](https://github.com/Arunosaur/ninaivalaigal/commit/fb301617f6d847afcdec5f831f1f2cb190d1a84c))
+* Fix PgBouncer Image Consistency & Complete Stack Testing ([b0a8a02b947206585328078f9d5b616f174bd78c](https://github.com/Arunosaur/ninaivalaigal/commit/b0a8a02b947206585328078f9d5b616f174bd78c))
+* PHASE 1 COMPLETE: Production-ready UI and API implementation ([7825b129949d26fa699a638b02669ff4c2e6d5de](https://github.com/Arunosaur/ninaivalaigal/commit/7825b129949d26fa699a638b02669ff4c2e6d5de))
+* SPEC-033 & SPEC-031 Complete: Redis Integration + Memory Relevance Ranking ([9b68f81397d2a4370100ed91d0e09f6d832aa4f1](https://github.com/Arunosaur/ninaivalaigal/commit/9b68f81397d2a4370100ed91d0e09f6d832aa4f1))
+* SPEC-038 Memory Preloading Complete: Intelligent Cache Warming ([844b3ed337e045b69d69b48845f764a024bb93b4](https://github.com/Arunosaur/ninaivalaigal/commit/844b3ed337e045b69d69b48845f764a024bb93b4))
+* SPEC-045 Intelligent Session Management Complete: AI-Powered Intelligence Trilogy ([0744f0ff23a0ddc599c8ced2b56f2b1d34640d5b](https://github.com/Arunosaur/ninaivalaigal/commit/0744f0ff23a0ddc599c8ced2b56f2b1d34640d5b))
+
 ## 1.17.0 (2025-09-21)
 
 * Add test nginx app for ArgoCD GitOps testing ([8c4f90dab3d8d1548026c4a01b63806fbc044e4e](https://github.com/Arunosaur/ninaivalaigal/commit/8c4f90dab3d8d1548026c4a01b63806fbc044e4e))
