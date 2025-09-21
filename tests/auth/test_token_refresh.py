@@ -225,7 +225,7 @@ class TestTokenLifecycle:
 
     def test_access_token_expiry_detection(self):
         """Test detection of expired access tokens"""
-        expired_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.expired_signature"
+        expired_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiZXhwIjoxNTE2MjM5MDIyfQ.expired_signature"  # pragma: allowlist secret
         headers = {"Authorization": f"Bearer {expired_token}"}
 
         try:

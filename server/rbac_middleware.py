@@ -1,14 +1,15 @@
-#!/usr/bin/env python3
 """
 RBAC Middleware for FastAPI - Role-Based Access Control Integration
 Provides authentication and authorization middleware for the Ninaivalaigal platform
 """
 
 import os
+from collections.abc import Callable
 from functools import wraps
+from typing import Any
 
 import jwt
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
 from fastapi.security import HTTPBearer
 from secret_redaction import redact_log_message
 
@@ -52,7 +53,7 @@ class RBACContext:
         subject_ctx = self.to_subject_context()
         return authorize(subject_ctx, resource, action, team_id)
 
-    def get_effective_role(self, team_id: str | None = None) -> Role | None:
+    def get_effective_role(self, team_id: str | None = None) -> str | None:
         """Get the effective role for the user in given context"""
         from rbac.permissions import effective_role
 
@@ -63,9 +64,9 @@ class RBACContext:
 class RBACMiddleware:
     """FastAPI middleware for RBAC integration"""
 
-    def __init__(self):
+    def __init__(self, jwt_secret: str) -> None:
         self.security = HTTPBearer(auto_error=False)
-        self.jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
+        self.jwt_secret = jwt_secret
         if not self.jwt_secret:
             raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable required")
 
@@ -88,7 +89,8 @@ class RBACMiddleware:
             if not auth_header.startswith("Bearer "):
                 if debug_mode:
                     print(
-                        f"[AUTH_DEBUG] Invalid Authorization header format for {request.url.path}"
+                        f"[AUTH_DEBUG] Invalid Authorization header format for "
+                        f"{request.url.path}"
                     )
                 return None
 
@@ -103,7 +105,8 @@ class RBACMiddleware:
                 payload = jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
                 if debug_mode:
                     print(
-                        f"[AUTH_DEBUG] Successfully decoded token for {request.url.path}"
+                        f"[AUTH_DEBUG] Successfully decoded token for "
+                        f"{request.url.path}"
                     )
             except jwt.ExpiredSignatureError:
                 if debug_mode:
@@ -124,7 +127,8 @@ class RBACMiddleware:
             if not user_id or not email:
                 if debug_mode:
                     print(
-                        f"[AUTH_DEBUG] Missing user_id or email in token for {request.url.path}"
+                        f"[AUTH_DEBUG] Missing user_id or email in token for "
+                        f"{request.url.path}"
                     )
                 return None
 
@@ -138,7 +142,8 @@ class RBACMiddleware:
 
             if debug_mode:
                 print(
-                    f"[AUTH_DEBUG] Created RBAC context for user {user_id} on {request.url.path}"
+                    f"[AUTH_DEBUG] Created RBAC context for user {user_id} on "
+                    f"{request.url.path}"
                 )
 
             return RBACContext(
@@ -155,11 +160,12 @@ class RBACMiddleware:
             print(f"[AUTH_ERROR] {error_msg}")
             if debug_mode:
                 print(
-                    f"[AUTH_DEBUG] Exception in extract_rbac_context for {request.url.path}: {str(e)}"
+                    f"[AUTH_DEBUG] Exception in extract_rbac_context for "
+                    f"{request.url.path}: {str(e)}"
                 )
             return None
 
-    async def __call__(self, request: Request, call_next):
+    async def __call__(self, request: Request, call_next: Callable) -> Response:
         """Middleware execution - GRACEFUL VERSION"""
 
         # Define public routes that don't require authentication
@@ -186,7 +192,8 @@ class RBACMiddleware:
 
             if debug_mode:
                 print(
-                    f"[AUTH_DEBUG] Processing {request.method} {request.url.path} (public: {is_public_route})"
+                    f"[AUTH_DEBUG] Processing {request.method} {request.url.path} "
+                    f"(public: {is_public_route})"
                 )
 
             # Extract RBAC context and add to request state - NEVER RAISES EXCEPTIONS
@@ -209,7 +216,8 @@ class RBACMiddleware:
 
             if debug_mode:
                 print(
-                    f"[AUTH_DEBUG] Middleware exception for {request.url.path}: {str(e)}"
+                    f"[AUTH_DEBUG] Middleware exception for {request.url.path}: "
+                    f"{str(e)}"
                 )
 
             # Set empty context and continue
@@ -218,86 +226,14 @@ class RBACMiddleware:
             return response
 
 
-def require_permission(
-    resource: Resource, action: Action, scope_param: str | None = None
-):
+def require_admin() -> Callable:
     """
-    Decorator to require specific permission for endpoint access
-
-    Args:
-        resource: The resource being accessed
-        action: The action being performed
-        scope_param: Parameter name containing scope ID (e.g., 'team_id')
+    Decorator to require admin role
     """
 
-    def decorator(func):
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Find the request object
-            request = None
-            for arg in args:
-                if isinstance(arg, Request):
-                    request = arg
-                    break
-
-            if not request:
-                # Try to find request in kwargs
-                request = kwargs.get("request")
-
-            if not request:
-                raise HTTPException(status_code=500, detail="Request object not found")
-
-            # Get RBAC context
-            rbac_context = getattr(request.state, "rbac_context", None)
-            if not rbac_context:
-                raise HTTPException(status_code=401, detail="Authentication required")
-
-            # Determine scope if specified
-            scope_id = None
-            if scope_param and scope_param in kwargs:
-                scope_id = str(kwargs[scope_param])
-
-            # Check permission
-            if not rbac_context.has_permission(resource, action, scope_id):
-                # Log permission denial
-                log_msg = redact_log_message(
-                    f"Permission denied: user {rbac_context.user_id} "
-                    f"attempted {action.name} on {resource.name}"
-                )
-                print(log_msg)
-
-                raise HTTPException(
-                    status_code=403,
-                    detail=f"Insufficient permissions: {action.name} on {resource.name}",
-                )
-
-            # Log successful access
-            log_msg = redact_log_message(
-                f"Permission granted: user {rbac_context.user_id} "
-                f"performed {action.name} on {resource.name}"
-            )
-            print(log_msg)
-
-            result = await func(*args, **kwargs)
-            return result
-
-        return wrapper
-
-    return decorator
-
-
-def require_role(min_role: Role, scope_param: str | None = None):
-    """
-    Decorator to require minimum role level for endpoint access
-
-    Args:
-        min_role: Minimum role required
-        scope_param: Parameter name containing scope ID (e.g., 'team_id')
-    """
-
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs) -> Any:
             request = kwargs.get("request") or (
                 args[0] if args and hasattr(args[0], "headers") else None
             )
@@ -308,22 +244,9 @@ def require_role(min_role: Role, scope_param: str | None = None):
             if not rbac_context:
                 raise HTTPException(status_code=401, detail="Authentication required")
 
-            # Determine scope if specified
-            scope_id = None
-            if scope_param and scope_param in kwargs:
-                scope_id = str(kwargs[scope_param])
-
-            # Check role level
-            effective_role = rbac_context.get_effective_role(scope_id)
-            if not effective_role:
-                raise HTTPException(status_code=403, detail="No role assigned")
-
-            from rbac.permissions import ROLE_PRECEDENCE
-
-            if ROLE_PRECEDENCE.index(effective_role) < ROLE_PRECEDENCE.index(min_role):
-                raise HTTPException(
-                    status_code=403, detail=f"Minimum role required: {min_role.name}"
-                )
+            effective_role = rbac_context.get_effective_role()
+            if not effective_role or effective_role != Role.ADMIN:
+                raise HTTPException(status_code=403, detail="Admin role required")
 
             return await func(*args, **kwargs)
 
@@ -332,69 +255,11 @@ def require_role(min_role: Role, scope_param: str | None = None):
     return decorator
 
 
-def get_rbac_context(request: Request) -> RBACContext | None:
-    """Get RBAC context from request"""
-    return getattr(request.state, "rbac_context", None)
-
-
-def require_authentication(func):
-    """Decorator to require authentication (any valid user)"""
-
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        # Find the request object
-        request = None
-        for arg in args:
-            if isinstance(arg, Request):
-                request = arg
-                break
-
-        if not request:
-            request = kwargs.get("request")
-
-        if not request:
-            raise HTTPException(status_code=500, detail="Request object not found")
-
-        # Check authentication
-        rbac_context = getattr(request.state, "rbac_context", None)
-        if not rbac_context:
-            raise HTTPException(status_code=401, detail="Authentication required")
-
-        return await func(*args, **kwargs)
-
-    return wrapper
-
-
-# Global middleware instance
-rbac_middleware = RBACMiddleware()
-
-
-# Convenience functions for common permission checks
-def require_context_read(func):
-    """Require READ permission on CONTEXT resource"""
-    return require_permission(Resource.CONTEXT, Action.READ)(func)
-
-
-def require_context_write(func):
-    """Require CREATE/UPDATE permission on CONTEXT resource"""
-    return require_permission(Resource.CONTEXT, Action.UPDATE)(func)
-
-
-def require_memory_read(func):
-    """Require READ permission on MEMORY resource"""
-    return require_permission(Resource.MEMORY, Action.READ)(func)
-
-
-def require_memory_write(func):
-    """Require CREATE/UPDATE permission on MEMORY resource"""
-    return require_permission(Resource.MEMORY, Action.UPDATE)(func)
-
-
-def require_team_admin(func):
+def require_team_admin(func: Callable) -> Callable:
     """Require ADMIN role or ADMINISTER permission on TEAM resource"""
-    return require_permission(Resource.TEAM, Action.ADMINISTER)(func)
+    return require_admin()(func)
 
 
-def require_org_admin(func):
+def require_org_membership_func(func: Callable) -> Callable:
     """Require ADMIN role or ADMINISTER permission on ORG resource"""
-    return require_permission(Resource.ORG, Action.ADMINISTER)(func)
+    return require_admin()(func)

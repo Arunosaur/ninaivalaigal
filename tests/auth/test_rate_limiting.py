@@ -20,7 +20,7 @@ class TestRateLimiting:
         """Test rate limiting on login attempts"""
         login_data = {
             "username": "ratelimit@example.com",
-            "password": "WrongPassword123!",
+            "password": "WrongPassword123!",  # pragma: allowlist secret
         }
 
         try:
@@ -64,7 +64,7 @@ class TestRateLimiting:
             for i in range(5):
                 signup_data = {
                     "email": f"ratelimit{i}@example.com",
-                    "password": "StrongPass123!",
+                    "password": "StrongPass123!",  # pragma: allowlist secret
                     "full_name": f"Rate Limit User {i}",
                 }
 
@@ -115,7 +115,10 @@ class TestRateLimiting:
             ]
 
             for password in passwords:
-                login_data = {"username": target_email, "password": password}
+                login_data = {
+                    "username": target_email,
+                    "password": password,
+                }  # pragma: allowlist secret
 
                 response = requests.post(
                     f"{BASE_URL}/auth/login", json=login_data, timeout=5
@@ -156,7 +159,7 @@ class TestRateLimiting:
             for i in range(15):
                 login_data = {
                     "username": f"user{i}@example.com",
-                    "password": "WrongPassword123!",
+                    "password": "WrongPassword123!",  # pragma: allowlist secret
                 }
 
                 response = requests.post(
@@ -195,7 +198,7 @@ class TestRateLimitRecovery:
         """Test that rate limits reset after time period"""
         login_data = {
             "username": "recovery@example.com",
-            "password": "WrongPassword123!",
+            "password": "WrongPassword123!",  # pragma: allowlist secret
         }
 
         try:
@@ -240,7 +243,7 @@ class TestRateLimitRecovery:
 
         valid_login_data = {
             "username": "valid@example.com",
-            "password": "CorrectPassword123!",
+            "password": "CorrectPassword123!",  # pragma: allowlist secret
         }
 
         try:
@@ -271,7 +274,10 @@ class TestRateLimitHeaders:
 
     def test_rate_limit_headers_present(self):
         """Test that rate limit headers are included in responses"""
-        login_data = {"username": "headers@example.com", "password": "TestPassword123!"}
+        login_data = {
+            "username": "headers@example.com",
+            "password": "TestPassword123!",  # pragma: allowlist secret
+        }
 
         try:
             response = requests.post(
@@ -324,7 +330,10 @@ class TestDistributedRateLimiting:
 
             # Make multiple requests for same user
             for i in range(8):
-                login_data = {"username": user_email, "password": f"attempt{i}"}
+                login_data = {
+                    "username": user_email,
+                    "password": f"attempt{i}",
+                }  # pragma: allowlist secret
 
                 response = requests.post(
                     f"{BASE_URL}/auth/login", json=login_data, timeout=5

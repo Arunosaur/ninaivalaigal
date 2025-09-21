@@ -38,7 +38,7 @@ def test_headers():
 def auth_headers():
     """Provide headers with test authorization token"""
     return {
-        "Authorization": "Bearer test_token_placeholder",
+        "Authorization": "Bearer test_token_placeholder",  # pragma: allowlist secret
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
@@ -48,7 +48,7 @@ def auth_headers():
 def admin_headers():
     """Provide headers with admin authorization token"""
     return {
-        "Authorization": "Bearer admin_token_placeholder",
+        "Authorization": "Bearer admin_token_placeholder",  # pragma: allowlist secret
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
@@ -58,7 +58,7 @@ def admin_headers():
 def readonly_headers():
     """Provide headers with read-only authorization token"""
     return {
-        "Authorization": "Bearer readonly_token_placeholder",
+        "Authorization": "Bearer readonly_token_placeholder",  # pragma: allowlist secret
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
@@ -69,7 +69,7 @@ def test_user_data():
     """Provide test user data for signup/login tests"""
     return {
         "email": "testuser@spec052.com",
-        "password": "StrongTestPass123!",
+        "password": "StrongTestPass123!",  # pragma: allowlist secret
         "full_name": "SPEC-052 Test User",
     }
 
@@ -79,7 +79,7 @@ def test_org_data():
     """Provide test organization data for organization signup tests"""
     return {
         "email": "orgadmin@spec052.com",
-        "password": "StrongOrgPass123!",
+        "password": "StrongOrgPass123!",  # pragma: allowlist secret
         "full_name": "SPEC-052 Org Admin",
         "organization_name": "SPEC-052 Test Organization",
     }
@@ -88,7 +88,10 @@ def test_org_data():
 @pytest.fixture
 def invalid_credentials():
     """Provide invalid credentials for negative testing"""
-    return {"email": "invalid@example.com", "password": "WrongPassword123!"}
+    return {
+        "email": "invalid@example.com",
+        "password": "WrongPassword123!",  # pragma: allowlist secret
+    }
 
 
 @pytest.fixture
@@ -97,17 +100,17 @@ def malicious_payloads():
     return {
         "sql_injection": {
             "email": "admin'; DROP TABLE users; --",
-            "password": "password",
+            "password": "password",  # pragma: allowlist secret
         },
         "xss_payload": {
             "email": "test@example.com",
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
             "full_name": "<script>alert('xss')</script>",
             "organization_name": "<img src=x onerror=alert('xss')>",
         },
         "oversized_data": {
             "email": "test@example.com",
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
             "full_name": "A" * 10000,  # 10KB name
             "bio": "B" * 100000,  # 100KB bio
         },

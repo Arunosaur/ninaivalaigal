@@ -19,7 +19,7 @@ class TestUserSignup:
         """Test successful individual user signup"""
         signup_data = {
             "email": "test_individual@spec052.com",
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
             "full_name": "SPEC-052 Individual User",
         }
 
@@ -49,7 +49,7 @@ class TestUserSignup:
         """Test successful organization signup"""
         signup_data = {
             "email": "test_org@spec052.com",
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
             "organization_name": "SPEC-052 Test Org",
             "full_name": "SPEC-052 Org Admin",
         }
@@ -80,7 +80,7 @@ class TestUserSignup:
         """Test signup with duplicate email address"""
         signup_data = {
             "email": "duplicate@spec052.com",
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
             "full_name": "Duplicate User Test",
         }
 
@@ -135,7 +135,7 @@ class TestUserSignup:
         """Test signup with invalid email format"""
         signup_data = {
             "email": "invalid-email-format",  # Invalid email
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
             "full_name": "Invalid Email User",
         }
 

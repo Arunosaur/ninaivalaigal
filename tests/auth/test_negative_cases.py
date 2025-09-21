@@ -19,7 +19,7 @@ class TestAuthenticationNegativeCases:
         """Test SQL injection attempts in login credentials"""
         malicious_data = {
             "username": "admin'; DROP TABLE users; --",
-            "password": "password",
+            "password": "password",  # pragma: allowlist secret
         }
 
         try:
@@ -47,7 +47,7 @@ class TestAuthenticationNegativeCases:
         """Test XSS attempts in signup form fields"""
         xss_data = {
             "email": "test@example.com",
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
             "full_name": "<script>alert('xss')</script>",
             "organization_name": "<img src=x onerror=alert('xss')>",
         }
@@ -83,7 +83,7 @@ class TestAuthenticationNegativeCases:
         """Test handling of oversized request payloads"""
         oversized_data = {
             "email": "test@example.com",
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
             "full_name": "A" * 10000,  # 10KB name
             "bio": "B" * 100000,  # 100KB bio
         }
@@ -109,7 +109,7 @@ class TestAuthenticationNegativeCases:
         """Test null byte injection attempts"""
         null_byte_data = {
             "username": "admin\x00@example.com",
-            "password": "password\x00",
+            "password": "password\x00",  # pragma: allowlist secret
         }
 
         try:
@@ -137,7 +137,7 @@ class TestAuthenticationNegativeCases:
         """Test Unicode normalization attacks"""
         unicode_data = {
             "email": "test@exаmple.com",  # Contains Cyrillic 'а' instead of Latin 'a'
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
         }
 
         try:
@@ -165,7 +165,7 @@ class TestAuthenticationNegativeCases:
         """Test concurrent signup attempts with same email"""
         signup_data = {
             "email": "concurrent@example.com",
-            "password": "StrongPass123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
             "full_name": "Concurrent User",
         }
 
@@ -223,7 +223,7 @@ class TestTokenSecurityVulnerabilities:
         """Test JWT algorithm confusion attacks"""
         # Test with 'none' algorithm
         headers = {
-            "Authorization": "Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."
+            "Authorization": "Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."  # pragma: allowlist secret
         }
 
         try:
@@ -241,7 +241,7 @@ class TestTokenSecurityVulnerabilities:
     def test_jwt_key_confusion(self):
         """Test JWT key confusion attacks"""
         # Test with public key as HMAC secret
-        malicious_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTUxNjIzOTAyMn0.invalid_signature"
+        malicious_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTUxNjIzOTAyMn0.invalid_signature"  # pragma: allowlist secret
         headers = {"Authorization": f"Bearer {malicious_token}"}
 
         try:

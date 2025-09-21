@@ -17,7 +17,10 @@ class TestUserLogin:
 
     def test_login_success(self):
         """Test successful user login"""
-        login_data = {"username": "testuser@spec052.com", "password": "StrongPass123!"}
+        login_data = {
+            "username": "testuser@spec052.com",
+            "password": "StrongPass123!",  # pragma: allowlist secret
+        }
 
         try:
             response = requests.post(
@@ -44,7 +47,10 @@ class TestUserLogin:
 
     def test_login_form_data(self):
         """Test login with form data (OAuth2 style)"""
-        login_data = {"username": "testuser@spec052.com", "password": "StrongPass123!"}
+        login_data = {
+            "username": "testuser@spec052.com",
+            "password": "StrongPass123!",  # pragma: allowlist secret
+        }
 
         try:
             response = requests.post(
@@ -68,7 +74,7 @@ class TestUserLogin:
         """Test login with invalid credentials"""
         login_data = {
             "username": "nonexistent@spec052.com",
-            "password": "WrongPassword123!",
+            "password": "StrongPass123!",  # pragma: allowlist secret
         }
 
         try:
@@ -119,7 +125,7 @@ class TestUserLogin:
 
     def test_login_empty_credentials(self):
         """Test login with empty credentials"""
-        login_data = {"username": "", "password": ""}
+        login_data = {"username": "", "password": ""}  # pragma: allowlist secret
 
         try:
             response = requests.post(
