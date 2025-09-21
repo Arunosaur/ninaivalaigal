@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.15.0 (2025-09-21)
+
+* feat: Complete SPEC documentation for all ninaivalaigal infrastructure ([ca61a0d890aed1e989bda96abc51896fd1ea76cf](https://github.com/Arunosaur/ninaivalaigal/commit/ca61a0d890aed1e989bda96abc51896fd1ea76cf))
+
 ## 1.14.0 (2025-09-20)
 
 * feat: Complete Infrastructure as Code with multi-cloud Terraform support ([6bd4c2063f34d46a94af6b4b260bd0594b751cef](https://github.com/Arunosaur/ninaivalaigal/commit/6bd4c2063f34d46a94af6b4b260bd0594b751cef))
