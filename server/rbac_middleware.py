@@ -70,30 +70,63 @@ class RBACMiddleware:
             raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable required")
 
     async def extract_rbac_context(self, request: Request) -> RBACContext | None:
-        """Extract RBAC context from JWT token"""
+        """Extract RBAC context from JWT token - GRACEFUL VERSION"""
+
+        # Enable debug logging if AUTH_DEBUG is set
+        debug_mode = os.getenv("AUTH_DEBUG", "").lower() in ("1", "true", "yes")
+
         try:
             # Get authorization header
             auth_header = request.headers.get("Authorization")
-            if not auth_header or not auth_header.startswith("Bearer "):
+            if not auth_header:
+                if debug_mode:
+                    print(
+                        f"[AUTH_DEBUG] No Authorization header for {request.url.path}"
+                    )
                 return None
 
-            token = auth_header.replace("Bearer ", "")
+            if not auth_header.startswith("Bearer "):
+                if debug_mode:
+                    print(
+                        f"[AUTH_DEBUG] Invalid Authorization header format for {request.url.path}"
+                    )
+                return None
 
-            # Decode JWT token
+            token = auth_header.replace("Bearer ", "").strip()
+            if not token:
+                if debug_mode:
+                    print(f"[AUTH_DEBUG] Empty token for {request.url.path}")
+                return None
+
+            # Decode JWT token - NO EXCEPTIONS RAISED
             try:
                 payload = jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
+                if debug_mode:
+                    print(
+                        f"[AUTH_DEBUG] Successfully decoded token for {request.url.path}"
+                    )
             except jwt.ExpiredSignatureError:
-                raise HTTPException(status_code=401, detail="Token expired")
-            except jwt.InvalidTokenError:
-                raise HTTPException(status_code=401, detail="Invalid token")
+                if debug_mode:
+                    print(f"[AUTH_DEBUG] Token expired for {request.url.path}")
+                return None
+            except jwt.InvalidTokenError as e:
+                if debug_mode:
+                    print(
+                        f"[AUTH_DEBUG] Invalid token for {request.url.path}: {str(e)}"
+                    )
+                return None
 
-            # Extract user information
+            # Extract user information - GRACEFUL FALLBACKS
             user_id = payload.get("user_id")
             email = payload.get("email")
             roles = payload.get("roles", {})
 
             if not user_id or not email:
-                raise HTTPException(status_code=401, detail="Invalid token payload")
+                if debug_mode:
+                    print(
+                        f"[AUTH_DEBUG] Missing user_id or email in token for {request.url.path}"
+                    )
+                return None
 
             # Extract team and org information
             org_id = roles.get("org_id")
@@ -103,6 +136,11 @@ class RBACMiddleware:
             if "teams" in roles:
                 team_ids = set(roles["teams"].keys())
 
+            if debug_mode:
+                print(
+                    f"[AUTH_DEBUG] Created RBAC context for user {user_id} on {request.url.path}"
+                )
+
             return RBACContext(
                 user_id=user_id,
                 email=email,
@@ -111,23 +149,73 @@ class RBACMiddleware:
                 team_ids=team_ids,
             )
 
-        except HTTPException:
-            raise
         except Exception as e:
-            # Log error without exposing sensitive information
+            # Log error without exposing sensitive information - NO EXCEPTIONS RAISED
             error_msg = redact_log_message(f"RBAC context extraction error: {str(e)}")
-            print(error_msg)
+            print(f"[AUTH_ERROR] {error_msg}")
+            if debug_mode:
+                print(
+                    f"[AUTH_DEBUG] Exception in extract_rbac_context for {request.url.path}: {str(e)}"
+                )
             return None
 
     async def __call__(self, request: Request, call_next):
-        """Middleware execution"""
-        # Extract RBAC context and add to request state
-        rbac_context = await self.extract_rbac_context(request)
-        request.state.rbac_context = rbac_context
+        """Middleware execution - GRACEFUL VERSION"""
 
-        # Continue with request processing
-        response = await call_next(request)
-        return response
+        # Define public routes that don't require authentication
+        PUBLIC_ROUTES = {
+            "/health",
+            "/health/detailed",
+            "/metrics",
+            "/auth/login",
+            "/auth/signup",
+            "/auth/signup/individual",
+            "/auth/signup/organization",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+        }
+
+        debug_mode = os.getenv("AUTH_DEBUG", "").lower() in ("1", "true", "yes")
+
+        try:
+            # Check if this is a public route
+            is_public_route = any(
+                request.url.path.startswith(route) for route in PUBLIC_ROUTES
+            )
+
+            if debug_mode:
+                print(
+                    f"[AUTH_DEBUG] Processing {request.method} {request.url.path} (public: {is_public_route})"
+                )
+
+            # Extract RBAC context and add to request state - NEVER RAISES EXCEPTIONS
+            rbac_context = await self.extract_rbac_context(request)
+            request.state.rbac_context = rbac_context
+
+            if debug_mode and rbac_context:
+                print(f"[AUTH_DEBUG] RBAC context set for user {rbac_context.user_id}")
+            elif debug_mode:
+                print("[AUTH_DEBUG] No RBAC context (unauthenticated request)")
+
+            # Continue with request processing
+            response = await call_next(request)
+            return response
+
+        except Exception as e:
+            # Middleware should NEVER crash - log and continue
+            error_msg = redact_log_message(f"RBAC middleware error: {str(e)}")
+            print(f"[AUTH_ERROR] {error_msg}")
+
+            if debug_mode:
+                print(
+                    f"[AUTH_DEBUG] Middleware exception for {request.url.path}: {str(e)}"
+                )
+
+            # Set empty context and continue
+            request.state.rbac_context = None
+            response = await call_next(request)
+            return response
 
 
 def require_permission(

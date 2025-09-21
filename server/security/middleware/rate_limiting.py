@@ -8,7 +8,7 @@ import asyncio
 import os
 import sys
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any

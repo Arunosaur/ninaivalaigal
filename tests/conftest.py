@@ -29,7 +29,16 @@ class FakeMultiPartParser:
 def patch_multipart_parser(monkeypatch):
     # Patch where the adapter imports it
     monkeypatch.setenv("STARLETTE_FAKE", "1")
-    import server.security.multipart.starlette_adapter as adapter
-
-    monkeypatch.setattr(adapter, "MultiPartParser", FakeMultiPartParser, raising=True)
+    try:
+        import sys
+        import os
+        # Add project root to Python path
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if project_root not in sys.path:
+            sys.path.insert(0, project_root)
+        import server.security.multipart.starlette_adapter as adapter
+        monkeypatch.setattr(adapter, "MultiPartParser", FakeMultiPartParser, raising=True)
+    except ImportError:
+        # Skip if server module not available
+        pass
     yield

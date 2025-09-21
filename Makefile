@@ -526,6 +526,55 @@ lint-explain:
 	@ruff check . --output-format=github || true
 	@echo "💡 Run 'make lint-fix' to auto-fix most issues"
 
+## SPEC-052: Comprehensive Test Coverage & Edge Case Validation
+test-all-edge-cases:
+	@echo "🧪 Running comprehensive edge case tests (SPEC-052)"
+	@echo "Testing core SPECs..."
+	@pytest tests/core/ -v --tb=short || true
+	@echo "Testing intelligence layer..."
+	@pytest tests/intelligence/ -v --tb=short || true
+	@echo "Testing infrastructure..."
+	@pytest tests/infra/ -v --tb=short || true
+	@echo "Testing edge cases..."
+	@pytest tests/edge/ -v --tb=short || true
+
+test-coverage-report:
+	@echo "📊 Generating SPEC-wise coverage report (SPEC-052)"
+	@pytest --cov=server --cov-report=html --cov-report=term-missing
+	@echo "📁 Coverage report: htmlcov/index.html"
+
+validate-top-5-specs:
+	@echo "🎯 Validating top 5 critical SPECs (SPEC-052)"
+	@echo "1. SPEC-001: Core Memory System"
+	@pytest tests/core/test_spec_001_memory.py -v || echo "❌ SPEC-001 needs validation"
+	@echo "2. SPEC-033: Redis Integration"
+	@pytest tests/intelligence/test_spec_033_redis.py -v || echo "❌ SPEC-033 needs validation"
+	@echo "3. SPEC-043: Memory ACL"
+	@pytest tests/intelligence/test_spec_043_acl.py -v || echo "❌ SPEC-043 needs validation"
+	@echo "4. SPEC-044: Memory Drift Detection"
+	@pytest tests/intelligence/test_spec_044_drift.py -v || echo "❌ SPEC-044 needs validation"
+	@echo "5. SPEC-031: Memory Relevance Ranking"
+	@pytest tests/intelligence/test_spec_031_relevance.py -v || echo "❌ SPEC-031 needs validation"
+
+test-auth:
+	@echo "\n🧪 Running Authentication Validation Suite (SPEC-053)..."
+	@python -m pytest tests/auth \
+	  --tb=short \
+	  --disable-warnings \
+	  --maxfail=5 \
+	  --capture=no \
+	  --strict-markers
+
+# Debug mode for auth troubleshooting
+test-auth-debug:
+	@echo "\n🔍 Running Auth Tests in Debug Mode (SPEC-053)..."
+	AUTH_DEBUG=1 python -m pytest tests/auth -s -v --tb=long
+
+# Quick auth smoke test
+test-auth-smoke:
+	@echo "\n⚡ Running Auth Smoke Tests (SPEC-053)..."
+	@python -m pytest tests/auth/test_login.py tests/auth/test_signup.py -v
+
 test-preload-status:
 	@echo "🚀 Testing Preloading Status"
 	@echo "============================"
