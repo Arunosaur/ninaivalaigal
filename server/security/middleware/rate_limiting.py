@@ -6,10 +6,10 @@ RBAC-aware rate limiting with different limits based on user roles and endpoint 
 
 import time
 import asyncio
-from typing import Dict, Optional, Tuple
-from collections import defaultdict, deque
-from dataclasses import dataclass
 from enum import Enum
+from dataclasses import dataclass
+from collections import defaultdict
+from typing import Dict, Optional, Tuple, Any
 
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -156,18 +156,28 @@ class EnhancedRateLimiter:
         # Concurrent request tracking
         self.concurrent_requests = defaultdict(int)
         
-        # Cleanup task
+        self.redis_client = None
+        self.local_cache = {}
+        self.cache_ttl = 300  # 5 minutes
         self._cleanup_task = None
-        self._start_cleanup_task()
+        self._cleanup_started = False
     
     def _start_cleanup_task(self):
         """Start background task to clean up old counters"""
-        async def cleanup():
-            while True:
-                await asyncio.sleep(300)  # Clean up every 5 minutes
-                await self._cleanup_old_counters()
-        
-        self._cleanup_task = asyncio.create_task(cleanup())
+        if self._cleanup_started:
+            return
+            
+        try:
+            async def cleanup():
+                while True:
+                    await asyncio.sleep(300)  # Clean up every 5 minutes
+                    await self._cleanup_old_counters()
+            
+            self._cleanup_task = asyncio.create_task(cleanup())
+            self._cleanup_started = True
+        except RuntimeError:
+            # No event loop running, defer cleanup task creation
+            pass
     
     async def _cleanup_old_counters(self):
         """Remove old counters to prevent memory leaks"""
@@ -255,6 +265,31 @@ class EnhancedRateLimiter:
             config = endpoint_config['default']
         
         return config
+    
+    async def is_rate_limited(self, user_id: str, endpoint: str) -> Tuple[bool, Dict[str, Any]]:
+        # Start cleanup task if not already started
+        if not self._cleanup_started:
+            self._start_cleanup_task()
+        
+        # Get endpoint pattern and rate limit config
+        endpoint_pattern = self._get_endpoint_pattern(endpoint)
+        rate_config = self._get_rate_config(endpoint_pattern, 'anonymous')
+        
+        if not rate_config:
+            return False, {}
+        
+        # Check rate limit
+        is_allowed = await self._check_limit(user_id, endpoint_pattern, rate_config)
+        
+        # Prepare rate limit info for headers
+        rate_limit_info = {
+            'limit': rate_config.limit,
+            'window_seconds': rate_config.window_seconds,
+            'remaining': self._get_remaining_requests(user_id, endpoint_pattern, rate_config),
+            'reset_time': self._get_reset_time(user_id, endpoint_pattern, rate_config)
+        }
+        
+        return not is_allowed, rate_limit_info
     
     async def _check_limit(self, user_id: str, endpoint: str, config: RateLimitConfig) -> bool:
         """Check if request is within limits"""

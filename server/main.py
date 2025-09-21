@@ -1,6 +1,7 @@
 # main.py
 
 import json
+import os
 import time
 from datetime import datetime
 
@@ -11,6 +12,8 @@ from auto_recording import get_auto_recorder
 from database import Context, ContextPermission, DatabaseManager, TeamMember, User
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional
 from observability import MetricsMiddleware, health_router, metrics_router
 from performance_monitor import get_performance_monitor, start_performance_monitoring
 from rate_limiting import rate_limit_middleware

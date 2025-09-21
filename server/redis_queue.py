@@ -9,7 +9,12 @@ from typing import Any, Optional
 
 import redis
 import structlog
-from rq import Job, Queue
+try:
+    from rq import Job, Queue
+except ImportError:
+    # Fallback for RQ compatibility issues
+    Job = None
+    Queue = None
 
 logger = structlog.get_logger(__name__)
 
@@ -20,10 +25,15 @@ class RedisQueueManager:
     def __init__(self):
         self.redis_conn = None
         self.queues = {}
+        self.rq_available = Job is not None and Queue is not None
         self._connected = False
 
     def connect(self):
         """Initialize Redis connection for RQ"""
+        if not self.rq_available:
+            logger.warning("RQ not available, queue operations will be disabled")
+            return False
+            
         try:
             redis_url = os.getenv("REDIS_URL") or os.getenv("NINAIVALAIGAL_REDIS_URL")
 
