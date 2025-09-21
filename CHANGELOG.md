@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.17.0 (2025-09-21)
+
+* Add test nginx app for ArgoCD GitOps testing ([8c4f90dab3d8d1548026c4a01b63806fbc044e4e](https://github.com/Arunosaur/ninaivalaigal/commit/8c4f90dab3d8d1548026c4a01b63806fbc044e4e))
+* feat: Add SPEC-025 Vendor Admin Console - Complete SaaS Platform Enablement ([892df35510cc89dfb47337749abcced9eeae8ba5](https://github.com/Arunosaur/ninaivalaigal/commit/892df35510cc89dfb47337749abcced9eeae8ba5))
+* feat: Add SPEC-026 Standalone Teams & Flexible Billing - Complete SaaS Foundation ([44f0782d6002837fe3acf31cab9baad1f9780d1e](https://github.com/Arunosaur/ninaivalaigal/commit/44f0782d6002837fe3acf31cab9baad1f9780d1e))
+
 ## 1.16.0 (2025-09-21)
 
 * feat: Complete SPEC integration - Add foundational SPEC-000 and advanced infrastructure SPECs 021-024 ([8bcf50d3a09487232b73aa3251f4735d1c5da154](https://github.com/Arunosaur/ninaivalaigal/commit/8bcf50d3a09487232b73aa3251f4735d1c5da154))
