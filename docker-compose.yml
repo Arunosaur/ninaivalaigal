@@ -22,6 +22,23 @@ services:
       retries: 5
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    container_name: ninaivalaigal_redis
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ninaivalaigal_redis_secure_password_2024
+    command: redis-server --requirepass ninaivalaigal_redis_secure_password_2024 --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - ninaivalaigal_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   ninaivalaigal_server:
     build: .
     container_name: ninaivalaigal_server

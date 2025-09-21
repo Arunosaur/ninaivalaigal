@@ -118,16 +118,19 @@ start: stack-up
 
 stop: stack-down
 
-health:
-	@echo "🏥 Health Check Summary"
-	@echo "======================"
-	@curl -s http://localhost:13370/health | jq .
-	@echo ""
-	@curl -s http://localhost:13370/health/detailed | jq .
-	@echo ""
-	@curl -s http://localhost:13370/memory/health | jq .
+hdev-status:
+	@echo "📊 Development Stack Status"
+	@echo "=========================="
+	@container ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(nv-|NAMES)"
 
-metrics:
+## Redis Management Commands (SPEC-033)
+redis-install:
+	@echo "🔴 Installing Redis for ninaivalaigal..."
+	@container run -d --name nv-redis -p 6379:6379 \
+		-e REDIS_PASSWORD=nina_redis_dev_password \
+		-v nv_redis_data:/data \
+		redis:7-alpine redis-server --requirepass nina_redis_dev_password --maxmemory 256mb --maxmemory-policy allkeys-lru
+	@echo "✅ Redis installed and running on port 6379"
 	@echo "📊 Prometheus Metrics Summary"
 	@echo "============================="
 	@echo "🔗 Full metrics: http://localhost:13370/metrics"
@@ -406,3 +409,77 @@ release-local:
 		-t $(IMAGE_NAME)-postgres:local-test \
 		-f Dockerfile.postgres .
 	@echo "✅ Multi-arch containers built locally!"
+
+## Redis Management Commands (SPEC-033)
+redis-install:
+	@echo "🔴 Installing Redis for ninaivalaigal..."
+	@container run -d --name nv-redis -p 6379:6379 \
+		-e REDIS_PASSWORD=nina_redis_dev_password \
+		-v nv_redis_data:/data \
+		redis:7-alpine redis-server --requirepass nina_redis_dev_password --maxmemory 256mb --maxmemory-policy allkeys-lru
+	@echo "✅ Redis installed and running on port 6379"
+
+redis-status:
+	@echo "🔴 Redis Status Check"
+	@echo "===================="
+	@container exec nv-redis redis-cli -a nina_redis_dev_password ping || echo "❌ Redis not responding"
+	@container exec nv-redis redis-cli -a nina_redis_dev_password info memory | grep used_memory_human || echo "❌ Cannot get memory info"
+
+redis-test:
+	@echo "🔴 Redis Performance Test"
+	@echo "========================"
+	@conda activate nina && python specs/033-redis-integration/scripts/redis_test.py
+
+redis-cli:
+	@echo "🔴 Redis CLI Access"
+	@echo "=================="
+	@container exec -it nv-redis redis-cli -a nina_redis_dev_password
+
+redis-stop:
+	@echo "🔴 Stopping Redis..."
+	@container stop nv-redis || true
+	@container rm nv-redis || true
+	@echo "✅ Redis stopped and removed"
+
+redis-logs:
+	@echo "🔴 Redis Logs"
+	@echo "============"
+	@container logs -f nv-redis
+
+## Redis Queue Management Commands (SPEC-033)
+redis-worker:
+	@echo "🔴 Starting Redis Queue Worker"
+	@echo "=============================="
+	@conda activate nina && cd server && python -m rq worker --url redis://:nina_redis_dev_password@localhost:6379/0
+
+redis-worker-dashboard:
+	@echo "🔴 Starting RQ Dashboard"
+	@echo "======================="
+	@conda activate nina && rq-dashboard --redis-url redis://:nina_redis_dev_password@localhost:6379/0
+
+redis-queue-stats:
+	@echo "🔴 Redis Queue Statistics"
+	@echo "========================"
+	@curl -s http://localhost:13370/queue/stats | jq . || echo "❌ API not responding"
+
+redis-queue-health:
+	@echo "🔴 Redis Queue Health Check"
+	@echo "=========================="
+	@curl -s http://localhost:13370/queue/health | jq . || echo "❌ API not responding"
+
+## Memory Relevance Testing Commands (SPEC-031)
+test-relevance:
+	@echo "🧠 Testing Memory Relevance Engine"
+	@echo "=================================="
+	@echo "Testing relevant memories endpoint..."
+	@curl -s "http://localhost:13370/memory/relevant?limit=5" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
+
+test-relevance-stats:
+	@echo "🧠 Testing Relevance Statistics"
+	@echo "==============================="
+	@curl -s "http://localhost:13370/memory/relevance/stats" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
+
+test-memory-access:
+	@echo "🧠 Testing Memory Access Tracking"
+	@echo "================================="
+	@curl -s -X POST "http://localhost:13370/memory/memories/test-memory-123/access?context=testing" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"

@@ -1,0 +1,10 @@
+# Redis Makefile Snippet
+
+redis-install:
+	docker run -d --name redis-ninaivalaigal -p 6379:6379 redis:7-alpine
+
+redis-status:
+	docker exec redis-ninaivalaigal redis-cli ping
+
+redis-test:
+	python scripts/redis_test.py

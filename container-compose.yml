@@ -20,6 +20,22 @@ services:
       retries: 5
     restart: unless-stopped
 
+  nv-redis:
+    image: docker.io/redis:7-alpine
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: nina_redis_dev_password  # pragma: allowlist secret
+    command: redis-server --requirepass nina_redis_dev_password --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - nv_redis_data:/data
+    healthcheck:
+      test: ["redis-cli", "-a", "nina_redis_dev_password", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   nv-pgbouncer:
     image: nina-pgbouncer:arm64
     ports:
@@ -42,8 +58,11 @@ services:
       NINAIVALAIGAL_DATABASE_URL: "postgresql://nina:change_me_securely@{{nv-db.ip}}:5432/nina"  # pragma: allowlist secret
       DATABASE_URL: "postgresql://nina:change_me_securely@{{nv-db.ip}}:5432/nina"  # pragma: allowlist secret
       NINAIVALAIGAL_JWT_SECRET: test-jwt-secret-for-ci  # pragma: allowlist secret
+      REDIS_URL: "redis://:nina_redis_dev_password@{{nv-redis.ip}}:6379/0"  # pragma: allowlist secret
+      NINAIVALAIGAL_REDIS_URL: "redis://:nina_redis_dev_password@{{nv-redis.ip}}:6379/0"  # pragma: allowlist secret
     depends_on:
       - nv-db
+      - nv-redis
     healthcheck:
       test: ["curl", "-f", "http://localhost:8000/health"]
       interval: 15s
@@ -52,6 +71,7 @@ services:
 
 volumes:
   nv_postgres_data:
+  nv_redis_data:
 
 networks:
   default:
