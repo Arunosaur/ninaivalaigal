@@ -28,10 +28,15 @@ sleep 2
 PGB_IP=$(container inspect nv-pgbouncer | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
 echo "[api] PgBouncer IP: $PGB_IP"
 
+# Get Redis container IP for caching
+REDIS_IP=$(container inspect nv-redis | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
+echo "[api] Redis IP: $REDIS_IP"
+
 # Set both environment variables to use PgBouncer connection pooling
 DBURL="postgresql://${DB_USER}:${DB_PASS}@${PGB_IP}:6432/${DB_NAME}"
 
 echo "[api] Using PgBouncer connection pooling at ${PGB_IP}:6432"
+echo "[api] Using Redis caching at ${REDIS_IP}:6379"
 
 # Clean any old container
 container rm -f "$NAME" >/dev/null 2>&1 || true
@@ -42,6 +47,9 @@ container run -d --name "$NAME" \
   -p "${HOST_HTTP_PORT}:${CONTAINER_HTTP_PORT}" \
   -e NINAIVALAIGAL_DATABASE_URL="${DBURL}" \
   -e DATABASE_URL="${DBURL}" \
+  -e REDIS_HOST="${REDIS_IP}" \
+  -e REDIS_PORT="6379" \
+  -e REDIS_PASSWORD="nina_redis_dev_password" \
   -e NINAIVALAIGAL_JWT_SECRET=test-jwt-secret-for-ci \
   "$IMAGE"  # pragma: allowlist secret
 set +x

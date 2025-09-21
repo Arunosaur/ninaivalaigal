@@ -48,7 +48,23 @@ if $DB_ONLY; then
   exit 0
 fi
 
-# 2) PgBouncer
+# 2) Redis (SPEC-033: Critical for performance and intelligence features)
+log "Starting Redis…"
+if container list | grep -q "nv-redis.*running"; then
+  log "Redis already running, skipping start."
+else
+  # Clean up any stopped Redis container first
+  container stop nv-redis >/dev/null 2>&1 || true
+  container delete nv-redis >/dev/null 2>&1 || true
+  
+  container run -d --name nv-redis -p 6379:6379 \
+    -e REDIS_PASSWORD=nina_redis_dev_password \
+    -v nv_redis_data:/data \
+    redis:7-alpine redis-server --requirepass nina_redis_dev_password --maxmemory 256mb --maxmemory-policy allkeys-lru
+  log "Redis started successfully."
+fi
+
+# 3) PgBouncer
 if ! $SKIP_PGB; then
   log "Starting PgBouncer…"
   bash "${SCRIPTS}/nv-pgbouncer-start.sh"
@@ -66,7 +82,7 @@ elif [[ "${MEMORY_PROVIDER:-}" == "http" && $SKIP_MEM0 == false ]]; then
   START_MEM0=true
 fi
 
-# 3) mem0 (if requested)
+# 4) mem0 (if requested)
 if $START_MEM0; then
   log "Starting mem0 sidecar…"
   bash "${SCRIPTS}/nv-mem0-start.sh"
@@ -74,7 +90,7 @@ else
   log "Skipping mem0 (provider=${MEMORY_PROVIDER:-unset}, flags: with=${WITH_MEM0}, skip=${SKIP_MEM0})."
 fi
 
-# 4) API
+# 5) API
 if ! $SKIP_API; then
   log "Starting API…"
   # ensure API can reach host PgBouncer/DB; pass explicit host ip
@@ -83,7 +99,7 @@ else
   log "Skipping API per flag."
 fi
 
-# 5) UI (if requested or in production mode)
+# 6) UI (if requested or in production mode)
 START_UI=false
 if $WITH_UI; then
   START_UI=true

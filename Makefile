@@ -4,11 +4,11 @@ SCRIPTS := scripts
 
 .PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws-vm deploy-gcp-vm deploy-azure-vm deploy-aws deploy-gcp deploy-azure k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local
 
-## start full stack: DB → PgBouncer → Mem0 → API → UI
+## start full stack: DB → Redis → PgBouncer → Mem0 → API → UI
 stack-up:
 	@$(SCRIPTS)/nv-stack-start.sh
 
-## stop stack: UI → API → Mem0 → PgBouncer → DB
+## stop stack: UI → API → Mem0 → PgBouncer → Redis → DB
 stack-down:
 	@$(SCRIPTS)/nv-stack-stop.sh
 

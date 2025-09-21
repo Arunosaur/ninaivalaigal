@@ -6,12 +6,14 @@ import time
 from datetime import datetime
 
 import uvicorn
+import structlog
 from approval_workflow import ApprovalWorkflowManager
 from auth import get_current_user
 from auto_recording import get_auto_recorder
 from database import Context, ContextPermission, DatabaseManager, TeamMember, User
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 from observability import MetricsMiddleware, health_router, metrics_router
@@ -26,6 +28,8 @@ from spec_kit import ContextScope, ContextSpec, SpecKitContextManager
 
 from rbac.permissions import Action, Resource
 
+# Initialize logger
+logger = structlog.get_logger(__name__)
 
 # Configuration loading
 def load_config():

@@ -6,7 +6,8 @@ RESTful API for memory preloading management and monitoring
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
-from auth import get_current_user, User
+from auth import get_current_user
+from database import User
 from preloading_engine import (
     get_preloading_engine, 
     MemoryPreloadingEngine,

@@ -6,7 +6,8 @@ RESTful API for background task management and monitoring
 from typing import Any, Optional
 
 import structlog
-from auth import User, get_current_user
+from auth import get_current_user
+from database import User
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from redis_queue import (

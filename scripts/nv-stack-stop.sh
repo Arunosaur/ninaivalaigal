@@ -23,6 +23,11 @@ bash "${SCRIPTS}/nv-mem0-stop.sh" || true
 log "Stopping PgBouncer…"
 bash "${SCRIPTS}/nv-pgbouncer-stop.sh" || true
 
+# Redis (SPEC-033)
+log "Stopping Redis…"
+container stop nv-redis >/dev/null 2>&1 || true
+container delete nv-redis >/dev/null 2>&1 || true
+
 # DB last
 log "Stopping DB…"
 bash "${SCRIPTS}/nv-db-stop.sh" || {

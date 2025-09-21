@@ -952,3 +952,16 @@ class DatabaseManager:
         """Verify password against hash"""
         import bcrypt
         return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+
+# Global database instance
+_db_instance = None
+
+def get_db():
+    """Get database manager instance"""
+    global _db_instance
+    if _db_instance is None:
+        # Get database URL from environment
+        database_url = os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL") or "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+        _db_instance = DatabaseManager(database_url)
+    return _db_instance

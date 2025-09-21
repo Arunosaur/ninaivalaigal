@@ -7,7 +7,8 @@ import json
 from typing import Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from auth import get_current_user, User
+from auth import get_current_user
+from database import User
 from intelligent_session import (
     get_session_manager,
     IntelligentSessionManager,

@@ -30,6 +30,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
 COPY server/ ./server/
+COPY frontend/ ./frontend/
 COPY requirements.txt ./
 COPY run_server.py ./
 COPY eM.py ./
