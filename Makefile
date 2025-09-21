@@ -510,3 +510,24 @@ test-preload-health:
 	@echo "🚀 Testing Preloading Health"
 	@echo "============================"
 	@curl -s "http://localhost:13370/memory/preload/health" | jq . || echo "❌ API not responding"
+
+## Intelligent Session Management Testing Commands (SPEC-045)
+test-session-analytics:
+	@echo "🔐 Testing Session Analytics"
+	@echo "============================"
+	@curl -s "http://localhost:13370/auth/session/analytics" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
+
+test-session-recommendations:
+	@echo "🔐 Testing Session Renewal Recommendations"
+	@echo "=========================================="
+	@curl -s "http://localhost:13370/auth/session/recommendations" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
+
+test-session-status:
+	@echo "🔐 Testing Session Status"
+	@echo "========================="
+	@curl -s "http://localhost:13370/auth/session/status" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
+
+test-session-health:
+	@echo "🔐 Testing Session System Health"
+	@echo "================================"
+	@curl -s "http://localhost:13370/auth/session/health" | jq . || echo "❌ API not responding"

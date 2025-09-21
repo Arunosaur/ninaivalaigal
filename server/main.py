@@ -257,6 +257,10 @@ app.include_router(queue_router)
 from preload_api import router as preload_router
 app.include_router(preload_router)
 
+# Include Intelligent Session Management router (SPEC-045)
+from session_api import router as session_router
+app.include_router(session_router)
+
 # Remove duplicate auth endpoints - handled by signup_router and token_router
 
 # Login endpoint handled by signup_router
