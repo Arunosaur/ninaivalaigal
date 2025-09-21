@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Management - Ninaivalaigal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .token-display {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-white">Ninaivalaigal</h1>
+                    <span class="ml-3 text-white/80">Token Management</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="dashboard.html" class="text-white/90 hover:text-white transition-colors">← Back to Dashboard</a>
+                    <span id="user-name" class="text-white/90"></span>
+                    <button onclick="logout()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="px-4 py-6 sm:px-0">
+            <div class="bg-white card-shadow rounded-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">JWT Token Management</h2>
+                <p class="text-gray-600">Manage your authentication tokens and API keys for secure access to ninaivalaigal services.</p>
+            </div>
+        </div>
+
+        <!-- Current JWT Token Section -->
+        <div class="bg-white card-shadow rounded-lg p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Current JWT Token</h3>
+                <div class="flex space-x-2">
+                    <button onclick="copyToken()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                        📋 Copy Token
+                    </button>
+                    <button onclick="regenerateToken()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                        🔄 Regenerate
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div id="current-token" class="token-display">
+                    Loading token...
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <span class="font-medium text-gray-700">Issued:</span>
+                    <span id="token-issued" class="text-gray-600">-</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Expires:</span>
+                    <span id="token-expires" class="text-gray-600">-</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Status:</span>
+                    <span id="token-status" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Active
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Keys Section -->
+        <div class="bg-white card-shadow rounded-lg p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">API Keys</h3>
+                <button onclick="createApiKey()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                    ➕ Create API Key
+                </button>
+            </div>
+            
+            <div id="api-keys-list" class="space-y-4">
+                <!-- API keys will be loaded here -->
+            </div>
+            
+            <div id="no-api-keys" class="text-center py-8 text-gray-500 hidden">
+                <div class="text-4xl mb-2">🔑</div>
+                <p>No API keys created yet</p>
+                <p class="text-sm">Create an API key to access ninaivalaigal programmatically</p>
+            </div>
+        </div>
+
+        <!-- Token Usage Analytics -->
+        <div class="bg-white card-shadow rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Token Usage Analytics</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <div class="text-2xl font-bold text-blue-600" id="requests-today">-</div>
+                    <div class="text-sm text-blue-600">Requests Today</div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4">
+                    <div class="text-2xl font-bold text-green-600" id="requests-week">-</div>
+                    <div class="text-sm text-green-600">This Week</div>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-4">
+                    <div class="text-2xl font-bold text-purple-600" id="last-used">-</div>
+                    <div class="text-sm text-purple-600">Last Used</div>
+                </div>
+                <div class="bg-orange-50 rounded-lg p-4">
+                    <div class="text-2xl font-bold text-orange-600" id="rate-limit">-</div>
+                    <div class="text-sm text-orange-600">Rate Limit</div>
+                </div>
+            </div>
+            
+            <div class="border-t pt-4">
+                <h4 class="font-medium text-gray-900 mb-2">Recent Activity</h4>
+                <div id="recent-activity" class="space-y-2">
+                    <!-- Recent activity will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="bg-white card-shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Security Settings</h3>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="font-medium text-gray-900">Auto Token Rotation</h4>
+                        <p class="text-sm text-gray-600">Automatically rotate tokens every 30 days</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="auto-rotation" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="font-medium text-gray-900">IP Restrictions</h4>
+                        <p class="text-sm text-gray-600">Restrict token usage to specific IP addresses</p>
+                    </div>
+                    <button onclick="manageIpRestrictions()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                        Configure
+                    </button>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="font-medium text-gray-900">Revoke All Tokens</h4>
+                        <p class="text-sm text-gray-600">Immediately invalidate all existing tokens</p>
+                    </div>
+                    <button onclick="revokeAllTokens()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                        Revoke All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create API Key Modal -->
+    <div id="create-api-key-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Create API Key</h3>
+            
+            <form id="create-api-key-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Key Name</label>
+                    <input type="text" id="api-key-name" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="e.g., Production API, Development, Mobile App">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" value="memory:read" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Read memories</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" value="memory:write" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Write memories</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" value="team:read" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Read team data</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Expiration</label>
+                    <select id="api-key-expiration" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                        <option value="365">1 year</option>
+                        <option value="never">Never expires</option>
+                    </select>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button type="button" onclick="closeCreateApiKeyModal()" 
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Create Key
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/token-management.js"></script>
+</body>
+</html>

@@ -204,19 +204,18 @@ app.include_router(memory_router)
 from memory.lifecycle import lifecycle_router
 app.include_router(lifecycle_router)
 
-# Remove duplicate auth endpoints - handled by signup_router
+# Include token management router
+from token_api import router as token_router
+app.include_router(token_router)
+
+# Include team invitations router
+from team_invitations_api import router as team_invitations_router
+app.include_router(team_invitations_router)
+
+# Remove duplicate auth endpoints - handled by signup_router and token_router
 
 # Login endpoint handled by signup_router
-
-@app.get("/auth/me")
-def get_current_user_info(current_user: User = Depends(get_current_user)):
-    """Get current user information"""
-    return {
-        "id": current_user.id,
-        "username": current_user.username,
-        "email": current_user.email,
-        "created_at": current_user.created_at.isoformat()
-    }
+# /auth/me endpoint handled by token_router
 
 # --- Organization Management ---
 @app.post("/organizations")

@@ -125,6 +125,29 @@ class TokenData(BaseModel):
     username: Optional[str] = None
     user_id: Optional[int] = None
 
+class ApiKeyCreate(BaseModel):
+    name: str
+    permissions: list = []
+    expiration: Optional[int] = None  # days, None for never expires
+
+class ApiKeyResponse(BaseModel):
+    id: str
+    name: str
+    key: Optional[str] = None  # Only returned on creation
+    permissions: list
+    created_at: datetime
+    expires_at: Optional[datetime] = None
+    last_used_at: Optional[datetime] = None
+    is_active: bool = True
+
+class TokenUsage(BaseModel):
+    requests_today: int = 0
+    requests_week: int = 0
+    last_used: Optional[datetime] = None
+    rate_limit_remaining: int = 1000
+    rate_limit_total: int = 1000
+    recent_activity: list = []
+
 # Security scheme
 security = HTTPBearer()
 

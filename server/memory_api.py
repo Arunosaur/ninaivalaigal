@@ -118,6 +118,30 @@ async def list_memories(
     except MemoryProviderError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/contexts")
+async def list_contexts(
+    current_user: User = Depends(get_current_user),
+    provider: MemoryProvider = Depends(get_memory_provider_dep)
+):
+    """List available contexts for the current user"""
+    try:
+        # TODO: Implement actual context listing in memory provider
+        # For now, return sample contexts
+        sample_contexts = [
+            "authentication-system",
+            "database-setup", 
+            "devops-infrastructure",
+            "memory-management",
+            "frontend-development",
+            "api-development",
+            "testing-framework"
+        ]
+        
+        return {"contexts": sample_contexts}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.delete("/memories/{memory_id}")
 async def delete_memory(
     memory_id: str,

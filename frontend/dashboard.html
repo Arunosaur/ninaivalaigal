@@ -101,7 +101,10 @@
             <div class="bg-white card-shadow rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Context Management</h3>
                 <div class="space-y-3">
-                    <button onclick="startNewContext()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                    <button onclick="window.location.href='memory-browser.html'" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        🧠 Browse Memories
+                    </button>
+                    <button onclick="startNewContext()" class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
                         Start New Context
                     </button>
                     <button onclick="viewContexts()" class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
@@ -115,7 +118,7 @@
 
             <!-- JWT Token Access -->
             <div class="bg-white card-shadow rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">API Access Token</h3>
+                <h3 class="text-lg font-medium text-gray-900 mb-4">API Access & Tokens</h3>
                 <div class="space-y-3">
                     <div class="bg-gray-50 p-3 rounded-lg">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Your JWT Token:</label>
@@ -129,10 +132,14 @@
                             </button>
                         </div>
                     </div>
+                    <button onclick="window.location.href='token-management.html'" 
+                            class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                        🔑 Manage Tokens & API Keys
+                    </button>
                     <div class="text-xs text-gray-500">
-                        <p>• Use this token for API calls and CLI access</p>
-                        <p>• Token expires in 7 days (configurable)</p>
-                        <p>• Keep this token secure and private</p>
+                        <p>• Use tokens for API calls and CLI access</p>
+                        <p>• Create API keys for external integrations</p>
+                        <p>• Monitor usage and manage security settings</p>
                     </div>
                 </div>
             </div>

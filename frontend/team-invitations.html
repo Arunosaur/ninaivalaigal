@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Invitations - Ninaivalaigal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .invitation-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .invitation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-white">Ninaivalaigal</h1>
+                    <span class="ml-3 text-white/80">Team Invitations</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="team-management.html" class="text-white/90 hover:text-white transition-colors">← Back to Teams</a>
+                    <span id="user-name" class="text-white/90"></span>
+                    <button onclick="logout()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="px-4 py-6 sm:px-0">
+            <div class="bg-white card-shadow rounded-lg p-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Team Invitations</h2>
+                        <p class="text-gray-600">Invite team members to collaborate and share memories</p>
+                    </div>
+                    <button onclick="openInviteModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                        📧 Send Invitation
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invitation Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white card-shadow rounded-lg p-4">
+                <div class="text-2xl font-bold text-blue-600" id="total-invitations">-</div>
+                <div class="text-sm text-blue-600">Total Sent</div>
+            </div>
+            <div class="bg-white card-shadow rounded-lg p-4">
+                <div class="text-2xl font-bold text-green-600" id="accepted-invitations">-</div>
+                <div class="text-sm text-green-600">Accepted</div>
+            </div>
+            <div class="bg-white card-shadow rounded-lg p-4">
+                <div class="text-2xl font-bold text-yellow-600" id="pending-invitations">-</div>
+                <div class="text-sm text-yellow-600">Pending</div>
+            </div>
+            <div class="bg-white card-shadow rounded-lg p-4">
+                <div class="text-2xl font-bold text-red-600" id="expired-invitations">-</div>
+                <div class="text-sm text-red-600">Expired</div>
+            </div>
+        </div>
+
+        <!-- Filter and Search -->
+        <div class="bg-white card-shadow rounded-lg p-4 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex-1 max-w-md">
+                    <input type="text" id="search-input" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Search by email or name...">
+                </div>
+                <div class="flex items-center space-x-3">
+                    <select id="status-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="expired">Expired</option>
+                        <option value="revoked">Revoked</option>
+                    </select>
+                    <select id="team-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Teams</option>
+                        <!-- Teams will be loaded dynamically -->
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invitations List -->
+        <div id="invitations-container">
+            <!-- Loading State -->
+            <div id="loading-state" class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p class="text-gray-600">Loading invitations...</p>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden text-center py-12">
+                <div class="text-6xl mb-4">📧</div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No invitations sent yet</h3>
+                <p class="text-gray-600 mb-4">Start building your team by sending invitations</p>
+                <button onclick="openInviteModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    Send First Invitation
+                </button>
+            </div>
+            
+            <!-- Invitations Grid -->
+            <div id="invitations-grid" class="space-y-4">
+                <!-- Invitation cards will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Invitation Modal -->
+    <div id="invite-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-md w-full mx-4">
+            <div class="flex items-center justify-between p-6 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">Send Team Invitation</h3>
+                <button onclick="closeInviteModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="invite-form" class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input type="email" id="invite-email" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="colleague@company.com">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Teams</label>
+                        <div id="team-checkboxes" class="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                            <!-- Team checkboxes will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <select id="invite-role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="member">Team Member</option>
+                            <option value="admin">Team Admin</option>
+                            <option value="viewer">Viewer (Read-only)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Personal Message (Optional)</label>
+                        <textarea id="invite-message" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Welcome to our team! We're excited to collaborate with you..."></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Expiration</label>
+                        <select id="invite-expiration" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="7">7 days</option>
+                            <option value="14" selected>14 days</option>
+                            <option value="30">30 days</option>
+                            <option value="never">Never expires</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3 mt-6">
+                    <button type="button" onclick="closeInviteModal()" 
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Send Invitation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Modal -->
+    <div id="bulk-actions-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-md w-full mx-4">
+            <div class="flex items-center justify-between p-6 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">Bulk Actions</h3>
+                <button onclick="closeBulkActionsModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">
+                    <span id="selected-count">0</span> invitation(s) selected
+                </p>
+                
+                <div class="space-y-3">
+                    <button onclick="bulkResend()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        📧 Resend Invitations
+                    </button>
+                    <button onclick="bulkRevoke()" class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        🚫 Revoke Invitations
+                    </button>
+                    <button onclick="bulkExtend()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        ⏰ Extend Expiration
+                    </button>
+                </div>
+                
+                <button onclick="closeBulkActionsModal()" class="w-full mt-4 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/team-invitations.js"></script>
+</body>
+</html>
