@@ -200,6 +200,10 @@ app.include_router(metrics_router)
 from memory_api import router as memory_router
 app.include_router(memory_router)
 
+# Include memory lifecycle router (SPEC-011)
+from memory.lifecycle import lifecycle_router
+app.include_router(lifecycle_router)
+
 # Remove duplicate auth endpoints - handled by signup_router
 
 # Login endpoint handled by signup_router

@@ -1,0 +1,51 @@
+# ArgoCD Installation using official manifests
+# This file references the official ArgoCD installation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-install-info
+  namespace: argocd
+data:
+  version: "v2.9.3"
+  install-command: |
+    # Install ArgoCD using official manifests
+    kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+    kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.9.3/manifests/install.yaml
+
+    # Wait for ArgoCD to be ready
+    kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
+
+    # Get initial admin password
+    kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+  access-info: |
+    # Port forward to access ArgoCD UI
+    kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+    # Access at: https://localhost:8080
+    # Username: admin
+    # Password: (from install command above)
+---
+# Service to expose ArgoCD server with LoadBalancer (optional)
+apiVersion: v1
+kind: Service
+metadata:
+  name: argocd-server-loadbalancer
+  namespace: argocd
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/name: argocd-server
+    app.kubernetes.io/part-of: argocd
+spec:
+  type: LoadBalancer
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 8080
+  - name: grpc
+    port: 443
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/name: argocd-server

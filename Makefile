@@ -297,6 +297,59 @@ uninstall:
 	@container rmi nina-pgbouncer:arm64 nina-api:arm64 2>/dev/null || true
 	@echo "✅ Ninaivalaigal uninstalled"
 
+## SPEC-011: Memory Lifecycle Management
+migrate-lifecycle:
+	@echo "🔄 Running SPEC-011 memory lifecycle migration..."
+	@$(SCRIPTS)/run-migration.sh server/memory/db/migrations/0112_memory_lifecycle.sql
+
+lifecycle-gc:
+	@echo "🗑️  Running memory garbage collection..."
+	@cd server && conda run -n nina python -m memory.lifecycle.cli gc
+
+lifecycle-stats:
+	@echo "📊 Memory lifecycle statistics..."
+	@cd server && conda run -n nina python -m memory.lifecycle.cli stats
+
+lifecycle-gc-dry-run:
+	@echo "🔍 Memory garbage collection (dry run)..."
+	@cd server && conda run -n nina python -m memory.lifecycle.cli gc --dry-run
+
+## SPEC-021: GitOps Deployment via ArgoCD
+setup-test-cluster:
+	@echo "🚀 Setting up test Kubernetes cluster..."
+	@./scripts/setup-test-cluster.sh
+
+argocd-install:
+	@echo "🚀 Installing ArgoCD for GitOps deployment..."
+	@./scripts/argocd-install.sh
+
+argocd-status:
+	@echo "📊 Checking ArgoCD status..."
+	@./scripts/argocd-status.sh
+
+argocd-ui:
+	@echo "🌐 Opening ArgoCD UI..."
+	@if ! pgrep -f "kubectl.*port-forward.*argocd-server" > /dev/null; then \
+		echo "Starting port-forward..."; \
+		kubectl port-forward svc/argocd-server -n argocd 8080:443 > /dev/null 2>&1 & \
+	fi
+	@sleep 2
+	@echo "🔗 ArgoCD UI: https://localhost:8080"
+	@echo "👤 Username: admin"
+	@echo "🔒 Password: see argocd/credentials.txt"
+
+argocd-sync:
+	@echo "🔄 Triggering manual sync for ninaivalaigal application..."
+	@kubectl patch application ninaivalaigal -n argocd --type merge -p '{"operation":{"sync":{}}}'
+
+argocd-uninstall:
+	@echo "🗑️  Uninstalling ArgoCD..."
+	@kubectl delete -f argocd/application.yaml --ignore-not-found=true
+	@kubectl delete namespace argocd --ignore-not-found=true
+	@pkill -f "kubectl.*port-forward.*argocd-server" || true
+	@rm -f argocd/credentials.txt
+	@echo "✅ ArgoCD uninstalled"
+
 ## CI/CD & Testing
 ci-test:
 	@echo "🧪 Running GitHub Actions locally with act..."

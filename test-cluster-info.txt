@@ -1,0 +1,15 @@
+Test Cluster Information
+========================
+Name: ninaivalaigal-test
+Context: kind-ninaivalaigal-test
+Created: Sat Sep 20 21:35:20 CDT 2025
+
+Management Commands:
+- kubectl config use-context kind-ninaivalaigal-test
+- kind delete cluster --name ninaivalaigal-test
+- kubectl get pods -A
+
+ArgoCD Testing:
+- make argocd-install
+- make argocd-status
+- make argocd-ui
