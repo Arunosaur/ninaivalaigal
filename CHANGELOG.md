@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.20.0 (2025-09-22)
+
+* feat: Implement SPEC-060/061 Apache AGE Property Graph Intelligence Framework ([5dbe7ba0a3b20a02098967e4c2b7ed1ef9828149](https://github.com/Arunosaur/ninaivalaigal/commit/5dbe7ba0a3b20a02098967e4c2b7ed1ef9828149))
+* Add comprehensive code coverage infrastructure ([01faabe39539330a5ff66d5b46bd0f7ad00fb5f6](https://github.com/Arunosaur/ninaivalaigal/commit/01faabe39539330a5ff66d5b46bd0f7ad00fb5f6))
+* Add functional tests and enhanced coverage commands ([78152d3446b9aad6adb6cc4ab12013696081d85c](https://github.com/Arunosaur/ninaivalaigal/commit/78152d3446b9aad6adb6cc4ab12013696081d85c))
+* Complete Phase 1: Test Case Templates & Coverage Dashboard ([be0aa45dcd2cd2de305d65b17e8789f5379ef4e8](https://github.com/Arunosaur/ninaivalaigal/commit/be0aa45dcd2cd2de305d65b17e8789f5379ef4e8))
+* Complete Phase 2: Infrastructure Module Test Templates ([86b3c64dc84bf83dc6ace727bf13e389892f5d3d](https://github.com/Arunosaur/ninaivalaigal/commit/86b3c64dc84bf83dc6ace727bf13e389892f5d3d))
+* Complete SPEC-053 fixes and integrate SPECs 054-060 ([163ea78417f98dc2db2b0a656e2e0027295dfede](https://github.com/Arunosaur/ninaivalaigal/commit/163ea78417f98dc2db2b0a656e2e0027295dfede))
+* Implement SPEC-033 Redis Integration - CRITICAL PATH COMPLETE ✅ ([4332a38d8b7baddf5109d1913e33d9555e123c63](https://github.com/Arunosaur/ninaivalaigal/commit/4332a38d8b7baddf5109d1913e33d9555e123c63))
+* Integrate enhanced SPEC-060-061 with Apache AGE graph assets ([c067bdd7e965e1c7bc3ecabadbe1bebe0a24bdcd](https://github.com/Arunosaur/ninaivalaigal/commit/c067bdd7e965e1c7bc3ecabadbe1bebe0a24bdcd))
+* SPEC-053: Authentication Middleware Refactor - COMPLETE ([498f9b9c3807f3f8e34cb26787520464d70dfd00](https://github.com/Arunosaur/ninaivalaigal/commit/498f9b9c3807f3f8e34cb26787520464d70dfd00))
+* Update SPEC_AUDIT_2024.md with accurate status - consolidate documentation ([f836e320a889819791acbabbaebbbebd95982d1c](https://github.com/Arunosaur/ninaivalaigal/commit/f836e320a889819791acbabbaebbbebd95982d1c))
+* MAJOR: Complete document consolidation and organization ([6ab9ee4aebe91d85519d34dbc81996f8b61d8b81](https://github.com/Arunosaur/ninaivalaigal/commit/6ab9ee4aebe91d85519d34dbc81996f8b61d8b81))
+
 ## 1.19.0 (2025-09-21)
 
 * fix: Apply code formatting fixes from SPEC-051 lint-fix implementation ([cfdadebe06b1a6205c7ef4498404418086c05969](https://github.com/Arunosaur/ninaivalaigal/commit/cfdadebe06b1a6205c7ef4498404418086c05969))
