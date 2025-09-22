@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.21.0 (2025-09-22)
+
+* feat: Phase 1&2 Complete - Critical Security Fixes + Dual-Stack Infrastructure ([66db3103f95c0724795ed6b57c5318bbc11891e1](https://github.com/Arunosaur/ninaivalaigal/commit/66db3103f95c0724795ed6b57c5318bbc11891e1))
+* docs: Clean up SPEC documentation organization ([b6784ff53a76af6c5848ca2a76e1414b3386f409](https://github.com/Arunosaur/ninaivalaigal/commit/b6784ff53a76af6c5848ca2a76e1414b3386f409))
+
 ## 1.20.0 (2025-09-22)
 
 * feat: Implement SPEC-060/061 Apache AGE Property Graph Intelligence Framework ([5dbe7ba0a3b20a02098967e4c2b7ed1ef9828149](https://github.com/Arunosaur/ninaivalaigal/commit/5dbe7ba0a3b20a02098967e4c2b7ed1ef9828149))
