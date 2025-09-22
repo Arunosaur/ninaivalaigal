@@ -1,0 +1,646 @@
+openapi: 3.0.0
+info:
+  title: Ninaivalaigal Agentic API
+  description: AI-powered memory management and context-aware API
+  version: 1.0.0
+  contact:
+    name: Ninaivalaigal Team
+    url: https://github.com/Arunosaur/ninaivalaigal
+
+servers:
+  - url: http://localhost:13370
+    description: Development server (API container)
+  - url: http://localhost:8000
+    description: Development server (direct)
+  - url: https://api.ninaivalaigal.com
+    description: Production server
+
+paths:
+  # Health & Observability Endpoints
+  /health:
+    get:
+      summary: Simple health check endpoint
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  service:
+                    type: string
+                    example: "ninaivalaigal"
+
+  /health/detailed:
+    get:
+      summary: Detailed health check with SLO monitoring
+      tags: [Health]
+      responses:
+        '200':
+          description: Detailed health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  uptime_s:
+                    type: number
+                    example: 3600.5
+                  db:
+                    type: object
+                    properties:
+                      connected:
+                        type: boolean
+                      active_connections:
+                        type: integer
+                      max_connections:
+                        type: integer
+
+  /metrics:
+    get:
+      summary: Prometheus metrics endpoint
+      tags: [Observability]
+      responses:
+        '200':
+          description: Prometheus metrics in text format
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "# HELP http_requests_total Total HTTP requests\n# TYPE http_requests_total counter\nhttp_requests_total{method=\"GET\",endpoint=\"/health\"} 42"
+
+  # Memory Management Endpoints
+  /memory:
+    get:
+      summary: List all memories
+      tags: [Memory]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: context
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of memories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  memories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Memory'
+                  total:
+                    type: integer
+    post:
+      summary: Create a new memory
+      tags: [Memory]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Memory content
+                context:
+                  type: string
+                  description: Context name
+                memory_type:
+                  type: string
+                  default: "user"
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Memory created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+
+  /memory/{memory_id}:
+    get:
+      summary: Get a specific memory
+      tags: [Memory]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: memory_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Memory details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+        '404':
+          description: Memory not found
+    put:
+      summary: Update a memory
+      tags: [Memory]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: memory_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Memory updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+    delete:
+      summary: Delete a memory
+      tags: [Memory]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: memory_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Memory deleted successfully
+        '404':
+          description: Memory not found
+
+  /memory/search:
+    post:
+      summary: Search memories with advanced filters
+      tags: [Memory]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: Search query
+                context:
+                  type: string
+                  description: Filter by context
+                memory_type:
+                  type: string
+                  description: Filter by memory type
+                limit:
+                  type: integer
+                  default: 50
+                  maximum: 100
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  memories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Memory'
+                  total:
+                    type: integer
+                  query:
+                    type: string
+
+  /memory/health:
+    get:
+      summary: Memory system health check
+      tags: [Memory]
+      responses:
+        '200':
+          description: Memory system health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  healthy:
+                    type: boolean
+                  provider:
+                    type: string
+                  stats:
+                    type: object
+                    properties:
+                      total_memories:
+                        type: integer
+                      active_contexts:
+                        type: integer
+
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      summary: User authentication
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: "bearer"
+                  expires_in:
+                    type: integer
+                    example: 3600
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/signup:
+    post:
+      summary: User registration
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, username]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                username:
+                  type: string
+                  minLength: 3
+                full_name:
+                  type: string
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User created successfully"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/token/refresh:
+    post:
+      summary: Refresh access token
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: "bearer"
+                  expires_in:
+                    type: integer
+        '401':
+          description: Invalid or expired token
+
+  # Context Management Endpoints
+  /contexts:
+    get:
+      summary: List user contexts
+      tags: [Contexts]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of contexts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Context'
+    post:
+      summary: Create a new context
+      tags: [Contexts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                scope:
+                  type: string
+                  enum: [personal, team, organization, global]
+                  default: personal
+      responses:
+        '201':
+          description: Context created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Context'
+
+  /contexts/{context_id}:
+    get:
+      summary: Get context details
+      tags: [Contexts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: context_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Context details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Context'
+        '404':
+          description: Context not found
+    put:
+      summary: Update context
+      tags: [Contexts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: context_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                is_active:
+                  type: boolean
+      responses:
+        '200':
+          description: Context updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Context'
+    delete:
+      summary: Delete context
+      tags: [Contexts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: context_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Context deleted successfully
+        '404':
+          description: Context not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+        error_code:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        is_active:
+          type: boolean
+        is_admin:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        last_login:
+          type: string
+          format: date-time
+
+    Memory:
+      type: object
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        memory_type:
+          type: string
+        context:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        user_id:
+          type: integer
+        relevance_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+
+    Context:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        scope:
+          type: string
+          enum: [personal, team, organization, global]
+        is_active:
+          type: boolean
+        owner_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        memory_count:
+          type: integer
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        member_count:
+          type: integer
+        team_count:
+          type: integer
+
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        organization_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        member_count:
+          type: integer
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Health
+    description: Health check operations
+  - name: Observability
+    description: Metrics and monitoring endpoints
+  - name: Memory
+    description: Memory management operations
+  - name: Authentication
+    description: User authentication operations
+  - name: Contexts
+    description: Context management operations
+  - name: Organizations
+    description: Organization management operations
+  - name: Teams
+    description: Team management operations
+  - name: Users
+    description: User management operations

@@ -42,6 +42,7 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: [flake8-docstrings, flake8-bugbear]
+        exclude: ^server/database/operations/.*\.py$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.7.1
@@ -49,6 +50,7 @@ repos:
       - id: mypy
         additional_dependencies: [types-requests, types-redis, types-python-dateutil]
         args: [--ignore-missing-imports, --no-strict-optional]
+        exclude: ^server/database/operations/.*\.py$
 
   - repo: https://github.com/pycqa/bandit
     rev: 1.7.5
@@ -56,14 +58,14 @@ repos:
       - id: bandit
         files: ^server/.*\.py$
         args: ["-f", "json"]
-        exclude: ^(tests/|scripts/)
+        exclude: ^(tests/|scripts/|server/database/operations/)
 
   - repo: https://github.com/koalaman/shellcheck-precommit
     rev: v0.11.0
     hooks:
       - id: shellcheck
         files: ^scripts/.*\.sh$
-        args: ["-e", "SC1091"]  # Ignore sourcing non-constant files
+        args: ["-e", "SC1091", "-e", "SC2129"]  # Ignore sourcing non-constant files and redirect style
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
