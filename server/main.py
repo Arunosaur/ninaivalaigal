@@ -112,6 +112,8 @@ async def shutdown_event():
 app.include_router(health_router)
 app.include_router(metrics_router)
 
+from agentic_api import router as agentic_router
+from performance_api import router as performance_router
 from routers.approvals import router as approvals_router
 from routers.contexts import router as contexts_router
 from routers.memory import router as memory_router
@@ -131,6 +133,8 @@ app.include_router(contexts_router)
 app.include_router(memory_router)
 app.include_router(approvals_router)
 app.include_router(recording_router)
+app.include_router(agentic_router)
+app.include_router(performance_router)
 
 # Static file serving
 frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
