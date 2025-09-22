@@ -53,7 +53,7 @@ check_docker() {
 # Stop and remove existing container if it exists
 cleanup_existing() {
     log_step "Cleaning up existing PostgreSQL container..."
-    
+
     if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
         log_warn "Stopping existing container: ${CONTAINER_NAME}"
         docker stop ${CONTAINER_NAME} >/dev/null 2>&1 || true
@@ -67,7 +67,7 @@ cleanup_existing() {
 # Create persistent volume
 create_volume() {
     log_step "Creating persistent volume..."
-    
+
     if docker volume ls --format '{{.Name}}' | grep -q "^${VOLUME_NAME}$"; then
         log_info "Volume ${VOLUME_NAME} already exists"
     else
@@ -79,7 +79,7 @@ create_volume() {
 # Start PostgreSQL container
 start_postgres() {
     log_step "Starting persistent PostgreSQL container..."
-    
+
     docker run -d \
         --name ${CONTAINER_NAME} \
         --restart unless-stopped \
@@ -90,28 +90,28 @@ start_postgres() {
         -p ${POSTGRES_PORT}:5432 \
         -v ${VOLUME_NAME}:/var/lib/postgresql/data \
         postgres:15
-    
+
     log_info "PostgreSQL container started: ${CONTAINER_NAME}"
 }
 
 # Wait for PostgreSQL to be ready
 wait_for_postgres() {
     log_step "Waiting for PostgreSQL to be ready..."
-    
+
     local max_attempts=30
     local attempt=1
-    
+
     while [ $attempt -le $max_attempts ]; do
         if docker exec ${CONTAINER_NAME} pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} >/dev/null 2>&1; then
             log_info "PostgreSQL is ready!"
             return 0
         fi
-        
+
         echo -n "."
         sleep 2
         attempt=$((attempt + 1))
     done
-    
+
     log_error "PostgreSQL failed to start within 60 seconds"
     exit 1
 }
@@ -119,7 +119,7 @@ wait_for_postgres() {
 # Create database schema
 setup_schema() {
     log_step "Setting up database schema..."
-    
+
     # Check if schema files exist
     if [ -f "/Users/asrajag/Workspace/mem0/scripts/create-postgresql-schema.sql" ]; then
         docker exec -i ${CONTAINER_NAME} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} < /Users/asrajag/Workspace/mem0/scripts/create-postgresql-schema.sql
@@ -127,7 +127,7 @@ setup_schema() {
     else
         log_warn "Main schema file not found, skipping"
     fi
-    
+
     if [ -f "/Users/asrajag/Workspace/mem0/scripts/create-team-merger-schema.sql" ]; then
         docker exec -i ${CONTAINER_NAME} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} < /Users/asrajag/Workspace/mem0/scripts/create-team-merger-schema.sql
         log_info "Team merger schema created"
@@ -139,10 +139,10 @@ setup_schema() {
 # Update configuration files
 update_config() {
     log_step "Updating configuration files..."
-    
+
     # Database URL for the application
     DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}"
-    
+
     # Update .env file if it exists
     if [ -f "/Users/asrajag/Workspace/mem0/.env" ]; then
         sed -i '' "s|NINAIVALAIGAL_DATABASE_URL=.*|NINAIVALAIGAL_DATABASE_URL=${DATABASE_URL}|" /Users/asrajag/Workspace/mem0/.env
@@ -156,7 +156,7 @@ NINAIVALAIGAL_DEBUG=true
 EOF
         log_info "Created .env file"
     fi
-    
+
     # Update VS Code MCP configuration
     cat > /Users/asrajag/Workspace/mem0/.vscode/mcp.json << EOF
 {
@@ -179,10 +179,10 @@ EOF
 # Test database connection
 test_connection() {
     log_step "Testing database connection..."
-    
+
     if docker exec ${CONTAINER_NAME} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c "SELECT version();" >/dev/null 2>&1; then
         log_info "Database connection successful"
-        
+
         # Show database info
         echo ""
         echo "📊 Database Information:"
@@ -218,7 +218,7 @@ show_management_commands() {
 main() {
     echo "Starting PostgreSQL setup for Ninaivalaigal..."
     echo ""
-    
+
     check_docker
     cleanup_existing
     create_volume
@@ -228,7 +228,7 @@ main() {
     update_config
     test_connection
     show_management_commands
-    
+
     echo ""
     log_info "PostgreSQL setup completed successfully!"
     echo ""

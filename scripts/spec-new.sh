@@ -33,7 +33,7 @@ EOF
 
 main(){
   [[ -n "$SPEC_ID" && -n "$SPEC_NAME" ]] || usage
-  
+
   # System detection and recommendations (skip in deployment environments)
   # Temporarily simplified - detect_system has parsing issues with "Mac Studio"
   if [[ "${SYSTEM_IS_DEPLOYMENT:-false}" == "false" ]] && [[ $(uname -m) == "arm64" ]] && [[ $(sysctl -n hw.memsize 2>/dev/null || echo 0) -gt 100000000000 ]]; then
@@ -45,25 +45,25 @@ main(){
   elif [[ "${SYSTEM_IS_DEPLOYMENT:-false}" == "true" ]]; then
     log "Deployment environment detected - proceeding automatically"
   fi
-  
+
   # Validate SPEC ID format
   [[ "$SPEC_ID" =~ ^[0-9]{3}$ ]] || die "SPEC_ID must be 3 digits (e.g., 013)"
-  
+
   # Create SPEC directory
   SPEC_DIR="specs/${SPEC_ID}-${SPEC_NAME}"
-  
+
   if [[ -d "$SPEC_DIR" ]]; then
     die "SPEC directory already exists: $SPEC_DIR"
   fi
-  
+
   log "Creating SPEC $SPEC_ID: $SPEC_NAME"
   mkdir -p "$SPEC_DIR"
-  
+
   # Generate spec.md from template
   log "Generating spec.md from template..."
   sed "s/\[FEATURE NAME\]/$SPEC_NAME/g; s/\[###-feature-name\]/$SPEC_ID-$SPEC_NAME/g; s/\[DATE\]/$(date +%Y-%m-%d)/g" \
     templates/spec-template.md > "$SPEC_DIR/spec.md"
-  
+
   # Create acceptance criteria
   cat > "$SPEC_DIR/acceptance.md" <<EOF
 # SPEC $SPEC_ID: $SPEC_NAME - Acceptance Criteria
@@ -103,7 +103,7 @@ make spec-test ID=$SPEC_ID
 - [ ] Documentation complete
 - [ ] Code review approved
 EOF
-  
+
   # Create demo/validation script
   cat > "$SPEC_DIR/demo.sh" <<EOF
 #!/usr/bin/env bash
@@ -115,27 +115,27 @@ die(){ printf "\033[1;31m[fail]\033[0m %s\n" "\$*"; exit 1; }
 
 main(){
   log "Starting SPEC $SPEC_ID validation: $SPEC_NAME"
-  
+
   # TODO: Add your validation logic here
   log "✅ Placeholder validation - implement actual tests"
-  
+
   # Example validation steps:
   # 1. Setup test environment
   # 2. Run functional tests
   # 3. Verify expected outcomes
   # 4. Cleanup
-  
+
   log "SPEC $SPEC_ID validation complete"
 }
 
 main "\$@"
 EOF
-  
+
   chmod +x "$SPEC_DIR/demo.sh"
-  
+
   # Add to git
   git add "$SPEC_DIR/"
-  
+
   log "✅ SPEC $SPEC_ID created successfully!"
   log ""
   log "Next steps:"

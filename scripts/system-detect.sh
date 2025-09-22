@@ -18,18 +18,18 @@ success(){ printf "${GREEN}[success]${NC} %s\n" "$*"; }
 
 detect_system(){
     local system_info=""
-    
+
     # Check if we're in a deployment environment (skip interactive prompts)
     local is_deployment=false
     if [[ -n "${CI:-}" ]] || [[ -n "${GITHUB_ACTIONS:-}" ]] || [[ -n "${DEPLOYMENT_ENV:-}" ]] || [[ -n "${DOCKER_CONTAINER:-}" ]] || [[ -f "/.dockerenv" ]]; then
         is_deployment=true
     fi
-    
+
     # Detect OS
     if [[ "$OSTYPE" == "darwin"* ]]; then
         local macos_version=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
         system_info="macOS $macos_version"
-        
+
         # Detect Mac model (only if not in deployment)
         if [[ "$is_deployment" == false ]]; then
             local model=$(system_profiler SPHardwareDataType 2>/dev/null | grep "Model Name" | cut -d: -f2 | xargs || echo "unknown")
@@ -40,14 +40,14 @@ detect_system(){
             local chip="deployment"
             local memory="deployment"
         fi
-        
+
         echo "SYSTEM_OS=macOS"
         echo "SYSTEM_VERSION='$macos_version'"
         echo "SYSTEM_MODEL='$model'"
         echo "SYSTEM_CHIP='$chip'"
         echo "SYSTEM_MEMORY='$memory'"
         echo "SYSTEM_IS_DEPLOYMENT=$is_deployment"
-        
+
         # Determine role based on deployment context
         if [[ "$is_deployment" == true ]]; then
             echo "SYSTEM_ROLE=deployment"
@@ -59,14 +59,14 @@ detect_system(){
             echo "SYSTEM_ROLE=laptop"
             echo "SYSTEM_CAPABILITIES=development,authoring,hot_reload"
         fi
-        
+
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         # Detect Linux environment type
         local distro="unknown"
         if [[ -f "/etc/os-release" ]]; then
             distro=$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"' || echo "unknown")
         fi
-        
+
         # Check if we're in a container
         local container_type="none"
         if [[ -f "/.dockerenv" ]]; then
@@ -76,12 +76,12 @@ detect_system(){
         elif [[ -n "${CONTAINER:-}" ]]; then
             container_type="generic"
         fi
-        
+
         system_info="Linux ($distro)"
         if [[ "$container_type" != "none" ]]; then
             system_info="$system_info in $container_type"
         fi
-        
+
         echo "SYSTEM_OS=linux"
         echo "SYSTEM_VERSION='$distro'"
         echo "SYSTEM_MODEL='server'"
@@ -89,7 +89,7 @@ detect_system(){
         echo "SYSTEM_MEMORY='unknown'"
         echo "SYSTEM_IS_DEPLOYMENT=$is_deployment"
         echo "SYSTEM_CONTAINER_TYPE='$container_type'"
-        
+
         # Role determination for Linux
         if [[ "$is_deployment" == true ]] || [[ "$container_type" != "none" ]]; then
             echo "SYSTEM_ROLE=deployment"
@@ -98,7 +98,7 @@ detect_system(){
             echo "SYSTEM_ROLE=server"
             echo "SYSTEM_CAPABILITIES=ci_runner,production_stack,development"
         fi
-        
+
     else
         system_info="Unknown OS ($OSTYPE)"
         echo "SYSTEM_OS=unknown"
@@ -110,7 +110,7 @@ detect_system(){
         echo "SYSTEM_ROLE=unknown"
         echo "SYSTEM_CAPABILITIES=basic"
     fi
-    
+
     log "Detected: $system_info"
 }
 
@@ -137,7 +137,7 @@ check_container_runtime(){
 check_development_tools(){
     local tools=("git" "make" "curl" "python3" "node" "npm")
     local missing=()
-    
+
     for tool in "${tools[@]}"; do
         if command -v "$tool" >/dev/null 2>&1; then
             local version=$($tool --version 2>/dev/null | head -n1 || echo "unknown")
@@ -149,7 +149,7 @@ check_development_tools(){
             echo "TOOL_${tool_upper}=missing"
         fi
     done
-    
+
     if [[ ${#missing[@]} -gt 0 ]]; then
         warn "Missing tools: ${missing[*]}"
         echo "MISSING_TOOLS=${missing[*]}"
@@ -162,9 +162,9 @@ check_development_tools(){
 recommend_actions(){
     local system_role="${1:-unknown}"
     local is_deployment="${2:-false}"
-    
+
     log "Recommendations for $system_role:"
-    
+
     case "$system_role" in
         "deployment")
             echo "  • Deployment environment detected - automated operations enabled"
@@ -196,19 +196,19 @@ recommend_actions(){
 main(){
     log "System Detection and Environment Validation"
     echo ""
-    
+
     # Detect system capabilities
     detect_system
     echo ""
-    
+
     # Check container runtime
     check_container_runtime
     echo ""
-    
+
     # Check development tools
     check_development_tools
     echo ""
-    
+
     # Get system role and deployment status for recommendations
     local system_info=$(detect_system)
     local system_role=$(echo "$system_info" | grep "SYSTEM_ROLE=" | cut -d= -f2)

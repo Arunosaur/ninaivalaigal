@@ -1,0 +1,68 @@
+version: '3.8'
+
+# CI/x86_64 version of graph infrastructure for GitHub Actions
+services:
+  graph-db:
+    build:
+      context: ./containers/graph-db
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+    container_name: ninaivalaigal-graph-db-ci
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: ninaivalaigal_graph
+      POSTGRES_USER: graphuser
+      POSTGRES_PASSWORD: ${GRAPH_DB_PASSWORD:-graphpass}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - graph_data_ci:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U graphuser -d ninaivalaigal_graph"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - ninaivalaigal-network-ci
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis for graph caching and performance
+  graph-redis:
+    image: redis:7-alpine
+    container_name: ninaivalaigal-graph-redis-ci
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redispass}
+    volumes:
+      - graph_redis_data_ci:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ninaivalaigal-network-ci
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  graph_data_ci:
+    driver: local
+  graph_redis_data_ci:
+    driver: local
+
+networks:
+  ninaivalaigal-network-ci:
+    driver: bridge
+    name: ninaivalaigal-network-ci

@@ -39,17 +39,17 @@ timeout 30 bash -c 'until docker-compose -f /tmp/colima-postgres-test.yml exec p
 
 if [ $? -eq 0 ]; then
     echo "✅ Postgres is ready!"
-    
+
     echo -e "\n=== Testing pgvector extension ==="
     docker-compose -f /tmp/colima-postgres-test.yml exec postgres psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS vector;"
     docker-compose -f /tmp/colima-postgres-test.yml exec postgres psql -U postgres -c "SELECT extname FROM pg_extension WHERE extname = 'vector';"
-    
+
     echo -e "\n=== Resource usage ==="
     docker stats --no-stream
-    
+
     echo -e "\n=== Colima VM stats ==="
     colima status
-    
+
 else
     echo "❌ Postgres failed to start"
 fi

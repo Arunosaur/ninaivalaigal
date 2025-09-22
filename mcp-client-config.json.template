@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "e^m": {
+      "command": "${PYTHON_PATH}",
+      "args": ["${MCP_SERVER_PATH}"],
+      "env": {
+        "NINAIVALAIGAL_SERVER_URL": "${NINAIVALAIGAL_SERVER_URL}"
+      }
+    },
+    "code-reviewer": {
+      "command": "${PYTHON_PATH}",
+      "args": ["${MCP_CODE_REVIEWER_PATH}"],
+      "env": {}
+    }
+  }
+}

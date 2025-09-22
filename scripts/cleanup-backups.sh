@@ -64,12 +64,12 @@ validate_inputs(){
   if ! [[ "$RETENTION_DAYS" =~ ^[0-9]+$ ]] || [[ "$RETENTION_DAYS" -lt 1 ]]; then
     die "Invalid retention days: $RETENTION_DAYS (must be positive integer)"
   fi
-  
+
   # Validate backup directory
   if [[ ! -d "$BACKUP_DIR" ]]; then
     die "Backup directory not found: $BACKUP_DIR"
   fi
-  
+
   # Safety check - ensure we're in the right directory
   if [[ ! "$BACKUP_DIR" =~ ninaivalaigal ]]; then
     die "Safety check failed: backup directory path must contain 'ninaivalaigal'"
@@ -79,7 +79,7 @@ validate_inputs(){
 find_old_backups(){
   local backup_dir="$1"
   local retention_days="$2"
-  
+
   # Find backup files older than retention period
   find "$backup_dir" -name "nina-*.dump" -type f -mtime +$retention_days 2>/dev/null || true
 }
@@ -87,31 +87,31 @@ find_old_backups(){
 analyze_backups(){
   local backup_dir="$1"
   local retention_days="$2"
-  
+
   log "Analyzing backups in: $backup_dir"
   log "Retention policy: $retention_days days"
-  
+
   # Count all backups
   local total_backups=$(find "$backup_dir" -name "nina-*.dump" -type f 2>/dev/null | wc -l)
   log "Total backups found: $total_backups"
-  
+
   if [[ "$total_backups" -eq 0 ]]; then
     warn "No backup files found"
     return 0
   fi
-  
+
   # Find old backups
   local old_backups=$(find_old_backups "$backup_dir" "$retention_days")
   local old_count=$(echo "$old_backups" | grep -c "nina-" || echo "0")
-  
+
   log "Backups to clean: $old_count"
   log "Backups to keep: $((total_backups - old_count))"
-  
+
   if [[ "$old_count" -eq 0 ]]; then
     log "✅ No cleanup needed - all backups within retention period"
     return 0
   fi
-  
+
   # Show what will be cleaned
   log "Files to be removed:"
   echo "$old_backups" | while read -r file; do
@@ -121,7 +121,7 @@ analyze_backups(){
       log "  $(basename "$file") ($size, created: $age)"
     fi
   done
-  
+
   # Calculate space to be freed
   local total_size=0
   echo "$old_backups" | while read -r file; do
@@ -130,7 +130,7 @@ analyze_backups(){
       total_size=$((total_size + size))
     fi
   done
-  
+
   if [[ "$total_size" -gt 0 ]]; then
     local human_size=$(numfmt --to=iec --suffix=B "$total_size" 2>/dev/null || echo "${total_size} bytes")
     log "Space to be freed: $human_size"
@@ -141,29 +141,29 @@ cleanup_backups(){
   local backup_dir="$1"
   local retention_days="$2"
   local dry_run="$3"
-  
+
   local old_backups=$(find_old_backups "$backup_dir" "$retention_days")
   local old_count=$(echo "$old_backups" | grep -c "nina-" || echo "0")
-  
+
   if [[ "$old_count" -eq 0 ]]; then
     return 0
   fi
-  
+
   if [[ "$dry_run" == "true" ]]; then
     log "🔍 DRY RUN - No files will be deleted"
     return 0
   fi
-  
+
   # Safety check - ensure we have recent backups before deleting old ones
   local recent_backups=$(find "$backup_dir" -name "nina-*.dump" -type f -mtime -1 2>/dev/null | wc -l)
   if [[ "$recent_backups" -eq 0 ]]; then
     die "Safety check failed: No recent backups found (within 24 hours). Aborting cleanup."
   fi
-  
+
   log "🗑️  Cleaning up old backups..."
   local deleted_count=0
   local failed_count=0
-  
+
   echo "$old_backups" | while read -r file; do
     if [[ -n "$file" && -f "$file" ]]; then
       if rm "$file" 2>/dev/null; then
@@ -175,19 +175,19 @@ cleanup_backups(){
       fi
     fi
   done
-  
+
   log "Cleanup completed: $deleted_count deleted, $failed_count failed"
 }
 
 show_final_status(){
   local backup_dir="$1"
-  
+
   log "Final backup status:"
-  
+
   if [[ -d "$backup_dir" ]]; then
     local remaining=$(find "$backup_dir" -name "nina-*.dump" -type f 2>/dev/null | wc -l)
     log "Remaining backups: $remaining"
-    
+
     if [[ "$remaining" -gt 0 ]]; then
       log "Recent backups:"
       find "$backup_dir" -name "nina-*.dump" -type f -printf '%C+ %s %p\n' 2>/dev/null | \
@@ -202,16 +202,16 @@ show_final_status(){
 main(){
   parse_args "$@"
   validate_inputs
-  
+
   log "Backup cleanup starting..."
   log "Directory: $BACKUP_DIR"
   log "Retention: $RETENTION_DAYS days"
   log "Mode: $([ "$DRY_RUN" == "true" ] && echo "DRY RUN" || echo "LIVE")"
-  
+
   analyze_backups "$BACKUP_DIR" "$RETENTION_DAYS"
   cleanup_backups "$BACKUP_DIR" "$RETENTION_DAYS" "$DRY_RUN"
   show_final_status "$BACKUP_DIR"
-  
+
   log "✅ Backup cleanup completed"
 }
 

@@ -55,7 +55,7 @@ if [[ "$CONTAINER_RUNNING" == true && "$PORT_ACCESSIBLE" == true && "$HEALTH_OK"
   exit 0
 else
   fail "some checks failed"
-  
+
   # Provide helpful diagnostics
   if [[ "$CONTAINER_RUNNING" == false ]]; then
     warn "start with: make ui-up or scripts/nv-ui-start.sh"
@@ -64,6 +64,6 @@ else
   elif [[ "$HEALTH_OK" == false || "$UI_OK" == false ]]; then
     warn "check logs: container logs $NAME"
   fi
-  
+
   exit 1
 fi

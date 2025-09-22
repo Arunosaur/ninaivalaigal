@@ -6,7 +6,7 @@ This directory contains automation scripts for the ninaivalaigal project, with a
 
 ### Database Management
 - **`nv-db-start.sh`** - Start PostgreSQL + pgvector container
-- **`nv-db-stop.sh`** - Stop and remove database container  
+- **`nv-db-stop.sh`** - Stop and remove database container
 - **`nv-db-status.sh`** - Check database container health
 - **`nv-test-db.sh`** - Run tests against database container
 
@@ -80,9 +80,9 @@ cp .env.example .env
 
 ## Validation Status
 
-✅ **Apple Container CLI**: Validated on Mac Studio M1 Ultra  
-✅ **PostgreSQL + pgvector**: Working perfectly  
-✅ **Performance**: Excellent native ARM64 optimization  
-✅ **Scripts**: Production-ready with correct syntax  
+✅ **Apple Container CLI**: Validated on Mac Studio M1 Ultra
+✅ **PostgreSQL + pgvector**: Working perfectly
+✅ **Performance**: Excellent native ARM64 optimization
+✅ **Scripts**: Production-ready with correct syntax
 
 For detailed validation results, see `docs/APPLE_CONTAINER_CLI_SETUP.md`.

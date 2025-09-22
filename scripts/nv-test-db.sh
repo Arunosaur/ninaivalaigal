@@ -21,17 +21,17 @@ trap cleanup EXIT
 main() {
   log "Starting database for testing..."
   "$SCRIPT_DIR/nv-db-start.sh"
-  
+
   log "Waiting for database to be fully ready..."
   sleep 5
-  
+
   log "Running tests..."
   cd "$PROJECT_ROOT"
-  
+
   # Set up environment for tests
   export PYTHONPATH="$PROJECT_ROOT/server:$PYTHONPATH"
   export DATABASE_URL="postgresql://nina:change_me_securely@localhost:5433/nina"
-  
+
   # Run pytest with any passed arguments
   if [ $# -eq 0 ]; then
     # Default test suite
@@ -40,7 +40,7 @@ main() {
     # Run with custom arguments
     pytest "$@" || die "Tests failed"
   fi
-  
+
   log "Tests completed successfully!"
 }
 

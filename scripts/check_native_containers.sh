@@ -6,7 +6,7 @@ sw_vers
 
 echo -e "\n=== Checking for native container tools ==="
 which podman 2>/dev/null && echo "✅ Podman found" || echo "❌ Podman not found"
-which lima 2>/dev/null && echo "✅ Lima found" || echo "❌ Lima not found" 
+which lima 2>/dev/null && echo "✅ Lima found" || echo "❌ Lima not found"
 which colima 2>/dev/null && echo "✅ Colima found" || echo "❌ Colima not found"
 
 echo -e "\n=== Checking system container support ==="

@@ -24,12 +24,12 @@ stop_existing(){
 
 build_image(){
   log "Building UI image: $IMAGE"
-  
+
   # Check if client directory exists
   if [[ ! -d "client" ]]; then
     log "Creating placeholder client directory for development..."
     mkdir -p client
-    
+
     # Create minimal package.json
     cat > client/package.json <<EOF
 {
@@ -42,7 +42,7 @@ build_image(){
   "devDependencies": {}
 }
 EOF
-    
+
     # Create minimal build output
     mkdir -p client/dist client/public
     cat > client/public/index.html <<EOF
@@ -69,13 +69,13 @@ EOF
             <h3>✅ UI Container Running</h3>
             <p>Admin interface is online and ready for development.</p>
         </div>
-        
+
         <h3>🔗 Service Status</h3>
         <div id="services">
             <div class="api-status" id="api-status">🔄 Checking API...</div>
             <div class="api-status" id="mem0-status">🔄 Checking Mem0...</div>
         </div>
-        
+
         <h3>🚀 Next Steps</h3>
         <ul>
             <li>Develop React/Vue/Svelte UI in <code>client/</code> directory</li>
@@ -83,7 +83,7 @@ EOF
             <li>Build production UI with <code>npm run build</code></li>
             <li>Container will auto-rebuild on changes</li>
         </ul>
-        
+
         <h3>🛠 Development Commands</h3>
         <pre>
 # Start full stack
@@ -96,7 +96,7 @@ cd client && npm run dev
 container build -t ninaivalaigal-ui:latest -f Dockerfile.ui .
         </pre>
     </div>
-    
+
     <script>
         // Check API status
         fetch('/api/health')
@@ -109,7 +109,7 @@ container build -t ninaivalaigal-ui:latest -f Dockerfile.ui .
                 document.getElementById('api-status').innerHTML = '❌ API Offline';
                 document.getElementById('api-status').className = 'api-status offline';
             });
-        
+
         // Check Mem0 status
         fetch('http://localhost:7070/health')
             .then(r => r.json())
@@ -125,10 +125,10 @@ container build -t ninaivalaigal-ui:latest -f Dockerfile.ui .
 </body>
 </html>
 EOF
-    
+
     log "Created placeholder UI structure for development"
   fi
-  
+
   container build -t "$IMAGE" -f Dockerfile.ui .
 }
 

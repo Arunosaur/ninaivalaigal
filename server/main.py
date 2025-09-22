@@ -18,14 +18,13 @@ from observability import MetricsMiddleware, health_router, metrics_router
 from performance_monitor import get_performance_monitor, start_performance_monitoring
 from pydantic import BaseModel
 from rate_limiting import rate_limit_middleware
+from rbac.permissions import Action, Resource
 from rbac_middleware import get_rbac_context, rbac_middleware, require_permission
 from redis_client import redis_client
 from redis_queue import queue_manager
 from security_integration import configure_security, log_admin_action, redact_text
 from signup_api import router as signup_router
 from spec_kit import ContextScope, ContextSpec, SpecKitContextManager
-
-from rbac.permissions import Action, Resource
 
 # Initialize logger
 logger = structlog.get_logger(__name__)
@@ -37,9 +36,9 @@ def load_config():
     default_config = {
         "storage": {
             "type": "postgresql",
-            "url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+            "url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret
         },
-        "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+        "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret
     }
 
     # Load from environment variables first (highest priority)
@@ -296,6 +295,11 @@ from memory_drift_api import router as drift_router
 
 app.include_router(drift_router)
 
+# Include Graph Intelligence router (SPEC-061)
+from graph_intelligence_api import router as graph_intelligence_router
+
+app.include_router(graph_intelligence_router)
+
 # Remove duplicate auth endpoints - handled by signup_router and token_router
 
 # Login endpoint handled by signup_router
@@ -347,9 +351,9 @@ def get_organizations(request: Request, current_user: User = Depends(get_current
                     "id": org.id,
                     "name": org.name,
                     "description": org.description,
-                    "created_at": org.created_at.isoformat()
-                    if org.created_at
-                    else None,
+                    "created_at": (
+                        org.created_at.isoformat() if org.created_at else None
+                    ),
                 }
                 for org in organizations
             ]
@@ -617,15 +621,17 @@ def share_context(
             # Create permission entry
             permission = ContextPermission(
                 context_id=context_id,
-                user_id=share_data.target_id
-                if share_data.target_type == "user"
-                else None,
-                team_id=share_data.target_id
-                if share_data.target_type == "team"
-                else None,
-                organization_id=share_data.target_id
-                if share_data.target_type == "organization"
-                else None,
+                user_id=(
+                    share_data.target_id if share_data.target_type == "user" else None
+                ),
+                team_id=(
+                    share_data.target_id if share_data.target_type == "team" else None
+                ),
+                organization_id=(
+                    share_data.target_id
+                    if share_data.target_type == "organization"
+                    else None
+                ),
                 permission_level=share_data.permission_level,
                 granted_by=current_user.id,
             )
@@ -754,9 +760,11 @@ async def create_context(
             scope=ContextScope(context_data.scope),
             owner_id=current_user.id if context_data.scope == "personal" else None,
             team_id=context_data.team_id if context_data.scope == "team" else None,
-            organization_id=context_data.organization_id
-            if context_data.scope == "organization"
-            else None,
+            organization_id=(
+                context_data.organization_id
+                if context_data.scope == "organization"
+                else None
+            ),
         )
 
         # Use spec-kit for creation
@@ -945,9 +953,11 @@ async def get_recording_status(current_user: User = Depends(get_current_user)):
 
         status = await auto_recorder.get_recording_status()
         return {
-            "recording_status": "🎥 CCTV Active"
-            if status["active_contexts"] > 0
-            else "🔴 CCTV Inactive",
+            "recording_status": (
+                "🎥 CCTV Active"
+                if status["active_contexts"] > 0
+                else "🔴 CCTV Inactive"
+            ),
             "active_contexts": status["active_contexts"],
             "contexts": status["contexts"],
         }
@@ -1230,7 +1240,7 @@ def get_prometheus_metrics():
             metrics_output.append(
                 f"ninaivalaigal_database_healthy {1 if db_healthy else 0}"
             )
-        except:
+        except Exception:
             metrics_output.append("ninaivalaigal_database_healthy 0")
 
         return "\n".join(metrics_output) + "\n"

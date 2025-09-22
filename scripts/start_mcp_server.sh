@@ -31,18 +31,18 @@ start_server() {
             rm -f "$PID_FILE"
         fi
     fi
-    
+
     echo "Starting mem0 MCP server..."
     echo "Database: $NINAIVALAIGAL_DATABASE_URL"
     echo "Log file: $LOG_FILE"
-    
+
     cd "$SERVER_DIR"
     python mcp_server.py > "$LOG_FILE" 2>&1 &
     SERVER_PID=$!
-    
+
     echo "$SERVER_PID" > "$PID_FILE"
     echo "MCP server started (PID: $SERVER_PID)"
-    
+
     # Wait a moment to check if it started successfully
     sleep 2
     if ! ps -p "$SERVER_PID" > /dev/null 2>&1; then
@@ -50,7 +50,7 @@ start_server() {
         rm -f "$PID_FILE"
         exit 1
     fi
-    
+
     echo "✅ MCP server running successfully"
 }
 
@@ -60,7 +60,7 @@ stop_server() {
         if ps -p "$PID" > /dev/null 2>&1; then
             echo "Stopping MCP server (PID: $PID)..."
             kill "$PID"
-            
+
             # Wait for graceful shutdown
             for i in {1..10}; do
                 if ! ps -p "$PID" > /dev/null 2>&1; then
@@ -68,13 +68,13 @@ stop_server() {
                 fi
                 sleep 1
             done
-            
+
             # Force kill if still running
             if ps -p "$PID" > /dev/null 2>&1; then
                 echo "Force killing MCP server..."
                 kill -9 "$PID"
             fi
-            
+
             rm -f "$PID_FILE"
             echo "✅ MCP server stopped"
         else

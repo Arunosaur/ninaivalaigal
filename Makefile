@@ -723,10 +723,100 @@ spec-061:
 	@make test-graph-reasoner && make benchmark-reasoner
 	@echo "✅ SPEC-061 Property Graph Intelligence Framework validation complete"
 
+test-graph-intelligence-api:
+	@echo "🌐 Testing Graph Intelligence API endpoints..."
+	pytest tests/unit/test_graph_intelligence_api.py -v --tb=short
+
+## GraphOps Infrastructure Management (Dual Architecture)
+build-graph-db-arm64:
+	@echo "🏗️ Building Apache AGE + PostgreSQL image for ARM64 (Apple Container CLI)..."
+	cd containers/graph-db && container build . -t ninaivalaigal-graph-db:arm64
+
+build-graph-db-x86:
+	@echo "🏗️ Building Apache AGE + PostgreSQL image for x86_64 (CI/Docker)..."
+	cd containers/graph-db && docker buildx build --platform linux/amd64 . -t ninaivalaigal-graph-db:x86_64
+
+build-graph-db: build-graph-db-arm64
+	@echo "✅ Graph DB image built for current architecture"
+
+start-graph-infrastructure: build-graph-db
+	@echo "🚀 Starting graph infrastructure (Apache AGE + Redis)..."
+	@echo "Starting Redis..."
+	container run -d --name ninaivalaigal-graph-redis \
+		-p 6381:6379 \
+		redis:7-alpine redis-server --appendonly yes || true
+	@echo "Starting Graph DB..."
+	container run -d --name ninaivalaigal-graph-db \
+		-p 5434:5432 \
+		-e POSTGRES_DB=ninaivalaigal_graph \
+		-e POSTGRES_USER=graphuser \
+		-e POSTGRES_PASSWORD=${GRAPH_DB_PASSWORD:-graphpass} \
+		-e POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256" \
+		ninaivalaigal-graph-db:arm64 || true
+	@echo "⏳ Waiting for services to be ready..."
+	@sleep 20
+	@make check-graph-health
+
+stop-graph-infrastructure:
+	@echo "🛑 Stopping graph infrastructure..."
+	@echo "Stopping Graph DB..."
+	container stop ninaivalaigal-graph-db || true
+	container rm ninaivalaigal-graph-db || true
+	@echo "Stopping Redis..."
+	container stop ninaivalaigal-graph-redis || true
+	container rm ninaivalaigal-graph-redis || true
+
+restart-graph-infrastructure:
+	@echo "🔄 Restarting graph infrastructure..."
+	@make stop-graph-infrastructure
+	@make start-graph-infrastructure
+
+check-graph-health:
+	@echo "🏥 Checking graph infrastructure health..."
+	@echo "📊 Container Status:"
+	@container list | grep -E "(ninaivalaigal-graph-db|ninaivalaigal-graph-redis)" || echo "No graph containers running"
+	@echo "📊 Graph DB Status:"
+	@container exec ninaivalaigal-graph-db pg_isready -U graphuser -d ninaivalaigal_graph || echo "❌ Graph DB not ready"
+	@echo "📊 Redis Status:"
+	@container exec ninaivalaigal-graph-redis redis-cli ping || echo "❌ Redis not ready"
+
+graph-db-shell:
+	@echo "🐘 Connecting to graph database..."
+	container exec -it ninaivalaigal-graph-db psql -U graphuser -d ninaivalaigal_graph
+
+graph-redis-shell:
+	@echo "📦 Connecting to graph Redis..."
+	container exec -it ninaivalaigal-graph-redis redis-cli
+
+init-graph-schema:
+	@echo "🏗️ Initializing graph schema..."
+	container exec ninaivalaigal-graph-db psql -U graphuser -d ninaivalaigal_graph -c "SELECT * FROM graph_stats;"
+
+clean-graph-data:
+	@echo "🧹 Cleaning graph data (WARNING: This will delete all data)..."
+	@read -p "Are you sure? Type 'yes' to confirm: " confirm && [ "$$confirm" = "yes" ] || exit 1
+	@make stop-graph-infrastructure
+	container volume rm ninaivalaigal_graph_data ninaivalaigal_graph_redis_data 2>/dev/null || true
+	@echo "✅ Graph data cleaned"
+
 test-graph-all:
-	@echo "🌐 Running all graph-related tests (SPEC-060 + SPEC-061)..."
-	@make test-graph && make test-graph-reasoner
+	@echo "🌐 Running all graph-related tests (SPEC-060 + SPEC-061 + API)..."
+	@make test-graph && make test-graph-reasoner && make test-graph-intelligence-api
 	@echo "✅ Complete graph testing suite finished"
+
+spec-062:
+	@echo "🎯 Running complete SPEC-062 GraphOps Stack validation..."
+	@echo "📋 Validating GraphOps infrastructure..."
+	@make check-graph-health
+	@echo "🧪 Testing Apache AGE functionality..."
+	@container exec ninaivalaigal-graph-db psql -U graphuser -d ninaivalaigal_graph -c "SELECT name FROM ag_catalog.ag_graph WHERE name = 'ninaivalaigal_graph';" | grep -q "ninaivalaigal_graph" || (echo "❌ Graph not found" && exit 1)
+	@echo "🔍 Testing Cypher queries..."
+	@container exec ninaivalaigal-graph-db psql -U graphuser -d ninaivalaigal_graph -c "LOAD 'age'; SET search_path = ag_catalog, \"\$$user\", public; SELECT * FROM cypher('ninaivalaigal_graph', \$$\$$ MATCH (u:User) RETURN count(u) \$$\$$) AS (count agtype);" > /dev/null || (echo "❌ Cypher queries failed" && exit 1)
+	@echo "📊 Testing Redis cache..."
+	@container exec ninaivalaigal-graph-redis redis-cli ping | grep -q "PONG" || (echo "❌ Redis not responding" && exit 1)
+	@echo "🏗️ Testing dual-architecture builds..."
+	@make build-graph-db-arm64 > /dev/null
+	@echo "✅ SPEC-062 GraphOps Stack Deployment Architecture validation complete"
 
 test-all:
 	@echo "🧪 Running all test suites with coverage..."
@@ -761,3 +851,57 @@ validate-coverage:
 validate-critical-coverage:
 	@echo "🎯 Validating critical module coverage (100% target)..."
 	pytest --cov=server.auth --cov=server.memory --cov=server.rbac_middleware --cov-report=term --cov-fail-under=100 tests/ -k "auth or memory or rbac" || echo "⚠️ Critical modules need 100% coverage"
+
+# Pre-commit hook management
+pre-commit-enable:
+	@echo "🔧 Installing pre-commit hooks..."
+	pre-commit install
+	@echo "✅ Pre-commit hooks enabled"
+
+pre-commit-disable:
+	@echo "🔧 Uninstalling pre-commit hooks..."
+	pre-commit uninstall
+	@echo "✅ Pre-commit hooks disabled"
+
+pre-commit-update:
+	@echo "🔄 Updating pre-commit hooks..."
+	pre-commit clean
+	pre-commit autoupdate
+	@echo "✅ Pre-commit hooks updated"
+
+pre-commit-run:
+	@echo "🧪 Running pre-commit on all files..."
+	pre-commit run --all-files
+
+pre-commit-fix:
+	@echo "🔧 Running pre-commit with auto-fixes..."
+	pre-commit run --all-files || true
+	@echo "✅ Pre-commit fixes applied"
+
+# Environment setup
+setup-env:
+	@echo "🔧 Setting up environment..."
+	./scripts/setup-env.sh
+	@echo "✅ Environment setup complete"
+
+# Security cleanup
+security-cleanup:
+	@echo "🔒 Running security cleanup..."
+	@echo "Removing config files with secrets from git tracking..."
+	git rm --cached *.config.json 2>/dev/null || true
+	@echo "✅ Security cleanup complete"
+
+# Development stack management
+dev-up:
+	@echo "🚀 Starting full development stack..."
+	./scripts/bring-up-dev.sh
+
+dev-down:
+	@echo "🛑 Stopping development stack..."
+	@make stop-graph-infrastructure || true
+	@./scripts/nv-stack-stop.sh || true
+	@echo "✅ Development stack stopped"
+
+dev-status:
+	@echo "📊 Development stack status..."
+	@container list | grep -E "(nv-|ninaivalaigal-)" || echo "No development containers running"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start mem0 sidecar (FastAPI) with Apple `container` 
+# Start mem0 sidecar (FastAPI) with Apple `container`
 set -euo pipefail
 
 CONTAINER_NAME="${MEM0_CONTAINER_NAME:-nv-mem0}"
@@ -30,7 +30,7 @@ build_image(){
 
 run_container(){
   log "Starting $CONTAINER_NAME on :$HOST_PORT…"
-  
+
   # Pass MEMORY_SHARED_SECRET to container if set
   local env_args=""
   if [[ -n "${MEMORY_SHARED_SECRET:-}" ]]; then
@@ -39,7 +39,7 @@ run_container(){
   else
     log "⚠️  No MEMORY_SHARED_SECRET set - authentication disabled"
   fi
-  
+
   container run -d --name "$CONTAINER_NAME" \
     --publish "${HOST_PORT}:7070" \
     ${env_args} \
