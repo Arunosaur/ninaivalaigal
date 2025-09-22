@@ -13,28 +13,33 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .models import (
-    Base,
-    Context,
-    Memory,
-)
+from .models import Base, Context, Memory
 
 
 class DatabaseManager:
     """Core database manager with connection and session management"""
 
-    def __init__(self, config="postgresql://mem0user:mem0pass@localhost:5432/mem0db"):
+    def __init__(self, config=None):
+        # Get database URL from environment or use default
+        default_url = os.getenv(
+            "DATABASE_URL",
+            os.getenv(
+                "NINAIVALAIGAL_DATABASE_URL",
+                "postgresql://nina:change_me_securely@localhost:6432/nina",  # pragma: allowlist secret
+            ),
+        )
+
         # Handle both string URL and config dict
         if isinstance(config, dict):
-            database_url = config.get(
-                "database_url", "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
-            )
-        else:
+            database_url = config.get("database_url", default_url)
+        elif config is not None:
             database_url = config
+        else:
+            database_url = default_url
 
         # Ensure we always use PostgreSQL
         if not database_url.startswith("postgresql"):
-            database_url = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+            database_url = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
         print(f"🐘 Using PostgreSQL: {database_url}")
 
         # PostgreSQL connection with pool settings

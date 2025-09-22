@@ -312,6 +312,24 @@ uninstall:
 	@container rmi nina-pgbouncer:arm64 nina-api:arm64 2>/dev/null || true
 	@echo "✅ Ninaivalaigal uninstalled"
 
+## Container Building with Validation
+build-api:
+	@echo "🔨 Building API with dependency validation..."
+	./scripts/build-and-validate-api.sh
+
+build-api-unsafe:
+	@echo "⚠️  Building API without validation (NOT RECOMMENDED)"
+	container build -t nina-api:arm64 -f Dockerfile.api .
+
+## Working State Management
+capture-state:
+	@echo "📸 Capturing current working state..."
+	./scripts/capture-working-state.sh
+
+cleanup-images:
+	@echo "🧹 Cleaning up unused container images..."
+	./scripts/cleanup-unused-images.sh
+
 ## SPEC-011: Memory Lifecycle Management
 migrate-lifecycle:
 	@echo "🔄 Running SPEC-011 memory lifecycle migration..."
@@ -408,8 +426,13 @@ release-local:
 	@docker buildx build \
 		--platform linux/amd64,linux/arm64 \
 		--load \
-		-t $(IMAGE_NAME)-api:local-test \
-		-f Dockerfile.api .
+		-t $(IMAGE_NAME)-api:local-test
+	@echo "🔨 Building API with dependency validation..."
+	./scripts/build-and-validate-api.sh
+
+build-api-unsafe:
+	@echo "⚠️  Building API without validation (NOT RECOMMENDED)"
+	container build -t nina-api:arm64 -f Dockerfile.api .
 	@docker buildx build \
 		--platform linux/amd64,linux/arm64 \
 		--load \

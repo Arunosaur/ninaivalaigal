@@ -279,6 +279,6 @@ When adding new endpoints:
 
 ---
 
-**Last Updated:** September 22, 2024  
-**API Version:** 1.0.0  
+**Last Updated:** September 22, 2024
+**API Version:** 1.0.0
 **OpenAPI Version:** 3.0.0

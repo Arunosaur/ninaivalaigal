@@ -7,6 +7,9 @@ This addresses external code review feedback:
 - Improve code organization and maintainability
 """
 
+# Import manager and operations
+from .manager import DatabaseManager
+
 # Import all models for backward compatibility
 from .models import (
     Base,
@@ -20,9 +23,7 @@ from .models import (
     User,
     UserInvitation,
 )
-
-# Import manager and operations
-from .operations import DatabaseManager, get_db
+from .operations import DatabaseOperations, get_db
 
 # Export all for backward compatibility
 __all__ = [
@@ -39,5 +40,6 @@ __all__ = [
     "UserInvitation",
     # Manager and operations
     "DatabaseManager",
+    "DatabaseOperations",
     "get_db",
 ]
