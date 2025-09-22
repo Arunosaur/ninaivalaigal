@@ -665,6 +665,22 @@ test-rbac:
 	@echo "🛡️ Running RBAC tests..."
 	pytest tests/ -k "rbac" -v --tb=short
 
+test-database:
+	@echo "🗄️ Running database tests..."
+	pytest tests/ -k "database" -v --tb=short
+
+test-redis:
+	@echo "🔴 Running Redis tests..."
+	pytest tests/ -k "redis" -v --tb=short
+
+test-observability:
+	@echo "📊 Running observability tests..."
+	pytest tests/ -k "observability" -v --tb=short
+
+test-infrastructure:
+	@echo "🏗️ Running infrastructure tests (database, redis, observability)..."
+	pytest tests/ -k "database or redis or observability" -v --tb=short
+
 test-all:
 	@echo "🧪 Running all test suites with coverage..."
 	pytest --cov=server --cov-report=term --cov-report=html --cov-report=xml tests/
