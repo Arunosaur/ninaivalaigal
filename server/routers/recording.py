@@ -11,13 +11,23 @@ from auto_recording import get_auto_recorder
 # Initialize router
 router = APIRouter(prefix="/context", tags=["recording"])
 
-# Database manager and auto recorder instances
-db = DatabaseManager()
-auto_recorder = get_auto_recorder(db)
+# Database manager dependency
+def get_db():
+    """Get database manager with dynamic configuration"""
+    from config import get_dynamic_database_url
+    return DatabaseManager(get_dynamic_database_url())
+
+def get_auto_recorder_instance(db: DatabaseManager = Depends(get_db)):
+    """Get auto recorder with dynamic database"""
+    return get_auto_recorder(db)
 
 
 @router.post("/start")
-async def start_recording(context: str, current_user: User = Depends(get_current_user)):
+async def start_recording(
+    context: str, 
+    current_user: User = Depends(get_current_user),
+    auto_recorder = Depends(get_auto_recorder_instance),
+):
     """Start CCTV-style automatic recording to a context"""
     try:
         # Use authenticated user ID (mandatory)

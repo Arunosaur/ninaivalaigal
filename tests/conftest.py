@@ -7,6 +7,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+# Import SPEC-056 fixtures
+try:
+    from .fixtures import *
+except ImportError:
+    # Fallback for when running from different contexts
+    import sys
+    import os
+    sys.path.append(os.path.dirname(__file__))
+    from fixtures import *
+
 # Test database setup
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 engine = create_engine(

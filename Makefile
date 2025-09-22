@@ -16,6 +16,18 @@ stack-down:
 stack-status:
 	@$(SCRIPTS)/nv-stack-status.sh
 
+## comprehensive container health monitoring
+health-check:
+	@$(SCRIPTS)/nv-container-health.sh check
+
+## auto-restart unhealthy containers
+health-restart:
+	@$(SCRIPTS)/nv-container-health.sh auto-restart
+
+## continuous health monitoring (30s interval)
+health-monitor:
+	@$(SCRIPTS)/nv-container-health.sh continuous 30 true
+
 ## bring up only the database
 db-only:
 	@$(SCRIPTS)/nv-stack-start.sh --db-only
@@ -905,3 +917,91 @@ dev-down:
 dev-status:
 	@echo "📊 Development stack status..."
 	@container list | grep -E "(nv-|ninaivalaigal-)" || echo "No development containers running"
+
+# =============================================================================
+# SPEC-056: Dependency & Testing Improvements
+# =============================================================================
+
+## Compile requirements files using pip-tools
+deps-compile:
+	@echo "🔧 Compiling requirements files..."
+	@$(SCRIPTS)/manage-deps.sh compile all
+
+## Install development dependencies
+deps-install-dev:
+	@echo "📦 Installing development dependencies..."
+	@$(SCRIPTS)/manage-deps.sh install dev
+
+## Install production dependencies
+deps-install-prod:
+	@echo "📦 Installing production dependencies..."
+	@$(SCRIPTS)/manage-deps.sh install base
+
+## Install test dependencies
+deps-install-test:
+	@echo "📦 Installing test dependencies..."
+	@$(SCRIPTS)/manage-deps.sh install test
+
+## Update all dependencies to latest versions
+deps-update:
+	@echo "⬆️ Updating all dependencies..."
+	@$(SCRIPTS)/manage-deps.sh update
+
+## Check for dependency conflicts
+deps-check:
+	@echo "🔍 Checking for dependency conflicts..."
+	@$(SCRIPTS)/manage-deps.sh check
+
+## Show dependency tree
+deps-tree:
+	@echo "🌳 Showing dependency tree..."
+	@$(SCRIPTS)/manage-deps.sh tree
+
+## Clean up old requirements files
+deps-cleanup:
+	@echo "🧹 Cleaning up old requirements files..."
+	@$(SCRIPTS)/manage-deps.sh cleanup
+
+## Run tests with improved mocks and fixtures
+test-with-mocks:
+	@echo "🧪 Running tests with comprehensive mocks..."
+	@python -m pytest tests/unit/test_memory_with_mocks.py -v
+
+## Run all unit tests with mocks
+test-unit-mocked:
+	@echo "🧪 Running all unit tests with mocks..."
+	@python -m pytest tests/unit/ -v --tb=short
+
+## Run performance tests with benchmarks
+test-performance:
+	@echo "⚡ Running performance tests..."
+	@python -m pytest tests/performance/ -v --benchmark-only
+
+## Validate test fixtures and mocks
+test-fixtures:
+	@echo "🔧 Validating test fixtures..."
+	@python -c "from tests.fixtures import *; print('✅ All fixtures imported successfully')"
+
+# =============================================================================
+# SPEC-054: Secret Management Commands
+# =============================================================================
+
+## Setup secure environment configuration
+secrets-setup:
+	@echo "🔒 Setting up secure environment..."
+	@$(SCRIPTS)/setup-secrets.sh --all
+
+## Scan for hardcoded secrets
+secrets-scan:
+	@echo "🔍 Scanning for hardcoded secrets..."
+	@$(SCRIPTS)/setup-secrets.sh --scan
+
+## Create .env file with secure passwords
+secrets-create-env:
+	@echo "🔑 Creating secure .env file..."
+	@$(SCRIPTS)/setup-secrets.sh --create-env
+
+## Validate environment configuration
+secrets-validate:
+	@echo "✅ Validating environment configuration..."
+	@$(SCRIPTS)/setup-secrets.sh --validate

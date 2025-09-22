@@ -226,6 +226,73 @@ class RBACMiddleware:
             return response
 
 
+# Create middleware instance
+_rbac_middleware_instance = None
+
+def rbac_middleware(request: Request, call_next):
+    """RBAC middleware function for FastAPI"""
+    global _rbac_middleware_instance
+    
+    if _rbac_middleware_instance is None:
+        jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET", "fallback-secret-key")
+        _rbac_middleware_instance = RBACMiddleware(jwt_secret)
+    
+    return _rbac_middleware_instance(request, call_next)
+
+
+def get_rbac_context(request: Request) -> RBACContext:
+    """Get RBAC context from request state"""
+    rbac_context = getattr(request.state, "rbac_context", None)
+    if not rbac_context:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return rbac_context
+
+
+def require_permission(resource: str, action: str) -> Callable:
+    """
+    Decorator to require specific permission
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapper(*args, **kwargs) -> Any:
+            request = kwargs.get("request") or (
+                args[0] if args and hasattr(args[0], "headers") else None
+            )
+            if not request:
+                raise HTTPException(status_code=500, detail="Request object not found")
+
+            rbac_context = get_rbac_context(request)
+            
+            # Import here to avoid circular imports
+            from rbac.permissions import Resource, Action
+            
+            # Convert string to enum if needed
+            if isinstance(resource, str):
+                resource_enum = getattr(Resource, resource.upper(), None)
+                if not resource_enum:
+                    raise HTTPException(status_code=500, detail=f"Invalid resource: {resource}")
+            else:
+                resource_enum = resource
+                
+            if isinstance(action, str):
+                action_enum = getattr(Action, action.upper(), None)
+                if not action_enum:
+                    raise HTTPException(status_code=500, detail=f"Invalid action: {action}")
+            else:
+                action_enum = action
+
+            if not rbac_context.has_permission(resource_enum, action_enum):
+                raise HTTPException(
+                    status_code=403, 
+                    detail=f"Permission denied: {action} on {resource}"
+                )
+
+            return await func(*args, **kwargs)
+
+        return wrapper
+    return decorator
+
+
 def require_admin() -> Callable:
     """
     Decorator to require admin role

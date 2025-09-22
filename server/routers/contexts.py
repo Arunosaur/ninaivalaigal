@@ -13,8 +13,11 @@ from rbac_middleware import require_permission
 # Initialize router
 router = APIRouter(prefix="/contexts", tags=["contexts"])
 
-# Database manager instance
-db = DatabaseManager()
+# Database manager dependency
+def get_db():
+    """Get database manager with dynamic configuration"""
+    from config import get_dynamic_database_url
+    return DatabaseManager(get_dynamic_database_url())
 
 
 @router.post("")
@@ -23,6 +26,7 @@ async def create_context(
     request: Request,
     context_data: ContextCreate,
     current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
 ):
     """Create a new context with ownership"""
     try:

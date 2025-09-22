@@ -62,3 +62,30 @@ coverage.json
 
 # Node modules
 node_modules/
+
+# Additional Secret Protection
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+*.cer
+secrets/
+.secrets/
+credentials/
+.credentials/
+
+# Database dumps and backups (may contain sensitive data)
+*.sql
+*.dump
+*.backup
+backup/
+backups/
+
+# Temporary files that might contain secrets
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp

@@ -10,12 +10,18 @@ from database import DatabaseManager, User
 # Initialize router
 router = APIRouter(prefix="/users", tags=["users"])
 
-# Database manager instance
-db = DatabaseManager()
+# Database manager dependency
+def get_db():
+    """Get database manager with dynamic configuration"""
+    from config import get_dynamic_database_url
+    return DatabaseManager(get_dynamic_database_url())
 
 
 @router.get("/me/organizations")
-def get_user_organizations(current_user: User = Depends(get_current_user)):
+def get_user_organizations(
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
     """Get organizations the current user belongs to"""
     try:
         organizations = db.get_user_organizations(current_user.id)

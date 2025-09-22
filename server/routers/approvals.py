@@ -12,14 +12,23 @@ from approval_workflow import ApprovalWorkflowManager
 # Initialize router
 router = APIRouter(prefix="/approvals", tags=["approvals"])
 
-# Database manager and approval manager instances
-db = DatabaseManager()
-approval_manager = ApprovalWorkflowManager(db)
+# Database manager dependency
+def get_db():
+    """Get database manager with dynamic configuration"""
+    from config import get_dynamic_database_url
+    return DatabaseManager(get_dynamic_database_url())
+
+def get_approval_manager(db: DatabaseManager = Depends(get_db)):
+    """Get approval manager with dynamic database"""
+    return ApprovalWorkflowManager(db)
 
 
 @router.post("/cross-team-request")
 async def request_cross_team_access(
-    request_data: CrossTeamAccessRequest, current_user: User = Depends(get_current_user)
+    request_data: CrossTeamAccessRequest, 
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+    approval_manager: ApprovalWorkflowManager = Depends(get_approval_manager),
 ):
     """Request cross-team access to a context"""
     # Get user's team for the request

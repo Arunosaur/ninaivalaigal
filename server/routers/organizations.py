@@ -14,8 +14,11 @@ from security_integration import log_admin_action
 # Initialize router
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
-# Database manager instance
-db = DatabaseManager()
+# Database manager dependency
+def get_db():
+    """Get database manager with dynamic configuration"""
+    from config import get_dynamic_database_url
+    return DatabaseManager(get_dynamic_database_url())
 
 
 @router.post("")
@@ -24,6 +27,7 @@ async def create_organization(
     request: Request,
     org_data: OrganizationCreate,
     current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
 ):
     """Create a new organization"""
     try:

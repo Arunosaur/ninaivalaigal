@@ -32,15 +32,7 @@ from security_integration import configure_security
 from redis_client import redis_client
 from redis_queue import queue_manager
 
-# Routers
-from routers.organizations import router as organizations_router
-from routers.teams import router as teams_router
-from routers.users import router as users_router
-from routers.contexts import router as contexts_router
-from routers.memory import router as memory_router
-from routers.approvals import router as approvals_router
-from routers.recording import router as recording_router
-from signup_api import router as signup_router
+# Routers will be imported after app initialization to avoid import-time database connections
 
 # Initialize logger
 logger = structlog.get_logger(__name__)
@@ -118,6 +110,17 @@ async def shutdown_event():
 # Include routers
 app.include_router(health_router)
 app.include_router(metrics_router)
+
+# Import routers after app initialization to avoid import-time database connections
+from signup_api import router as signup_router
+from routers.organizations import router as organizations_router
+from routers.teams import router as teams_router
+from routers.users import router as users_router
+from routers.contexts import router as contexts_router
+from routers.memory import router as memory_router
+from routers.approvals import router as approvals_router
+from routers.recording import router as recording_router
+
 app.include_router(signup_router)
 app.include_router(organizations_router)
 app.include_router(teams_router)

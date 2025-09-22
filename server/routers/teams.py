@@ -13,20 +13,24 @@ from rbac_middleware import require_permission
 # Initialize router
 router = APIRouter(prefix="/teams", tags=["teams"])
 
-# Database manager instance
-db = DatabaseManager()
+# Database manager dependency
+def get_db():
+    """Get database manager with dynamic configuration"""
+    from config import get_dynamic_database_url
+    return DatabaseManager(get_dynamic_database_url())
 
 
 @router.post("")
 @require_permission(Resource.TEAM, Action.CREATE)
-def create_team(
+async def create_team(
     request: Request,
     team_data: TeamCreate,
     current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
 ):
     """Create a new team"""
     try:
-        team = db.create_team(
+        team = await db.create_team(
             team_data.name, team_data.organization_id, team_data.description
         )
         # Automatically add creator as team admin

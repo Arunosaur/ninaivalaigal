@@ -15,8 +15,11 @@ from security_integration import redact_text
 # Initialize router
 router = APIRouter(prefix="/memory", tags=["memory"])
 
-# Database manager instance
-db = DatabaseManager()
+# Database manager dependency
+def get_db():
+    """Get database manager with dynamic configuration"""
+    from config import get_dynamic_database_url
+    return DatabaseManager(get_dynamic_database_url())
 
 
 @router.post("")
@@ -25,6 +28,7 @@ async def store_memory(
     request: Request,
     entry: MemoryPayload,
     current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
 ):
     """Store a memory entry with user isolation and duplicate filtering"""
     try:
