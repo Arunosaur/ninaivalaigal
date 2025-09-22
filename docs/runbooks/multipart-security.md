@@ -2,8 +2,8 @@
 
 ## Alert: MultipartRejectsSpiking
 
-**Severity**: Page  
-**Threshold**: >50 rejections in 10 minutes  
+**Severity**: Page
+**Threshold**: >50 rejections in 10 minutes
 **Response Time**: Immediate (5 minutes)
 
 ### Immediate Actions
@@ -12,7 +12,7 @@
    ```bash
    # Check current rejection rate
    curl -s "http://prometheus:9090/api/v1/query?query=rate(multipart_reject_total[5m])" | jq '.data.result'
-   
+
    # Check rejection reasons
    curl -s "http://prometheus:9090/api/v1/query?query=sum by (reason) (rate(multipart_reject_total[5m]))" | jq '.data.result'
    ```
@@ -21,7 +21,7 @@
    ```bash
    # Top rejecting tenants
    curl -s "http://prometheus:9090/api/v1/query?query=topk(10, sum by (tenant) (rate(multipart_reject_total[5m])))" | jq '.data.result'
-   
+
    # Top rejecting endpoints
    curl -s "http://prometheus:9090/api/v1/query?query=topk(10, sum by (endpoint) (rate(multipart_reject_total[5m])))" | jq '.data.result'
    ```
@@ -30,7 +30,7 @@
    ```bash
    # Verify security middleware health
    curl https://api.ninaivalaigal.com/healthz/config | jq '.security_middleware'
-   
+
    # Check feature flag status
    curl https://api.ninaivalaigal.com/healthz/config | jq '.feature_flags'
    ```
@@ -41,7 +41,7 @@
    ```bash
    # Check application logs for detailed rejection context
    kubectl logs -l app=ninaivalaigal --tail=100 | grep "multipart_reject"
-   
+
    # Look for patterns in rejection reasons
    kubectl logs -l app=ninaivalaigal --tail=1000 | grep -E "(archive_blocked|invalid_encoding|magic_byte_detected)" | head -20
    ```
@@ -121,8 +121,8 @@ curl -X PATCH https://api.ninaivalaigal.com/admin/security-config \
 
 ## Alert: ArchiveUploadsOnTextEndpoints
 
-**Severity**: Page  
-**Threshold**: >10 archive uploads blocked in 10 minutes  
+**Severity**: Page
+**Threshold**: >10 archive uploads blocked in 10 minutes
 **Response Time**: Immediate (5 minutes)
 
 ### Immediate Actions
@@ -131,7 +131,7 @@ curl -X PATCH https://api.ninaivalaigal.com/admin/security-config \
    ```bash
    # Check specific archive types being blocked
    kubectl logs -l app=ninaivalaigal --tail=100 | grep "archive_blocked" | grep -E "(\.zip|\.tar|\.gz|\.rar)"
-   
+
    # Identify source IPs/tenants
    kubectl logs -l app=ninaivalaigal --tail=100 | grep "archive_blocked" | awk '{print $5}' | sort | uniq -c | sort -nr
    ```
@@ -188,7 +188,7 @@ curl -X POST https://api.ninaivalaigal.com/admin/upload-policy \
 
 ## Alert: InvalidEncodingAttacks
 
-**Severity**: Ticket  
+**Severity**: Ticket
 **Response Time**: 1 hour
 
 ### Investigation Steps
@@ -197,7 +197,7 @@ curl -X POST https://api.ninaivalaigal.com/admin/upload-policy \
    ```bash
    # Check specific encoding issues
    kubectl logs -l app=ninaivalaigal --tail=500 | grep "invalid_encoding" | head -20
-   
+
    # Look for bypass attempts
    grep -E "(overlong|surrogate|cesu)" /var/log/ninaivalaigal/security.log
    ```

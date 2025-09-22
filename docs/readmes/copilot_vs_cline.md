@@ -45,4 +45,3 @@ Use either agent when:
 *   **You need to set up a new project:** "Initialize a new Node.js project with Express, create a basic server file, and install the necessary dependencies using `npm`."
 
 **In short: Use Cline or Roo Code for any task that requires planning, multi-step execution, and interaction with your file system, terminal, or external tools. They are your AI project assistants.**
-

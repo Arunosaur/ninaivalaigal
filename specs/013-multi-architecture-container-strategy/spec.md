@@ -38,7 +38,7 @@ Registry: ghcr.io
 Namespace: arunosaur/ninaivalaigal
 Images:
   - ghcr.io/arunosaur/ninaivalaigal-api:latest
-  - ghcr.io/arunosaur/ninaivalaigal-postgres:latest  
+  - ghcr.io/arunosaur/ninaivalaigal-postgres:latest
   - ghcr.io/arunosaur/ninaivalaigal-pgbouncer:latest
 ```
 
@@ -54,7 +54,7 @@ Images:
 Triggers:
   - push: tags (v*.*.*)
   - workflow_dispatch: manual releases
-  
+
 Workflow:
   1. Checkout code
   2. Setup Docker Buildx

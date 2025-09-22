@@ -58,14 +58,14 @@ class EntropyDetector:
     def __init__(self, min_entropy=4.5, min_length=20):
         self.min_entropy = min_entropy
         self.min_length = min_length
-    
+
     def calculate_entropy(self, text: str) -> float:
         """Calculate Shannon entropy of text"""
         # Implementation for entropy calculation
-        
+
     def is_high_entropy_secret(self, text: str) -> bool:
         """Detect high-entropy strings that may be secrets"""
-        return (len(text) >= self.min_length and 
+        return (len(text) >= self.min_length and
                 self.calculate_entropy(text) >= self.min_entropy)
 ```
 
@@ -80,7 +80,7 @@ class ContextAwareDetector:
         'database_url': r'postgresql://[^:]+:[^@]+@[^/]+/\w+',
         'email': r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
     }
-    
+
     def detect_secrets(self, text: str) -> List[SecretMatch]:
         """Detect secrets using provider-specific patterns"""
 ```
@@ -93,17 +93,17 @@ class ContextualRedactor:
     def redact_with_context(self, text: str, context_tier: ContextSensitivity) -> RedactionResult:
         """Apply tier-appropriate redaction rules"""
         redaction_rules = self.get_rules_for_tier(context_tier)
-        
+
         result = RedactionResult(
             original_text=text,
             redacted_text="",
             redactions_applied=[],
             context_tier=context_tier
         )
-        
+
         for rule in redaction_rules:
             result = rule.apply(result)
-            
+
         return result
 ```
 
@@ -119,7 +119,7 @@ REDACTION_RULES = {
         'phone_number_redaction',
     ],
     ContextSensitivity.CONFIDENTIAL: [
-        'basic_profanity_filter', 
+        'basic_profanity_filter',
         'email_full_redaction',
         'phone_number_redaction',
         'financial_data_redaction',
@@ -145,7 +145,7 @@ class SecurityHeadersMiddleware:
     def __init__(self):
         self.headers = {
             'X-Content-Type-Options': 'nosniff',
-            'X-Frame-Options': 'DENY', 
+            'X-Frame-Options': 'DENY',
             'X-XSS-Protection': '1; mode=block',
             'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
             'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'",
@@ -166,15 +166,15 @@ class EnhancedRateLimiter:
             '/contexts': RateLimiter(max_requests=50, window_seconds=60),
             '/rbac/': RateLimiter(max_requests=20, window_seconds=300),
         }
-        
+
     async def check_rate_limit_with_rbac(self, request: Request) -> bool:
         """Rate limiting with RBAC context awareness"""
         rbac_context = getattr(request.state, 'rbac_context', None)
-        
+
         # Higher limits for admin users
         if rbac_context and rbac_context.has_role(Role.ADMIN):
             return await self.check_admin_rate_limit(request)
-        
+
         return await self.check_standard_rate_limit(request)
 ```
 
@@ -195,7 +195,7 @@ class RedactionAuditLogger:
             'entropy_score': event.entropy_score,
             'request_id': event.request_id,
         }
-        
+
         # Store in dedicated audit table
         self.audit_repository.create_redaction_audit(audit_entry)
 ```
@@ -242,7 +242,7 @@ ALTER TABLE memories ADD COLUMN redaction_audit_id INTEGER REFERENCES redaction_
 4. Add redaction audit logging
 5. Create unit tests for redaction logic
 
-### Phase 2: Middleware Integration (Week 2)  
+### Phase 2: Middleware Integration (Week 2)
 1. Implement security headers middleware
 2. Enhance rate limiting with RBAC awareness
 3. Create redaction middleware for FastAPI
@@ -279,17 +279,17 @@ redaction_rules:
       pattern: "AKIA[0-9A-Z]{16}"
       replacement: "<REDACTED_AWS_KEY>"
       tier: "secrets"
-    
+
     github_token:
       pattern: "ghp_[a-zA-Z0-9]{36}"
       replacement: "<REDACTED_GITHUB_TOKEN>"
       tier: "secrets"
-    
+
     email_address:
       pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
       replacement: "<REDACTED_EMAIL>"
       tier: "confidential"
-  
+
   entropy_thresholds:
     secrets: 5.0
     confidential: 4.5
@@ -304,13 +304,13 @@ redaction_rules:
 class TestRedactionEngine:
     def test_entropy_calculation(self):
         """Test entropy calculation accuracy"""
-        
+
     def test_aws_key_detection(self):
         """Test AWS access key pattern detection"""
-        
+
     def test_context_tier_redaction(self):
         """Test tier-appropriate redaction rules"""
-        
+
     def test_audit_trail_generation(self):
         """Test redaction audit logging"""
 ```
@@ -320,10 +320,10 @@ class TestRedactionEngine:
 class TestRedactionMiddleware:
     def test_fastapi_integration(self):
         """Test redaction in FastAPI endpoints"""
-        
+
     def test_memory_storage_redaction(self):
         """Test redaction before memory storage"""
-        
+
     def test_rbac_context_preservation(self):
         """Test RBAC context maintained through redaction"""
 ```
@@ -333,7 +333,7 @@ class TestRedactionMiddleware:
 class TestRedactionPerformance:
     def test_large_payload_redaction(self):
         """Test redaction performance on large payloads"""
-        
+
     def test_concurrent_redaction_requests(self):
         """Test redaction under concurrent load"""
 ```

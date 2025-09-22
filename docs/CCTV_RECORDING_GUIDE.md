@@ -114,7 +114,7 @@ When CCTV recording is active, the system automatically captures:
 ```python
 # System automatically searches in order:
 # 1. Personal context memories
-# 2. Team context memories  
+# 2. Team context memories
 # 3. Organization context memories
 # Returns combined results with source attribution
 ```

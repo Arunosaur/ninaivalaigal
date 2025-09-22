@@ -1,10 +1,10 @@
 # Spec 006: RBAC Integration
 ## Role-Based Access Control System Integration
 
-**Status**: Draft  
-**Created**: 2025-09-15  
-**Author**: AI Development Team  
-**Priority**: High  
+**Status**: Draft
+**Created**: 2025-09-15
+**Author**: AI Development Team
+**Priority**: High
 
 ---
 
@@ -50,7 +50,7 @@ Integrate the existing RBAC package (`ninaivalaigal_ci_rbac_pack`) into the main
 ```python
 class Role(Enum):
     VIEWER = auto()      # Read-only access
-    MEMBER = auto()      # Basic user permissions  
+    MEMBER = auto()      # Basic user permissions
     MAINTAINER = auto()  # Advanced user permissions
     ADMIN = auto()       # Administrative permissions
     OWNER = auto()       # Full access
@@ -68,7 +68,7 @@ class Action(Enum):
     SHARE = auto()
     EXPORT = auto()
     ADMINISTER = auto()
-    
+
     # New actions
     INVITE = auto()      # Invite users
     APPROVE = auto()     # Approve requests
@@ -87,7 +87,7 @@ class Resource(Enum):
     TEAM = auto()
     ORG = auto()
     AUDIT = auto()
-    
+
     # New resources
     USER = auto()        # User management
     INVITATION = auto()  # Invitation management
@@ -102,11 +102,11 @@ class Resource(Enum):
 ```python
 class User(Base):
     # Existing fields...
-    
+
     # RBAC integration
     default_role = Column(Enum(Role), default=Role.MEMBER)
     is_system_admin = Column(Boolean, default=False)
-    
+
     # Relationships
     team_memberships = relationship("TeamMember", back_populates="user")
     org_memberships = relationship("OrganizationMember", back_populates="user")
@@ -116,7 +116,7 @@ class User(Base):
 ```python
 class RoleAssignment(Base):
     __tablename__ = "role_assignments"
-    
+
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     role = Column(Enum(Role), nullable=False)
@@ -129,7 +129,7 @@ class RoleAssignment(Base):
 
 class PermissionAudit(Base):
     __tablename__ = "permission_audits"
-    
+
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     action = Column(Enum(Action), nullable=False)
@@ -148,7 +148,7 @@ class PermissionAudit(Base):
 def create_access_token(user: User, context: Optional[str] = None) -> str:
     # Get user's effective roles
     roles = get_user_roles(user.id, context)
-    
+
     payload = {
         "user_id": user.id,
         "email": user.email,
@@ -168,22 +168,22 @@ def create_access_token(user: User, context: Optional[str] = None) -> str:
 class RBACMiddleware:
     def __init__(self, app: FastAPI):
         self.app = app
-    
+
     async def __call__(self, request: Request, call_next):
         # Extract user context from JWT
         user_context = await self.extract_user_context(request)
-        
+
         # Add RBAC context to request
         request.state.rbac_context = user_context
-        
+
         response = await call_next(request)
         return response
-    
+
     async def extract_user_context(self, request: Request) -> Optional[SubjectContext]:
         token = request.headers.get("Authorization")
         if not token:
             return None
-            
+
         try:
             payload = jwt.decode(token.replace("Bearer ", ""), JWT_SECRET, algorithms=["HS256"])
             return SubjectContext(
@@ -200,26 +200,26 @@ class RBACMiddleware:
 
 #### FastAPI Permission Decorator
 ```python
-def require_permission(resource: Resource, action: Action, 
+def require_permission(resource: Resource, action: Action,
                       scope: Optional[str] = None):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             request = kwargs.get('request') or args[0]
-            
+
             # Get RBAC context
             rbac_context = getattr(request.state, 'rbac_context', None)
             if not rbac_context:
                 raise HTTPException(status_code=401, detail="Authentication required")
-            
+
             # Check permission
             if not authorize(rbac_context, resource, action, scope):
                 audit_permission_attempt(rbac_context, resource, action, False)
                 raise HTTPException(status_code=403, detail="Insufficient permissions")
-            
+
             # Log successful access
             audit_permission_attempt(rbac_context, resource, action, True)
-            
+
             return await func(*args, **kwargs)
         return wrapper
     return decorator

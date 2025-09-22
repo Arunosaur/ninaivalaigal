@@ -16,21 +16,21 @@ public class RememberAction extends AnAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
         Editor editor = e.getData(CommonDataKeys.EDITOR);
-        
+
         if (project == null) {
             Messages.showErrorDialog("No project found", "mem0 Error");
             return;
         }
 
         String textToRemember = "";
-        
+
         if (editor != null) {
             SelectionModel selectionModel = editor.getSelectionModel();
             if (selectionModel.hasSelection()) {
                 textToRemember = selectionModel.getSelectedText();
             }
         }
-        
+
         if (textToRemember.isEmpty()) {
             textToRemember = Messages.showInputDialog(
                 project,
@@ -39,10 +39,10 @@ public class RememberAction extends AnAction {
                 Messages.getQuestionIcon()
             );
         }
-        
+
         if (textToRemember != null && !textToRemember.trim().isEmpty()) {
             Mem0Client client = new Mem0Client(project);
-            
+
             if (!client.isServerRunning()) {
                 Messages.showErrorDialog(
                     "mem0 server is not running. Please start it with: ./manage.sh start",
@@ -50,9 +50,9 @@ public class RememberAction extends AnAction {
                 );
                 return;
             }
-            
+
             boolean success = client.remember(textToRemember.trim());
-            
+
             if (success) {
                 Messages.showInfoMessage(
                     "Memory saved to context: " + client.getCurrentContext(),

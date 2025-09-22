@@ -122,7 +122,7 @@ If you discover a security vulnerability or potential data exposure:
 We follow responsible disclosure practices:
 
 - **Initial Response**: 24 hours
-- **Triage and Assessment**: 72 hours  
+- **Triage and Assessment**: 72 hours
 - **Fix Development**: 30 days for critical, 90 days for non-critical
 - **Public Disclosure**: After fix deployment and customer notification
 

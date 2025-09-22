@@ -42,17 +42,17 @@ class TokenManager {
         try {
             // Decode JWT to get token info (basic client-side parsing)
             const tokenInfo = this.parseJWT(this.currentToken);
-            
+
             document.getElementById('current-token').textContent = this.currentToken;
-            
+
             if (tokenInfo) {
                 const issuedDate = new Date(tokenInfo.iat * 1000);
                 const expiresDate = new Date(tokenInfo.exp * 1000);
                 const now = new Date();
-                
+
                 document.getElementById('token-issued').textContent = issuedDate.toLocaleDateString();
                 document.getElementById('token-expires').textContent = expiresDate.toLocaleDateString();
-                
+
                 // Update status based on expiration
                 const statusElement = document.getElementById('token-status');
                 if (expiresDate < now) {
@@ -96,13 +96,13 @@ class TokenManager {
     renderApiKeys(apiKeys) {
         const container = document.getElementById('api-keys-list');
         const noKeysMessage = document.getElementById('no-api-keys');
-        
+
         if (apiKeys.length === 0) {
             container.innerHTML = '';
             noKeysMessage.classList.remove('hidden');
             return;
         }
-        
+
         noKeysMessage.classList.add('hidden');
         container.innerHTML = apiKeys.map(key => `
             <div class="border border-gray-200 rounded-lg p-4">
@@ -143,7 +143,7 @@ class TokenManager {
     renderApiKeysPlaceholder() {
         const container = document.getElementById('api-keys-list');
         const noKeysMessage = document.getElementById('no-api-keys');
-        
+
         container.innerHTML = `
             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <div class="text-center text-gray-500">
@@ -278,11 +278,11 @@ class TokenManager {
                 </p>
                 <div class="token-display mb-4">${apiKey.key}</div>
                 <div class="flex space-x-3">
-                    <button onclick="navigator.clipboard.writeText('${apiKey.key}'); this.textContent='Copied!'" 
+                    <button onclick="navigator.clipboard.writeText('${apiKey.key}'); this.textContent='Copied!'"
                             class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                         Copy Key
                     </button>
-                    <button onclick="this.closest('.fixed').remove()" 
+                    <button onclick="this.closest('.fixed').remove()"
                             class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
                         Close
                     </button>
@@ -437,12 +437,12 @@ function logout() {
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
-    
+
     notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.style.opacity = '0';
         setTimeout(() => {

@@ -40,7 +40,7 @@ PostgreSQL Configuration:
     - pgvector: Vector similarity search
     - uuid-ossp: UUID generation
     - pg_stat_statements: Query performance monitoring
-  
+
 Connection Settings:
   Host: localhost (development) / cloud endpoint (production)
   Port: 5433 (development) / 5432 (production)
@@ -70,13 +70,13 @@ def run_migrations_online():
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
-    
+
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
             target_metadata=target_metadata
         )
-        
+
         with context.begin_transaction():
             context.run_migrations()
 ```
@@ -124,8 +124,8 @@ CREATE EXTENSION IF NOT EXISTS vector;
 ALTER TABLE memories ADD COLUMN embedding vector(1536);
 
 -- Vector index creation
-CREATE INDEX memories_embedding_idx ON memories 
-USING ivfflat (embedding vector_cosine_ops) 
+CREATE INDEX memories_embedding_idx ON memories
+USING ivfflat (embedding vector_cosine_ops)
 WITH (lists = 100);
 ```
 
@@ -137,11 +137,11 @@ from sqlalchemy import text
 
 class Memory(Base):
     __tablename__ = "memories"
-    
+
     id = Column(Integer, primary_key=True)
     content = Column(Text, nullable=False)
     embedding = Column(Vector(1536))  # OpenAI embedding dimension
-    
+
     @classmethod
     def find_similar(cls, session, query_embedding, limit=10):
         """Find memories similar to query embedding"""
@@ -176,7 +176,7 @@ Backup Schedule:
 
 Retention Policy:
   - Development: 7 days
-  - Staging: 30 days  
+  - Staging: 30 days
   - Production: 90 days + yearly archives
 ```
 
@@ -246,8 +246,8 @@ make api-stop || true
 
 # Drop existing connections
 psql -h localhost -p 5433 -U nina -d postgres -c "
-SELECT pg_terminate_backend(pid) 
-FROM pg_stat_activity 
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
 WHERE datname = 'nina' AND pid <> pg_backend_pid();"
 
 # Restore from backup
@@ -287,22 +287,22 @@ from server.config import get_database_url
 
 async def setup_database():
     """Initialize database with schema and extensions"""
-    
+
     # Create database engine
     engine = create_engine(get_database_url())
-    
+
     # Create all tables
     Base.metadata.create_all(engine)
-    
+
     # Initialize database manager
     db_manager = DatabaseManager()
-    
+
     # Create extensions
     await db_manager.execute_sql("""
         CREATE EXTENSION IF NOT EXISTS vector;
         CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     """)
-    
+
     print("✅ Database initialized successfully")
 
 if __name__ == "__main__":
@@ -317,34 +317,34 @@ from server.database import DatabaseManager, User, Team, Memory
 
 async def seed_test_data():
     """Seed database with test data for development"""
-    
+
     db_manager = DatabaseManager()
-    
+
     # Create test users
     test_users = [
         {"username": "alice", "email": "alice@example.com"},
         {"username": "bob", "email": "bob@example.com"},
         {"username": "charlie", "email": "charlie@example.com"}
     ]
-    
+
     for user_data in test_users:
         user = await db_manager.create_user(**user_data)
         print(f"✅ Created user: {user.username}")
-    
+
     # Create test teams
     team = await db_manager.create_team(
         name="Test Team",
         description="Test team for development"
     )
     print(f"✅ Created team: {team.name}")
-    
+
     # Create test memories
     memories = [
         "Remember to implement user authentication",
         "Database migration system is working well",
         "Need to add vector search capabilities"
     ]
-    
+
     for content in memories:
         memory = await db_manager.create_memory(
             user_id=1,
@@ -361,26 +361,26 @@ if __name__ == "__main__":
 #### 6.1 Performance Monitoring
 ```sql
 -- Query performance monitoring
-SELECT 
+SELECT
     query,
     calls,
     total_time,
     mean_time,
     rows
-FROM pg_stat_statements 
-ORDER BY total_time DESC 
+FROM pg_stat_statements
+ORDER BY total_time DESC
 LIMIT 10;
 
 -- Connection monitoring
-SELECT 
+SELECT
     state,
     count(*) as connections
-FROM pg_stat_activity 
+FROM pg_stat_activity
 WHERE datname = 'nina'
 GROUP BY state;
 
 -- Database size monitoring
-SELECT 
+SELECT
     pg_size_pretty(pg_database_size('nina')) as database_size,
     pg_size_pretty(pg_total_relation_size('memories')) as memories_table_size;
 ```
@@ -405,11 +405,11 @@ psql -h localhost -p 5433 -U nina -d nina -c "REINDEX INDEX memories_embedding_i
 
 # Check for bloat
 psql -h localhost -p 5433 -U nina -d nina -c "
-SELECT 
+SELECT
     schemaname,
     tablename,
     pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
-FROM pg_tables 
+FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;"
 
@@ -473,12 +473,12 @@ db-reset:
 def test_migration_cycle():
     # Apply migration
     alembic.command.upgrade(alembic_cfg, "head")
-    
+
     # Verify schema changes
     inspector = inspect(engine)
     tables = inspector.get_table_names()
     assert "memories" in tables
-    
+
     # Test rollback
     alembic.command.downgrade(alembic_cfg, "-1")
 ```
@@ -504,7 +504,7 @@ def test_vector_operations():
     )
     session.add(memory)
     session.commit()
-    
+
     # Test similarity search
     similar = Memory.find_similar(session, [0.1] * 1536, limit=5)
     assert len(similar) > 0

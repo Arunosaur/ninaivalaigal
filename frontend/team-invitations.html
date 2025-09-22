@@ -82,7 +82,7 @@
         <div class="bg-white card-shadow rounded-lg p-4 mb-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex-1 max-w-md">
-                    <input type="text" id="search-input" 
+                    <input type="text" id="search-input"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                            placeholder="Search by email or name...">
                 </div>
@@ -109,7 +109,7 @@
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p class="text-gray-600">Loading invitations...</p>
             </div>
-            
+
             <!-- Empty State -->
             <div id="empty-state" class="hidden text-center py-12">
                 <div class="text-6xl mb-4">📧</div>
@@ -119,7 +119,7 @@
                     Send First Invitation
                 </button>
             </div>
-            
+
             <!-- Invitations Grid -->
             <div id="invitations-grid" class="space-y-4">
                 <!-- Invitation cards will be inserted here -->
@@ -138,7 +138,7 @@
                     </svg>
                 </button>
             </div>
-            
+
             <form id="invite-form" class="p-6">
                 <div class="space-y-4">
                     <div>
@@ -147,14 +147,14 @@
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                placeholder="colleague@company.com">
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Teams</label>
                         <div id="team-checkboxes" class="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
                             <!-- Team checkboxes will be loaded here -->
                         </div>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
                         <select id="invite-role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
@@ -163,14 +163,14 @@
                             <option value="viewer">Viewer (Read-only)</option>
                         </select>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Personal Message (Optional)</label>
                         <textarea id="invite-message" rows="3"
                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                   placeholder="Welcome to our team! We're excited to collaborate with you..."></textarea>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Expiration</label>
                         <select id="invite-expiration" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
@@ -181,13 +181,13 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="flex space-x-3 mt-6">
-                    <button type="button" onclick="closeInviteModal()" 
+                    <button type="button" onclick="closeInviteModal()"
                             class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
                         Cancel
                     </button>
-                    <button type="submit" 
+                    <button type="submit"
                             class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                         Send Invitation
                     </button>
@@ -207,12 +207,12 @@
                     </svg>
                 </button>
             </div>
-            
+
             <div class="p-6">
                 <p class="text-gray-600 mb-4">
                     <span id="selected-count">0</span> invitation(s) selected
                 </p>
-                
+
                 <div class="space-y-3">
                     <button onclick="bulkResend()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                         📧 Resend Invitations
@@ -224,7 +224,7 @@
                         ⏰ Extend Expiration
                     </button>
                 </div>
-                
+
                 <button onclick="closeBulkActionsModal()" class="w-full mt-4 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg transition-colors">
                     Cancel
                 </button>

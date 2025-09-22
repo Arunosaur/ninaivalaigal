@@ -7,7 +7,7 @@ A comprehensive FastAPI middleware package that provides streaming redaction for
 This middleware package implements enterprise-grade redaction capabilities for FastAPI applications, featuring:
 
 - **Request Body Redaction**: Automatically redacts secrets in incoming HTTP requests
-- **Response Body Redaction**: Protects sensitive data in outgoing HTTP responses  
+- **Response Body Redaction**: Protects sensitive data in outgoing HTTP responses
 - **Streaming Support**: Handles large payloads with chunk-by-chunk processing
 - **Overlap Detection**: Catches secrets split across chunk boundaries
 - **Detector Integration**: Plugs into existing redaction engines or provides fallback patterns
@@ -64,7 +64,7 @@ redacted = enhanced_detector_fn("Text with high entropy secrets")
 
 ### Supported Secret Types
 - **OpenAI API Keys**: `sk-*` patterns
-- **AWS Access Keys**: `AKIA*` patterns  
+- **AWS Access Keys**: `AKIA*` patterns
 - **GitHub Tokens**: `ghp_*` patterns
 - **JWT Tokens**: Standard JWT format
 - **PEM Keys**: Certificate and private key blocks
@@ -99,7 +99,7 @@ app = FastAPI()
 # Add request redaction
 app.add_middleware(RedactionASGIMiddleware, detector_fn=detector_fn, overlap=64)
 
-# Add response redaction  
+# Add response redaction
 app.add_middleware(ResponseRedactionASGIMiddleware, detector_fn=detector_fn, overlap=64)
 
 @app.post("/api/data")
@@ -128,7 +128,7 @@ async def stream_data():
     async def generate():
         for chunk in large_dataset:
             yield f"data: {chunk}\n"
-    
+
     # Response will be automatically redacted chunk-by-chunk
     return StreamingResponse(generate(), media_type="text/plain")
 ```
@@ -174,7 +174,7 @@ The middleware is designed to integrate seamlessly with the existing Ninaivalaig
 
 Performance characteristics on typical hardware:
 - **Small Payloads** (<1KB): <1ms overhead
-- **Medium Payloads** (1-100KB): 2-5ms overhead  
+- **Medium Payloads** (1-100KB): 2-5ms overhead
 - **Large Payloads** (>1MB): Streaming processing, constant memory usage
 - **Throughput**: Minimal impact on request/response throughput
 

@@ -418,7 +418,7 @@
         // Check authentication first
         const token = localStorage.getItem('ninaivalaigal_token');
         const user = JSON.parse(localStorage.getItem('ninaivalaigal_user') || '{}');
-        
+
         if (!token) {
             window.location.href = 'login.html';
         }
@@ -483,7 +483,7 @@
             notification.textContent = message;
             notification.className = `notification ${type}`;
             notification.classList.add('show');
-            
+
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
@@ -582,7 +582,7 @@
         // Form handlers
         document.getElementById('invite-member-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const formData = {
                 email: document.getElementById('invite-email').value,
                 role: document.getElementById('invite-role').value,
@@ -616,7 +616,7 @@
 
         document.getElementById('transfer-ownership-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const formData = {
                 newOwnerEmail: document.getElementById('new-owner-email').value,
                 message: document.getElementById('transfer-message').value

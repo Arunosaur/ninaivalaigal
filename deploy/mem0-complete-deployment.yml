@@ -15,7 +15,7 @@
     mem0_db_user: "mem0user"
     mem0_db_password: "{{ vault_mem0_db_password | default('mem0pass') }}"
     python_version: "3.11"
-    
+
   tasks:
     # System Setup
     - name: Update system packages

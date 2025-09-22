@@ -34,7 +34,7 @@ log_error() {
 # Test development environment
 test_development() {
     log_info "Testing Development Environment..."
-    
+
     # Test 1: Database connectivity
     log_info "Test 1: Database connectivity"
     cd "$BASE_DIR/server"
@@ -44,7 +44,7 @@ test_development() {
         log_error "Database connectivity: FAIL"
         return 1
     fi
-    
+
     # Test 2: FastAPI server
     log_info "Test 2: FastAPI server endpoints"
     if curl -s -f "http://127.0.0.1:13370/contexts" > /dev/null; then
@@ -53,7 +53,7 @@ test_development() {
         log_error "FastAPI server: FAIL - Is server running? (./manage.sh start)"
         return 1
     fi
-    
+
     # Test 3: CLI operations
     log_info "Test 3: CLI operations"
     cd "$BASE_DIR"
@@ -73,7 +73,7 @@ test_development() {
         log_error "CLI operations: FAIL - Context creation failed"
         return 1
     fi
-    
+
     # Test 4: MCP server
     log_info "Test 4: MCP server functionality"
     cd "$BASE_DIR/server"
@@ -83,7 +83,7 @@ test_development() {
         log_error "MCP server: FAIL"
         return 1
     fi
-    
+
     # Test 5: Shell integration
     log_info "Test 5: Shell integration"
     cd "$BASE_DIR"
@@ -93,14 +93,14 @@ test_development() {
         log_error "Shell integration: FAIL"
         return 1
     fi
-    
+
     log_success "Development environment: ALL TESTS PASSED"
 }
 
 # Test Docker environment
 test_docker() {
     log_info "Testing Docker Environment..."
-    
+
     # Test 1: Docker availability
     log_info "Test 1: Docker availability"
     if ! command -v docker &> /dev/null; then
@@ -108,7 +108,7 @@ test_docker() {
         return 1
     fi
     log_success "Docker available"
-    
+
     # Test 2: PostgreSQL container
     log_info "Test 2: PostgreSQL container status"
     if docker ps | grep -q mem0-postgres; then
@@ -125,7 +125,7 @@ test_docker() {
             sleep 5
         fi
     fi
-    
+
     # Test 3: Database connectivity through Docker
     log_info "Test 3: Database connectivity through Docker"
     if docker exec mem0-postgres pg_isready -U mem0user -d mem0db 2>/dev/null | grep -q "accepting connections"; then
@@ -134,7 +134,7 @@ test_docker() {
         log_error "Database connectivity through Docker: FAIL"
         return 1
     fi
-    
+
     # Test 4: Docker Compose configuration
     log_info "Test 4: Docker Compose configuration"
     cd "$BASE_DIR/deploy"
@@ -148,14 +148,14 @@ test_docker() {
     else
         log_warning "docker-compose not available, skipping configuration test"
     fi
-    
+
     log_success "Docker environment: ALL TESTS PASSED"
 }
 
 # Test production readiness
 test_production() {
     log_info "Testing Production Readiness..."
-    
+
     # Test 1: Required files
     log_info "Test 1: Required deployment files"
     cd "$BASE_DIR"
@@ -166,7 +166,7 @@ test_production() {
         "server/requirements.txt"
         "mcp-client-config.json"
     )
-    
+
     all_files_exist=true
     for file in "${required_files[@]}"; do
         if [[ -f "$file" ]]; then
@@ -176,11 +176,11 @@ test_production() {
             all_files_exist=false
         fi
     done
-    
+
     if [[ "$all_files_exist" == false ]]; then
         return 1
     fi
-    
+
     # Test 2: Ansible playbook syntax (if available)
     log_info "Test 2: Ansible playbook syntax"
     if command -v ansible-playbook &> /dev/null; then
@@ -193,7 +193,7 @@ test_production() {
     else
         log_warning "Ansible not installed, skipping syntax check"
     fi
-    
+
     # Test 3: Python dependencies
     log_info "Test 3: Python dependencies check"
     cd "$BASE_DIR/server"
@@ -202,7 +202,7 @@ test_production() {
     else
         log_warning "Python dependencies: Some issues detected"
     fi
-    
+
     # Test 4: Configuration templates
     log_info "Test 4: Configuration templates validation"
     cd "$BASE_DIR/deploy/templates"
@@ -211,14 +211,14 @@ test_production() {
             log_success "Template exists: $template"
         fi
     done
-    
+
     log_success "Production readiness: ALL TESTS PASSED"
 }
 
 # Run comprehensive test suite
 test_all() {
     log_info "Running comprehensive test suite..."
-    
+
     if test_development && test_docker && test_production; then
         log_success "ALL ENVIRONMENTS: TESTS PASSED"
         return 0
@@ -233,7 +233,7 @@ main() {
     echo "=========================================="
     echo "mem0 Environment Test Runner"
     echo "=========================================="
-    
+
     case "$ENVIRONMENT" in
         "development"|"dev")
             test_development

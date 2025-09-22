@@ -26,7 +26,7 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     name: Terraform ${{ github.event.inputs.action }} on ${{ github.event.inputs.cloud_provider }}
-    
+
     steps:
       - name: 📋 Checkout code
         uses: actions/checkout@v4

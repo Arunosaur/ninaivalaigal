@@ -19,7 +19,7 @@ This specification defines the Infrastructure as Code (IaC) strategy for ninaiva
 #### 1.1 Supported Cloud Providers
 ```
 AWS:    ECS Fargate + Application Load Balancer + CloudWatch
-GCP:    Cloud Run + Cloud SQL + Cloud Monitoring  
+GCP:    Cloud Run + Cloud SQL + Cloud Monitoring
 Azure:  Container Instances + PostgreSQL + Azure Monitor
 ```
 
@@ -156,7 +156,7 @@ terraform-plan-aws:     # Plan AWS deployment
 terraform-apply-aws:    # Apply AWS infrastructure
 terraform-destroy-aws:  # Destroy AWS infrastructure
 
-# GCP Infrastructure  
+# GCP Infrastructure
 terraform-init-gcp:     # Initialize Terraform for GCP
 terraform-plan-gcp:     # Plan GCP deployment
 terraform-apply-gcp:    # Apply GCP infrastructure
@@ -267,7 +267,7 @@ terraform plan -out=tfplan
 # Development environment
 terraform apply -var="environment=development"
 
-# Staging environment  
+# Staging environment
 terraform apply -var="environment=staging"
 
 # Production environment
@@ -308,7 +308,7 @@ cpu    = "256"
 memory = "512"
 
 # Production: Optimized resources
-cpu    = "1024"  
+cpu    = "1024"
 memory = "2048"
 ```
 

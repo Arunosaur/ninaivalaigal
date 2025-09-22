@@ -33,7 +33,7 @@ jobs:
           # Extract version from package.json
           VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $VERSION"
-          
+
           # Create a simple release using GitHub CLI
           if ! gh release view "v$VERSION" >/dev/null 2>&1; then
             echo "Creating release v$VERSION"

@@ -56,7 +56,7 @@ cd jetbrains-plugin
 ```bash
 # Via Tools menu or tool window:
 - Start new context
-- Switch between contexts  
+- Switch between contexts
 - List all contexts
 ```
 
@@ -98,7 +98,7 @@ Tools → mem0 → Remember
 ```
 Ctrl+Shift+R shows:
 - "Added JWT authentication"
-- "Refactored UserService class"  
+- "Refactored UserService class"
 - "Fixed token validation bug"
 ```
 

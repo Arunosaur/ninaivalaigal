@@ -191,7 +191,7 @@ POST /organizations/{org_id}/transfer-ownership
         <p>Members: 12</p>
         <p>Created: 2024-01-15</p>
     </div>
-    
+
     <!-- Members Management -->
     <div class="members-section">
         <h3>Team Members</h3>
@@ -225,15 +225,15 @@ POST /organizations/{org_id}/transfer-ownership
                 </tr>
             </tbody>
         </table>
-        
+
         <button class="btn-add-member">Add Member</button>
     </div>
-    
+
     <!-- Ownership Transfer -->
     <div class="ownership-section">
         <h3>Ownership Management</h3>
         <button class="btn-transfer-team">Transfer Team Ownership</button>
-        
+
         <!-- Pending transfers -->
         <div class="pending-transfers">
             <h4>Pending Ownership Transfers</h4>
@@ -259,7 +259,7 @@ POST /organizations/{org_id}/transfer-ownership
         <p>Teams: 12</p>
         <p>Created: 2023-06-01</p>
     </div>
-    
+
     <!-- Organization Members -->
     <div class="org-members-section">
         <h3>Organization Members</h3>
@@ -273,7 +273,7 @@ POST /organizations/{org_id}/transfer-ownership
             </select>
             <input type="text" class="search-members" placeholder="Search members...">
         </div>
-        
+
         <table class="org-members-table">
             <thead>
                 <tr>
@@ -301,10 +301,10 @@ POST /organizations/{org_id}/transfer-ownership
                 </tr>
             </tbody>
         </table>
-        
+
         <button class="btn-invite-member">Invite Member</button>
     </div>
-    
+
     <!-- Teams Management -->
     <div class="org-teams-section">
         <h3>Organization Teams</h3>
@@ -316,7 +316,7 @@ POST /organizations/{org_id}/transfer-ownership
                 <button class="btn-manage-team">Manage</button>
             </div>
         </div>
-        
+
         <button class="btn-create-team">Create Team</button>
     </div>
 </div>
@@ -339,15 +339,15 @@ class OwnershipInterface(ABC):
     @abstractmethod
     def create_team_with_owners(self, team_spec: TeamSpec, owner_ids: List[int]) -> OwnershipOperationResult:
         pass
-    
+
     @abstractmethod
     def transfer_ownership(self, ownership_spec: OwnershipSpec) -> OwnershipOperationResult:
         pass
-    
+
     @abstractmethod
     def accept_ownership_transfer(self, transfer_id: int, user_id: int) -> OwnershipOperationResult:
         pass
-    
+
     @abstractmethod
     def get_ownership_transfers(self, user_id: int) -> OwnershipOperationResult:
         pass

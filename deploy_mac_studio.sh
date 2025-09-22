@@ -90,7 +90,7 @@ if [ ! -f "$ENV_FILE" ]; then
     # Generate secure passwords
     POSTGRES_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
     JWT_SECRET=$(openssl rand -base64 48 | tr -d "=+/" | cut -c1-32)
-    
+
     sudo tee "$ENV_FILE" > /dev/null << EOF
 # Generated on $(date)
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
@@ -101,7 +101,7 @@ NINAIVALAIGAL_DATABASE_URL=postgresql://medhasys:$POSTGRES_PASSWORD@localhost:54
 NINAIVALAIGAL_JWT_SECRET=$JWT_SECRET
 NINAIVALAIGAL_JWT_EXPIRATION_HOURS=168
 EOF
-    
+
     sudo chmod 600 "$ENV_FILE"
     sudo chown medhasys:staff "$ENV_FILE"
     log_success "Environment configuration created"
@@ -142,7 +142,7 @@ services:
 
   pgbouncer:
     image: bitnami/pgbouncer:latest
-    depends_on: 
+    depends_on:
       postgres: { condition: service_healthy }
     environment:
       POSTGRESQL_HOST: postgres

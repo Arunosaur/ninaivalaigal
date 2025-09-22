@@ -15,10 +15,10 @@ jobs:
   validate-stack:
     runs-on: [self-hosted, macstudio]
     timeout-minutes: 20
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Cache pip dependencies
       uses: actions/cache@v4
       with:
@@ -26,7 +26,7 @@ jobs:
         key: pip-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
         restore-keys: |
           pip-${{ runner.os }}-
-    
+
     - name: Validate Apple Container CLI
       run: |
         echo "🏗️ Mac Studio Environment Check"
@@ -34,50 +34,50 @@ jobs:
         sw_vers
         system_profiler SPHardwareDataType | grep -E "(Model Name|Chip|Memory)"
         echo ""
-        
+
         # Check if Apple Container CLI is available
         if ! command -v container &> /dev/null; then
           echo "❌ Apple Container CLI not found"
           exit 1
         fi
-        
+
         # Check container system status
         container system status || container system start
-        
+
         echo "✅ Apple Container CLI is ready"
-    
+
     - name: Setup environment
       run: |
         # Copy environment template if .env doesn't exist
         if [ ! -f .env ]; then
           cp .env.example .env
         fi
-        
+
         # Make scripts executable
         chmod +x scripts/*.sh
-        
+
         echo "✅ Environment setup complete"
-    
+
     - name: Run script validation
       run: |
         echo "🔍 Running script integrity validation..."
         ./scripts/validate_scripts_integrity.sh
-    
+
     - name: Test full stack deployment
       run: |
         echo "🚀 Testing full stack deployment..."
         make stack-up
-        
+
         echo "⏳ Waiting for services to stabilize..."
         sleep 15
-        
+
         echo "📊 Checking stack status..."
         make stack-status
-    
+
     - name: Run integration tests
       run: |
         echo "🧪 Running integration tests..."
-        
+
         # Test database connectivity via PgBouncer
         if command -v psql >/dev/null 2>&1; then
           echo "Testing database via PgBouncer..."
@@ -85,26 +85,26 @@ jobs:
             "postgresql://${POSTGRES_USER:-nina}@127.0.0.1:6432/${POSTGRES_DB:-nina}" \
             -c "SELECT 'PgBouncer integration test successful' as result;"
         fi
-        
+
         # Test API health endpoint
         if command -v curl >/dev/null 2>&1; then
           echo "Testing API health endpoint..."
           curl -f http://127.0.0.1:13370/health
           echo "✅ API health check passed"
         fi
-        
+
         # Test API docs endpoint
         curl -f http://127.0.0.1:13370/docs > /dev/null
         echo "✅ API docs accessible"
-    
+
     - name: Test stack variants
       run: |
         echo "🧪 Testing stack deployment variants..."
-        
+
         # Stop current stack
         make stack-down
         sleep 5
-        
+
         # Test DB only
         echo "Testing DB-only deployment..."
         make db-only
@@ -112,7 +112,7 @@ jobs:
         make stack-status
         make stack-down
         sleep 5
-        
+
         # Test skip API (DB + PgBouncer)
         echo "Testing DB + PgBouncer deployment..."
         make skip-api
@@ -120,27 +120,27 @@ jobs:
         make stack-status
         make stack-down
         sleep 5
-        
+
         # Test skip PgBouncer (DB + API direct)
         echo "Testing DB + API direct deployment..."
         make skip-pgb
         sleep 10
         make stack-status
         make stack-down
-        
+
         echo "✅ All stack variants tested successfully"
-    
+
     - name: Performance benchmark
       run: |
         echo "⚡ Running performance benchmarks..."
-        
+
         # Start full stack for benchmarking
         start_time=$(date +%s%N)
         make stack-up
         end_time=$(date +%s%N)
         startup_ms=$(( (end_time - start_time) / 1000000 ))
         echo "Full stack startup time: ${startup_ms}ms"
-        
+
         # Test query performance via PgBouncer
         if command -v psql >/dev/null 2>&1; then
           query_start=$(date +%s%N)
@@ -151,7 +151,7 @@ jobs:
           query_ms=$(( (query_end - query_start) / 1000000 ))
           echo "Query via PgBouncer time: ${query_ms}ms"
         fi
-        
+
         # Test API response time
         if command -v curl >/dev/null 2>&1; then
           api_start=$(date +%s%N)
@@ -160,30 +160,30 @@ jobs:
           api_ms=$(( (api_end - api_start) / 1000000 ))
           echo "API health response time: ${api_ms}ms"
         fi
-    
+
     - name: Collect logs
       if: always()
       run: |
         echo "📋 Collecting container logs..."
         mkdir -p artifacts
-        
+
         # Collect container logs
         container logs nv-db > artifacts/db.log 2>&1 || true
         container logs nv-pgbouncer > artifacts/pgbouncer.log 2>&1 || true
         container logs nv-api > artifacts/api.log 2>&1 || true
-        
+
         # Add system info
         echo "=== System Info ===" > artifacts/system.log
         sw_vers >> artifacts/system.log
         system_profiler SPHardwareDataType | grep -E "(Model Name|Chip|Memory)" >> artifacts/system.log
         container system status >> artifacts/system.log 2>&1 || true
-        
+
         # Add container status
         echo "=== Container Status ===" >> artifacts/system.log
         container list >> artifacts/system.log 2>&1 || true
-        
+
         echo "✅ Logs collected"
-    
+
     - name: Upload logs
       uses: actions/upload-artifact@v4
       if: always()
@@ -191,20 +191,20 @@ jobs:
         name: stack-logs-${{ github.run_number }}
         path: artifacts/
         retention-days: 7
-    
+
     - name: Cleanup
       if: always()
       run: |
         echo "🧹 Cleaning up..."
         make stack-down || true
-        
+
         # Force cleanup if needed
         container stop nv-db nv-pgbouncer nv-api 2>/dev/null || true
         container delete nv-db nv-pgbouncer nv-api 2>/dev/null || true
-        
+
         # Clean up temporary files
         rm -rf /tmp/pgbouncer-* /tmp/ninaivalaigal-api-* 2>/dev/null || true
-        
+
         echo "✅ Cleanup complete"
 
   summary:

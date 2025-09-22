@@ -8,7 +8,7 @@ This document outlines the monitoring, alerting, and canary deployment strategy 
 
 ### Security Hardening
 - **Hardened Starlette adapter** with stream-time enforcement, early abort, part-count cap
-- **Archive blocking** on text endpoints with UTF-8-only + CTE guards  
+- **Archive blocking** on text endpoints with UTF-8-only + CTE guards
 - **Magic-byte detection** (PE/ELF/Mach-O/Java/MP4) with clear 413/415/400 mapping
 - **Binary endpoint archive safety** with compression-ratio checks and entry caps
 - **Filename security** with Unicode normalization, RFC 5987 parsing, traversal prevention
@@ -59,7 +59,7 @@ kubectl patch ingress ninaivalaigal --patch '{"spec":{"rules":[{"host":"api.nina
 
 ### Rejection Reasons
 - `archive_blocked` - Archive uploads on text endpoints
-- `invalid_encoding` - UTF-8 bypass attempts  
+- `invalid_encoding` - UTF-8 bypass attempts
 - `magic_byte_detected` - Binary file detection
 - `size_limit_exceeded` - Part/file size violations
 - `part_count_exceeded` - Too many multipart parts
@@ -77,7 +77,7 @@ kubectl patch ingress ninaivalaigal --patch '{"spec":{"rules":[{"host":"api.nina
   labels:
     severity: page
 
-# Archive uploads on text endpoints  
+# Archive uploads on text endpoints
 - alert: ArchiveUploadsOnTextEndpoints
   expr: increase(multipart_reject_total{reason="archive_blocked"}[10m]) > 10
   for: 10m
@@ -173,7 +173,7 @@ kubectl patch ingress ninaivalaigal --patch '{"spec":{"rules":[{"host":"api.nina
 ## Dashboard Links
 
 - **Multipart Security Main**: https://grafana.example.com/d/multipart-security-main
-- **Multipart Security Alerts**: https://grafana.example.com/d/multipart-security-alerts  
+- **Multipart Security Alerts**: https://grafana.example.com/d/multipart-security-alerts
 - **Performance Metrics**: https://grafana.example.com/d/performance-overview
 - **Canary Health**: https://grafana.example.com/d/canary-deployment
 
@@ -205,6 +205,6 @@ Import the provided dashboard JSON files:
 
 ---
 
-**Status**: Production Ready ✅  
-**Last Updated**: 2025-09-16  
+**Status**: Production Ready ✅
+**Last Updated**: 2025-09-16
 **Next Review**: 2025-10-16

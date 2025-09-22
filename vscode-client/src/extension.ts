@@ -13,20 +13,20 @@ let currentContext: string = '';
 // Initialize MCP client
 async function initializeMCPClient() {
     if (mcpClient) return mcpClient;
-    
+
     try {
         const transport = new StdioClientTransport({
             command: '/opt/homebrew/anaconda3/bin/python',
             args: ['/Users/asrajag/Workspace/mem0/server/mcp_server.py']
         });
-        
+
         mcpClient = new Client({
             name: 'ninaivalaigal-vscode',
             version: '1.0.0'
         }, {
             capabilities: {}
         });
-        
+
         await mcpClient.connect(transport);
         return mcpClient;
     } catch (error) {
@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage('Ninaivalaigal extension is activating!');
 
     const handler: vscode.ChatRequestHandler = (request: vscode.ChatRequest, chatContext: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken): Thenable<any> => {
-        
+
         return new Promise<any>(async (resolve) => {
             stream.markdown(`**Extension activated - processing request: "${request.prompt}"**\n\n`);
             // Initialize MCP client
@@ -49,12 +49,12 @@ export function activate(context: vscode.ExtensionContext) {
                 stream.markdown('❌ **Failed to connect to Ninaivalaigal MCP server**\n\n');
                 return resolve({ commands: [] });
             }
-            
+
             // Determine project context
             let projectContext: string;
             const workspaceConfig = vscode.workspace.getConfiguration('ninaivalaigal');
             const explicitContext = workspaceConfig.get<string>('context');
-            
+
             if (currentContext) {
                 projectContext = currentContext;
             } else if (explicitContext) {
@@ -65,17 +65,17 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
                 projectContext = 'vscode-session';
             }
-            
+
             // Handle context selection and management
             if (request.prompt.trim().startsWith('context ')) {
                 const contextArgs = request.prompt.trim().split(/\s+/).slice(1);
                 const contextCommand = contextArgs[0];
-                
+
                 if (contextCommand === 'start' && contextArgs[1]) {
                     currentContext = contextArgs[1];
                     projectContext = currentContext;
                     stream.markdown(`🎯 **Started context:** \`${projectContext}\`\n\n`);
-                    
+
                     try {
                         const result = await client.callTool({
                             name: 'context_start',
@@ -105,7 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
                     return resolve({ commands: [] });
                 }
             }
-            
+
             // Show current context
             stream.markdown(`🎯 **Context:** \`${projectContext}\`\n\n`);
 
@@ -124,7 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             try {
                 let result;
-                
+
                 if (command === 'remember') {
                     result = await client.callTool({
                         name: 'remember',
@@ -142,7 +142,7 @@ export function activate(context: vscode.ExtensionContext) {
                             context: contextName
                         }
                     });
-                    
+
                     const memories = result.content[0].text;
                     if (Array.isArray(memories) && memories.length > 0) {
                         stream.markdown(`**Found ${memories.length} memories:**\n\n`);
@@ -176,11 +176,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     const agent = vscode.chat.createChatParticipant('ninaivalaigal', handler);
     agent.iconPath = new vscode.ThemeIcon('beaker');
-    
+
     context.subscriptions.push(agent);
     console.log('Ninaivalaigal extension activated successfully');
     vscode.window.showInformationMessage('Ninaivalaigal extension activated successfully!');
 }
 
 export function deactivate() {}
-

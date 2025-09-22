@@ -49,23 +49,23 @@ Provide a clear description of the security issue:
 ## Steps to Reproduce
 
 If applicable, provide steps to reproduce the issue:
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Impact Assessment
 
 Describe the potential impact:
-- **Confidentiality**: 
-- **Integrity**: 
-- **Availability**: 
-- **Scope**: 
+- **Confidentiality**:
+- **Integrity**:
+- **Availability**:
+- **Scope**:
 
 ## Affected Versions
 
 Which versions are affected?
 - [ ] Latest main branch
-- [ ] Specific version: 
+- [ ] Specific version:
 - [ ] All versions
 - [ ] Unknown
 

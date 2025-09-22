@@ -40,7 +40,7 @@ if ! container list | grep -q "nv-api"; then
         --env "NINAIVALAIGAL_DATABASE_URL=postgresql://nina:change_me_securely@${DB_IP}:5432/nina" \
         --env "NINAIVALAIGAL_JWT_SECRET=dev-secret-change-in-production" \
         nina-api:arm64
-    
+
     # Wait for API to be ready
     log "⏳ Waiting for API to be ready..."
     for i in {1..30}; do

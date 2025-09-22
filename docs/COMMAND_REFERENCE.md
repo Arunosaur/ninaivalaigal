@@ -118,7 +118,7 @@ mem0 start --context project-alpha
 # ... work on project alpha ...
 mem0 stop
 
-mem0 start --context project-beta  
+mem0 start --context project-beta
 # ... work on project beta ...
 mem0 stop
 

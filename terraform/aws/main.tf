@@ -40,7 +40,7 @@ resource "aws_ecs_task_definition" "ninaivalaigal_api" {
     {
       name  = "ninaivalaigal-api"
       image = "ghcr.io/arunosaur/ninaivalaigal-api:latest"
-      
+
       portMappings = [
         {
           containerPort = 8000

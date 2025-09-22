@@ -10,7 +10,7 @@ class TeamInvitationManager {
         this.selectedInvitations = new Set();
         this.teams = [];
         this.searchTimeout = null;
-        
+
         this.init();
     }
 
@@ -63,7 +63,7 @@ class TeamInvitationManager {
                     { id: 'team_4', name: 'DevOps Team', description: 'Infrastructure and deployment' }
                 ];
             }
-            
+
             this.renderTeamFilters();
             this.renderTeamCheckboxes();
         } catch (error) {
@@ -95,7 +95,7 @@ class TeamInvitationManager {
                 // Sample invitations for demo
                 this.loadSampleInvitations();
             }
-            
+
             this.filteredInvitations = [...this.invitations];
             this.renderInvitations();
         } catch (error) {
@@ -158,7 +158,7 @@ class TeamInvitationManager {
                 sent_by: 'john@company.com'
             }
         ];
-        
+
         this.filteredInvitations = [...this.invitations];
         this.renderInvitations();
     }
@@ -166,7 +166,7 @@ class TeamInvitationManager {
     renderTeamFilters() {
         const teamFilter = document.getElementById('team-filter');
         teamFilter.innerHTML = '<option value="">All Teams</option>';
-        
+
         this.teams.forEach(team => {
             const option = document.createElement('option');
             option.value = team.name;
@@ -204,7 +204,7 @@ class TeamInvitationManager {
         const expiresDate = new Date(invitation.expires_at).toLocaleDateString();
         const isExpired = new Date(invitation.expires_at) < new Date();
         const daysUntilExpiry = Math.ceil((new Date(invitation.expires_at) - new Date()) / (1000 * 60 * 60 * 24));
-        
+
         const statusColors = {
             pending: 'bg-yellow-100 text-yellow-800',
             accepted: 'bg-green-100 text-green-800',
@@ -222,7 +222,7 @@ class TeamInvitationManager {
             <div class="invitation-card bg-white card-shadow rounded-lg p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="flex items-center space-x-3">
-                        <input type="checkbox" class="invitation-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                        <input type="checkbox" class="invitation-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                value="${invitation.id}" onchange="toggleInvitationSelection('${invitation.id}')">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900">${invitation.name || invitation.email}</h3>
@@ -238,7 +238,7 @@ class TeamInvitationManager {
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="mb-4">
                     <h4 class="text-sm font-medium text-gray-700 mb-2">Teams:</h4>
                     <div class="flex flex-wrap gap-1">
@@ -249,21 +249,21 @@ class TeamInvitationManager {
                         `).join('')}
                     </div>
                 </div>
-                
+
                 ${invitation.message ? `
                     <div class="mb-4">
                         <h4 class="text-sm font-medium text-gray-700 mb-1">Message:</h4>
                         <p class="text-sm text-gray-600 italic">"${invitation.message}"</p>
                     </div>
                 ` : ''}
-                
+
                 <div class="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
                     <div>
                         <span class="font-medium">Sent:</span> ${sentDate}
                     </div>
                     <div>
                         <span class="font-medium">Expires:</span> ${expiresDate}
-                        ${invitation.status === 'pending' && daysUntilExpiry <= 3 && daysUntilExpiry > 0 ? 
+                        ${invitation.status === 'pending' && daysUntilExpiry <= 3 && daysUntilExpiry > 0 ?
                             `<span class="text-orange-600 font-medium"> (${daysUntilExpiry} days left)</span>` : ''}
                     </div>
                     <div>
@@ -275,30 +275,30 @@ class TeamInvitationManager {
                         </div>
                     ` : ''}
                 </div>
-                
+
                 <div class="flex items-center justify-between pt-4 border-t border-gray-200">
                     <div class="flex space-x-2">
                         ${invitation.status === 'pending' ? `
-                            <button onclick="resendInvitation('${invitation.id}')" 
+                            <button onclick="resendInvitation('${invitation.id}')"
                                     class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                 📧 Resend
                             </button>
-                            <button onclick="extendInvitation('${invitation.id}')" 
+                            <button onclick="extendInvitation('${invitation.id}')"
                                     class="text-green-600 hover:text-green-800 text-sm font-medium">
                                 ⏰ Extend
                             </button>
                         ` : ''}
-                        <button onclick="copyInviteLink('${invitation.id}')" 
+                        <button onclick="copyInviteLink('${invitation.id}')"
                                 class="text-purple-600 hover:text-purple-800 text-sm font-medium">
                             🔗 Copy Link
                         </button>
                     </div>
                     <div class="flex space-x-2">
-                        <button onclick="editInvitation('${invitation.id}')" 
+                        <button onclick="editInvitation('${invitation.id}')"
                                 class="text-gray-600 hover:text-gray-800 text-sm font-medium">
                             ✏️ Edit
                         </button>
-                        <button onclick="revokeInvitation('${invitation.id}')" 
+                        <button onclick="revokeInvitation('${invitation.id}')"
                                 class="text-red-600 hover:text-red-800 text-sm font-medium">
                             🚫 Revoke
                         </button>
@@ -313,7 +313,7 @@ class TeamInvitationManager {
         const acceptedInvitations = this.invitations.filter(inv => inv.status === 'accepted').length;
         const pendingInvitations = this.invitations.filter(inv => inv.status === 'pending').length;
         const expiredInvitations = this.invitations.filter(inv => inv.status === 'expired').length;
-        
+
         document.getElementById('total-invitations').textContent = totalInvitations;
         document.getElementById('accepted-invitations').textContent = acceptedInvitations;
         document.getElementById('pending-invitations').textContent = pendingInvitations;
@@ -350,7 +350,7 @@ class TeamInvitationManager {
 
         this.filteredInvitations = this.invitations.filter(invitation => {
             // Search filter
-            const matchesSearch = !searchTerm || 
+            const matchesSearch = !searchTerm ||
                 invitation.email.toLowerCase().includes(searchTerm) ||
                 (invitation.name && invitation.name.toLowerCase().includes(searchTerm));
 
@@ -371,7 +371,7 @@ class TeamInvitationManager {
         const role = document.getElementById('invite-role').value;
         const message = document.getElementById('invite-message').value;
         const expiration = document.getElementById('invite-expiration').value;
-        
+
         const selectedTeams = Array.from(document.querySelectorAll('#team-checkboxes input:checked'))
             .map(cb => cb.value);
 
@@ -407,7 +407,7 @@ class TeamInvitationManager {
         } catch (error) {
             console.error('Failed to send invitation:', error);
             showNotification('Invitation sending will be available once backend integration is complete', 'info');
-            
+
             // For demo purposes, add to local list
             const newInvitation = {
                 id: `inv_${Date.now()}`,
@@ -421,7 +421,7 @@ class TeamInvitationManager {
                 message,
                 sent_by: 'current-user@company.com'
             };
-            
+
             this.invitations.unshift(newInvitation);
             this.filteredInvitations = [...this.invitations];
             this.renderInvitations();
@@ -435,7 +435,7 @@ class TeamInvitationManager {
         document.getElementById('invite-modal').classList.add('hidden');
         document.getElementById('invite-modal').classList.remove('flex');
         document.getElementById('invite-form').reset();
-        
+
         // Uncheck all team checkboxes
         document.querySelectorAll('#team-checkboxes input').forEach(cb => cb.checked = false);
     }
@@ -457,7 +457,7 @@ function toggleInvitationSelection(invitationId) {
     } else {
         window.teamInvitationManager.selectedInvitations.add(invitationId);
     }
-    
+
     updateBulkActionsButton();
 }
 
@@ -544,12 +544,12 @@ function logout() {
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
-    
+
     notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.style.opacity = '0';
         setTimeout(() => {

@@ -23,38 +23,38 @@ from datetime import datetime
 
 class MemoryProvider(Protocol):
     """Abstract interface for memory providers"""
-    
+
     async def remember(
-        self, 
-        user_id: str, 
-        content: str, 
+        self,
+        user_id: str,
+        content: str,
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """Store a memory and return memory ID"""
         ...
-    
+
     async def recall(
-        self, 
-        user_id: str, 
-        query: str, 
+        self,
+        user_id: str,
+        query: str,
         limit: int = 10
     ) -> List[Dict[str, Any]]:
         """Retrieve memories similar to query"""
         ...
-    
+
     async def delete(self, user_id: str, memory_id: str) -> bool:
         """Delete a specific memory"""
         ...
-    
+
     async def list_memories(
-        self, 
-        user_id: str, 
-        limit: int = 100, 
+        self,
+        user_id: str,
+        limit: int = 100,
         offset: int = 0
     ) -> List[Dict[str, Any]]:
         """List all memories for a user"""
         ...
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Check provider health and return status"""
         ...
@@ -90,19 +90,19 @@ import json
 
 class PostgresMemoryProvider:
     """Native PostgreSQL memory provider with pgvector"""
-    
+
     def __init__(self, session_factory, openai_client=None):
         self.session_factory = session_factory
         self.openai_client = openai_client
-    
+
     async def remember(
-        self, 
-        user_id: str, 
-        content: str, 
+        self,
+        user_id: str,
+        content: str,
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """Store memory in PostgreSQL with vector embedding"""
-        
+
         async with self.session_factory() as session:
             # Generate embedding if OpenAI client available
             embedding = None
@@ -112,7 +112,7 @@ class PostgresMemoryProvider:
                     input=content
                 )
                 embedding = response.data[0].embedding
-            
+
             # Create memory record
             memory = Memory(
                 user_id=user_id,
@@ -120,21 +120,21 @@ class PostgresMemoryProvider:
                 metadata=json.dumps(metadata) if metadata else None,
                 embedding=embedding
             )
-            
+
             session.add(memory)
             await session.commit()
             await session.refresh(memory)
-            
+
             return str(memory.id)
-    
+
     async def recall(
-        self, 
-        user_id: str, 
-        query: str, 
+        self,
+        user_id: str,
+        query: str,
         limit: int = 10
     ) -> List[Dict[str, Any]]:
         """Retrieve similar memories using vector search"""
-        
+
         async with self.session_factory() as session:
             # Generate query embedding
             query_embedding = None
@@ -144,7 +144,7 @@ class PostgresMemoryProvider:
                     input=query
                 )
                 query_embedding = response.data[0].embedding
-            
+
             # Vector similarity search
             if query_embedding:
                 stmt = (
@@ -161,10 +161,10 @@ class PostgresMemoryProvider:
                     .where(Memory.content.ilike(f"%{query}%"))
                     .limit(limit)
                 )
-            
+
             result = await session.execute(stmt)
             memories = result.scalars().all()
-            
+
             return [
                 {
                     "id": str(memory.id),
@@ -175,21 +175,21 @@ class PostgresMemoryProvider:
                 }
                 for memory in memories
             ]
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Check PostgreSQL connection and pgvector availability"""
-        
+
         try:
             async with self.session_factory() as session:
                 # Test basic connection
                 await session.execute(select(1))
-                
+
                 # Test pgvector extension
                 result = await session.execute(
                     select(func.count()).select_from(Memory)
                 )
                 memory_count = result.scalar()
-                
+
                 return {
                     "healthy": True,
                     "provider": "PostgresMemoryProvider",
@@ -197,7 +197,7 @@ class PostgresMemoryProvider:
                     "total_memories": memory_count,
                     "pgvector_available": True
                 }
-        
+
         except Exception as e:
             return {
                 "healthy": False,
@@ -217,10 +217,10 @@ from typing import Dict, Any, List, Optional
 
 class Mem0HttpMemoryProvider:
     """HTTP-based memory provider for mem0 service"""
-    
+
     def __init__(
-        self, 
-        base_url: str, 
+        self,
+        base_url: str,
         api_key: Optional[str] = None,
         hmac_secret: Optional[str] = None
     ):
@@ -228,14 +228,14 @@ class Mem0HttpMemoryProvider:
         self.api_key = api_key
         self.hmac_secret = hmac_secret
         self.client = httpx.AsyncClient()
-    
+
     def _get_headers(self, user_id: str) -> Dict[str, str]:
         """Generate authentication headers"""
         headers = {"Content-Type": "application/json"}
-        
+
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
-        
+
         if self.hmac_secret:
             # HMAC-SHA256 authentication
             message = f"user:{user_id}"
@@ -246,72 +246,72 @@ class Mem0HttpMemoryProvider:
             ).hexdigest()
             headers["X-User-Context"] = user_id
             headers["X-Signature"] = signature
-        
+
         return headers
-    
+
     async def remember(
-        self, 
-        user_id: str, 
-        content: str, 
+        self,
+        user_id: str,
+        content: str,
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """Store memory via HTTP API"""
-        
+
         payload = {
             "messages": [{"role": "user", "content": content}],
             "user_id": user_id
         }
-        
+
         if metadata:
             payload["metadata"] = metadata
-        
+
         response = await self.client.post(
             f"{self.base_url}/v1/memories/",
             json=payload,
             headers=self._get_headers(user_id)
         )
-        
+
         if response.status_code == 200:
             result = response.json()
             return result.get("memory_id", "unknown")
         else:
             raise Exception(f"Failed to store memory: {response.text}")
-    
+
     async def recall(
-        self, 
-        user_id: str, 
-        query: str, 
+        self,
+        user_id: str,
+        query: str,
         limit: int = 10
     ) -> List[Dict[str, Any]]:
         """Retrieve memories via HTTP API"""
-        
+
         payload = {
             "query": query,
             "user_id": user_id,
             "limit": limit
         }
-        
+
         response = await self.client.post(
             f"{self.base_url}/v1/memories/search/",
             json=payload,
             headers=self._get_headers(user_id)
         )
-        
+
         if response.status_code == 200:
             result = response.json()
             return result.get("memories", [])
         else:
             raise Exception(f"Failed to recall memories: {response.text}")
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Check mem0 service health"""
-        
+
         try:
             response = await self.client.get(
                 f"{self.base_url}/health",
                 headers={"Content-Type": "application/json"}
             )
-            
+
             if response.status_code == 200:
                 return {
                     "healthy": True,
@@ -325,7 +325,7 @@ class Mem0HttpMemoryProvider:
                     "provider": "Mem0HttpMemoryProvider",
                     "error": f"HTTP {response.status_code}"
                 }
-        
+
         except Exception as e:
             return {
                 "healthy": False,
@@ -349,55 +349,55 @@ class MemoryProviderType(Enum):
 
 class MemoryProviderFactory:
     """Factory for creating memory providers"""
-    
+
     @staticmethod
     def create_provider(
         provider_type: Union[str, MemoryProviderType] = None
     ) -> MemoryProvider:
         """Create memory provider based on configuration"""
-        
+
         if provider_type is None:
             provider_type = os.getenv("MEMORY_PROVIDER", "native")
-        
+
         if isinstance(provider_type, str):
             provider_type = MemoryProviderType(provider_type.lower())
-        
+
         if provider_type == MemoryProviderType.NATIVE:
             return MemoryProviderFactory._create_postgres_provider()
-        
+
         elif provider_type == MemoryProviderType.HTTP:
             return MemoryProviderFactory._create_http_provider()
-        
+
         elif provider_type == MemoryProviderType.MOCK:
             return MemoryProviderFactory._create_mock_provider()
-        
+
         else:
             raise ValueError(f"Unknown provider type: {provider_type}")
-    
+
     @staticmethod
     def _create_postgres_provider() -> PostgresMemoryProvider:
         """Create PostgreSQL memory provider"""
         from server.database import get_session_factory
-        
+
         session_factory = get_session_factory()
-        
+
         # Optional OpenAI client for embeddings
         openai_client = None
         if os.getenv("OPENAI_API_KEY"):
             import openai
             openai_client = openai.AsyncOpenAI()
-        
+
         return PostgresMemoryProvider(session_factory, openai_client)
-    
+
     @staticmethod
     def _create_http_provider() -> Mem0HttpMemoryProvider:
         """Create HTTP memory provider"""
         base_url = os.getenv("MEM0_BASE_URL", "http://localhost:8001")
         api_key = os.getenv("MEM0_API_KEY")
         hmac_secret = os.getenv("MEM0_HMAC_SECRET")
-        
+
         return Mem0HttpMemoryProvider(base_url, api_key, hmac_secret)
-    
+
     @staticmethod
     def _create_mock_provider() -> 'MockMemoryProvider':
         """Create mock memory provider for testing"""
@@ -478,19 +478,19 @@ from enum import Enum
 
 class MemoryConfig:
     """Memory provider configuration"""
-    
+
     # Provider selection
     PROVIDER_TYPE = os.getenv("MEMORY_PROVIDER", "native")
-    
+
     # Native provider settings
     DATABASE_URL = os.getenv("DATABASE_URL")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    
+
     # HTTP provider settings
     MEM0_BASE_URL = os.getenv("MEM0_BASE_URL", "http://localhost:8001")
     MEM0_API_KEY = os.getenv("MEM0_API_KEY")
     MEM0_HMAC_SECRET = os.getenv("MEM0_HMAC_SECRET")
-    
+
     # Performance settings
     DEFAULT_RECALL_LIMIT = int(os.getenv("MEMORY_RECALL_LIMIT", "10"))
     EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
@@ -502,7 +502,7 @@ Provider Selection:
   Development:
     - Default: native (PostgreSQL)
     - Override: MEMORY_PROVIDER=http for mem0 testing
-  
+
   Production:
     - Native: For self-hosted deployments
     - HTTP: For managed mem0 service
@@ -515,20 +515,20 @@ Provider Selection:
 ```python
 class MockMemoryProvider:
     """Mock memory provider for testing"""
-    
+
     def __init__(self):
         self.memories = {}
         self.next_id = 1
-    
+
     async def remember(
-        self, 
-        user_id: str, 
-        content: str, 
+        self,
+        user_id: str,
+        content: str,
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         memory_id = str(self.next_id)
         self.next_id += 1
-        
+
         self.memories[memory_id] = {
             "id": memory_id,
             "user_id": user_id,
@@ -536,13 +536,13 @@ class MockMemoryProvider:
             "metadata": metadata,
             "created_at": datetime.utcnow().isoformat()
         }
-        
+
         return memory_id
-    
+
     async def recall(
-        self, 
-        user_id: str, 
-        query: str, 
+        self,
+        user_id: str,
+        query: str,
         limit: int = 10
     ) -> List[Dict[str, Any]]:
         user_memories = [
@@ -550,7 +550,7 @@ class MockMemoryProvider:
             if memory["user_id"] == user_id and query.lower() in memory["content"].lower()
         ]
         return user_memories[:limit]
-    
+
     async def health_check(self) -> Dict[str, Any]:
         return {
             "healthy": True,
@@ -567,9 +567,9 @@ from server.memory_providers import MemoryProviderFactory, MemoryProviderType
 @pytest.mark.asyncio
 async def test_memory_provider_interface():
     """Test memory provider interface compliance"""
-    
+
     provider = MemoryProviderFactory.create_provider(MemoryProviderType.MOCK)
-    
+
     # Test remember
     memory_id = await provider.remember(
         user_id="test_user",
@@ -577,7 +577,7 @@ async def test_memory_provider_interface():
         metadata={"category": "test"}
     )
     assert memory_id is not None
-    
+
     # Test recall
     memories = await provider.recall(
         user_id="test_user",
@@ -586,7 +586,7 @@ async def test_memory_provider_interface():
     )
     assert len(memories) > 0
     assert memories[0]["content"] == "Test memory content"
-    
+
     # Test health check
     health = await provider.health_check()
     assert health["healthy"] is True

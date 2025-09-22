@@ -66,7 +66,7 @@ echo "mem0 VS Code extension installed!"
 ```bash
 # In VS Code chat:
 @mem0 context start my-project     # Start new context
-@mem0 context switch frontend      # Switch to existing context  
+@mem0 context switch frontend      # Switch to existing context
 @mem0 context list                 # List all contexts
 ```
 
@@ -170,7 +170,7 @@ code --extensionDevelopmentPath=. --new-window
 VS Code Extension
     ↓ (HTTP API calls)
 mem0 Server (FastAPI)
-    ↓ (Database queries)  
+    ↓ (Database queries)
 SQLite/PostgreSQL Database
 ```
 

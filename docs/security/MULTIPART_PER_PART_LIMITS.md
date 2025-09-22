@@ -56,7 +56,7 @@ validator = StrictMultipartValidator()
 # Validate multipart request with content analysis
 result = validator.validate_part(
     field_name="upload",
-    content_type="image/png", 
+    content_type="image/png",
     filename="image.png",
     content=file_bytes,
     part_limit_config=config
@@ -74,11 +74,11 @@ from server.security.multipart.strict_validator import validate_starlette_multip
 # Validate FastAPI/Starlette multipart request
 async def upload_handler(request):
     validation_result = await validate_starlette_multipart(
-        request, 
+        request,
         part_limit_config=config,
         read_content=True  # Enable content analysis
     )
-    
+
     if not validation_result["valid"]:
         raise HTTPException(400, "Invalid multipart content")
 ```
@@ -231,12 +231,12 @@ app = FastAPI()
 async def upload_file(request: Request):
     # Validate multipart content before processing
     validation = await validate_starlette_multipart(request)
-    
+
     if not validation["valid"]:
-        violations = [v for part in validation["part_results"] 
+        violations = [v for part in validation["part_results"]
                      for v in part["violations"]]
         raise HTTPException(400, f"Upload validation failed: {violations}")
-    
+
     # Process validated upload
     form = await request.form()
     # ... handle upload
@@ -251,7 +251,7 @@ def validate_upload_content(content: bytes, content_type: str, filename: str):
         max_binary_part_bytes=5 * 1024 * 1024,  # 5MB limit
         block_executable_magic_bytes=True
     )
-    
+
     try:
         result = enforce_part_limits(content, content_type, filename, config)
         return {
@@ -271,7 +271,7 @@ def validate_upload_content(content: bytes, content_type: str, filename: str):
 Monitor these key metrics for security posture:
 
 1. **Executable Upload Attempts**: Count of blocked executable uploads
-2. **Content-Type Mismatches**: Frequency of spoofing attempts  
+2. **Content-Type Mismatches**: Frequency of spoofing attempts
 3. **Size Limit Violations**: Patterns in oversized upload attempts
 4. **Magic Byte Detection Rate**: Effectiveness of format detection
 
@@ -302,7 +302,7 @@ logger = logging.getLogger("server.security.multipart.strict_limits")
 
 The implementation provides extension points for:
 - Custom magic byte signatures
-- Additional content analysis algorithms  
+- Additional content analysis algorithms
 - Integration with external security services
 - Custom validation policies and rules
 

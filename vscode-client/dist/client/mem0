@@ -9,6 +9,7 @@ import sys
 import subprocess
 from pathlib import Path
 
+
 def main():
     # Find the project root directory (portable)
     script_dir = Path(__file__).parent
@@ -19,8 +20,9 @@ def main():
 
     # Run the Python client with all arguments
     try:
-        result = subprocess.run([sys.executable, 'mem0'] + sys.argv[1:],
-                              capture_output=False, text=True)
+        result = subprocess.run(
+            [sys.executable, "mem0"] + sys.argv[1:], capture_output=False, text=True
+        )
         sys.exit(result.returncode)
     except FileNotFoundError:
         print("❌ Error: mem0 Python client not found")
@@ -28,6 +30,7 @@ def main():
     except Exception as e:
         print(f"❌ Error: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

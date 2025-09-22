@@ -9,9 +9,9 @@ This bundle contains Grafana dashboards, Prometheus recording rules, and alert r
 - `monitoring/prometheus-alerts.yml` — sample alert rules
 
 ## Setup
-1. **Prometheus**  
+1. **Prometheus**
    Load `prometheus-recording-rules.yml` and `prometheus-alerts.yml` in your Prometheus config.
-2. **Grafana**  
+2. **Grafana**
    Import the two JSON dashboards and set the datasource to your Prometheus instance (uid `prom` by default).
 3. **Metrics expected**
    - `multipart_reject_total{reason}` (bounded reasons)

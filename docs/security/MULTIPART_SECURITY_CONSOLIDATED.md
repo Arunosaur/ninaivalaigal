@@ -51,7 +51,7 @@ This document consolidates all multipart upload security hardening measures impl
 
 ```python
 DEFAULT_MAX_TEXT_PART_BYTES = 16 * 1024 * 1024      # 16MB
-DEFAULT_MAX_BINARY_PART_BYTES = 256 * 1024 * 1024   # 256MB  
+DEFAULT_MAX_BINARY_PART_BYTES = 256 * 1024 * 1024   # 256MB
 DEFAULT_MAX_PARTS_PER_REQUEST = 256                  # 256 parts
 ```
 
@@ -64,11 +64,11 @@ async def upload_handler(request):
     async def text_handler(content: str, headers: dict):
         # Process text content
         pass
-    
+
     async def binary_handler(content: bytes, headers: dict):
-        # Process binary content  
+        # Process binary content
         pass
-    
+
     await scan_with_starlette(
         request,
         text_handler,
@@ -125,7 +125,7 @@ pytest tests/test_starlette_adapter_hardening.py tests/test_multipart_hardening_
 Each test validates specific attack vectors:
 
 1. **Part Count DoS**: Excessive parts → HTTP 413
-2. **Memory Exhaustion**: Oversized parts → HTTP 413  
+2. **Memory Exhaustion**: Oversized parts → HTTP 413
 3. **Binary Masquerade**: PE/ELF in text → HTTP 415
 4. **Archive Smuggling**: ZIP on text endpoint → HTTP 415
 5. **Encoding Bypass**: base64 CTE → HTTP 415
@@ -199,28 +199,28 @@ async def upload_text_only(request: Request):
     async def text_handler(content: str, headers: dict):
         # Process text content
         return {"status": "processed", "size": len(content)}
-    
+
     try:
         await scan_with_starlette(request, text_handler)
         return {"status": "success"}
     except HTTPException:
         raise  # Re-raise with proper status codes
 
-@app.post("/upload/mixed")  
+@app.post("/upload/mixed")
 async def upload_mixed(request: Request):
     async def text_handler(content: str, headers: dict):
         # Handle text parts
         pass
-        
+
     async def binary_handler(content: bytes, headers: dict):
         # Handle binary parts with filename safety
         from server.utils.filename_sanitizer import validate_filename_safety
-        
+
         filename = headers.get("content-disposition", "")
         safety = validate_filename_safety(filename, allow_archives=True)
         if not safety["safe"]:
             raise HTTPException(400, f"Unsafe filename: {safety['issues']}")
-    
+
     await scan_with_starlette(request, text_handler, binary_handler)
 ```
 
@@ -309,7 +309,7 @@ pytest tests/test_multipart_hardening_patch_v2.py tests/test_starlette_adapter_h
 
 ---
 
-**Status**: Production Ready  
-**Version**: 1.1.0  
-**Security Review**: External review recommended for production deployment  
+**Status**: Production Ready
+**Version**: 1.1.0
+**Security Review**: External review recommended for production deployment
 **Performance**: Validated for high-throughput scenarios with minimal overhead

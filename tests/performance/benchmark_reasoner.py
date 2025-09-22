@@ -5,18 +5,19 @@ Benchmarks the GraphReasoner class performance with pytest-benchmark.
 Validates SLO compliance and performance regression detection.
 """
 
-import pytest
 import asyncio
 import json
-import sys
 import os
+import sys
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
+
+import pytest
 
 # Add the project root to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from server.graph.graph_reasoner import GraphReasoner, create_graph_reasoner
+from server.graph.graph_reasoner import create_graph_reasoner
 
 
 @pytest.fixture
@@ -352,7 +353,7 @@ class TestAnalyzeMemoryNetworkPerformance:
             "edges": [
                 {
                     "source": f"node_{i:03d}",
-                    "target": f"node_{(i+1)%100:03d}",
+                    "target": f"node_{(i + 1) % 100:03d}",
                     "type": "LINKED_TO",
                 }
                 for i in range(100)

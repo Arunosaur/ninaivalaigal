@@ -12,7 +12,7 @@ class MemoryBrowser {
         this.totalCount = 0;
         this.selectedMemory = null;
         this.searchTimeout = null;
-        
+
         this.init();
     }
 
@@ -139,7 +139,7 @@ class MemoryBrowser {
                 size: 167
             }
         ];
-        
+
         this.filteredMemories = [...this.memories];
         this.totalCount = this.memories.length;
         this.renderMemories();
@@ -195,7 +195,7 @@ class MemoryBrowser {
         }
 
         emptyState.classList.add('hidden');
-        
+
         // Calculate pagination
         const startIndex = (this.currentPage - 1) * this.pageSize;
         const endIndex = Math.min(startIndex + this.pageSize, this.filteredMemories.length);
@@ -203,7 +203,7 @@ class MemoryBrowser {
 
         // Render memory cards
         container.innerHTML = pageMemories.map(memory => this.renderMemoryCard(memory)).join('');
-        
+
         // Update pagination
         this.updatePagination();
         pagination.classList.remove('hidden');
@@ -213,7 +213,7 @@ class MemoryBrowser {
         const createdDate = new Date(memory.created_at).toLocaleDateString();
         const updatedDate = new Date(memory.updated_at).toLocaleDateString();
         const isRecent = (Date.now() - new Date(memory.updated_at).getTime()) < 24 * 60 * 60 * 1000;
-        
+
         return `
             <div class="memory-card bg-white card-shadow rounded-lg p-6 cursor-pointer" onclick="openMemoryDetail('${memory.id}')">
                 <div class="flex items-start justify-between mb-3">
@@ -228,11 +228,11 @@ class MemoryBrowser {
                         <div class="w-2 h-2 rounded-full ${memory.relevance_score > 0.9 ? 'bg-green-500' : memory.relevance_score > 0.8 ? 'bg-yellow-500' : 'bg-gray-400'}"></div>
                     </div>
                 </div>
-                
+
                 <div class="memory-content text-gray-800 text-sm mb-4 line-clamp-4">
                     ${this.highlightSearchTerms(memory.content)}
                 </div>
-                
+
                 <div class="flex items-center justify-between">
                     <div class="flex flex-wrap gap-1">
                         ${memory.tags.slice(0, 3).map(tag => `<span class="tag">${tag}</span>`).join('')}
@@ -242,7 +242,7 @@ class MemoryBrowser {
                         ${memory.context.replace(/-/g, ' ')}
                     </div>
                 </div>
-                
+
                 <div class="mt-4 flex items-center justify-between text-xs text-gray-400">
                     <span>Relevance: ${(memory.relevance_score * 100).toFixed(0)}%</span>
                     <span>Updated: ${updatedDate}</span>
@@ -254,7 +254,7 @@ class MemoryBrowser {
     highlightSearchTerms(content) {
         const searchTerm = document.getElementById('search-input').value.trim();
         if (!searchTerm) return content;
-        
+
         const regex = new RegExp(`(${searchTerm})`, 'gi');
         return content.replace(regex, '<span class="search-highlight">$1</span>');
     }
@@ -264,7 +264,7 @@ class MemoryBrowser {
         const activeMemories = this.memories.filter(m => !m.archived).length;
         const pinnedMemories = this.memories.filter(m => m.pinned).length;
         const totalSize = this.memories.reduce((sum, m) => sum + m.size, 0);
-        
+
         document.getElementById('total-memories').textContent = totalMemories;
         document.getElementById('active-memories').textContent = activeMemories;
         document.getElementById('pinned-memories').textContent = pinnedMemories;
@@ -275,19 +275,19 @@ class MemoryBrowser {
         const totalPages = Math.ceil(this.filteredMemories.length / this.pageSize);
         const startIndex = (this.currentPage - 1) * this.pageSize;
         const endIndex = Math.min(startIndex + this.pageSize, this.filteredMemories.length);
-        
+
         document.getElementById('showing-start').textContent = startIndex + 1;
         document.getElementById('showing-end').textContent = endIndex;
         document.getElementById('total-count').textContent = this.filteredMemories.length;
-        
+
         // Update navigation buttons
         document.getElementById('prev-btn').disabled = this.currentPage === 1;
         document.getElementById('next-btn').disabled = this.currentPage === totalPages;
-        
+
         // Update page numbers
         const pageNumbers = document.getElementById('page-numbers');
         pageNumbers.innerHTML = '';
-        
+
         for (let i = Math.max(1, this.currentPage - 2); i <= Math.min(totalPages, this.currentPage + 2); i++) {
             const button = document.createElement('button');
             button.textContent = i;
@@ -343,7 +343,7 @@ class MemoryBrowser {
         if (dateFilter) {
             const now = new Date();
             const filterDate = new Date();
-            
+
             switch (dateFilter) {
                 case 'today':
                     filterDate.setHours(0, 0, 0, 0);
@@ -358,7 +358,7 @@ class MemoryBrowser {
                     filterDate.setFullYear(now.getFullYear() - 1);
                     break;
             }
-            
+
             if (dateFilter !== 'custom') {
                 this.filteredMemories = this.filteredMemories.filter(memory =>
                     new Date(memory.created_at) >= filterDate
@@ -450,7 +450,7 @@ class MemoryBrowser {
 function toggleFilters() {
     const filters = document.getElementById('advanced-filters');
     const button = document.getElementById('filter-toggle');
-    
+
     if (filters.classList.contains('hidden')) {
         filters.classList.remove('hidden');
         button.textContent = '🔍 Hide Filters';
@@ -467,16 +467,16 @@ function clearFilters() {
     document.getElementById('tag-filter').value = '';
     document.getElementById('status-filter').value = '';
     document.getElementById('sort-select').value = 'created_desc';
-    
+
     window.memoryBrowser.applyFilters();
 }
 
 function openMemoryDetail(memoryId) {
     const memory = window.memoryBrowser.memories.find(m => m.id === memoryId);
     if (!memory) return;
-    
+
     window.memoryBrowser.selectedMemory = memory;
-    
+
     const content = document.getElementById('memory-detail-content');
     content.innerHTML = `
         <div class="space-y-6">
@@ -486,13 +486,13 @@ function openMemoryDetail(memoryId) {
                     ${memory.content}
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <h4 class="font-semibold text-gray-900 mb-2">Context</h4>
                     <p class="text-gray-600">${memory.context.replace(/-/g, ' ')}</p>
                 </div>
-                
+
                 <div>
                     <h4 class="font-semibold text-gray-900 mb-2">Tags</h4>
                     <div class="flex flex-wrap gap-1">
@@ -500,24 +500,24 @@ function openMemoryDetail(memoryId) {
                     </div>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <h4 class="font-semibold text-gray-900 mb-2">Created</h4>
                     <p class="text-gray-600">${new Date(memory.created_at).toLocaleString()}</p>
                 </div>
-                
+
                 <div>
                     <h4 class="font-semibold text-gray-900 mb-2">Last Updated</h4>
                     <p class="text-gray-600">${new Date(memory.updated_at).toLocaleString()}</p>
                 </div>
-                
+
                 <div>
                     <h4 class="font-semibold text-gray-900 mb-2">Relevance Score</h4>
                     <p class="text-gray-600">${(memory.relevance_score * 100).toFixed(1)}%</p>
                 </div>
             </div>
-            
+
             <div>
                 <h4 class="font-semibold text-gray-900 mb-2">Status</h4>
                 <div class="flex space-x-2">
@@ -529,11 +529,11 @@ function openMemoryDetail(memoryId) {
             </div>
         </div>
     `;
-    
+
     // Update button states
     document.getElementById('pin-btn').textContent = memory.pinned ? '📌 Unpin' : '📌 Pin';
     document.getElementById('archive-btn').textContent = memory.archived ? '📦 Unarchive' : '📦 Archive';
-    
+
     document.getElementById('memory-detail-modal').classList.remove('hidden');
     document.getElementById('memory-detail-modal').classList.add('flex');
 }
@@ -595,12 +595,12 @@ function logout() {
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
-    
+
     notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.style.opacity = '0';
         setTimeout(() => {

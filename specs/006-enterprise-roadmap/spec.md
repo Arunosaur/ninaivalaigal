@@ -1,9 +1,9 @@
 # Enterprise Roadmap - Multi-Organization & Cloud Integration
 
-**Specification:** 006-enterprise-roadmap  
-**Version:** 1.0.0  
-**Created:** 2025-09-12  
-**Status:** Future Planning  
+**Specification:** 006-enterprise-roadmap
+**Version:** 1.0.0
+**Created:** 2025-09-12
+**Status:** Future Planning
 
 ## Executive Summary
 
@@ -84,26 +84,26 @@ class EnterpriseMemoryManager:
         Personal → Team → Division → Organization → Enterprise
         """
         memories = []
-        
+
         # Personal memories
         memories.extend(self.get_personal_memories(user_context.user_id))
-        
+
         # Team memories
         if user_context.team_id:
             memories.extend(self.get_team_memories(user_context.team_id))
-        
+
         # Division memories (new)
         if user_context.division_id:
             memories.extend(self.get_division_memories(user_context.division_id))
-        
+
         # Organization memories
         if user_context.organization_id:
             memories.extend(self.get_organization_memories(user_context.organization_id))
-        
+
         # Enterprise memories (new)
         if user_context.enterprise_id:
             memories.extend(self.get_enterprise_memories(user_context.enterprise_id))
-        
+
         return self.rank_and_filter_memories(memories, user_context)
 ```
 
@@ -116,17 +116,17 @@ class ActiveDirectoryAuth:
     def __init__(self, ldap_server, domain):
         self.ldap_server = ldap_server
         self.domain = domain
-    
+
     def authenticate(self, username, password):
         """Authenticate against AD and sync user/group info"""
         # LDAP authentication
         user_info = self.ldap_authenticate(username, password)
-        
+
         # Sync organizational structure
         self.sync_user_groups(user_info)
-        
+
         return self.create_jwt_token(user_info)
-    
+
     def sync_organizational_structure(self):
         """Sync AD organizational units to mem0 structure"""
         ad_structure = self.get_ad_organizational_units()
@@ -141,14 +141,14 @@ class OktaAuth:
         self.okta_domain = okta_domain
         self.client_id = client_id
         self.client_secret = client_secret
-    
+
     def handle_saml_response(self, saml_response):
         """Process SAML response and extract user/group info"""
         user_info = self.parse_saml_response(saml_response)
-        
+
         # Map Okta groups to mem0 teams/organizations
         mem0_context = self.map_okta_groups_to_mem0(user_info.groups)
-        
+
         return self.create_session(user_info, mem0_context)
 ```
 
@@ -163,14 +163,14 @@ authentication:
       organization_mapping:
         "OU=Engineering": "engineering_org"
         "OU=Marketing": "marketing_org"
-    
+
     - type: "okta"
       domain: "company-b.okta.com"
       client_id: "${OKTA_CLIENT_ID}"
       group_mapping:
         "mem0-admins": "admin"
         "mem0-users": "user"
-    
+
     - type: "google_workspace"
       domain: "company-c.com"
       client_id: "${GOOGLE_CLIENT_ID}"
@@ -314,7 +314,7 @@ class EnterpriseAnalytics:
             "top_knowledge_contributors": self.get_top_contributors(org_id),
             "memory_quality_scores": self.get_quality_metrics(org_id)
         }
-    
+
     def generate_compliance_reports(self, org_id):
         """Generate compliance reports for enterprise governance"""
         return {
@@ -333,13 +333,13 @@ class EnterpriseSecurityManager:
         self.encryption_manager = EncryptionManager()
         self.audit_logger = AuditLogger()
         self.compliance_checker = ComplianceChecker()
-    
+
     def encrypt_sensitive_memories(self, memory_content, classification):
         """Encrypt memories based on data classification"""
         if classification in ['confidential', 'restricted']:
             return self.encryption_manager.encrypt_with_key_rotation(memory_content)
         return memory_content
-    
+
     def audit_memory_access(self, user_id, memory_id, action):
         """Comprehensive audit logging for compliance"""
         self.audit_logger.log({
@@ -360,15 +360,15 @@ class EnterpriseIntegrations:
     def integrate_with_confluence(self, confluence_config):
         """Sync memories with Confluence knowledge base"""
         pass
-    
+
     def integrate_with_sharepoint(self, sharepoint_config):
         """Sync memories with SharePoint documents"""
         pass
-    
+
     def integrate_with_slack(self, slack_config):
         """Enable Slack bot for memory queries"""
         pass
-    
+
     def integrate_with_teams(self, teams_config):
         """Enable Microsoft Teams integration"""
         pass
@@ -428,7 +428,7 @@ class EnterpriseIntegrations:
 BEGIN;
 
 -- Create enterprise for existing organization
-INSERT INTO enterprises (name, domain) 
+INSERT INTO enterprises (name, domain)
 VALUES ('Default Enterprise', 'default.local');
 
 -- Migrate existing organizations to sub-organizations

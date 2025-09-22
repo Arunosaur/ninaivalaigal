@@ -22,7 +22,7 @@ resource "google_cloud_run_service" "ninaivalaigal_api" {
     spec {
       containers {
         image = "ghcr.io/arunosaur/ninaivalaigal-api:latest"
-        
+
         ports {
           container_port = 8000
         }
@@ -87,7 +87,7 @@ resource "google_cloud_run_service" "ninaivalaigal_api" {
 # IAM policy to allow unauthenticated access
 resource "google_cloud_run_service_iam_member" "public_access" {
   count = var.allow_unauthenticated ? 1 : 0
-  
+
   service  = google_cloud_run_service.ninaivalaigal_api.name
   location = google_cloud_run_service.ninaivalaigal_api.location
   role     = "roles/run.invoker"
@@ -97,27 +97,27 @@ resource "google_cloud_run_service_iam_member" "public_access" {
 # Enable required APIs
 resource "google_project_service" "cloud_run_api" {
   service = "run.googleapis.com"
-  
+
   disable_dependent_services = true
 }
 
 resource "google_project_service" "container_registry_api" {
   service = "containerregistry.googleapis.com"
-  
+
   disable_dependent_services = true
 }
 
 # Cloud SQL PostgreSQL instance (optional)
 resource "google_sql_database_instance" "postgres" {
   count = var.create_database ? 1 : 0
-  
+
   name             = "ninaivalaigal-postgres"
   database_version = "POSTGRES_15"
   region           = var.region
 
   settings {
     tier = "db-f1-micro"
-    
+
     backup_configuration {
       enabled    = true
       start_time = "03:00"
@@ -142,14 +142,14 @@ resource "google_sql_database_instance" "postgres" {
 
 resource "google_sql_database" "ninaivalaigal_db" {
   count = var.create_database ? 1 : 0
-  
+
   name     = "nina"
   instance = google_sql_database_instance.postgres[0].name
 }
 
 resource "google_sql_user" "ninaivalaigal_user" {
   count = var.create_database ? 1 : 0
-  
+
   name     = "nina"
   instance = google_sql_database_instance.postgres[0].name
   password = var.database_password

@@ -32,7 +32,7 @@ if python3 "$GATE_SCRIPT" --check; then
     exit 0
 else
     exit_code=$?
-    
+
     if [[ $exit_code -eq 1 ]]; then
         echo -e "${RED}❌ RBAC Policy Gate: FAILED${NC}"
         echo -e "${YELLOW}🔒 Policy changes detected that require manual approval${NC}"
@@ -48,6 +48,6 @@ else
     else
         echo -e "${RED}❌ RBAC Policy Gate: ERROR${NC}"
     fi
-    
+
     exit $exit_code
 fi

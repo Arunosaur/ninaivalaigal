@@ -17,7 +17,7 @@ jobs:
   pr-agent:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'ai-review')
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-        
+
     - name: Add Python path
       run: echo "PYTHONPATH=$PYTHONPATH:./rbac/" >> $GITHUB_ENV
 

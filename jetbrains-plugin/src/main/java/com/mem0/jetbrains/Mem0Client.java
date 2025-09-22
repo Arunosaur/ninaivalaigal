@@ -34,28 +34,28 @@ public class Mem0Client {
             mcpProcess = pb.start();
             mcpInput = new OutputStreamWriter(mcpProcess.getOutputStream());
             mcpOutput = new BufferedReader(new InputStreamReader(mcpProcess.getInputStream()));
-            
+
             // Send initialize request
             JSONObject initRequest = new JSONObject();
             initRequest.put("jsonrpc", "2.0");
             initRequest.put("id", requestId++);
             initRequest.put("method", "initialize");
-            
+
             JSONObject params = new JSONObject();
             params.put("protocolVersion", "2024-11-05");
-            
+
             JSONObject clientInfo = new JSONObject();
             clientInfo.put("name", "mem0-jetbrains");
             clientInfo.put("version", "1.0.0");
             params.put("clientInfo", clientInfo);
-            
+
             JSONObject capabilities = new JSONObject();
             params.put("capabilities", capabilities);
-            
+
             initRequest.put("params", params);
-            
+
             sendMCPRequest(initRequest);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -82,16 +82,16 @@ public class Mem0Client {
             request.put("jsonrpc", "2.0");
             request.put("id", requestId++);
             request.put("method", "tools/call");
-            
+
             JSONObject params = new JSONObject();
             params.put("name", "context_start");
-            
+
             JSONObject arguments = new JSONObject();
             arguments.put("context_name", contextName);
             params.put("arguments", arguments);
-            
+
             request.put("params", params);
-            
+
             JSONObject response = sendMCPRequest(request);
             if (response != null && !response.has("error")) {
                 this.currentContext = contextName;
@@ -110,13 +110,13 @@ public class Mem0Client {
             request.put("jsonrpc", "2.0");
             request.put("id", requestId++);
             request.put("method", "tools/call");
-            
+
             JSONObject params = new JSONObject();
             params.put("name", "list_contexts");
             params.put("arguments", new JSONObject());
-            
+
             request.put("params", params);
-            
+
             JSONObject response = sendMCPRequest(request);
             if (response != null && response.has("result")) {
                 JSONObject result = response.getJSONObject("result");
@@ -145,17 +145,17 @@ public class Mem0Client {
             request.put("jsonrpc", "2.0");
             request.put("id", requestId++);
             request.put("method", "tools/call");
-            
+
             JSONObject params = new JSONObject();
             params.put("name", "remember");
-            
+
             JSONObject arguments = new JSONObject();
             arguments.put("text", memory);
             arguments.put("context", currentContext);
             params.put("arguments", arguments);
-            
+
             request.put("params", params);
-            
+
             JSONObject response = sendMCPRequest(request);
             return response != null && !response.has("error");
         } catch (Exception e) {
@@ -170,16 +170,16 @@ public class Mem0Client {
             request.put("jsonrpc", "2.0");
             request.put("id", requestId++);
             request.put("method", "tools/call");
-            
+
             JSONObject params = new JSONObject();
             params.put("name", "recall");
-            
+
             JSONObject arguments = new JSONObject();
             arguments.put("context", currentContext);
             params.put("arguments", arguments);
-            
+
             request.put("params", params);
-            
+
             JSONObject response = sendMCPRequest(request);
             if (response != null && response.has("result")) {
                 JSONObject result = response.getJSONObject("result");
@@ -200,13 +200,13 @@ public class Mem0Client {
     public boolean isServerRunning() {
         return mcpProcess != null && mcpProcess.isAlive();
     }
-    
+
     private JSONObject sendMCPRequest(JSONObject request) {
         try {
             String requestStr = request.toString() + "\n";
             mcpInput.write(requestStr);
             mcpInput.flush();
-            
+
             String responseStr = mcpOutput.readLine();
             if (responseStr != null) {
                 return new JSONObject(responseStr);
@@ -216,7 +216,7 @@ public class Mem0Client {
         }
         return null;
     }
-    
+
     public void close() {
         try {
             if (mcpInput != null) mcpInput.close();

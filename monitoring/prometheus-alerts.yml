@@ -15,7 +15,7 @@ groups:
           runbook_url: "https://github.com/Arunosaur/ninaivalaigal/blob/main/docs/runbooks/multipart-security.md"
           dashboard_url: "https://grafana.example.com/d/multipart-security-main"
 
-      # Specific concern: archive uploads on text endpoints - Page severity  
+      # Specific concern: archive uploads on text endpoints - Page severity
       - alert: ArchiveUploadsOnTextEndpoints
         expr: increase(multipart_reject_total{reason="archive_blocked"}[10m]) > 10
         for: 10m

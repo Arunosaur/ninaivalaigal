@@ -124,7 +124,7 @@ jobs:
         run: |
           # Install syft for SBOM generation
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-          
+
           # Generate SBOMs for each container
           syft ghcr.io/${{ github.repository }}/api:${{ steps.version.outputs.version }} -o spdx-json > api-sbom.spdx.json
           syft ghcr.io/${{ github.repository }}/mem0:${{ steps.version.outputs.version }} -o spdx-json > mem0-sbom.spdx.json

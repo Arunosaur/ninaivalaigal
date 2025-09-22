@@ -5,21 +5,21 @@ Tests the GraphReasoner class functionality with mocked dependencies.
 Validates reasoning paths, context explanations, relevance inference, and feedback loops.
 """
 
-import pytest
-import json
 import asyncio
-import sys
+import json
 import os
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+import sys
+from unittest.mock import AsyncMock
+
+import pytest
 
 # Add the project root to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from server.graph.graph_reasoner import (
+    ContextExplanation,
     GraphReasoner,
     ReasoningPath,
-    ContextExplanation,
     RelevanceInference,
     create_graph_reasoner,
 )

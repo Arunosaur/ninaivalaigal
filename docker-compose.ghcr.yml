@@ -57,6 +57,6 @@ volumes:
 
 # Usage:
 # docker-compose -f docker-compose.ghcr.yml up -d
-# 
+#
 # This uses multi-arch GHCR images that work on both ARM64 and x86_64
 # Images are automatically pulled from GitHub Container Registry

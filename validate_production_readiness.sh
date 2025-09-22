@@ -104,7 +104,7 @@ if [ -f "alembic.ini" ] && [ -d "alembic/" ]; then
         log_warning "Alembic configuration may have issues"
     }
     log_success "Alembic configuration valid"
-    
+
     # Test database connection if available
     if pg_isready > /dev/null 2>&1; then
         export DATABASE_URL="postgresql://mem0user@localhost:5432/mem0db"
@@ -126,7 +126,7 @@ log_step "4. Validating Auth/RBAC surface..."
 # Test RBAC policy files
 if [ -f "configs/rbac_policy_baseline.json" ] && [ -f "configs/rbac_policy_current.json" ]; then
     log_success "RBAC policy files present"
-    
+
     # Validate JSON structure
     python -c "
 import json
@@ -217,33 +217,33 @@ sys.path.insert(0, 'server')
 
 try:
     from memory.store_factory import get_memory_store
-    
+
     # Test InMemory store
     if 'DATABASE_URL' in os.environ:
         del os.environ['DATABASE_URL']
     store = get_memory_store()
     assert 'InMemory' in str(type(store))
     print('✅ InMemory store selection working')
-    
+
     # Test Postgres store selection
     os.environ['DATABASE_URL'] = 'postgresql://test'
     store = get_memory_store()
     assert 'Postgres' in str(type(store))
     print('✅ Postgres store selection working')
-    
+
     # Test FastAPI integration
     from fastapi import FastAPI
     from app.app_factory_patch import wire_memory_store
     from fastapi.testclient import TestClient
-    
+
     app = FastAPI()
     wire_memory_store(app)
     client = TestClient(app)
-    
+
     response = client.get('/healthz/memory')
     assert response.status_code == 200
     print('✅ Memory substrate FastAPI integration working')
-    
+
 except Exception as e:
     print(f'❌ Memory substrate validation failed: {e}')
     exit(1)
@@ -260,16 +260,16 @@ try:
     from security_integration import SecurityManager
     from security.middleware import EnhancedRateLimiter, RateLimitMiddleware
     from security import RedactionEngine
-    
+
     # Test security manager initialization
     manager = SecurityManager()
     print('✅ Security manager initialization working')
-    
+
     # Test middleware components
     rate_limiter = EnhancedRateLimiter()
     redaction_engine = RedactionEngine()
     print('✅ Security middleware components working')
-    
+
 except Exception as e:
     print(f'❌ Security middleware validation failed: {e}')
     exit(1)

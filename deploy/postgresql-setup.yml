@@ -11,7 +11,7 @@
     mem0_db_user: "mem0user"
     mem0_db_password: "{{ vault_mem0_db_password }}"
     postgresql_port: 5432
-    
+
   tasks:
     - name: Install PostgreSQL
       package:

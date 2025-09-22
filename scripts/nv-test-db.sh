@@ -30,7 +30,7 @@ main() {
 
   # Set up environment for tests
   export PYTHONPATH="$PROJECT_ROOT/server:$PYTHONPATH"
-  export DATABASE_URL="postgresql://nina:change_me_securely@localhost:5433/nina"
+  export DATABASE_URL="postgresql://nina:change_me_securely@localhost:5433/nina"  # pragma: allowlist secret
 
   # Run pytest with any passed arguments
   if [ $# -eq 0 ]; then

@@ -9,10 +9,10 @@ echo "🔧 Setting up ninaivalaigal environment variables..."
 # Create .env file
 cat > .env << 'EOF'
 # Database Configuration
-NINAIVALAIGAL_DATABASE_URL=postgresql://mem0user:mem0pass@localhost:5432/mem0db
+NINAIVALAIGAL_DATABASE_URL=postgresql://mem0user:mem0pass@localhost:5432/mem0db  # pragma: allowlist secret
 NINAIVALAIGAL_JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 
-# Graph Database Configuration  
+# Graph Database Configuration
 GRAPH_DB_PASSWORD=graphpass
 REDIS_PASSWORD=redispass
 

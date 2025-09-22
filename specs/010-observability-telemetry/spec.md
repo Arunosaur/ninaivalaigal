@@ -50,7 +50,7 @@ import time
 
 class REDMetrics:
     """Rate, Errors, Duration metrics collector"""
-    
+
     def __init__(self):
         # Rate metrics
         self.request_count = Counter(
@@ -58,14 +58,14 @@ class REDMetrics:
             'Total number of requests',
             ['method', 'endpoint', 'status_code', 'user_role', 'organization']
         )
-        
+
         # Error metrics
         self.error_count = Counter(
             'ninaivalaigal_errors_total',
             'Total number of errors',
             ['method', 'endpoint', 'error_type', 'user_role']
         )
-        
+
         # Duration metrics
         self.request_duration = Histogram(
             'ninaivalaigal_request_duration_seconds',
@@ -73,20 +73,20 @@ class REDMetrics:
             ['method', 'endpoint', 'user_role'],
             buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
         )
-        
+
         # RBAC-specific metrics
         self.rbac_checks = Counter(
             'ninaivalaigal_rbac_checks_total',
             'Total RBAC permission checks',
             ['resource', 'action', 'decision', 'role', 'sensitivity_tier']
         )
-        
+
         self.active_users = Gauge(
             'ninaivalaigal_active_users',
             'Number of active users',
             ['organization', 'role']
         )
-        
+
         # Redaction metrics
         self.redaction_events = Counter(
             'ninaivalaigal_redactions_total',
@@ -94,7 +94,7 @@ class REDMetrics:
             ['redaction_type', 'sensitivity_tier', 'pattern_matched']
         )
 
-    def record_request(self, method: str, endpoint: str, status_code: int, 
+    def record_request(self, method: str, endpoint: str, status_code: int,
                       duration: float, rbac_context: RBACContext = None):
         """Record request metrics with RBAC context"""
         labels = {
@@ -104,14 +104,14 @@ class REDMetrics:
             'user_role': rbac_context.user_role.value if rbac_context else 'anonymous',
             'organization': str(rbac_context.organization_id) if rbac_context else 'none'
         }
-        
+
         self.request_count.labels(**labels).inc()
         self.request_duration.labels(
-            method=method, 
-            endpoint=endpoint, 
+            method=method,
+            endpoint=endpoint,
             user_role=labels['user_role']
         ).observe(duration)
-        
+
         if status_code >= 400:
             self.error_count.labels(
                 method=method,
@@ -124,14 +124,14 @@ def metrics_middleware():
     """FastAPI middleware for automatic metrics collection"""
     async def middleware(request: Request, call_next):
         start_time = time.time()
-        
+
         # Extract RBAC context if available
         rbac_context = getattr(request.state, 'rbac_context', None)
-        
+
         try:
             response = await call_next(request)
             duration = time.time() - start_time
-            
+
             red_metrics.record_request(
                 method=request.method,
                 endpoint=request.url.path,
@@ -139,9 +139,9 @@ def metrics_middleware():
                 duration=duration,
                 rbac_context=rbac_context
             )
-            
+
             return response
-            
+
         except Exception as e:
             duration = time.time() - start_time
             red_metrics.record_request(
@@ -152,7 +152,7 @@ def metrics_middleware():
                 rbac_context=rbac_context
             )
             raise
-    
+
     return middleware
 ```
 
@@ -169,7 +169,7 @@ from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 
 class IntelligentSampler:
     """Cost-effective sampling strategy for high-volume endpoints"""
-    
+
     def __init__(self):
         self.endpoint_sample_rates = {
             '/health': 0.01,        # 1% sampling for health checks
@@ -180,53 +180,53 @@ class IntelligentSampler:
             '/rbac/': 1.0,          # 100% sampling for RBAC (security critical)
             '/admin/': 1.0,         # 100% sampling for admin operations
         }
-        
+
         self.error_boost_factor = 10.0  # Increase sampling for errors
         self.high_latency_threshold = 2.0  # Always sample requests > 2s
-    
+
     def should_sample(self, span_context, trace_id, name, kind, attributes, links):
         """Intelligent sampling decision based on endpoint and context"""
-        
+
         # Always sample errors and high-latency requests
         if attributes.get('http.status_code', 0) >= 400:
             return True
-        
+
         if attributes.get('http.request.duration', 0) > self.high_latency_threshold:
             return True
-        
+
         # Sample based on endpoint
         endpoint = attributes.get('http.route', attributes.get('http.target', ''))
-        
+
         for pattern, rate in self.endpoint_sample_rates.items():
             if endpoint.startswith(pattern):
                 return random.random() < rate
-        
+
         # Default sampling rate
         return random.random() < 0.05  # 5% default
 
 class ObservabilityConfig:
     """OpenTelemetry configuration with intelligent sampling"""
-    
+
     def __init__(self):
         self.tracer_provider = TracerProvider(
             sampler=IntelligentSampler()
         )
         trace.set_tracer_provider(self.tracer_provider)
-        
+
         # Configure Jaeger exporter
         jaeger_exporter = JaegerExporter(
             agent_host_name=os.getenv('JAEGER_AGENT_HOST', 'localhost'),
             agent_port=int(os.getenv('JAEGER_AGENT_PORT', '6831')),
         )
-        
+
         span_processor = BatchSpanProcessor(jaeger_exporter)
         self.tracer_provider.add_span_processor(span_processor)
-        
+
     def instrument_app(self, app):
         """Instrument FastAPI application"""
         FastAPIInstrumentor.instrument_app(app)
         SQLAlchemyInstrumentor().instrument()
-        
+
         return app
 
 # Enhanced tracing decorator
@@ -236,7 +236,7 @@ def trace_rbac_operation(operation_name: str):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             tracer = trace.get_tracer(__name__)
-            
+
             with tracer.start_as_current_span(f"rbac.{operation_name}") as span:
                 # Add RBAC context to span
                 if 'rbac_context' in kwargs:
@@ -247,7 +247,7 @@ def trace_rbac_operation(operation_name: str):
                         'rbac.organization_id': rbac_context.organization_id,
                         'rbac.scopes': ','.join(rbac_context.scopes.keys())
                     })
-                
+
                 try:
                     result = await func(*args, **kwargs)
                     span.set_attribute('rbac.decision', 'allowed')
@@ -257,7 +257,7 @@ def trace_rbac_operation(operation_name: str):
                     span.set_attribute('rbac.denial_reason', str(e))
                     span.record_exception(e)
                     raise
-        
+
         return wrapper
     return decorator
 ```
@@ -268,7 +268,7 @@ def trace_rbac_operation(operation_name: str):
 ```python
 class SecurityAlertManager:
     """Manage security-related alerts and notifications"""
-    
+
     def __init__(self):
         self.alert_thresholds = {
             'failed_logins_per_minute': 10,
@@ -277,17 +277,17 @@ class SecurityAlertManager:
             'cross_org_attempts_per_hour': 5,
             'admin_actions_per_hour': 20,
         }
-        
+
         self.notification_channels = [
             SlackNotifier(webhook_url=os.getenv('SLACK_SECURITY_WEBHOOK')),
             EmailNotifier(smtp_config=get_smtp_config()),
             PagerDutyNotifier(api_key=os.getenv('PAGERDUTY_API_KEY'))
         ]
-    
+
     async def check_security_thresholds(self):
         """Check security metrics against thresholds"""
         current_time = datetime.utcnow()
-        
+
         # Check failed login attempts
         failed_logins = await self._count_failed_logins_last_minute()
         if failed_logins > self.alert_thresholds['failed_logins_per_minute']:
@@ -297,7 +297,7 @@ class SecurityAlertManager:
                 message=f'{failed_logins} failed logins in the last minute',
                 metrics={'failed_logins': failed_logins}
             )
-        
+
         # Check permission denials
         permission_denials = await self._count_permission_denials_last_minute()
         if permission_denials > self.alert_thresholds['permission_denials_per_minute']:
@@ -307,7 +307,7 @@ class SecurityAlertManager:
                 message=f'{permission_denials} permission denials in the last minute',
                 metrics={'permission_denials': permission_denials}
             )
-        
+
         # Check cross-org access attempts
         cross_org_attempts = await self._count_cross_org_attempts_last_hour()
         if cross_org_attempts > self.alert_thresholds['cross_org_attempts_per_hour']:
@@ -320,8 +320,8 @@ class SecurityAlertManager:
 
 class RBACMetricsCollector:
     """Collect RBAC-specific metrics for monitoring"""
-    
-    def record_permission_check(self, rbac_context: RBACContext, 
+
+    def record_permission_check(self, rbac_context: RBACContext,
                                resource: Resource, action: Action,
                                decision: bool, sensitivity_tier: ContextSensitivity = None):
         """Record RBAC permission check metrics"""
@@ -332,20 +332,20 @@ class RBACMetricsCollector:
             role=rbac_context.user_role.value,
             sensitivity_tier=sensitivity_tier.value if sensitivity_tier else 'none'
         ).inc()
-        
+
         # Alert on permission denials
         if not decision:
             asyncio.create_task(self._handle_permission_denial(
                 rbac_context, resource, action, sensitivity_tier
             ))
-    
+
     async def _handle_permission_denial(self, rbac_context: RBACContext,
                                        resource: Resource, action: Action,
                                        sensitivity_tier: ContextSensitivity):
         """Handle permission denial for alerting"""
         # Check if this is part of a pattern
         recent_denials = await self._count_recent_denials(rbac_context.user_id)
-        
+
         if recent_denials > 5:  # Threshold for suspicious activity
             await security_alert_manager.send_alert(
                 severity='MEDIUM',
@@ -366,7 +366,7 @@ class RBACMetricsCollector:
 ```python
 class PerformanceMonitor:
     """Monitor system performance with RBAC context awareness"""
-    
+
     def __init__(self):
         self.performance_thresholds = {
             'api_response_p95': 2.0,      # 95th percentile < 2s
@@ -375,14 +375,14 @@ class PerformanceMonitor:
             'memory_usage_percent': 80,    # Memory usage < 80%
             'cpu_usage_percent': 70,       # CPU usage < 70%
         }
-        
+
         self.rbac_performance_metrics = Histogram(
             'ninaivalaigal_rbac_operation_duration_seconds',
             'RBAC operation duration',
             ['operation_type', 'role', 'resource_count'],
             buckets=[0.001, 0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1.0]
         )
-    
+
     async def monitor_rbac_performance(self):
         """Monitor RBAC operation performance"""
         # Check RBAC check latency
@@ -392,7 +392,7 @@ class PerformanceMonitor:
                 'RBAC Check Latency High',
                 f'RBAC P95 latency: {rbac_p95:.3f}s'
             )
-        
+
         # Check permission cache hit rate
         cache_hit_rate = await self._get_permission_cache_hit_rate()
         if cache_hit_rate < 0.8:  # Should have >80% cache hit rate
@@ -401,7 +401,7 @@ class PerformanceMonitor:
                 f'Cache hit rate: {cache_hit_rate:.2%}'
             )
 
-    def record_rbac_operation(self, operation_type: str, role: Role, 
+    def record_rbac_operation(self, operation_type: str, role: Role,
                              resource_count: int, duration: float):
         """Record RBAC operation performance metrics"""
         self.rbac_performance_metrics.labels(
@@ -428,7 +428,7 @@ GRAFANA_DASHBOARDS = {
             },
             {
                 "title": "Error Rate",
-                "type": "graph", 
+                "type": "graph",
                 "targets": [
                     "rate(ninaivalaigal_errors_total[5m])"
                 ]
@@ -449,7 +449,7 @@ GRAFANA_DASHBOARDS = {
             }
         ]
     },
-    
+
     "rbac_security_dashboard": {
         "title": "RBAC & Security Monitoring",
         "panels": [
@@ -560,13 +560,13 @@ PERMISSION_CACHE_HIT_RATE_THRESHOLD=0.8
 class TestObservabilityMetrics:
     def test_red_metrics_collection(self):
         """Test RED metrics are properly collected"""
-        
+
     def test_rbac_metrics_recording(self):
         """Test RBAC-specific metrics"""
-        
+
     def test_intelligent_sampling(self):
         """Test sampling strategy works correctly"""
-        
+
     def test_alert_threshold_triggers(self):
         """Test alert thresholds trigger correctly"""
 ```

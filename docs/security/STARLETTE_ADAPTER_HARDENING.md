@@ -44,13 +44,13 @@ from starlette.requests import Request
 async def handle_upload(request: Request):
     texts = []
     binaries = []
-    
+
     def text_handler(content: str, headers: dict):
         texts.append({"content": content, "headers": headers})
-    
+
     def binary_handler(content: bytes, headers: dict):
         binaries.append({"content": content, "headers": headers})
-    
+
     await scan_with_starlette(
         request,
         text_handler,
@@ -59,7 +59,7 @@ async def handle_upload(request: Request):
         max_binary_part_bytes=10*1024*1024, # 10MB binary limit
         max_parts_per_request=100         # 100 parts max
     )
-    
+
     return {"texts": len(texts), "binaries": len(binaries)}
 ```
 
@@ -183,23 +183,23 @@ app = FastAPI()
 async def upload_files(request: Request):
     if not request.headers.get("content-type", "").startswith("multipart/"):
         raise HTTPException(400, "Expected multipart request")
-    
+
     processed_parts = []
-    
+
     def handle_text(content: str, headers: dict):
         processed_parts.append({
             "type": "text",
             "content": content[:100] + "..." if len(content) > 100 else content,
             "size": len(content.encode('utf-8'))
         })
-    
+
     def handle_binary(content: bytes, headers: dict):
         processed_parts.append({
-            "type": "binary", 
+            "type": "binary",
             "content_type": headers.get("content-type", "unknown"),
             "size": len(content)
         })
-    
+
     try:
         await scan_with_starlette(request, handle_text, handle_binary)
         return {"status": "success", "parts": processed_parts}
@@ -225,7 +225,7 @@ class MultipartSecurityMiddleware(BaseHTTPMiddleware):
                 except HTTPException:
                     # Block malicious requests early
                     return Response("Multipart validation failed", status_code=400)
-        
+
         return await call_next(request)
 ```
 
@@ -304,7 +304,7 @@ FILE_UPLOAD_LIMITS = {
 # Example metrics integration
 def _emit_multipart_reject(reason: str) -> None:
     metrics.counter("multipart_reject_total", tags={"reason": reason}).increment()
-    
+
     # Alert on suspicious patterns
     if reason in ["too_many_parts", "part_too_large"]:
         logger.warning(f"Potential DoS attempt: {reason}")
@@ -361,7 +361,7 @@ await scan_with_starlette(
 
 ---
 
-**Status**: Production Ready  
-**Version**: 1.0  
-**Last Updated**: 2025-09-16  
+**Status**: Production Ready
+**Version**: 1.0
+**Last Updated**: 2025-09-16
 **Security Review**: External review completed

@@ -119,7 +119,7 @@ intelligent_timeout = base_timeout * (
 
 ## 🔗 Dependencies
 - SPEC-033 (Redis Integration) - ✅ Complete
-- SPEC-031 (Memory Relevance Ranking) - ✅ Complete  
+- SPEC-031 (Memory Relevance Ranking) - ✅ Complete
 - SPEC-038 (Memory Preloading) - ✅ Complete
 - Authentication system - Existing
 

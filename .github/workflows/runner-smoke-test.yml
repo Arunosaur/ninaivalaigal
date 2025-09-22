@@ -11,7 +11,7 @@ jobs:
   test-runner:
     runs-on: [self-hosted, macstudio]
     timeout-minutes: 5
-    
+
     steps:
       - name: Basic system info
         run: |
@@ -20,7 +20,7 @@ jobs:
           echo "🐍 Python: $(python3 --version)"
           echo "📦 Container: $(container --version || echo 'not found')"
           echo "🧠 Memory: $(system_profiler SPHardwareDataType | grep Memory)"
-          
+
       - name: Test Apple Container CLI
         run: |
           if command -v container >/dev/null 2>&1; then
@@ -30,7 +30,7 @@ jobs:
             echo "❌ Apple Container CLI not found"
             exit 1
           fi
-          
+
       - name: Success
         run: |
           echo "🎉 Hybrid runner setup working perfectly!"

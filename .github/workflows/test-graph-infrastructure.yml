@@ -1,0 +1,92 @@
+name: Graph Infrastructure Tests
+
+on:
+  push:
+    paths:
+      - 'server/graph/**'
+      - 'containers/graph-db/**'
+      - 'docker-compose.graph.yml'
+      - '.github/workflows/test-graph-infrastructure.yml'
+  pull_request:
+    paths:
+      - 'server/graph/**'
+      - 'containers/graph-db/**'
+      - 'docker-compose.graph.yml'
+
+env:
+  GRAPH_DB_PASSWORD: testpass
+  REDIS_PASSWORD: testredis
+
+jobs:
+  test-graph-infrastructure:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Start graph infrastructure (CI/x86_64)
+      run: |
+        docker compose -f docker-compose.graph.ci.yml up -d --build
+
+    - name: Wait for services to be ready
+      run: |
+        # Wait up to 60 seconds for services to be ready
+        timeout 60 bash -c 'until docker compose -f docker-compose.graph.ci.yml ps | grep -q "healthy"; do sleep 5; done'
+
+    - name: Test graph database connection
+      run: |
+        docker exec ninaivalaigal-graph-db-ci psql -U graphuser -d ninaivalaigal_graph -c "SELECT version();"
+
+    - name: Test Apache AGE extension
+      run: |
+        docker exec ninaivalaigal-graph-db-ci psql -U graphuser -d ninaivalaigal_graph -c "SELECT * FROM ag_graph WHERE name = 'ninaivalaigal_graph';"
+
+    - name: Test graph schema
+      run: |
+        docker exec ninaivalaigal-graph-db-ci psql -U graphuser -d ninaivalaigal_graph -c "SELECT * FROM graph_stats;"
+
+    - name: Test Redis connection
+      run: |
+        docker exec ninaivalaigal-graph-redis-ci redis-cli ping
+
+    - name: Run graph unit tests
+      run: |
+        make test-graph
+
+    - name: Run graph reasoner tests
+      run: |
+        make test-graph-reasoner
+
+    - name: Run graph API tests
+      run: |
+        make test-graph-intelligence-api
+
+    - name: Test graph performance
+      run: |
+        make benchmark-reasoner
+
+    - name: Collect logs on failure
+      if: failure()
+      run: |
+        echo "=== Graph DB Logs ==="
+        docker logs ninaivalaigal-graph-db-ci
+        echo "=== Redis Logs ==="
+        docker logs ninaivalaigal-graph-redis-ci
+        echo "=== Container Status ==="
+        docker compose -f docker-compose.graph.ci.yml ps
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker compose -f docker-compose.graph.ci.yml down

@@ -26,7 +26,7 @@ secret = os.environ['NINAIVALAIGAL_JWT_SECRET']
 payload = {
     'user_id': 8,
     'email': 'durai@example.com',
-    'account_type': 'individual', 
+    'account_type': 'individual',
     'role': 'user',
     'exp': int((datetime.utcnow() + timedelta(days=7)).timestamp())
 }

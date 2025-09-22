@@ -64,7 +64,7 @@ jobs:
         timeout-minutes: 5
         run: |
           set -euxo pipefail
-          
+
           # Set environment variables for our proven scripts
           export POSTGRES_PASSWORD="${PG_PASSWORD}"
           export POSTGRES_DB="${PG_DB}"
@@ -72,22 +72,22 @@ jobs:
           export POSTGRES_PORT="${PG_PORT}"
           export PGBOUNCER_PORT="${PGBOUNCER_PORT}"
           export NINAIVALAIGAL_JWT_SECRET="test-secret-for-ci-validation-only"
-          
+
           # Use our validated, production-ready scripts
           chmod +x scripts/nv-*.sh
-          
+
           echo "=== Starting Database ==="
           timeout 60 ./scripts/nv-db-start.sh || { echo "DB start timed out"; exit 1; }
-          
+
           echo "=== Starting PgBouncer ==="
           timeout 60 ./scripts/nv-pgbouncer-start.sh || { echo "PgBouncer start timed out"; exit 1; }
-          
+
           echo "=== Starting API ==="
           timeout 60 ./scripts/nv-api-start.sh || { echo "API start timed out"; exit 1; }
-          
+
           echo "=== Validating Stack ==="
           timeout 30 ./scripts/nv-stack-status.sh || { echo "Stack status timed out"; exit 1; }
-          
+
           echo "=== SUCCESS: All components started! ==="
 
       - name: Collect logs (always)

@@ -168,7 +168,7 @@ wait
 # Create multiple contexts and switch between them
 ./client/mem0 start context-a
 echo "In context A"
-./client/mem0 start context-b  
+./client/mem0 start context-b
 echo "In context B"
 ./client/mem0 start context-c
 echo "In context C"

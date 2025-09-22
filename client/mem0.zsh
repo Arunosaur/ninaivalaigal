@@ -21,27 +21,27 @@ mem0_timestamp() {
 mem0_get_active_context() {
     local current_time=$(mem0_timestamp)
     local cache_age=$((current_time - MEM0_CACHE_TIMESTAMP))
-    
+
     # Use cached context if it's still valid
     if [[ $cache_age -lt $MEM0_CACHE_TTL ]]; then
         mem0_debug "using cached context: '$MEM0_CACHED_CONTEXT' (age: ${cache_age}s)"
         echo "$MEM0_CACHED_CONTEXT"
         return
     fi
-    
+
     # Fetch fresh context from server
     mem0_debug "fetching fresh context from server (cache expired)"
     local active_context_json=$(~/Workspace/mem0/client/mem0 active 2>/dev/null)
     mem0_debug "active context response: $active_context_json"
-    
+
     # Parse the response - extract context name from "Terminal context: <name>" format
     local active_context=$(echo "$active_context_json" | sed -n 's/.*Terminal context: \(.*\)/\1/p')
-    
+
     # Update cache
     MEM0_CACHED_CONTEXT="$active_context"
     MEM0_CACHE_TIMESTAMP=$current_time
     mem0_debug "cached new context: '$active_context'"
-    
+
     echo "$active_context"
 }
 
@@ -51,15 +51,15 @@ mem0_preexec() {
     if [[ -z "$1" || "$1" =~ ^[[:space:]] ]]; then
         return
     fi
-    
+
     # Prevent duplicate execution by checking if we're already processing
     if [[ -n "$MEM0_PROCESSING" ]]; then
         return
     fi
     export MEM0_PROCESSING=1
-    
+
     mem0_debug "preexec hook triggered for command: $1"
-    
+
     # Check if MEM0_CONTEXT environment variable is set for this terminal
     local active_context=""
     if [[ -n "$MEM0_CONTEXT" ]]; then
@@ -82,9 +82,9 @@ mem0_preexec() {
     export MEM0_LAST_COMMAND="$1"
     export MEM0_LAST_CONTEXT="$active_context"
     export MEM0_COMMAND_START_TIME="$(date -Iseconds)"
-    
+
     mem0_debug "command queued for capture: '$1' in context '$active_context'"
-    
+
     # Clear processing flag immediately - we'll capture everything in precmd
     unset MEM0_PROCESSING
 }
@@ -95,21 +95,21 @@ mem0_precmd() {
     if [[ -n "$MEM0_LAST_COMMAND" && -n "$MEM0_LAST_CONTEXT" ]]; then
         local exit_code=$?
         mem0_debug "precmd hook triggered, exit code: $exit_code"
-        
+
         # Escape command for JSON - replace quotes and newlines
         local escaped_command=$(echo "$MEM0_LAST_COMMAND" | sed 's/"/\\"/g' | tr '\n' ' ')
         local escaped_pwd=$(pwd | sed 's/"/\\"/g')
-        
+
         # Capture complete command execution (command + result in one entry)
         local complete_payload=$(printf '{ "type": "command_execution", "source": "zsh_session", "data": { "command": "%s", "exit_code": %d, "start_time": "%s", "end_time": "%s", "pwd": "%s" } }' "$escaped_command" "$exit_code" "$MEM0_COMMAND_START_TIME" "$(date -Iseconds)" "$escaped_pwd")
-        
+
         # Send complete execution record in background with proper error handling
         {
             ~/Workspace/mem0/client/mem0 remember "$complete_payload" --context "$MEM0_LAST_CONTEXT" 2>&1 | while read line; do
                 mem0_debug "remember output: $line"
             done
         } &
-        
+
         # Clear stored command variables
         unset MEM0_LAST_COMMAND
         unset MEM0_LAST_CONTEXT
@@ -143,10 +143,10 @@ mem0_context_start() {
         echo "Usage: mem0_context_start <context_name>"
         return 1
     fi
-    
+
     # Create or activate the context
     ~/Workspace/mem0/client/mem0 start --context "$context_name"
-    
+
     # Set the terminal environment variable
     export MEM0_CONTEXT="$context_name"
     mem0_clear_cache
@@ -160,10 +160,10 @@ mem0_context_delete() {
         echo "Usage: mem0_context_delete <context_name>"
         return 1
     fi
-    
+
     # Delete the context
     ~/Workspace/mem0/client/mem0 delete --context "$context_name"
-    
+
     # Clear environment if this was the active context
     if [[ "$MEM0_CONTEXT" == "$context_name" ]]; then
         unset MEM0_CONTEXT
@@ -205,21 +205,21 @@ if [[ -n "$ZSH_VERSION" ]]; then
         if [[ -z "$preexec_functions" ]]; then
             typeset -ga preexec_functions
         fi
-        
+
         # Add our function to the preexec_functions array
         preexec_functions+=(mem0_preexec)
         mem0_debug "mem0_preexec hook registered"
     else
         mem0_debug "mem0_preexec hook already registered"
     fi
-    
+
     # Check if our precmd function is already in the array to avoid duplicates
     if [[ ! " ${precmd_functions[@]} " =~ " mem0_precmd " ]]; then
         # Initialize precmd_functions array if it doesn't exist
         if [[ -z "$precmd_functions" ]]; then
             typeset -ga precmd_functions
         fi
-        
+
         # Add our function to the precmd_functions array
         precmd_functions+=(mem0_precmd)
         mem0_debug "mem0_precmd hook registered"

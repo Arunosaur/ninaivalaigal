@@ -23,7 +23,7 @@ Sign Up → Personal Account → Personal Contexts → Personal Memories
 Optional: Create Organization Later
 ```
 
-### Team Member Journey  
+### Team Member Journey
 ```
 Receive Invite → Sign Up → Join Organization → Access Team Contexts
    ↓
@@ -47,7 +47,7 @@ Create Teams → Assign Contexts → Manage Permissions
 - **Use Case**: Personal notes, individual learning, private contexts
 - **Examples**: "my-learning-notes", "personal-project-ideas"
 
-#### Tier 2: Team Memories  
+#### Tier 2: Team Memories
 - **Scope**: Team members within organization
 - **Access**: Shared within team
 - **Use Case**: Project collaboration, team knowledge sharing
@@ -65,7 +65,7 @@ Query: "authentication patterns"
 
 Search Order:
 1. Personal contexts (user's individual memories)
-2. Team contexts (user's team memories)  
+2. Team contexts (user's team memories)
 3. Organization contexts (company-wide memories)
 4. Public/shared contexts (if enabled)
 
@@ -173,7 +173,7 @@ Content-Type: application/json
 {
   "user": {
     "email": "admin@company.com",
-    "password": "secure_password", 
+    "password": "secure_password",
     "name": "Jane Smith"
   },
   "organization": {
@@ -192,7 +192,7 @@ Response: 201 Created
   "jwt_token": "eyJ...",
   "setup_steps": [
     "verify_email",
-    "setup_teams", 
+    "setup_teams",
     "invite_members"
   ]
 }
@@ -255,7 +255,7 @@ Response: 201 Created
 contexts = {
     "personal": [
         "my-learning-journal",
-        "side-project-notes", 
+        "side-project-notes",
         "coding-experiments"
     ]
 }
@@ -305,7 +305,7 @@ recall_hierarchy = ["personal", "team", "organization", "admin"]
 ### Individual User Onboarding
 1. **Sign Up**: Email/password registration
 2. **Email Verification**: Confirm email address
-3. **Setup Guide**: 
+3. **Setup Guide**:
    - Create first personal context
    - Install VS Code extension or CLI
    - Record first memory

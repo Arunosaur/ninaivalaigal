@@ -72,7 +72,7 @@ echo -e "\n${BLUE}3. Testing shell integration...${NC}"
 # Check if zsh integration file exists
 if [ -f "./client/mem0.zsh" ]; then
     print_result 0 "Zsh integration file exists"
-    
+
     # Test shell hook function
     source ./client/mem0.zsh
     if type mem0_preexec > /dev/null 2>&1; then
@@ -89,19 +89,19 @@ echo -e "\n${BLUE}4. Testing VS Code extension...${NC}"
 
 if [ -d "./vscode-client" ]; then
     print_result 0 "VS Code extension directory exists"
-    
+
     if [ -f "./vscode-client/package.json" ]; then
         print_result 0 "VS Code extension package.json exists"
     else
         print_result 1 "VS Code extension package.json missing"
     fi
-    
+
     if [ -f "./vscode-client/src/extension.ts" ]; then
         print_result 0 "VS Code extension source exists"
     else
         print_result 1 "VS Code extension source missing"
     fi
-    
+
     # Check if extension is built
     if [ -f "./vscode-client/dist/extension.js" ]; then
         print_result 0 "VS Code extension is built"
@@ -118,20 +118,20 @@ echo -e "\n${BLUE}5. Testing database functionality...${NC}"
 # Test PostgreSQL connection (if configured)
 if grep -q "postgresql://" mem0.config.json 2>/dev/null; then
     echo "PostgreSQL configuration detected"
-    
+
     # Test context isolation
     ./client/mem0 context start "user1-test" > /dev/null
     ./client/mem0 remember '{"type": "isolation_test", "source": "user1", "data": {"user": "user1"}}' --context "user1-test" > /dev/null
     ./client/mem0 context stop > /dev/null
-    
-    ./client/mem0 context start "user2-test" > /dev/null  
+
+    ./client/mem0 context start "user2-test" > /dev/null
     ./client/mem0 remember '{"type": "isolation_test", "source": "user2", "data": {"user": "user2"}}' --context "user2-test" > /dev/null
     ./client/mem0 context stop > /dev/null
-    
+
     # Verify isolation
     user1_data=$(./client/mem0 recall --context "user1-test")
     user2_data=$(./client/mem0 recall --context "user2-test")
-    
+
     if echo "$user1_data" | grep -q "user1" && echo "$user2_data" | grep -q "user2"; then
         print_result 0 "Context isolation working"
     else
@@ -147,7 +147,7 @@ echo -e "\n${BLUE}6. Testing configuration...${NC}"
 
 if [ -f "mem0.config.json" ]; then
     print_result 0 "Configuration file exists"
-    
+
     # Validate JSON
     if python3 -m json.tool mem0.config.json > /dev/null 2>&1; then
         print_result 0 "Configuration file is valid JSON"

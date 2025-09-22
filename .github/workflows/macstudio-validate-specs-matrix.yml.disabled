@@ -141,7 +141,7 @@ jobs:
         shell: bash
         run: |
           echo "=== SLO Health Check Validation ==="
-          
+
           # Test basic health endpoint
           echo "Testing /health endpoint..."
           HEALTH_START=$(date +%s%3N)
@@ -149,7 +149,7 @@ jobs:
             HEALTH_END=$(date +%s%3N)
             HEALTH_LATENCY=$((HEALTH_END - HEALTH_START))
             echo "✅ Basic health check: ${HEALTH_LATENCY}ms"
-            
+
             # SLO check: <50ms for basic health
             if [ $HEALTH_LATENCY -gt 50 ]; then
               echo "⚠️  Health check latency exceeds SLO target (50ms): ${HEALTH_LATENCY}ms"
@@ -158,22 +158,22 @@ jobs:
             echo "❌ Basic health check failed"
             exit 1
           fi
-          
+
           # Test detailed health endpoint
           echo "Testing /health/detailed endpoint..."
           DETAILED_START=$(date +%s%3N)
           DETAILED_RESPONSE=$(curl -f -s "http://127.0.0.1:${{ env.API_PORT }}/health/detailed")
           DETAILED_END=$(date +%s%3N)
           DETAILED_LATENCY=$((DETAILED_END - DETAILED_START))
-          
+
           echo "✅ Detailed health check: ${DETAILED_LATENCY}ms"
           echo "$DETAILED_RESPONSE" | jq '.'
-          
+
           # SLO check: <100ms for detailed health
           if [ $DETAILED_LATENCY -gt 100 ]; then
             echo "⚠️  Detailed health check latency exceeds SLO target (100ms): ${DETAILED_LATENCY}ms"
           fi
-          
+
           # Check SLO compliance from response
           SLO_COMPLIANT=$(echo "$DETAILED_RESPONSE" | jq -r '.slo_compliant // false')
           if [ "$SLO_COMPLIANT" = "true" ]; then
@@ -186,24 +186,24 @@ jobs:
         shell: bash
         run: |
           echo "=== Prometheus Metrics Validation ==="
-          
+
           # Test metrics endpoint
           METRICS_START=$(date +%s%3N)
           METRICS_RESPONSE=$(curl -f -s "http://127.0.0.1:${{ env.API_PORT }}/metrics")
           METRICS_END=$(date +%s%3N)
           METRICS_LATENCY=$((METRICS_END - METRICS_START))
-          
+
           echo "✅ Metrics endpoint: ${METRICS_LATENCY}ms"
-          
+
           # SLO check: <200ms for metrics
           if [ $METRICS_LATENCY -gt 200 ]; then
             echo "⚠️  Metrics endpoint latency exceeds SLO target (200ms): ${METRICS_LATENCY}ms"
           fi
-          
+
           # Validate metrics format
           if echo "$METRICS_RESPONSE" | grep -q "ninaivalaigal_"; then
             echo "✅ Prometheus metrics format validated"
-            
+
             # Count metrics
             METRIC_COUNT=$(echo "$METRICS_RESPONSE" | grep -c "^ninaivalaigal_" || echo "0")
             echo "📊 Exported metrics: $METRIC_COUNT"
@@ -216,10 +216,10 @@ jobs:
         shell: bash
         run: |
           echo "=== Database Performance Validation ==="
-          
+
           # Run database statistics
           make db-stats || echo "Database stats collection failed"
-          
+
           # Test PgBouncer stats if available
           if make pgb-stats 2>/dev/null; then
             echo "✅ PgBouncer statistics available"
@@ -234,7 +234,7 @@ jobs:
           MEMORY_SHARED_SECRET: test-secret-for-ci
         run: |
           echo "=== mem0 Sidecar Authentication Test ==="
-          
+
           # Test authentication with the HTTP memory provider
           if make test-mem0-auth; then
             echo "✅ mem0 authentication tests passed"
@@ -317,12 +317,12 @@ jobs:
           container logs nv-ui > artifacts/ui.log 2>&1 || true
           # Move SBOM files to artifacts
           mv sbom-*.spdx.json artifacts/ 2>/dev/null || true
-          
+
           # Collect SLO metrics
           echo "=== SLO Metrics Collection ===" > artifacts/slo-report.txt
           curl -s "http://127.0.0.1:${{ env.API_PORT }}/health/detailed" >> artifacts/slo-report.txt 2>/dev/null || echo "Health check failed" >> artifacts/slo-report.txt
           curl -s "http://127.0.0.1:${{ env.API_PORT }}/metrics" | grep "ninaivalaigal_" >> artifacts/slo-report.txt 2>/dev/null || echo "Metrics collection failed" >> artifacts/slo-report.txt
-          
+
           # Rename files with spec and provider info
           for f in artifacts/*.log; do \
             mv "$f" "${f%.log}-${{ matrix.spec.name }}-${{ matrix.provider }}.log" 2>/dev/null || true; \

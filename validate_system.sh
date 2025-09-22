@@ -60,13 +60,13 @@ log_step "Setting up database and running migrations..."
 # Check if PostgreSQL is running
 if pg_isready > /dev/null 2>&1; then
     log_success "PostgreSQL is running"
-    
+
     # Set DATABASE_URL if not set
     if [ -z "$DATABASE_URL" ]; then
         export DATABASE_URL="postgresql://mem0user@localhost:5432/mem0db"
         log_success "DATABASE_URL set to: $DATABASE_URL"
     fi
-    
+
     # Run migrations
     if [ -f "alembic.ini" ]; then
         alembic upgrade head > /dev/null 2>&1 || log_warning "Alembic migrations may have issues"
@@ -84,17 +84,17 @@ log_step "Running unit and integration tests..."
 if command -v pytest &> /dev/null; then
     # Add server to Python path for tests
     export PYTHONPATH="$PWD/server:$PYTHONPATH"
-    
+
     # Run core tests that should always pass
     TEST_RESULTS=$(pytest tests/test_factory_switch_smoke.py tests/test_security_basic.py -q 2>&1 || true)
-    
+
     if echo "$TEST_RESULTS" | grep -q "failed\|error\|ERROR"; then
         log_warning "Some tests had issues (may be environment-specific)"
         echo "$TEST_RESULTS" | head -10
     else
         log_success "Core tests passed"
     fi
-    
+
     # Test auto recording (should always work)
     AUTO_TEST_RESULTS=$(pytest tests/test_auto_recording.py -q 2>&1 || true)
     if echo "$AUTO_TEST_RESULTS" | grep -q "passed"; then
@@ -132,7 +132,7 @@ if [ -f "manage.sh" ]; then
     timeout 10s ./manage.sh start > /dev/null 2>&1 &
     SERVER_PID=$!
     sleep 3
-    
+
     # Try health endpoints
     if curl -f http://127.0.0.1:13370/healthz > /dev/null 2>&1; then
         log_success "Health endpoint responding"
@@ -141,7 +141,7 @@ if [ -f "manage.sh" ]; then
     else
         log_warning "Server endpoints not responding (may be normal)"
     fi
-    
+
     # Clean up
     kill $SERVER_PID > /dev/null 2>&1 || true
 fi

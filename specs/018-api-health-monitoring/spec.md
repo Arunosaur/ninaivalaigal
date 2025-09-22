@@ -361,11 +361,11 @@ class HealthChecker:
     async def check_database(self) -> HealthResult:
         # Database connectivity and performance check
         pass
-    
+
     async def check_memory_provider(self) -> HealthResult:
         # Memory provider health check
         pass
-    
+
     async def aggregate_health(self) -> SystemHealth:
         # Aggregate all component health checks
         pass

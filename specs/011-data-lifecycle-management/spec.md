@@ -75,7 +75,7 @@ class RetentionPolicy:
 
 class RetentionPolicyManager:
     """Manage retention policies by sensitivity tier"""
-    
+
     DEFAULT_POLICIES = {
         ContextSensitivity.PUBLIC: RetentionPolicy(
             tier=RetentionTier.STANDARD,
@@ -119,27 +119,27 @@ class RetentionPolicyManager:
             auto_purge=True
         )
     }
-    
-    def get_retention_policy(self, sensitivity: ContextSensitivity, 
+
+    def get_retention_policy(self, sensitivity: ContextSensitivity,
                            custom_policy: Optional[RetentionPolicy] = None) -> RetentionPolicy:
         """Get retention policy for sensitivity tier"""
         if custom_policy:
             return custom_policy
         return self.DEFAULT_POLICIES.get(sensitivity, self.DEFAULT_POLICIES[ContextSensitivity.INTERNAL])
-    
-    def calculate_expiry_date(self, created_at: datetime, 
+
+    def calculate_expiry_date(self, created_at: datetime,
                             sensitivity: ContextSensitivity) -> datetime:
         """Calculate data expiry date based on retention policy"""
         policy = self.get_retention_policy(sensitivity)
         return created_at + timedelta(days=policy.retention_days)
-    
-    def should_archive(self, created_at: datetime, 
+
+    def should_archive(self, created_at: datetime,
                       sensitivity: ContextSensitivity) -> bool:
         """Check if data should be archived"""
         policy = self.get_retention_policy(sensitivity)
         if not policy.archive_after_days:
             return False
-        
+
         archive_date = created_at + timedelta(days=policy.archive_after_days)
         return datetime.utcnow() >= archive_date
 ```
@@ -150,7 +150,7 @@ class RetentionPolicyManager:
 ```python
 class DataArchiver:
     """Automated data archival system with multiple storage backends"""
-    
+
     def __init__(self):
         self.storage_backends = {
             'aws_s3': S3StorageBackend(),
@@ -158,19 +158,19 @@ class DataArchiver:
             'gcs': GoogleCloudStorageBackend(),
             'local': LocalStorageBackend()
         }
-        
+
         self.compression_engine = CompressionEngine()
         self.encryption_engine = EncryptionEngine()
-    
+
     async def archive_expired_data(self):
         """Archive data that has reached archival threshold"""
         archival_candidates = await self._find_archival_candidates()
-        
+
         for candidate in archival_candidates:
             try:
                 await self._archive_data_item(candidate)
                 await self._update_archival_status(candidate)
-                
+
                 # Log archival event
                 await self._log_archival_event(
                     data_id=candidate.id,
@@ -178,22 +178,22 @@ class DataArchiver:
                     sensitivity=candidate.sensitivity_tier,
                     archive_location=candidate.archive_location
                 )
-                
+
             except Exception as e:
                 logger.error(f"Failed to archive {candidate.id}: {e}")
                 await self._log_archival_failure(candidate, str(e))
-    
+
     async def _archive_data_item(self, data_item):
         """Archive individual data item"""
         # Serialize data
         serialized_data = await self._serialize_data(data_item)
-        
+
         # Compress data
         compressed_data = await self.compression_engine.compress(
             serialized_data,
             algorithm='gzip'  # or 'lz4' for speed, 'brotli' for size
         )
-        
+
         # Encrypt if required
         policy = retention_policy_manager.get_retention_policy(data_item.sensitivity_tier)
         if policy.encryption_required:
@@ -203,11 +203,11 @@ class DataArchiver:
             )
         else:
             encrypted_data = compressed_data
-        
+
         # Store in archive
         archive_key = self._generate_archive_key(data_item)
         storage_backend = self._select_storage_backend(data_item.sensitivity_tier)
-        
+
         await storage_backend.store(
             key=archive_key,
             data=encrypted_data,
@@ -219,7 +219,7 @@ class DataArchiver:
                 'compliance_tags': policy.compliance_tags
             }
         )
-        
+
         # Update database with archive location
         data_item.archived = True
         data_item.archive_location = f"{storage_backend.name}://{archive_key}"
@@ -227,7 +227,7 @@ class DataArchiver:
 
 class CompressionEngine:
     """Data compression utilities"""
-    
+
     async def compress(self, data: bytes, algorithm: str = 'gzip') -> bytes:
         """Compress data using specified algorithm"""
         if algorithm == 'gzip':
@@ -238,7 +238,7 @@ class CompressionEngine:
             return brotli.compress(data)
         else:
             raise ValueError(f"Unsupported compression algorithm: {algorithm}")
-    
+
     async def decompress(self, data: bytes, algorithm: str = 'gzip') -> bytes:
         """Decompress data"""
         if algorithm == 'gzip':
@@ -257,7 +257,7 @@ class CompressionEngine:
 ```python
 class DataExportEngine:
     """Secure data export system for compliance requirements"""
-    
+
     def __init__(self):
         self.export_formats = {
             'json': JSONExporter(),
@@ -265,42 +265,42 @@ class DataExportEngine:
             'xml': XMLExporter(),
             'parquet': ParquetExporter()
         }
-        
+
         self.encryption_engine = EncryptionEngine()
-    
+
     async def export_user_data(self, user_id: int, export_request: DataExportRequest) -> DataExportResult:
         """Export all user data for GDPR compliance"""
-        
+
         # Validate export request
         await self._validate_export_request(export_request)
-        
+
         # Collect user data across all tables
         user_data = await self._collect_user_data(user_id, export_request.data_types)
-        
+
         # Apply data minimization if requested
         if export_request.minimize_data:
             user_data = await self._apply_data_minimization(user_data, export_request.fields)
-        
+
         # Export to requested format
         exporter = self.export_formats[export_request.format]
         exported_data = await exporter.export(user_data)
-        
+
         # Encrypt export
         encrypted_export = await self.encryption_engine.encrypt_export(
             exported_data,
             export_request.encryption_key or self._generate_export_key()
         )
-        
+
         # Store export securely
         export_location = await self._store_export(encrypted_export, export_request)
-        
+
         # Log export event
         await self._log_export_event(
             user_id=user_id,
             export_request=export_request,
             export_location=export_location
         )
-        
+
         return DataExportResult(
             export_id=export_request.id,
             user_id=user_id,
@@ -308,26 +308,26 @@ class DataExportEngine:
             encryption_key=export_request.encryption_key,
             expires_at=datetime.utcnow() + timedelta(days=30)  # Export link expires
         )
-    
+
     async def _collect_user_data(self, user_id: int, data_types: List[str]) -> Dict[str, Any]:
         """Collect user data from all relevant tables"""
         user_data = {}
-        
+
         if 'profile' in data_types:
             user_data['profile'] = await self._get_user_profile(user_id)
-        
+
         if 'memories' in data_types:
             user_data['memories'] = await self._get_user_memories(user_id)
-        
+
         if 'contexts' in data_types:
             user_data['contexts'] = await self._get_user_contexts(user_id)
-        
+
         if 'audit_logs' in data_types:
             user_data['audit_logs'] = await self._get_user_audit_logs(user_id)
-        
+
         if 'rbac_assignments' in data_types:
             user_data['rbac_assignments'] = await self._get_user_rbac_assignments(user_id)
-        
+
         return user_data
 
 @dataclass
@@ -351,19 +351,19 @@ class DataExportRequest:
 ```python
 class GDPRComplianceManager:
     """GDPR compliance tools and reporting"""
-    
+
     async def generate_data_processing_report(self, organization_id: int) -> GDPRReport:
         """Generate GDPR Article 30 data processing report"""
-        
+
         # Collect data processing activities
         processing_activities = await self._collect_processing_activities(organization_id)
-        
+
         # Analyze data flows
         data_flows = await self._analyze_data_flows(organization_id)
-        
+
         # Check retention compliance
         retention_compliance = await self._check_retention_compliance(organization_id)
-        
+
         # Generate report
         report = GDPRReport(
             organization_id=organization_id,
@@ -374,12 +374,12 @@ class GDPRComplianceManager:
             data_subject_rights_log=await self._get_data_subject_rights_log(organization_id),
             generated_at=datetime.utcnow()
         )
-        
+
         return report
-    
+
     async def handle_data_subject_request(self, request: DataSubjectRequest) -> DataSubjectResponse:
         """Handle GDPR data subject requests"""
-        
+
         if request.request_type == 'access':
             return await self._handle_access_request(request)
         elif request.request_type == 'rectification':
@@ -392,16 +392,16 @@ class GDPRComplianceManager:
             return await self._handle_restriction_request(request)
         else:
             raise ValueError(f"Unsupported request type: {request.request_type}")
-    
+
     async def _handle_erasure_request(self, request: DataSubjectRequest) -> DataSubjectResponse:
         """Handle right to erasure (right to be forgotten)"""
-        
+
         # Validate erasure request
         await self._validate_erasure_request(request)
-        
+
         # Check for legal obligations to retain data
         retention_obligations = await self._check_retention_obligations(request.user_id)
-        
+
         if retention_obligations:
             return DataSubjectResponse(
                 request_id=request.id,
@@ -410,10 +410,10 @@ class GDPRComplianceManager:
                 retained_data_categories=retention_obligations,
                 completed_at=datetime.utcnow()
             )
-        
+
         # Perform erasure
         erasure_result = await self._perform_data_erasure(request.user_id)
-        
+
         return DataSubjectResponse(
             request_id=request.id,
             status='completed',
@@ -424,22 +424,22 @@ class GDPRComplianceManager:
 
 class HIPAAComplianceManager:
     """HIPAA compliance tools for healthcare data"""
-    
+
     async def generate_hipaa_audit_report(self, covered_entity_id: int) -> HIPAAReport:
         """Generate HIPAA compliance audit report"""
-        
+
         # Check access controls
         access_controls = await self._audit_access_controls(covered_entity_id)
-        
+
         # Audit PHI access logs
         phi_access_logs = await self._audit_phi_access(covered_entity_id)
-        
+
         # Check encryption compliance
         encryption_compliance = await self._check_encryption_compliance(covered_entity_id)
-        
+
         # Verify business associate agreements
         baa_compliance = await self._check_baa_compliance(covered_entity_id)
-        
+
         return HIPAAReport(
             covered_entity_id=covered_entity_id,
             access_controls=access_controls,
@@ -457,54 +457,54 @@ class HIPAAComplianceManager:
 ```python
 class DataLifecycleScheduler:
     """Automated data lifecycle management scheduler"""
-    
+
     def __init__(self):
         self.retention_policy_manager = RetentionPolicyManager()
         self.data_archiver = DataArchiver()
         self.purge_engine = DataPurgeEngine()
-    
+
     async def run_daily_lifecycle_tasks(self):
         """Run daily data lifecycle management tasks"""
-        
+
         # Archive eligible data
         await self._run_archival_tasks()
-        
+
         # Purge expired data
         await self._run_purge_tasks()
-        
+
         # Update retention metadata
         await self._update_retention_metadata()
-        
+
         # Generate compliance reports
         await self._generate_daily_compliance_reports()
-        
+
         # Clean up temporary exports
         await self._cleanup_expired_exports()
-    
+
     async def _run_archival_tasks(self):
         """Run data archival tasks"""
         logger.info("Starting daily archival tasks")
-        
+
         # Find data eligible for archival
         archival_candidates = await self._find_archival_candidates()
-        
+
         for candidate in archival_candidates:
             try:
                 await self.data_archiver.archive_data_item(candidate)
                 logger.info(f"Archived {candidate.__class__.__name__} {candidate.id}")
             except Exception as e:
                 logger.error(f"Failed to archive {candidate.id}: {e}")
-    
+
     async def _run_purge_tasks(self):
         """Run data purge tasks"""
         logger.info("Starting daily purge tasks")
-        
+
         # Find data eligible for purging
         purge_candidates = await self._find_purge_candidates()
-        
+
         for candidate in purge_candidates:
             policy = self.retention_policy_manager.get_retention_policy(candidate.sensitivity_tier)
-            
+
             if policy.auto_purge:
                 try:
                     await self.purge_engine.purge_data_item(candidate)
@@ -517,24 +517,24 @@ class DataLifecycleScheduler:
 
 class DataPurgeEngine:
     """Secure data purging system"""
-    
+
     async def purge_data_item(self, data_item):
         """Securely purge data item"""
-        
+
         # Create purge audit record before deletion
         purge_record = await self._create_purge_audit_record(data_item)
-        
+
         # Remove from archive if archived
         if hasattr(data_item, 'archived') and data_item.archived:
             await self._purge_from_archive(data_item.archive_location)
-        
+
         # Remove from database
         await self._purge_from_database(data_item)
-        
+
         # Update purge audit record
         purge_record.purged_at = datetime.utcnow()
         purge_record.status = 'completed'
-        
+
         logger.info(f"Successfully purged {data_item.__class__.__name__} {data_item.id}")
 ```
 

@@ -14,7 +14,7 @@
 
 #### Security Controls Matrix
 - **DoS Prevention**: Part count and size limits prevent resource exhaustion
-- **Code Injection**: Magic byte detection blocks executable uploads  
+- **Code Injection**: Magic byte detection blocks executable uploads
 - **Data Exfiltration**: Archive blocking prevents nested payload smuggling
 - **Encoding Attacks**: CTE guards prevent base64/quoted-printable bypasses
 - **Unicode Exploits**: Strict UTF-8 validation prevents encoding confusion
@@ -161,7 +161,7 @@
 
 ### Testing Verified
 - Extension activation with popup notifications ✅
-- Context isolation (`@e^M recall CIP-analysis`) ✅  
+- Context isolation (`@e^M recall CIP-analysis`) ✅
 - Debug output visibility ✅
 - Context switching (`@e^M context start CIP-analysis`) ✅
 - CLI integration and command construction ✅

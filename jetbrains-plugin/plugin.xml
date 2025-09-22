@@ -6,7 +6,7 @@
 
     <description><![CDATA[
     A memory layer for your development environment. mem0 captures and recalls context across your development workflow.
-    
+
     Features:
     - Context-aware memory capture
     - Integration with AI assistants
@@ -27,22 +27,22 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Tool Window -->
-        <toolWindow id="mem0" secondary="true" anchor="right" 
+        <toolWindow id="mem0" secondary="true" anchor="right"
                    factoryClass="com.mem0.jetbrains.toolwindow.Mem0ToolWindowFactory"/>
-        
+
         <!-- Actions -->
-        <action id="mem0.remember" class="com.mem0.jetbrains.actions.RememberAction" 
+        <action id="mem0.remember" class="com.mem0.jetbrains.actions.RememberAction"
                 text="Remember Selection" description="Remember selected text/code">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift M"/>
         </action>
-        
+
         <action id="mem0.recall" class="com.mem0.jetbrains.actions.RecallAction"
                 text="Recall Memories" description="Recall memories for current context">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift R"/>
         </action>
-        
+
         <action id="mem0.contextStart" class="com.mem0.jetbrains.actions.ContextStartAction"
                 text="Start mem0 Context" description="Start a new mem0 context">
             <add-to-group group-id="ToolsMenu" anchor="last"/>

@@ -49,10 +49,10 @@ class FakeMultiPartParser:
             req = self._stream.__request__
         else:
             req = getattr(self._stream, '__request__', None)
-        
+
         if req is None:
             return
-            
+
         parts = getattr(req, "_parts", [])
         for p in parts:
             yield p
@@ -142,7 +142,7 @@ async def test_archive_blocked_on_text():
 @pytest.mark.asyncio
 async def test_invalid_cte_rejected():
     parts = [FakePart({
-        "content-type": "text/plain", 
+        "content-type": "text/plain",
         "content-transfer-encoding": "base64"
     }, [b"hello"])]
     req = FakeRequest(parts)
@@ -277,7 +277,7 @@ pytest tests/test_starlette_adapter_hardening.py::test_part_count_limit_trips -v
 
 ---
 
-**Status**: Production Ready  
-**Version**: 1.0  
-**Last Updated**: 2025-09-16  
+**Status**: Production Ready
+**Version**: 1.0
+**Last Updated**: 2025-09-16
 **Test Coverage**: 6/6 passing tests validating all P0 security controls

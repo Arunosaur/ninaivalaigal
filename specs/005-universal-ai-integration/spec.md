@@ -1,9 +1,9 @@
 # Specification 005: Universal AI Integration via MCP
 
-**Version:** 1.0.0  
-**Date:** 2025-09-12  
-**Status:** In Development  
-**Author:** mem0 Team  
+**Version:** 1.0.0
+**Date:** 2025-09-12
+**Status:** In Development
+**Author:** mem0 Team
 
 ## Overview
 
@@ -90,20 +90,20 @@ class AIContext:
     language: str
     cursor_position: int
     surrounding_code: str
-    
+
     # User context
     user_id: Optional[int]
     team_id: Optional[int]
     organization_id: Optional[int]
-    
+
     # Project context
     project_name: Optional[str]
     project_context: Optional[str]
-    
+
     # AI model context
     ai_model: AIModel
     interaction_type: str  # completion, chat, review, etc.
-    
+
     # IDE context
     ide_name: Optional[str]
     workspace_path: Optional[str]
@@ -215,26 +215,26 @@ class MemoryContext:
 ```python
 def calculate_relevance_score(memory: MemoryContext, context: AIContext) -> float:
     score = 0.0
-    
+
     # Language match (high weight)
     if context.language.lower() in memory.content.lower():
         score += 3.0
-    
+
     # File type match
     file_type = get_file_type(context.file_path)
     if file_type in memory.content.lower():
         score += 2.0
-    
+
     # AI model specific patterns
     if context.ai_model.value in memory.content.lower():
         score += 2.0
-    
+
     # Code keyword matches
     keywords = extract_code_keywords(context.surrounding_code)
     for keyword in keywords:
         if keyword.lower() in memory.content.lower():
             score += 1.0
-    
+
     # Hierarchy level bonus
     hierarchy_bonus = {
         "personal": 3.0,
@@ -243,12 +243,12 @@ def calculate_relevance_score(memory: MemoryContext, context: AIContext) -> floa
         "organization": 1.0
     }
     score += hierarchy_bonus.get(memory.context_name, 0.0)
-    
+
     # Recency bonus (newer memories slightly preferred)
     days_old = (datetime.now() - parse_datetime(memory.created_at)).days
     recency_bonus = max(0, 1.0 - (days_old / 30))  # Decay over 30 days
     score += recency_bonus
-    
+
     return score
 ```
 

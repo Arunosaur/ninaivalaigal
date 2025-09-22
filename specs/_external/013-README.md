@@ -3,7 +3,7 @@
 This spec has been moved to its own repository:
 https://github.com/Arunosaur/spec-013-mac-studio-validation
 
-It is included here as a submodule under `external/spec-013` 
+It is included here as a submodule under `external/spec-013`
 for convenience only, and is **not** part of the main CI workflow.
 
 ## Why External?

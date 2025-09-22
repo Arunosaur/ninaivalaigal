@@ -43,4 +43,3 @@ echo "\n--- STOPPING SERVER ---" >> $LOG_FILE
 ./manage.sh stop >> $LOG_FILE 2>&1
 
 echo "\n--- TEST COMPLETE ---" >> $LOG_FILE
-

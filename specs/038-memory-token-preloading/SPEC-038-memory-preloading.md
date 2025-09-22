@@ -76,7 +76,7 @@ PRELOAD_CONFIG = {
     "max_memories_per_user": 100,
     "preload_strategies": [
         "recent_memories",
-        "frequent_memories", 
+        "frequent_memories",
         "important_memories",
         "context_relevant"
     ],

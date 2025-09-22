@@ -18,15 +18,15 @@ def test_connection():
             'user': '{{ mem0_db_user }}',
             'password': '{{ mem0_db_password }}'
         }
-        
+
         # Test connection
         conn = psycopg2.connect(**conn_params)
         cursor = conn.cursor()
-        
+
         # Test basic query
         cursor.execute("SELECT version();")
         version = cursor.fetchone()
-        
+
         # Test table creation (basic schema test)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS test_connection (
@@ -35,26 +35,26 @@ def test_connection():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
-        
+
         # Test insert
         cursor.execute("INSERT INTO test_connection (test_data) VALUES (%s);", ("Connection test successful",))
-        
+
         # Test select
         cursor.execute("SELECT test_data FROM test_connection ORDER BY created_at DESC LIMIT 1;")
         result = cursor.fetchone()
-        
+
         # Cleanup
         cursor.execute("DROP TABLE test_connection;")
         conn.commit()
-        
+
         cursor.close()
         conn.close()
-        
+
         print("✅ PostgreSQL connection successful")
         print(f"✅ Database version: {version[0]}")
         print(f"✅ Basic operations working: {result[0]}")
         return True
-        
+
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
         return False

@@ -83,7 +83,7 @@ Endpoints Tested:
   - GET /health              # Basic health check
   - GET /health/detailed     # Detailed system status
   - GET /memory/health       # Memory provider health
-  
+
 Database Tests:
   - PostgreSQL connectivity
   - PgBouncer connection pooling
@@ -206,12 +206,12 @@ Environments:
     - Trigger: Every push to main
     - Validation: Basic health checks
     - Deployment: Automatic
-  
+
   Staging:
     - Trigger: Tag creation
     - Validation: Full test suite
     - Deployment: Automatic with approval
-  
+
   Production:
     - Trigger: Manual workflow dispatch
     - Validation: Comprehensive testing

@@ -420,7 +420,7 @@
         <!-- Team Members Section -->
         <div class="card">
             <h2>👥 Team Members</h2>
-            
+
             <table class="members-table">
                 <thead>
                     <tr>
@@ -489,7 +489,7 @@
         <div class="card">
             <div class="ownership-section">
                 <h3>🔐 Ownership Management</h3>
-                
+
                 <div id="pending-transfers">
                     <h4 style="margin-bottom: 15px; color: #4a5568;">Pending Ownership Transfers</h4>
                     <div class="transfer-item">
@@ -590,11 +590,11 @@
         // Check authentication first
         const token = localStorage.getItem('ninaivalaigal_token');
         const user = JSON.parse(localStorage.getItem('ninaivalaigal_user') || '{}');
-        
+
         if (!token) {
             window.location.href = 'login.html';
         }
-        
+
         // Modal management
         function openAddMemberModal() {
             document.getElementById('add-member-modal').style.display = 'block';
@@ -628,7 +628,7 @@
             notification.textContent = message;
             notification.className = `notification ${type}`;
             notification.classList.add('show');
-            
+
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
@@ -638,7 +638,7 @@
         function changeRole(selectElement) {
             const email = selectElement.dataset.userEmail;
             const newRole = selectElement.value;
-            
+
             // API call to change role
             fetch(`/api/teams/1/members/${email}/role`, {
                 method: 'PUT',
@@ -741,7 +741,7 @@
         function exportTeamData() {
             // Export team data as CSV
             showNotification('Exporting team data...');
-            
+
             fetch('/api/teams/1/export', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -765,11 +765,11 @@
         // Form submissions
         document.getElementById('add-member-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const email = document.getElementById('member-email').value;
             const role = document.getElementById('member-role').value;
             const message = document.getElementById('invitation-message').value;
-            
+
             fetch('/api/teams/1/members', {
                 method: 'POST',
                 headers: {
@@ -800,10 +800,10 @@
 
         document.getElementById('transfer-ownership-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const newOwnerEmail = document.getElementById('new-owner-email').value;
             const message = document.getElementById('transfer-message').value;
-            
+
             fetch('/api/teams/1/transfer-ownership', {
                 method: 'POST',
                 headers: {
@@ -833,10 +833,10 @@
 
         document.getElementById('edit-team-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const name = document.getElementById('edit-team-name').value;
             const description = document.getElementById('edit-team-description').value;
-            
+
             fetch('/api/teams/1', {
                 method: 'PUT',
                 headers: {

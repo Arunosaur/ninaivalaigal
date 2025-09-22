@@ -19,7 +19,7 @@ jobs:
   backup-verification:
     runs-on: [self-hosted, macstudio]
     timeout-minutes: 30
-    
+
     env:
       POSTGRES_HOST: 127.0.0.1
       POSTGRES_PORT: 5433
@@ -61,27 +61,27 @@ jobs:
         shell: bash
         run: |
           echo "=== Restore Rehearsal Test ==="
-          
+
           # Find latest backup
           LATEST_BACKUP=$(find ${BACKUP_DIR} -name "nina-*.dump" -type f -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
-          
+
           if [[ -z "$LATEST_BACKUP" ]]; then
             echo "❌ No backup files found for rehearsal"
             exit 1
           fi
-          
+
           echo "Testing restore of: $(basename "$LATEST_BACKUP")"
-          
+
           # Perform restore to temporary database
           RESTORE_DB="nina_rehearsal_$(date +%s)"
           echo "Restoring to: $RESTORE_DB"
-          
+
           if ./scripts/restore-db.sh "$LATEST_BACKUP" "$RESTORE_DB"; then
             echo "✅ Restore rehearsal successful"
-            
+
             # Basic functionality test on restored database
             echo "Testing basic operations on restored database..."
-            
+
             # Test connection and basic queries
             PGPASSWORD="${POSTGRES_PASSWORD}" psql \
               --host="$POSTGRES_HOST" \
@@ -92,9 +92,9 @@ jobs:
               echo "❌ Basic query test failed"
               exit 1
             }
-            
+
             echo "✅ Restored database functional"
-            
+
             # Cleanup test database
             echo "Cleaning up test database: $RESTORE_DB"
             PGPASSWORD="${POSTGRES_PASSWORD}" psql \
@@ -103,7 +103,7 @@ jobs:
               --username="$POSTGRES_USER" \
               --dbname="postgres" \
               --command="DROP DATABASE \"$RESTORE_DB\";" || true
-              
+
           else
             echo "❌ Restore rehearsal failed"
             exit 1
@@ -117,7 +117,7 @@ jobs:
           echo "Date: $(date -Iseconds)" >> artifacts/backup-report.txt
           echo "Environment: Mac Studio CI" >> artifacts/backup-report.txt
           echo "" >> artifacts/backup-report.txt
-          
+
           # List all backups
           echo "Available Backups:" >> artifacts/backup-report.txt
           if [[ -d "${BACKUP_DIR}" ]]; then
@@ -125,10 +125,10 @@ jobs:
           else
             echo "Backup directory not found: ${BACKUP_DIR}" >> artifacts/backup-report.txt
           fi
-          
+
           echo "" >> artifacts/backup-report.txt
           echo "Verification Status: $([$? -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")" >> artifacts/backup-report.txt
-          
+
           # Show report
           cat artifacts/backup-report.txt
 

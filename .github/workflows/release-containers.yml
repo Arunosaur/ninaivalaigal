@@ -15,11 +15,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     name: Release Multi-Arch Docker Images
-    
+
     permissions:
       contents: read
       packages: write  # Needed for GHCR push
-    
+
     steps:
       - name: 📋 Checkout code
         uses: actions/checkout@v4

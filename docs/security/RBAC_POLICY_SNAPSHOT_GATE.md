@@ -46,7 +46,7 @@ This creates `rbac_policy_baseline.json` containing the current policy state.
 
 The gate runs automatically on commits that modify RBAC-related files:
 - `server/rbac_*.py`
-- `tests/test_rbac_*.py` 
+- `tests/test_rbac_*.py`
 - `scripts/*rbac*.py`
 - Any `.sql` files in these patterns
 
@@ -260,7 +260,7 @@ The RBAC Policy Snapshot Gate provides critical security benefits:
 
 ---
 
-**Status**: Production Ready  
-**Version**: 1.0  
-**Last Updated**: 2025-09-16  
+**Status**: Production Ready
+**Version**: 1.0
+**Last Updated**: 2025-09-16
 **Security Review**: Required before deployment

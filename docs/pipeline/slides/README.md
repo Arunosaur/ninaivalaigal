@@ -43,8 +43,7 @@ Each product has its own documentation (md + pdf) and slide decks (layman + tech
 ---
 
 ## Usage
-- Use **Markdown** files for easy editing and version control.  
-- Use **PDFs** for polished sharing with stakeholders.  
-- Use **Layman slide decks** for non-technical presentations.  
+- Use **Markdown** files for easy editing and version control.
+- Use **PDFs** for polished sharing with stakeholders.
+- Use **Layman slide decks** for non-technical presentations.
 - Use **Technical slide decks** for engineering or architecture discussions.
-

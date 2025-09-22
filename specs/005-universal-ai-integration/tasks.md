@@ -1,8 +1,8 @@
 # Universal AI Integration - Implementation Tasks
 
-**Specification:** 005-universal-ai-integration  
-**Version:** 1.0.0  
-**Status:** In Development  
+**Specification:** 005-universal-ai-integration
+**Version:** 1.0.0
+**Status:** In Development
 
 ## Phase 1: Core Infrastructure ✅ COMPLETED
 
