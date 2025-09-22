@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ninaivalaigal Performance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .status-healthy { color: #10b981; }
+        .status-warning { color: #f59e0b; }
+        .status-critical { color: #ef4444; }
+        .status-unknown { color: #6b7280; }
+        
+        .alert-warning {
+            border-left: 4px solid #f59e0b;
+            background-color: #fffbeb;
+        }
+        .alert-critical {
+            border-left: 4px solid #ef4444;
+            background-color: #fef2f2;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .live-indicator {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-gray-900">Ninaivalaigal Performance Dashboard</h1>
+                    <div class="ml-4 flex items-center">
+                        <div class="w-3 h-3 bg-green-500 rounded-full live-indicator"></div>
+                        <span class="ml-2 text-sm text-gray-600" id="connection-status">Connecting...</span>
+                    </div>
+                </div>
+                <div class="text-sm text-gray-500" id="last-update">
+                    Last updated: --
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- System Health Overview -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">System Health</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-lg shadow p-6 metric-card">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Overall Status</p>
+                            <p class="text-lg font-semibold" id="overall-health">Unknown</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 metric-card">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Database</p>
+                            <p class="text-lg font-semibold" id="database-health">Unknown</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 metric-card">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Redis Cache</p>
+                            <p class="text-lg font-semibold" id="redis-health">Unknown</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 metric-card">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
+                                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Active Alerts</p>
+                            <p class="text-lg font-semibold" id="alert-count">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Performance Metrics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-lg shadow p-6 metric-card">
+                    <h3 class="text-sm font-medium text-gray-500">Avg Response Time</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="avg-response-time">-- ms</p>
+                    <p class="text-xs text-gray-500 mt-1">Target: &lt; 100ms</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 metric-card">
+                    <h3 class="text-sm font-medium text-gray-500">Requests/Second</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="requests-per-second">--</p>
+                    <p class="text-xs text-gray-500 mt-1">Target: &gt; 1000 RPS</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 metric-card">
+                    <h3 class="text-sm font-medium text-gray-500">Cache Hit Rate</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="cache-hit-rate">--%</p>
+                    <p class="text-xs text-gray-500 mt-1">Target: &gt; 90%</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 metric-card">
+                    <h3 class="text-sm font-medium text-gray-500">DB Connections</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="db-connections">-- / --</p>
+                    <p class="text-xs text-gray-500 mt-1">Active / Pool Size</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Response Time Trend</h3>
+                <div class="chart-container">
+                    <canvas id="response-time-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Cache Performance</h3>
+                <div class="chart-container">
+                    <canvas id="cache-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Active Alerts</h2>
+            <div id="alerts-container" class="space-y-4">
+                <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+                    No active alerts
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">System Information</h3>
+                <dl class="space-y-3">
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Uptime</dt>
+                        <dd class="text-sm text-gray-900" id="system-uptime">--</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Total Requests</dt>
+                        <dd class="text-sm text-gray-900" id="total-requests">--</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Redis Memory</dt>
+                        <dd class="text-sm text-gray-900" id="redis-memory">--</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Graph Queries</dt>
+                        <dd class="text-sm text-gray-900" id="graph-queries">--</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Cache Statistics</h3>
+                <dl class="space-y-3">
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Query Cache Keys</dt>
+                        <dd class="text-sm text-gray-900" id="query-cache-keys">--</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Response Cache Keys</dt>
+                        <dd class="text-sm text-gray-900" id="response-cache-keys">--</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Redis Ops/Sec</dt>
+                        <dd class="text-sm text-gray-900" id="redis-ops">--</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Graph Cache Hit Rate</dt>
+                        <dd class="text-sm text-gray-900" id="graph-cache-hit-rate">--%</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // WebSocket connection for real-time updates
+        let ws;
+        let responseTimeChart;
+        let cacheChart;
+        let metricsHistory = [];
+
+        // Initialize dashboard
+        function initDashboard() {
+            connectWebSocket();
+            initCharts();
+            loadAlerts();
+        }
+
+        // WebSocket connection
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/dashboard/ws`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                document.getElementById('connection-status').textContent = 'Connected';
+                document.getElementById('connection-status').className = 'ml-2 text-sm text-green-600';
+            };
+            
+            ws.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                if (message.type === 'metrics_update') {
+                    updateDashboard(message.data);
+                }
+            };
+            
+            ws.onclose = function() {
+                document.getElementById('connection-status').textContent = 'Disconnected';
+                document.getElementById('connection-status').className = 'ml-2 text-sm text-red-600';
+                
+                // Attempt to reconnect after 5 seconds
+                setTimeout(connectWebSocket, 5000);
+            };
+            
+            ws.onerror = function() {
+                document.getElementById('connection-status').textContent = 'Error';
+                document.getElementById('connection-status').className = 'ml-2 text-sm text-red-600';
+            };
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Response Time Chart
+            const responseTimeCtx = document.getElementById('response-time-chart').getContext('2d');
+            responseTimeChart = new Chart(responseTimeCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: [],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Milliseconds'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Cache Performance Chart
+            const cacheCtx = document.getElementById('cache-chart').getContext('2d');
+            cacheChart = new Chart(cacheCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cache Hits', 'Cache Misses'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['rgb(34, 197, 94)', 'rgb(239, 68, 68)']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update dashboard with new metrics
+        function updateDashboard(metrics) {
+            // Update timestamp
+            document.getElementById('last-update').textContent = 
+                `Last updated: ${new Date().toLocaleTimeString()}`;
+
+            // Update health status
+            updateHealthStatus(metrics.health);
+
+            // Update performance metrics
+            updatePerformanceMetrics(metrics);
+
+            // Update charts
+            updateCharts(metrics);
+
+            // Update system information
+            updateSystemInfo(metrics);
+
+            // Store metrics for history
+            metricsHistory.push({
+                timestamp: new Date(),
+                ...metrics
+            });
+
+            // Keep only last 100 data points
+            if (metricsHistory.length > 100) {
+                metricsHistory.shift();
+            }
+        }
+
+        // Update health status indicators
+        function updateHealthStatus(health) {
+            const statusMap = {
+                'healthy': { class: 'status-healthy', text: 'Healthy' },
+                'degraded': { class: 'status-warning', text: 'Degraded' },
+                'unhealthy': { class: 'status-critical', text: 'Unhealthy' },
+                'unknown': { class: 'status-unknown', text: 'Unknown' }
+            };
+
+            const overallStatus = statusMap[health.overall] || statusMap.unknown;
+            const dbStatus = statusMap[health.database] || statusMap.unknown;
+            const redisStatus = statusMap[health.redis] || statusMap.unknown;
+
+            document.getElementById('overall-health').textContent = overallStatus.text;
+            document.getElementById('overall-health').className = `text-lg font-semibold ${overallStatus.class}`;
+
+            document.getElementById('database-health').textContent = dbStatus.text;
+            document.getElementById('database-health').className = `text-lg font-semibold ${dbStatus.class}`;
+
+            document.getElementById('redis-health').textContent = redisStatus.text;
+            document.getElementById('redis-health').className = `text-lg font-semibold ${redisStatus.class}`;
+
+            document.getElementById('alert-count').textContent = health.issues || 0;
+        }
+
+        // Update performance metrics
+        function updatePerformanceMetrics(metrics) {
+            document.getElementById('avg-response-time').textContent = 
+                `${metrics.api.avg_response_time_ms.toFixed(1)} ms`;
+            
+            document.getElementById('requests-per-second').textContent = 
+                metrics.api.requests_per_second.toFixed(1);
+            
+            document.getElementById('cache-hit-rate').textContent = 
+                `${(metrics.redis.cache_hit_rate * 100).toFixed(1)}%`;
+            
+            document.getElementById('db-connections').textContent = 
+                `${metrics.database.checked_out_connections} / ${metrics.database.pool_size}`;
+        }
+
+        // Update charts
+        function updateCharts(metrics) {
+            // Update response time chart
+            const timeLabel = new Date().toLocaleTimeString();
+            responseTimeChart.data.labels.push(timeLabel);
+            responseTimeChart.data.datasets[0].data.push(metrics.api.avg_response_time_ms);
+
+            // Keep only last 20 data points
+            if (responseTimeChart.data.labels.length > 20) {
+                responseTimeChart.data.labels.shift();
+                responseTimeChart.data.datasets[0].data.shift();
+            }
+            responseTimeChart.update('none');
+
+            // Update cache chart
+            const hitRate = metrics.redis.cache_hit_rate;
+            const missRate = 1 - hitRate;
+            cacheChart.data.datasets[0].data = [hitRate * 100, missRate * 100];
+            cacheChart.update();
+        }
+
+        // Update system information
+        function updateSystemInfo(metrics) {
+            const uptime = metrics.system.uptime;
+            const uptimeHours = Math.floor(uptime / 3600);
+            const uptimeMinutes = Math.floor((uptime % 3600) / 60);
+            
+            document.getElementById('system-uptime').textContent = 
+                `${uptimeHours}h ${uptimeMinutes}m`;
+            
+            document.getElementById('total-requests').textContent = 
+                metrics.api.total_requests.toLocaleString();
+            
+            document.getElementById('redis-memory').textContent = 
+                metrics.redis.used_memory_human;
+            
+            document.getElementById('graph-queries').textContent = 
+                metrics.graph.queries_executed.toLocaleString();
+
+            document.getElementById('query-cache-keys').textContent = 
+                metrics.cache.query_cache_keys.toLocaleString();
+            
+            document.getElementById('response-cache-keys').textContent = 
+                metrics.cache.response_cache_keys.toLocaleString();
+            
+            document.getElementById('redis-ops').textContent = 
+                metrics.redis.ops_per_second.toLocaleString();
+            
+            document.getElementById('graph-cache-hit-rate').textContent = 
+                `${(metrics.graph.cache_hit_rate * 100).toFixed(1)}%`;
+        }
+
+        // Load and display alerts
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/dashboard/api/alerts');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    displayAlerts(data.data);
+                }
+            } catch (error) {
+                console.error('Failed to load alerts:', error);
+            }
+        }
+
+        // Display alerts
+        function displayAlerts(alerts) {
+            const container = document.getElementById('alerts-container');
+            
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+                        No active alerts
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = alerts.map(alert => `
+                <div class="bg-white rounded-lg shadow p-6 alert-${alert.severity}">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="w-5 h-5 text-${alert.severity === 'critical' ? 'red' : 'yellow'}-600" 
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-gray-900">
+                                ${alert.component.toUpperCase()} Alert
+                            </h3>
+                            <p class="text-sm text-gray-700 mt-1">${alert.message}</p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Threshold: ${alert.threshold} | Current: ${alert.current_value}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+
+        // Reload alerts every 30 seconds
+        setInterval(loadAlerts, 30000);
+    </script>
+</body>
+</html>
