@@ -689,6 +689,45 @@ benchmark-all:
 	@echo "📊 Running all performance benchmarks..."
 	pytest tests/performance/ -v --benchmark-only --benchmark-sort=mean --benchmark-json=benchmark_results.json
 
+test-graph:
+	@echo "🕸️ Running Apache AGE graph tests..."
+	pytest server/graph/tests/ -v --tb=short
+
+test-graph-nodes:
+	@echo "🔵 Running graph node tests..."
+	pytest server/graph/tests/cypher/test_node_queries.py -v --tb=short
+
+test-graph-edges:
+	@echo "🔗 Running graph edge tests..."
+	pytest server/graph/tests/cypher/test_edge_queries.py -v --tb=short
+
+benchmark-graph:
+	@echo "⚡ Running graph performance benchmarks..."
+	pytest server/graph/tests/ -v --benchmark-only --benchmark-sort=mean
+
+test-spec-060:
+	@echo "🎯 Running SPEC-060 Apache AGE implementation tests..."
+	pytest server/graph/tests/ tests/unit/test_redis_enhanced.py -k "graph or age or cypher" -v --tb=short
+
+## SPEC-061: Property Graph Intelligence Framework
+test-graph-reasoner:
+	@echo "🧠 Running graph reasoner tests..."
+	pytest tests/unit/test_graph_reasoner_unit.py tests/functional/test_graph_reasoner_functional.py -v --tb=short
+
+benchmark-reasoner:
+	@echo "⚡ Running graph reasoner performance benchmarks..."
+	pytest tests/performance/benchmark_reasoner.py --benchmark-only --benchmark-sort=mean -v
+
+spec-061:
+	@echo "🎯 Running complete SPEC-061 validation..."
+	@make test-graph-reasoner && make benchmark-reasoner
+	@echo "✅ SPEC-061 Property Graph Intelligence Framework validation complete"
+
+test-graph-all:
+	@echo "🌐 Running all graph-related tests (SPEC-060 + SPEC-061)..."
+	@make test-graph && make test-graph-reasoner
+	@echo "✅ Complete graph testing suite finished"
+
 test-all:
 	@echo "🧪 Running all test suites with coverage..."
 	pytest --cov=server --cov-report=term --cov-report=html --cov-report=xml tests/
