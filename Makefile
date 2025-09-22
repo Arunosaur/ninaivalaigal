@@ -617,7 +617,7 @@ test-session-health:
 	@curl -s "http://localhost:13370/auth/session/health" | jq . || echo "❌ API not responding"
 
 # Code Coverage Targets
-.PHONY: test-coverage test-unit test-integration test-security test-performance coverage-report coverage-html
+.PHONY: test-coverage test-unit test-functional test-integration test-security test-performance coverage-report coverage-html coverage-dashboard
 
 test-coverage:
 	@echo "🧪 Running comprehensive test suite with coverage..."
@@ -626,25 +626,55 @@ test-coverage:
 	coverage html
 
 test-unit:
-	pytest tests/unit/ -v
+	@echo "🔬 Running unit tests..."
+	pytest tests/unit/ -v --tb=short
+
+test-unit-enhanced:
+	@echo "🔬 Running enhanced unit tests..."
+	pytest tests/unit/test_*_enhanced.py -v --tb=short
 
 test-functional:
-	pytest tests/functional/ -v
+	@echo "🌐 Running functional tests..."
+	pytest tests/functional/ -v --tb=short
+
+test-functional-enhanced:
+	@echo "🌐 Running enhanced functional tests..."
+	pytest tests/functional/test_*_enhanced.py -v --tb=short
 
 test-integration:
-	pytest tests/integration/ -v
+	@echo "🔗 Running integration tests..."
+	pytest tests/integration/ -v --tb=short
 
 test-security:
-	pytest tests/security/ -v
+	@echo "🛡️ Running security tests..."
+	pytest tests/security/ -v --tb=short
 
 test-performance:
+	@echo "🚀 Running performance benchmarks..."
 	pytest tests/performance/ -v --benchmark-only
+
+test-auth:
+	@echo "🔐 Running authentication tests..."
+	pytest tests/ -k "auth" -v --tb=short
+
+test-memory:
+	@echo "🧠 Running memory tests..."
+	pytest tests/ -k "memory" -v --tb=short
+
+test-rbac:
+	@echo "🛡️ Running RBAC tests..."
+	pytest tests/ -k "rbac" -v --tb=short
 
 test-all:
 	@echo "🧪 Running all test suites with coverage..."
 	pytest --cov=server --cov-report=term --cov-report=html --cov-report=xml tests/
 
+test-critical:
+	@echo "🎯 Running critical module tests (auth, memory, rbac)..."
+	pytest tests/ -k "auth or memory or rbac" -v --cov=server.auth --cov=server.memory --cov=server.rbac_middleware --cov-report=term
+
 coverage-report:
+	@echo "📊 Generating coverage report..."
 	coverage report --show-missing
 
 coverage-html:
@@ -653,8 +683,18 @@ coverage-html:
 	@echo "📊 Coverage report available at: htmlcov/index.html"
 
 coverage-xml:
+	@echo "📄 Generating XML coverage report..."
 	coverage xml
+
+coverage-dashboard:
+	@echo "🎛️ Generating comprehensive coverage dashboard..."
+	python coverage/generate_coverage_report.py
+	@echo "🌐 Dashboard available at: coverage/dashboard.html"
 
 validate-coverage:
 	@echo "✅ Validating coverage requirements..."
 	coverage report --fail-under=80
+
+validate-critical-coverage:
+	@echo "🎯 Validating critical module coverage (100% target)..."
+	pytest --cov=server.auth --cov=server.memory --cov=server.rbac_middleware --cov-report=term --cov-fail-under=100 tests/ -k "auth or memory or rbac" || echo "⚠️ Critical modules need 100% coverage"
