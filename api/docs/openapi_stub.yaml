@@ -1,0 +1,157 @@
+openapi: 3.0.0
+info:
+  title: Ninaivalaigal Agentic API
+  description: AI-powered memory management and context-aware API
+  version: 1.0.0
+  contact:
+    name: Ninaivalaigal Team
+    url: https://github.com/Arunosaur/ninaivalaigal
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.ninaivalaigal.com
+    description: Production server
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+
+  /memory/tokenize:
+    post:
+      summary: Tokenize memory input
+      tags: [Memory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Memory content to tokenize
+                context:
+                  type: string
+                  description: Context for the memory
+      responses:
+        '200':
+          description: Successfully tokenized memory
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    type: array
+                    items:
+                      type: string
+                  token_count:
+                    type: integer
+
+  /memory/recall:
+    post:
+      summary: Recall memories based on query
+      tags: [Memory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: Query to search memories
+                limit:
+                  type: integer
+                  default: 10
+      responses:
+        '200':
+          description: Retrieved memories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  memories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        content:
+                          type: string
+                        relevance_score:
+                          type: number
+
+  /auth/login:
+    post:
+      summary: User authentication
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: "bearer"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+        error_code:
+          type: string
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Health
+    description: Health check operations
+  - name: Memory
+    description: Memory management operations
+  - name: Authentication
+    description: User authentication operations
