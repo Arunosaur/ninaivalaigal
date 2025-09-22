@@ -10,19 +10,23 @@ This addresses external code review feedback:
 import json
 from datetime import datetime
 from typing import Any
-from .server import mcp, get_initialized_components
+
+from .server import get_initialized_components, mcp
 
 # Try to import secret redaction, fallback if not available
 try:
     from secret_redaction import redact_memory_before_storage
 except ImportError:
+
     def redact_memory_before_storage(data):
         return data
+
 
 # Get initialized components lazily
 def get_components():
     """Get components lazily to avoid import issues"""
     return get_initialized_components()
+
 
 # Helper to get specific component safely
 def get_component(name, default=None):
@@ -30,12 +34,13 @@ def get_component(name, default=None):
     components = get_components()
     return components.get(name, default)
 
+
 # Helper functions
 async def auto_record_tool_usage(tool_name: str, description: str, result=None):
     """Record tool usage in active contexts"""
     try:
-        auto_recorder = get_component('auto_recorder')
-        if auto_recorder and hasattr(auto_recorder, 'active_contexts'):
+        auto_recorder = get_component("auto_recorder")
+        if auto_recorder and hasattr(auto_recorder, "active_contexts"):
             for context_name in auto_recorder.active_contexts:
                 await auto_recorder.record_interaction(
                     context_name=context_name,
@@ -44,16 +49,20 @@ async def auto_record_tool_usage(tool_name: str, description: str, result=None):
                     metadata={
                         "tool": tool_name,
                         "description": description,
-                        "result_count": len(result) if isinstance(result, list) else None,
-                        "user_id": get_component('DEFAULT_USER_ID', 1),
+                        "result_count": (
+                            len(result) if isinstance(result, list) else None
+                        ),
+                        "user_id": get_component("DEFAULT_USER_ID", 1),
                     },
                 )
     except Exception as e:
         print(f"Warning: Could not auto-record tool usage: {e}")
 
+
 def get_current_user():
     """Get current user info"""
-    return {"user_id": get_component('DEFAULT_USER_ID', 1)}
+    return {"user_id": get_component("DEFAULT_USER_ID", 1)}
+
 
 @mcp.tool()
 async def remember(text: str, context: str = None) -> str:
@@ -85,7 +94,7 @@ async def remember(text: str, context: str = None) -> str:
 
         try:
             # Apply secret redaction before storage
-            user_id = get_component('DEFAULT_USER_ID', 1)
+            user_id = get_component("DEFAULT_USER_ID", 1)
             memory_data = {
                 "text": text,
                 "timestamp": str(datetime.now()),
@@ -95,7 +104,7 @@ async def remember(text: str, context: str = None) -> str:
             redacted_memory_data = redact_memory_before_storage(memory_data)
             redacted_text = redacted_memory_data.get("text", text)
 
-            db = get_component('db')
+            db = get_component("db")
             if db:
                 db.add_memory(
                     context,
@@ -105,14 +114,18 @@ async def remember(text: str, context: str = None) -> str:
                         "text": redacted_text,
                         "timestamp": str(datetime.now()),
                         "context": context,
-                        "user_id": get_component('DEFAULT_USER_ID', 1),
+                        "user_id": get_component("DEFAULT_USER_ID", 1),
                     },
-                    user_id=get_component('DEFAULT_USER_ID', 1),
+                    user_id=get_component("DEFAULT_USER_ID", 1),
                 )
 
             # If CCTV recording is active, also record this interaction
-            auto_recorder = get_component('auto_recorder')
-            if auto_recorder and hasattr(auto_recorder, 'active_contexts') and context in auto_recorder.active_contexts:
+            auto_recorder = get_component("auto_recorder")
+            if (
+                auto_recorder
+                and hasattr(auto_recorder, "active_contexts")
+                and context in auto_recorder.active_contexts
+            ):
                 await auto_recorder.record_interaction(
                     context_name=context,
                     interaction_type="user_memory",
@@ -143,12 +156,12 @@ async def recall(context: str = None, query: str = None) -> list[dict[str, Any]]
         # Auto-record this recall operation
         await auto_record_tool_usage("recall", f"Context: {context}, Query: {query}")
 
-        db = get_component('db')
-        user_id = get_component('DEFAULT_USER_ID', 1)
-        
+        db = get_component("db")
+        user_id = get_component("DEFAULT_USER_ID", 1)
+
         if not db:
             return [{"error": "Database not available"}]
-        
+
         if context:
             # Get memories from specific context
             memories = db.get_memories(context, user_id=user_id)
@@ -279,12 +292,18 @@ async def list_contexts() -> str:
                 scope = ctx.get("scope", "personal").title()
                 context_list.append(
                     f"  • {ctx['name']} ({scope}) - {status}"
-                    + (f" - {ctx.get('description', 'No description')}" if ctx.get('description') else "")
+                    + (
+                        f" - {ctx.get('description', 'No description')}"
+                        if ctx.get("description")
+                        else ""
+                    )
                 )
 
             return "\n".join(context_list)
         else:
-            error_msg = f"❌ Error listing contexts: {result.get('error', 'Unknown error')}"
+            error_msg = (
+                f"❌ Error listing contexts: {result.get('error', 'Unknown error')}"
+            )
             await auto_record_tool_usage("list_contexts", error_msg)
             return error_msg
 
@@ -480,7 +499,9 @@ async def approve_cross_team_request(
         if result["success"]:
             return f"✅ Request {request_id} {action}ed successfully"
         else:
-            return f"❌ Error processing request: {result.get('error', 'Unknown error')}"
+            return (
+                f"❌ Error processing request: {result.get('error', 'Unknown error')}"
+            )
 
     except Exception as e:
         return f" Error processing approval action: {str(e)}"
@@ -572,7 +593,9 @@ async def get_ai_context(user_id: int = None, project_context: str = None) -> st
             response.append("  No active recordings")
 
         if contexts_result["success"]:
-            response.append(f"\n📋 Available contexts: {len(contexts_result['contexts'])}")
+            response.append(
+                f"\n📋 Available contexts: {len(contexts_result['contexts'])}"
+            )
 
         return "\n".join(response)
 

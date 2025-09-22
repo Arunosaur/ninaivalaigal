@@ -3,19 +3,22 @@ Recording Management Router
 Extracted from main.py for better code organization
 """
 
-from fastapi import APIRouter, Depends, HTTPException
 from auth import get_current_user
-from database import DatabaseManager, User
 from auto_recording import get_auto_recorder
+from database import DatabaseManager, User
+from fastapi import APIRouter, Depends, HTTPException
 
 # Initialize router
 router = APIRouter(prefix="/context", tags=["recording"])
+
 
 # Database manager dependency
 def get_db():
     """Get database manager with dynamic configuration"""
     from config import get_dynamic_database_url
+
     return DatabaseManager(get_dynamic_database_url())
+
 
 def get_auto_recorder_instance(db: DatabaseManager = Depends(get_db)):
     """Get auto recorder with dynamic database"""
@@ -24,9 +27,9 @@ def get_auto_recorder_instance(db: DatabaseManager = Depends(get_db)):
 
 @router.post("/start")
 async def start_recording(
-    context: str, 
+    context: str,
     current_user: User = Depends(get_current_user),
-    auto_recorder = Depends(get_auto_recorder_instance),
+    auto_recorder=Depends(get_auto_recorder_instance),
 ):
     """Start CCTV-style automatic recording to a context"""
     try:

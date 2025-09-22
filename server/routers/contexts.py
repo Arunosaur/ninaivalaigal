@@ -3,9 +3,9 @@ Context Management Router
 Extracted from main.py for better code organization
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request
 from auth import get_current_user
-from database import Context, ContextPermission, DatabaseManager, User
+from database import ContextPermission, DatabaseManager, User
+from fastapi import APIRouter, Depends, HTTPException, Request
 from models.api_models import ContextCreate, ContextShare, ContextTransfer
 from rbac.permissions import Action, Resource
 from rbac_middleware import require_permission
@@ -13,10 +13,12 @@ from rbac_middleware import require_permission
 # Initialize router
 router = APIRouter(prefix="/contexts", tags=["contexts"])
 
+
 # Database manager dependency
 def get_db():
     """Get database manager with dynamic configuration"""
     from config import get_dynamic_database_url
+
     return DatabaseManager(get_dynamic_database_url())
 
 

@@ -8,6 +8,7 @@ This addresses external code review feedback:
 """
 
 from datetime import datetime
+
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -26,6 +27,7 @@ Base = declarative_base()
 
 class User(Base):
     """User model with authentication and RBAC support"""
+
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -78,6 +80,7 @@ class User(Base):
 
 class Memory(Base):
     """Memory storage model"""
+
     __tablename__ = "memories"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -92,6 +95,7 @@ class Memory(Base):
 
 class Organization(Base):
     """Organization model for multi-tenant support"""
+
     __tablename__ = "organizations"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -111,6 +115,7 @@ class Organization(Base):
 
 class Team(Base):
     """Team model for collaborative workspaces"""
+
     __tablename__ = "teams"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -131,6 +136,7 @@ class Team(Base):
 
 class TeamMember(Base):
     """Team membership model with role-based access"""
+
     __tablename__ = "team_members"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -148,6 +154,7 @@ class TeamMember(Base):
 
 class Context(Base):
     """Context model for memory organization and sharing"""
+
     __tablename__ = "contexts"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -179,6 +186,7 @@ class Context(Base):
 
 class ContextPermission(Base):
     """Context permission model for fine-grained access control"""
+
     __tablename__ = "context_permissions"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -206,6 +214,7 @@ class ContextPermission(Base):
 
 class OrganizationRegistration(Base):
     """Organization registration model for signup tracking"""
+
     __tablename__ = "organization_registrations"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -228,6 +237,7 @@ class OrganizationRegistration(Base):
 
 class UserInvitation(Base):
     """User invitation model for team/organization invites"""
+
     __tablename__ = "user_invitations"
 
     id = Column(Integer, primary_key=True, index=True)

@@ -24,41 +24,41 @@ ensure_pip_tools() {
 # Compile requirements files
 compile_requirements() {
     local target="${1:-all}"
-    
+
     ensure_pip_tools
-    
+
     cd "$REQUIREMENTS_DIR"
-    
+
     case "$target" in
         "base"|"all")
             log "Compiling base requirements..."
             pip-compile --resolver=backtracking --upgrade base.in
             ;;
     esac
-    
+
     case "$target" in
         "dev"|"all")
             log "Compiling development requirements..."
             pip-compile --resolver=backtracking --upgrade dev.in
             ;;
     esac
-    
+
     case "$target" in
         "test"|"all")
             log "Compiling test requirements..."
             pip-compile --resolver=backtracking --upgrade test.in
             ;;
     esac
-    
+
     success "Requirements compilation complete"
 }
 
 # Install dependencies
 install_requirements() {
     local env="${1:-dev}"
-    
+
     ensure_pip_tools
-    
+
     case "$env" in
         "base"|"prod"|"production")
             log "Installing base/production requirements..."
@@ -78,14 +78,14 @@ install_requirements() {
             exit 1
             ;;
     esac
-    
+
     success "Dependencies installed for $env environment"
 }
 
 # Check for dependency conflicts
 check_conflicts() {
     log "Checking for dependency conflicts..."
-    
+
     if command -v pip-check >/dev/null 2>&1; then
         pip-check
     else
@@ -93,21 +93,21 @@ check_conflicts() {
         pip install pip-check
         pip-check
     fi
-    
+
     success "Dependency conflict check complete"
 }
 
 # Update all dependencies to latest compatible versions
 update_all() {
     log "Updating all dependencies to latest compatible versions..."
-    
+
     compile_requirements "all"
-    
+
     # Install dev requirements by default for development
     install_requirements "dev"
-    
+
     check_conflicts
-    
+
     success "All dependencies updated"
 }
 
@@ -125,11 +125,11 @@ show_tree() {
 # Clean up old requirements files
 cleanup_old() {
     log "Cleaning up old requirements files..."
-    
+
     # Backup old files
     local backup_dir="$ROOT_DIR/requirements_backup_$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$backup_dir"
-    
+
     # Move old files to backup
     for file in "$ROOT_DIR"/requirements*.txt "$ROOT_DIR/server/requirements.txt"; do
         if [[ -f "$file" ]]; then
@@ -137,7 +137,7 @@ cleanup_old() {
             mv "$file" "$backup_dir/"
         fi
     done
-    
+
     success "Old requirements files backed up to $backup_dir"
 }
 
@@ -172,7 +172,7 @@ main() {
         show_usage
         exit 1
     fi
-    
+
     case "${1:-}" in
         "compile")
             compile_requirements "${2:-all}"

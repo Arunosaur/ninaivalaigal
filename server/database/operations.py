@@ -8,15 +8,16 @@ This addresses external code review feedback:
 """
 
 import os
+
 from .manager import DatabaseManager
 from .models import (
-    User,
+    Context,
+    ContextPermission,
     Memory,
     Organization,
     Team,
     TeamMember,
-    Context,
-    ContextPermission,
+    User,
 )
 
 
@@ -240,9 +241,9 @@ class DatabaseOperations(DatabaseManager):
                     "is_active": context.is_active,
                     "created_at": context.created_at.isoformat(),
                     "team_name": context.team.name if context.team else None,
-                    "org_name": context.organization.name
-                    if context.organization
-                    else None,
+                    "org_name": (
+                        context.organization.name if context.organization else None
+                    ),
                 }
                 for context in all_contexts
             ]
@@ -958,6 +959,7 @@ class DatabaseOperations(DatabaseManager):
 # Create the main DatabaseManager class that includes all operations
 class DatabaseManager(DatabaseOperations):
     """Complete DatabaseManager with all operations"""
+
     pass
 
 

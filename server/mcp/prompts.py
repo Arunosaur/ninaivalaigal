@@ -8,29 +8,33 @@ This addresses external code review feedback:
 """
 
 import json
-from .server import mcp, get_initialized_components
+
+from .server import get_initialized_components, mcp
 
 # Try to import MCP types, fallback if not available
 try:
     from mcp.types import Prompt
 except ImportError:
+
     class Prompt:
         def __init__(self, name, description, messages):
             self.name = name
             self.description = description
             self.messages = messages
 
+
 # Get initialized components
 components = get_initialized_components()
-db = components['db']
-DEFAULT_USER_ID = components['DEFAULT_USER_ID']
+db = components["db"]
+DEFAULT_USER_ID = components["DEFAULT_USER_ID"]
+
 
 @mcp.prompt()
 async def analyze_context(context_name: str) -> Prompt:
     """Generate a prompt to analyze memories in a context"""
     try:
         memories = db.get_memories(context_name, user_id=DEFAULT_USER_ID)
-        
+
         if not memories:
             return Prompt(
                 name=f"analyze-context-{context_name}",
@@ -38,11 +42,11 @@ async def analyze_context(context_name: str) -> Prompt:
                 messages=[
                     {
                         "role": "user",
-                        "content": f"The context '{context_name}' is empty. No memories to analyze."
+                        "content": f"The context '{context_name}' is empty. No memories to analyze.",
                     }
-                ]
+                ],
             )
-        
+
         # Prepare memory data for analysis
         memory_texts = []
         for memory in memories:
@@ -50,16 +54,18 @@ async def analyze_context(context_name: str) -> Prompt:
                 text = memory["data"].get("text", "")
             else:
                 text = str(memory.get("data", ""))
-            
+
             if text:
-                memory_texts.append({
-                    "text": text,
-                    "type": memory.get("type", "unknown"),
-                    "source": memory.get("source", "unknown"),
-                    "created_at": memory.get("created_at", "unknown")
-                })
-        
-        analysis_prompt = f"""Please analyze the memories in the context '{context_name}'. 
+                memory_texts.append(
+                    {
+                        "text": text,
+                        "type": memory.get("type", "unknown"),
+                        "source": memory.get("source", "unknown"),
+                        "created_at": memory.get("created_at", "unknown"),
+                    }
+                )
+
+        analysis_prompt = f"""Please analyze the memories in the context '{context_name}'.
 
 Context: {context_name}
 Total memories: {len(memories)}
@@ -81,14 +87,9 @@ Focus on actionable insights that would help the user better understand and util
         return Prompt(
             name=f"analyze-context-{context_name}",
             description=f"Analysis prompt for context '{context_name}' with {len(memories)} memories",
-            messages=[
-                {
-                    "role": "user",
-                    "content": analysis_prompt
-                }
-            ]
+            messages=[{"role": "user", "content": analysis_prompt}],
         )
-        
+
     except Exception as e:
         return Prompt(
             name=f"analyze-context-{context_name}-error",
@@ -96,9 +97,9 @@ Focus on actionable insights that would help the user better understand and util
             messages=[
                 {
                     "role": "user",
-                    "content": f"Error analyzing context '{context_name}': {str(e)}"
+                    "content": f"Error analyzing context '{context_name}': {str(e)}",
                 }
-            ]
+            ],
         )
 
 
@@ -108,7 +109,7 @@ async def summarize_session() -> Prompt:
     try:
         # Get recent memories across all contexts for session summary
         recent_memories = db.get_recent_memories(limit=20, user_id=DEFAULT_USER_ID)
-        
+
         if not recent_memories:
             return Prompt(
                 name="summarize-session-empty",
@@ -116,11 +117,11 @@ async def summarize_session() -> Prompt:
                 messages=[
                     {
                         "role": "user",
-                        "content": f"No recent memories found for user {DEFAULT_USER_ID}. Session appears to be just starting or no activity has been recorded."
+                        "content": f"No recent memories found for user {DEFAULT_USER_ID}. Session appears to be just starting or no activity has been recorded.",
                     }
-                ]
+                ],
             )
-        
+
         # Group memories by context
         context_groups = {}
         for memory in recent_memories:
@@ -128,7 +129,7 @@ async def summarize_session() -> Prompt:
             if context not in context_groups:
                 context_groups[context] = []
             context_groups[context].append(memory)
-        
+
         # Prepare session data
         session_data = {
             "user_id": DEFAULT_USER_ID,
@@ -137,9 +138,9 @@ async def summarize_session() -> Prompt:
             "context_breakdown": {
                 context: len(memories) for context, memories in context_groups.items()
             },
-            "memories_by_context": context_groups
+            "memories_by_context": context_groups,
         }
-        
+
         summary_prompt = f"""Please provide a comprehensive session summary based on recent memory activity.
 
 Session Data:
@@ -158,14 +159,9 @@ Focus on providing actionable insights that help the user understand their recen
         return Prompt(
             name="summarize-session",
             description=f"Session summary with {len(recent_memories)} recent memories across {len(context_groups)} contexts",
-            messages=[
-                {
-                    "role": "user",
-                    "content": summary_prompt
-                }
-            ]
+            messages=[{"role": "user", "content": summary_prompt}],
         )
-        
+
     except Exception as e:
         return Prompt(
             name="summarize-session-error",
@@ -173,9 +169,9 @@ Focus on providing actionable insights that help the user understand their recen
             messages=[
                 {
                     "role": "user",
-                    "content": f"Error generating session summary: {str(e)}"
+                    "content": f"Error generating session summary: {str(e)}",
                 }
-            ]
+            ],
         )
 
 
@@ -184,7 +180,7 @@ async def enhance_memory_context(context_name: str, new_memory_text: str) -> Pro
     """Generate a prompt to enhance a new memory with existing context"""
     try:
         existing_memories = db.get_memories(context_name, user_id=DEFAULT_USER_ID)
-        
+
         # Prepare context for enhancement
         context_summary = []
         if existing_memories:
@@ -193,14 +189,16 @@ async def enhance_memory_context(context_name: str, new_memory_text: str) -> Pro
                     text = memory["data"].get("text", "")
                 else:
                     text = str(memory.get("data", ""))
-                
+
                 if text:
-                    context_summary.append({
-                        "text": text[:200] + "..." if len(text) > 200 else text,
-                        "type": memory.get("type", "unknown"),
-                        "created_at": memory.get("created_at", "unknown")
-                    })
-        
+                    context_summary.append(
+                        {
+                            "text": text[:200] + "..." if len(text) > 200 else text,
+                            "type": memory.get("type", "unknown"),
+                            "created_at": memory.get("created_at", "unknown"),
+                        }
+                    )
+
         enhancement_prompt = f"""Please help enhance and contextualize a new memory entry.
 
 Context: {context_name}
@@ -222,14 +220,9 @@ Focus on making the memory more useful and connected to the existing knowledge i
         return Prompt(
             name=f"enhance-memory-{context_name}",
             description=f"Memory enhancement prompt for context '{context_name}'",
-            messages=[
-                {
-                    "role": "user",
-                    "content": enhancement_prompt
-                }
-            ]
+            messages=[{"role": "user", "content": enhancement_prompt}],
         )
-        
+
     except Exception as e:
         return Prompt(
             name=f"enhance-memory-{context_name}-error",
@@ -237,9 +230,9 @@ Focus on making the memory more useful and connected to the existing knowledge i
             messages=[
                 {
                     "role": "user",
-                    "content": f"Error enhancing memory for context '{context_name}': {str(e)}"
+                    "content": f"Error enhancing memory for context '{context_name}': {str(e)}",
                 }
-            ]
+            ],
         )
 
 
@@ -249,7 +242,7 @@ async def cross_context_insights() -> Prompt:
     try:
         # Get all contexts for the user
         all_contexts = db.get_all_contexts(user_id=DEFAULT_USER_ID)
-        
+
         if not all_contexts:
             return Prompt(
                 name="cross-context-insights-empty",
@@ -257,11 +250,11 @@ async def cross_context_insights() -> Prompt:
                 messages=[
                     {
                         "role": "user",
-                        "content": f"No contexts found for user {DEFAULT_USER_ID}. Cannot perform cross-context analysis."
+                        "content": f"No contexts found for user {DEFAULT_USER_ID}. Cannot perform cross-context analysis.",
                     }
-                ]
+                ],
             )
-        
+
         # Sample memories from each context
         context_samples = {}
         for context_info in all_contexts:
@@ -275,13 +268,13 @@ async def cross_context_insights() -> Prompt:
                         samples.append(memories[0])
                     if len(memories) >= 2:
                         samples.append(memories[-1])
-                    
+
                     context_samples[context_name] = {
                         "total_memories": len(memories),
                         "sample_memories": samples,
-                        "context_info": context_info
+                        "context_info": context_info,
                     }
-        
+
         insights_prompt = f"""Please analyze patterns and insights across multiple contexts for comprehensive understanding.
 
 User ID: {DEFAULT_USER_ID}
@@ -305,14 +298,9 @@ Focus on providing high-level insights that help optimize the overall knowledge 
         return Prompt(
             name="cross-context-insights",
             description=f"Cross-context analysis across {len(context_samples)} active contexts",
-            messages=[
-                {
-                    "role": "user",
-                    "content": insights_prompt
-                }
-            ]
+            messages=[{"role": "user", "content": insights_prompt}],
         )
-        
+
     except Exception as e:
         return Prompt(
             name="cross-context-insights-error",
@@ -320,7 +308,7 @@ Focus on providing high-level insights that help optimize the overall knowledge 
             messages=[
                 {
                     "role": "user",
-                    "content": f"Error generating cross-context insights: {str(e)}"
+                    "content": f"Error generating cross-context insights: {str(e)}",
                 }
-            ]
+            ],
         )

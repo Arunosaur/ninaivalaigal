@@ -3,17 +3,19 @@ User Management Router
 Extracted from main.py for better code organization
 """
 
-from fastapi import APIRouter, Depends, HTTPException
 from auth import get_current_user
 from database import DatabaseManager, User
+from fastapi import APIRouter, Depends, HTTPException
 
 # Initialize router
 router = APIRouter(prefix="/users", tags=["users"])
+
 
 # Database manager dependency
 def get_db():
     """Get database manager with dynamic configuration"""
     from config import get_dynamic_database_url
+
     return DatabaseManager(get_dynamic_database_url())
 
 

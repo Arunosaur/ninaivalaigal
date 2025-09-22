@@ -8,12 +8,14 @@ This addresses external code review feedback:
 """
 
 import json
-from .server import mcp, get_initialized_components
+
+from .server import get_initialized_components, mcp
 
 # Try to import MCP types, fallback if not available
 try:
     from mcp.types import Resource, TextResourceContents
 except ImportError:
+
     class Resource:
         def __init__(self, uri, name, description, mimeType, text):
             self.uri = uri
@@ -21,34 +23,36 @@ except ImportError:
             self.description = description
             self.mimeType = mimeType
             self.text = text
-    
+
     class TextResourceContents:
         def __init__(self, text):
             self.text = text
 
+
 # Get initialized components
 components = get_initialized_components()
-db = components['db']
-DEFAULT_USER_ID = components['DEFAULT_USER_ID']
+db = components["db"]
+DEFAULT_USER_ID = components["DEFAULT_USER_ID"]
+
 
 @mcp.resource("ninaivalaigal://contexts")
 async def list_all_contexts() -> Resource:
     """Provide list of all contexts as a resource"""
     try:
         contexts = db.get_all_contexts(user_id=DEFAULT_USER_ID)
-        
+
         context_data = {
             "total_contexts": len(contexts),
             "contexts": contexts,
-            "user_id": DEFAULT_USER_ID
+            "user_id": DEFAULT_USER_ID,
         }
-        
+
         return Resource(
             uri="ninaivalaigal://contexts",
             name="All Contexts",
             description="Complete list of all available contexts",
             mimeType="application/json",
-            text=json.dumps(context_data, indent=2)
+            text=json.dumps(context_data, indent=2),
         )
     except Exception as e:
         return Resource(
@@ -56,7 +60,7 @@ async def list_all_contexts() -> Resource:
             name="All Contexts (Error)",
             description="Error retrieving contexts",
             mimeType="application/json",
-            text=json.dumps({"error": str(e)}, indent=2)
+            text=json.dumps({"error": str(e)}, indent=2),
         )
 
 
@@ -65,20 +69,20 @@ async def get_context_memories(context_name: str) -> Resource:
     """Provide all memories for a specific context"""
     try:
         memories = db.get_memories(context_name, user_id=DEFAULT_USER_ID)
-        
+
         memory_data = {
             "context": context_name,
             "total_memories": len(memories),
             "memories": memories,
-            "user_id": DEFAULT_USER_ID
+            "user_id": DEFAULT_USER_ID,
         }
-        
+
         return Resource(
             uri=f"ninaivalaigal://context/{context_name}",
             name=f"Context: {context_name}",
             description=f"All memories in context '{context_name}'",
             mimeType="application/json",
-            text=json.dumps(memory_data, indent=2)
+            text=json.dumps(memory_data, indent=2),
         )
     except Exception as e:
         return Resource(
@@ -86,7 +90,7 @@ async def get_context_memories(context_name: str) -> Resource:
             name=f"Context: {context_name} (Error)",
             description="Error retrieving context memories",
             mimeType="application/json",
-            text=json.dumps({"error": str(e), "context": context_name}, indent=2)
+            text=json.dumps({"error": str(e), "context": context_name}, indent=2),
         )
 
 
@@ -95,20 +99,20 @@ async def get_recent_memories() -> Resource:
     """Provide recently added memories across all contexts"""
     try:
         recent_memories = db.get_recent_memories(limit=50, user_id=DEFAULT_USER_ID)
-        
+
         recent_data = {
             "total_recent": len(recent_memories),
             "limit": 50,
             "memories": recent_memories,
-            "user_id": DEFAULT_USER_ID
+            "user_id": DEFAULT_USER_ID,
         }
-        
+
         return Resource(
             uri="ninaivalaigal://recent",
             name="Recent Memories",
             description="Recently added memories across all contexts",
             mimeType="application/json",
-            text=json.dumps(recent_data, indent=2)
+            text=json.dumps(recent_data, indent=2),
         )
     except Exception as e:
         return Resource(
@@ -116,7 +120,7 @@ async def get_recent_memories() -> Resource:
             name="Recent Memories (Error)",
             description="Error retrieving recent memories",
             mimeType="application/json",
-            text=json.dumps({"error": str(e)}, indent=2)
+            text=json.dumps({"error": str(e)}, indent=2),
         )
 
 
@@ -199,7 +203,7 @@ team_merger_rollback(
         name="Approval Workflow Guide",
         description="Complete guide for cross-team memory sharing and team merger workflows",
         mimeType="text/markdown",
-        text=content
+        text=content,
     )
 
 
@@ -273,5 +277,5 @@ Use `get_ai_context()` to see:
         name="AI Enhancement Guide",
         description="Complete guide for AI prompt enhancement and CCTV recording features",
         mimeType="text/markdown",
-        text=content
+        text=content,
     )

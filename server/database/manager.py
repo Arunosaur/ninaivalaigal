@@ -9,26 +9,20 @@ This addresses external code review feedback:
 
 import json
 import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from .models import (
     Base,
-    User,
-    Memory,
-    Organization,
-    Team,
-    TeamMember,
     Context,
-    ContextPermission,
-    OrganizationRegistration,
-    UserInvitation,
+    Memory,
 )
 
 
 class DatabaseManager:
     """Core database manager with connection and session management"""
-    
+
     def __init__(self, config="postgresql://mem0user:mem0pass@localhost:5432/mem0db"):
         # Handle both string URL and config dict
         if isinstance(config, dict):
@@ -120,9 +114,11 @@ class DatabaseManager:
     def _hash_password(self, password: str) -> str:
         """Hash password using bcrypt"""
         import bcrypt
+
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     def _verify_password(self, password: str, hashed: str) -> bool:
         """Verify password against hash"""
         import bcrypt
+
         return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))

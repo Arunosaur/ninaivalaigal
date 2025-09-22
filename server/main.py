@@ -9,28 +9,29 @@ This addresses the external code review feedback:
 """
 
 import os
+
 import structlog
 import uvicorn
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
-# Configuration and core services
-from config import load_config, get_database_url
-from database import DatabaseManager
 from approval_workflow import ApprovalWorkflowManager
 from auto_recording import get_auto_recorder
-from performance_monitor import get_performance_monitor, start_performance_monitoring
-from spec_kit import SpecKitContextManager
+
+# Configuration and core services
+from config import get_database_url, load_config
+from database import DatabaseManager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 # Middleware and security
 from observability import MetricsMiddleware, health_router, metrics_router
+from performance_monitor import get_performance_monitor, start_performance_monitoring
 from rate_limiting import rate_limit_middleware
 from rbac_middleware import rbac_middleware
-from security_integration import configure_security
 from redis_client import redis_client
 from redis_queue import queue_manager
+from security_integration import configure_security
+from spec_kit import SpecKitContextManager
 
 # Routers will be imported after app initialization to avoid import-time database connections
 
@@ -86,11 +87,11 @@ async def startup_event():
     try:
         await redis_client.ping()
         logger.info("Redis connection established")
-        
+
         # Initialize queue manager
         await queue_manager.initialize()
         logger.info("Queue manager initialized")
-        
+
     except Exception as e:
         logger.warning(f"Redis startup failed: {e}")
         # Don't fail startup if Redis is unavailable - graceful degradation
@@ -111,15 +112,16 @@ async def shutdown_event():
 app.include_router(health_router)
 app.include_router(metrics_router)
 
-# Import routers after app initialization to avoid import-time database connections
-from signup_api import router as signup_router
-from routers.organizations import router as organizations_router
-from routers.teams import router as teams_router
-from routers.users import router as users_router
+from routers.approvals import router as approvals_router
 from routers.contexts import router as contexts_router
 from routers.memory import router as memory_router
-from routers.approvals import router as approvals_router
+from routers.organizations import router as organizations_router
 from routers.recording import router as recording_router
+from routers.teams import router as teams_router
+from routers.users import router as users_router
+
+# Import routers after app initialization to avoid import-time database connections
+from signup_api import router as signup_router
 
 app.include_router(signup_router)
 app.include_router(organizations_router)
@@ -188,9 +190,5 @@ def health_check():
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main_modular:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
+        "main_modular:app", host="0.0.0.0", port=8000, reload=True, log_level="info"
     )

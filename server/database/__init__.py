@@ -10,14 +10,14 @@ This addresses external code review feedback:
 # Import all models for backward compatibility
 from .models import (
     Base,
-    User,
-    Memory,
-    Organization,
-    Team,
-    TeamMember,
     Context,
     ContextPermission,
+    Memory,
+    Organization,
     OrganizationRegistration,
+    Team,
+    TeamMember,
+    User,
     UserInvitation,
 )
 
@@ -28,7 +28,7 @@ from .operations import DatabaseManager, get_db
 __all__ = [
     # Models
     "Base",
-    "User", 
+    "User",
     "Memory",
     "Organization",
     "Team",

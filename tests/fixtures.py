@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 # Test data factories
 class TestDataFactory:
     """Factory for creating test data objects"""
-    
+
     @staticmethod
     def create_user(
         id: int = 1,
@@ -32,7 +32,7 @@ class TestDataFactory:
             "updated_at": datetime.utcnow(),
             **kwargs
         }
-    
+
     @staticmethod
     def create_memory(
         id: int = 1,
@@ -52,7 +52,7 @@ class TestDataFactory:
             "metadata": {},
             **kwargs
         }
-    
+
     @staticmethod
     def create_team(
         id: int = 1,
@@ -73,20 +73,20 @@ class TestDataFactory:
 # Database mocks
 class MockDatabaseManager:
     """Mock database manager for testing"""
-    
+
     def __init__(self):
         self.users = {}
         self.memories = {}
         self.teams = {}
         self.sessions = {}
         self._next_id = 1
-    
+
     def _get_next_id(self) -> int:
         """Get next available ID"""
         current_id = self._next_id
         self._next_id += 1
         return current_id
-    
+
     async def create_user(self, email: str, username: str, **kwargs) -> Dict[str, Any]:
         """Mock user creation"""
         user_id = self._get_next_id()
@@ -95,14 +95,14 @@ class MockDatabaseManager:
         )
         self.users[user_id] = user
         return user
-    
+
     async def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
         """Mock user lookup by email"""
         for user in self.users.values():
             if user["email"] == email:
                 return user
         return None
-    
+
     async def create_memory(self, user_id: int, content: str, **kwargs) -> Dict[str, Any]:
         """Mock memory creation"""
         memory_id = self._get_next_id()
@@ -111,7 +111,7 @@ class MockDatabaseManager:
         )
         self.memories[memory_id] = memory
         return memory
-    
+
     async def get_user_memories(self, user_id: int) -> list[Dict[str, Any]]:
         """Mock memory retrieval for user"""
         return [m for m in self.memories.values() if m["user_id"] == user_id]
@@ -119,11 +119,11 @@ class MockDatabaseManager:
 # Redis mocks
 class MockRedisClient:
     """Mock Redis client for testing"""
-    
+
     def __init__(self):
         self.data = {}
         self.expirations = {}
-    
+
     async def get(self, key: str) -> Optional[str]:
         """Mock Redis GET"""
         if key in self.expirations:
@@ -132,14 +132,14 @@ class MockRedisClient:
                 del self.expirations[key]
                 return None
         return self.data.get(key)
-    
+
     async def set(self, key: str, value: str, ex: Optional[int] = None) -> bool:
         """Mock Redis SET"""
         self.data[key] = value
         if ex:
             self.expirations[key] = datetime.utcnow() + timedelta(seconds=ex)
         return True
-    
+
     async def delete(self, key: str) -> int:
         """Mock Redis DELETE"""
         if key in self.data:
@@ -148,7 +148,7 @@ class MockRedisClient:
                 del self.expirations[key]
             return 1
         return 0
-    
+
     async def exists(self, key: str) -> int:
         """Mock Redis EXISTS"""
         return 1 if key in self.data else 0
@@ -156,20 +156,20 @@ class MockRedisClient:
 # HTTP client mocks
 class MockHttpClient:
     """Mock HTTP client for testing external API calls"""
-    
+
     def __init__(self):
         self.responses = {}
         self.call_history = []
-    
+
     def set_response(self, url: str, response: Dict[str, Any]):
         """Set mock response for URL"""
         self.responses[url] = response
-    
+
     async def get(self, url: str, **kwargs) -> Dict[str, Any]:
         """Mock HTTP GET"""
         self.call_history.append(("GET", url, kwargs))
         return self.responses.get(url, {"status_code": 404})
-    
+
     async def post(self, url: str, **kwargs) -> Dict[str, Any]:
         """Mock HTTP POST"""
         self.call_history.append(("POST", url, kwargs))
@@ -211,15 +211,15 @@ def test_env_vars():
         "REDIS_URL": "redis://localhost:6379/0",
         "TESTING": "true"
     }
-    
+
     # Set test environment variables
     original_vars = {}
     for key, value in test_vars.items():
         original_vars[key] = os.environ.get(key)
         os.environ[key] = value
-    
+
     yield test_vars
-    
+
     # Restore original environment variables
     for key, original_value in original_vars.items():
         if original_value is None:
@@ -246,34 +246,34 @@ async def mock_redis_session():
 # Context managers for mocking
 class MockContext:
     """Context manager for comprehensive mocking"""
-    
+
     def __init__(self):
         self.patches = []
         self.mock_db = MockDatabaseManager()
         self.mock_redis = MockRedisClient()
         self.mock_http = MockHttpClient()
-    
+
     def __enter__(self):
         # Mock database
         db_patch = patch('server.database.DatabaseManager')
         mock_db_class = db_patch.start()
         mock_db_class.return_value = self.mock_db
         self.patches.append(db_patch)
-        
+
         # Mock Redis
         redis_patch = patch('server.redis_client.redis_client')
         mock_redis_client = redis_patch.start()
         mock_redis_client.return_value = self.mock_redis
         self.patches.append(redis_patch)
-        
+
         # Mock HTTP client
         http_patch = patch('httpx.AsyncClient')
         mock_http_client = http_patch.start()
         mock_http_client.return_value = self.mock_http
         self.patches.append(http_patch)
-        
+
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         for patch_obj in reversed(self.patches):
             patch_obj.stop()
@@ -311,7 +311,7 @@ def assert_memory_valid(memory: Dict[str, Any]):
     required_fields = ["id", "user_id", "content", "created_at"]
     for field in required_fields:
         assert field in memory, f"Memory missing required field: {field}"
-    
+
     assert isinstance(memory["id"], int), "Memory ID must be integer"
     assert isinstance(memory["user_id"], int), "User ID must be integer"
     assert isinstance(memory["content"], str), "Content must be string"
@@ -322,7 +322,7 @@ def assert_user_valid(user: Dict[str, Any]):
     required_fields = ["id", "email", "username", "is_active"]
     for field in required_fields:
         assert field in user, f"User missing required field: {field}"
-    
+
     assert isinstance(user["id"], int), "User ID must be integer"
     assert "@" in user["email"], "Email must be valid format"
     assert isinstance(user["is_active"], bool), "is_active must be boolean"

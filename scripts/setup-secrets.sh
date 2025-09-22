@@ -22,26 +22,26 @@ generate_password() {
 create_env_file() {
     local env_file="$ROOT_DIR/.env"
     local template_file="$ROOT_DIR/.env.example"
-    
+
     if [[ -f "$env_file" ]]; then
         warn ".env file already exists. Backing up to .env.backup"
         cp "$env_file" "$env_file.backup"
     fi
-    
+
     log "Creating .env file from template..."
     cp "$template_file" "$env_file"
-    
+
     # Generate secure passwords
     local db_password
     local redis_password
     local jwt_secret
     local memory_secret
-    
+
     db_password=$(generate_password 24)
     redis_password=$(generate_password 24)
     jwt_secret=$(generate_password 48)
     memory_secret=$(generate_password 32)
-    
+
     # Replace placeholders with secure values
     sed -i.bak \
         -e "s/CHANGE_ME_DB_PASSWORD/$db_password/g" \
@@ -49,10 +49,10 @@ create_env_file() {
         -e "s/dev-secret-change-in-production/$jwt_secret/g" \
         -e "s/dev-memory-secret-change-in-production/$memory_secret/g" \
         "$env_file"
-    
+
     # Remove backup file
     rm -f "$env_file.bak"
-    
+
     success "Created .env file with secure passwords"
     log "Database password: [HIDDEN]"
     log "Redis password: [HIDDEN]"
@@ -63,9 +63,9 @@ create_env_file() {
 # Scan for potential secrets in codebase
 scan_for_secrets() {
     log "Scanning for potential hardcoded secrets..."
-    
+
     local issues_found=0
-    
+
     # Check for common secret patterns
     local patterns=(
         "password.*=.*[\"'][^\"']{8,}"
@@ -76,7 +76,7 @@ scan_for_secrets() {
         "nina_redis_dev_password"
         "test-jwt-secret"
     )
-    
+
     for pattern in "${patterns[@]}"; do
         local matches
         matches=$(grep -r -E "$pattern" "$ROOT_DIR" \
@@ -90,7 +90,7 @@ scan_for_secrets() {
             --exclude-dir="htmlcov" \
             --exclude-dir="client" \
             2>/dev/null || true)
-        
+
         if [[ -n "$matches" ]]; then
             warn "Found potential secrets matching pattern: $pattern"
             echo "$matches" | while read -r line; do
@@ -99,7 +99,7 @@ scan_for_secrets() {
             ((issues_found++))
         fi
     done
-    
+
     if [[ $issues_found -eq 0 ]]; then
         success "No obvious hardcoded secrets found"
     else
@@ -111,19 +111,19 @@ scan_for_secrets() {
 # Validate environment configuration
 validate_env() {
     local env_file="$ROOT_DIR/.env"
-    
+
     if [[ ! -f "$env_file" ]]; then
         error ".env file not found. Run with --create-env first"
         return 1
     fi
-    
+
     log "Validating .env configuration..."
-    
+
     # Source the .env file
     set -a
     source "$env_file"
     set +a
-    
+
     # Check required variables
     local required_vars=(
         "POSTGRES_PASSWORD"
@@ -131,7 +131,7 @@ validate_env() {
         "NINAIVALAIGAL_JWT_SECRET"
         "MEMORY_SHARED_SECRET"
     )
-    
+
     local missing_vars=0
     for var in "${required_vars[@]}"; do
         if [[ -z "${!var:-}" ]]; then
@@ -142,7 +142,7 @@ validate_env() {
             ((missing_vars++))
         fi
     done
-    
+
     if [[ $missing_vars -eq 0 ]]; then
         success "Environment configuration is valid"
     else
@@ -179,7 +179,7 @@ main() {
         show_usage
         exit 1
     fi
-    
+
     while [[ $# -gt 0 ]]; do
         case $1 in
             --create-env)

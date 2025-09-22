@@ -3,20 +3,23 @@ Approval Workflow Router
 Extracted from main.py for better code organization
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from approval_workflow import ApprovalWorkflowManager
 from auth import get_current_user
 from database import DatabaseManager, User
-from models.api_models import CrossTeamAccessRequest, ApprovalAction
-from approval_workflow import ApprovalWorkflowManager
+from fastapi import APIRouter, Depends, HTTPException
+from models.api_models import ApprovalAction, CrossTeamAccessRequest
 
 # Initialize router
 router = APIRouter(prefix="/approvals", tags=["approvals"])
+
 
 # Database manager dependency
 def get_db():
     """Get database manager with dynamic configuration"""
     from config import get_dynamic_database_url
+
     return DatabaseManager(get_dynamic_database_url())
+
 
 def get_approval_manager(db: DatabaseManager = Depends(get_db)):
     """Get approval manager with dynamic database"""
@@ -25,7 +28,7 @@ def get_approval_manager(db: DatabaseManager = Depends(get_db)):
 
 @router.post("/cross-team-request")
 async def request_cross_team_access(
-    request_data: CrossTeamAccessRequest, 
+    request_data: CrossTeamAccessRequest,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
     approval_manager: ApprovalWorkflowManager = Depends(get_approval_manager),

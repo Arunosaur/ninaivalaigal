@@ -3,9 +3,9 @@ Organization Management Router
 Extracted from main.py for better code organization
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request
 from auth import get_current_user
 from database import DatabaseManager, User
+from fastapi import APIRouter, Depends, HTTPException, Request
 from models.api_models import OrganizationCreate
 from rbac.permissions import Action, Resource
 from rbac_middleware import get_rbac_context, require_permission
@@ -14,10 +14,12 @@ from security_integration import log_admin_action
 # Initialize router
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
+
 # Database manager dependency
 def get_db():
     """Get database manager with dynamic configuration"""
     from config import get_dynamic_database_url
+
     return DatabaseManager(get_dynamic_database_url())
 
 

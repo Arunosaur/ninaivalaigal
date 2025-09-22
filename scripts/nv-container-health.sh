@@ -16,7 +16,7 @@ success() { printf "\033[1;32m[ok]\033[0m %s\n" "$*"; }
 get_container_health_url() {
     local container_name="$1"
     local ip="$2"
-    
+
     case "$container_name" in
         "nv-db")
             echo "postgresql://nina:change_me_securely@${ip}:5432/nina"
@@ -55,12 +55,12 @@ check_container_status() {
     local container_name="$1"
     local status
     local container_cmd
-    
+
     container_cmd=$(detect_container_cmd) || {
         echo "no_container_runtime"
         return
     }
-    
+
     if [[ "$container_cmd" == "container" ]]; then
         if ! container list | grep -q "^${container_name}"; then
             echo "missing"
@@ -79,7 +79,7 @@ check_container_status() {
             status="stopped"
         fi
     fi
-    
+
     echo "$status"
 }
 
@@ -88,21 +88,21 @@ get_container_ip() {
     local container_name="$1"
     local ip
     local container_cmd
-    
+
     container_cmd=$(detect_container_cmd) || return 1
-    
+
     if [[ "$container_cmd" == "container" ]]; then
         ip=$(container inspect "$container_name" 2>/dev/null | jq -r '.[0].networks[0].address' 2>/dev/null | cut -d'/' -f1 || echo "")
     else
         # Docker
         ip=$(docker inspect "$container_name" 2>/dev/null | jq -r '.[0].NetworkSettings.IPAddress' 2>/dev/null || echo "")
     fi
-    
+
     if [[ -z "$ip" || "$ip" == "null" ]]; then
         echo ""
         return 1
     fi
-    
+
     echo "$ip"
 }
 
@@ -111,14 +111,14 @@ health_check_container() {
     local container_name="$1"
     local container_ip
     local health_url
-    
+
     container_ip=$(get_container_ip "$container_name")
     if [[ -z "$container_ip" ]]; then
         return 1
     fi
-    
+
     health_url=$(get_container_health_url "$container_name" "$container_ip")
-    
+
     case "$container_name" in
         "nv-db"|"nv-pgbouncer")
             # PostgreSQL health check
@@ -152,7 +152,7 @@ health_check_container() {
 get_container_resources() {
     local container_name="$1"
     local stats
-    
+
     # Get basic container stats (if available)
     if container stats --no-stream "$container_name" >/dev/null 2>&1; then
         stats=$(container stats --no-stream "$container_name" 2>/dev/null | tail -n 1)
@@ -166,26 +166,26 @@ get_container_resources() {
 check_container_logs() {
     local container_name="$1"
     local error_count
-    
+
     # Check last 50 lines for common error patterns
     local container_cmd
     container_cmd=$(detect_container_cmd) || {
         echo "0"
         return
     }
-    
+
     error_count=$($container_cmd logs --tail 50 "$container_name" 2>/dev/null | \
         grep -iE "(error|fatal|panic|exception|failed|crash)" | wc -l | xargs || echo "0")
-    
+
     echo "$error_count"
 }
 
 # Restart container if needed
 restart_container() {
     local container_name="$1"
-    
+
     warn "Restarting unhealthy container: $container_name"
-    
+
     case "$container_name" in
         "nv-db")
             bash "${SCRIPT_DIR}/nv-db-start.sh"
@@ -211,14 +211,14 @@ restart_container() {
 monitor_containers() {
     local auto_restart="${1:-false}"
     local unhealthy_containers=()
-    
+
     log "Checking container health..."
-    
+
     for container_name in $CONTAINER_LIST; do
         local status error_count resources
-        
+
         status=$(check_container_status "$container_name")
-        
+
         case "$status" in
             "running")
                 if health_check_container "$container_name"; then
@@ -227,13 +227,13 @@ monitor_containers() {
                     error "$container_name: unhealthy (health check failed)"
                     unhealthy_containers+=("$container_name")
                 fi
-                
+
                 # Check for excessive errors in logs
                 error_count=$(check_container_logs "$container_name")
                 if [[ -n "$error_count" && "$error_count" =~ ^[0-9]+$ && "$error_count" -gt 10 ]]; then
                     warn "$container_name: $error_count errors in recent logs"
                 fi
-                
+
                 # Show resource usage if available
                 resources=$(get_container_resources "$container_name")
                 if [[ "$resources" != "stats unavailable" ]]; then
@@ -253,22 +253,22 @@ monitor_containers() {
                 ;;
         esac
     done
-    
+
     # Auto-restart if requested and containers are unhealthy
     if [[ "$auto_restart" == "true" && ${#unhealthy_containers[@]} -gt 0 ]]; then
         log "Auto-restarting ${#unhealthy_containers[@]} unhealthy containers..."
-        
+
         for container_name in "${unhealthy_containers[@]}"; do
             restart_container "$container_name"
             sleep 5  # Give container time to start
         done
-        
+
         # Re-check after restart
         log "Re-checking health after restart..."
         sleep 10
         monitor_containers false
     fi
-    
+
     return ${#unhealthy_containers[@]}
 }
 
@@ -276,9 +276,9 @@ monitor_containers() {
 continuous_monitor() {
     local interval="${1:-30}"
     local auto_restart="${2:-true}"
-    
+
     log "Starting continuous monitoring (interval: ${interval}s, auto-restart: $auto_restart)"
-    
+
     while true; do
         monitor_containers "$auto_restart"
         sleep "$interval"
