@@ -158,7 +158,11 @@ class RelevanceEngine:
             return 0.0
 
     async def _calculate_base_relevance_score(
-        self, user_id: str, memory_id: str, memory_metadata: dict[str, Any], current_context: str | None = None
+        self,
+        user_id: str,
+        memory_id: str,
+        memory_metadata: dict[str, Any],
+        current_context: str | None = None,
     ) -> float:
         """Calculate comprehensive relevance score for a memory"""
         try:

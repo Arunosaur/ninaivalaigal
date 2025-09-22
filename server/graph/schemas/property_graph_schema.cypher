@@ -4,7 +4,7 @@
 -- Node Types
 -- Users: Platform users and team members
 -- Memories: Core memory tokens and content
--- Macros: Automated sequences and workflows  
+-- Macros: Automated sequences and workflows
 -- Agents: AI agents and processing entities
 -- Topics: Categorization and tagging
 -- Sources: External references and origins
@@ -50,52 +50,52 @@ CREATE (:Team {id: 'team1', name: 'Core Development', description: 'Main develop
 CREATE (:Organization {id: 'org1', name: 'Medhasys', description: 'AI Memory Platform Company'});
 
 -- Relationship Creation with Weights and Properties
-MATCH (u:User {id: 'u1'}), (m:Memory {id: 'm1'}) 
+MATCH (u:User {id: 'u1'}), (m:Memory {id: 'm1'})
 CREATE (u)-[:CREATED {timestamp: '2024-09-21T21:00:00Z', confidence: 1.0}]->(m);
 
-MATCH (u:User {id: 'u1'}), (m:Memory {id: 'm2'}) 
+MATCH (u:User {id: 'u1'}), (m:Memory {id: 'm2'})
 CREATE (u)-[:CREATED {timestamp: '2024-09-21T21:15:00Z', confidence: 1.0}]->(m);
 
-MATCH (m:Memory {id: 'm1'}), (mac:Macro {id: 'mac1'}) 
+MATCH (m:Memory {id: 'm1'}), (mac:Macro {id: 'mac1'})
 CREATE (m)-[:LINKED_TO {weight: 0.9, relevance: 'high'}]->(mac);
 
-MATCH (m:Memory {id: 'm2'}), (mac:Macro {id: 'mac2'}) 
+MATCH (m:Memory {id: 'm2'}), (mac:Macro {id: 'mac2'})
 CREATE (m)-[:LINKED_TO {weight: 0.8, relevance: 'medium'}]->(mac);
 
-MATCH (mac:Macro {id: 'mac1'}), (a:Agent {id: 'a1'}) 
+MATCH (mac:Macro {id: 'mac1'}), (a:Agent {id: 'a1'})
 CREATE (mac)-[:TRIGGERED_BY {frequency: 'daily', automation_level: 0.95}]->(a);
 
-MATCH (mac:Macro {id: 'mac2'}), (a:Agent {id: 'a2'}) 
+MATCH (mac:Macro {id: 'mac2'}), (a:Agent {id: 'a2'})
 CREATE (mac)-[:TRIGGERED_BY {frequency: 'on_commit', automation_level: 1.0}]->(a);
 
-MATCH (mac:Macro {id: 'mac1'}), (t:Topic {id: 't1'}) 
+MATCH (mac:Macro {id: 'mac1'}), (t:Topic {id: 't1'})
 CREATE (mac)-[:TAGGED_WITH {relevance: 0.9}]->(t);
 
-MATCH (mac:Macro {id: 'mac2'}), (t:Topic {id: 't2'}) 
+MATCH (mac:Macro {id: 'mac2'}), (t:Topic {id: 't2'})
 CREATE (mac)-[:TAGGED_WITH {relevance: 0.85}]->(t);
 
-MATCH (m:Memory {id: 'm1'}), (s:Source {id: 's1'}) 
+MATCH (m:Memory {id: 'm1'}), (s:Source {id: 's1'})
 CREATE (m)-[:DERIVED_FROM {extraction_confidence: 0.95}]->(s);
 
-MATCH (m:Memory {id: 'm2'}), (s:Source {id: 's2'}) 
+MATCH (m:Memory {id: 'm2'}), (s:Source {id: 's2'})
 CREATE (m)-[:DERIVED_FROM {extraction_confidence: 0.98}]->(s);
 
-MATCH (u:User {id: 'u1'}), (team:Team {id: 'team1'}) 
+MATCH (u:User {id: 'u1'}), (team:Team {id: 'team1'})
 CREATE (u)-[:MEMBER_OF {role: 'lead', since: '2024-01-01'}]->(team);
 
-MATCH (u:User {id: 'u2'}), (team:Team {id: 'team1'}) 
+MATCH (u:User {id: 'u2'}), (team:Team {id: 'team1'})
 CREATE (u)-[:MEMBER_OF {role: 'developer', since: '2024-03-01'}]->(team);
 
-MATCH (team:Team {id: 'team1'}), (org:Organization {id: 'org1'}) 
+MATCH (team:Team {id: 'team1'}), (org:Organization {id: 'org1'})
 CREATE (team)-[:BELONGS_TO {department: 'engineering'}]->(org);
 
 -- Cross-Memory Relationships for Intelligence
-MATCH (m1:Memory {id: 'm1'}), (m2:Memory {id: 'm2'}) 
+MATCH (m1:Memory {id: 'm1'}), (m2:Memory {id: 'm2'})
 CREATE (m1)-[:INFLUENCES {weight: 0.7, influence_type: 'prerequisite'}]->(m2);
 
 -- Context Relationships
-MATCH (u:User {id: 'u1'}), (c:Context {id: 'c1'}) 
+MATCH (u:User {id: 'u1'}), (c:Context {id: 'c1'})
 CREATE (u)-[:PARTICIPATED_IN {role: 'primary', engagement: 0.9}]->(c);
 
-MATCH (m:Memory {id: 'm1'}), (c:Context {id: 'c1'}) 
+MATCH (m:Memory {id: 'm1'}), (c:Context {id: 'c1'})
 CREATE (m)-[:CREATED_IN {relevance: 0.95}]->(c);

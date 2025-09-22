@@ -4,14 +4,14 @@ Property graph operations with Redis-backed performance optimization
 """
 
 import json
-import asyncio
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Optional
 
 import asyncpg
 import structlog
-from server.redis_client import get_relevance_cache, RelevanceScoreCache
+
+from server.redis_client import RelevanceScoreCache, get_relevance_cache
 
 logger = structlog.get_logger(__name__)
 
@@ -19,9 +19,10 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class GraphNode:
     """Represents a node in the property graph"""
+
     id: str
     label: str
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -29,11 +30,12 @@ class GraphNode:
 @dataclass
 class GraphEdge:
     """Represents an edge in the property graph"""
+
     id: str
     source_id: str
     target_id: str
     relationship: str
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
     weight: float = 1.0
     created_at: Optional[datetime] = None
 
@@ -56,10 +58,7 @@ class ApacheAGEClient:
         try:
             # Initialize database connection pool
             self.connection_pool = await asyncpg.create_pool(
-                self.database_url,
-                min_size=5,
-                max_size=20,
-                command_timeout=30
+                self.database_url, min_size=5, max_size=20, command_timeout=30
             )
 
             # Initialize Redis cache for graph operations
@@ -73,7 +72,7 @@ class ApacheAGEClient:
             logger.info(
                 "Apache AGE client initialized",
                 graph_name=self.graph_name,
-                redis_cache_enabled=self.relevance_cache is not None
+                redis_cache_enabled=self.relevance_cache is not None,
             )
 
         except Exception as e:
@@ -86,13 +85,13 @@ class ApacheAGEClient:
             try:
                 # Create AGE extension if not exists
                 await conn.execute("CREATE EXTENSION IF NOT EXISTS age;")
-                
+
                 # Load AGE into search path
                 await conn.execute("LOAD 'age';")
                 await conn.execute("SET search_path = ag_catalog, '$user', public;")
-                
+
                 logger.info("Apache AGE extension setup complete")
-                
+
             except Exception as e:
                 logger.error("Failed to setup AGE extension", error=str(e))
                 raise
@@ -104,26 +103,28 @@ class ApacheAGEClient:
                 # Create graph using AGE function
                 query = f"SELECT create_graph('{self.graph_name}');"
                 await conn.execute(query)
-                
+
                 logger.info("Property graph created", graph_name=self.graph_name)
-                
+
             except asyncpg.exceptions.DuplicateObjectError:
                 # Graph already exists
-                logger.debug("Property graph already exists", graph_name=self.graph_name)
+                logger.debug(
+                    "Property graph already exists", graph_name=self.graph_name
+                )
             except Exception as e:
                 logger.error("Failed to create graph", error=str(e))
                 raise
 
     async def execute_cypher(
-        self, 
-        cypher_query: str, 
-        parameters: Optional[Dict[str, Any]] = None,
+        self,
+        cypher_query: str,
+        parameters: Optional[dict[str, Any]] = None,
         cache_key: Optional[str] = None,
-        cache_ttl: int = 300
-    ) -> List[Dict[str, Any]]:
+        cache_ttl: int = 300,
+    ) -> list[dict[str, Any]]:
         """
         Execute Cypher query with Redis caching for performance
-        
+
         Args:
             cypher_query: Cypher query string
             parameters: Query parameters
@@ -136,7 +137,9 @@ class ApacheAGEClient:
         # Check Redis cache first if cache_key provided
         if cache_key and self.relevance_cache:
             try:
-                cached_result = await self.relevance_cache.redis.redis.get(f"cypher:{cache_key}")
+                cached_result = await self.relevance_cache.redis.redis.get(
+                    f"cypher:{cache_key}"
+                )
                 if cached_result:
                     logger.debug("Cypher query cache hit", cache_key=cache_key)
                     return json.loads(cached_result)
@@ -160,25 +163,23 @@ class ApacheAGEClient:
                 # Process results
                 results = []
                 for row in rows:
-                    if row['result']:
+                    if row["result"]:
                         # Parse AGE result format
-                        result_data = json.loads(str(row['result']))
+                        result_data = json.loads(str(row["result"]))
                         results.append(result_data)
 
                 logger.info(
                     "Cypher query executed",
                     query_length=len(cypher_query),
                     result_count=len(results),
-                    execution_time_ms=round(execution_time, 2)
+                    execution_time_ms=round(execution_time, 2),
                 )
 
                 # Cache result if cache_key provided
                 if cache_key and self.relevance_cache and results:
                     try:
                         await self.relevance_cache.redis.redis.setex(
-                            f"cypher:{cache_key}",
-                            cache_ttl,
-                            json.dumps(results)
+                            f"cypher:{cache_key}", cache_ttl, json.dumps(results)
                         )
                         logger.debug("Cypher result cached", cache_key=cache_key)
                     except Exception as e:
@@ -188,47 +189,41 @@ class ApacheAGEClient:
 
             except Exception as e:
                 logger.error(
-                    "Cypher query execution failed",
-                    query=cypher_query,
-                    error=str(e)
+                    "Cypher query execution failed", query=cypher_query, error=str(e)
                 )
                 raise
 
     async def create_node(
-        self, 
-        label: str, 
-        properties: Dict[str, Any],
-        node_id: Optional[str] = None
+        self, label: str, properties: dict[str, Any], node_id: Optional[str] = None
     ) -> GraphNode:
         """Create a new node in the property graph"""
         if not node_id:
             node_id = f"{label.lower()}_{datetime.utcnow().timestamp()}"
 
         # Add metadata
-        properties.update({
-            'id': node_id,
-            'created_at': datetime.utcnow().isoformat(),
-            'updated_at': datetime.utcnow().isoformat()
-        })
+        properties.update(
+            {
+                "id": node_id,
+                "created_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.utcnow().isoformat(),
+            }
+        )
 
         # Build Cypher CREATE query
         props_str = json.dumps(properties).replace('"', "'")
         cypher_query = f"CREATE (n:{label} {props_str}) RETURN n"
 
         results = await self.execute_cypher(cypher_query)
-        
+
         logger.info(
             "Graph node created",
             label=label,
             node_id=node_id,
-            properties_count=len(properties)
+            properties_count=len(properties),
         )
 
         return GraphNode(
-            id=node_id,
-            label=label,
-            properties=properties,
-            created_at=datetime.utcnow()
+            id=node_id, label=label, properties=properties, created_at=datetime.utcnow()
         )
 
     async def create_edge(
@@ -236,18 +231,17 @@ class ApacheAGEClient:
         source_id: str,
         target_id: str,
         relationship: str,
-        properties: Optional[Dict[str, Any]] = None,
-        weight: float = 1.0
+        properties: Optional[dict[str, Any]] = None,
+        weight: float = 1.0,
     ) -> GraphEdge:
         """Create a new edge between nodes"""
         if properties is None:
             properties = {}
 
         # Add metadata
-        properties.update({
-            'weight': weight,
-            'created_at': datetime.utcnow().isoformat()
-        })
+        properties.update(
+            {"weight": weight, "created_at": datetime.utcnow().isoformat()}
+        )
 
         # Build Cypher MATCH and CREATE query
         props_str = json.dumps(properties).replace('"', "'")
@@ -258,15 +252,15 @@ class ApacheAGEClient:
         """
 
         results = await self.execute_cypher(cypher_query)
-        
+
         edge_id = f"{source_id}_{relationship}_{target_id}"
-        
+
         logger.info(
             "Graph edge created",
             source_id=source_id,
             target_id=target_id,
             relationship=relationship,
-            weight=weight
+            weight=weight,
         )
 
         return GraphEdge(
@@ -276,21 +270,21 @@ class ApacheAGEClient:
             relationship=relationship,
             properties=properties,
             weight=weight,
-            created_at=datetime.utcnow()
+            created_at=datetime.utcnow(),
         )
 
     async def find_connected_memories(
         self,
         user_id: str,
         max_depth: int = 3,
-        relationship_types: Optional[List[str]] = None
-    ) -> List[Dict[str, Any]]:
+        relationship_types: Optional[list[str]] = None,
+    ) -> list[dict[str, Any]]:
         """
         Find memories connected to a user through graph traversal
         Uses Redis caching for performance optimization
         """
         cache_key = f"connected_memories:{user_id}:{max_depth}"
-        
+
         if relationship_types is None:
             relationship_types = ["CREATED", "LINKED_TO", "TAGGED_WITH"]
 
@@ -298,7 +292,7 @@ class ApacheAGEClient:
         rel_pattern = "|".join(relationship_types)
         cypher_query = f"""
         MATCH path = (u:User {{id: '{user_id}'}})-[:{rel_pattern}*1..{max_depth}]->(m:Memory)
-        RETURN m.id as memory_id, m.title as title, m.type as type, 
+        RETURN m.id as memory_id, m.title as title, m.type as type,
                length(path) as depth, relationships(path) as relationships
         ORDER BY depth ASC
         LIMIT 50
@@ -307,14 +301,11 @@ class ApacheAGEClient:
         return await self.execute_cypher(
             cypher_query,
             cache_key=cache_key,
-            cache_ttl=600  # 10 minutes cache for connected memories
+            cache_ttl=600,  # 10 minutes cache for connected memories
         )
 
     async def calculate_graph_relevance(
-        self,
-        user_id: str,
-        memory_id: str,
-        context_id: Optional[str] = None
+        self, user_id: str, memory_id: str, context_id: Optional[str] = None
     ) -> float:
         """
         Calculate relevance score using graph traversal and edge weights
@@ -339,15 +330,15 @@ class ApacheAGEClient:
         """
 
         results = await self.execute_cypher(cypher_query, cache_key=cache_key)
-        
+
         if not results:
             return 0.0
 
         # Calculate relevance score based on graph metrics
         result = results[0]
-        avg_weight = float(result.get('avg_weight', 0.5))
-        path_length = int(result.get('path_length', 999))
-        edge_count = int(result.get('edge_count', 0))
+        avg_weight = float(result.get("avg_weight", 0.5))
+        path_length = int(result.get("path_length", 999))
+        edge_count = int(result.get("edge_count", 0))
 
         # Relevance formula: weighted by path distance and edge weights
         relevance_score = (avg_weight * edge_count) / max(path_length, 1)
@@ -365,16 +356,12 @@ class ApacheAGEClient:
             memory_id=memory_id,
             relevance_score=relevance_score,
             avg_weight=avg_weight,
-            path_length=path_length
+            path_length=path_length,
         )
 
         return relevance_score
 
-    async def get_memory_network(
-        self, 
-        user_id: str, 
-        limit: int = 20
-    ) -> Dict[str, Any]:
+    async def get_memory_network(self, user_id: str, limit: int = 20) -> dict[str, Any]:
         """
         Get the memory network graph for a user
         Returns nodes and edges for visualization
@@ -393,29 +380,25 @@ class ApacheAGEClient:
         MATCH (u:User {{id: '{user_id}'}})-[:CREATED|LINKED_TO*1..2]->(n1)
         MATCH (n1)-[r]->(n2)
         WHERE n2.id IS NOT NULL
-        RETURN n1.id as source, n2.id as target, type(r) as relationship, 
+        RETURN n1.id as source, n2.id as target, type(r) as relationship,
                r.weight as weight, r as properties
         LIMIT {limit * 2}
         """
 
         # Execute both queries with caching
         nodes_results = await self.execute_cypher(
-            nodes_query, 
-            cache_key=f"{cache_key}_nodes",
-            cache_ttl=300
+            nodes_query, cache_key=f"{cache_key}_nodes", cache_ttl=300
         )
-        
+
         edges_results = await self.execute_cypher(
-            edges_query,
-            cache_key=f"{cache_key}_edges", 
-            cache_ttl=300
+            edges_query, cache_key=f"{cache_key}_edges", cache_ttl=300
         )
 
         return {
             "nodes": nodes_results,
             "edges": edges_results,
             "user_id": user_id,
-            "generated_at": datetime.utcnow().isoformat()
+            "generated_at": datetime.utcnow().isoformat(),
         }
 
     async def close(self) -> None:
@@ -432,18 +415,18 @@ age_client: Optional[ApacheAGEClient] = None
 async def get_age_client() -> ApacheAGEClient:
     """Dependency injection for Apache AGE client"""
     global age_client
-    
+
     if age_client is None:
         # Get database URL from environment or use default
         import os
+
         database_url = os.getenv(
-            "DATABASE_URL", 
-            "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+            "DATABASE_URL", "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
         )
-        
+
         age_client = ApacheAGEClient(database_url)
         await age_client.initialize()
-    
+
     return age_client
 
 
@@ -453,23 +436,23 @@ async def create_memory_node(
     title: str,
     content: str,
     memory_type: str = "core",
-    user_id: Optional[str] = None
+    user_id: Optional[str] = None,
 ) -> GraphNode:
     """Create a memory node in the property graph"""
     client = await get_age_client()
-    
+
     properties = {
         "title": title,
         "content": content[:500],  # Truncate for graph storage
-        "type": memory_type
+        "type": memory_type,
     }
-    
+
     node = await client.create_node("Memory", properties, memory_id)
-    
+
     # Create user relationship if provided
     if user_id:
         await client.create_edge(user_id, memory_id, "CREATED")
-    
+
     return node
 
 
@@ -477,21 +460,18 @@ async def link_memories(
     source_memory_id: str,
     target_memory_id: str,
     relationship: str = "LINKED_TO",
-    weight: float = 1.0
+    weight: float = 1.0,
 ) -> GraphEdge:
     """Link two memories in the property graph"""
     client = await get_age_client()
-    
+
     return await client.create_edge(
-        source_memory_id,
-        target_memory_id,
-        relationship,
-        weight=weight
+        source_memory_id, target_memory_id, relationship, weight=weight
     )
 
 
-async def get_user_memory_graph(user_id: str) -> Dict[str, Any]:
+async def get_user_memory_graph(user_id: str) -> dict[str, Any]:
     """Get the complete memory graph for a user"""
     client = await get_age_client()
-    
+
     return await client.get_memory_network(user_id)
