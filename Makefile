@@ -615,3 +615,46 @@ test-session-health:
 	@echo "🔐 Testing Session System Health"
 	@echo "================================"
 	@curl -s "http://localhost:13370/auth/session/health" | jq . || echo "❌ API not responding"
+
+# Code Coverage Targets
+.PHONY: test-coverage test-unit test-integration test-security test-performance coverage-report coverage-html
+
+test-coverage:
+	@echo "🧪 Running comprehensive test suite with coverage..."
+	coverage run -m pytest tests/ -v
+	coverage report --show-missing
+	coverage html
+
+test-unit:
+	pytest tests/unit/ -v
+
+test-functional:
+	pytest tests/functional/ -v
+
+test-integration:
+	pytest tests/integration/ -v
+
+test-security:
+	pytest tests/security/ -v
+
+test-performance:
+	pytest tests/performance/ -v --benchmark-only
+
+test-all:
+	@echo "🧪 Running all test suites with coverage..."
+	pytest --cov=server --cov-report=term --cov-report=html --cov-report=xml tests/
+
+coverage-report:
+	coverage report --show-missing
+
+coverage-html:
+	@echo "🌐 Generating HTML coverage report..."
+	coverage html
+	@echo "📊 Coverage report available at: htmlcov/index.html"
+
+coverage-xml:
+	coverage xml
+
+validate-coverage:
+	@echo "✅ Validating coverage requirements..."
+	coverage report --fail-under=80
