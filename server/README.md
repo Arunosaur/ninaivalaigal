@@ -40,4 +40,3 @@ The server exposes a simple REST API for managing memories and contexts.
             "context": "<new_context_name>"
         }
         ```
-

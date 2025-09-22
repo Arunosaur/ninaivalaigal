@@ -6,7 +6,7 @@ Python dataclass models for property graph nodes with Redis integration
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class NodeType(Enum):
@@ -50,8 +50,8 @@ class BaseNode:
     id: str
     label: str
     properties: dict[str, Any] = field(default_factory=dict)
-    created_at: Optional[datetime] = field(default=None)
-    updated_at: Optional[datetime] = field(default=None)
+    created_at: datetime | None = field(default=None)
+    updated_at: datetime | None = field(default=None)
 
     def __post_init__(self):
         if self.created_at is None:
@@ -91,11 +91,11 @@ class UserNode:
     name: str
     email: str
     role: str = "user"
-    team_id: Optional[str] = field(default=None)
-    organization_id: Optional[str] = field(default=None)
+    team_id: str | None = field(default=None)
+    organization_id: str | None = field(default=None)
     properties: dict[str, Any] = field(default_factory=dict)
-    created_at: Optional[datetime] = field(default=None)
-    updated_at: Optional[datetime] = field(default=None)
+    created_at: datetime | None = field(default=None)
+    updated_at: datetime | None = field(default=None)
 
     def __post_init__(self):
         if self.created_at is None:
@@ -145,12 +145,12 @@ class MemoryNode:
     title: str
     content: str
     memory_type: MemoryType = MemoryType.CORE
-    user_id: Optional[str] = field(default=None)
-    context_id: Optional[str] = field(default=None)
+    user_id: str | None = field(default=None)
+    context_id: str | None = field(default=None)
     relevance_score: float = 0.0
     properties: dict[str, Any] = field(default_factory=dict)
-    created_at: Optional[datetime] = field(default=None)
-    updated_at: Optional[datetime] = field(default=None)
+    created_at: datetime | None = field(default=None)
+    updated_at: datetime | None = field(default=None)
 
     def __post_init__(self):
         if self.created_at is None:
@@ -201,7 +201,7 @@ class MacroNode(BaseNode):
     tag: str
     automation_level: float = 0.0
     trigger_frequency: str = "manual"
-    user_id: Optional[str] = field(default=None)
+    user_id: str | None = field(default=None)
 
     def __post_init__(self):
         super().__post_init__()
@@ -248,7 +248,7 @@ class TopicNode(BaseNode):
 
     label_name: str  # Renamed to avoid conflict with base label
     category: str
-    description: Optional[str] = field(default=None)
+    description: str | None = field(default=None)
     weight: float = 1.0
 
     def __post_init__(self):
@@ -270,7 +270,7 @@ class SourceNode(BaseNode):
 
     kind: str  # GitHub, Documentation, API, etc.
     ref: str  # Reference identifier
-    url: Optional[str] = field(default=None)
+    url: str | None = field(default=None)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
@@ -292,7 +292,7 @@ class ContextNode(BaseNode):
 
     name: str
     context_type: str  # coding, discussion, planning, etc.
-    duration: Optional[int] = field(default=None)  # Duration in seconds
+    duration: int | None = field(default=None)  # Duration in seconds
     user_count: int = 1
     active: bool = True
 
@@ -316,9 +316,9 @@ class TeamNode(BaseNode):
 
     name: str
     description: str
-    organization_id: Optional[str] = field(default=None)
+    organization_id: str | None = field(default=None)
     member_count: int = 0
-    department: Optional[str] = field(default=None)
+    department: str | None = field(default=None)
 
     def __post_init__(self):
         super().__post_init__()
@@ -340,9 +340,9 @@ class OrganizationNode(BaseNode):
 
     name: str
     description: str
-    domain: Optional[str] = field(default=None)
+    domain: str | None = field(default=None)
     size: str = "small"  # small, medium, large, enterprise
-    industry: Optional[str] = field(default=None)
+    industry: str | None = field(default=None)
 
     def __post_init__(self):
         super().__post_init__()
@@ -364,8 +364,8 @@ def create_user_node(
     name: str,
     email: str,
     role: str = "user",
-    team_id: Optional[str] = None,
-    organization_id: Optional[str] = None,
+    team_id: str | None = None,
+    organization_id: str | None = None,
 ) -> UserNode:
     """Factory function to create a user node"""
     return UserNode(
@@ -384,8 +384,8 @@ def create_memory_node(
     title: str,
     content: str,
     memory_type: MemoryType = MemoryType.CORE,
-    user_id: Optional[str] = None,
-    context_id: Optional[str] = None,
+    user_id: str | None = None,
+    context_id: str | None = None,
     relevance_score: float = 0.0,
 ) -> MemoryNode:
     """Factory function to create a memory node"""
@@ -408,7 +408,7 @@ def create_macro_node(
     tag: str,
     automation_level: float = 0.0,
     trigger_frequency: str = "manual",
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
 ) -> MacroNode:
     """Factory function to create a macro node"""
     return MacroNode(

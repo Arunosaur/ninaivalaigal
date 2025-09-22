@@ -15,7 +15,7 @@ import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from server.graph.age_client import ApacheAGEClient
 from server.redis_client import RedisClient
@@ -141,8 +141,8 @@ class GraphReasoner:
         self,
         current_memory_id: str,
         user_id: str,
-        context_memories: list[str] = None,
         suggestion_count: int = 5,
+        context_memories: list[str] | None = None,
     ) -> RelevanceInference:
         """
         Suggests next-best memories or agents based on graph proximity.
@@ -223,7 +223,7 @@ class GraphReasoner:
         memory_id: str,
         feedback_type: str,
         feedback_score: float,
-        context_data: dict[str, Any] = None,
+        context_data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Refines graph traversal using ranking signals and user feedback.
@@ -269,7 +269,7 @@ class GraphReasoner:
         self,
         user_id: str,
         analysis_type: str = "comprehensive",
-        time_window: Optional[timedelta] = None,
+        time_window: timedelta | None = None,
     ) -> dict[str, Any]:
         """
         Analyzes the user's memory network for insights and patterns.
@@ -329,20 +329,16 @@ class GraphReasoner:
         self, start_node_id: str, target_node_id: str, max_depth: int
     ) -> list[ReasoningPath]:
         """Find all reasoning paths between two nodes"""
-        cypher_query = """
-        MATCH path = (start)-[*1..%d]-(target)
-        WHERE start.id = '%s' AND target.id = '%s'
+        cypher_query = f"""
+        MATCH path = (start)-[*1..{max_depth}]-(target)
+        WHERE start.id = '{start_node_id}' AND target.id = '{target_node_id}'
         RETURN path,
                [r in relationships(path) | r.weight] as weights,
                length(path) as depth
         ORDER BY depth ASC,
                  reduce(total = 0, w in [r in relationships(path) | r.weight] | total + w) DESC
         LIMIT 10
-        """ % (
-            max_depth,
-            start_node_id,
-            target_node_id,
-        )
+        """
 
         result = await self.age_client.execute_cypher(cypher_query)
 
@@ -370,9 +366,7 @@ class GraphReasoner:
 
         return reasoning_paths
 
-    def _select_primary_path(
-        self, paths: list[ReasoningPath]
-    ) -> Optional[ReasoningPath]:
+    def _select_primary_path(self, paths: list[ReasoningPath]) -> ReasoningPath | None:
         """Select the most significant reasoning path"""
         if not paths:
             return None
@@ -384,7 +378,7 @@ class GraphReasoner:
         return max(scored_paths, key=lambda x: x[1])[0]
 
     def _generate_retrieval_reason(
-        self, path: Optional[ReasoningPath], context_type: str
+        self, path: ReasoningPath | None, context_type: str
     ) -> str:
         """Generate human-readable retrieval reason"""
         if not path:
@@ -395,7 +389,7 @@ class GraphReasoner:
         elif len(path.nodes) == 3:
             return f"Connected via {path.edges[0]} → {path.edges[1]}"
         else:
-            return f"Multi-hop connection through {len(path.nodes)-1} relationships"
+            return f"Multi-hop connection through {len(path.nodes) - 1} relationships"
 
     async def _calculate_path_relevance(self, paths: list[ReasoningPath]) -> float:
         """Calculate overall relevance score from reasoning paths"""
@@ -711,8 +705,8 @@ class GraphReasoner:
             (2 * edge_count) / (node_count * (node_count - 1)) if node_count > 1 else 0
         )
 
-        # Node type distribution
-        node_types = {}
+        # Count node types
+        node_types: dict[str, int] = {}
         for node in nodes:
             node_type = node.get("label", "Unknown")
             node_types[node_type] = node_types.get(node_type, 0) + 1
@@ -729,11 +723,10 @@ class GraphReasoner:
         self, network_data: dict[str, Any], user_id: str
     ) -> dict[str, Any]:
         """Find patterns and clusters in the network"""
-        nodes = network_data.get("nodes", [])
         edges = network_data.get("edges", [])
 
         # Count connections per node
-        node_connections = {}
+        node_connections: dict[str, int] = {}
         for edge in edges:
             source = edge.get("source")
             target = edge.get("target")
@@ -774,7 +767,8 @@ class GraphReasoner:
         if hubs:
             top_hub = hubs[0]
             insights.append(
-                f"Memory hub '{top_hub['node_id']}' has {top_hub['connections']} connections"
+                f"Memory hub '{top_hub['node_id']}' has "
+                f"{top_hub['connections']} connections"
             )
 
         # Connection insights

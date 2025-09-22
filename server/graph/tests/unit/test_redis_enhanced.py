@@ -1,6 +1,7 @@
 """
 Unit tests for Redis client module (enhanced)
 """
+
 import pytest
 
 

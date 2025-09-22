@@ -87,26 +87,26 @@ CREATE INDEX IF NOT EXISTS idx_contexts_sensitivity_tier ON contexts(sensitivity
 
 -- Views for common queries
 CREATE OR REPLACE VIEW redaction_summary AS
-SELECT 
+SELECT
     DATE_TRUNC('hour', timestamp) as hour,
     sensitivity_tier,
     COUNT(*) as total_redactions,
     COUNT(*) FILTER (WHERE redaction_applied = true) as successful_redactions,
     AVG(processing_time_ms) as avg_processing_time,
     AVG(entropy_score) as avg_entropy_score
-FROM redaction_audits 
+FROM redaction_audits
 WHERE timestamp >= NOW() - INTERVAL '24 hours'
 GROUP BY DATE_TRUNC('hour', timestamp), sensitivity_tier
 ORDER BY hour DESC;
 
 CREATE OR REPLACE VIEW security_alert_summary AS
-SELECT 
+SELECT
     DATE_TRUNC('hour', timestamp) as hour,
     severity,
     event_type,
     COUNT(*) as alert_count,
     COUNT(*) FILTER (WHERE resolved = false) as unresolved_count
-FROM alert_events 
+FROM alert_events
 WHERE timestamp >= NOW() - INTERVAL '24 hours'
 GROUP BY DATE_TRUNC('hour', timestamp), severity, event_type
 ORDER BY hour DESC;
@@ -118,20 +118,20 @@ DECLARE
     deleted_count INTEGER;
 BEGIN
     -- Delete old redaction audits
-    DELETE FROM redaction_audits 
+    DELETE FROM redaction_audits
     WHERE created_at < NOW() - INTERVAL '1 day' * retention_days;
-    
+
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
-    
+
     -- Delete old security events (keep alerts longer)
-    DELETE FROM security_events 
+    DELETE FROM security_events
     WHERE created_at < NOW() - INTERVAL '1 day' * retention_days;
-    
+
     -- Delete resolved alerts older than retention period
-    DELETE FROM alert_events 
-    WHERE resolved = true 
+    DELETE FROM alert_events
+    WHERE resolved = true
     AND resolved_at < NOW() - INTERVAL '1 day' * retention_days;
-    
+
     RETURN deleted_count;
 END;
 $$ LANGUAGE plpgsql;
@@ -147,7 +147,7 @@ BEGIN
             NEW.sensitivity_tier = 'restricted';
             NEW.auto_classified = true;
             NEW.classification_confidence = 0.8;
-        -- Check for confidential keywords  
+        -- Check for confidential keywords
         ELSIF NEW.payload::text ~* '(confidential|private|internal|proprietary)' THEN
             NEW.sensitivity_tier = 'confidential';
             NEW.auto_classified = true;
@@ -159,7 +159,7 @@ BEGIN
             NEW.classification_confidence = 0.7;
         END IF;
     END IF;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

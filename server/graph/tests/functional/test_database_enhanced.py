@@ -1,6 +1,7 @@
 """
 Functional tests for Database module (API-level)
 """
+
 import pytest
 
 

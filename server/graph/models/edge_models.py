@@ -6,7 +6,7 @@ Python dataclass models for property graph relationships with Redis integration
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class RelationshipType(Enum):
@@ -39,8 +39,8 @@ class BaseEdge:
     relationship_type: str
     properties: dict[str, Any] = field(default_factory=dict)
     weight: float = 1.0
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     def __post_init__(self):
         if self.created_at is None:
@@ -89,7 +89,7 @@ class CreatedEdge(BaseEdge):
     """CREATED relationship - User/Agent created entity"""
 
     confidence: float = 1.0
-    timestamp: Optional[str] = None
+    timestamp: str | None = None
 
     def __post_init__(self):
         self.relationship_type = RelationshipType.CREATED.value
@@ -163,7 +163,7 @@ class DerivedFromEdge(BaseEdge):
 
     extraction_confidence: float = 1.0
     extraction_method: str = "manual"
-    source_section: Optional[str] = None
+    source_section: str | None = None
 
     def __post_init__(self):
         self.relationship_type = RelationshipType.DERIVED_FROM.value
@@ -182,7 +182,7 @@ class MemberOfEdge(BaseEdge):
     """MEMBER_OF relationship - User member of team/organization"""
 
     role: str = "member"
-    since: Optional[str] = None
+    since: str | None = None
     permissions: str = "read"
     active: bool = True
 
@@ -203,7 +203,7 @@ class MemberOfEdge(BaseEdge):
 class BelongsToEdge(BaseEdge):
     """BELONGS_TO relationship - Team belongs to organization"""
 
-    department: Optional[str] = None
+    department: str | None = None
     budget_allocation: float = 0.0
     reporting_structure: str = "direct"
 
@@ -245,7 +245,7 @@ class ParticipatedInEdge(BaseEdge):
 
     role: str = "participant"  # primary, secondary, observer
     engagement: float = 0.5  # 0.0 to 1.0
-    duration: Optional[int] = None  # Duration in seconds
+    duration: int | None = None  # Duration in seconds
 
     def __post_init__(self):
         self.relationship_type = RelationshipType.PARTICIPATED_IN.value
@@ -299,7 +299,7 @@ def create_created_edge(
     source_id: str,
     target_id: str,
     confidence: float = 1.0,
-    timestamp: Optional[str] = None,
+    timestamp: str | None = None,
     weight: float = 1.0,
 ) -> CreatedEdge:
     """Factory function to create a CREATED edge"""
@@ -356,7 +356,7 @@ def create_member_of_edge(
     source_id: str,
     target_id: str,
     role: str = "member",
-    since: Optional[str] = None,
+    since: str | None = None,
     permissions: str = "read",
     weight: float = 1.0,
 ) -> MemberOfEdge:

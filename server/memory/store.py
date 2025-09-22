@@ -12,4 +12,5 @@ class InMemoryStore:
     def share(self, user_id, share):
         return {"status": "shared", "share": share.dict()}
 
+
 memory_store = InMemoryStore()

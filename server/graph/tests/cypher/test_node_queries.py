@@ -203,7 +203,7 @@ class TestNodeQueries:
                     client = ApacheAGEClient("postgresql://test:test@localhost/test")
 
                     # Execute query with caching
-                    results = await client.execute_cypher(
+                    await client.execute_cypher(
                         "MATCH (n:User) RETURN n LIMIT 5",
                         cache_key="test_user_nodes",
                         cache_ttl=300,

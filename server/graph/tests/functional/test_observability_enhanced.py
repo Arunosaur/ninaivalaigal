@@ -1,6 +1,7 @@
 """
 Functional tests for Observability module (API-level)
 """
+
 import pytest
 
 

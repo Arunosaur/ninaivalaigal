@@ -6,4 +6,4 @@ Common utilities for entropy calculation and security operations.
 
 from .entropy import EntropyCalculator
 
-__all__ = ['EntropyCalculator']
+__all__ = ["EntropyCalculator"]

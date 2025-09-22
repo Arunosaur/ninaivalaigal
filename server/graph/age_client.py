@@ -6,7 +6,7 @@ Property graph operations with Redis-backed performance optimization
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import asyncpg
 import structlog
@@ -23,8 +23,8 @@ class GraphNode:
     id: str
     label: str
     properties: dict[str, Any]
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 @dataclass
@@ -37,7 +37,7 @@ class GraphEdge:
     relationship: str
     properties: dict[str, Any]
     weight: float = 1.0
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
 
 class ApacheAGEClient:
@@ -49,8 +49,8 @@ class ApacheAGEClient:
     def __init__(self, database_url: str, graph_name: str = "ninaivalaigal_graph"):
         self.database_url = database_url
         self.graph_name = graph_name
-        self.connection_pool: Optional[asyncpg.Pool] = None
-        self.relevance_cache: Optional[RelevanceScoreCache] = None
+        self.connection_pool: asyncpg.Pool | None = None
+        self.relevance_cache: RelevanceScoreCache | None = None
         self._initialized = False
 
     async def initialize(self) -> None:
@@ -118,8 +118,8 @@ class ApacheAGEClient:
     async def execute_cypher(
         self,
         cypher_query: str,
-        parameters: Optional[dict[str, Any]] = None,
-        cache_key: Optional[str] = None,
+        parameters: dict[str, Any] | None = None,
+        cache_key: str | None = None,
         cache_ttl: int = 300,
     ) -> list[dict[str, Any]]:
         """
@@ -194,7 +194,7 @@ class ApacheAGEClient:
                 raise
 
     async def create_node(
-        self, label: str, properties: dict[str, Any], node_id: Optional[str] = None
+        self, label: str, properties: dict[str, Any], node_id: str | None = None
     ) -> GraphNode:
         """Create a new node in the property graph"""
         if not node_id:
@@ -213,7 +213,7 @@ class ApacheAGEClient:
         props_str = json.dumps(properties).replace('"', "'")
         cypher_query = f"CREATE (n:{label} {props_str}) RETURN n"
 
-        results = await self.execute_cypher(cypher_query)
+        await self.execute_cypher(cypher_query)
 
         logger.info(
             "Graph node created",
@@ -231,7 +231,7 @@ class ApacheAGEClient:
         source_id: str,
         target_id: str,
         relationship: str,
-        properties: Optional[dict[str, Any]] = None,
+        properties: dict[str, Any] | None = None,
         weight: float = 1.0,
     ) -> GraphEdge:
         """Create a new edge between nodes"""
@@ -251,7 +251,7 @@ class ApacheAGEClient:
         RETURN r
         """
 
-        results = await self.execute_cypher(cypher_query)
+        await self.execute_cypher(cypher_query)
 
         edge_id = f"{source_id}_{relationship}_{target_id}"
 
@@ -277,7 +277,7 @@ class ApacheAGEClient:
         self,
         user_id: str,
         max_depth: int = 3,
-        relationship_types: Optional[list[str]] = None,
+        relationship_types: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Find memories connected to a user through graph traversal
@@ -305,7 +305,7 @@ class ApacheAGEClient:
         )
 
     async def calculate_graph_relevance(
-        self, user_id: str, memory_id: str, context_id: Optional[str] = None
+        self, user_id: str, memory_id: str, context_id: str | None = None
     ) -> float:
         """
         Calculate relevance score using graph traversal and edge weights
@@ -409,7 +409,7 @@ class ApacheAGEClient:
 
 
 # Global AGE client instance
-age_client: Optional[ApacheAGEClient] = None
+age_client: ApacheAGEClient | None = None
 
 
 async def get_age_client() -> ApacheAGEClient:
@@ -421,7 +421,8 @@ async def get_age_client() -> ApacheAGEClient:
         import os
 
         database_url = os.getenv(
-            "DATABASE_URL", "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+            "DATABASE_URL",
+            "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret
         )
 
         age_client = ApacheAGEClient(database_url)
@@ -436,7 +437,7 @@ async def create_memory_node(
     title: str,
     content: str,
     memory_type: str = "core",
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
 ) -> GraphNode:
     """Create a memory node in the property graph"""
     client = await get_age_client()

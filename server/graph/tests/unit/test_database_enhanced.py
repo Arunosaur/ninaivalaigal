@@ -1,6 +1,7 @@
 """
 Unit tests for Database module (enhanced)
 """
+
 import pytest
 
 
