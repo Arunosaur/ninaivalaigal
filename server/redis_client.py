@@ -18,12 +18,12 @@ logger = structlog.get_logger(__name__)
 class RedisClient:
     """Redis client with connection pooling and caching utilities"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.redis: Redis | None = None
         self.connection_pool = None
         self._connected = False
 
-    async def connect(self):
+    async def connect(self) -> None:
         """Initialize Redis connection with configuration from environment"""
         try:
             redis_url = os.getenv("REDIS_URL") or os.getenv("NINAIVALAIGAL_REDIS_URL")
@@ -51,8 +51,9 @@ class RedisClient:
             self.redis = Redis(connection_pool=self.connection_pool)
 
             # Test connection
-            await self.redis.ping()
-            self._connected = True
+            if self.redis:
+                await self.redis.ping()
+                self._connected = True
 
             logger.info(
                 "Redis connected successfully",
@@ -65,7 +66,7 @@ class RedisClient:
             self._connected = False
             raise
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Close Redis connection"""
         if self.redis:
             await self.redis.close()
@@ -83,6 +84,9 @@ class RedisClient:
             return {"status": "unhealthy", "error": "Not connected to Redis"}
 
         try:
+            if not self.redis:
+                return {"status": "unhealthy", "error": "Redis client not initialized"}
+
             # Test basic operations
             start_time = datetime.utcnow()
             await self.redis.ping()
@@ -105,14 +109,14 @@ class RedisClient:
 
 
 class MemoryTokenCache:
-    """Redis-backed memory token caching - Core SPEC-033 feature"""
+    """Redis-based memory token caching for SPEC-033"""
 
     def __init__(self, redis_client: RedisClient):
         self.redis = redis_client
-        self.default_ttl = 3600  # 1 hour
         self.key_prefix = "memory:"
+        self.default_ttl = 3600  # 1 hour as per SPEC-033
 
-    def _make_key(self, memory_id: str) -> str:
+    def _get_key(self, memory_id: str) -> str:
         """Generate Redis key for memory token"""
         return f"{self.key_prefix}{memory_id}"
 
@@ -122,7 +126,10 @@ class MemoryTokenCache:
             return None
 
         try:
-            key = self._make_key(memory_id)
+            if not self.redis.redis:
+                return None
+
+            key = self._get_key(memory_id)
             cached_data = await self.redis.redis.get(key)
 
             if cached_data:
@@ -144,7 +151,7 @@ class MemoryTokenCache:
             return False
 
         try:
-            key = self._make_key(memory_id)
+            key = self._get_key(memory_id)
             ttl = ttl or self.default_ttl
 
             # Add cache metadata
@@ -168,7 +175,7 @@ class MemoryTokenCache:
             return False
 
         try:
-            key = self._make_key(memory_id)
+            key = self._get_key(memory_id)
             result = await self.redis.redis.delete(key)
             logger.debug(
                 "Memory cache deleted", memory_id=memory_id, deleted=bool(result)
@@ -331,11 +338,150 @@ class RateLimiter:
             return True, {"error": str(e)}
 
 
+class RelevanceScoreCache:
+    """Redis-based relevance score caching for SPEC-031/033 integration"""
+
+    def __init__(self, redis_client: RedisClient):
+        self.redis = redis_client
+        self.key_prefix = "score:"
+        self.default_ttl = 900  # 15 minutes as per SPEC-033
+
+    def _get_key(self, user_id: str, context_id: str, token_id: str) -> str:
+        """Generate Redis key for relevance score"""
+        return f"{self.key_prefix}{user_id}:{context_id}:{token_id}"
+
+    async def get_score(
+        self, user_id: str, context_id: str, token_id: str
+    ) -> float | None:
+        """Get cached relevance score"""
+        if not self.redis.is_connected:
+            return None
+
+        try:
+            key = self._get_key(user_id, context_id, token_id)
+            score_data = await self.redis.redis.get(key)
+
+            if score_data:
+                score_info = json.loads(score_data)
+                logger.debug(
+                    "Relevance score cache hit",
+                    user_id=user_id,
+                    context_id=context_id,
+                    token_id=token_id,
+                    score=score_info["score"],
+                )
+                return score_info["score"]
+
+            return None
+
+        except Exception as e:
+            logger.error(
+                "Relevance score cache get error",
+                user_id=user_id,
+                context_id=context_id,
+                token_id=token_id,
+                error=str(e),
+            )
+            return None
+
+    async def set_score(
+        self,
+        user_id: str,
+        context_id: str,
+        token_id: str,
+        score: float,
+        ttl: int | None = None,
+    ) -> bool:
+        """Set relevance score in cache"""
+        if not self.redis.is_connected:
+            return False
+
+        try:
+            key = self._get_key(user_id, context_id, token_id)
+            score_data = {
+                "score": score,
+                "computed_at": datetime.utcnow().isoformat(),
+                "user_id": user_id,
+                "context_id": context_id,
+                "token_id": token_id,
+            }
+
+            ttl_seconds = ttl or self.default_ttl
+            await self.redis.redis.setex(key, ttl_seconds, json.dumps(score_data))
+
+            logger.debug(
+                "Relevance score cached",
+                user_id=user_id,
+                context_id=context_id,
+                token_id=token_id,
+                score=score,
+                ttl=ttl_seconds,
+            )
+            return True
+
+        except Exception as e:
+            logger.error(
+                "Relevance score cache set error",
+                user_id=user_id,
+                context_id=context_id,
+                token_id=token_id,
+                error=str(e),
+            )
+            return False
+
+    async def delete_score(self, user_id: str, context_id: str, token_id: str) -> bool:
+        """Delete relevance score from cache"""
+        if not self.redis.is_connected:
+            return False
+
+        try:
+            key = self._get_key(user_id, context_id, token_id)
+            result = await self.redis.redis.delete(key)
+            return result > 0
+
+        except Exception as e:
+            logger.error(
+                "Relevance score cache delete error",
+                user_id=user_id,
+                context_id=context_id,
+                token_id=token_id,
+                error=str(e),
+            )
+            return False
+
+    async def get_user_scores(self, user_id: str) -> dict[str, float]:
+        """Get all cached scores for a user"""
+        if not self.redis.is_connected:
+            return {}
+
+        try:
+            pattern = f"{self.key_prefix}{user_id}:*"
+            keys = await self.redis.redis.keys(pattern)
+            scores = {}
+
+            for key in keys:
+                score_data = await self.redis.redis.get(key)
+                if score_data:
+                    score_info = json.loads(score_data)
+                    # Extract context_id:token_id from key
+                    key_suffix = key.decode().replace(
+                        f"{self.key_prefix}{user_id}:", ""
+                    )
+                    scores[key_suffix] = score_info["score"]
+
+            return scores
+
+        except Exception as e:
+            logger.error("User scores retrieval error", user_id=user_id, error=str(e))
+            return {}
+
+
 # Global Redis client instance
 redis_client = RedisClient()
 memory_cache = MemoryTokenCache(redis_client)
 session_store = SessionStore(redis_client)
 rate_limiter = RateLimiter(redis_client)
+relevance_cache = RelevanceScoreCache(redis_client)
 
 
 async def get_redis_client() -> RedisClient:
@@ -364,3 +510,10 @@ async def get_rate_limiter() -> RateLimiter:
     if not redis_client.is_connected:
         await redis_client.connect()
     return rate_limiter
+
+
+async def get_relevance_cache() -> RelevanceScoreCache:
+    """Dependency injection for relevance score cache"""
+    if not redis_client.is_connected:
+        await redis_client.connect()
+    return relevance_cache

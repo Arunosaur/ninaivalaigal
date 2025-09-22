@@ -9,7 +9,12 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import structlog
-from redis_client import RedisClient, get_redis_client
+from redis_client import (
+    RedisClient,
+    RelevanceScoreCache,
+    get_redis_client,
+    get_relevance_cache,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -17,8 +22,9 @@ logger = structlog.get_logger(__name__)
 class RelevanceEngine:
     """Redis-backed memory relevance scoring and ranking system"""
 
-    def __init__(self, redis_client: RedisClient):
+    def __init__(self, redis_client: RedisClient, relevance_cache: RelevanceScoreCache):
         self.redis = redis_client
+        self.relevance_cache = relevance_cache
         self.score_ttl = 3600  # 1 hour
         self.top_cache_ttl = 900  # 15 minutes
 
@@ -151,12 +157,8 @@ class RelevanceEngine:
             logger.error("Error calculating context score", error=str(e))
             return 0.0
 
-    async def calculate_relevance_score(
-        self,
-        user_id: str,
-        memory_id: str,
-        memory_metadata: dict[str, Any],
-        current_context: str = None,
+    async def _calculate_base_relevance_score(
+        self, user_id: str, memory_id: str, memory_metadata: dict[str, Any], current_context: str | None = None
     ) -> float:
         """Calculate comprehensive relevance score for a memory"""
         try:
@@ -510,6 +512,63 @@ class RelevanceEngine:
             )
             return 0.5  # Default neutral score
 
+    async def get_cached_score(
+        self, user_id: str, context_id: str, token_id: str
+    ) -> float | None:
+        """Get cached relevance score using SPEC-033 cache"""
+        return await self.relevance_cache.get_score(user_id, context_id, token_id)
+
+    async def cache_score(
+        self,
+        user_id: str,
+        context_id: str,
+        token_id: str,
+        score: float,
+        ttl: int | None = None,
+    ) -> bool:
+        """Cache relevance score using SPEC-033 cache"""
+        return await self.relevance_cache.set_score(
+            user_id, context_id, token_id, score, ttl
+        )
+
+    async def compute_and_cache_score(
+        self,
+        user_id: str,
+        context_id: str,
+        token_id: str,
+        memory_metadata: dict[str, Any],
+    ) -> float:
+        """Compute relevance score and cache it for SPEC-033 performance"""
+        # Check cache first
+        cached_score = await self.get_cached_score(user_id, context_id, token_id)
+        if cached_score is not None:
+            logger.debug(
+                "Using cached relevance score",
+                user_id=user_id,
+                context_id=context_id,
+                token_id=token_id,
+                score=cached_score,
+            )
+            return cached_score
+
+        # Compute new score
+        score = await self._calculate_base_relevance_score(
+            user_id, token_id, memory_metadata, context_id
+        )
+
+        # Cache the computed score
+        await self.cache_score(user_id, context_id, token_id, score)
+
+        logger.debug(
+            "Computed and cached new relevance score",
+            user_id=user_id,
+            context_id=context_id,
+            token_id=token_id,
+            score=score,
+        )
+
+        return score
+
 
 # Global relevance engine instance
 relevance_engine = None
@@ -521,7 +580,8 @@ async def get_relevance_engine() -> RelevanceEngine:
 
     if relevance_engine is None:
         redis_client = await get_redis_client()
-        relevance_engine = RelevanceEngine(redis_client)
+        relevance_cache = await get_relevance_cache()
+        relevance_engine = RelevanceEngine(redis_client, relevance_cache)
 
     return relevance_engine
 
@@ -531,7 +591,7 @@ async def update_memory_relevance(
     user_id: str,
     memory_id: str,
     memory_metadata: dict[str, Any],
-    current_context: str = None,
+    current_context: str | None = None,
 ) -> float:
     """Update relevance score for a memory"""
     engine = await get_relevance_engine()
@@ -541,7 +601,7 @@ async def update_memory_relevance(
 
 
 async def get_relevant_memories(
-    user_id: str, limit: int = 10, context_id: str = None
+    user_id: str, limit: int = 10, context_id: str | None = None
 ) -> list[tuple[str, float]]:
     """Get top relevant memories for a user"""
     engine = await get_relevance_engine()

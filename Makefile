@@ -681,6 +681,14 @@ test-infrastructure:
 	@echo "🏗️ Running infrastructure tests (database, redis, observability)..."
 	pytest tests/ -k "database or redis or observability" -v --tb=short
 
+benchmark-redis:
+	@echo "⚡ Running Redis performance benchmarks..."
+	pytest tests/performance/test_redis_benchmarks.py -v --benchmark-only --benchmark-sort=mean
+
+benchmark-all:
+	@echo "📊 Running all performance benchmarks..."
+	pytest tests/performance/ -v --benchmark-only --benchmark-sort=mean --benchmark-json=benchmark_results.json
+
 test-all:
 	@echo "🧪 Running all test suites with coverage..."
 	pytest --cov=server --cov-report=term --cov-report=html --cov-report=xml tests/
