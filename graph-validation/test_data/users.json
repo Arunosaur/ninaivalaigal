@@ -1,0 +1,32 @@
+[
+  {
+    "user_id": "user-1",
+    "name": "Alice Developer",
+    "specialties": ["AI", "Machine Learning"],
+    "memory_interactions": ["uuid-1", "uuid-2", "uuid-3"]
+  },
+  {
+    "user_id": "user-2", 
+    "name": "Bob DevOps",
+    "specialties": ["Docker", "Kubernetes", "Infrastructure"],
+    "memory_interactions": ["uuid-4", "uuid-5"]
+  },
+  {
+    "user_id": "user-3",
+    "name": "Carol Database Admin",
+    "specialties": ["SQL", "Database Design", "Performance"],
+    "memory_interactions": ["uuid-6", "uuid-7"]
+  },
+  {
+    "user_id": "user-4",
+    "name": "David Frontend",
+    "specialties": ["React", "JavaScript", "UI/UX"],
+    "memory_interactions": ["uuid-8", "uuid-9"]
+  },
+  {
+    "user_id": "user-5",
+    "name": "Eve Security",
+    "specialties": ["Security", "API Design", "Authentication"],
+    "memory_interactions": ["uuid-10"]
+  }
+]

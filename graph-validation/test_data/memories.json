@@ -1,0 +1,52 @@
+[
+  {
+    "memory_id": "uuid-1",
+    "content": "AI training strategies with feedback loops",
+    "expected_similar_ids": ["uuid-2", "uuid-3"]
+  },
+  {
+    "memory_id": "uuid-2", 
+    "content": "Machine learning model optimization techniques",
+    "expected_similar_ids": ["uuid-1", "uuid-3"]
+  },
+  {
+    "memory_id": "uuid-3",
+    "content": "Neural network architecture design patterns",
+    "expected_similar_ids": ["uuid-1", "uuid-2"]
+  },
+  {
+    "memory_id": "uuid-4",
+    "content": "Docker networking concepts",
+    "expected_similar_ids": ["uuid-5"]
+  },
+  {
+    "memory_id": "uuid-5",
+    "content": "Kubernetes container orchestration",
+    "expected_similar_ids": ["uuid-4"]
+  },
+  {
+    "memory_id": "uuid-6",
+    "content": "Database indexing strategies",
+    "expected_similar_ids": ["uuid-7"]
+  },
+  {
+    "memory_id": "uuid-7",
+    "content": "SQL query optimization techniques",
+    "expected_similar_ids": ["uuid-6"]
+  },
+  {
+    "memory_id": "uuid-8",
+    "content": "Frontend React component patterns",
+    "expected_similar_ids": ["uuid-9"]
+  },
+  {
+    "memory_id": "uuid-9",
+    "content": "JavaScript state management with Redux",
+    "expected_similar_ids": ["uuid-8"]
+  },
+  {
+    "memory_id": "uuid-10",
+    "content": "API security best practices",
+    "expected_similar_ids": []
+  }
+]

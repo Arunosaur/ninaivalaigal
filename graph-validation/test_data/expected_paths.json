@@ -1,0 +1,37 @@
+[
+  {
+    "source_id": "uuid-1",
+    "target_id": "uuid-3", 
+    "expected_path_length": 2,
+    "expected_strength": 0.8,
+    "path_type": "similarity"
+  },
+  {
+    "source_id": "user-1",
+    "target_id": "uuid-1",
+    "expected_path_length": 1,
+    "expected_strength": 0.9,
+    "path_type": "ownership"
+  },
+  {
+    "source_id": "uuid-4",
+    "target_id": "uuid-5",
+    "expected_path_length": 2,
+    "expected_strength": 0.7,
+    "path_type": "similarity"
+  },
+  {
+    "source_id": "user-2",
+    "target_id": "token-4",
+    "expected_path_length": 2,
+    "expected_strength": 0.6,
+    "path_type": "interest"
+  },
+  {
+    "source_id": "token-1",
+    "target_id": "token-3",
+    "expected_path_length": 2,
+    "expected_strength": 0.5,
+    "path_type": "semantic"
+  }
+]

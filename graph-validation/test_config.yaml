@@ -1,0 +1,29 @@
+thresholds:
+  similarity_accuracy: 0.7
+  path_quality: 0.6
+  recommendation_confidence: 0.6
+  edge_weight_accuracy: 0.8
+
+graph_api:
+  base_url: http://localhost:8000
+  endpoints:
+    similarity: /graph-intelligence/reasoning
+    path: /graph-intelligence/reasoning
+    recommend: /graph-intelligence/reasoning
+    edge_weight: /graph-intelligence/reasoning
+
+test_data:
+  memories_file: test_data/memories.json
+  users_file: test_data/users.json
+  tokens_file: test_data/tokens.json
+  expected_paths_file: test_data/expected_paths.json
+
+validation:
+  max_execution_time_ms: 5000
+  retry_attempts: 3
+  cache_results: true
+  
+output:
+  results_dir: results
+  generate_visuals: true
+  save_metrics: true
