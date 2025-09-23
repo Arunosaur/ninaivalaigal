@@ -468,7 +468,13 @@ Ninaivalaigal is now an **enterprise-grade AI memory management platform** with:
 - **Implementation**: Not started (session management)
 - **Location**: `specs/045-session-timeout-token-expiry/`
 
-## 📊 **COMPLETE SPEC STATUS MATRIX (61 SPECs)**
+### **SPEC-066: Standalone Team Accounts** - 📋 **PLANNED**
+- **Status**: Ready for implementation (high priority)
+- **Features**: Team creation without org requirement, team-scoped RBAC, invitation system, upgrade path to organizations
+- **Implementation**: Not started (enables SaaS monetization pipeline)
+- **Location**: `specs/066-standalone-team-accounts/README.md`
+
+## 📊 **COMPLETE SPEC STATUS MATRIX (62 SPECs)**
 
 ### **✅ OPERATIONAL SPECs (31 SPECs - 51%)**
 | SPEC | Name | Status | Location |
