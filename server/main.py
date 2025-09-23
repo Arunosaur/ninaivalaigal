@@ -113,8 +113,11 @@ app.include_router(health_router)
 app.include_router(metrics_router)
 
 from ai_feedback_api import router as ai_feedback_router
-from memory_suggestions_api import router as memory_suggestions_router
+from billing_console_api import router as billing_console_router
+from early_adopter_api import router as early_adopter_router
+from enhanced_signup_api import router as enhanced_signup_router
 from memory_injection_api import router as memory_injection_router
+from memory_suggestions_api import router as memory_suggestions_router
 
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router
@@ -129,9 +132,9 @@ from routers.users import router as users_router
 
 # Import routers after app initialization to avoid import-time database connections
 from signup_api import router as signup_router
-from vendor_admin_api import router as vendor_admin_router
 from standalone_teams_api import router as standalone_teams_router
-from enhanced_signup_api import router as enhanced_signup_router
+from usage_analytics_api import router as usage_analytics_router
+from vendor_admin_api import router as vendor_admin_router
 
 app.include_router(signup_router)
 app.include_router(organizations_router)
@@ -147,6 +150,9 @@ app.include_router(memory_suggestions_router)
 app.include_router(memory_injection_router)
 app.include_router(standalone_teams_router)
 app.include_router(enhanced_signup_router)
+app.include_router(billing_console_router)
+app.include_router(usage_analytics_router)
+app.include_router(early_adopter_router)
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
 
@@ -196,6 +202,30 @@ def serve_team_dashboard():
 def serve_team_dashboard_html():
     """Serve team dashboard page with .html extension"""
     return FileResponse(os.path.join(frontend_dir, "team-dashboard.html"))
+
+
+@app.get("/billing-console")
+def serve_billing_console():
+    """Serve billing console page"""
+    return FileResponse(os.path.join(frontend_dir, "billing-console.html"))
+
+
+@app.get("/billing-console.html")
+def serve_billing_console_html():
+    """Serve billing console page with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "billing-console.html"))
+
+
+@app.get("/usage-analytics")
+def serve_usage_analytics():
+    """Serve usage analytics dashboard"""
+    return FileResponse(os.path.join(frontend_dir, "usage-analytics.html"))
+
+
+@app.get("/usage-analytics.html")
+def serve_usage_analytics_html():
+    """Serve usage analytics dashboard with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "usage-analytics.html"))
 
 
 @app.get("/login")
