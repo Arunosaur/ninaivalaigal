@@ -131,6 +131,7 @@ from routers.users import router as users_router
 from signup_api import router as signup_router
 from vendor_admin_api import router as vendor_admin_router
 from standalone_teams_api import router as standalone_teams_router
+from enhanced_signup_api import router as enhanced_signup_router
 
 app.include_router(signup_router)
 app.include_router(organizations_router)
@@ -145,6 +146,7 @@ app.include_router(ai_feedback_router)
 app.include_router(memory_suggestions_router)
 app.include_router(memory_injection_router)
 app.include_router(standalone_teams_router)
+app.include_router(enhanced_signup_router)
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
 
@@ -170,6 +172,18 @@ def serve_signup_page():
 def serve_signup_page_html():
     """Serve signup page with .html extension"""
     return FileResponse(os.path.join(frontend_dir, "signup.html"))
+
+
+@app.get("/enhanced-signup")
+def serve_enhanced_signup():
+    """Serve enhanced signup page with team options"""
+    return FileResponse(os.path.join(frontend_dir, "enhanced-signup.html"))
+
+
+@app.get("/enhanced-signup.html")
+def serve_enhanced_signup_html():
+    """Serve enhanced signup page with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "enhanced-signup.html"))
 
 
 @app.get("/login")

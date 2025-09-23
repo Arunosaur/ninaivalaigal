@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Ninaivalaigal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4">
+        <div class="max-w-md w-full space-y-8">
+            <!-- Header -->
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-white mb-2">Join Ninaivalaigal</h1>
+                <p class="text-blue-200">AI-powered memory management</p>
+            </div>
+
+            <!-- Signup Options -->
+            <div id="signup-options" class="space-y-4">
+                <h2 class="text-xl font-semibold text-white text-center mb-6">Choose account type</h2>
+                
+                <!-- Individual Option -->
+                <div class="bg-white/10 backdrop-blur-lg rounded-lg p-6 cursor-pointer border-2 border-transparent hover:border-blue-400" 
+                     onclick="selectSignupType('individual')">
+                    <h3 class="text-lg font-semibold text-white">Individual Account</h3>
+                    <p class="text-blue-200 text-sm">Personal memory management</p>
+                </div>
+
+                <!-- Team Create Option -->
+                <div class="bg-white/10 backdrop-blur-lg rounded-lg p-6 cursor-pointer border-2 border-transparent hover:border-green-400" 
+                     onclick="selectSignupType('team-create')">
+                    <h3 class="text-lg font-semibold text-white">Create Team</h3>
+                    <p class="text-blue-200 text-sm">Start collaborative team</p>
+                </div>
+
+                <!-- Team Join Option -->
+                <div class="bg-white/10 backdrop-blur-lg rounded-lg p-6 cursor-pointer border-2 border-transparent hover:border-purple-400" 
+                     onclick="selectSignupType('team-join')">
+                    <h3 class="text-lg font-semibold text-white">Join Team</h3>
+                    <p class="text-blue-200 text-sm">Join with invitation</p>
+                </div>
+            </div>
+
+            <!-- Individual Form -->
+            <div id="individual-form" class="hidden bg-white/10 backdrop-blur-lg rounded-lg p-8">
+                <button onclick="showSignupOptions()" class="text-blue-200 mb-4">← Back</button>
+                <h2 class="text-xl font-semibold text-white mb-6">Individual Account</h2>
+                
+                <form id="individual-signup-form">
+                    <div class="space-y-4">
+                        <input type="text" id="individual-name" required placeholder="Full Name"
+                               class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300">
+                        <input type="email" id="individual-email" required placeholder="Email"
+                               class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300">
+                        <input type="password" id="individual-password" required placeholder="Password"
+                               class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300">
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Team Create Form -->
+            <div id="team-create-form" class="hidden bg-white/10 backdrop-blur-lg rounded-lg p-8">
+                <button onclick="showSignupOptions()" class="text-blue-200 mb-4">← Back</button>
+                <h2 class="text-xl font-semibold text-white mb-6">Create Team</h2>
+                
+                <form id="team-create-signup-form">
+                    <div class="space-y-4">
+                        <input type="text" id="team-create-name" required placeholder="Your Name"
+                               class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300">
+                        <input type="email" id="team-create-email" required placeholder="Your Email"
+                               class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300">
+                        <input type="password" id="team-create-password" required placeholder="Password"
+                               class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300">
+                        <input type="text" id="team-name" required placeholder="Team Name"
+                               class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300">
+                        <select id="team-max-members" class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white">
+                            <option value="5">5 members</option>
+                            <option value="10" selected>10 members</option>
+                            <option value="20">20 members</option>
+                        </select>
+                        <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
+                            Create Team
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Team Join Form -->
+            <div id="team-join-form" class="hidden bg-white/10 backdrop-blur-lg rounded-lg p-8">
+                <button onclick="showSignupOptions()" class="text-blue-200 mb-4">← Back</button>
+                <h2 class="text-xl font-semibold text-white mb-6">Join Team</h2>
+                
+                <div id="invitation-input">
+                    <input type="text" id="invitation-token" required placeholder="Invitation Token"
+                           class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300 mb-4">
+                    <button onclick="validateInvitation()" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700">
+                        Validate Invitation
+                    </button>
+                </div>
+
+                <div id="team-join-signup" class="hidden">
+                    <div id="team-info" class="bg-purple-500/20 rounded-lg p-4 mb-4 text-white"></div>
+                    <form id="team-join-signup-form">
+                        <div class="space-y-4">
+                            <input type="text" id="team-join-name" required placeholder="Your Name"
+                                   class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300">
+                            <input type="email" id="team-join-email" required readonly
+                                   class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white">
+                            <input type="password" id="team-join-password" required placeholder="Password"
+                                   class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-blue-300">
+                            <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700">
+                                Join Team
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- States -->
+            <div id="loading" class="hidden bg-white/10 backdrop-blur-lg rounded-lg p-8 text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                <p class="text-white">Processing...</p>
+            </div>
+
+            <div id="success" class="hidden bg-white/10 backdrop-blur-lg rounded-lg p-8 text-center">
+                <div class="text-green-400 mb-4">✓</div>
+                <h3 class="text-lg font-semibold text-white mb-2">Success!</h3>
+                <div id="success-message" class="text-blue-200 mb-4"></div>
+                <button onclick="window.location.href='login.html'" class="bg-blue-600 text-white py-2 px-4 rounded-lg">
+                    Go to Login
+                </button>
+            </div>
+
+            <div id="error" class="hidden bg-red-50/10 border border-red-200/20 rounded-lg p-4 mb-4">
+                <p class="text-red-200" id="error-message"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSignupType = null;
+
+        function selectSignupType(type) {
+            currentSignupType = type;
+            document.getElementById('signup-options').classList.add('hidden');
+            document.getElementById(`${type}-form`).classList.remove('hidden');
+        }
+
+        function showSignupOptions() {
+            ['individual-form', 'team-create-form', 'team-join-form'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById('signup-options').classList.remove('hidden');
+        }
+
+        async function validateInvitation() {
+            const token = document.getElementById('invitation-token').value.trim();
+            if (!token) return showError('Please enter invitation token');
+
+            try {
+                const response = await fetch('/auth/validate-invitation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ invitation_token: token })
+                });
+                const result = await response.json();
+
+                if (result.valid) {
+                    document.getElementById('invitation-input').classList.add('hidden');
+                    document.getElementById('team-info').innerHTML = `
+                        <h3>Joining: ${result.invitation.team.name}</h3>
+                        <p>Role: ${result.invitation.role}</p>
+                        <p>Invited by: ${result.invitation.invited_by.name}</p>
+                    `;
+                    document.getElementById('team-join-email').value = result.invitation.email;
+                    document.getElementById('team-join-signup').classList.remove('hidden');
+                } else {
+                    showError(result.message || 'Invalid invitation');
+                }
+            } catch (error) {
+                showError('Validation failed');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error').classList.remove('hidden');
+        }
+
+        function showSuccess(message) {
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success').classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        // Form handlers
+        document.getElementById('individual-signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('loading').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/auth/signup/individual', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('individual-email').value,
+                        password: document.getElementById('individual-password').value,
+                        name: document.getElementById('individual-name').value,
+                        account_type: 'individual'
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('Account created! Check email for verification.');
+                } else {
+                    showError(result.detail || 'Signup failed');
+                }
+            } catch (error) {
+                showError('Network error');
+            }
+        });
+
+        document.getElementById('team-create-signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('loading').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/auth/signup/team-create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('team-create-email').value,
+                        password: document.getElementById('team-create-password').value,
+                        name: document.getElementById('team-create-name').value,
+                        team_name: document.getElementById('team-name').value,
+                        team_max_members: parseInt(document.getElementById('team-max-members').value)
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(`Team created! Invite code: ${result.team.invite_code}`);
+                } else {
+                    showError(result.detail || 'Team creation failed');
+                }
+            } catch (error) {
+                showError('Network error');
+            }
+        });
+
+        document.getElementById('team-join-signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('loading').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/auth/signup/team-join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('team-join-email').value,
+                        password: document.getElementById('team-join-password').value,
+                        name: document.getElementById('team-join-name').value,
+                        invitation_token: document.getElementById('invitation-token').value
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(`Joined team: ${result.team.name}!`);
+                } else {
+                    showError(result.detail || 'Join failed');
+                }
+            } catch (error) {
+                showError('Network error');
+            }
+        });
+
+        // Auto-fill invitation token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const invitationToken = urlParams.get('token');
+        if (invitationToken) {
+            selectSignupType('team-join');
+            document.getElementById('invitation-token').value = invitationToken;
+            validateInvitation();
+        }
+    </script>
+</body>
+</html>
