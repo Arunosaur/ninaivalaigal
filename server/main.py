@@ -125,6 +125,7 @@ from team_billing_portal_api import router as team_billing_portal_router
 from partner_ecosystem_api import router as partner_ecosystem_router
 from standalone_teams_billing_api import router as standalone_teams_billing_router
 from billing_engine_integration_api import router as billing_engine_router
+from unified_macro_intelligence_api import router as macro_intelligence_router
 
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router
@@ -167,6 +168,7 @@ app.include_router(team_billing_portal_router)
 app.include_router(partner_ecosystem_router)
 app.include_router(standalone_teams_billing_router)
 app.include_router(billing_engine_router)
+app.include_router(macro_intelligence_router)
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
 
