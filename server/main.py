@@ -123,6 +123,8 @@ from memory_suggestions_api import router as memory_suggestions_router
 from team_api_keys_api import router as team_api_keys_router
 from team_billing_portal_api import router as team_billing_portal_router
 from partner_ecosystem_api import router as partner_ecosystem_router
+from standalone_teams_billing_api import router as standalone_teams_billing_router
+from billing_engine_integration_api import router as billing_engine_router
 
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router
@@ -163,6 +165,8 @@ app.include_router(admin_analytics_router)
 app.include_router(team_api_keys_router)
 app.include_router(team_billing_portal_router)
 app.include_router(partner_ecosystem_router)
+app.include_router(standalone_teams_billing_router)
+app.include_router(billing_engine_router)
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
 
@@ -320,6 +324,18 @@ def serve_partner_dashboard():
 def serve_partner_dashboard_html():
     """Serve partner dashboard with .html extension"""
     return FileResponse(os.path.join(frontend_dir, "partner-dashboard.html"))
+
+
+@app.get("/standalone-teams-billing")
+def serve_standalone_teams_billing():
+    """Serve standalone teams billing interface"""
+    return FileResponse(os.path.join(frontend_dir, "standalone-teams-billing.html"))
+
+
+@app.get("/standalone-teams-billing.html")
+def serve_standalone_teams_billing_html():
+    """Serve standalone teams billing interface with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "standalone-teams-billing.html"))
 
 
 # Health check endpoint (simple version, detailed version in health_router)
