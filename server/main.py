@@ -130,6 +130,7 @@ from routers.users import router as users_router
 # Import routers after app initialization to avoid import-time database connections
 from signup_api import router as signup_router
 from vendor_admin_api import router as vendor_admin_router
+from standalone_teams_api import router as standalone_teams_router
 
 app.include_router(signup_router)
 app.include_router(organizations_router)
@@ -143,6 +144,7 @@ app.include_router(vendor_admin_router)
 app.include_router(ai_feedback_router)
 app.include_router(memory_suggestions_router)
 app.include_router(memory_injection_router)
+app.include_router(standalone_teams_router)
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
 
