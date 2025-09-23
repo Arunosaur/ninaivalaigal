@@ -120,6 +120,9 @@ from admin_analytics_api import router as admin_analytics_router
 from enhanced_signup_api import router as enhanced_signup_router
 from memory_injection_api import router as memory_injection_router
 from memory_suggestions_api import router as memory_suggestions_router
+from team_api_keys_api import router as team_api_keys_router
+from team_billing_portal_api import router as team_billing_portal_router
+from partner_ecosystem_api import router as partner_ecosystem_router
 
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router
@@ -157,6 +160,9 @@ app.include_router(usage_analytics_router)
 app.include_router(early_adopter_router)
 app.include_router(invoice_management_router)
 app.include_router(admin_analytics_router)
+app.include_router(team_api_keys_router)
+app.include_router(team_billing_portal_router)
+app.include_router(partner_ecosystem_router)
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
 
@@ -278,6 +284,42 @@ def serve_dashboard_page():
 def serve_dashboard_page_html():
     """Serve dashboard page with .html extension"""
     return FileResponse(os.path.join(frontend_dir, "dashboard.html"))
+
+
+@app.get("/team-api-keys")
+def serve_team_api_keys():
+    """Serve team API keys management"""
+    return FileResponse(os.path.join(frontend_dir, "team-api-keys.html"))
+
+
+@app.get("/team-api-keys.html")
+def serve_team_api_keys_html():
+    """Serve team API keys management with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "team-api-keys.html"))
+
+
+@app.get("/team-billing-portal")
+def serve_team_billing_portal():
+    """Serve team billing portal"""
+    return FileResponse(os.path.join(frontend_dir, "team-billing-portal.html"))
+
+
+@app.get("/team-billing-portal.html")
+def serve_team_billing_portal_html():
+    """Serve team billing portal with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "team-billing-portal.html"))
+
+
+@app.get("/partner-dashboard")
+def serve_partner_dashboard():
+    """Serve partner dashboard"""
+    return FileResponse(os.path.join(frontend_dir, "partner-dashboard.html"))
+
+
+@app.get("/partner-dashboard.html")
+def serve_partner_dashboard_html():
+    """Serve partner dashboard with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "partner-dashboard.html"))
 
 
 # Health check endpoint (simple version, detailed version in health_router)

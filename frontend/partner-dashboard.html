@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner Dashboard - ninaivalaigal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-semibold text-gray-900">Partner Dashboard</h1>
+                    <div class="ml-4">
+                        <span id="partnerTier" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Bronze Partner
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="createReferralBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Create Referral Code
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Performance Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <i class="fas fa-users text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Referrals</p>
+                        <p class="text-2xl font-bold text-gray-900" id="totalReferrals">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Conversions</p>
+                        <p class="text-2xl font-bold text-gray-900" id="totalConversions">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-yellow-100 rounded-lg">
+                        <i class="fas fa-percentage text-yellow-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Conversion Rate</p>
+                        <p class="text-2xl font-bold text-gray-900" id="conversionRate">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-purple-100 rounded-lg">
+                        <i class="fas fa-dollar-sign text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Commission Earned</p>
+                        <p class="text-2xl font-bold text-gray-900">$<span id="commissionEarned">-</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue & Performance Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Revenue Chart -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Revenue Generated</h3>
+                <canvas id="revenueChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Conversion Funnel -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Conversion Funnel</h3>
+                <div id="conversionFunnel" class="space-y-4">
+                    <!-- Funnel will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Referral Codes & Top Performers -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Referral Codes -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-900">Referral Codes</h3>
+                    <button id="manageCodesBtn" class="text-sm text-blue-600 hover:text-blue-800">
+                        Manage all codes
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div id="referralCodes" class="space-y-4">
+                        <!-- Referral codes will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Performing Codes -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Top Performing Codes</h3>
+                </div>
+                <div class="p-6">
+                    <div id="topCodes" class="space-y-4">
+                        <!-- Top codes will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payout Summary -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Payout Summary</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600" id="pendingPayout">$0.00</div>
+                        <div class="text-sm text-gray-500">Pending Payout</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="paidThisMonth">$0.00</div>
+                        <div class="text-sm text-gray-500">Paid This Month</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-gray-900" id="lifetimePayouts">$0.00</div>
+                        <div class="text-sm text-gray-500">Lifetime Payouts</div>
+                    </div>
+                </div>
+                <div class="mt-6 text-center">
+                    <button id="requestPayoutBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        Request Payout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Referral Code Modal -->
+    <div id="createReferralModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Create Referral Code</h3>
+                </div>
+                <form id="createReferralForm" class="px-6 py-4">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Code Name</label>
+                        <input type="text" id="codeName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="codeDescription" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Custom Suffix (optional)</label>
+                        <input type="text" id="customSuffix" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., SUMMER2024">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Expiration Date (optional)</label>
+                        <input type="datetime-local" id="expirationDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Maximum Uses (optional)</label>
+                        <input type="number" id="maxUses" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" min="1">
+                    </div>
+                </form>
+                
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                    <button id="cancelCreateReferral" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+                    <button id="confirmCreateReferral" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Create Code</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Referral Code Created Modal -->
+    <div id="codeCreatedModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Referral Code Created</h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Your referral code:</p>
+                        <div class="bg-gray-100 p-3 rounded-md">
+                            <code id="newReferralCode" class="text-lg font-mono font-bold"></code>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Referral URL:</p>
+                        <div class="bg-gray-100 p-3 rounded-md">
+                            <code id="referralUrl" class="text-sm font-mono break-all"></code>
+                        </div>
+                    </div>
+                    <button id="copyReferralUrl" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 mb-2">
+                        <i class="fas fa-copy mr-2"></i>Copy Referral URL
+                    </button>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+                    <button id="closeCodeCreated" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentPartnerId = null;
+        let dashboardData = null;
+        let revenueChart = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPartnerDashboard();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Create referral code modal
+            document.getElementById('createReferralBtn').addEventListener('click', () => {
+                document.getElementById('createReferralModal').classList.remove('hidden');
+            });
+
+            document.getElementById('cancelCreateReferral').addEventListener('click', () => {
+                document.getElementById('createReferralModal').classList.add('hidden');
+            });
+
+            document.getElementById('confirmCreateReferral').addEventListener('click', createReferralCode);
+
+            // Code created modal
+            document.getElementById('copyReferralUrl').addEventListener('click', copyReferralUrl);
+            document.getElementById('closeCodeCreated').addEventListener('click', () => {
+                document.getElementById('codeCreatedModal').classList.add('hidden');
+                loadPartnerDashboard(); // Refresh dashboard
+            });
+
+            // Payout request
+            document.getElementById('requestPayoutBtn').addEventListener('click', requestPayout);
+        }
+
+        async function loadPartnerDashboard() {
+            try {
+                const response = await fetch('/partners/dashboard', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    dashboardData = await response.json();
+                    currentPartnerId = dashboardData.partner_id;
+                    renderDashboard();
+                }
+            } catch (error) {
+                console.error('Error loading partner dashboard:', error);
+            }
+        }
+
+        function renderDashboard() {
+            // Update partner tier
+            const tierClasses = {
+                'bronze': 'bg-orange-100 text-orange-800',
+                'silver': 'bg-gray-100 text-gray-800',
+                'gold': 'bg-yellow-100 text-yellow-800',
+                'platinum': 'bg-purple-100 text-purple-800'
+            };
+            const tierElement = document.getElementById('partnerTier');
+            tierElement.textContent = `${dashboardData.tier.charAt(0).toUpperCase() + dashboardData.tier.slice(1)} Partner`;
+            tierElement.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tierClasses[dashboardData.tier]}`;
+
+            // Update overview metrics
+            document.getElementById('totalReferrals').textContent = dashboardData.referral_summary.total;
+            document.getElementById('totalConversions').textContent = dashboardData.referral_summary.converted;
+            document.getElementById('conversionRate').textContent = `${dashboardData.metrics.conversion_rate}%`;
+            document.getElementById('commissionEarned').textContent = dashboardData.revenue_summary.commission_earned.toFixed(2);
+
+            // Update payout summary
+            document.getElementById('pendingPayout').textContent = `$${dashboardData.payout_summary.pending_payout.toFixed(2)}`;
+            document.getElementById('paidThisMonth').textContent = `$${dashboardData.payout_summary.paid_this_month.toFixed(2)}`;
+            document.getElementById('lifetimePayouts').textContent = `$${dashboardData.payout_summary.total_lifetime_payouts.toFixed(2)}`;
+
+            // Render charts
+            renderRevenueChart();
+            renderConversionFunnel();
+            renderTopCodes();
+            loadReferralCodes();
+        }
+
+        function renderRevenueChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            
+            if (revenueChart) {
+                revenueChart.destroy();
+            }
+
+            // Mock data for demonstration
+            const chartData = {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Revenue Generated',
+                    data: [1200, 1900, 3000, 5000, 4200, 6800],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Commission Earned',
+                    data: [240, 380, 600, 1000, 840, 1360],
+                    borderColor: 'rgb(16, 185, 129)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4
+                }]
+            };
+
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderConversionFunnel() {
+            const funnel = document.getElementById('conversionFunnel');
+            const funnelData = dashboardData.conversion_funnel;
+            
+            const stages = [
+                { name: 'Referrals', count: funnelData.referrals, color: 'bg-blue-500' },
+                { name: 'Signups', count: funnelData.signups, color: 'bg-green-500' },
+                { name: 'Activations', count: funnelData.activations, color: 'bg-yellow-500' },
+                { name: 'Conversions', count: funnelData.conversions, color: 'bg-purple-500' }
+            ];
+
+            const maxCount = Math.max(...stages.map(s => s.count));
+
+            funnel.innerHTML = stages.map(stage => {
+                const percentage = maxCount > 0 ? (stage.count / maxCount) * 100 : 0;
+                return `
+                    <div class="flex items-center">
+                        <div class="w-24 text-sm font-medium text-gray-700">${stage.name}</div>
+                        <div class="flex-1 mx-4">
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="${stage.color} h-4 rounded-full" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                        <div class="w-16 text-sm font-bold text-gray-900 text-right">${stage.count}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTopCodes() {
+            const container = document.getElementById('topCodes');
+            const topCodes = dashboardData.top_performing_codes;
+
+            if (topCodes.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500">No referral codes yet</p>';
+                return;
+            }
+
+            container.innerHTML = topCodes.map(code => `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <div class="font-medium text-gray-900">${code.code}</div>
+                        <div class="text-sm text-gray-500">${code.uses} uses • ${code.conversions} conversions</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-gray-900">$${code.revenue.toFixed(2)}</div>
+                        <div class="text-sm text-gray-500">revenue</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadReferralCodes() {
+            try {
+                const response = await fetch(`/partners/${currentPartnerId}/referral-codes`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const codes = await response.json();
+                    renderReferralCodes(codes);
+                }
+            } catch (error) {
+                console.error('Error loading referral codes:', error);
+            }
+        }
+
+        function renderReferralCodes(codes) {
+            const container = document.getElementById('referralCodes');
+
+            if (codes.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500">No referral codes created yet</p>';
+                return;
+            }
+
+            container.innerHTML = codes.slice(0, 3).map(code => `
+                <div class="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                    <div>
+                        <div class="font-medium text-gray-900">${code.name}</div>
+                        <div class="text-sm text-gray-500 font-mono">${code.code}</div>
+                        <div class="text-xs text-gray-400">${code.current_uses} uses</div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${code.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${code.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                        <button onclick="copyCode('${code.code}')" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function createReferralCode() {
+            const formData = {
+                name: document.getElementById('codeName').value,
+                description: document.getElementById('codeDescription').value,
+                custom_suffix: document.getElementById('customSuffix').value || null,
+                expires_at: document.getElementById('expirationDate').value || null,
+                max_uses: document.getElementById('maxUses').value ? parseInt(document.getElementById('maxUses').value) : null
+            };
+
+            try {
+                const response = await fetch(`/partners/${currentPartnerId}/referral-codes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    document.getElementById('newReferralCode').textContent = result.code;
+                    document.getElementById('referralUrl').textContent = `https://ninaivalaigal.com/signup?ref=${result.code}`;
+                    document.getElementById('createReferralModal').classList.add('hidden');
+                    document.getElementById('codeCreatedModal').classList.remove('hidden');
+                } else {
+                    const error = await response.json();
+                    alert(`Error creating referral code: ${error.detail}`);
+                }
+            } catch (error) {
+                console.error('Error creating referral code:', error);
+                alert('Error creating referral code');
+            }
+        }
+
+        function copyReferralUrl() {
+            const url = document.getElementById('referralUrl').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('copyReferralUrl');
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                btn.classList.add('bg-green-600');
+                
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy mr-2"></i>Copy Referral URL';
+                    btn.classList.remove('bg-green-600');
+                    btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                }, 2000);
+            });
+        }
+
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                // Visual feedback could be added here
+                console.log('Code copied:', code);
+            });
+        }
+
+        function requestPayout() {
+            const pendingAmount = parseFloat(document.getElementById('pendingPayout').textContent.replace('$', ''));
+            
+            if (pendingAmount < 50) {
+                alert('Minimum payout amount is $50.00');
+                return;
+            }
+
+            if (confirm(`Request payout of $${pendingAmount.toFixed(2)}?`)) {
+                // In production, this would integrate with actual payout system
+                alert('Payout request submitted. You will receive payment within 5-7 business days.');
+            }
+        }
+    </script>
+</body>
+</html>
