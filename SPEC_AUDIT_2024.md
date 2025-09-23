@@ -408,11 +408,11 @@ Ninaivalaigal is now an **enterprise-grade AI memory management platform** with:
 - **Implementation**: Not started (memory lifecycle enhancement)
 - **Location**: `specs/035-memory-snapshot-versioning/`
 
-### **SPEC-036: Memory Injection Rules** - 📋 **PLANNED**
-- **Status**: Planned for implementation
-- **Features**: Smart memory injection, context rules, AI integration
-- **Implementation**: Not started (intelligence layer)
-- **Location**: `specs/036-memory-injection-rules/`
+### **SPEC-036: Memory Injection Rules** - ✅ **COMPLETE**
+- **Status**: Implemented and operational
+- **Features**: Smart memory injection, context rules, AI integration, 7 trigger types, 5 strategies, behavioral learning
+- **Implementation**: Complete (memory_injection.py, comprehensive API, database schema, performance analytics)
+- **Location**: `server/memory_injection.py`, `server/memory_injection_api.py`, `server/database/schemas/036_memory_injection.sql`
 
 ### **SPEC-037: Terminal/CLI Auto Context Capture** - 📋 **PLANNED**
 - **Status**: Planned for implementation

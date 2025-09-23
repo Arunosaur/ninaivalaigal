@@ -114,6 +114,7 @@ app.include_router(metrics_router)
 
 from ai_feedback_api import router as ai_feedback_router
 from memory_suggestions_api import router as memory_suggestions_router
+from memory_injection_api import router as memory_injection_router
 
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router
@@ -141,6 +142,7 @@ app.include_router(recording_router)
 app.include_router(vendor_admin_router)
 app.include_router(ai_feedback_router)
 app.include_router(memory_suggestions_router)
+app.include_router(memory_injection_router)
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
 
