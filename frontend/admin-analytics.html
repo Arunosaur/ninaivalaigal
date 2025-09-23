@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Analytics Console - Ninaivalaigal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-chart-line text-white text-2xl mr-3"></i>
+                    <h1 class="text-white text-xl font-bold">Admin Analytics Console</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center text-white">
+                        <div class="pulse-dot w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                        <span class="text-sm">Live Data</span>
+                    </div>
+                    <span class="text-white text-sm" id="user-info">Loading...</span>
+                    <button onclick="logout()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600 text-lg">Loading analytics dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard-content" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Platform Health Score -->
+        <div class="mb-8">
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Platform Health Score</h2>
+                        <p class="text-gray-600">Overall platform performance and health indicators</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold mb-2" id="health-score">87.3</div>
+                        <div class="text-sm text-gray-500">out of 100</div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Excellent
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm border p-6 card-hover">
+                <div class="flex items-center">
+                    <i class="fas fa-users text-2xl text-blue-600 mr-4"></i>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Users</p>
+                        <p class="text-2xl font-bold text-gray-900">2,847</p>
+                        <p class="text-sm text-green-600">+287 this month</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border p-6 card-hover">
+                <div class="flex items-center">
+                    <i class="fas fa-user-friends text-2xl text-purple-600 mr-4"></i>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Teams</p>
+                        <p class="text-2xl font-bold text-gray-900">892</p>
+                        <p class="text-sm text-green-600">+94 this month</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border p-6 card-hover">
+                <div class="flex items-center">
+                    <i class="fas fa-dollar-sign text-2xl text-green-600 mr-4"></i>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                        <p class="text-2xl font-bold text-gray-900">$28,450</p>
+                        <p class="text-sm text-green-600">+23% growth</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border p-6 card-hover">
+                <div class="flex items-center">
+                    <i class="fas fa-chart-line text-2xl text-orange-600 mr-4"></i>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Active Users (30d)</p>
+                        <p class="text-2xl font-bold text-gray-900">1,923</p>
+                        <p class="text-sm text-blue-600">67.5% activity rate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Daily Active Users</h3>
+                <canvas id="dau-chart" height="300"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Feature Adoption Rates</h3>
+                <canvas id="feature-chart" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Churn Analysis & Alerts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">High Churn Risk Teams</h3>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        3 at risk
+                    </span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                        <div>
+                            <div class="font-medium text-gray-900">Startup Alpha</div>
+                            <div class="text-sm text-gray-600">Risk Score: 85%</div>
+                            <div class="text-xs text-red-600">Revenue at Risk: $29</div>
+                        </div>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                        <div>
+                            <div class="font-medium text-gray-900">Tech Innovators</div>
+                            <div class="text-sm text-gray-600">Risk Score: 72%</div>
+                            <div class="text-xs text-red-600">Revenue at Risk: $99</div>
+                        </div>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Active Alerts</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 border-l-4 border-yellow-400 bg-yellow-50 rounded-r-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-yellow-600 mr-3"></i>
+                            <div>
+                                <div class="font-medium text-gray-900">Churn rate increased to 3.5%</div>
+                                <div class="text-sm text-gray-600">Severity: medium</div>
+                            </div>
+                        </div>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">
+                            <i class="fas fa-check mr-1"></i>
+                            Acknowledge
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between p-3 border-l-4 border-red-400 bg-red-50 rounded-r-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle text-red-600 mr-3"></i>
+                            <div>
+                                <div class="font-medium text-gray-900">API response time degraded</div>
+                                <div class="text-sm text-gray-600">Severity: high</div>
+                            </div>
+                        </div>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm">
+                            <i class="fas fa-check mr-1"></i>
+                            Acknowledge
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Actions -->
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Export & Actions</h3>
+                    <p class="text-gray-600">Download reports and perform administrative actions</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="exportData('overview')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-download mr-2"></i>Export Overview
+                    </button>
+                    <button onclick="exportData('churn')" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                        <i class="fas fa-chart-pie mr-2"></i>Export Churn Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let charts = {};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadDashboard();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                currentUser = payload;
+                document.getElementById('user-info').textContent = currentUser.name || currentUser.email;
+            } catch (e) {
+                logout();
+            }
+        }
+
+        function loadDashboard() {
+            setTimeout(() => {
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('dashboard-content').classList.remove('hidden');
+                renderCharts();
+            }, 1000);
+        }
+
+        function renderCharts() {
+            // Daily Active Users Chart
+            const dauCtx = document.getElementById('dau-chart').getContext('2d');
+            charts.dauChart = new Chart(dauCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Sep 1', 'Sep 5', 'Sep 10', 'Sep 15', 'Sep 20', 'Sep 23'],
+                    datasets: [{
+                        label: 'Active Users',
+                        data: [1200, 1350, 1420, 1580, 1750, 1923],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Feature Adoption Chart
+            const featureCtx = document.getElementById('feature-chart').getContext('2d');
+            charts.featureChart = new Chart(featureCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Memory Creation', 'Team Invitations', 'AI Suggestions', 'Memory Browser', 'Team Dashboard'],
+                    datasets: [{
+                        data: [89, 67, 45, 78, 56],
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportData(type) {
+            alert(`Exporting ${type} data...`);
+        }
+
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>

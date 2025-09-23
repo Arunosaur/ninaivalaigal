@@ -116,6 +116,7 @@ from ai_feedback_api import router as ai_feedback_router
 from billing_console_api import router as billing_console_router
 from early_adopter_api import router as early_adopter_router
 from invoice_management_api import router as invoice_management_router
+from admin_analytics_api import router as admin_analytics_router
 from enhanced_signup_api import router as enhanced_signup_router
 from memory_injection_api import router as memory_injection_router
 from memory_suggestions_api import router as memory_suggestions_router
@@ -155,6 +156,7 @@ app.include_router(billing_console_router)
 app.include_router(usage_analytics_router)
 app.include_router(early_adopter_router)
 app.include_router(invoice_management_router)
+app.include_router(admin_analytics_router)
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
 
@@ -240,6 +242,18 @@ def serve_invoice_management():
 def serve_invoice_management_html():
     """Serve invoice management dashboard with .html extension"""
     return FileResponse(os.path.join(frontend_dir, "invoice-management.html"))
+
+
+@app.get("/admin-analytics")
+def serve_admin_analytics():
+    """Serve admin analytics console"""
+    return FileResponse(os.path.join(frontend_dir, "admin-analytics.html"))
+
+
+@app.get("/admin-analytics.html")
+def serve_admin_analytics_html():
+    """Serve admin analytics console with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "admin-analytics.html"))
 
 
 @app.get("/login")
