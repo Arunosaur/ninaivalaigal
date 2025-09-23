@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Dashboard - Ninaivalaigal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E40AF',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-semibold text-gray-900">Ninaivalaigal</h1>
+                    <span class="ml-4 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Team Dashboard</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="user-name" class="text-sm text-gray-700"></span>
+                    <button onclick="logout()" class="text-sm text-gray-500 hover:text-gray-700">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <!-- Team Header -->
+        <div id="team-header" class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="team-name" class="text-2xl font-bold text-gray-900"></h2>
+                    <p id="team-stats" class="text-gray-600 mt-1"></p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="showInviteModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Invite Members
+                    </button>
+                    <button onclick="showUpgradeModal()" id="upgrade-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 hidden">
+                        Upgrade Team
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Team Invite Code -->
+            <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Team Invite Code</p>
+                        <p class="text-lg font-mono text-gray-900" id="invite-code"></p>
+                    </div>
+                    <button onclick="copyInviteCode()" class="text-blue-600 hover:text-blue-800 text-sm">Copy</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upgrade Banner (shown when approaching limits) -->
+        <div id="upgrade-banner" class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg p-4 mb-6 hidden">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <div>
+                        <p class="text-white font-medium" id="upgrade-message"></p>
+                        <p class="text-white text-sm opacity-90">Upgrade to continue growing your team</p>
+                    </div>
+                </div>
+                <button onclick="showUpgradeModal()" class="bg-white text-orange-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-50">
+                    Upgrade Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Team Members -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Team Members</h3>
+                    </div>
+                    <div class="p-6">
+                        <div id="members-list" class="space-y-4">
+                            <!-- Members will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Actions & Stats -->
+            <div class="space-y-6">
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Team Overview</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Members</span>
+                            <span id="member-count" class="font-medium"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Plan</span>
+                            <span id="team-plan" class="font-medium"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Created</span>
+                            <span id="team-created" class="font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Invitations -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Pending Invitations</h3>
+                    <div id="pending-invitations" class="space-y-3">
+                        <!-- Pending invitations will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Team Settings (Admin Only) -->
+                <div id="admin-settings" class="bg-white rounded-lg shadow p-6 hidden">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Team Settings</h3>
+                    <div class="space-y-3">
+                        <button onclick="showTeamSettings()" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                            Edit Team Details
+                        </button>
+                        <button onclick="showMemberManagement()" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                            Manage Members
+                        </button>
+                        <button onclick="showUsageStats()" class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                            Usage Statistics
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Modal -->
+    <div id="invite-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium">Invite Team Member</h3>
+                    <button onclick="closeInviteModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="invite-form">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                            <input type="email" id="invite-email" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="colleague@company.com">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                            <select id="invite-role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="contributor">Contributor</option>
+                                <option value="admin">Admin</option>
+                                <option value="viewer">Viewer</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex space-x-3 pt-4">
+                            <button type="submit" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                                Send Invitation
+                            </button>
+                            <button type="button" onclick="closeInviteModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrade Modal -->
+    <div id="upgrade-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-lg w-full p-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Upgrade Your Team</h3>
+                    <p class="text-gray-600 mb-6">Unlock more members, advanced features, and premium support</p>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="border rounded-lg p-4 text-left">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-medium">Team Pro</h4>
+                                    <p class="text-sm text-gray-600">Up to 20 members</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold">$29/month</p>
+                                    <p class="text-xs text-gray-500">per team</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border-2 border-blue-500 rounded-lg p-4 text-left">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-medium">Team Enterprise</h4>
+                                    <p class="text-sm text-gray-600">Unlimited members</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold">$99/month</p>
+                                    <p class="text-xs text-gray-500">per team</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button onclick="upgradeTeam('pro')" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                            Upgrade to Pro
+                        </button>
+                        <button onclick="closeUpgradeModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400">
+                            Later
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-6 text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p class="text-gray-600">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTeam = null;
+        let currentUser = null;
+        let isAdmin = false;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadTeamData();
+            await loadMembers();
+            await loadPendingInvitations();
+            checkUpgradeEligibility();
+        });
+
+        async function loadTeamData() {
+            try {
+                const response = await fetch('/teams/my', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentTeam = await response.json();
+                    displayTeamInfo();
+                } else {
+                    window.location.href = '/enhanced-signup';
+                }
+            } catch (error) {
+                console.error('Failed to load team data:', error);
+            }
+        }
+
+        function displayTeamInfo() {
+            document.getElementById('team-name').textContent = currentTeam.name;
+            document.getElementById('team-stats').textContent = `${currentTeam.current_members}/${currentTeam.max_members} members`;
+            document.getElementById('invite-code').textContent = currentTeam.team_invite_code;
+            document.getElementById('member-count').textContent = `${currentTeam.current_members}/${currentTeam.max_members}`;
+            document.getElementById('team-plan').textContent = 'Free';
+            document.getElementById('team-created').textContent = new Date(currentTeam.created_at).toLocaleDateString();
+        }
+
+        async function loadMembers() {
+            try {
+                const response = await fetch(`/teams/${currentTeam.id}/members`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const members = await response.json();
+                    displayMembers(members);
+                    
+                    // Check if current user is admin
+                    const currentUserEmail = getCurrentUserEmail();
+                    const currentMember = members.find(m => m.user_email === currentUserEmail);
+                    if (currentMember && currentMember.role === 'admin') {
+                        isAdmin = true;
+                        document.getElementById('admin-settings').classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load members:', error);
+            }
+        }
+
+        function displayMembers(members) {
+            const membersList = document.getElementById('members-list');
+            membersList.innerHTML = '';
+            
+            members.forEach(member => {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'flex items-center justify-between p-4 border border-gray-200 rounded-lg';
+                
+                memberDiv.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                            ${member.user_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="ml-3">
+                            <p class="font-medium text-gray-900">${member.user_name}</p>
+                            <p class="text-sm text-gray-600">${member.user_email}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(member.role)}">
+                            ${member.role}
+                        </span>
+                        ${isAdmin && member.role !== 'admin' ? `
+                            <button onclick="manageMember('${member.id}')" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                                </svg>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                
+                membersList.appendChild(memberDiv);
+            });
+        }
+
+        function getRoleBadgeClass(role) {
+            switch (role) {
+                case 'admin': return 'bg-red-100 text-red-800';
+                case 'contributor': return 'bg-blue-100 text-blue-800';
+                case 'viewer': return 'bg-gray-100 text-gray-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        async function loadPendingInvitations() {
+            if (!isAdmin) return;
+            
+            try {
+                const response = await fetch(`/teams/${currentTeam.id}/invitations`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const invitations = await response.json();
+                    displayPendingInvitations(invitations);
+                }
+            } catch (error) {
+                console.error('Failed to load invitations:', error);
+            }
+        }
+
+        function displayPendingInvitations(invitations) {
+            const container = document.getElementById('pending-invitations');
+            container.innerHTML = '';
+            
+            const pending = invitations.filter(inv => inv.status === 'pending');
+            
+            if (pending.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500">No pending invitations</p>';
+                return;
+            }
+            
+            pending.forEach(invitation => {
+                const inviteDiv = document.createElement('div');
+                inviteDiv.className = 'flex items-center justify-between text-sm';
+                
+                inviteDiv.innerHTML = `
+                    <div>
+                        <p class="font-medium">${invitation.email}</p>
+                        <p class="text-gray-500">${invitation.role}</p>
+                    </div>
+                    <button onclick="revokeInvitation('${invitation.id}')" class="text-red-600 hover:text-red-800">
+                        Revoke
+                    </button>
+                `;
+                
+                container.appendChild(inviteDiv);
+            });
+        }
+
+        function checkUpgradeEligibility() {
+            const usagePercentage = (currentTeam.current_members / currentTeam.max_members) * 100;
+            
+            if (usagePercentage >= 80) {
+                const banner = document.getElementById('upgrade-banner');
+                const message = document.getElementById('upgrade-message');
+                
+                if (usagePercentage >= 100) {
+                    message.textContent = "You've reached your member limit!";
+                } else {
+                    message.textContent = `You're using ${currentTeam.current_members} of ${currentTeam.max_members} member slots.`;
+                }
+                
+                banner.classList.remove('hidden');
+                document.getElementById('upgrade-btn').classList.remove('hidden');
+            }
+        }
+
+        // Modal functions
+        function showInviteModal() {
+            if (currentTeam.current_members >= currentTeam.max_members) {
+                showUpgradeModal();
+                return;
+            }
+            document.getElementById('invite-modal').classList.remove('hidden');
+        }
+
+        function closeInviteModal() {
+            document.getElementById('invite-modal').classList.add('hidden');
+            document.getElementById('invite-form').reset();
+        }
+
+        function showUpgradeModal() {
+            document.getElementById('upgrade-modal').classList.remove('hidden');
+        }
+
+        function closeUpgradeModal() {
+            document.getElementById('upgrade-modal').classList.add('hidden');
+        }
+
+        // Form handlers
+        document.getElementById('invite-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('invite-email').value;
+            const role = document.getElementById('invite-role').value;
+            
+            try {
+                const response = await fetch(`/teams/${currentTeam.id}/invite`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                    },
+                    body: JSON.stringify({ email, role })
+                });
+                
+                if (response.ok) {
+                    closeInviteModal();
+                    await loadPendingInvitations();
+                    showNotification('Invitation sent successfully!', 'success');
+                } else {
+                    const error = await response.json();
+                    showNotification(error.detail || 'Failed to send invitation', 'error');
+                }
+            } catch (error) {
+                showNotification('Network error. Please try again.', 'error');
+            }
+        });
+
+        function copyInviteCode() {
+            navigator.clipboard.writeText(currentTeam.team_invite_code);
+            showNotification('Invite code copied to clipboard!', 'success');
+        }
+
+        function getCurrentUserEmail() {
+            // This would typically come from JWT token or user session
+            return localStorage.getItem('user_email') || 'user@example.com';
+        }
+
+        function showNotification(message, type) {
+            // Simple notification system
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 3000);
+        }
+
+        function upgradeTeam(plan) {
+            // This would integrate with billing system
+            showNotification('Upgrade feature coming soon!', 'success');
+            closeUpgradeModal();
+        }
+
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_email');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>

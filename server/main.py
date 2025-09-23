@@ -186,6 +186,18 @@ def serve_enhanced_signup_html():
     return FileResponse(os.path.join(frontend_dir, "enhanced-signup.html"))
 
 
+@app.get("/team-dashboard")
+def serve_team_dashboard():
+    """Serve team dashboard page"""
+    return FileResponse(os.path.join(frontend_dir, "team-dashboard.html"))
+
+
+@app.get("/team-dashboard.html")
+def serve_team_dashboard_html():
+    """Serve team dashboard page with .html extension"""
+    return FileResponse(os.path.join(frontend_dir, "team-dashboard.html"))
+
+
 @app.get("/login")
 def serve_login_page():
     """Serve login page"""
