@@ -127,6 +127,8 @@ from standalone_teams_billing_api import router as standalone_teams_billing_rout
 from billing_engine_integration_api import router as billing_engine_router
 from unified_macro_intelligence_api import router as macro_intelligence_router
 from graph_intelligence_integration_api import router as graph_intelligence_integration_router
+from graph_validation_checklist import router as graph_validation_router
+from graph_usage_analytics import router as graph_usage_analytics_router
 
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router
@@ -171,6 +173,8 @@ app.include_router(standalone_teams_billing_router)
 app.include_router(billing_engine_router)
 app.include_router(macro_intelligence_router)
 app.include_router(graph_intelligence_integration_router)
+app.include_router(graph_validation_router)
+app.include_router(graph_usage_analytics_router)
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
 
