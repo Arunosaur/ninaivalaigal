@@ -77,11 +77,16 @@ credentials/
 .credentials/
 
 # Database dumps and backups (may contain sensitive data)
-*.sql
+# Note: Schema files (*.sql) are NOT ignored - they're infrastructure code
 *.dump
 *.backup
 backup/
 backups/
+# Ignore only actual data dumps
+*_dump.sql
+*_backup.sql
+dump_*.sql
+backup_*.sql
 
 # Temporary files that might contain secrets
 .tmp/

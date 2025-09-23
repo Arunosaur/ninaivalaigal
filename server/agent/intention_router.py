@@ -4,11 +4,11 @@ Detects execution intent and routes to appropriate micro-agent chains
 """
 
 import re
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import structlog
 
-from .agent_core import ExecutionMode
+from .execution_modes import ExecutionMode
 
 logger = structlog.get_logger(__name__)
 

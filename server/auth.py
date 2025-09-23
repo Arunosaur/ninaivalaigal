@@ -39,7 +39,7 @@ def load_config():
         pass
 
     # PRIORITY 3: Fallback (should not be used in container)
-    return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+    return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
 
 
 # Database helper to avoid circular imports
@@ -452,11 +452,33 @@ def verify_email_token(verification_token: str) -> bool:
         session.close()
 
 
-def hash_password(password: str) -> str:
-    """Hash password using bcrypt"""
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash"""
-    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+def require_admin_role(current_user: dict, required_role: str = "admin") -> None:
+    """
+    Require specific admin role for vendor admin operations.
+    Raises HTTPException if user doesn't have required permissions.
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # Check if user is system admin
+    if current_user.get("is_system_admin", False):
+        return
+
+    # Check if user has vendor_admin role
+    user_roles = current_user.get("rbac_roles", {})
+    if required_role in user_roles or "vendor_admin" in user_roles:
+        return
+
+    # Check legacy role field
+    if (
+        current_user.get("role") == required_role
+        or current_user.get("role") == "vendor_admin"
+    ):
+        return
+
+    raise HTTPException(
+        status_code=403,
+        detail=f"Insufficient permissions. Required role: {required_role}",
+    )

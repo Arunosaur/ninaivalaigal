@@ -7,8 +7,7 @@ from typing import Dict
 
 import structlog
 from fastapi import APIRouter, HTTPException
-
-from .performance import get_performance_manager
+from performance import get_performance_manager
 
 logger = structlog.get_logger(__name__)
 

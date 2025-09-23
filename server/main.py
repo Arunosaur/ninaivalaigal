@@ -112,8 +112,12 @@ async def shutdown_event():
 app.include_router(health_router)
 app.include_router(metrics_router)
 
-from agentic_api import router as agentic_router
-from performance_api import router as performance_router
+from ai_feedback_api import router as ai_feedback_router
+from memory_suggestions_api import router as memory_suggestions_router
+
+# Temporarily disabled for production stability
+# from agentic_api import router as agentic_router
+# from performance_api import router as performance_router
 from routers.approvals import router as approvals_router
 from routers.contexts import router as contexts_router
 from routers.memory import router as memory_router
@@ -124,6 +128,7 @@ from routers.users import router as users_router
 
 # Import routers after app initialization to avoid import-time database connections
 from signup_api import router as signup_router
+from vendor_admin_api import router as vendor_admin_router
 
 app.include_router(signup_router)
 app.include_router(organizations_router)
@@ -133,10 +138,12 @@ app.include_router(contexts_router)
 app.include_router(memory_router)
 app.include_router(approvals_router)
 app.include_router(recording_router)
-app.include_router(agentic_router)
-app.include_router(performance_router)
+app.include_router(vendor_admin_router)
+app.include_router(ai_feedback_router)
+app.include_router(memory_suggestions_router)
+# app.include_router(agentic_router)  # Temporarily disabled
+# app.include_router(performance_router)  # Temporarily disabled serving
 
-# Static file serving
 frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_dir):
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")

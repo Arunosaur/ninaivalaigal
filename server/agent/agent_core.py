@@ -6,30 +6,18 @@ Central routing mechanism for intelligent agent execution and orchestration
 import asyncio
 import time
 import uuid
-from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import structlog
 
 from .execution_context import ExecutionContext
+from .execution_modes import ExecutionMode
 from .intention_router import IntentionRouter
 from .tools.ai_tools import AIToolchain
 from .tools.data_ops import DataOperationsTool
 from .tools.memory_access import MemoryAccessTool
 
 logger = structlog.get_logger(__name__)
-
-
-class ExecutionMode(Enum):
-    """Available execution modes for the agentic core."""
-
-    INFERENCE = "inference"
-    SEARCH = "search"
-    SUMMARIZATION = "summarization"
-    ANALYTICS = "analytics"
-    GENERATION = "generation"
-    MEMORY_ANALYSIS = "memory_analysis"
-    GRAPH_REASONING = "graph_reasoning"
 
 
 class ExecutionResult:

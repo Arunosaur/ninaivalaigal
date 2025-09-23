@@ -40,7 +40,7 @@ CRITICAL_DEPS=(
 )
 
 for dep in "${CRITICAL_DEPS[@]}"; do
-    if container run --rm "$IMAGE_NAME" pip list | grep -q "$dep"; then
+    if container run --rm "$IMAGE_NAME" pip list 2>/dev/null | grep -i "^$dep " >/dev/null; then
         ok "$dep is installed"
     else
         error "$dep is MISSING from container!"

@@ -7,15 +7,14 @@ import time
 from typing import Any, Dict, List, Optional
 
 import structlog
+from agent import AgentCore, ExecutionMode, get_agent_core
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel
-
-from .agent import AgentCore, ExecutionMode, get_agent_core
-from .graph.intelligence_deployment import (
-    deploy_graph_intelligence,
-    get_graph_intelligence_deployment,
+from graph.intelligence_deployment import (
+    GraphIntelligenceDeployment as graph_intelligence,
 )
-from .performance import get_performance_manager
+from graph.intelligence_deployment import get_graph_intelligence_deployment
+from performance import get_performance_manager
+from pydantic import BaseModel
 
 logger = structlog.get_logger(__name__)
 
