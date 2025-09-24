@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt .
+COPY server/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Production stage
@@ -31,7 +31,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY server/ ./server/
 COPY frontend/ ./frontend/
-COPY requirements.txt ./
+COPY server/requirements.txt ./
 COPY run_server.py ./
 COPY eM.py ./
 COPY alembic/ ./alembic/

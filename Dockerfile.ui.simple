@@ -1,0 +1,25 @@
+# Simple UI container for Ninaivalaigal Admin Dashboard
+FROM nginx:1.25-alpine
+
+# Copy the pre-built HTML from the UI script
+COPY client/dist/ /usr/share/nginx/html/
+
+# Copy nginx configuration
+COPY nginx.ui.conf /etc/nginx/nginx.conf
+
+# Create health endpoint
+RUN echo '{"status":"healthy","service":"ninaivalaigal-ui"}' > /usr/share/nginx/html/health
+
+# Create nginx cache directories and set permissions
+RUN mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/proxy_temp /var/cache/nginx/fastcgi_temp /var/cache/nginx/uwsgi_temp /var/cache/nginx/scgi_temp && \
+    chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx && \
+    chmod -R 755 /usr/share/nginx/html /var/cache/nginx
+
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+USER nginx
+CMD ["nginx", "-g", "daemon off;"]

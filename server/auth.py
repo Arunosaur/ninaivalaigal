@@ -51,6 +51,32 @@ def get_db():
     return DatabaseManager(database_url)
 
 
+def get_user_by_uuid(db, user_id):
+    """Helper function to get user by UUID - handles UUID/string conversion"""
+    session = db.get_session()
+    try:
+        from sqlalchemy import text
+
+        result = session.execute(
+            text("SELECT id, email, name FROM users WHERE id = :user_id"),
+            {"user_id": user_id},
+        )
+        row = result.fetchone()
+        if row:
+            # Create user-like object
+            class UserResult:
+                def __init__(self, row):
+                    self.id = row.id
+                    self.email = row.email
+                    self.name = row.name
+                    self.username = None  # username not in current schema
+
+            return UserResult(row)
+        return None
+    finally:
+        session.close()
+
+
 # JWT Secret from environment (REQUIRED - no fallback for security)
 JWT_SECRET = os.getenv("NINAIVALAIGAL_JWT_SECRET")
 if not JWT_SECRET:
@@ -146,7 +172,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str | None = None
-    user_id: int | None = None
+    user_id: str | None = None  # Changed to str to support UUID
 
 
 class ApiKeyCreate(BaseModel):
@@ -256,7 +282,7 @@ async def get_current_user(
 
     # Get user from database
     db = get_db()
-    user = db.get_user_by_id(token_data.user_id)
+    user = get_user_by_uuid(db, token_data.user_id)
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
 
@@ -273,7 +299,8 @@ async def get_current_user_optional(request: Request):
         token = auth_header.split(" ")[1]
         token_data = verify_token(token)
 
-        user = db.get_user_by_id(token_data.user_id)
+        db = get_db()
+        user = get_user_by_uuid(db, token_data.user_id)
         return user
     except:
         return None
@@ -450,8 +477,6 @@ def verify_email_token(verification_token: str) -> bool:
         return False
     finally:
         session.close()
-
-
 
 
 def require_admin_role(current_user: dict, required_role: str = "admin") -> None:

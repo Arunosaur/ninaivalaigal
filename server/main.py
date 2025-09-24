@@ -85,7 +85,11 @@ configure_security(app)
 async def startup_event():
     """Initialize Redis connection and queue manager on startup"""
     try:
-        await redis_client.ping()
+        if hasattr(redis_client, "ping"):
+            await redis_client.ping()
+        else:
+            # Alternative Redis health check
+            await redis_client.set("health_check", "1", ex=1)
         logger.info("Redis connection established")
 
         # Initialize queue manager
@@ -112,23 +116,21 @@ async def shutdown_event():
 app.include_router(health_router)
 app.include_router(metrics_router)
 
+from admin_analytics_api import router as admin_analytics_router
 from ai_feedback_api import router as ai_feedback_router
 from billing_console_api import router as billing_console_router
+from billing_engine_integration_api import router as billing_engine_router
 from early_adopter_api import router as early_adopter_router
-from invoice_management_api import router as invoice_management_router
-from admin_analytics_api import router as admin_analytics_router
 from enhanced_signup_api import router as enhanced_signup_router
+from graph_intelligence_integration_api import (
+    router as graph_intelligence_integration_router,
+)
+from graph_usage_analytics import router as graph_usage_analytics_router
+from graph_validation_checklist import router as graph_validation_router
+from invoice_management_api import router as invoice_management_router
 from memory_injection_api import router as memory_injection_router
 from memory_suggestions_api import router as memory_suggestions_router
-from team_api_keys_api import router as team_api_keys_router
-from team_billing_portal_api import router as team_billing_portal_router
 from partner_ecosystem_api import router as partner_ecosystem_router
-from standalone_teams_billing_api import router as standalone_teams_billing_router
-from billing_engine_integration_api import router as billing_engine_router
-from unified_macro_intelligence_api import router as macro_intelligence_router
-from graph_intelligence_integration_api import router as graph_intelligence_integration_router
-from graph_validation_checklist import router as graph_validation_router
-from graph_usage_analytics import router as graph_usage_analytics_router
 
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router
@@ -144,6 +146,10 @@ from routers.users import router as users_router
 # Import routers after app initialization to avoid import-time database connections
 from signup_api import router as signup_router
 from standalone_teams_api import router as standalone_teams_router
+from standalone_teams_billing_api import router as standalone_teams_billing_router
+from team_api_keys_api import router as team_api_keys_router
+from team_billing_portal_api import router as team_billing_portal_router
+from unified_macro_intelligence_api import router as macro_intelligence_router
 from usage_analytics_api import router as usage_analytics_router
 from vendor_admin_api import router as vendor_admin_router
 

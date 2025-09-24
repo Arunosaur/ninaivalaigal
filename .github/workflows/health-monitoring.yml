@@ -1,0 +1,82 @@
+name: Health Monitoring & Auto-Recovery
+
+on:
+  schedule:
+    # Run every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'status'
+        type: choice
+        options:
+        - status
+        - restart
+        - logs
+
+jobs:
+  health-check:
+    runs-on: self-hosted
+    if: github.event_name == 'schedule' || github.event.inputs.action == 'status'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run health check
+      run: |
+        cd ${{ github.workspace }}
+        ./scripts/comprehensive-health-monitor.sh status
+
+    - name: Check container status
+      run: |
+        make stack-status || echo "Stack status check failed"
+
+    - name: Auto-recovery if needed
+      run: |
+        if ! make stack-status | grep -q "✅.*All systems healthy"; then
+          echo "🚨 Issues detected, attempting auto-recovery..."
+          # Only restart individual failed containers, don't use stack-down
+          ./scripts/comprehensive-health-monitor.sh monitor
+        fi
+
+  manual-restart:
+    runs-on: self-hosted
+    if: github.event.inputs.action == 'restart'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Restart stack
+      run: |
+        # Check if this is a manual restart request, not automatic
+        echo "🔄 Manual restart requested - checking for local development..."
+        if pgrep -f "container.*nv-" >/dev/null 2>&1; then
+          echo "⚠️  Local development containers detected - skipping full restart"
+          echo "Use individual container restart scripts instead"
+        else
+          make stack-down || true
+          sleep 10
+          make stack-up
+        fi
+
+    - name: Verify restart
+      run: |
+        sleep 30
+        make stack-status
+
+  show-logs:
+    runs-on: self-hosted
+    if: github.event.inputs.action == 'logs'
+
+    steps:
+    - name: Show health monitor logs
+      run: |
+        echo "=== Recent Health Monitor Logs ==="
+        tail -50 /tmp/ninaivalaigal-health-fixed.log || echo "No logs found"
+        echo ""
+        echo "=== Container Status ==="
+        container list || echo "Container CLI not available"

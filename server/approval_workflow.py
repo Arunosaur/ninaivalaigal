@@ -4,16 +4,20 @@ Cross-Team Memory Approval Workflow System
 Handles approval requests for sharing memories between teams
 """
 
+# Import existing components
 import os
 import sys
+import uuid
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, DateTime
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-# Import existing components
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from database import Base, DatabaseManager
 
@@ -30,19 +34,21 @@ class CrossTeamApprovalRequest(Base):
 
     __tablename__ = "cross_team_approval_requests"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     context_id = Column(
-        Integer, nullable=False
+        UUID(as_uuid=True), nullable=False
     )  # Will add FK when contexts table exists
-    requesting_team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
-    target_team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
-    requested_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    requesting_team_id = Column(
+        UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False
+    )
+    target_team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
+    requested_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     permission_level = Column(String(50), nullable=False)  # read, write, admin
     justification = Column(Text, nullable=True)
     status = Column(String(20), nullable=False, default=ApprovalStatus.PENDING.value)
-    approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    approved_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     approved_at = Column(DateTime, nullable=True)
-    rejected_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    rejected_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     rejected_at = Column(DateTime, nullable=True)
     rejection_reason = Column(Text, nullable=True)
     expires_at = Column(DateTime, nullable=False)

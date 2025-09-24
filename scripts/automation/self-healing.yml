@@ -1,0 +1,103 @@
+name: Container Health & Graph Validation
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # Runs every 10 minutes
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'health-check'
+        type: choice
+        options:
+        - health-check
+        - graph-validation
+        - full-suite
+        - emergency-restart
+
+jobs:
+  monitor-and-test:
+    runs-on: self-hosted  # Use your self-hosted runner
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Conda Environment
+        run: |
+          # Ensure conda is available
+          source ~/.bashrc || true
+          conda activate nina || {
+            echo "❌ Conda environment 'nina' not found"
+            exit 1
+          }
+
+      - name: Container Health Check
+        if: github.event.inputs.action == 'health-check' || github.event.inputs.action == 'full-suite' || github.event_name == 'schedule'
+        run: |
+          echo "🔍 Running container health check..."
+          chmod +x scripts/comprehensive-health-monitor.sh
+          ./scripts/comprehensive-health-monitor.sh status
+
+          # Check container guard status
+          if [ -f .guard-docker.sh ]; then
+            chmod +x .guard-docker.sh
+            ./.guard-docker.sh status
+          fi
+
+      - name: Graph Intelligence Validation
+        if: github.event.inputs.action == 'graph-validation' || github.event.inputs.action == 'full-suite'
+        run: |
+          echo "🧠 Running graph intelligence validation..."
+          conda run -n nina python /Users/swami/Downloads/simple_enhanced_graph_test.py || {
+            echo "⚠️  Graph validation failed, checking Redis..."
+            make stack-status
+          }
+
+      - name: Emergency Container Restart
+        if: github.event.inputs.action == 'emergency-restart'
+        run: |
+          echo "🚨 Emergency restart requested..."
+
+          # Stop guard temporarily
+          pkill -f "guard-docker.sh" || true
+
+          # Restart stack
+          make stack-down || true
+          sleep 10
+          make stack-up
+
+          # Restart guard
+          nohup ./.guard-docker.sh monitor > /tmp/container-guard-monitor.log 2>&1 &
+
+          echo "✅ Emergency restart completed"
+
+      - name: Archive Logs
+        if: always()
+        run: |
+          mkdir -p logs
+          cp /tmp/ninaivalaigal-health-fixed.log logs/health.log || true
+          cp /tmp/container-guard.log logs/guard.log || true
+          cp /tmp/graph-test-error.log logs/graph-test.log || true
+
+          # Add timestamp
+          echo "Generated: $(date)" > logs/timestamp.txt
+
+      - name: Upload Logs as Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-logs-${{ github.run_number }}
+          path: logs/
+          retention-days: 7
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "💥 Workflow failed - check artifacts for logs"
+          # Optional: Add Slack/Discord notification here
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"🚨 Ninaivalaigal health check failed"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}

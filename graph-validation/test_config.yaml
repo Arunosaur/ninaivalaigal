@@ -5,7 +5,7 @@ thresholds:
   edge_weight_accuracy: 0.8
 
 graph_api:
-  base_url: http://localhost:8000
+  base_url: http://localhost:13370
   endpoints:
     similarity: /graph-intelligence/reasoning
     path: /graph-intelligence/reasoning
@@ -22,7 +22,7 @@ validation:
   max_execution_time_ms: 5000
   retry_attempts: 3
   cache_results: true
-  
+
 output:
   results_dir: results
   generate_visuals: true

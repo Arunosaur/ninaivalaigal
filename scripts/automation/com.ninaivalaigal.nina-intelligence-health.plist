@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.ninaivalaigal.nina-intelligence-health</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/swami/WorkSpace/ninaivalaigal/scripts/nina-intelligence-health-monitor.sh</string>
+        <string>monitor</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/nina-intelligence-health.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/nina-intelligence-health-error.log</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/swami/WorkSpace/ninaivalaigal</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>MONITOR_INTERVAL</key>
+        <string>300</string>
+    </dict>
+    <key>LimitLoadToSessionType</key>
+    <string>Aqua</string>
+</dict>
+</plist>

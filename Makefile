@@ -2,9 +2,9 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws-vm deploy-gcp-vm deploy-azure-vm deploy-aws deploy-gcp deploy-azure k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws-vm deploy-gcp-vm deploy-azure-vm deploy-aws deploy-gcp deploy-azure k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local nina-stack-up nina-stack-down nina-stack-status nina-db-only
 
-## start full stack: DB → Redis → PgBouncer → Mem0 → API → UI
+## start full stack: DB → Redis → PgBouncer → eM → API → UI
 stack-up:
 	@$(SCRIPTS)/nv-stack-start.sh
 
@@ -40,13 +40,13 @@ skip-api:
 skip-pgb:
 	@$(SCRIPTS)/nv-stack-start.sh --skip-pgb
 
-## bring up DB + PgBouncer + API but skip Mem0
-skip-mem0:
-	@$(SCRIPTS)/nv-stack-start.sh --skip-mem0
+## bring up DB + PgBouncer + API but skip eM
+skip-em:
+	@$(SCRIPTS)/nv-stack-start.sh --skip-em
 
-## bring up DB + PgBouncer + Mem0 but skip API
-with-mem0:
-	@$(SCRIPTS)/nv-stack-start.sh --with-mem0 --skip-api
+## bring up DB + PgBouncer + eM but skip API
+with-em:
+	@$(SCRIPTS)/nv-stack-start.sh --with-em --skip-api
 
 ## bring up full stack with UI
 with-ui:
@@ -56,7 +56,7 @@ with-ui:
 logs:
 	@echo "== DB logs ==";        -container logs -f nv-db & \
 	 echo "== PgBouncer logs =="; -container logs -f nv-pgbouncer & \
-	 echo "== Mem0 logs ==";      -container logs -f nv-mem0 & \
+	 echo "== eM logs ==";        -container logs -f nv-em & \
 	 echo "== API logs ==";       -container logs -f nv-api & \
 	 echo "== UI logs ==";        -container logs -f nv-ui & wait
 
@@ -104,9 +104,9 @@ spec-test:
 system-info:
 	@$(SCRIPTS)/system-detect.sh
 
-## test mem0 sidecar authentication
-test-mem0-auth:
-	@$(SCRIPTS)/test-mem0-auth.sh
+## test eM sidecar authentication
+test-em-auth:
+	@$(SCRIPTS)/test-em-auth.sh
 
 ## UI management targets
 ui-up:
@@ -153,7 +153,7 @@ redis-install:
 ## Docker Compose-style dev environment
 dev-up:
 	@echo "🚀 Starting development environment..."
-	@$(SCRIPTS)/nv-stack-start.sh --skip-mem0
+	@$(SCRIPTS)/nv-stack-start.sh --skip-em
 	@echo "✅ Development stack ready!"
 	@echo "   Database: http://localhost:5433"
 	@echo "   PgBouncer: http://localhost:6432"
@@ -1028,3 +1028,123 @@ secrets-create-env:
 secrets-validate:
 	@echo "✅ Validating environment configuration..."
 	@$(SCRIPTS)/setup-secrets.sh --validate
+
+# =============================================================================
+# Automation Management
+# =============================================================================
+
+## Start all automation (health monitor + graph tests + container guard)
+automation-start:
+	@echo "🚀 Starting Ninaivalaigal Automation Suite..."
+	@cp scripts/automation/com.ninaivalaigal.health-monitor.plist ~/Library/LaunchAgents/ 2>/dev/null || cp /Users/swami/Library/LaunchAgents/com.ninaivalaigal.health-monitor.plist ~/Library/LaunchAgents/
+	@cp scripts/automation/com.ninaivalaigal.graph-test.plist ~/Library/LaunchAgents/
+	@launchctl load ~/Library/LaunchAgents/com.ninaivalaigal.health-monitor.plist
+	@launchctl load ~/Library/LaunchAgents/com.ninaivalaigal.graph-test.plist
+	@nohup ./.guard-docker.sh monitor > /tmp/container-guard-monitor.log 2>&1 & echo $$! > /tmp/guard-docker.pid
+	@echo "✅ Automation started - check status with 'make automation-status'"
+
+## Stop all automation
+automation-stop:
+	@echo "🛑 Stopping Ninaivalaigal Automation..."
+	@launchctl unload ~/Library/LaunchAgents/com.ninaivalaigal.health-monitor.plist 2>/dev/null || true
+	@launchctl unload ~/Library/LaunchAgents/com.ninaivalaigal.graph-test.plist 2>/dev/null || true
+	@pkill -f "guard-docker.sh" || true
+	@rm -f /tmp/guard-docker.pid
+	@echo "✅ Automation stopped"
+
+## Check automation status
+automation-status:
+	@echo "📊 Ninaivalaigal Automation Status"
+	@echo "=================================="
+	@echo "Health Monitor:"
+	@launchctl list com.ninaivalaigal.health-monitor 2>/dev/null && echo "  ✅ Running" || echo "  ❌ Not running"
+	@echo "Graph Tests:"
+	@launchctl list com.ninaivalaigal.graph-test 2>/dev/null && echo "  ✅ Running" || echo "  ❌ Not running"
+	@echo "Container Guard:"
+	@pgrep -f "guard-docker.sh" >/dev/null && echo "  ✅ Running (PID: $$(pgrep -f guard-docker.sh))" || echo "  ❌ Not running"
+	@echo "Container Protection:"
+	@./.guard-docker.sh status 2>/dev/null || echo "  ⚠️  Guard not available"
+
+## Show recent automation logs
+automation-logs:
+	@echo "📋 Recent Health Monitor Logs:"
+	@tail -10 /tmp/ninaivalaigal-health-fixed.log 2>/dev/null || echo "No health logs found"
+	@echo ""
+	@echo "📋 Recent Graph Test Logs:"
+	@tail -10 /tmp/graph-test.log 2>/dev/null || echo "No graph test logs found"
+	@echo ""
+	@echo "📋 Recent Container Guard Logs:"
+	@tail -10 /tmp/container-guard.log 2>/dev/null || echo "No guard logs found"
+
+## Fix Redis ping() usage in graph intelligence
+fix-redis:
+	@echo "🔧 Fixing Redis ping() usage..."
+	@python scripts/fix-redis-ping.py
+	@echo "✅ Redis fix completed"
+
+## Run graph intelligence validation once
+test-graph:
+	@echo "🧠 Testing Graph Intelligence..."
+	@conda run -n nina python /Users/swami/Downloads/simple_enhanced_graph_test.py
+
+## Emergency restart with automation protection
+emergency-restart:
+	@echo "🚨 Emergency restart requested..."
+	@make automation-stop
+	@make stack-down || true
+	@sleep 10
+	@make stack-up
+	@make automation-start
+	@echo "✅ Emergency restart completed with automation restored"
+
+## ========================================
+## NINA INTELLIGENCE STACK (CONSOLIDATED)
+## ========================================
+
+## start nina intelligence stack: nina-intelligence-db + nina-intelligence-cache + API
+nina-stack-up:
+	@$(SCRIPTS)/nina-intelligence-stack-start.sh
+
+## stop nina intelligence stack
+nina-stack-down:
+	@$(SCRIPTS)/nina-intelligence-stack-stop.sh
+
+## show nina intelligence stack status
+nina-stack-status:
+	@$(SCRIPTS)/nina-intelligence-stack-status.sh
+
+## start only nina-intelligence-db (PostgreSQL + Apache AGE + pgvector)
+nina-db-only:
+	@$(SCRIPTS)/nina-intelligence-stack-start.sh --db-only
+
+## start stack without cache
+nina-no-cache:
+	@$(SCRIPTS)/nina-intelligence-stack-start.sh --skip-cache
+
+## start stack without API
+nina-no-api:
+	@$(SCRIPTS)/nina-intelligence-stack-start.sh --skip-api
+
+## start nina intelligence health monitoring
+nina-health-start:
+	@cp $(SCRIPTS)/automation/com.ninaivalaigal.nina-intelligence-health.plist ~/Library/LaunchAgents/
+	@launchctl load ~/Library/LaunchAgents/com.ninaivalaigal.nina-intelligence-health.plist
+	@echo "✅ Nina Intelligence Health Monitor started"
+
+## stop nina intelligence health monitoring
+nina-health-stop:
+	@launchctl unload ~/Library/LaunchAgents/com.ninaivalaigal.nina-intelligence-health.plist 2>/dev/null || true
+	@echo "🛑 Nina Intelligence Health Monitor stopped"
+
+## check nina intelligence health status
+nina-health-check:
+	@$(SCRIPTS)/nina-intelligence-health-monitor.sh check
+
+## view nina intelligence health logs
+nina-health-logs:
+	@tail -20 /tmp/nina-intelligence-health.log
+
+## open nina intelligence UI in browser
+nina-ui-open:
+	@echo "🌐 Opening Nina Intelligence UI..."
+	@open http://localhost:8081

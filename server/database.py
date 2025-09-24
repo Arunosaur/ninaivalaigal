@@ -2,6 +2,7 @@
 
 import json
 import os
+import uuid
 from datetime import datetime
 
 from sqlalchemy import (
@@ -15,6 +16,7 @@ from sqlalchemy import (
     Text,
     create_engine,
 )
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
@@ -24,7 +26,7 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     username = Column(
         String(255), unique=True, nullable=True, index=True
     )  # Made nullable for email-only signup
@@ -75,8 +77,10 @@ class User(Base):
 class Memory(Base):
     __tablename__ = "memories"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, nullable=True)  # NULL for backward compatibility
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )  # NULL for backward compatibility
     context = Column(String(255), index=True, nullable=False)
     type = Column(String(100), nullable=False)
     source = Column(String(255), nullable=False)
@@ -88,7 +92,7 @@ class Memory(Base):
 class Organization(Base):
     __tablename__ = "organizations"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), unique=True, nullable=False)
     description = Column(Text, nullable=True)
     domain = Column(String(255), nullable=True)  # Company domain
@@ -106,10 +110,10 @@ class Organization(Base):
 class Team(Base):
     __tablename__ = "teams"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), nullable=False)
     organization_id = Column(
-        Integer, ForeignKey("organizations.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )  # NULL for cross-org teams
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -125,9 +129,9 @@ class Team(Base):
 class TeamMember(Base):
     __tablename__ = "team_members"
 
-    id = Column(Integer, primary_key=True, index=True)
-    team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     role = Column(
         String(50), nullable=False, default="member"
     )  # owner, admin, member, viewer
@@ -141,19 +145,19 @@ class TeamMember(Base):
 class ContextPermission(Base):
     __tablename__ = "context_permissions"
 
-    id = Column(Integer, primary_key=True, index=True)
-    context_id = Column(Integer, ForeignKey("contexts.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    context_id = Column(UUID(as_uuid=True), ForeignKey("contexts.id"), nullable=False)
     user_id = Column(
-        Integer, ForeignKey("users.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )  # NULL for team/org permissions
     team_id = Column(
-        Integer, ForeignKey("teams.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True
     )  # NULL for user/org permissions
     organization_id = Column(
-        Integer, ForeignKey("organizations.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )  # NULL for user/team permissions
     permission_level = Column(String(50), nullable=False)  # owner, admin, write, read
-    granted_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    granted_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     granted_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships with explicit foreign_keys to resolve ambiguity
@@ -168,9 +172,11 @@ class ContextPermission(Base):
 class OrganizationRegistration(Base):
     __tablename__ = "organization_registrations"
 
-    id = Column(Integer, primary_key=True, index=True)
-    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
-    creator_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    organization_id = Column(
+        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False
+    )
+    creator_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     registration_data = Column(JSON, nullable=True)  # Additional signup data
     status = Column(
         String(50), nullable=False, default="active"
@@ -189,11 +195,13 @@ class OrganizationRegistration(Base):
 class UserInvitation(Base):
     __tablename__ = "user_invitations"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     email = Column(String(255), nullable=False, index=True)
-    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
-    team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
-    invited_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    organization_id = Column(
+        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
+    )
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)
+    invited_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     invitation_token = Column(String(255), unique=True, nullable=False)
     role = Column(String(50), nullable=False, default="user")
     status = Column(
@@ -215,17 +223,17 @@ class UserInvitation(Base):
 class Context(Base):
     __tablename__ = "contexts"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
     owner_id = Column(
-        Integer, ForeignKey("users.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )  # NULL for team/org owned contexts
     team_id = Column(
-        Integer, ForeignKey("teams.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True
     )  # NULL for user/org owned contexts
     organization_id = Column(
-        Integer, ForeignKey("organizations.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )  # NULL for user/team owned contexts
     visibility = Column(
         String(50), nullable=False, default="private"
@@ -540,9 +548,9 @@ class DatabaseManager:
                     "is_active": context.is_active,
                     "created_at": context.created_at.isoformat(),
                     "team_name": context.team.name if context.team else None,
-                    "org_name": context.organization.name
-                    if context.organization
-                    else None,
+                    "org_name": (
+                        context.organization.name if context.organization else None
+                    ),
                 }
                 for context in all_contexts
             ]
@@ -1259,6 +1267,54 @@ class DatabaseManager:
         import bcrypt
 
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+    def get_user_by_id(self, user_id):
+        """Get user by ID"""
+        session = self.get_session()
+        try:
+            return session.query(User).filter(User.id == user_id).first()
+        finally:
+            session.close()
+
+    def get_user_by_email(self, email):
+        """Get user by email"""
+        session = self.get_session()
+        try:
+            return session.query(User).filter(User.email == email).first()
+        finally:
+            session.close()
+
+    def get_user_by_username(self, username: str):
+        """Get user by username"""
+        session = self.get_session()
+        try:
+            return session.query(User).filter(User.username == username).first()
+        finally:
+            session.close()
+
+    def get_user_by_id_fixed(self, user_id):
+        """Get user by ID - fixed version"""
+        session = self.get_session()
+        try:
+            from sqlalchemy import text
+
+            result = session.execute(
+                text("SELECT * FROM users WHERE id = :user_id"), {"user_id": user_id}
+            )
+            row = result.fetchone()
+            if row:
+                # Convert row to user-like object
+                class UserResult:
+                    def __init__(self, row):
+                        self.id = row.id
+                        self.email = row.email
+                        self.name = row.name
+                        self.username = getattr(row, "username", None)
+
+                return UserResult(row)
+            return None
+        finally:
+            session.close()
 
     def _verify_password(self, password: str, hashed: str) -> bool:
         """Verify password against hash"""

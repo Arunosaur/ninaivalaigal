@@ -1,0 +1,30 @@
+# PostgreSQL 15 with Apache AGE extension
+FROM postgres:15
+
+# Install dependencies for Apache AGE
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    postgresql-server-dev-15 \
+    git \
+    flex \
+    bison \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone and build Apache AGE
+RUN git clone https://github.com/apache/age.git /tmp/age \
+    && cd /tmp/age \
+    && git checkout PG15/stable \
+    && make install \
+    && rm -rf /tmp/age
+
+# Install pgvector extension
+RUN apt-get update && apt-get install -y postgresql-15-pgvector && rm -rf /var/lib/apt/lists/*
+
+# Copy initialization scripts
+COPY init-age.sql /docker-entrypoint-initdb.d/01-init-age.sql
+COPY restore-data.sql /docker-entrypoint-initdb.d/02-restore-data.sql
+
+# Set environment variables
+ENV POSTGRES_DB=nina
+ENV POSTGRES_USER=nina
+ENV POSTGRES_PASSWORD=change_me_securely

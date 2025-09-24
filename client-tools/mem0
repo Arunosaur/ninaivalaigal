@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""
+mem0 client entry point
+Portable solution that works on any system
+"""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def main():
+    # Find the project root directory (portable)
+    script_dir = Path(__file__).parent
+    project_root = script_dir.parent
+
+    # Change to project root
+    os.chdir(project_root)
+
+    # Run the Python client with all arguments
+    try:
+        result = subprocess.run(
+            [sys.executable, "mem0"] + sys.argv[1:], capture_output=False, text=True
+        )
+        sys.exit(result.returncode)
+    except FileNotFoundError:
+        print("❌ Error: mem0 Python client not found")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

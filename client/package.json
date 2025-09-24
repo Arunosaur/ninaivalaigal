@@ -1,0 +1,9 @@
+{
+  "name": "ninaivalaigal-ui",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p dist && echo 'Building UI...' && cp -r public/* dist/ 2>/dev/null || echo 'No public files found'"
+  },
+  "devDependencies": {}
+}

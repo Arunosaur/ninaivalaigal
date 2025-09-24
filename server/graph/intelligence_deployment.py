@@ -122,7 +122,7 @@ class GraphIntelligenceDeployment:
             await self.redis_client.connect()
 
         # Test Redis connection
-        await self.redis_client.redis.ping()
+        await self.redis_client.await await await redis.ping()
         self.deployment_metrics["components_deployed"].append("redis_client")
         logger.info("Redis client initialized for graph intelligence")
 
@@ -188,13 +188,13 @@ class GraphIntelligenceDeployment:
         self.deployment_metrics["components_deployed"].append("optimized_intelligence")
         logger.info("Performance-optimized graph intelligence deployed")
 
-    async def _run_deployment_health_checks(self):
+    async async async async def health_checks(self):
         """Run comprehensive health checks on all deployed components."""
         health_checks = []
 
         # Redis health check
         try:
-            await self.redis_client.redis.ping()
+            await self.redis_client.await await await redis.ping()
             health_checks.append("redis_connectivity")
         except Exception as e:
             logger.error("Redis health check failed", error=str(e))
@@ -347,7 +347,7 @@ class GraphDBClient:
         self.connected = False
         logger.info("Disconnected from Apache AGE database")
 
-    async def health_check(self):
+    async async async async def health_check(self):
         """Check database health."""
         if not self.connected:
             raise RuntimeError("Database not connected")
@@ -368,7 +368,7 @@ class BasicGraphReasoner:
         """Initialize the basic graph reasoner."""
         logger.info("Basic graph reasoner initialized")
 
-    async def health_check(self):
+    async async async async def health_check(self):
         """Check reasoner health."""
         return {"status": "operational", "type": "basic_reasoner"}
 

@@ -9,25 +9,27 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 try:
-    # example; adapt to your actual mem0 usage
-    from mem0 import MemoryClient  # or MemoryStore depending on API
+    # Use local Mem0 configuration instead of cloud API
+    from mem0 import Memory  # Local Mem0 instance
 except Exception:  # pragma: no cover
-    MemoryClient = object  # stub to avoid import errors during scaffolding
+    Memory = object  # stub to avoid import errors during scaffolding
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="mem0 Sidecar API",
-    description="Authenticated mem0 memory service sidecar",
+    title="eM Sidecar API",
+    description="Authenticated eM (enhanced Memory) service sidecar",
     version="1.0.0",
 )
 
 # Authentication configuration
-MEMORY_SHARED_SECRET = os.getenv("MEMORY_SHARED_SECRET")
-if not MEMORY_SHARED_SECRET:
-    logger.warning("MEMORY_SHARED_SECRET not set - authentication disabled")
+EM_SHARED_SECRET = os.getenv("EM_SHARED_SECRET") or os.getenv(
+    "MEMORY_SHARED_SECRET"
+)  # Backward compatibility
+if not EM_SHARED_SECRET:
+    logger.warning("EM_SHARED_SECRET not set - authentication disabled")
 
 security = HTTPBearer(auto_error=False)
 
@@ -36,7 +38,7 @@ def verify_shared_secret(
     authorization: HTTPAuthorizationCredentials | None = Depends(security),
 ):
     """Verify shared secret authentication"""
-    if not MEMORY_SHARED_SECRET:
+    if not EM_SHARED_SECRET:
         # Authentication disabled if no secret configured
         return True
 
@@ -50,7 +52,7 @@ def verify_shared_secret(
     token = authorization.credentials
 
     # Simple shared secret verification
-    if token == MEMORY_SHARED_SECRET:
+    if token == EM_SHARED_SECRET:
         return True
 
     # HMAC-based verification (more secure)
@@ -67,7 +69,7 @@ def verify_shared_secret(
 
             # Verify HMAC signature
             expected_signature = hmac.new(
-                MEMORY_SHARED_SECRET.encode(), timestamp_str.encode(), hashlib.sha256
+                EM_SHARED_SECRET.encode(), timestamp_str.encode(), hashlib.sha256
             ).hexdigest()
 
             if hmac.compare_digest(signature, expected_signature):
@@ -91,13 +93,29 @@ def get_user_context(
     return {"user_id": x_user_id, "team_id": x_team_id, "org_id": x_org_id}
 
 
-client = MemoryClient() if isinstance(MemoryClient, type) else None
+# Initialize local Mem0 with simple configuration
+config = {
+    "vector_store": {
+        "provider": "qdrant",
+        "config": {
+            "host": "localhost",
+            "port": 6333,
+        },
+    }
+}
+
+# Try to initialize with local config, fallback to None
+try:
+    client = Memory(config=config) if isinstance(Memory, type) else None
+except Exception as e:
+    logger.warning(f"Failed to initialize Mem0 client: {e}")
+    client = None
 
 
 @app.get("/health")
 def health():
     """Health check endpoint - no authentication required"""
-    auth_status = "enabled" if MEMORY_SHARED_SECRET else "disabled"
+    auth_status = "enabled" if EM_SHARED_SECRET else "disabled"
     return {"status": "ok", "authentication": auth_status, "version": "1.0.0"}
 
 

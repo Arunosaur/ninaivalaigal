@@ -1,0 +1,73 @@
+{
+  "timestamp": "20250923_171743",
+  "execution_time_seconds": 190.55355072021484,
+  "overall_summary": {
+    "total_test_suites": 4,
+    "passed_suites": 0,
+    "overall_score": 0.19999999999999998
+  },
+  "detailed_results": {
+    "similarity_analysis": {
+      "test_name": "similarity_analysis",
+      "total_tests": 9,
+      "passed_tests": 0,
+      "pass_rate": 0.0,
+      "overall_accuracy": 0.0,
+      "threshold": 0.7,
+      "passed": false,
+      "details": []
+    },
+    "path_discovery": {
+      "test_name": "path_discovery",
+      "total_tests": 5,
+      "passed_tests": 0,
+      "pass_rate": 0.0,
+      "overall_quality": 0.0,
+      "threshold": 0.6,
+      "passed": false,
+      "details": []
+    },
+    "recommendation_engine": {
+      "test_name": "recommendation_engine",
+      "total_tests": 5,
+      "passed_tests": 0,
+      "pass_rate": 0.0,
+      "overall_quality": 0.0,
+      "threshold": 0.6,
+      "passed": false,
+      "details": []
+    },
+    "edge_weight_relevance": {
+      "test_name": "edge_weight_relevance",
+      "total_tests": 3,
+      "passed_tests": 2,
+      "pass_rate": 0.6666666666666666,
+      "overall_accuracy": 0.7999999999999999,
+      "threshold": 0.8,
+      "passed": false,
+      "details": [
+        {
+          "source": "user-1",
+          "target": "uuid-1",
+          "expected_strength": 0.8,
+          "calculated_strength": 1.0,
+          "accuracy": 0.8
+        },
+        {
+          "source": "user-2",
+          "target": "uuid-4",
+          "expected_strength": 0.7,
+          "calculated_strength": 1.0,
+          "accuracy": 0.7
+        },
+        {
+          "source": "token-1",
+          "target": "uuid-1",
+          "expected_strength": 0.9,
+          "calculated_strength": 1.0,
+          "accuracy": 0.9
+        }
+      ]
+    }
+  }
+}

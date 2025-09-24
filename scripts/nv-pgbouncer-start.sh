@@ -9,12 +9,12 @@ echo "=== Starting PgBouncer ==="
 
 # Get database container IP for networking
 echo "[pgbouncer] Getting database container IP..."
-DB_IP=$(container inspect nv-db | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
+DB_IP=$(container inspect ninaivalaigal-graph-db | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
 echo "[pgbouncer] Database IP: $DB_IP"
 
 # Get current SCRAM password from database
 echo "[pgbouncer] Getting SCRAM password from database..."
-SCRAM_PASSWORD=$(container exec nv-db psql -U nina -d nina -t -c "SELECT rolpassword FROM pg_authid WHERE rolname = 'nina';" | tr -d ' ')
+SCRAM_PASSWORD=$(container exec ninaivalaigal-graph-db psql -U nina -d nina -t -c "SELECT rolpassword FROM pg_authid WHERE rolname = 'nina';" | tr -d ' ')
 echo "[pgbouncer] SCRAM password retrieved"
 
 # Start PgBouncer container
