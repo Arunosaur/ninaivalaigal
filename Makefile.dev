@@ -1,0 +1,197 @@
+# Development Makefile for Ninaivalaigal (Colima + Docker)
+# Clean, simple, and effective
+
+.PHONY: dev-up dev-down dev-logs dev-status login-test multiarch-push help
+
+# Default target
+help:
+	@echo "🚀 Ninaivalaigal Development Commands"
+	@echo "=================================="
+	@echo "dev-up          Start development stack with live mounts"
+	@echo "dev-down        Stop development stack"
+	@echo "dev-logs        Follow logs for all services"
+	@echo "dev-status      Show status of all services"
+	@echo "login-test      Test auth/login endpoint"
+	@echo "multiarch-push  Build and push multi-arch images"
+	@echo "clean           Clean up containers and images"
+
+# Development stack management
+dev-up:
+	@echo "🚀 Starting development stack with Colima..."
+	docker-compose -f docker-compose.dev.yml up -d --build
+	@echo "✅ Development stack is running!"
+	@echo "📍 API: http://localhost:13370"
+	@echo "📍 UI: http://localhost:8081"
+	@echo "📍 DB: localhost:5432"
+
+dev-down:
+	@echo "🛑 Stopping development stack..."
+	docker-compose -f docker-compose.dev.yml down
+	@echo "✅ Development stack stopped"
+
+dev-logs:
+	@echo "📋 Following logs for all services..."
+	docker-compose -f docker-compose.dev.yml logs -f
+
+dev-status:
+	@echo "📊 Development Stack Status"
+	@echo "=========================="
+	@docker-compose -f docker-compose.dev.yml ps
+	@echo ""
+	@echo "🔗 Quick Health Checks:"
+	@curl -s http://localhost:13370/health | jq . || echo "❌ API not responding"
+	@echo "✅ Database: $$(docker-compose -f docker-compose.dev.yml exec -T postgres pg_isready -U nina -d ninaivalaigal || echo 'Not ready')"
+
+# Authentication testing
+login-test:
+	@echo "🔐 Testing WORKING auth endpoints..."
+	@echo "Testing GET-based login..."
+	@curl "http://localhost:13370/auth-working/login?email=test@ninaivalaigal.com&password=test" \
+		-w "\nStatus: %{http_code}\nTime: %{time_total}s\n"
+	@echo ""
+	@echo "Testing auth health..."
+	@curl "http://localhost:13370/auth-working/health" \
+		-w "\nStatus: %{http_code}\nTime: %{time_total}s\n"
+
+# Token validation test
+token-test:
+	@echo "🔑 Testing token validation..."
+	@echo "First, get a token (replace with real credentials):"
+	@echo "curl 'http://localhost:13370/auth-working/login?email=YOUR_EMAIL&password=YOUR_PASSWORD'"
+	@echo ""
+	@echo "Then validate it:"
+	@echo "curl 'http://localhost:13370/auth-working/validate-token?token=YOUR_JWT_TOKEN'"
+
+# Complete auth flow test
+auth-flow-test:
+	@echo "🚀 Running complete auth flow test..."
+	@./test-auth-flow.sh
+
+# Protected routes test
+protected-test:
+	@echo "🔒 Testing protected routes (should fail without auth)..."
+	@echo "Profile (unauthorized):"
+	@curl -s http://localhost:13370/protected/profile | jq .
+	@echo ""
+	@echo "Teams (unauthorized):"
+	@curl -s http://localhost:13370/protected/teams | jq .
+	@echo ""
+	@echo "💡 To test with authorization, first get a JWT token:"
+	@echo "curl 'http://localhost:13370/auth-working/login?email=YOUR_EMAIL&password=YOUR_PASSWORD'"
+	@echo "Then use: curl -H 'Authorization: Bearer YOUR_TOKEN' http://localhost:13370/protected/profile"
+
+# All auth tests
+test-all-auth:
+	@echo "🧪 Running all auth tests..."
+	@make -f Makefile.dev login-test
+	@echo ""
+	@make -f Makefile.dev protected-test
+	@echo ""
+	@echo "✅ Auth system tests complete!"
+
+# Team management tests
+team-test:
+	@echo "👥 Testing team management system..."
+	@./test-team-management.sh
+
+# Memory system tests
+memory-test:
+	@echo "🧠 Testing memory system..."
+	@./test-memory-system.sh
+
+# Approval workflows tests
+approval-test:
+	@echo "📤 Testing approval workflows..."
+	@./test-approval-workflows.sh
+
+# Graph intelligence tests
+graph-test:
+	@echo "📊 Testing graph intelligence foundation..."
+	@./test-graph-intelligence.sh
+
+# Timeline system tests
+timeline-test:
+	@echo "📅 Testing timeline system..."
+	@./test-timeline-system.sh
+
+# Discussion layer tests
+discussion-test:
+	@echo "🗨️ Testing discussion layer..."
+	@./test-discussion-layer.sh
+
+# AI intelligence tests
+ai-test:
+	@echo "🧠 Testing AI intelligence layer..."
+	@./test-ai-intelligence.sh
+
+# Complete system test
+test-all:
+	@echo "🚀 Running complete system tests..."
+	@make -f Makefile.dev test-all-auth
+	@echo ""
+	@make -f Makefile.dev team-test
+	@echo ""
+	@make -f Makefile.dev memory-test
+	@echo ""
+	@make -f Makefile.dev approval-test
+	@echo ""
+	@make -f Makefile.dev graph-test
+	@echo ""
+	@make -f Makefile.dev timeline-test
+	@echo ""
+	@make -f Makefile.dev discussion-test
+	@echo ""
+	@make -f Makefile.dev ai-test
+	@echo ""
+	@echo "🎉 THE PLATFORM THINKS! 🔐→👥→🧠→📤→📁→📅→🗨️→🤖"
+	@echo "🌟 Complete AI-Enhanced Collaboration Platform! 🧠✨"
+	@echo "🚀 Ninaivalaigal = Memory Intelligence ACHIEVED! 🎯💪"
+
+# Multi-architecture builds
+multiarch-push:
+	@echo "🏗️ Building and pushing multi-arch images..."
+	@echo "Setting up buildx..."
+	docker buildx create --use --name ninaivalaigal-builder || true
+	@echo "Building API image for ARM64 + x86_64..."
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--push \
+		-t ghcr.io/arunosaur/ninaivalaigal-api:latest \
+		-t ghcr.io/arunosaur/ninaivalaigal-api:$$(date +%Y%m%d-%H%M%S) \
+		-f Dockerfile.api .
+	@echo "✅ Multi-arch images pushed successfully!"
+
+# Development utilities
+clean:
+	@echo "🧹 Cleaning up development environment..."
+	docker-compose -f docker-compose.dev.yml down -v --remove-orphans
+	docker system prune -f
+	@echo "✅ Cleanup complete"
+
+# Quick development cycle
+restart: dev-down dev-up
+	@echo "🔄 Development stack restarted"
+
+# Database utilities
+db-shell:
+	@echo "🐘 Connecting to database..."
+	docker-compose -f docker-compose.dev.yml exec postgres psql -U nina -d ninaivalaigal
+
+db-reset:
+	@echo "⚠️ Resetting database (WARNING: This will delete all data)"
+	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	docker-compose -f docker-compose.dev.yml down -v
+	docker-compose -f docker-compose.dev.yml up -d postgres
+	@echo "✅ Database reset complete"
+
+# Testing utilities
+test-endpoints:
+	@echo "🧪 Testing all critical endpoints..."
+	@echo "Health check:"
+	@curl -s http://localhost:13370/health || echo "❌ Health check failed"
+	@echo ""
+	@echo "Auth test:"
+	@make login-test
+	@echo ""
+	@echo "Graph health:"
+	@curl -s http://localhost:13370/graph-intelligence/health || echo "❌ Graph health failed"
