@@ -1,0 +1,250 @@
+"""
+JSON Auth Middleware Fix Patch
+Fixes Content-Length + body passthrough issue for POST/PUT/DELETE routes
+Critical for production security - prevents unauthorized data mutations
+"""
+
+# Problem Analysis:
+# 1. Current middleware doesn't properly handle JSON body parsing
+# 2. Content-Length headers cause FastAPI to expect body data
+# 3. POST/PUT/DELETE routes may bypass authentication
+# 4. Memory, approval, discussion, tagging endpoints vulnerable
+
+# Solution: Enhanced middleware with proper JSON handling
+
+from fastapi import Request, HTTPException
+from fastapi.responses import JSONResponse
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+class EnhancedJSONAuthMiddleware:
+    """
+    Enhanced authentication middleware that properly handles JSON bodies
+    and ensures all POST/PUT/DELETE routes are authenticated
+    """
+    
+    def __init__(self, app):
+        self.app = app
+        
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+            
+        request = Request(scope, receive)
+        
+        # Skip auth for specific paths
+        path = request.url.path
+        method = request.method
+        
+        # Public endpoints that don't need auth
+        public_paths = [
+            "/",
+            "/health",
+            "/docs",
+            "/openapi.json",
+            "/auth-working/login",
+            "/auth-working/register"
+        ]
+        
+        if path in public_paths or path.startswith("/static"):
+            await self.app(scope, receive, send)
+            return
+            
+        # CRITICAL: All POST/PUT/DELETE must be authenticated
+        if method in ["POST", "PUT", "DELETE", "PATCH"]:
+            auth_header = request.headers.get("authorization")
+            
+            if not auth_header or not auth_header.startswith("Bearer "):
+                response = JSONResponse(
+                    status_code=401,
+                    content={
+                        "detail": "Authentication required for data mutations",
+                        "error": "missing_auth_header",
+                        "method": method,
+                        "path": path
+                    }
+                )
+                await response(scope, receive, send)
+                return
+                
+            # Validate JWT token
+            try:
+                token = auth_header.split(" ")[1]
+                user = await self.validate_jwt_token(token)
+                
+                if not user:
+                    raise HTTPException(status_code=401, detail="Invalid token")
+                    
+                # Add user to request state for downstream handlers
+                scope["user"] = user
+                
+            except Exception as e:
+                logger.error(f"Auth validation failed: {e}")
+                response = JSONResponse(
+                    status_code=401,
+                    content={
+                        "detail": "Invalid authentication token",
+                        "error": "token_validation_failed",
+                        "method": method,
+                        "path": path
+                    }
+                )
+                await response(scope, receive, send)
+                return
+        
+        # Handle JSON body properly for authenticated requests
+        if method in ["POST", "PUT", "PATCH"] and request.headers.get("content-type", "").startswith("application/json"):
+            try:
+                # Read and validate JSON body
+                body = await request.body()
+                
+                if body:
+                    try:
+                        json_data = json.loads(body)
+                        # Store parsed JSON in scope for handlers
+                        scope["json_body"] = json_data
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Invalid JSON body: {e}")
+                        response = JSONResponse(
+                            status_code=400,
+                            content={
+                                "detail": "Invalid JSON in request body",
+                                "error": "json_decode_error"
+                            }
+                        )
+                        await response(scope, receive, send)
+                        return
+                        
+                # Create new receive callable that provides the body
+                async def receive_with_body():
+                    return {
+                        "type": "http.request",
+                        "body": body,
+                        "more_body": False
+                    }
+                    
+                await self.app(scope, receive_with_body, send)
+                return
+                
+            except Exception as e:
+                logger.error(f"Body processing error: {e}")
+                response = JSONResponse(
+                    status_code=500,
+                    content={
+                        "detail": "Error processing request body",
+                        "error": "body_processing_error"
+                    }
+                )
+                await response(scope, receive, send)
+                return
+        
+        # Continue with normal processing
+        await self.app(scope, receive, send)
+        
+    async def validate_jwt_token(self, token: str):
+        """Validate JWT token and return user info"""
+        try:
+            # Import here to avoid circular imports
+            from auth_utils import verify_jwt_token
+            
+            payload = verify_jwt_token(token)
+            if not payload:
+                return None
+                
+            return {
+                "user_id": payload.get("user_id"),
+                "email": payload.get("email"),
+                "role": payload.get("role", "user"),
+                "team_id": payload.get("team_id")
+            }
+            
+        except Exception as e:
+            logger.error(f"JWT validation error: {e}")
+            return None
+
+# Integration with main.py:
+
+"""
+# Add to main.py after app creation:
+
+from middleware_auth_fix import EnhancedJSONAuthMiddleware
+
+# Apply the enhanced middleware
+app.add_middleware(EnhancedJSONAuthMiddleware)
+
+# This ensures:
+# 1. All POST/PUT/DELETE routes require authentication
+# 2. JSON bodies are properly parsed and passed through
+# 3. Content-Length issues are resolved
+# 4. Memory, approval, discussion endpoints are secured
+"""
+
+# Critical endpoints that will be secured:
+SECURED_ENDPOINTS = [
+    # Memory system
+    "POST /memory-system/memories",
+    "PUT /memory-system/memories/{id}",
+    "DELETE /memory-system/memories/{id}",
+    
+    # Approval workflows  
+    "POST /approval-workflows/submit",
+    "PUT /approval-workflows/approve/{id}",
+    "DELETE /approval-workflows/{id}",
+    
+    # Discussion layer
+    "POST /comments/add",
+    "DELETE /comments/delete",
+    
+    # AI intelligence
+    "POST /tag-suggester/suggest",
+    "POST /graph-rank/recommendations",
+    
+    # Team management
+    "POST /teams-working/teams",
+    "PUT /teams-working/teams/{id}",
+    "DELETE /teams-working/teams/{id}",
+]
+
+# Testing the fix:
+TEST_SCENARIOS = [
+    {
+        "name": "Unauthorized POST should fail",
+        "method": "POST",
+        "url": "/memory-system/memories",
+        "headers": {},
+        "body": {"content": "test"},
+        "expected_status": 401
+    },
+    {
+        "name": "Authorized POST should succeed",
+        "method": "POST", 
+        "url": "/memory-system/memories",
+        "headers": {"Authorization": "Bearer valid_jwt_token"},
+        "body": {"content": "test"},
+        "expected_status": 200
+    },
+    {
+        "name": "Invalid JSON should fail",
+        "method": "POST",
+        "url": "/memory-system/memories", 
+        "headers": {"Authorization": "Bearer valid_jwt_token"},
+        "body": "invalid json{",
+        "expected_status": 400
+    }
+]
+
+# Deployment steps:
+DEPLOYMENT_STEPS = [
+    "1. Backup current middleware implementation",
+    "2. Apply this patch to create enhanced middleware",
+    "3. Update main.py to use EnhancedJSONAuthMiddleware", 
+    "4. Run comprehensive E2E tests",
+    "5. Verify all POST/PUT/DELETE routes require auth",
+    "6. Test JSON body parsing works correctly",
+    "7. Deploy to staging environment first",
+    "8. Monitor for any regressions",
+    "9. Deploy to production with rollback plan"
+]

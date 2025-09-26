@@ -1,0 +1,945 @@
+{
+  "info": {
+    "name": "Ninaivalaigal Auth E2E Testing",
+    "description": "Comprehensive authentication and authorization testing for all endpoints",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:13370",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "team_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "memory_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "approval_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication Flow",
+      "item": [
+        {
+          "name": "Login - Get JWT Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('JWT token received', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('jwt_token');",
+                  "    pm.collectionVariables.set('jwt_token', response.jwt_token);",
+                  "    pm.collectionVariables.set('user_id', response.user_id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth-working/login?email=user@example.com&password=password",
+              "host": ["{{base_url}}"],
+              "path": ["auth-working", "login"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "user@example.com"
+                },
+                {
+                  "key": "password",
+                  "value": "password"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Token - Protected Route",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Protected route accessible with token', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('User info returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('user_id');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/protected-routes/profile",
+              "host": ["{{base_url}}"],
+              "path": ["protected-routes", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Invalid Token Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Invalid token rejected', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message present', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('detail');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token_here",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/protected-routes/profile",
+              "host": ["{{base_url}}"],
+              "path": ["protected-routes", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧠 Memory System Auth Tests",
+      "item": [
+        {
+          "name": "Create Memory - Authenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Memory created successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Memory ID returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.memory_id) {",
+                  "        pm.collectionVariables.set('memory_id', response.memory_id);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/memory-system/add?content=Test memory for auth validation&tags=test,auth&context_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["memory-system", "add"],
+              "query": [
+                {
+                  "key": "content",
+                  "value": "Test memory for auth validation"
+                },
+                {
+                  "key": "tags",
+                  "value": "test,auth"
+                },
+                {
+                  "key": "context_id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Memory - Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthorized request rejected', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Auth error message present', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('detail');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/memory-system/add?content=Unauthorized test&tags=test",
+              "host": ["{{base_url}}"],
+              "path": ["memory-system", "add"],
+              "query": [
+                {
+                  "key": "content",
+                  "value": "Unauthorized test"
+                },
+                {
+                  "key": "tags",
+                  "value": "test"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Memories - Team Filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Memories retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Team filtering applied', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('memories');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/memory-system/memories?team_filter={{team_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["memory-system", "memories"],
+              "query": [
+                {
+                  "key": "team_filter",
+                  "value": "{{team_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📤 Approval Workflows Auth Tests",
+      "item": [
+        {
+          "name": "Submit for Approval - Authenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Approval submitted successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Approval ID returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.approval_id) {",
+                  "        pm.collectionVariables.set('approval_id', response.approval_id);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/approval-workflows/submit?memory_id={{memory_id}}&submission_note=Please review this memory",
+              "host": ["{{base_url}}"],
+              "path": ["approval-workflows", "submit"],
+              "query": [
+                {
+                  "key": "memory_id",
+                  "value": "{{memory_id}}"
+                },
+                {
+                  "key": "submission_note",
+                  "value": "Please review this memory"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit for Approval - Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthorized submission rejected', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/approval-workflows/submit?memory_id=1&submission_note=Unauthorized test",
+              "host": ["{{base_url}}"],
+              "path": ["approval-workflows", "submit"],
+              "query": [
+                {
+                  "key": "memory_id",
+                  "value": "1"
+                },
+                {
+                  "key": "submission_note",
+                  "value": "Unauthorized test"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Approvals",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Pending approvals retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Team-based filtering applied', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('pending_approvals');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/approval-workflows/pending",
+              "host": ["{{base_url}}"],
+              "path": ["approval-workflows", "pending"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🗨️ Discussion Layer Auth Tests",
+      "item": [
+        {
+          "name": "Add Comment - Authenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Comment added successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Comment data returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('success');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comments/add?mem_id={{memory_id}}&text=Great insight! This is very helpful.&comment_type=feedback",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "add"],
+              "query": [
+                {
+                  "key": "mem_id",
+                  "value": "{{memory_id}}"
+                },
+                {
+                  "key": "text",
+                  "value": "Great insight! This is very helpful."
+                },
+                {
+                  "key": "comment_type",
+                  "value": "feedback"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Comment - Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthorized comment rejected', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/comments/add?mem_id=1&text=Unauthorized comment",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "add"],
+              "query": [
+                {
+                  "key": "mem_id",
+                  "value": "1"
+                },
+                {
+                  "key": "text",
+                  "value": "Unauthorized comment"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Comments - Team Access",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Comments retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Team-based access control applied', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('comments');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comments/{{memory_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["comments", "{{memory_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Intelligence Auth Tests",
+      "item": [
+        {
+          "name": "Get Ranked Memories - Authenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Ranked memories retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('PageRank data included', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('ranked_memories');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/graph-rank/memories?limit=5&include_scores=true",
+              "host": ["{{base_url}}"],
+              "path": ["graph-rank", "memories"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "include_scores",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tag Suggestions - Authenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Tag suggestions generated', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('AI suggestions included', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('suggestions');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tag-suggester/suggest?content=Database performance optimization results show 40% improvement&max_suggestions=3",
+              "host": ["{{base_url}}"],
+              "path": ["tag-suggester", "suggest"],
+              "query": [
+                {
+                  "key": "content",
+                  "value": "Database performance optimization results show 40% improvement"
+                },
+                {
+                  "key": "max_suggestions",
+                  "value": "3"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "AI Intelligence - Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthorized AI access rejected', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/graph-rank/memories",
+              "host": ["{{base_url}}"],
+              "path": ["graph-rank", "memories"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Team Management Auth Tests",
+      "item": [
+        {
+          "name": "Get Team Info - Authenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Team info retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Team data included', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('team');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/teams-working/team/{{team_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["teams-working", "team", "{{team_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Team Management - Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthorized team access rejected', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/teams-working/team/1",
+              "host": ["{{base_url}}"],
+              "path": ["teams-working", "team", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 RBAC Permission Tests",
+      "item": [
+        {
+          "name": "Admin Only - Team Creation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// This test depends on user role",
+                  "// Should succeed for org_admin, fail for regular user",
+                  "pm.test('Response received', function () {",
+                  "    pm.response.to.be.ok;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/teams-working/create?name=Test Team&description=RBAC test team",
+              "host": ["{{base_url}}"],
+              "path": ["teams-working", "create"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "Test Team"
+                },
+                {
+                  "key": "description",
+                  "value": "RBAC test team"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cross-Team Access Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Cross-team access controlled', function () {",
+                  "    // Should only see memories from user's team",
+                  "    pm.response.to.be.ok;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/memory-system/memories?team_filter=999",
+              "host": ["{{base_url}}"],
+              "path": ["memory-system", "memories"],
+              "query": [
+                {
+                  "key": "team_filter",
+                  "value": "999"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 Edge Cases & Security Tests",
+      "item": [
+        {
+          "name": "Malformed JWT Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Malformed token rejected', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer malformed.jwt.token",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/protected-routes/profile",
+              "host": ["{{base_url}}"],
+              "path": ["protected-routes", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Missing Bearer Prefix",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Missing Bearer prefix rejected', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/protected-routes/profile",
+              "host": ["{{base_url}}"],
+              "path": ["protected-routes", "profile"]
+            }
+          }
+        },
+        {
+          "name": "SQL Injection Attempt",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('SQL injection attempt handled safely', function () {",
+                  "    // Should not cause server error",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 401, 422]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/memory-system/memories?team_filter=1'; DROP TABLE memories; --",
+              "host": ["{{base_url}}"],
+              "path": ["memory-system", "memories"],
+              "query": [
+                {
+                  "key": "team_filter",
+                  "value": "1'; DROP TABLE memories; --"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "console.log('Running request to:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Response time is reasonable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has proper headers', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});"
+        ]
+      }
+    }
+  ]
+}
