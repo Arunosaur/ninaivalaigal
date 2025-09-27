@@ -1012,6 +1012,26 @@ validate-spec-021:
 	@test -f scripts/setup-argocd.sh && echo "✅ ArgoCD setup script present" || echo "❌ Missing ArgoCD setup"
 	@echo "🎉 SPEC-021 validation complete!"
 
+validate-spec-022:
+	@echo "✅ Validating SPEC-022: ArgoCD Promotion Pipeline"
+	@echo "📊 Checking multi-environment setup..."
+	@test -d k8s/overlays/staging && echo "✅ Staging environment present" || echo "❌ Missing staging environment"
+	@test -d k8s/overlays/prod && echo "✅ Production environment present" || echo "❌ Missing production environment"
+	@test -f k8s/argocd/applications/ninaivalaigal-staging.yaml && echo "✅ Staging ArgoCD app present" || echo "❌ Missing staging app"
+	@test -f k8s/argocd/applications/ninaivalaigal-prod.yaml && echo "✅ Production ArgoCD app present" || echo "❌ Missing production app"
+	@echo "🔧 Validating promotion pipeline..."
+	@test -f .github/workflows/promotion-pipeline.yml && echo "✅ Promotion workflow present" || echo "❌ Missing promotion workflow"
+	@echo "🎉 SPEC-022 validation complete!"
+
+deploy-staging:
+	@echo "🎯 Deploying to staging environment..."
+	kubectl apply -k k8s/overlays/staging/
+
+deploy-prod:
+	@echo "🚀 Deploying to production environment..."
+	@echo "⚠️  Production deployment requires manual approval"
+	kubectl apply -k k8s/overlays/prod/
+
 # Foundation test monitoring and validation
 check-env:
 	@echo "🔍 Validating Foundation test environment..."

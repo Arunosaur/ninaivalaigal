@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ninaivalaigal-api
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: api-server
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        env:
+        - name: ENVIRONMENT
+          value: "staging"
+        - name: DEBUG
+          value: "false"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: PERFORMANCE_MONITORING
+          value: "true"
