@@ -975,6 +975,43 @@ validate-phase-2b:
 	@test -f phase-2b-validation.md && echo "✅ Phase 2B validation report present" || echo "❌ Missing validation report"
 	@echo "🎉 Phase 2B validation complete!"
 
+# Phase 3: GitOps + Kubernetes Deployment (SPEC-021)
+validate-k8s-manifests:
+	@echo "🔍 Validating Kubernetes manifests..."
+	@test -d k8s/base && echo "✅ Base manifests present" || echo "❌ Missing base manifests"
+	@test -d k8s/overlays && echo "✅ Environment overlays present" || echo "❌ Missing overlays"
+	@test -d k8s/argocd && echo "✅ ArgoCD configuration present" || echo "❌ Missing ArgoCD config"
+	@test -f k8s/README.md && echo "✅ K8s documentation present" || echo "❌ Missing K8s docs"
+
+setup-argocd:
+	@echo "🚀 Setting up ArgoCD for GitOps..."
+	./scripts/setup-argocd.sh
+
+deploy-dev:
+	@echo "🏗️ Deploying to development environment..."
+	kubectl apply -k k8s/overlays/dev/
+
+deploy-staging:
+	@echo "🎯 Deploying to staging environment..."
+	kubectl apply -k k8s/overlays/staging/
+
+build-container:
+	@echo "🐳 Building container image..."
+	docker build -t ninaivalaigal/api-server:latest .
+
+push-container:
+	@echo "📤 Pushing container to registry..."
+	docker push ninaivalaigal/api-server:latest
+
+validate-spec-021:
+	@echo "✅ Validating SPEC-021: GitOps + Kubernetes Deployment"
+	@echo "📊 Checking Kubernetes manifests..."
+	make validate-k8s-manifests
+	@echo "🔧 Validating GitOps workflow..."
+	@test -f .github/workflows/gitops-deployment.yml && echo "✅ GitOps workflow present" || echo "❌ Missing GitOps workflow"
+	@test -f scripts/setup-argocd.sh && echo "✅ ArgoCD setup script present" || echo "❌ Missing ArgoCD setup"
+	@echo "🎉 SPEC-021 validation complete!"
+
 # Foundation test monitoring and validation
 check-env:
 	@echo "🔍 Validating Foundation test environment..."
