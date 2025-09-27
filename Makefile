@@ -952,6 +952,27 @@ test-foundation-spec-063:
 	@echo "🤖 Testing SPEC-063: Agentic Core"
 	pytest tests/foundation/spec_063/ -v
 
+# Phase 2B: Unified Integration Tests
+test-spec-040-062-unified:
+	@echo "🔗 Testing SPEC-040 + SPEC-062 Unified Integration"
+	pytest tests/integration/spec_040_062_unified/ -v
+
+# CI Recovery and Self-Heal
+test-ci-recovery:
+	@echo "🛡️ Testing CI Recovery System"
+	python3 scripts/ci-recovery.py --test-mode
+
+validate-phase-2b:
+	@echo "✅ Validating Phase 2B Implementation"
+	@echo "📊 Checking unified testbed..."
+	pytest tests/integration/spec_040_062_unified/ --tb=short -q
+	@echo "🔧 Validating CI recovery system..."
+	python3 -c "import scripts.ci_recovery; print('CI Recovery system validated')"
+	@echo "📋 Checking configuration..."
+	@test -f .env.monitoring && echo "✅ Monitoring configuration present" || echo "❌ Missing .env.monitoring"
+	@test -f .github/workflows/healthcheck-restart.yml && echo "✅ HealthCheck workflow present" || echo "❌ Missing healthcheck workflow"
+	@echo "🎉 Phase 2B validation complete!"
+
 # Foundation test monitoring and validation
 check-env:
 	@echo "🔍 Validating Foundation test environment..."

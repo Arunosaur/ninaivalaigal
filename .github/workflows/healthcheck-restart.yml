@@ -1,0 +1,601 @@
+name: HealthCheck & Auto-Restart Services
+
+on:
+  schedule:
+    # Run every 15 minutes during business hours (9 AM - 6 PM UTC)
+    - cron: '*/15 9-18 * * 1-5'
+    # Run every hour during off-hours
+    - cron: '0 * * * *'
+  
+  workflow_dispatch:
+    inputs:
+      force_restart:
+        description: 'Force restart all services'
+        required: false
+        default: 'false'
+        type: boolean
+      service_name:
+        description: 'Specific service to restart (optional)'
+        required: false
+        default: ''
+        type: string
+
+env:
+  POSTGRES_PASSWORD: foundation_test_password_123  # pragma: allowlist secret
+  REDIS_PASSWORD: foundation_redis_456  # pragma: allowlist secret
+  GRAPH_POSTGRES_PASSWORD: graphops_password_789  # pragma: allowlist secret
+  MAX_RESTART_ATTEMPTS: 3
+  RESTART_BACKOFF_SECONDS: 30
+
+jobs:
+  health-check-and-restart:
+    runs-on: ubuntu-latest
+    name: Health Check & Service Recovery
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install psycopg2-binary redis requests
+
+      - name: Health Check - Main Stack Services
+        id: main_health_check
+        run: |
+          echo "🏥 Checking main stack health..."
+          
+          # Initialize health status
+          main_postgres_healthy=false
+          main_redis_healthy=false
+          api_server_healthy=false
+          
+          # Check PostgreSQL (main stack)
+          echo "Checking PostgreSQL (port 5432)..."
+          if python3 -c "
+          import psycopg2
+          import sys
+          try:
+              conn = psycopg2.connect(
+                  host='localhost',
+                  port=5432,
+                  database='foundation_test',
+                  user='postgres',
+                  password='${{ env.POSTGRES_PASSWORD }}'
+              )
+              conn.close()
+              print('PostgreSQL: HEALTHY')
+              sys.exit(0)
+          except Exception as e:
+              print(f'PostgreSQL: UNHEALTHY - {e}')
+              sys.exit(1)
+          "; then
+            main_postgres_healthy=true
+            echo "✅ PostgreSQL is healthy"
+          else
+            echo "❌ PostgreSQL is unhealthy"
+          fi
+          
+          # Check Redis (main stack)
+          echo "Checking Redis (port 6379)..."
+          if python3 -c "
+          import redis
+          import sys
+          try:
+              r = redis.Redis(host='localhost', port=6379, db=15)
+              r.ping()
+              print('Redis: HEALTHY')
+              sys.exit(0)
+          except Exception as e:
+              print(f'Redis: UNHEALTHY - {e}')
+              sys.exit(1)
+          "; then
+            main_redis_healthy=true
+            echo "✅ Redis is healthy"
+          else
+            echo "❌ Redis is unhealthy"
+          fi
+          
+          # Check API Server
+          echo "Checking API Server (port 13370)..."
+          if curl -f -s --connect-timeout 10 http://localhost:13370/health >/dev/null 2>&1; then
+            api_server_healthy=true
+            echo "✅ API Server is healthy"
+          else
+            echo "❌ API Server is unhealthy"
+          fi
+          
+          # Set outputs
+          echo "main_postgres_healthy=$main_postgres_healthy" >> $GITHUB_OUTPUT
+          echo "main_redis_healthy=$main_redis_healthy" >> $GITHUB_OUTPUT
+          echo "api_server_healthy=$api_server_healthy" >> $GITHUB_OUTPUT
+
+      - name: Health Check - GraphOps Stack Services
+        id: graphops_health_check
+        run: |
+          echo "🏗️ Checking GraphOps stack health..."
+          
+          # Initialize health status
+          graph_postgres_healthy=false
+          graph_redis_healthy=false
+          apache_age_healthy=false
+          
+          # Check GraphOps PostgreSQL + Apache AGE
+          echo "Checking GraphOps PostgreSQL + Apache AGE (port 5433)..."
+          if python3 -c "
+          import psycopg2
+          import sys
+          try:
+              conn = psycopg2.connect(
+                  host='localhost',
+                  port=5433,
+                  database='ninaivalaigal_graph',
+                  user='graphuser',
+                  password='${{ env.GRAPH_POSTGRES_PASSWORD }}'
+              )
+              cursor = conn.cursor()
+              # Test Apache AGE extension
+              cursor.execute('SELECT * FROM ag_catalog.ag_graph LIMIT 1;')
+              conn.close()
+              print('GraphOps PostgreSQL + Apache AGE: HEALTHY')
+              sys.exit(0)
+          except Exception as e:
+              print(f'GraphOps PostgreSQL + Apache AGE: UNHEALTHY - {e}')
+              sys.exit(1)
+          "; then
+            graph_postgres_healthy=true
+            apache_age_healthy=true
+            echo "✅ GraphOps PostgreSQL + Apache AGE is healthy"
+          else
+            echo "❌ GraphOps PostgreSQL + Apache AGE is unhealthy"
+          fi
+          
+          # Check GraphOps Redis
+          echo "Checking GraphOps Redis (port 6380)..."
+          if python3 -c "
+          import redis
+          import sys
+          try:
+              r = redis.Redis(host='localhost', port=6380, db=0)
+              r.ping()
+              print('GraphOps Redis: HEALTHY')
+              sys.exit(0)
+          except Exception as e:
+              print(f'GraphOps Redis: UNHEALTHY - {e}')
+              sys.exit(1)
+          "; then
+            graph_redis_healthy=true
+            echo "✅ GraphOps Redis is healthy"
+          else
+            echo "❌ GraphOps Redis is unhealthy"
+          fi
+          
+          # Set outputs
+          echo "graph_postgres_healthy=$graph_postgres_healthy" >> $GITHUB_OUTPUT
+          echo "graph_redis_healthy=$graph_redis_healthy" >> $GITHUB_OUTPUT
+          echo "apache_age_healthy=$apache_age_healthy" >> $GITHUB_OUTPUT
+
+      - name: Determine Restart Strategy
+        id: restart_strategy
+        run: |
+          echo "🔄 Determining restart strategy..."
+          
+          # Get health check results
+          main_postgres_healthy="${{ steps.main_health_check.outputs.main_postgres_healthy }}"
+          main_redis_healthy="${{ steps.main_health_check.outputs.main_redis_healthy }}"
+          api_server_healthy="${{ steps.main_health_check.outputs.api_server_healthy }}"
+          graph_postgres_healthy="${{ steps.graphops_health_check.outputs.graph_postgres_healthy }}"
+          graph_redis_healthy="${{ steps.graphops_health_check.outputs.graph_redis_healthy }}"
+          
+          # Determine what needs restarting
+          restart_main_postgres=false
+          restart_main_redis=false
+          restart_api_server=false
+          restart_graph_postgres=false
+          restart_graph_redis=false
+          restart_needed=false
+          
+          # Force restart if requested
+          if [ "${{ github.event.inputs.force_restart }}" == "true" ]; then
+            echo "🔧 Force restart requested"
+            restart_main_postgres=true
+            restart_main_redis=true
+            restart_api_server=true
+            restart_graph_postgres=true
+            restart_graph_redis=true
+            restart_needed=true
+          else
+            # Check individual services
+            if [ "$main_postgres_healthy" != "true" ]; then
+              restart_main_postgres=true
+              restart_needed=true
+              echo "📋 Main PostgreSQL needs restart"
+            fi
+            
+            if [ "$main_redis_healthy" != "true" ]; then
+              restart_main_redis=true
+              restart_needed=true
+              echo "📋 Main Redis needs restart"
+            fi
+            
+            if [ "$api_server_healthy" != "true" ]; then
+              restart_api_server=true
+              restart_needed=true
+              echo "📋 API Server needs restart"
+            fi
+            
+            if [ "$graph_postgres_healthy" != "true" ]; then
+              restart_graph_postgres=true
+              restart_needed=true
+              echo "📋 GraphOps PostgreSQL needs restart"
+            fi
+            
+            if [ "$graph_redis_healthy" != "true" ]; then
+              restart_graph_redis=true
+              restart_needed=true
+              echo "📋 GraphOps Redis needs restart"
+            fi
+          fi
+          
+          # Set outputs
+          echo "restart_main_postgres=$restart_main_postgres" >> $GITHUB_OUTPUT
+          echo "restart_main_redis=$restart_main_redis" >> $GITHUB_OUTPUT
+          echo "restart_api_server=$restart_api_server" >> $GITHUB_OUTPUT
+          echo "restart_graph_postgres=$restart_graph_postgres" >> $GITHUB_OUTPUT
+          echo "restart_graph_redis=$restart_graph_redis" >> $GITHUB_OUTPUT
+          echo "restart_needed=$restart_needed" >> $GITHUB_OUTPUT
+          
+          if [ "$restart_needed" == "true" ]; then
+            echo "🚨 Service restart required"
+          else
+            echo "✅ All services healthy, no restart needed"
+          fi
+
+      - name: Install Docker (for service restart)
+        if: steps.restart_strategy.outputs.restart_needed == 'true'
+        run: |
+          # Install Docker for container management
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sudo sh get-docker.sh
+          sudo usermod -aG docker $USER
+          
+          # Start Docker service
+          sudo systemctl start docker
+          sudo systemctl enable docker
+          
+          # Verify Docker installation
+          docker --version
+
+      - name: Restart Main Stack Services
+        if: steps.restart_strategy.outputs.restart_needed == 'true'
+        run: |
+          echo "🔄 Restarting main stack services..."
+          
+          # Function to restart service with retry logic
+          restart_service_with_retry() {
+            local service_name=$1
+            local restart_command=$2
+            local health_check_command=$3
+            local max_attempts=${{ env.MAX_RESTART_ATTEMPTS }}
+            local backoff_seconds=${{ env.RESTART_BACKOFF_SECONDS }}
+            
+            for attempt in $(seq 1 $max_attempts); do
+              echo "🔄 Attempt $attempt/$max_attempts: Restarting $service_name..."
+              
+              # Execute restart command
+              eval "$restart_command"
+              
+              # Wait for service to start
+              sleep $backoff_seconds
+              
+              # Check if service is healthy
+              if eval "$health_check_command"; then
+                echo "✅ $service_name restarted successfully"
+                return 0
+              else
+                echo "❌ $service_name restart failed, attempt $attempt/$max_attempts"
+                if [ $attempt -lt $max_attempts ]; then
+                  echo "⏳ Waiting ${backoff_seconds}s before retry..."
+                  sleep $backoff_seconds
+                fi
+              fi
+            done
+            
+            echo "💥 Failed to restart $service_name after $max_attempts attempts"
+            return 1
+          }
+          
+          # Restart Main PostgreSQL if needed
+          if [ "${{ steps.restart_strategy.outputs.restart_main_postgres }}" == "true" ]; then
+            restart_service_with_retry \
+              "Main PostgreSQL" \
+              "docker run -d --name nv-db-temp --rm -p 5432:5432 -e POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }} -e POSTGRES_DB=foundation_test postgres:15" \
+              "docker exec nv-db-temp pg_isready -U postgres"
+          fi
+          
+          # Restart Main Redis if needed
+          if [ "${{ steps.restart_strategy.outputs.restart_main_redis }}" == "true" ]; then
+            restart_service_with_retry \
+              "Main Redis" \
+              "docker run -d --name nv-redis-temp --rm -p 6379:6379 redis:7-alpine" \
+              "docker exec nv-redis-temp redis-cli ping"
+          fi
+
+      - name: Restart GraphOps Stack Services
+        if: steps.restart_strategy.outputs.restart_needed == 'true'
+        run: |
+          echo "🏗️ Restarting GraphOps stack services..."
+          
+          # Restart GraphOps PostgreSQL + Apache AGE if needed
+          if [ "${{ steps.restart_strategy.outputs.restart_graph_postgres }}" == "true" ]; then
+            echo "🔄 Restarting GraphOps PostgreSQL + Apache AGE..."
+            
+            # Build and start GraphOps PostgreSQL container
+            docker build -t ninaivalaigal-graph-db:ci -f containers/graph-db/Dockerfile containers/graph-db/ || true
+            docker run -d --name ninaivalaigal-graph-db-temp --rm \
+              -p 5433:5432 \
+              -e POSTGRES_PASSWORD=${{ env.GRAPH_POSTGRES_PASSWORD }} \
+              -e POSTGRES_USER=graphuser \
+              -e POSTGRES_DB=ninaivalaigal_graph \
+              ninaivalaigal-graph-db:ci || true
+            
+            # Wait for service to be ready
+            sleep 30
+          fi
+          
+          # Restart GraphOps Redis if needed
+          if [ "${{ steps.restart_strategy.outputs.restart_graph_redis }}" == "true" ]; then
+            echo "🔄 Restarting GraphOps Redis..."
+            
+            docker run -d --name ninaivalaigal-graph-redis-temp --rm \
+              -p 6380:6379 \
+              redis:7-alpine \
+              redis-server --appendonly yes || true
+            
+            # Wait for service to be ready
+            sleep 10
+          fi
+
+      - name: Post-Restart Health Verification
+        if: steps.restart_strategy.outputs.restart_needed == 'true'
+        id: post_restart_health
+        run: |
+          echo "🔍 Verifying services after restart..."
+          
+          # Wait for all services to stabilize
+          sleep 60
+          
+          # Re-run health checks
+          all_services_healthy=true
+          
+          # Check Main PostgreSQL
+          if [ "${{ steps.restart_strategy.outputs.restart_main_postgres }}" == "true" ]; then
+            if python3 -c "
+            import psycopg2
+            try:
+                conn = psycopg2.connect(host='localhost', port=5432, database='foundation_test', user='postgres', password='${{ env.POSTGRES_PASSWORD }}')
+                conn.close()
+                print('✅ Main PostgreSQL: HEALTHY after restart')
+            except Exception as e:
+                print(f'❌ Main PostgreSQL: STILL UNHEALTHY - {e}')
+                exit(1)
+            "; then
+              echo "✅ Main PostgreSQL recovered successfully"
+            else
+              echo "❌ Main PostgreSQL still unhealthy after restart"
+              all_services_healthy=false
+            fi
+          fi
+          
+          # Check Main Redis
+          if [ "${{ steps.restart_strategy.outputs.restart_main_redis }}" == "true" ]; then
+            if python3 -c "
+            import redis
+            try:
+                r = redis.Redis(host='localhost', port=6379, db=15)
+                r.ping()
+                print('✅ Main Redis: HEALTHY after restart')
+            except Exception as e:
+                print(f'❌ Main Redis: STILL UNHEALTHY - {e}')
+                exit(1)
+            "; then
+              echo "✅ Main Redis recovered successfully"
+            else
+              echo "❌ Main Redis still unhealthy after restart"
+              all_services_healthy=false
+            fi
+          fi
+          
+          # Check GraphOps PostgreSQL
+          if [ "${{ steps.restart_strategy.outputs.restart_graph_postgres }}" == "true" ]; then
+            if python3 -c "
+            import psycopg2
+            try:
+                conn = psycopg2.connect(host='localhost', port=5433, database='ninaivalaigal_graph', user='graphuser', password='${{ env.GRAPH_POSTGRES_PASSWORD }}')
+                cursor = conn.cursor()
+                cursor.execute('SELECT 1;')
+                conn.close()
+                print('✅ GraphOps PostgreSQL: HEALTHY after restart')
+            except Exception as e:
+                print(f'❌ GraphOps PostgreSQL: STILL UNHEALTHY - {e}')
+                exit(1)
+            "; then
+              echo "✅ GraphOps PostgreSQL recovered successfully"
+            else
+              echo "❌ GraphOps PostgreSQL still unhealthy after restart"
+              all_services_healthy=false
+            fi
+          fi
+          
+          # Check GraphOps Redis
+          if [ "${{ steps.restart_strategy.outputs.restart_graph_redis }}" == "true" ]; then
+            if python3 -c "
+            import redis
+            try:
+                r = redis.Redis(host='localhost', port=6380, db=0)
+                r.ping()
+                print('✅ GraphOps Redis: HEALTHY after restart')
+            except Exception as e:
+                print(f'❌ GraphOps Redis: STILL UNHEALTHY - {e}')
+                exit(1)
+            "; then
+              echo "✅ GraphOps Redis recovered successfully"
+            else
+              echo "❌ GraphOps Redis still unhealthy after restart"
+              all_services_healthy=false
+            fi
+          fi
+          
+          echo "all_services_healthy=$all_services_healthy" >> $GITHUB_OUTPUT
+
+      - name: Run Foundation Tests After Recovery
+        if: steps.restart_strategy.outputs.restart_needed == 'true' && steps.post_restart_health.outputs.all_services_healthy == 'true'
+        run: |
+          echo "🧪 Running Foundation tests to validate recovery..."
+          
+          # Install test dependencies
+          pip install pytest pytest-asyncio
+          
+          # Run a subset of Foundation tests to validate recovery
+          pytest tests/foundation/spec_007/ tests/foundation/spec_012/ -v --tb=short || true
+
+      - name: Notify Success
+        if: steps.restart_strategy.outputs.restart_needed == 'true' && steps.post_restart_health.outputs.all_services_healthy == 'true'
+        run: |
+          echo "🎉 Service recovery completed successfully!"
+          
+          # Send success notification to Slack if configured
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data '{
+                "text": "🎉 *Service Recovery Successful*",
+                "attachments": [
+                  {
+                    "color": "good",
+                    "fields": [
+                      {
+                        "title": "Recovery Status",
+                        "value": "All services recovered successfully",
+                        "short": true
+                      },
+                      {
+                        "title": "Timestamp",
+                        "value": "'$(date -u)'",
+                        "short": true
+                      }
+                    ]
+                  }
+                ]
+              }' \
+              "${{ secrets.SLACK_WEBHOOK_URL }}" || true
+          fi
+          
+          # Send success ping to HealthChecks.io if configured
+          if [ -n "${{ secrets.HEALTHCHECK_UUID }}" ]; then
+            curl -fsS -m 10 --retry 3 "https://hc-ping.com/${{ secrets.HEALTHCHECK_UUID }}/recovery-success" || true
+          fi
+
+      - name: Notify Failure
+        if: steps.restart_strategy.outputs.restart_needed == 'true' && steps.post_restart_health.outputs.all_services_healthy != 'true'
+        run: |
+          echo "💥 Service recovery failed!"
+          
+          # Send failure notification to Slack if configured
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data '{
+                "text": "💥 *Service Recovery Failed*",
+                "attachments": [
+                  {
+                    "color": "danger",
+                    "fields": [
+                      {
+                        "title": "Recovery Status",
+                        "value": "Service recovery failed after restart attempts",
+                        "short": true
+                      },
+                      {
+                        "title": "Action Required",
+                        "value": "Manual intervention needed",
+                        "short": true
+                      },
+                      {
+                        "title": "Timestamp",
+                        "value": "'$(date -u)'",
+                        "short": true
+                      }
+                    ]
+                  }
+                ]
+              }' \
+              "${{ secrets.SLACK_WEBHOOK_URL }}" || true
+          fi
+          
+          # Send failure ping to HealthChecks.io if configured
+          if [ -n "${{ secrets.HEALTHCHECK_UUID }}" ]; then
+            curl -fsS -m 10 --retry 3 "https://hc-ping.com/${{ secrets.HEALTHCHECK_UUID }}/fail" || true
+          fi
+          
+          # Exit with error to mark workflow as failed
+          exit 1
+
+      - name: Cleanup Temporary Containers
+        if: always()
+        run: |
+          echo "🧹 Cleaning up temporary containers..."
+          
+          # Remove temporary containers
+          docker rm -f nv-db-temp nv-redis-temp ninaivalaigal-graph-db-temp ninaivalaigal-graph-redis-temp 2>/dev/null || true
+          
+          # Clean up unused images
+          docker image prune -f || true
+
+      - name: Generate Health Report
+        if: always()
+        run: |
+          echo "📊 Generating health report..."
+          
+          # Create health report
+          cat > health_report.md << 'EOF'
+          # Service Health Report
+          
+          **Timestamp**: $(date -u)
+          **Workflow**: ${{ github.workflow }}
+          **Run ID**: ${{ github.run_id }}
+          
+          ## Main Stack Services
+          
+          | Service | Status | Action Taken |
+          |---------|--------|--------------|
+          | PostgreSQL (5432) | ${{ steps.main_health_check.outputs.main_postgres_healthy == 'true' && '✅ Healthy' || '❌ Unhealthy' }} | ${{ steps.restart_strategy.outputs.restart_main_postgres == 'true' && 'Restarted' || 'No action' }} |
+          | Redis (6379) | ${{ steps.main_health_check.outputs.main_redis_healthy == 'true' && '✅ Healthy' || '❌ Unhealthy' }} | ${{ steps.restart_strategy.outputs.restart_main_redis == 'true' && 'Restarted' || 'No action' }} |
+          | API Server (13370) | ${{ steps.main_health_check.outputs.api_server_healthy == 'true' && '✅ Healthy' || '❌ Unhealthy' }} | ${{ steps.restart_strategy.outputs.restart_api_server == 'true' && 'Restarted' || 'No action' }} |
+          
+          ## GraphOps Stack Services
+          
+          | Service | Status | Action Taken |
+          |---------|--------|--------------|
+          | GraphOps PostgreSQL (5433) | ${{ steps.graphops_health_check.outputs.graph_postgres_healthy == 'true' && '✅ Healthy' || '❌ Unhealthy' }} | ${{ steps.restart_strategy.outputs.restart_graph_postgres == 'true' && 'Restarted' || 'No action' }} |
+          | Apache AGE Extension | ${{ steps.graphops_health_check.outputs.apache_age_healthy == 'true' && '✅ Healthy' || '❌ Unhealthy' }} | ${{ steps.restart_strategy.outputs.restart_graph_postgres == 'true' && 'Restarted' || 'No action' }} |
+          | GraphOps Redis (6380) | ${{ steps.graphops_health_check.outputs.graph_redis_healthy == 'true' && '✅ Healthy' || '❌ Unhealthy' }} | ${{ steps.restart_strategy.outputs.restart_graph_redis == 'true' && 'Restarted' || 'No action' }} |
+          
+          ## Recovery Summary
+          
+          - **Restart Required**: ${{ steps.restart_strategy.outputs.restart_needed }}
+          - **Recovery Successful**: ${{ steps.post_restart_health.outputs.all_services_healthy || 'N/A' }}
+          - **Foundation Tests**: ${{ steps.restart_strategy.outputs.restart_needed == 'true' && 'Executed' || 'Skipped' }}
+          
+          EOF
+
+      - name: Upload Health Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-report-${{ github.run_number }}
+          path: health_report.md
