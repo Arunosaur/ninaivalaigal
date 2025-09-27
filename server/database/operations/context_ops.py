@@ -1,14 +1,30 @@
 """
 Context Operations
 Database operations for context management
+Implements context management with personal/team/organization scopes
 """
 
-from ..manager import DatabaseManager
-from ..models import Context
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Literal, Optional
+
+import asyncpg
+
+logger = logging.getLogger(__name__)
+
+# Type definitions for SPEC-007
+ContextScope = Literal["personal", "team", "organization"]
+ContextVisibility = Literal["private", "shared", "public"]
+PermissionLevel = Literal["read", "write", "admin", "owner"]
 
 
-class ContextOperations(DatabaseManager):
-    """Context-related database operations"""
+class ContextOps:
+    """Unified Context Scope System Operations
+    Implements context management with personal/team/organization scopes
+    """
+
+    def __init__(self, pool: asyncpg.Pool):
+        self.pool = pool
 
     def set_active_context(
         self, context_name: str, user_id: int = None, scope: str = None

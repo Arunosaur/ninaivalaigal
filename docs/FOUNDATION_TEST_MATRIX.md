@@ -1,7 +1,7 @@
 # Foundation SPEC Test Matrix
 
-**Version**: 1.0  
-**Last Updated**: September 27, 2024  
+**Version**: 1.0
+**Last Updated**: September 27, 2024
 **Status**: 100% Foundation SPECs Complete
 
 ## 📊 **Foundation SPEC Testing Status**

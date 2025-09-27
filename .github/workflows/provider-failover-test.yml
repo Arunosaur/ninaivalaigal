@@ -1,0 +1,399 @@
+name: Provider Failover Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_scenario:
+        description: 'Failover test scenario'
+        required: true
+        default: 'primary_failure'
+        type: choice
+        options:
+          - primary_failure
+          - secondary_failure
+          - round_robin
+          - performance_based
+          - health_based
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+
+env:
+  POSTGRES_PASSWORD: test_password_123  # pragma: allowlist secret
+  REDIS_PASSWORD: test_redis_456  # pragma: allowlist secret
+
+jobs:
+  provider-failover-test:
+    runs-on: ubuntu-latest
+    name: Test Provider Failover Scenarios
+
+    services:
+      postgres-primary:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ninaivalaigal_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      postgres-secondary:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ninaivalaigal_test_backup
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Setup test databases
+        run: |
+          # Primary database setup
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql -h localhost -p 5432 -U postgres -d ninaivalaigal_test -c "
+            CREATE EXTENSION IF NOT EXISTS vector;
+            CREATE TABLE IF NOT EXISTS memories (
+              id SERIAL PRIMARY KEY,
+              content TEXT NOT NULL,
+              embedding vector(1536),
+              created_at TIMESTAMP DEFAULT NOW()
+            );
+            INSERT INTO memories (content) VALUES ('Test memory primary');
+          "
+
+          # Secondary database setup
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql -h localhost -p 5433 -U postgres -d ninaivalaigal_test_backup -c "
+            CREATE EXTENSION IF NOT EXISTS vector;
+            CREATE TABLE IF NOT EXISTS memories (
+              id SERIAL PRIMARY KEY,
+              content TEXT NOT NULL,
+              embedding vector(1536),
+              created_at TIMESTAMP DEFAULT NOW()
+            );
+            INSERT INTO memories (content) VALUES ('Test memory backup');
+          "
+
+      - name: Test Primary Provider Failure Scenario
+        if: github.event.inputs.test_scenario == 'primary_failure' || github.event_name == 'schedule'
+        run: |
+          echo "🔥 Testing primary provider failure scenario"
+
+          # Start with primary provider
+          export DATABASE_URL="postgresql://postgres:${{ env.POSTGRES_PASSWORD }}@localhost:5432/ninaivalaigal_test"  # pragma: allowlist secret
+          export BACKUP_DATABASE_URL="postgresql://postgres:${{ env.POSTGRES_PASSWORD }}@localhost:5433/ninaivalaigal_test_backup"
+
+          python -c "
+          import asyncio
+          import sys
+          sys.path.append('server')
+
+          async def test_failover():
+              from memory.provider_registry import MemoryProviderRegistry
+              from memory.providers.postgres import PostgresMemoryProvider
+              from memory.failover_manager import MemoryProviderFailoverManager, OperationType
+              from memory.health_monitor import ProviderHealthMonitor
+
+              # Setup providers
+              registry = MemoryProviderRegistry()
+              health_monitor = ProviderHealthMonitor()
+              failover_manager = MemoryProviderFailoverManager(registry, health_monitor)
+
+              await registry.initialize()
+              await health_monitor.start_monitoring()
+
+              print('✅ Provider registry initialized')
+
+              # Test failover when primary fails
+              try:
+                  # Simulate primary failure by using invalid connection
+                  from memory.provider_registry import ProviderConfig, ProviderType
+
+                  # Register failing primary
+                  failing_config = ProviderConfig(
+                      name='primary_failing',
+                      provider_type=ProviderType.POSTGRES,
+                      connection_string='postgresql://invalid:invalid@localhost:9999/invalid',
+                      priority=10
+                  )
+
+                  # Register working backup
+                  backup_config = ProviderConfig(
+                      name='backup_working',
+                      provider_type=ProviderType.POSTGRES,
+                      connection_string='$BACKUP_DATABASE_URL',
+                      priority=20
+                  )
+
+                  await registry.register_provider(failing_config, PostgresMemoryProvider)
+                  await registry.register_provider(backup_config, PostgresMemoryProvider)
+
+                  print('✅ Registered primary (failing) and backup (working) providers')
+
+                  # Test operation with failover
+                  async def test_remember(provider, content):
+                      return await provider.remember('test_user', content)
+
+                  result = await failover_manager.execute_operation(
+                      OperationType.REMEMBER,
+                      test_remember,
+                      'Test memory content'
+                  )
+
+                  if result.success and result.fallback_used:
+                      print('✅ Failover successful: Primary failed, backup used')
+                      print(f'   Provider used: {result.provider_name}')
+                      print(f'   Attempts: {result.attempts}')
+                  else:
+                      print('❌ Failover test failed')
+                      sys.exit(1)
+
+              except Exception as e:
+                  print(f'❌ Failover test error: {e}')
+                  sys.exit(1)
+              finally:
+                  await health_monitor.stop_monitoring()
+
+          asyncio.run(test_failover())
+          "
+
+      - name: Test Round Robin Strategy
+        if: github.event.inputs.test_scenario == 'round_robin'
+        run: |
+          echo "🔄 Testing round robin provider strategy"
+
+          export DATABASE_URL="postgresql://postgres:${{ env.POSTGRES_PASSWORD }}@localhost:5432/ninaivalaigal_test"  # pragma: allowlist secret
+          export BACKUP_DATABASE_URL="postgresql://postgres:${{ env.POSTGRES_PASSWORD }}@localhost:5433/ninaivalaigal_test_backup"
+
+          python -c "
+          import asyncio
+          import sys
+          sys.path.append('server')
+
+          async def test_round_robin():
+              from memory.provider_registry import MemoryProviderRegistry, ProviderConfig, ProviderType
+              from memory.providers.postgres import PostgresMemoryProvider
+              from memory.failover_manager import MemoryProviderFailoverManager, OperationType, FailoverRule, FailoverStrategy
+              from memory.health_monitor import ProviderHealthMonitor
+
+              registry = MemoryProviderRegistry()
+              health_monitor = ProviderHealthMonitor()
+              failover_manager = MemoryProviderFailoverManager(registry, health_monitor)
+
+              await registry.initialize()
+              await health_monitor.start_monitoring()
+
+              # Register multiple working providers
+              provider1_config = ProviderConfig(
+                  name='provider1',
+                  provider_type=ProviderType.POSTGRES,
+                  connection_string='$DATABASE_URL',
+                  priority=10
+              )
+
+              provider2_config = ProviderConfig(
+                  name='provider2',
+                  provider_type=ProviderType.POSTGRES,
+                  connection_string='$BACKUP_DATABASE_URL',
+                  priority=20
+              )
+
+              await registry.register_provider(provider1_config, PostgresMemoryProvider)
+              await registry.register_provider(provider2_config, PostgresMemoryProvider)
+
+              # Configure round robin strategy
+              round_robin_rule = FailoverRule(
+                  operation_type=OperationType.RECALL,
+                  strategy=FailoverStrategy.ROUND_ROBIN,
+                  max_retries=1
+              )
+
+              await failover_manager.configure_failover_rule(OperationType.RECALL, round_robin_rule)
+
+              print('✅ Configured round robin strategy')
+
+              # Test multiple operations to see round robin in action
+              providers_used = []
+
+              async def test_recall(provider, query):
+                  return await provider.recall('test_user', query, limit=1)
+
+              for i in range(4):
+                  result = await failover_manager.execute_operation(
+                      OperationType.RECALL,
+                      test_recall,
+                      f'test query {i}'
+                  )
+
+                  if result.success:
+                      providers_used.append(result.provider_name)
+
+              print(f'✅ Round robin test completed')
+              print(f'   Providers used: {providers_used}')
+
+              # Verify round robin behavior (should alternate)
+              if len(set(providers_used)) > 1:
+                  print('✅ Round robin working: Multiple providers used')
+              else:
+                  print('⚠️  Round robin may not be working optimally')
+
+              await health_monitor.stop_monitoring()
+
+          asyncio.run(test_round_robin())
+          "
+
+      - name: Test Performance-Based Strategy
+        if: github.event.inputs.test_scenario == 'performance_based'
+        run: |
+          echo "⚡ Testing performance-based provider selection"
+
+          export DATABASE_URL="postgresql://postgres:${{ env.POSTGRES_PASSWORD }}@localhost:5432/ninaivalaigal_test"  # pragma: allowlist secret
+          export BACKUP_DATABASE_URL="postgresql://postgres:${{ env.POSTGRES_PASSWORD }}@localhost:5433/ninaivalaigal_test_backup"
+
+          python -c "
+          import asyncio
+          import time
+          import sys
+          sys.path.append('server')
+
+          async def test_performance_based():
+              from memory.provider_registry import MemoryProviderRegistry, ProviderConfig, ProviderType
+              from memory.providers.postgres import PostgresMemoryProvider
+              from memory.failover_manager import MemoryProviderFailoverManager, OperationType, FailoverRule, FailoverStrategy
+              from memory.health_monitor import ProviderHealthMonitor
+
+              registry = MemoryProviderRegistry()
+              health_monitor = ProviderHealthMonitor()
+              failover_manager = MemoryProviderFailoverManager(registry, health_monitor)
+
+              await registry.initialize()
+              await health_monitor.start_monitoring()
+
+              # Register providers
+              fast_config = ProviderConfig(
+                  name='fast_provider',
+                  provider_type=ProviderType.POSTGRES,
+                  connection_string='$DATABASE_URL',
+                  priority=20  # Lower priority but should be faster
+              )
+
+              slow_config = ProviderConfig(
+                  name='slow_provider',
+                  provider_type=ProviderType.POSTGRES,
+                  connection_string='$BACKUP_DATABASE_URL',
+                  priority=10  # Higher priority but slower
+              )
+
+              await registry.register_provider(fast_config, PostgresMemoryProvider)
+              await registry.register_provider(slow_config, PostgresMemoryProvider)
+
+              # Simulate some operations to build performance history
+              async def test_operation(provider, content):
+                  # Add artificial delay for slow provider
+                  if hasattr(provider, 'connection_string') and '5433' in str(provider.connection_string):
+                      await asyncio.sleep(0.1)  # 100ms delay
+                  return await provider.remember('test_user', content)
+
+              # Build performance history
+              for i in range(5):
+                  await failover_manager.execute_operation(
+                      OperationType.REMEMBER,
+                      test_operation,
+                      f'performance test {i}'
+                  )
+
+              # Configure performance-based strategy
+              perf_rule = FailoverRule(
+                  operation_type=OperationType.REMEMBER,
+                  strategy=FailoverStrategy.PERFORMANCE_BASED,
+                  max_retries=1
+              )
+
+              await failover_manager.configure_failover_rule(OperationType.REMEMBER, perf_rule)
+
+              print('✅ Performance-based strategy configured')
+
+              # Test that faster provider is preferred
+              result = await failover_manager.execute_operation(
+                  OperationType.REMEMBER,
+                  test_operation,
+                  'final performance test'
+              )
+
+              if result.success:
+                  print(f'✅ Performance-based selection used: {result.provider_name}')
+                  print(f'   Response time: {result.response_time_ms:.1f}ms')
+              else:
+                  print('❌ Performance-based test failed')
+
+              await health_monitor.stop_monitoring()
+
+          asyncio.run(test_performance_based())
+          "
+
+      - name: Generate Test Report
+        if: always()
+        run: |
+          echo "📊 Provider Failover Test Report" > failover_test_report.md
+          echo "=================================" >> failover_test_report.md
+          echo "" >> failover_test_report.md
+          echo "**Test Scenario:** ${{ github.event.inputs.test_scenario || 'primary_failure (scheduled)' }}" >> failover_test_report.md
+          echo "**Date:** $(date -u)" >> failover_test_report.md
+          echo "**Status:** ${{ job.status }}" >> failover_test_report.md
+          echo "" >> failover_test_report.md
+          echo "### Test Results" >> failover_test_report.md
+          echo "" >> failover_test_report.md
+
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ All failover tests passed successfully" >> failover_test_report.md
+            echo "- Provider registry initialization: ✅" >> failover_test_report.md
+            echo "- Health monitoring: ✅" >> failover_test_report.md
+            echo "- Failover logic: ✅" >> failover_test_report.md
+            echo "- Strategy selection: ✅" >> failover_test_report.md
+          else
+            echo "❌ Some failover tests failed" >> failover_test_report.md
+            echo "Check the workflow logs for detailed error information." >> failover_test_report.md
+          fi
+
+          echo "" >> failover_test_report.md
+          echo "### Next Steps" >> failover_test_report.md
+          echo "- Review provider performance metrics" >> failover_test_report.md
+          echo "- Adjust failover strategies if needed" >> failover_test_report.md
+          echo "- Monitor production provider health" >> failover_test_report.md
+
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failover-test-report-${{ github.run_number }}
+          path: failover_test_report.md

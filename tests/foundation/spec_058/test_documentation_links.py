@@ -14,6 +14,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 import yaml
 
+
 class TestDocumentationLinks:
     """Test documentation links and validation for SPEC-058"""
 
@@ -22,11 +23,11 @@ class TestDocumentationLinks:
         """List of documentation files to test"""
         return [
             "docs/ARCHITECTURE_OVERVIEW.md",
-            "docs/API_DOCUMENTATION.md", 
+            "docs/API_DOCUMENTATION.md",
             "docs/MEMORY_LIFECYCLE.md",
             "docs/TESTING_GUIDE.md",
             "docs/CONTRIBUTING.md",
-            "docs/SPEC_REFERENCE_MAPPING.md"
+            "docs/SPEC_REFERENCE_MAPPING.md",
         ]
 
     @pytest.fixture

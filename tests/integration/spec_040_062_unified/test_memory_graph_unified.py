@@ -22,22 +22,24 @@ class TestMemoryGraphUnified:
     """Test unified memory-graph integration for SPEC-040 + SPEC-062"""
 
     @pytest.fixture
-    def graphops_config(self):
-        """GraphOps deployment configuration"""
+    def integrated_stack_config(self):
+        """Integrated stack configuration (main stack with GraphOps components)"""
         return {
-            "graph_db": {
+            "main_db": {
                 "host": "localhost",
-                "port": 5433,
-                "database": "ninaivalaigal_graph",
-                "user": "graphuser",
-                "password": "graphpass"  # pragma: allowlist secret
+                "port": 5432,
+                "database": "foundation_test",
+                "user": "postgres",
+                "password": "foundation_test_password_123"  # pragma: allowlist secret
             },
-            "graph_redis": {
+            "main_redis": {
                 "host": "localhost", 
-                "port": 6380,
-                "db": 0
+                "port": 6379,
+                "db": 15
             },
-            "apache_age": {
+            "graph_capabilities": {
+                "enabled": True,
+                "extension": "apache_age",
                 "graph_name": "ninaivalaigal_memory_graph",
                 "schema": "ag_catalog"
             }
@@ -64,47 +66,61 @@ class TestMemoryGraphUnified:
         }
 
     @pytest.fixture
-    async def unified_testbed(self, graphops_config, memory_feedback_config):
+    def unified_testbed(self, integrated_stack_config, memory_feedback_config):
         """Set up unified testbed environment"""
         testbed = {
-            "graphops_running": False,
+            "main_stack_running": False,
+            "graph_capabilities_enabled": False,
             "memory_provider_ready": False,
             "unified_integration_active": False
         }
         
-        # Check if GraphOps stack is running
+        # Check if main stack with graph capabilities is running
         try:
-            # Test PostgreSQL + Apache AGE connection
+            # Test PostgreSQL connection (main database)
             import psycopg2
             conn = psycopg2.connect(
-                host=graphops_config["graph_db"]["host"],
-                port=graphops_config["graph_db"]["port"],
-                database=graphops_config["graph_db"]["database"],
-                user=graphops_config["graph_db"]["user"],
-                password=graphops_config["graph_db"]["password"]
+                host=integrated_stack_config["main_db"]["host"],
+                port=integrated_stack_config["main_db"]["port"],
+                database=integrated_stack_config["main_db"]["database"],
+                user=integrated_stack_config["main_db"]["user"],
+                password=integrated_stack_config["main_db"]["password"]
             )
+            
+            # Test if Apache AGE extension is available (if graph capabilities enabled)
+            if integrated_stack_config["graph_capabilities"]["enabled"]:
+                cursor = conn.cursor()
+                try:
+                    cursor.execute("SELECT extname FROM pg_extension WHERE extname = 'age';")
+                    if cursor.fetchone():
+                        testbed["graph_capabilities_enabled"] = True
+                except Exception:
+                    # AGE extension not installed, but main DB is working
+                    pass
+                cursor.close()
+            
             conn.close()
-            testbed["graphops_running"] = True
+            testbed["main_stack_running"] = True
         except Exception:
-            pytest.skip("GraphOps stack not running - run 'make start-graph-infrastructure'")
+            pytest.skip("Main stack not running - run 'make start-infrastructure'")
         
         # Check if Redis is accessible
         try:
             import redis
             r = redis.Redis(
-                host=graphops_config["graph_redis"]["host"],
-                port=graphops_config["graph_redis"]["port"],
-                db=graphops_config["graph_redis"]["db"]
+                host=integrated_stack_config["main_redis"]["host"],
+                port=integrated_stack_config["main_redis"]["port"],
+                db=integrated_stack_config["main_redis"]["db"]
             )
             r.ping()
             testbed["memory_provider_ready"] = True
         except Exception:
-            pytest.skip("Graph Redis not accessible")
+            pytest.skip("Main Redis not accessible")
         
         testbed["unified_integration_active"] = True
         return testbed
 
-    def test_memory_ingest_to_graph_creation_flow(self, unified_testbed, graphops_config):
+    def test_memory_ingest_to_graph_creation_flow(self, unified_testbed, integrated_stack_config):
         """Test SPEC-040 + SPEC-062: Memory ingest → tokenization → embedding → graph node creation"""
         
         # Test memory ingest workflow
@@ -174,7 +190,7 @@ class TestMemoryGraphUnified:
         # Validate total flow performance
         assert total_processing_time <= 500, f"Total memory ingest flow should complete within 500ms, got {total_processing_time}ms"
 
-    def test_graph_traversal_to_memory_recall_flow(self, unified_testbed, graphops_config):
+    def test_graph_traversal_to_memory_recall_flow(self, unified_testbed, integrated_stack_config):
         """Test SPEC-040 + SPEC-062: Graph traversal → memory recall → context injection"""
         
         # Test memory recall workflow
@@ -299,6 +315,7 @@ class TestMemoryGraphUnified:
                     {"action": "adjust_recall_rankings", "affected_contexts": ["work/project_alpha"]},
                     {"action": "trigger_feedback_learning", "learning_signal": "positive_relationship"}
                 ],
+                "expected_graph_updates": [],
                 "sync_time_target_ms": 50
             }
         ]
@@ -481,14 +498,14 @@ class TestMemoryGraphUnified:
             assert recovery_time <= 600, f"Error scenario {scenario['error_type']} recovery time should be reasonable (≤10 minutes)"
 
     @pytest.mark.integration
-    def test_full_unified_workflow_validation(self, unified_testbed, graphops_config, memory_feedback_config):
+    def test_full_unified_workflow_validation(self, unified_testbed, integrated_stack_config, memory_feedback_config):
         """Test SPEC-040 + SPEC-062: Complete end-to-end unified workflow validation"""
         
         # Complete workflow test
         workflow_steps = [
             {
                 "step": "environment_validation",
-                "validations": [
+                "operations": [
                     "graphops_stack_running",
                     "memory_provider_accessible",
                     "embedding_service_available",

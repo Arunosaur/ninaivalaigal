@@ -53,18 +53,6 @@ class CIRecoverySystem:
                 'port': 6379,
                 'db': 15
             },
-            'postgres_graph': {
-                'host': 'localhost',
-                'port': 5433,
-                'database': 'ninaivalaigal_graph',
-                'user': 'graphuser',
-                'password': os.getenv('GRAPH_POSTGRES_PASSWORD', 'graphops_password_789')
-            },
-            'redis_graph': {
-                'host': 'localhost',
-                'port': 6380,
-                'db': 0
-            },
             'api_server': {
                 'host': 'localhost',
                 'port': 13370,
@@ -79,10 +67,6 @@ class CIRecoverySystem:
                 return self._check_postgres_health(self.config['postgres_main'])
             elif service_name == 'redis_main':
                 return self._check_redis_health(self.config['redis_main'])
-            elif service_name == 'postgres_graph':
-                return self._check_postgres_health(self.config['postgres_graph'])
-            elif service_name == 'redis_graph':
-                return self._check_redis_health(self.config['redis_graph'])
             elif service_name == 'api_server':
                 return self._check_api_health(self.config['api_server'])
             else:
@@ -148,10 +132,6 @@ class CIRecoverySystem:
                 return self._restart_postgres_main()
             elif service_name == 'redis_main':
                 return self._restart_redis_main()
-            elif service_name == 'postgres_graph':
-                return self._restart_postgres_graph()
-            elif service_name == 'redis_graph':
-                return self._restart_redis_graph()
             elif service_name == 'api_server':
                 return self._restart_api_server()
             else:
@@ -184,31 +164,6 @@ class CIRecoverySystem:
         
         return self._execute_restart_commands(commands, 'redis_main')
     
-    def _restart_postgres_graph(self) -> bool:
-        """Restart GraphOps PostgreSQL service"""
-        commands = [
-            "docker stop ninaivalaigal-graph-db || true",
-            "docker rm ninaivalaigal-graph-db || true",
-            "docker build -t ninaivalaigal-graph-db:recovery -f containers/graph-db/Dockerfile containers/graph-db/",
-            f"docker run -d --name ninaivalaigal-graph-db -p 5433:5432 "
-            f"-e POSTGRES_PASSWORD={self.config['postgres_graph']['password']} "
-            f"-e POSTGRES_USER={self.config['postgres_graph']['user']} "
-            f"-e POSTGRES_DB={self.config['postgres_graph']['database']} "
-            f"ninaivalaigal-graph-db:recovery"
-        ]
-        
-        return self._execute_restart_commands(commands, 'postgres_graph')
-    
-    def _restart_redis_graph(self) -> bool:
-        """Restart GraphOps Redis service"""
-        commands = [
-            "docker stop ninaivalaigal-graph-redis || true",
-            "docker rm ninaivalaigal-graph-redis || true",
-            "docker run -d --name ninaivalaigal-graph-redis -p 6380:6379 "
-            "redis:7-alpine redis-server --appendonly yes"
-        ]
-        
-        return self._execute_restart_commands(commands, 'redis_graph')
     
     def _restart_api_server(self) -> bool:
         """Restart API server"""
@@ -426,8 +381,6 @@ def main():
     services_to_check = [
         'postgres_main',
         'redis_main', 
-        'postgres_graph',
-        'redis_graph',
         'api_server'
     ]
     

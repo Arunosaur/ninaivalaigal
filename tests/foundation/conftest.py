@@ -4,15 +4,16 @@ Foundation SPEC Tests Configuration
 Shared fixtures and configuration for all Foundation SPEC tests.
 """
 
-import pytest
 import asyncio
 import os
 from datetime import datetime, timezone
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 from unittest.mock import AsyncMock, Mock
 
+import pytest
+
 # Configure pytest-asyncio
-pytest_plugins = ('pytest_asyncio',)
+pytest_plugins = ("pytest_asyncio",)
 
 
 @pytest.fixture(scope="session")

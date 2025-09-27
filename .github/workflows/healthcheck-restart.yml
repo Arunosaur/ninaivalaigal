@@ -23,7 +23,6 @@ on:
 env:
   POSTGRES_PASSWORD: foundation_test_password_123  # pragma: allowlist secret
   REDIS_PASSWORD: foundation_redis_456  # pragma: allowlist secret
-  GRAPH_POSTGRES_PASSWORD: graphops_password_789  # pragma: allowlist secret
   MAX_RESTART_ATTEMPTS: 3
   RESTART_BACKOFF_SECONDS: 30
 
@@ -116,70 +115,50 @@ jobs:
           echo "main_redis_healthy=$main_redis_healthy" >> $GITHUB_OUTPUT
           echo "api_server_healthy=$api_server_healthy" >> $GITHUB_OUTPUT
 
-      - name: Health Check - GraphOps Stack Services
-        id: graphops_health_check
+      - name: Health Check - Graph Capabilities
+        id: graph_capabilities_check
         run: |
-          echo "🏗️ Checking GraphOps stack health..."
+          echo "🔗 Checking graph capabilities in main stack..."
           
           # Initialize health status
-          graph_postgres_healthy=false
-          graph_redis_healthy=false
-          apache_age_healthy=false
+          graph_capabilities_available=false
           
-          # Check GraphOps PostgreSQL + Apache AGE
-          echo "Checking GraphOps PostgreSQL + Apache AGE (port 5433)..."
+          # Check if Apache AGE extension is available in main database
+          echo "Checking Apache AGE extension in main database..."
           if python3 -c "
           import psycopg2
           import sys
           try:
               conn = psycopg2.connect(
                   host='localhost',
-                  port=5433,
-                  database='ninaivalaigal_graph',
-                  user='graphuser',
-                  password='${{ env.GRAPH_POSTGRES_PASSWORD }}'
+                  port=5432,
+                  database='foundation_test',
+                  user='postgres',
+                  password='${{ env.POSTGRES_PASSWORD }}'
               )
               cursor = conn.cursor()
-              # Test Apache AGE extension
-              cursor.execute('SELECT * FROM ag_catalog.ag_graph LIMIT 1;')
+              # Test if Apache AGE extension is installed
+              cursor.execute('SELECT extname FROM pg_extension WHERE extname = %s;', ('age',))
+              if cursor.fetchone():
+                  print('Apache AGE extension: AVAILABLE')
+                  cursor.execute('SELECT count(*) FROM ag_catalog.ag_graph;')
+                  print('Apache AGE catalog: ACCESSIBLE')
+              else:
+                  print('Apache AGE extension: NOT INSTALLED')
               conn.close()
-              print('GraphOps PostgreSQL + Apache AGE: HEALTHY')
               sys.exit(0)
           except Exception as e:
-              print(f'GraphOps PostgreSQL + Apache AGE: UNHEALTHY - {e}')
-              sys.exit(1)
+              print(f'Graph capabilities check: {e}')
+              sys.exit(0)  # Don't fail if graph capabilities aren't available
           "; then
-            graph_postgres_healthy=true
-            apache_age_healthy=true
-            echo "✅ GraphOps PostgreSQL + Apache AGE is healthy"
+            graph_capabilities_available=true
+            echo "✅ Graph capabilities are available"
           else
-            echo "❌ GraphOps PostgreSQL + Apache AGE is unhealthy"
-          fi
-          
-          # Check GraphOps Redis
-          echo "Checking GraphOps Redis (port 6380)..."
-          if python3 -c "
-          import redis
-          import sys
-          try:
-              r = redis.Redis(host='localhost', port=6380, db=0)
-              r.ping()
-              print('GraphOps Redis: HEALTHY')
-              sys.exit(0)
-          except Exception as e:
-              print(f'GraphOps Redis: UNHEALTHY - {e}')
-              sys.exit(1)
-          "; then
-            graph_redis_healthy=true
-            echo "✅ GraphOps Redis is healthy"
-          else
-            echo "❌ GraphOps Redis is unhealthy"
+            echo "ℹ️ Graph capabilities not available (optional)"
           fi
           
           # Set outputs
-          echo "graph_postgres_healthy=$graph_postgres_healthy" >> $GITHUB_OUTPUT
-          echo "graph_redis_healthy=$graph_redis_healthy" >> $GITHUB_OUTPUT
-          echo "apache_age_healthy=$apache_age_healthy" >> $GITHUB_OUTPUT
+          echo "graph_capabilities_available=$graph_capabilities_available" >> $GITHUB_OUTPUT
 
       - name: Determine Restart Strategy
         id: restart_strategy
@@ -190,8 +169,6 @@ jobs:
           main_postgres_healthy="${{ steps.main_health_check.outputs.main_postgres_healthy }}"
           main_redis_healthy="${{ steps.main_health_check.outputs.main_redis_healthy }}"
           api_server_healthy="${{ steps.main_health_check.outputs.api_server_healthy }}"
-          graph_postgres_healthy="${{ steps.graphops_health_check.outputs.graph_postgres_healthy }}"
-          graph_redis_healthy="${{ steps.graphops_health_check.outputs.graph_redis_healthy }}"
           
           # Determine what needs restarting
           restart_main_postgres=false

@@ -9,7 +9,7 @@ fix_line_with_pattern() {
     local file="$1"
     local pattern="$2"
     local comment="# pragma: allowlist secret"
-    
+
     if [[ -f "$file" ]]; then
         # Only add pragma if line doesn't already have it
         grep -n "$pattern" "$file" | while IFS=: read -r line_num line_content; do
@@ -45,7 +45,7 @@ if [[ -f "server/auth_async.py" ]]; then
     rm -f "server/auth_async.py.bak" 2>/dev/null || true
 fi
 
-echo "  Fixing: server/auth_utils.py"  
+echo "  Fixing: server/auth_utils.py"
 if [[ -f "server/auth_utils.py" ]]; then
     sed -i.bak 's/SECRET_KEY/&  # pragma: allowlist secret/' "server/auth_utils.py" 2>/dev/null || true
     rm -f "server/auth_utils.py.bak" 2>/dev/null || true
