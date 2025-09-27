@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ninaivalaigal-staging
+
+resources:
+- ../../base/api-server
+- ../../base/postgresql
+- ../../base/redis
+- ../../base/ingress
+
+commonLabels:
+  environment: staging
+  project: ninaivalaigal
+
+images:
+- name: ninaivalaigal/api-server
+  newTag: staging-latest
+
+replicas:
+- name: ninaivalaigal-api
+  count: 2
+- name: postgresql
+  count: 1
+- name: redis
+  count: 1
+
+patchesStrategicMerge:
+- patches/api-server-staging.yaml
+- patches/postgresql-staging.yaml
+- patches/ingress-staging.yaml
+
+secretGenerator:
+- name: database-secret
+  literals:
+  - url=postgresql://postgres:staging_password@postgresql-service:5432/foundation_test
+- name: redis-secret
+  literals:
+  - url=redis://redis-service:6379/14
+- name: api-secret
+  literals:
+  - jwt-secret=staging-jwt-secret-key-change-in-prod
+
+configMapGenerator:
+- name: postgresql-config
+  files:
+  - postgresql.conf=configs/postgresql-staging.conf
+- name: redis-config
+  files:
+  - redis.conf=configs/redis-staging.conf

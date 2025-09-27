@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ninaivalaigal-prod
+  namespace: argocd
+  labels:
+    environment: production
+    project: ninaivalaigal
+  annotations:
+    argocd.argoproj.io/sync-options: "SkipDryRunOnMissingResource=true"
+spec:
+  project: ninaivalaigal
+  source:
+    repoURL: https://github.com/Arunosaur/ninaivalaigal.git
+    targetRevision: main
+    path: k8s/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ninaivalaigal-prod
+  syncPolicy:
+    # MANUAL SYNC ONLY - Production requires approval
+    automated: null
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 2
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 10m
+  revisionHistoryLimit: 20
+  # Production-specific configuration
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas  # Allow HPA to manage replicas

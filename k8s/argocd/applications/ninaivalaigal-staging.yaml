@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ninaivalaigal-staging
+  namespace: argocd
+  labels:
+    environment: staging
+    project: ninaivalaigal
+spec:
+  project: ninaivalaigal
+  source:
+    repoURL: https://github.com/Arunosaur/ninaivalaigal.git
+    targetRevision: main
+    path: k8s/overlays/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ninaivalaigal-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+  revisionHistoryLimit: 10

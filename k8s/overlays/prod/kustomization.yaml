@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ninaivalaigal-prod
+
+resources:
+- ../../base/api-server
+- ../../base/postgresql
+- ../../base/redis
+- ../../base/ingress
+
+commonLabels:
+  environment: production
+  project: ninaivalaigal
+
+images:
+- name: ninaivalaigal/api-server
+  newTag: prod-latest
+
+replicas:
+- name: ninaivalaigal-api
+  count: 3
+- name: postgresql
+  count: 1
+- name: redis
+  count: 1
+
+patchesStrategicMerge:
+- patches/api-server-prod.yaml
+- patches/postgresql-prod.yaml
+- patches/redis-prod.yaml
+- patches/ingress-prod.yaml
+
+secretGenerator:
+- name: database-secret
+  literals:
+  - url=postgresql://postgres:CHANGE_IN_PRODUCTION@postgresql-service:5432/foundation_test
+- name: redis-secret
+  literals:
+  - url=redis://redis-service:6379/0
+- name: api-secret
+  literals:
+  - jwt-secret=CHANGE_IN_PRODUCTION_JWT_SECRET
+
+configMapGenerator:
+- name: postgresql-config
+  files:
+  - postgresql.conf=configs/postgresql-prod.conf
+- name: redis-config
+  files:
+  - redis.conf=configs/redis-prod.conf
