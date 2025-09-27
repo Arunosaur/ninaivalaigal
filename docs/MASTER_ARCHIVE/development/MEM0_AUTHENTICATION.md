@@ -29,7 +29,7 @@ For enhanced security, the sidecar supports HMAC-SHA256 authentication with time
 # Generate HMAC token (format: timestamp:signature)
 timestamp=$(date +%s)
 signature=$(echo -n "$timestamp" | openssl dgst -sha256 -hmac "$MEMORY_SHARED_SECRET" -hex | cut -d' ' -f2)
-token="${timestamp}:${signature}"
+token="${timestamp}:${signature}"  # pragma: allowlist secret
 
 # Make authenticated request
 curl -H "Authorization: Bearer $token" \

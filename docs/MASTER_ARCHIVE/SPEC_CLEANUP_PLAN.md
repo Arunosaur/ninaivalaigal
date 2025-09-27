@@ -1,7 +1,7 @@
 # SPEC DIRECTORY CLEANUP PLAN
 
-**Current State**: 77 SPEC directories with duplicates and inconsistencies  
-**Target State**: 73 clean SPEC directories (000-072)  
+**Current State**: 77 SPEC directories with duplicates and inconsistencies
+**Target State**: 73 clean SPEC directories (000-072)
 **Issues Found**: Duplicate directories, inconsistent naming, orphaned files
 
 ## 🔍 **DUPLICATE DIRECTORIES IDENTIFIED**
@@ -10,7 +10,7 @@
 - `010-observability-and-telemetry/` (4 items) ✅ KEEP
 - `010-observability-telemetry/` (1 item) ❌ REMOVE
 
-### **SPEC-037 Duplicates** 
+### **SPEC-037 Duplicates**
 - `037-terminal-cli-auto-context/` (1 item) ✅ KEEP
 - `037-vs-code-integration/` (1 item) ❌ MERGE INTO 037
 
@@ -23,7 +23,7 @@
 - `041-memory-visibility-sharing/` (1 item) ❌ MERGE INTO 049
 
 ### **SPEC-042 Duplicates**
-- `042-memory-health-orphaned-tokens/` (1 item) ✅ KEEP
+- `042-memory-health-orphaned-token  # pragma: allowlist secrets/` (1 item) ✅ KEEP
 - `042-memory-sync-users-teams/` (1 item) ❌ MERGE INTO 004
 
 ### **SPEC-043 Duplicates**
@@ -35,7 +35,7 @@
 - `044-memory-drift-diff-detection/` (1 item) ❌ MERGE INTO 035
 
 ### **SPEC-045 Duplicates**
-- `045-session-timeout-token-expiry/` (2 items) ✅ KEEP
+- `045-session-timeout-token  # pragma: allowlist secret-expiry/` (2 items) ✅ KEEP
 - `045-memory-export-import-merge/` (1 item) ❌ MERGE INTO 035
 
 ## 📁 **ORPHANED FILES**

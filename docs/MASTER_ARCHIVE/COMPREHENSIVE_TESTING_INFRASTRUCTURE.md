@@ -1,8 +1,8 @@
 # Comprehensive Testing Infrastructure
 ## Auth-Aware E2E Testing Framework - Complete Implementation
 
-**Document Version**: 1.0  
-**Completion Date**: September 23, 2024  
+**Document Version**: 1.0
+**Completion Date**: September 23, 2024
 **Status**: Complete Testing Infrastructure Package
 
 ## 🎯 **Executive Summary**
@@ -15,10 +15,10 @@ Successfully implemented a comprehensive testing infrastructure providing auth-a
 **File**: `tests/auth_aware_testing.py` (500+ lines)
 
 **Core Capabilities**:
-- **JWT Token Validation**: Comprehensive token parsing, expiry, and malformed token handling
+- **JWT Token Validation**: Comprehensive token  # pragma: allowlist secret parsing, expiry, and malformed token handling
 - **Role-Based Access Control**: RBAC testing across all endpoints with different user roles
 - **Team Membership Validation**: Team-specific access control and membership verification
-- **Session Invalidation**: Expired token rejection, malformed token handling, missing token scenarios
+- **Session Invalidation**: Expired token  # pragma: allowlist secret rejection, malformed token handling, missing token scenarios
 - **Permission Inheritance**: Complex permission hierarchy testing and validation
 
 **Test Scenarios**:
@@ -200,7 +200,7 @@ results = suite.run_complete_test_suite()
 - name: Run Comprehensive Tests
   run: |
     python tests/comprehensive_test_runner.py
-    
+
 - name: Upload Test Results
   uses: actions/upload-artifact@v3
   with:

@@ -13,7 +13,7 @@ This PR bundles:
 2) `pip install -r requirements-dev.txt`
 3) `pre-commit install`
 4) `docker compose -f docker-compose.ci.yml up -d pgvector`
-5) `export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres`
+5) `export DATABASE_URL=postgresql://postgres:postgres@  # pragma: allowlist secretlocalhost:5432/postgres`
 6) `alembic upgrade head` (or apply SQL migration)
 7) `pytest -q tests/test_factory_switch_smoke.py`
 8) Push branch → CI should pass.

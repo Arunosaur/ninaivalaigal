@@ -57,7 +57,7 @@
 - **Status**: 📋 **SPECIFICATION READY**
 - **Objective**: Redis-backed adaptive session timeouts and analytics
 - **Components**: Activity tracking, intelligent timeouts, context awareness
-- **Location**: `/specs/045-session-timeout-token-expiry/SPEC-045-intelligent-session-management.md`
+- **Location**: `/specs/045-session-timeout-token  # pragma: allowlist secret-expiry/SPEC-045-intelligent-session-management.md`
 - **Dependencies**: Requires Redis infrastructure setup
 
 #### **SPEC-060: Apache AGE Deployment** 🔄 **INFRASTRUCTURE PLANNING**
@@ -80,7 +80,7 @@
 #### **SPEC-038: Memory Token Preloading** 📋 **OPTIMIZATION SPEC**
 - **Status**: ⚡ **PERFORMANCE ENHANCEMENT**
 - **Objective**: Intelligent memory preloading for faster access
-- **Location**: `/specs/038-memory-token-preloading/SPEC-038-memory-preloading.md`
+- **Location**: `/specs/038-memory-token  # pragma: allowlist secret-preloading/SPEC-038-memory-preloading.md`
 - **Priority**: Medium (Performance optimization)
 
 #### **Template SPECs (026, 027, 033, 037, 039, 049, 050)** 📋 **TEMPLATES**

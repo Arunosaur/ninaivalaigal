@@ -1,8 +1,8 @@
 # SPEC-071: Auto-Healing Health System
 
-**Status**: ✅ COMPLETE  
-**Priority**: High  
-**Category**: Reliability  
+**Status**: ✅ COMPLETE
+**Priority**: High
+**Category**: Reliability
 
 ## Overview
 
@@ -12,7 +12,7 @@ Production monitoring system with automatic service recovery, rolling logs, and 
 
 ### Health Monitoring
 - 5-minute interval health checks
-- Container status monitoring  
+- Container status monitoring
 - Service endpoint validation
 - Performance metric tracking
 
@@ -30,13 +30,13 @@ Production monitoring system with automatic service recovery, rolling logs, and 
 
 ### Monitoring Targets
 - `nina-intelligence-db` - Database health
-- `nina-intelligence-cache` - Redis performance  
+- `nina-intelligence-cache` - Redis performance
 - `nv-api` - API endpoint availability
 - `nv-ui` - Frontend service status
 
 ### Management Commands
 - `make nina-health-start` - Start monitoring
-- `make nina-health-stop` - Stop monitoring  
+- `make nina-health-stop` - Stop monitoring
 - `make nina-health-logs` - View rolling logs
 - `make nina-health-status` - Current status
 

@@ -5,7 +5,7 @@
 ### Server-Side Environment Variables
 
 #### `NINAIVALAIGAL_JWT_SECRET` (Server Only)
-- **Purpose**: Secret key used by the server to sign and verify JWT tokens
+- **Purpose**: Secret key used by the server to sign and verify JWT token  # pragma: allowlist secrets
 - **Who sets it**: System administrator/deployment team
 - **Where**: Server environment only
 - **Example**: `export NINAIVALAIGAL_JWT_SECRET="your-production-secret-key-here"`
@@ -13,14 +13,14 @@
 - **Default**: `dev-secret-key-change-in-production` (for development only)
 
 #### `NINAIVALAIGAL_JWT_EXPIRATION_HOURS` (Optional)
-- **Purpose**: How long JWT tokens remain valid
+- **Purpose**: How long JWT token  # pragma: allowlist secrets remain valid
 - **Default**: 168 hours (7 days)
 - **Example**: `export NINAIVALAIGAL_JWT_EXPIRATION_HOURS="24"`
 
 ### Client-Side Environment Variables
 
 #### `NINAIVALAIGAL_USER_TOKEN` (Per User)
-- **Purpose**: Individual user's JWT token for authentication
+- **Purpose**: Individual user's JWT token  # pragma: allowlist secret for authentication
 - **Who sets it**: Each user after login/signup
 - **Where**: User's local environment (shell, IDE, etc.)
 - **Example**: `export NINAIVALAIGAL_USER_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
@@ -30,13 +30,13 @@
 ## How It Works
 
 1. **Server Setup**: Admin sets `NINAIVALAIGAL_JWT_SECRET` on server
-2. **User Login**: User authenticates and receives a JWT token
+2. **User Login**: User authenticates and receives a JWT token  # pragma: allowlist secret
 3. **Client Setup**: User sets `NINAIVALAIGAL_USER_TOKEN` in their environment
-4. **API Calls**: Client automatically includes token in Authorization header
+4. **API Calls**: Client automatically includes token  # pragma: allowlist secret in Authorization header
 
 ## Token Structure
 
-JWT tokens contain:
+JWT token  # pragma: allowlist secrets contain:
 ```json
 {
   "user_id": 8,
@@ -57,9 +57,9 @@ JWT tokens contain:
 
 ### For Users:
 - Keep your `NINAIVALAIGAL_USER_TOKEN` private
-- Don't share tokens between users
+- Don't share token  # pragma: allowlist secrets between users
 - Tokens expire automatically for security
-- Re-authenticate when tokens expire
+- Re-authenticate when token  # pragma: allowlist secrets expire
 
 ## Development vs Production
 
@@ -69,7 +69,7 @@ JWT tokens contain:
 export NINAIVALAIGAL_JWT_SECRET="dev-secret-key-change-in-production"
 
 # User (after login)
-export NINAIVALAIGAL_USER_TOKEN="<your-jwt-token>"
+export NINAIVALAIGAL_USER_TOKEN="<your-jwt-token  # pragma: allowlist secret>"
 ```
 
 ### Production:
@@ -78,14 +78,14 @@ export NINAIVALAIGAL_USER_TOKEN="<your-jwt-token>"
 export NINAIVALAIGAL_JWT_SECRET="$(openssl rand -base64 64)"
 
 # User (from login response)
-export NINAIVALAIGAL_USER_TOKEN="<token-from-login-api>"
+export NINAIVALAIGAL_USER_TOKEN="<token  # pragma: allowlist secret-from-login-api>"
 ```
 
 ## CLI Usage
 
 Once environment variables are set:
 ```bash
-# All commands automatically use the JWT token
+# All commands automatically use the JWT token  # pragma: allowlist secret
 eM contexts
 eM start --context my-project
 eM remember '{"data": "example"}' --context my-project
@@ -96,7 +96,7 @@ eM recall --context my-project
 
 ### "Invalid authentication credentials"
 - Check if `NINAIVALAIGAL_USER_TOKEN` is set
-- Verify token hasn't expired
+- Verify token  # pragma: allowlist secret hasn't expired
 - Ensure server and client use same JWT secret
 
 ### "Connection refused"

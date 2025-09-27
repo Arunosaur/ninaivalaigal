@@ -29,13 +29,13 @@ The external review identifies **several critical issues we missed**:
 
 #### 2. Secret Redaction Pipeline Missing (P0)
 **New Critical Issue**: No protection against accidental secret exposure in logs/memory
-- **Risk**: API keys, tokens, passwords leaked in logs
+- **Risk**: API keys, token  # pragma: allowlist secrets, password  # pragma: allowlist secrets leaked in logs
 - **Fix**: Implement secret detection and redaction pipeline before any data persistence
 
 #### 3. JWT Token Rotation Vulnerability (P0)
-**New Critical Issue**: No token refresh/rotation mechanism
-- **Risk**: Long-lived tokens increase attack surface
-- **Fix**: Implement short-lived JWTs with refresh token rotation
+**New Critical Issue**: No token  # pragma: allowlist secret refresh/rotation mechanism
+- **Risk**: Long-lived token  # pragma: allowlist secrets increase attack surface
+- **Fix**: Implement short-lived JWTs with refresh token  # pragma: allowlist secret rotation
 
 #### 4. Memory Model Observability Gap (P1)
 **New Critical Issue**: No audit trail for memory access patterns
@@ -129,7 +129,7 @@ The external review suggests improved structure:
 
 ### P0 - Critical Security (48 Hours)
 1. **Secret redaction pipeline** (NEW - prevents credential leaks)
-2. **JWT refresh rotation** (NEW - reduces token attack surface)
+2. **JWT refresh rotation** (NEW - reduces token  # pragma: allowlist secret attack surface)
 3. **Shell injection fixes** (NEW - prevents RCE)
 4. **JWT signature verification** (CONFIRMED)
 5. **CORS restriction** (CONFIRMED)
@@ -151,7 +151,7 @@ The external review suggests improved structure:
 ## 🔍 EXPERT INSIGHTS WE AGREE WITH
 
 ### 1. Memory Model Security
-**Expert Observation**: "Schema clarity, transaction-level access tokens, memory entries, subsets/tags, ACLs, org/team membership, sharing grants, audit events"
+**Expert Observation**: "Schema clarity, transaction-level access token  # pragma: allowlist secrets, memory entries, subsets/tags, ACLs, org/team membership, sharing grants, audit events"
 **Our Agreement**: This validates our context scope system and highlights need for enhanced audit trails
 
 ### 2. Observability Gap
@@ -314,8 +314,8 @@ Following the strategic roadmap, we have successfully integrated the Spec 009 JW
 
 #### 4. End-to-End Matrix Tests ✅
 - **File**: `/tests/test_rbac_jwt_matrix.py`
-- **Coverage**: Allow via inheritance, deny when no role, expired tokens, malformed tokens
-- **Real JWT**: Uses PyJWT to mint HS256 tokens with real org/team/roles claims
+- **Coverage**: Allow via inheritance, deny when no role, expired token  # pragma: allowlist secrets, malformed tokens
+- **Real JWT**: Uses PyJWT to mint HS256 token  # pragma: allowlist secrets with real org/team/roles claims
 
 ### 🎯 SPEC 009 CLOSURE ACHIEVED
 
@@ -575,7 +575,7 @@ Following the strategic roadmap to transform Ninaivalaigal from "secure platform
 - ✅ **Personal Context Recording** → Semantic memory capture API with user_id scoping
 - ✅ **Dual-Target Architecture** → FastAPI ensures trustworthiness, MCP ensures AI usability
 - ✅ **Scope-Based Security** → Personal/team/org memory boundaries enforced via JWT claims
-- ✅ **AI Alignment Foundation** → Memory records ready for tokenization and context injection
+- ✅ **AI Alignment Foundation** → Memory records ready for token  # pragma: allowlist secretization and context injection
 
 ### 📊 INTEGRATION READY
 
@@ -617,7 +617,7 @@ POST /memory/share
 
 **Immediate (Spec 011 Extensions)**:
 - Swap InMemoryStore → Postgres/pgvector implementation
-- Add embeddings/tokenization for AI context injection
+- Add embeddings/token  # pragma: allowlist secretization for AI context injection
 - Add governance + audit trails for share() operations
 - Provide MCP-side auth to mirror FastAPI RBAC
 
@@ -625,7 +625,7 @@ POST /memory/share
 - **Spec 012**: Team Rollup Layer (aggregate user memories into team-shared stores)
 - **Spec 013**: Org Memory Graph (persistent knowledge graph with semantic indexing)
 - **Spec 014**: Memory Sharing/Transfer (JSON/protobuf export/import with governance)
-- **Spec 015**: AI Alignment Hooks (tokenization pipeline + context injection layer)
+- **Spec 015**: AI Alignment Hooks (token  # pragma: allowlist secretization pipeline + context injection layer)
 
 ## 🏆 ULTIMATE SYSTEM STATUS UPDATE
 

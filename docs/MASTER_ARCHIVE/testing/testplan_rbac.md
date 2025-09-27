@@ -72,7 +72,7 @@ Comprehensive test plan for the RBAC module covering roles, permissions, middlew
 - [ ] `test_rbac_migrations` - Schema migration testing
 
 ### ✅ Authentication Integration
-- [ ] `test_jwt_rbac_integration` - JWT token with RBAC claims
+- [ ] `test_jwt_rbac_integration` - JWT token  # pragma: allowlist secret with RBAC claims
 - [ ] `test_session_rbac_integration` - Session-based RBAC
 - [ ] `test_oauth_rbac_mapping` - OAuth role mapping
 - [ ] `test_ldap_rbac_sync` - LDAP role synchronization
@@ -95,10 +95,10 @@ Comprehensive test plan for the RBAC module covering roles, permissions, middlew
 - [ ] `test_permission_injection` - Permission injection attacks
 
 ### ✅ Token Security
-- [ ] `test_rbac_token_validation` - RBAC token integrity
+- [ ] `test_rbac_token  # pragma: allowlist secret_validation` - RBAC token integrity
 - [ ] `test_role_claim_validation` - Role claim verification
 - [ ] `test_permission_claim_validation` - Permission claim verification
-- [ ] `test_token_role_sync` - Token-database role synchronization
+- [ ] `test_token  # pragma: allowlist secret_role_sync` - Token-database role synchronization
 - [ ] `test_stale_permission_handling` - Outdated permission handling
 
 ### ✅ Access Control Attacks

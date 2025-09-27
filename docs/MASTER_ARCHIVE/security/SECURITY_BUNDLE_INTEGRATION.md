@@ -53,7 +53,7 @@ apply_development_security(app)  # Memory store, lenient policies
 
 ### 4. Request/Response Redaction
 - **Unicode normalization**: NFKC + homoglyph + zero-width prevention
-- **Pattern detection**: AWS keys, JWT tokens, high-entropy strings
+- **Pattern detection**: AWS keys, JWT token  # pragma: allowlist secrets, high-entropy strings
 - **Streaming support**: Memory-efficient processing with overlap handling
 - **Fail-closed policy**: Tier ≥ 3 fails securely on detector errors
 
@@ -120,8 +120,8 @@ from fastapi import Depends, Request
 def get_subject_context(request: Request):
     """Extract subject context using injected provider."""
     provider = request.app.state.subject_ctx_provider
-    token = request.headers.get("authorization", "").replace("Bearer ", "")
-    return provider(token)
+    token  # pragma: allowlist secret = request.headers.get("authorization", "").replace("Bearer ", "")
+    return provider(token  # pragma: allowlist secret)
 
 @app.get("/memories")
 async def get_memories(ctx: dict = Depends(get_subject_context)):

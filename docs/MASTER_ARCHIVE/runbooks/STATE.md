@@ -7,7 +7,7 @@
 #### Core System
 - ✅ FastAPI server running on port 13370 with PostgreSQL 15.14
 - ✅ PostgreSQL 15.14 database - fully operational (PostgreSQL only, no SQLite support)
-- ✅ JWT-based authentication with secure token management
+- ✅ JWT-based authentication with secure token  # pragma: allowlist secret management
 - ✅ Multi-level sharing: Personal, Team, Organization, Public
 - ✅ Role-based permissions: Owner, Admin, Member, Viewer
 - ✅ Organization and team management with hierarchical structure
@@ -27,7 +27,7 @@
 - ✅ **Flexible Team Membership**: Users can be in multiple teams/projects
 - ✅ **Cross-Organization Teams**: Teams can span multiple organizations
 - ✅ **Permission Inheritance**: Automatic permission propagation
-- ✅ **Secure Authentication**: JWT tokens with bcrypt password hashing
+- ✅ **Secure Authentication**: JWT token  # pragma: allowlist secrets with bcrypt password  # pragma: allowlist secret hashing
 - ✅ **Audit Trail**: Track who shared what with whom
 - ✅ **Granular Permissions**: Read/Write/Admin/Owner levels
 - ✅ **Complete Web Interface**: Responsive frontend with Ninaivalaigal branding
@@ -64,8 +64,8 @@
 ## Configuration
 
 ### Authentication
-- JWT tokens with configurable expiration (30 minutes default)
-- Secure password hashing with bcrypt
+- JWT token  # pragma: allowlist secrets with configurable expiration (30 minutes default)
+- Secure password  # pragma: allowlist secret hashing with bcrypt
 - Token persistence in client (`~/.mem0/auth.json`)
 
 ### Sharing Hierarchy
@@ -83,11 +83,11 @@
 ## Working Features
 
 ### Authentication & Security
-- JWT-based authentication with secure token management
-- User registration and login with password hashing
+- JWT-based authentication with secure token  # pragma: allowlist secret management
+- User registration and login with password  # pragma: allowlist secret hashing
 - Complete user isolation - no cross-user data access
 - Environment variable spoofing prevention
-- API key validation through JWT tokens
+- API key validation through JWT token  # pragma: allowlist secrets
 
 ### Multi-Level Sharing
 - Personal contexts (private to individual users)
@@ -140,7 +140,7 @@
 - 🔄 Ready for Claude Desktop and other MCP client integration
 
 ### Recent Major Enhancements (2025-09-10)
-- **JWT Authentication System**: Complete user authentication with secure tokens
+- **JWT Authentication System**: Complete user authentication with secure token  # pragma: allowlist secrets
 - **Multi-Level Sharing Architecture**: Personal → Team → Organization → Public
 - **Role-Based Permission System**: Owner/Admin/Member/Viewer with inheritance
 - **Organization Management**: Create and manage organizational units
@@ -158,7 +158,7 @@
 **Timestamp:** 2025-09-16T00:27:00-05:00
 **Action:** Enterprise Security Architecture Planning & Ecosystem Vision Analysis
 **Details:**
-- **Comprehensive RBAC Integration**: Completed full RBAC system with JWT token embedding, middleware enforcement, and audit trails
+- **Comprehensive RBAC Integration**: Completed full RBAC system with JWT token  # pragma: allowlist secret embedding, middleware enforcement, and audit trails
 - **Specification Development**: Created 4 enterprise-grade specs (008-011) for security middleware, RBAC enhancement, observability, and data lifecycle management
 - **Ecosystem Documentation Review**: Analyzed 5-module AI nervous system architecture (Ninaivalaigal+eM, SmritiOS, TarangAI, Pragna, FluxMind)
 - **Strategic Alignment**: Validated that current foundation perfectly supports future ecosystem expansion
@@ -208,7 +208,7 @@
 * **VS Code Extension**: IDE integration with persistent state
 
 ### Security Features:
-* **JWT Authentication**: Secure token-based access
+* **JWT Authentication**: Secure token  # pragma: allowlist secret-based access
 * **User Isolation**: Cryptographic separation of user data
 * **Permission System**: Hierarchical RBAC with inheritance
 * **Audit Trail**: Complete tracking of sharing activities

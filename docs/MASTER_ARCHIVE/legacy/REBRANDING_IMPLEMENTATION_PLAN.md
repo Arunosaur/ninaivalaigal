@@ -86,7 +86,7 @@ NINAIVALAIGAL_SERVER_URL
 ### **Phase 4: API & Server Components**
 **Files to Update:**
 - `/server/main.py` - API routes and responses
-- `/server/auth.py` - JWT token claims
+- `/server/auth.py` - JWT token  # pragma: allowlist secret claims
 - `/server/database.py` - Table names and references
 - All FastAPI endpoint documentation
 

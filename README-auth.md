@@ -77,7 +77,7 @@ make nina-stack-status
 
 # Should show all services running:
 # ✅ nina-intelligence-db: Running
-# ✅ nina-intelligence-cache: Running  
+# ✅ nina-intelligence-cache: Running
 # ✅ nv-api: Running
 # ✅ nv-ui: Running
 ```
@@ -115,7 +115,7 @@ NINAIVALAIGAL_JWT_SECRET=your-secret-key
 JWT_EXPIRATION_HOURS=24
 
 # Database
-DATABASE_URL=postgresql://nina:password@localhost:5432/ninaivalaigal
+DATABASE_URL=postgresql://nina:password@  # pragma: allowlist secretlocalhost:5432/ninaivalaigal
 
 # Redis (for sessions - currently bypassed)
 REDIS_HOST=localhost
@@ -142,21 +142,21 @@ CREATE TABLE users (
 ## 🚨 Known Issues & Workarounds
 
 ### 1. Redis Client Issue (Resolved via Bypass)
-**Problem**: `'RedisClient' object has no attribute 'set'`  
-**Impact**: Was causing auth routes to hang  
-**Status**: ✅ Fixed by disabling problematic middleware  
-**Workaround**: Use `/user-login` if issues reappear  
+**Problem**: `'RedisClient' object has no attribute 'set'`
+**Impact**: Was causing auth routes to hang
+**Status**: ✅ Fixed by disabling problematic middleware
+**Workaround**: Use `/user-login` if issues reappear
 
 ### 2. Middleware Interference (Resolved)
-**Problem**: Security middleware hanging on `/auth/*` paths  
-**Impact**: Complete auth system failure  
-**Status**: ✅ Fixed by selective middleware disabling  
-**Prevention**: Middleware resilience improvements planned  
+**Problem**: Security middleware hanging on `/auth/*` paths
+**Impact**: Complete auth system failure
+**Status**: ✅ Fixed by selective middleware disabling
+**Prevention**: Middleware resilience improvements planned
 
 ### 3. Container DNS Issues (Intermittent)
-**Problem**: Cannot rebuild containers due to DNS resolution  
-**Impact**: Code changes require container restart instead of rebuild  
-**Workaround**: Use `container stop/start` cycle  
+**Problem**: Cannot rebuild containers due to DNS resolution
+**Impact**: Code changes require container restart instead of rebuild
+**Workaround**: Use `container stop/start` cycle
 
 ---
 
@@ -234,7 +234,7 @@ ab -n 100 -c 10 -T application/json -p login_data.json \
 
 ### Manual Testing Checklist
 - [ ] Individual user signup
-- [ ] Organization signup  
+- [ ] Organization signup
 - [ ] User login
 - [ ] JWT token generation
 - [ ] Protected route access
@@ -266,9 +266,9 @@ sequenceDiagram
     A->>J: Generate JWT
     J-->>A: JWT token
     A-->>C: Login response + JWT
-    
+
     Note over C: Store JWT token
-    
+
     C->>A: GET /auth/me (with JWT)
     A->>J: Verify JWT
     J-->>A: User claims
@@ -331,10 +331,10 @@ make nina-stack-up
 
 ### Team Contacts
 - **Auth System**: Development Team
-- **Infrastructure**: DevOps Team  
+- **Infrastructure**: DevOps Team
 - **Security**: Security Team
 
 ---
 
-*Last Updated: 2025-09-26*  
+*Last Updated: 2025-09-26*
 *Status: ✅ Fully Operational*

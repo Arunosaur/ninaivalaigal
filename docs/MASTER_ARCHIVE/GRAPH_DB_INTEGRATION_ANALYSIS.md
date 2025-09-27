@@ -159,8 +159,8 @@ async def get_graph_based_suggestions(memory_id: str):
 make check-graph-health
 
 # Test graph API endpoints
-curl -H "Authorization: Bearer <token>" http://localhost:13370/graph/health
-curl -H "Authorization: Bearer <token>" http://localhost:13370/graph/explain-context
+curl -H "Authorization: Bearer <token  # pragma: allowlist secret>" http://localhost:13370/graph/health
+curl -H "Authorization: Bearer <token  # pragma: allowlist secret>" http://localhost:13370/graph/explain-context
 ```
 
 ### **2. Integrate Graph into Memory Suggestions**

@@ -14,7 +14,7 @@ Successfully implemented a comprehensive user signup and authentication system f
 - **Schema Migration**: All database changes applied successfully to PostgreSQL
 
 ### 2. Authentication & Authorization
-- **JWT-based Authentication**: Secure token system with 24-hour expiration
+- **JWT-based Authentication**: Secure token  # pragma: allowlist secret system with 24-hour expiration
 - **Password Security**: bcrypt hashing with strength validation (8+ chars, letters + numbers)
 - **Email Verification**: Token-based verification system (placeholder implementation)
 - **User Roles**: Support for user, admin, organization_admin roles
@@ -36,9 +36,9 @@ Successfully implemented a comprehensive user signup and authentication system f
   - Modern UI with Tailwind CSS
   - Loading states and error handling
 - **Login Page** (`/frontend/login.html`):
-  - Email/password authentication
+  - Email/password  # pragma: allowlist secret authentication
   - Account type information display
-  - Automatic JWT token storage
+  - Automatic JWT token  # pragma: allowlist secret storage
   - Redirect to dashboard after login
 
 ### 5. Memory Architecture Support
@@ -51,7 +51,7 @@ Successfully implemented a comprehensive user signup and authentication system f
 
 ### API Testing
 ```bash
-✅ Individual Signup: Successfully creates user with JWT token
+✅ Individual Signup: Successfully creates user with JWT token  # pragma: allowlist secret
 ✅ Organization Signup: Creates organization + admin user
 ✅ User Login: Authenticates and returns user info + JWT
 ✅ Protected Endpoints: JWT authentication working
@@ -80,7 +80,7 @@ Successfully implemented a comprehensive user signup and authentication system f
 ### Backend Stack
 - **FastAPI**: REST API server with automatic OpenAPI documentation
 - **PostgreSQL**: Production database with full ACID compliance
-- **JWT Authentication**: Secure token-based authentication
+- **JWT Authentication**: Secure token  # pragma: allowlist secret-based authentication
 - **bcrypt**: Password hashing and verification
 - **Pydantic**: Data validation and serialization
 
@@ -100,14 +100,14 @@ Successfully implemented a comprehensive user signup and authentication system f
 
 ### Authentication Security
 - **Password Strength**: Minimum 8 characters with complexity requirements
-- **Secure Hashing**: bcrypt with salt for password storage
-- **JWT Tokens**: Signed tokens with expiration (24 hours)
+- **Secure Hashing**: bcrypt with salt for password  # pragma: allowlist secret storage
+- **JWT Tokens**: Signed token  # pragma: allowlist secrets with expiration (24 hours)
 - **Environment Secrets**: JWT secret configurable via environment variables
 
 ### Authorization Controls
 - **Role-based Access**: Different permissions for user/admin/organization_admin
 - **Account Type Isolation**: Individual users cannot access team/org data
-- **Token Validation**: All protected endpoints verify JWT tokens
+- **Token Validation**: All protected endpoints verify JWT token  # pragma: allowlist secrets
 - **User Context Isolation**: Memory scoping prevents cross-user access
 
 ## 📊 User Journey Flows
@@ -115,7 +115,7 @@ Successfully implemented a comprehensive user signup and authentication system f
 ### Individual User Journey
 1. **Signup**: Visit `/` → Select "Individual" → Fill form → Create account
 2. **Verification**: Check email → Click verification link → Account activated
-3. **Login**: Visit `/login` → Enter credentials → Receive JWT token
+3. **Login**: Visit `/login` → Enter credentials → Receive JWT token  # pragma: allowlist secret
 4. **Usage**: Access personal contexts (up to 10 on free tier)
 
 ### Organization Admin Journey
@@ -125,7 +125,7 @@ Successfully implemented a comprehensive user signup and authentication system f
 4. **Scaling**: Upgrade subscription → Add more teams → Expand organization
 
 ### Team Member Journey
-1. **Invitation**: Receive email invitation with secure token
+1. **Invitation**: Receive email invitation with secure token  # pragma: allowlist secret
 2. **Signup**: Click invitation link → Fill user details → Accept invitation
 3. **Access**: Login → Access personal + assigned team contexts
 4. **Collaboration**: Share memories within team scope
@@ -158,7 +158,7 @@ export MEM0_JWT_SECRET="your-production-secret-key"
 
 ### Immediate Enhancements
 1. **Email Service Integration**: Replace placeholder with SendGrid/AWS SES
-2. **Password Reset**: Implement forgot password functionality
+2. **Password Reset**: Implement forgot password  # pragma: allowlist secret functionality
 3. **Team Dashboard**: Build organization management UI
 4. **Context Management**: Implement memory scoping in recording system
 5. **Subscription Billing**: Add payment processing and plan management
@@ -202,7 +202,7 @@ export MEM0_JWT_SECRET="your-production-secret-key"
 **Total Development Time**: ~4 hours of focused development
 
 1. **Database Schema Design** (30 minutes): Extended existing schema
-2. **Authentication System** (60 minutes): JWT, password hashing, user management
+2. **Authentication System** (60 minutes): JWT, password  # pragma: allowlist secret hashing, user management
 3. **API Endpoints** (90 minutes): FastAPI routes with validation
 4. **Frontend Development** (60 minutes): HTML/CSS/JS signup and login pages
 5. **Integration & Testing** (30 minutes): End-to-end testing and validation

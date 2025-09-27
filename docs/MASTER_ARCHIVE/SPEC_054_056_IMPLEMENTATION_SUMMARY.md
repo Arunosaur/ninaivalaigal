@@ -23,7 +23,7 @@ Successfully implemented three critical SPECs for ninaivalaigal platform moderni
 
 1. **Enhanced .env.example Template**
    - Added Redis configuration with secure placeholders
-   - Comprehensive security notes and password generation instructions
+   - Comprehensive security notes and password  # pragma: allowlist secret generation instructions
    - Clear separation of development vs production settings
 
 2. **Improved .gitignore Protection**
@@ -33,7 +33,7 @@ Successfully implemented three critical SPECs for ninaivalaigal platform moderni
 
 3. **Secret Management Script** (`scripts/setup-secrets.sh`)
    - Automated secret scanning with 7 pattern types
-   - Secure password generation using `openssl rand -base64`
+   - Secure password  # pragma: allowlist secret generation using `openssl rand -base64`
    - Environment validation and configuration checking
    - Git history scanning capabilities
 
@@ -47,7 +47,7 @@ Successfully implemented three critical SPECs for ninaivalaigal platform moderni
 
 ### **Security Issues Identified:**
 - **7 secret patterns found** across 47 files
-- Primary issues: `change_me_securely`, `nina_redis_dev_password`, `test-jwt-secret`
+- Primary issues: `change_me_securely`, `nina_redis_dev_password  # pragma: allowlist secret`, `test-jwt-secret`
 - **Action Required**: Replace hardcoded secrets with environment variables
 
 ### **Remaining Work:**

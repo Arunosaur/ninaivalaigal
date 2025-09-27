@@ -25,8 +25,8 @@
 ./manage.sh start
 
 # Register and login
-./client/mem0 auth register --username yourname --password yourpass --email you@domain.com
-./client/mem0 auth login --username yourname --password yourpass
+./client/mem0 auth register --username yourname --password  # pragma: allowlist secret yourpass --email you@domain.com
+./client/mem0 auth login --username yourname --password  # pragma: allowlist secret yourpass
 
 # Create your first context
 ./client/mem0 context-create --name "my-first-project" --description "Learning mem0" --visibility private
@@ -73,13 +73,13 @@ git status
 # Register a new account
 ./client/mem0 auth register \
   --username alice \
-  --password securepass123 \
+  --password  # pragma: allowlist secret securepass123 \
   --email alice@company.com
 
 # Login to your account
 ./client/mem0 auth login \
   --username alice \
-  --password securepass123
+  --password  # pragma: allowlist secret securepass123
 ```
 
 ### Managing Your Profile
@@ -94,7 +94,7 @@ git status
 
 ### Security Best Practices
 
-- Use strong, unique passwords
+- Use strong, unique password  # pragma: allowlist secrets
 - Enable 2FA when available
 - Regularly review your active sessions
 - Share contexts thoughtfully
@@ -419,7 +419,7 @@ mem0_context_start new-hire-onboarding
 ./client/mem0 context list
 
 # Verify your permissions (API call)
-curl -H "Authorization: Bearer $(cat ~/.mem0/auth.json | jq -r .token)" \
+curl -H "Authorization: Bearer $(cat ~/.mem0/auth.json | jq -r .token  # pragma: allowlist secret)" \
   http://127.0.0.1:13370/users/me/contexts
 ```
 

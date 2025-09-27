@@ -125,7 +125,7 @@ When CCTV recording is active, the system automatically captures:
   "query": "authentication implementation",
   "results": {
     "personal": [
-      {"content": "Used JWT tokens for API auth", "timestamp": "2024-01-15"}
+      {"content": "Used JWT token  # pragma: allowlist secrets for API auth", "timestamp": "2024-01-15"}
     ],
     "team": [
       {"content": "Team standard: OAuth 2.0 for external APIs", "timestamp": "2024-01-10"}
@@ -203,7 +203,7 @@ export MEM0_DEBUG=1  # Enable debug logging
 ### Environment Security
 - No hardcoded credentials in source code
 - Database URLs and secrets via environment variables
-- Secure token-based authentication for multi-user deployments
+- Secure token  # pragma: allowlist secret-based authentication for multi-user deployments
 
 ## Troubleshooting
 

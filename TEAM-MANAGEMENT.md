@@ -175,7 +175,7 @@ if (userRole === 'team_admin') {
 
 **You now have a fully functional team management system!** This unlocks:
 - 👥 **Team collaboration** features
-- 🧠 **Team-scoped memory** contexts  
+- 🧠 **Team-scoped memory** contexts
 - 📁 **Shared workspaces** and contexts
 - ✅ **Team-based approvals** and workflows
 - 🏢 **Enterprise-ready** multi-team support

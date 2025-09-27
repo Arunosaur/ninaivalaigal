@@ -78,7 +78,7 @@ The mem0 system has successfully achieved its core objective of implementing **C
 ### API Layer: Fully Operational
 - **FastAPI Server**: 5 CCTV recording endpoints operational
 - **MCP Server**: 11 tools with auto-recording integration
-- **Authentication**: JWT tokens with environment variable secrets
+- **Authentication**: JWT token  # pragma: allowlist secrets with environment variable secrets
 - **Error Handling**: Comprehensive error responses and logging
 - **Documentation**: Complete API documentation with examples
 

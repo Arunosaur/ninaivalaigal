@@ -28,35 +28,35 @@ TOKEN=$(echo $LOGIN_RESPONSE | jq -r '.jwt_token // empty')
 if [ -n "$TOKEN" ] && [ "$TOKEN" != "null" ]; then
     echo ""
     echo "✅ Login successful! Token: ${TOKEN:0:20}..."
-    
+
     # Step 3: Test token validation
     echo ""
     echo "3️⃣ Testing token validation..."
     curl -s "$BASE_URL/auth-working/validate-token?token=$TOKEN" | jq .
-    
+
     # Step 4: Test protected routes
     echo ""
     echo "4️⃣ Testing protected routes..."
-    
+
     echo "📋 Profile:"
     curl -s -H "Authorization: Bearer $TOKEN" "$BASE_URL/protected/profile" | jq .
-    
+
     echo ""
     echo "👥 Teams:"
     curl -s -H "Authorization: Bearer $TOKEN" "$BASE_URL/protected/teams" | jq .
-    
+
     echo ""
     echo "🧠 Memory:"
     curl -s -H "Authorization: Bearer $TOKEN" "$BASE_URL/protected/memory" | jq .
-    
+
     echo ""
     echo "📁 Contexts:"
     curl -s -H "Authorization: Bearer $TOKEN" "$BASE_URL/protected/contexts" | jq .
-    
+
     echo ""
     echo "✅ Approvals:"
     curl -s -H "Authorization: Bearer $TOKEN" "$BASE_URL/protected/approval" | jq .
-    
+
 else
     echo "❌ Login failed or no token received"
     echo "💡 To test with real credentials:"

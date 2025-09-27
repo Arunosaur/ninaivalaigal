@@ -37,8 +37,8 @@
 
 ### The Problematic Code
 
-**File**: `security_integration.py`  
-**Lines**: 52-74  
+**File**: `security_integration.py`
+**Lines**: 52-74
 **Function**: `security_event_middleware`
 
 ```python
@@ -46,7 +46,7 @@
 async def security_event_middleware(request: Request, call_next):
     try:
         response = await call_next(request)
-        
+
         # THIS IS THE PROBLEM LINE:
         if (
             request.url.path.startswith("/auth/")  # ← Targets ALL auth routes
@@ -83,7 +83,7 @@ async def security_event_middleware(request: Request, call_next):
 ### 2. Main App Security Configuration
 ```python
 # main.py line 81
-# Configure security - TEMPORARILY DISABLED FOR DEBUGGING  
+# Configure security - TEMPORARILY DISABLED FOR DEBUGGING
 # configure_security(app)  # FIXME: This adds middleware that hangs on /auth routes due to Redis issues
 ```
 
@@ -209,5 +209,5 @@ Client Request → CORS → Route Handler → Response
 
 ---
 
-*Generated: 2025-09-26 00:14 UTC*  
+*Generated: 2025-09-26 00:14 UTC*
 *Status: ✅ RESOLVED - Auth system fully operational*

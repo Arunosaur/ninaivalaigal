@@ -1,8 +1,8 @@
 # SPEC-065: Advanced Security & Compliance
 
-**Status**: 🔄 PARTIAL  
-**Priority**: High  
-**Category**: Security  
+**Status**: 🔄 PARTIAL
+**Priority**: High
+**Category**: Security
 
 ## Overview
 

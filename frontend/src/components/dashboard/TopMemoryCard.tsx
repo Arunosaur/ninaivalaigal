@@ -62,7 +62,7 @@ export const TopMemoryCard: React.FC<TopMemoryCardProps> = ({
             {totalMemories} total
           </Badge>
         </div>
-        
+
         {/* AI Insights Summary */}
         <div className="flex items-center gap-4 text-sm text-gray-600">
           <div className="flex items-center gap-1">
@@ -110,7 +110,7 @@ export const TopMemoryCard: React.FC<TopMemoryCardProps> = ({
                   </span>
                   <ExternalLink className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                
+
                 <div className="flex items-center gap-3 text-xs text-gray-500">
                   <div className="flex items-center gap-1">
                     <MessageCircle className="h-3 w-3" />
@@ -122,8 +122,8 @@ export const TopMemoryCard: React.FC<TopMemoryCardProps> = ({
                   </div>
                 </div>
               </div>
-              
-              <Badge 
+
+              <Badge
                 className={`ml-2 text-xs ${getScoreColor(memory.score)}`}
                 variant="secondary"
               >

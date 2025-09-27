@@ -29,19 +29,19 @@ echo "SPEC files before cleanup: $spec_files_before"
 for spec_dir in specs/[0-9]*; do
     if [ -d "$spec_dir" ]; then
         spec_name=$(basename "$spec_dir")
-        
+
         # Count extra files (not README.md)
         extra_files=$(find "$spec_dir" -name "*.md" -not -name "README.md" -not -path "*/archive/*" | wc -l)
-        
+
         if [ "$extra_files" -gt 0 ]; then
             echo "  Cleaning $spec_name ($extra_files extra files)"
-            
+
             # Create archive directory
             mkdir -p "$spec_dir/archive"
-            
+
             # Move all .md files except README.md to archive
             find "$spec_dir" -name "*.md" -not -name "README.md" -not -path "*/archive/*" -exec mv {} "$spec_dir/archive/" \;
-            
+
             # Remove empty subdirectories (except archive)
             find "$spec_dir" -type d -empty -not -name "archive" -delete 2>/dev/null || true
         fi
@@ -62,8 +62,8 @@ mkdir -p docs/MASTER_ARCHIVE/
 
 # Archive major documentation directories
 ARCHIVE_DIRS=(
-    "security" "development" "pipeline" "testing" "specs" 
-    "user-management" "deployment" "runbooks" "legacy" 
+    "security" "development" "pipeline" "testing" "specs"
+    "user-management" "deployment" "runbooks" "legacy"
     "reports" "readmes" "product" "database" "api" "architecture"
 )
 
@@ -101,7 +101,7 @@ for file in docs/*.md; do
     if [ -f "$file" ]; then
         basename_file=$(basename "$file")
         keep=false
-        
+
         # Check if file should be kept
         for keep_doc in "${KEEP_DOCS[@]}"; do
             if [ "$basename_file" = "$keep_doc" ]; then
@@ -109,7 +109,7 @@ for file in docs/*.md; do
                 break
             fi
         done
-        
+
         # Archive if not in keep list
         if [ "$keep" = false ]; then
             echo "  Archiving $basename_file"

@@ -1,8 +1,8 @@
 # SPEC-030: Admin Analytics Console
 
-**Status**: ✅ COMPLETE  
-**Priority**: High  
-**Category**: Administration  
+**Status**: ✅ COMPLETE
+**Priority**: High
+**Category**: Administration
 
 ## Overview
 

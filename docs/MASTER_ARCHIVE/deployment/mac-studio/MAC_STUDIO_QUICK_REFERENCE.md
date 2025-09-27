@@ -130,10 +130,10 @@ FROM (
 
 ### Environment Variables
 ```bash
-# View current environment (passwords hidden)
+# View current environment (password  # pragma: allowlist secrets hidden)
 grep -v PASSWORD /srv/medhasys/.env
 
-# Rotate passwords (requires service restart)
+# Rotate password  # pragma: allowlist secrets (requires service restart)
 # Edit /srv/medhasys/.env
 # Then: docker compose -f /srv/medhasys/docker-compose.prod.yml up -d --force-recreate
 ```
@@ -170,7 +170,7 @@ psql -h localhost -p 5433 -U medhasys -d medhasys < /srv/medhasys/backups/backup
 export NINAIVALAIGAL_SERVER_URL="http://mac-studio-ip:13370"
 
 # Use remote database for development
-export DATABASE_URL="postgresql://medhasys:password@mac-studio-ip:5433/medhasys"
+export DATABASE_URL="postgresql://medhasys:password  # pragma: allowlist secret@mac-studio-ip:5433/medhasys"
 
 # Quick local testing with InMemory store
 unset DATABASE_URL

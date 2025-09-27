@@ -54,7 +54,7 @@ existing = existing_query.filter_by(owner_id=user_id, scope=scope).first()
 
 ### Frontend Changes
 - `frontend/login.html`: Fixed branding and API endpoints
-- `frontend/dashboard.html`: Updated token management
+- `frontend/dashboard.html`: Updated token  # pragma: allowlist secret management
 - `frontend/team-management.html`: Added authentication guards
 - `frontend/organization-management.html`: New management interface
 

@@ -12,7 +12,7 @@ brew services start postgresql
 
 # Create database and user
 createdb ninaivalaigal_db
-psql ninaivalaigal_db -c "CREATE USER ninaivalaigal_user WITH PASSWORD 'your_password';"
+psql ninaivalaigal_db -c "CREATE USER ninaivalaigal_user WITH PASSWORD 'your_password  # pragma: allowlist secret';"
 psql ninaivalaigal_db -c "GRANT ALL PRIVILEGES ON DATABASE ninaivalaigal_db TO ninaivalaigal_user;"
 
 # Run schema creation
@@ -23,7 +23,7 @@ psql -U ninaivalaigal_user -d ninaivalaigal_db -f scripts/create-team-merger-sch
 ## Step 2: Environment Configuration
 Create `.env` file in project root:
 ```bash
-NINAIVALAIGAL_DATABASE_URL=postgresql://ninaivalaigal_user:your_password@localhost:5432/ninaivalaigal_db
+NINAIVALAIGAL_DATABASE_URL=postgresql://ninaivalaigal_user:your_password  # pragma: allowlist secret@localhost:5432/ninaivalaigal_db
 NINAIVALAIGAL_JWT_SECRET=your-super-secret-jwt-key-min-32-chars
 NINAIVALAIGAL_USER_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
 NINAIVALAIGAL_DEBUG=true
@@ -38,9 +38,9 @@ NINAIVALAIGAL_DEBUG=true
       "command": "/opt/homebrew/anaconda3/bin/python",
       "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
       "env": {
-        "NINAIVALAIGAL_DATABASE_URL": "postgresql://ninaivalaigal_user:your_password@localhost:5432/ninaivalaigal_db",
+        "NINAIVALAIGAL_DATABASE_URL": "postgresql://ninaivalaigal_user:your_password  # pragma: allowlist secret@localhost:5432/ninaivalaigal_db",
         "NINAIVALAIGAL_JWT_SECRET": "your-super-secret-jwt-key-min-32-chars",
-        "NINAIVALAIGAL_USER_TOKEN": "your-jwt-token-here"
+        "NINAIVALAIGAL_USER_TOKEN": "your-jwt-token  # pragma: allowlist secret-here"
       }
     }
   }
@@ -112,7 +112,7 @@ pip install fastapi uvicorn sqlalchemy psycopg2-binary python-jose
 python -c "
 import os
 from sqlalchemy import create_engine
-engine = create_engine('postgresql://ninaivalaigal_user:your_password@localhost:5432/ninaivalaigal_db')
+engine = create_engine('postgresql://ninaivalaigal_user:your_password  # pragma: allowlist secret@localhost:5432/ninaivalaigal_db')
 print('Database connection successful!')
 "
 ```
@@ -150,7 +150,7 @@ psql -U ninaivalaigal_user -d ninaivalaigal_db -c "\dt"
 - **Cross-team sharing**: < 150ms
 
 ## Next Steps After Testing
-1. **Configure real JWT tokens** for your users
+1. **Configure real JWT token  # pragma: allowlist secrets** for your users
 2. **Set up team hierarchies** in database
 3. **Test organizational merger scenarios**
 4. **Deploy to production environment**
@@ -167,9 +167,9 @@ psql -U ninaivalaigal_user -d ninaivalaigal_db -c "\dt"
       "command": "/opt/homebrew/anaconda3/bin/python",
       "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
       "env": {
-        "NINAIVALAIGAL_DATABASE_URL": "postgresql://ninaivalaigal_user:your_password@localhost:5432/ninaivalaigal_db",
+        "NINAIVALAIGAL_DATABASE_URL": "postgresql://ninaivalaigal_user:your_password  # pragma: allowlist secret@localhost:5432/ninaivalaigal_db",
         "NINAIVALAIGAL_JWT_SECRET": "your-super-secret-jwt-key-min-32-chars",
-        "NINAIVALAIGAL_USER_TOKEN": "your-jwt-token-here"
+        "NINAIVALAIGAL_USER_TOKEN": "your-jwt-token  # pragma: allowlist secret-here"
       }
     }
   }

@@ -118,7 +118,7 @@ import { TimelineDashboard } from './frontend-timeline-visualization.js';
 
 function App() {
     return (
-        <TimelineDashboard 
+        <TimelineDashboard
             authService={authService}
         />
     );

@@ -116,7 +116,7 @@ class TeamDashboard extends React.Component {
             loading: false,
             error: null
         };
-        
+
         this.teamManager = new TeamManager('http://localhost:13370', this.props.authService);
     }
 
@@ -127,7 +127,7 @@ class TeamDashboard extends React.Component {
     async loadTeams() {
         this.setState({ loading: true });
         const result = await this.teamManager.getMyTeams();
-        
+
         if (result.success) {
             this.setState({ teams: result.teams, loading: false });
         } else {
@@ -138,12 +138,12 @@ class TeamDashboard extends React.Component {
     async selectTeam(teamId) {
         this.setState({ loading: true });
         const result = await this.teamManager.getTeamMembers(teamId);
-        
+
         if (result.success) {
-            this.setState({ 
+            this.setState({
                 selectedTeam: result.team,
                 teamMembers: result.members,
-                loading: false 
+                loading: false
             });
         } else {
             this.setState({ error: result.error, loading: false });
@@ -153,7 +153,7 @@ class TeamDashboard extends React.Component {
     async createTeam() {
         const name = prompt('Team name:');
         const description = prompt('Team description (optional):');
-        
+
         if (name) {
             const result = await this.teamManager.createTeam(name, description);
             if (result.success) {
@@ -167,17 +167,17 @@ class TeamDashboard extends React.Component {
 
     async addMember() {
         if (!this.state.selectedTeam) return;
-        
+
         const email = prompt('Member email:');
         const role = prompt('Role (member/team_admin):', 'member');
-        
+
         if (email) {
             const result = await this.teamManager.addMember(
-                this.state.selectedTeam.id, 
-                email, 
+                this.state.selectedTeam.id,
+                email,
                 role
             );
-            
+
             if (result.success) {
                 await this.selectTeam(this.state.selectedTeam.id);
                 alert('Member added successfully!');
@@ -196,11 +196,11 @@ class TeamDashboard extends React.Component {
         return (
             <div className="team-dashboard">
                 <h1>Team Management</h1>
-                
+
                 <div className="teams-section">
                     <h2>My Teams</h2>
                     <button onClick={() => this.createTeam()}>Create New Team</button>
-                    
+
                     <div className="teams-list">
                         {teams.map(team => (
                             <div key={team.id} className="team-card">
@@ -219,7 +219,7 @@ class TeamDashboard extends React.Component {
                     <div className="team-details">
                         <h2>{selectedTeam.name} Members</h2>
                         <button onClick={() => this.addMember()}>Add Member</button>
-                        
+
                         <div className="members-list">
                             {teamMembers.map(member => (
                                 <div key={member.id} className="member-card">
@@ -227,7 +227,7 @@ class TeamDashboard extends React.Component {
                                     <p>{member.email}</p>
                                     <p>Role: {member.role}</p>
                                     {member.is_owner && <span className="owner-badge">Owner</span>}
-                                    
+
                                     <div className="member-actions">
                                         {member.role === 'member' && (
                                             <button onClick={() => this.promoteMember(member.email)}>
@@ -299,17 +299,17 @@ const TeamManagementVue = {
             teamManager: null
         };
     },
-    
+
     async created() {
         this.teamManager = new TeamManager('http://localhost:13370', this.$auth);
         await this.loadTeams();
     },
-    
+
     methods: {
         async loadTeams() {
             this.loading = true;
             const result = await this.teamManager.getMyTeams();
-            
+
             if (result.success) {
                 this.teams = result.teams;
             } else {
@@ -317,11 +317,11 @@ const TeamManagementVue = {
             }
             this.loading = false;
         },
-        
+
         async selectTeam(teamId) {
             this.loading = true;
             const result = await this.teamManager.getTeamMembers(teamId);
-            
+
             if (result.success) {
                 this.selectedTeam = result.team;
                 this.teamMembers = result.members;
@@ -330,10 +330,10 @@ const TeamManagementVue = {
             }
             this.loading = false;
         }
-        
+
         // ... other methods similar to React component
     },
-    
+
     template: `
         <div class="team-dashboard">
             <h1>Team Management</h1>
@@ -356,19 +356,19 @@ const teamManager = new TeamManager('http://localhost:13370', auth);
 async function exampleUsage() {
     // Login first
     await auth.login('admin@team.com', 'password');
-    
+
     // Get teams
     const teams = await teamManager.getMyTeams();
     console.log('My teams:', teams);
-    
+
     // Create team
     const newTeam = await teamManager.createTeam('DevTeam', 'Development team');
     console.log('Created team:', newTeam);
-    
+
     // Add member
     const addResult = await teamManager.addMember(newTeam.team.id, 'dev@company.com', 'member');
     console.log('Added member:', addResult);
-    
+
     // Get team members
     const members = await teamManager.getTeamMembers(newTeam.team.id);
     console.log('Team members:', members);

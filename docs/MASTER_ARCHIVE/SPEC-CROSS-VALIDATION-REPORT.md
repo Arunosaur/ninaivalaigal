@@ -5,7 +5,7 @@
 **Cross-validating SPEC_AUDIT_2024.md against actual SPEC directories in `/specs/`**
 
 - **SPEC_AUDIT_2024.md Claims**: 66+ SPECs (000-066) with 25 complete (38%)
-- **Actual Directory Count**: **72 SPEC directories (000-072)** 
+- **Actual Directory Count**: **72 SPEC directories (000-072)**
 - **Validation Date**: September 26, 2024
 - **Source of Truth**: SPEC_AUDIT_2024.md (as you specified)
 
@@ -61,20 +61,20 @@
 036-memory-injection-rules/
 037-terminal-cli-auto-context/         # DUPLICATE 037
 037-vs-code-integration/               # DUPLICATE 037
-038-memory-token-preloading/
+038-memory-token  # pragma: allowlist secret-preloading/
 039-custom-embedding-integration/
 040-feedback-loop-ai-context/          # DUPLICATE 040
 040-feedback-loop-system/              # DUPLICATE 040
 041-intelligent-related-memory/        # DUPLICATE 041
 041-memory-visibility-sharing/         # DUPLICATE 041
-042-memory-health-orphaned-tokens/     # DUPLICATE 042
+042-memory-health-orphaned-token  # pragma: allowlist secrets/     # DUPLICATE 042
 042-memory-sync-users-teams/           # DUPLICATE 042
 043-memory-access-control-acl/         # DUPLICATE 043
 043-offline-memory-capture/            # DUPLICATE 043
 044-cross-device-session-continuity/   # DUPLICATE 044
 044-memory-drift-diff-detection/       # DUPLICATE 044
 045-memory-export-import-merge/        # DUPLICATE 045
-045-session-timeout-token-expiry/      # DUPLICATE 045
+045-session-timeout-token  # pragma: allowlist secret-expiry/      # DUPLICATE 045
 046-procedural-macro-system/
 047-narrative-memory-macros/
 048-memory-intent-classifier/
@@ -113,7 +113,7 @@
 **ACTUAL STATUS**: **ALL EXIST** - No missing numbers in 000-066 range!
 
 - ✅ **003-core-api-architecture/** - EXISTS
-- ✅ **027-billing-engine-integration/** - EXISTS  
+- ✅ **027-billing-engine-integration/** - EXISTS
 - ✅ **028-invoice-management-system/** - EXISTS
 - ✅ **029-usage-analytics-reporting/** - EXISTS
 - ✅ **030-admin-analytics-console/** - EXISTS
@@ -137,8 +137,8 @@
 
 **Additional SPECs beyond SPEC_AUDIT scope**:
 - **067-nina-intelligence-stack/** ✅ COMPLETE
-- **068-comprehensive-ui-suite/** ✅ COMPLETE  
-- **069-performance-optimization-suite/** 
+- **068-comprehensive-ui-suite/** ✅ COMPLETE
+- **069-performance-optimization-suite/**
 - **070-real-time-monitoring-dashboard/**
 - **071-auto-healing-health-system/**
 - **072-apple-container-cli-integration/**
@@ -171,16 +171,16 @@
 ```bash
 # Multiple versions of same SPEC number:
 005: admin-dashboard, universal-ai-integration, vs-code-integration
-006: enterprise-roadmap, rbac-integration, user-signup-system  
+006: enterprise-roadmap, rbac-integration, user-signup-system
 008: security-middleware-redaction, team-organization-ownership
 010: observability-and-telemetry, observability-telemetry
 037: terminal-cli-auto-context, vs-code-integration
 040: feedback-loop-ai-context, feedback-loop-system
 041: intelligent-related-memory, memory-visibility-sharing
-042: memory-health-orphaned-tokens, memory-sync-users-teams
+042: memory-health-orphaned-token  # pragma: allowlist secrets, memory-sync-users-teams
 043: memory-access-control-acl, offline-memory-capture
 044: cross-device-session-continuity, memory-drift-diff-detection
-045: memory-export-import-merge, session-timeout-token-expiry
+045: memory-export-import-merge, session-timeout-token  # pragma: allowlist secret-expiry
 ```
 
 ### **3. Validate Recent SPECs (067-072)**
@@ -197,7 +197,7 @@
 3. **Add SPECs 067-072** to tracking document
 4. **Validate status of recent SPECs** against actual implementations
 
-### **High Priority (This Week)**  
+### **High Priority (This Week)**
 1. **Resolve duplicate directories** using established cleanup plan
 2. **Cross-validate status claims** against actual code implementations
 3. **Update SPEC numbering strategy** to prevent future duplicates
@@ -213,10 +213,10 @@
 
 **SPEC_AUDIT_2024.md is the correct tracking document but contains several inaccuracies:**
 
-✅ **Correctly identified**: Duplicate directory conflicts  
-❌ **Incorrectly claimed**: Missing numbers (all 000-072 exist)  
-❌ **Understated count**: 72 SPECs exist (not 66+)  
-❌ **Missing recent work**: SPECs 067-072 not documented  
+✅ **Correctly identified**: Duplicate directory conflicts
+❌ **Incorrectly claimed**: Missing numbers (all 000-072 exist)
+❌ **Understated count**: 72 SPECs exist (not 66+)
+❌ **Missing recent work**: SPECs 067-072 not documented
 
 **The platform actually has MORE SPECs than documented, with recent additions (067-072) appearing to be significant completions like the Nina Intelligence Stack and Comprehensive UI Suite.**
 

@@ -1,6 +1,7 @@
-from fastapi import Request, APIRouter
+from fastapi import APIRouter, Request
 
 router = APIRouter()
+
 
 @router.post("/rawtest")
 async def raw_test(request: Request):

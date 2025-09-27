@@ -45,7 +45,7 @@ MIDDLEWARE = [
 - **At Rest**: AES-256 encryption for sensitive data
 - **In Transit**: TLS 1.3 for all communications
 - **Database**: PostgreSQL native encryption
-- **Cache**: Redis AUTH with password protection
+- **Cache**: Redis AUTH with password  # pragma: allowlist secret protection
 
 ### Secret Management
 - **Environment Variables**: `.env` based configuration
@@ -113,7 +113,7 @@ make test-middleware
 ## 📋 Security Checklist
 
 ### ✅ Authentication Security
-- [ ] JWT tokens properly signed and validated
+- [ ] JWT token  # pragma: allowlist secrets properly signed and validated
 - [ ] Session management with secure TTL
 - [ ] Password policies enforced
 - [ ] Account lockout mechanisms active

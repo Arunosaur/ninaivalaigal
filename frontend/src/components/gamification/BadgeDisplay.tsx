@@ -117,7 +117,7 @@ export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
                     <h4 className="font-medium text-sm text-gray-900 truncate">
                       {userBadge.badge.title}
                     </h4>
-                    <Badge 
+                    <Badge
                       className={`text-xs ${getLevelColor(userBadge.badge.level)}`}
                       variant="outline"
                     >
@@ -176,14 +176,14 @@ export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
                         {badgeProgress.overall_progress.toFixed(0)}%
                       </span>
                     </div>
-                    <Progress 
-                      value={badgeProgress.overall_progress} 
+                    <Progress
+                      value={badgeProgress.overall_progress}
                       className="h-2 mb-2"
                     />
                     <p className="text-xs text-gray-600 mb-2">
                       {badgeProgress.badge.description}
                     </p>
-                    
+
                     {/* Detailed Progress */}
                     <div className="space-y-1">
                       {Object.entries(badgeProgress.progress).map(([criterion, data]: [string, any]) => (
@@ -222,7 +222,7 @@ export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
                 title={`${userBadge.badge.title} - ${userBadge.badge.description}`}
               >
                 <div className="text-lg mb-1">{userBadge.badge.icon}</div>
-                <Badge 
+                <Badge
                   className={`text-xs ${getLevelColor(userBadge.badge.level)} group-hover:scale-105 transition-transform`}
                   variant="outline"
                 >
@@ -230,7 +230,7 @@ export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
                 </Badge>
               </div>
             ))}
-            
+
             {/* Empty slots for visual appeal */}
             {Array.from({ length: Math.max(0, 8 - earnedBadges.length) }).map((_, index) => (
               <div
@@ -241,7 +241,7 @@ export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
               </div>
             ))}
           </div>
-          
+
           {earnedBadges.length === 0 && (
             <div className="text-center py-4 text-gray-500">
               <Trophy className="h-8 w-8 mx-auto mb-2 text-gray-300" />
@@ -283,7 +283,7 @@ export const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Progress toward next level */}
                   {Object.entries(userBadge.progress).map(([criterion, data]: [string, any]) => (
                     <div key={criterion} className="space-y-1">

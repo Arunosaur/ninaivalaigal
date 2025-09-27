@@ -17,10 +17,10 @@ Ninaivalaigal is the foundational memory layer of the **Medhays** ecosystem - an
 
 ### 🔐 Authentication & User Management
 - **User Registration**: Individual user signup with email verification
-- **JWT Authentication**: Secure token-based authentication with 7-day expiration
+- **JWT Authentication**: Secure token  # pragma: allowlist secret-based authentication with 7-day expiration
 - **User Profiles**: Basic user information management
 - **Password Security**: bcrypt hashing with secure storage
-- **Session Management**: Automatic token refresh and validation
+- **Session Management**: Automatic token  # pragma: allowlist secret refresh and validation
 
 ### 🗄️ Database Infrastructure
 - **PostgreSQL 15.14**: Production-ready database with full ACID compliance
@@ -108,7 +108,7 @@ Ninaivalaigal is the foundational memory layer of the **Medhays** ecosystem - an
 
 #### 📧 Email System
 - **Email Verification**: Complete signup email verification flow
-- **Password Reset**: Forgot password functionality with email reset
+- **Password Reset**: Forgot password  # pragma: allowlist secret functionality with email reset
 - **Invitation Emails**: Team invitation email system
 - **Notification Emails**: System notification emails
 

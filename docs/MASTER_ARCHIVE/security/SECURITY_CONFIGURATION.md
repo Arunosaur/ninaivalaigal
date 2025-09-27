@@ -14,7 +14,7 @@ export MEM0_DB_HOST="localhost"
 export MEM0_DB_PORT="5432"
 export MEM0_DB_NAME="mem0db"
 export MEM0_DB_USER="mem0user"
-export MEM0_DB_PASSWORD="your_secure_password"
+export MEM0_DB_PASSWORD="your_secure_password"  # pragma: allowlist secret
 
 # Construct URL in application
 export MEM0_DATABASE_URL="postgresql://${MEM0_DB_USER}:${MEM0_DB_PASSWORD}@${MEM0_DB_HOST}:${MEM0_DB_PORT}/${MEM0_DB_NAME}"

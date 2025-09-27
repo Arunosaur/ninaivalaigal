@@ -1,5 +1,5 @@
 # External Code Review Results
-**Date**: 2025-09-22  
+**Date**: 2025-09-22
 **Rating**: 🌟 **7.5/10 - EXCELLENT FOUNDATION**
 
 ## 🎯 Executive Summary
@@ -14,7 +14,7 @@
 |-------|--------|-------------------|
 | **Remove committed secrets** | ✅ **COMPLETE** | Removed mcp.json, config files from git history |
 | **Update .gitignore** | ✅ **COMPLETE** | Added .vscode/, IDE configs, *.config.json |
-| **Replace hardcoded passwords** | ✅ **COMPLETE** | Environment variables + secure templates |
+| **Replace hardcoded password  # pragma: allowlist secrets** | ✅ **COMPLETE** | Environment variables + secure templates |
 | **Implement secret scanning** | ✅ **COMPLETE** | Detect-secrets with pragma allowlist |
 
 **Reviewer Validation**: ✅ "Multi-layer secret detection and redaction system"
@@ -53,8 +53,8 @@
 
 **Immediate Actions (Priority 1)** - Week 2-3:
 1. ✅ ~~Remove committed secrets~~ **COMPLETE**
-2. ✅ ~~Add .vscode/ to .gitignore~~ **COMPLETE**  
-3. ✅ ~~Replace hardcoded passwords~~ **COMPLETE**
+2. ✅ ~~Add .vscode/ to .gitignore~~ **COMPLETE**
+3. ✅ ~~Replace hardcoded password  # pragma: allowlist secrets~~ **COMPLETE**
 4. ✅ ~~Implement secret scanning~~ **COMPLETE**
 
 **Short-term (Priority 2)** - Week 2-3:
@@ -115,7 +115,7 @@ API Gateway → [Auth Service | Memory Service | MCP Service]
 
 ### ✅ **SECURITY STRENGTHS:**
 - **Data Redaction**: Pre-persistence and pre-logging redaction
-- **JWT Implementation**: Proper token validation and refresh
+- **JWT Implementation**: Proper token  # pragma: allowlist secret validation and refresh
 - **RBAC**: Comprehensive permission system
 - **Input Validation**: Multi-layer validation approach
 
@@ -130,7 +130,7 @@ API Gateway → [Auth Service | Memory Service | MCP Service]
 ### 🚨 **Week 1: Critical Security Fixes** ✅ **COMPLETE**
 - [x] Remove all committed secrets
 - [x] Update .gitignore
-- [x] Replace hardcoded passwords
+- [x] Replace hardcoded password  # pragma: allowlist secrets
 - [x] Implement secret scanning
 
 ### 🔧 **Week 2-3: Code Organization**

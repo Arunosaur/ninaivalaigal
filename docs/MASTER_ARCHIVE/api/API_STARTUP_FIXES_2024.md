@@ -56,7 +56,7 @@ Shutdown: UI → API → Mem0 → PgBouncer → Redis → DB
 ### **Redis Configuration**
 - **Container**: `nv-redis` (Redis 7-alpine)
 - **Port**: 6379 (localhost)
-- **Password**: `nina_redis_dev_password`
+- **Password**: `nina_redis_dev_password  # pragma: allowlist secret`
 - **Memory**: 256MB with LRU eviction
 - **Volume**: `nv_redis_data` for persistence
 

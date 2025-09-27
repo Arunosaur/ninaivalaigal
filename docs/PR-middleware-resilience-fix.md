@@ -28,7 +28,7 @@ async def security_event_middleware(request: Request, call_next):
         await security_alert_manager.log_security_event(...)  # ← Redis call hangs
 ```
 
-**The Issue**: 
+**The Issue**:
 1. Security middleware intercepts all `/auth/*` requests
 2. Attempts to log security events via Redis
 3. Redis client has broken `.set()` method (`'RedisClient' object has no attribute 'set'`)
@@ -50,7 +50,7 @@ if (
 ):
     await security_alert_manager.log_security_event(...)  # ← Hangs here
 
-# AFTER (Lines 59-74) 
+# AFTER (Lines 59-74)
 # Log failed authentication attempts - TEMPORARILY DISABLED DUE TO REDIS HANG
 # FIXME: This causes /auth routes to hang due to Redis client issues
 # if (
@@ -68,7 +68,7 @@ if (
 configure_security(app)  # Loads problematic middleware
 app.add_middleware(MetricsMiddleware)  # Potentially uses Redis
 
-# AFTER  
+# AFTER
 # configure_security(app)  # FIXME: This adds middleware that hangs on /auth routes due to Redis issues
 # app.add_middleware(MetricsMiddleware)  # TEMP DISABLED - might use Redis
 ```
@@ -109,7 +109,7 @@ $ curl -X POST http://localhost:13370/auth/login -d '{"email":"test@example.com"
 
 ### All Auth Endpoints Working
 - ✅ `/auth/login` - User authentication
-- ✅ `/auth/signup/individual` - Individual signup  
+- ✅ `/auth/signup/individual` - Individual signup
 - ✅ `/auth/signup/organization` - Organization signup
 - ✅ `/auth/verify-email` - Email verification
 - ✅ `/auth/me` - User profile
@@ -121,7 +121,7 @@ $ curl -X POST http://localhost:13370/auth/login -d '{"email":"test@example.com"
 
 ### No Breaking Changes
 - **API Contracts**: All endpoints maintain same request/response format
-- **Authentication Logic**: Zero changes to core auth functionality  
+- **Authentication Logic**: Zero changes to core auth functionality
 - **JWT Generation**: Identical token format and expiration
 - **Database Operations**: No schema or query changes
 
@@ -145,7 +145,7 @@ $ curl -X POST http://localhost:13370/auth/login -d '{"email":"test@example.com"
 - **Success Rate**: 0% (all requests timeout)
 - **User Experience**: Completely broken
 
-### After Fix  
+### After Fix
 - **Auth Response Time**: ~50ms (normal)
 - **Success Rate**: 100% (all requests succeed)
 - **User Experience**: Fast, responsive login
@@ -164,7 +164,7 @@ $ curl -X POST http://localhost:13370/auth/login -d '{"email":"test@example.com"
 - [ ] **Add Timeouts**: All middleware async calls need 5s timeouts
 - [ ] **Re-enable Security Logging**: With Redis fallback to file logging
 
-### Medium Term  
+### Medium Term
 - [ ] **Circuit Breaker Pattern**: Auto-disable middleware on repeated failures
 - [ ] **Graceful Degradation**: Core functionality preserved when middleware fails
 - [ ] **Health Checks**: Middleware-level health monitoring
@@ -185,7 +185,7 @@ curl -X POST http://localhost:13370/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "test@ninaivalaigal.com", "password": "test"}'
 
-# 2. Test backup endpoint  
+# 2. Test backup endpoint
 curl -X POST http://localhost:13370/user-login \
   -H "Content-Type: application/json" \
   -d '{"email": "test@ninaivalaigal.com", "password": "test"}'
@@ -210,7 +210,7 @@ curl -H "Authorization: Bearer <jwt_token>" \
 - ✅ `README-auth.md` - Developer guide for auth system
 - ✅ `docs/SPEC-064-middleware-resilience.md` - Technical specification
 
-### Updated Documentation  
+### Updated Documentation
 - [ ] API documentation with backup endpoints
 - [ ] Deployment guide with Redis considerations
 - [ ] Troubleshooting guide with middleware debugging
@@ -268,7 +268,7 @@ git revert <this-commit-hash>
 - [ ] Error handling appropriate
 - [ ] Code style consistent
 
-### Testing Review  
+### Testing Review
 - [ ] Manual testing completed
 - [ ] All auth endpoints verified working
 - [ ] JWT token generation confirmed
@@ -283,10 +283,10 @@ git revert <this-commit-hash>
 
 ---
 
-**Type**: 🐛 Bug Fix  
-**Priority**: P0 (Critical)  
-**Complexity**: Medium  
+**Type**: 🐛 Bug Fix
+**Priority**: P0 (Critical)
+**Complexity**: Medium
 **Risk**: Low (surgical fix with fallbacks)
 
-**Closes**: #AUTH-HANG-001  
+**Closes**: #AUTH-HANG-001
 **Related**: #REDIS-CLIENT-FIX, #MIDDLEWARE-RESILIENCE

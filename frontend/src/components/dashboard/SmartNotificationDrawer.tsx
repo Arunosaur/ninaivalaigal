@@ -34,7 +34,7 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
     const priorityOrder = { high: 3, medium: 2, low: 1 };
     const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
     if (priorityDiff !== 0) return priorityDiff;
-    
+
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });
 
@@ -71,7 +71,7 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
@@ -83,7 +83,7 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                     notification.type.includes('ai') ? 'AI Performance' :
                     notification.type.includes('quality') ? 'Content Quality' :
                     'General';
-    
+
     if (!groups[category]) groups[category] = [];
     groups[category].push(notification);
     return groups;
@@ -127,7 +127,7 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                       {categoryNotifications.length}
                     </Badge>
                   </h3>
-                  
+
                   <div className="space-y-2">
                     {categoryNotifications.map((notification, index) => (
                       <div
@@ -142,7 +142,7 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                               <span className="text-lg">{getTypeIcon(notification.type)}</span>
                             )}
                           </div>
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
                               <h4 className="text-sm font-medium text-gray-900 leading-tight">
@@ -150,8 +150,8 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                               </h4>
                               <div className="flex items-center gap-1 flex-shrink-0">
                                 {getPriorityIcon(notification.priority)}
-                                <Badge 
-                                  variant="outline" 
+                                <Badge
+                                  variant="outline"
                                   className={`text-xs ${
                                     notification.priority === 'high' ? 'text-red-600 border-red-200' :
                                     notification.priority === 'medium' ? 'text-yellow-600 border-yellow-200' :
@@ -162,17 +162,17 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                                 </Badge>
                               </div>
                             </div>
-                            
+
                             <p className="text-xs text-gray-600 mt-1 leading-relaxed">
                               {notification.description}
                             </p>
-                            
+
                             <div className="flex items-center justify-between mt-2">
                               <div className="flex items-center gap-1 text-xs text-gray-500">
                                 <Clock className="h-3 w-3" />
                                 {formatTimestamp(notification.timestamp)}
                               </div>
-                              
+
                               {notification.action && (
                                 <Button
                                   variant="ghost"
@@ -187,7 +187,7 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                                 </Button>
                               )}
                             </div>
-                            
+
                             {notification.widget_id && (
                               <div className="mt-2">
                                 <Badge variant="outline" className="text-xs bg-gray-100">

@@ -103,7 +103,7 @@ curl -X POST "https://ninaivalaigal.company.com/auth/login" \
 # Response: {"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...", "expires": "2024-01-20"}
 
 # User sets token in environment
-export NINAIVALAIGAL_USER_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+export NINAIVALAIGAL_USER_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."  # pragma: allowlist secret
 ```
 
 ## User Experience Flow
@@ -161,7 +161,7 @@ def refresh_token_if_needed(self, token):
 
 ### Development
 ```bash
-export NINAIVALAIGAL_DATABASE_URL="postgresql://ninaivalaigal_app:dev_password@localhost:5432/ninaivalaigal"
+export NINAIVALAIGAL_DATABASE_URL="postgresql://ninaivalaigal_app:dev_password@  # pragma: allowlist secretlocalhost:5432/ninaivalaigal"
 export NINAIVALAIGAL_JWT_SECRET="dev-secret-key"
 ```
 

@@ -110,10 +110,10 @@ cp .env.example .env
 ### **Connection Strings**
 ```bash
 # Direct database (Phase 1)
-DATABASE_URL=postgresql://nina:password@localhost:5433/nina
+DATABASE_URL=postgresql://nina:password  # pragma: allowlist secret@localhost:5433/nina
 
 # Via PgBouncer (Phase 2+)
-DATABASE_URL=postgresql://nina:password@localhost:6432/nina
+DATABASE_URL=postgresql://nina:password  # pragma: allowlist secret@localhost:6432/nina
 
 # API endpoints (Phase 3+)
 API_BASE=http://localhost:13370
@@ -128,13 +128,13 @@ API_BASE=http://localhost:13370
 ./scripts/nv-pgbouncer-start.sh
 
 # Test direct connection
-psql "postgresql://nina:password@localhost:5433/nina" -c "SELECT 'direct';"
+psql "postgresql://nina:password  # pragma: allowlist secret@localhost:5433/nina" -c "SELECT 'direct';"
 
 # Test pooled connection
-psql "postgresql://nina:password@localhost:6432/nina" -c "SELECT 'pooled';"
+psql "postgresql://nina:password  # pragma: allowlist secret@localhost:6432/nina" -c "SELECT 'pooled';"
 
 # Check PgBouncer stats
-psql "postgresql://nina:password@localhost:6432/pgbouncer" -c "SHOW STATS;"
+psql "postgresql://nina:password  # pragma: allowlist secret@localhost:6432/pgbouncer" -c "SHOW STATS;"
 ```
 
 ### **Phase 3 Validation (API)**
@@ -149,7 +149,7 @@ curl http://localhost:13370/health
 open http://localhost:13370/docs
 
 # Test with existing test suite
-export DATABASE_URL="postgresql://nina:password@localhost:6432/nina"
+export DATABASE_URL="postgresql://nina:password  # pragma: allowlist secret@localhost:6432/nina"
 pytest tests/
 ```
 

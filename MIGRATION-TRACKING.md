@@ -88,7 +88,7 @@
 SQLAlchemy Error: Mapper 'Mapper[Team(teams)]' has no property 'invitations'
 ```
 
-**Root Cause IDENTIFIED**: 
+**Root Cause IDENTIFIED**:
 1. ✅ `TeamInvitation.team` relationship with `back_populates="invitations"` - FIXED (commented out)
 2. ✅ `TeamMembership.team` relationship with `back_populates="memberships"` - FIXED (commented out)
 3. ✅ **SQLAlchemy mapper issue resolved** - Fixed by disabling problematic relationships
@@ -157,6 +157,6 @@ TypeError: VendorAdminOperations.__init__() missing 1 required positional argume
 
 ---
 
-**Last Updated**: 2025-09-26 07:29 UTC  
-**Status**: 🔄 In Progress - Core migration complete, fixing mapper conflicts  
+**Last Updated**: 2025-09-26 07:29 UTC
+**Status**: 🔄 In Progress - Core migration complete, fixing mapper conflicts
 **Next Action**: Resolve SQLAlchemy Team.invitations mapper issue

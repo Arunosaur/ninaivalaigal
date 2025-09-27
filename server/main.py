@@ -116,19 +116,28 @@ app.include_router(metrics_router)
 
 from admin_analytics_api import router as admin_analytics_router
 from ai_feedback_api import router as ai_feedback_router
+from approval_workflows_api import router as approval_router
+from auth_working import router as auth_working_router
 from billing_console_api import router as billing_console_router
 from billing_engine_integration_api import router as billing_engine_router
+from dashboard_widgets_api import router as dashboard_router
+from discussion_layer_api import router as discussion_router
 from early_adopter_api import router as early_adopter_router
 from enhanced_signup_api import router as enhanced_signup_router
+from gamification_api import router as gamification_router
 from graph_intelligence_integration_api import (
     router as graph_intelligence_integration_router,
 )
+from graph_rank import router as graph_router
 from graph_usage_analytics import router as graph_usage_analytics_router
 from graph_validation_checklist import router as graph_validation_router
+from insights_api import router as insights_router
 from invoice_management_api import router as invoice_management_router
 from memory_injection_api import router as memory_injection_router
 from memory_suggestions_api import router as memory_suggestions_router
+from memory_system_api import router as memory_router
 from partner_ecosystem_api import router as partner_ecosystem_router
+from protected_routes import router as protected_router
 
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router
@@ -140,29 +149,21 @@ from routers.organizations import router as organizations_router
 from routers.recording import router as recording_router
 from routers.teams import router as teams_router
 from routers.users import router as users_router
+from standalone_teams_api import router as standalone_teams_router
+from standalone_teams_billing_api import router as standalone_teams_billing_router
+from tag_suggester import router as tag_router
+from team_api_keys_api import router as team_api_keys_router
+from team_billing_portal_api import router as team_billing_portal_router
+from teams_working import router as teams_working_router
+from teams_working_api import router as teams_router
 
 # TEMPORARILY COMMENTED OUT TO ISOLATE HANGING ISSUE
 # from signup_api import router as signup_router
 from test_raw_body import router as test_raw_router
-from auth_working import router as auth_working_router
-from protected_routes import router as protected_router
-from teams_working import router as teams_working_router
-from memory_system_api import router as memory_router
-from approval_workflows_api import router as approval_router
-from discussion_layer_api import router as discussion_router
 from timeline_api import router as timeline_router
-from teams_working_api import router as teams_router
-from tag_suggester import router as tag_router
-from graph_rank import router as graph_router
-from insights_api import router as insights_router
-from dashboard_widgets_api import router as dashboard_router
-from gamification_api import router as gamification_router
-from standalone_teams_api import router as standalone_teams_router
-from standalone_teams_billing_api import router as standalone_teams_billing_router
-from team_api_keys_api import router as team_api_keys_router
-from team_billing_portal_api import router as team_billing_portal_router
 from unified_macro_intelligence_api import router as macro_intelligence_router
-{{ ... }}
+
+{{...}}
 from usage_analytics_api import router as usage_analytics_router
 from vendor_admin_api import router as vendor_admin_router
 
@@ -172,8 +173,12 @@ app.include_router(auth_working_router)  # WORKING AUTH SOLUTION
 app.include_router(protected_router)  # PROTECTED ROUTES WITH JWT AUTH
 app.include_router(teams_working_router)  # TEAM MANAGEMENT SYSTEM
 app.include_router(memory_system_router)  # MEMORY SYSTEM - THE HEART OF NINAIVALAIGAL
-app.include_router(approval_workflows_router)  # APPROVAL WORKFLOWS - THE GOVERNANCE BRIDGE
-app.include_router(context_scoping_router)  # CONTEXT SCOPING - GRAPH-READY MEMORY ORGANIZATION
+app.include_router(
+    approval_workflows_router
+)  # APPROVAL WORKFLOWS - THE GOVERNANCE BRIDGE
+app.include_router(
+    context_scoping_router
+)  # CONTEXT SCOPING - GRAPH-READY MEMORY ORGANIZATION
 app.include_router(timeline_api_router)  # TIMELINE API - KNOWLEDGE EVOLUTION VIEW
 app.include_router(discussion_api_router)  # DISCUSSION API - THE PLATFORM'S VOICE
 app.include_router(graph_rank_router)  # GRAPH RANKING - PAGERANK INTELLIGENCE

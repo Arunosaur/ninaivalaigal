@@ -39,7 +39,7 @@ To fix a blocking issue in the `/auth/*` request path caused by broken Redis-dep
 ## 🧪 Tests
 
 - ✅ `/auth/login` responds successfully
-- ✅ `/user-login` fallback operational  
+- ✅ `/user-login` fallback operational
 - ✅ All services and imports stable
 - ✅ JWT token generation working
 - ✅ No regression in other endpoints

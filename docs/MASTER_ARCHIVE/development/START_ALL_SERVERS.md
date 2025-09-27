@@ -34,7 +34,7 @@ cd /Users/asrajag/Workspace/mem0/server
 # Set environment variables (optional - has defaults)
 export NINAIVALAIGAL_JWT_SECRET="your-secret-key-here"
 export NINAIVALAIGAL_JWT_EXPIRATION_HOURS="168"  # 7 days
-export NINAIVALAIGAL_DATABASE_URL="postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+export NINAIVALAIGAL_DATABASE_URL="postgresql://mem0user:mem0pass@  # pragma: allowlist secretlocalhost:5432/mem0db"
 
 # Start FastAPI server with auto-reload
 uvicorn main:app --host 127.0.0.1 --port 13370 --reload

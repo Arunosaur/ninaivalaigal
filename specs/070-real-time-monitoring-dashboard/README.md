@@ -1,8 +1,8 @@
 # SPEC-070: Real-Time Monitoring Dashboard
 
-**Status**: ✅ COMPLETE  
-**Priority**: Medium  
-**Category**: Monitoring  
+**Status**: ✅ COMPLETE
+**Priority**: Medium
+**Category**: Monitoring
 
 ## Overview
 
@@ -17,7 +17,7 @@ WebSocket-powered live metrics dashboard with professional UI for real-time syst
 
 ### Professional UI
 - Chart.js visualizations for trends
-- Tailwind CSS responsive design  
+- Tailwind CSS responsive design
 - Color-coded health indicators
 - Alert management system
 

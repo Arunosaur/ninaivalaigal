@@ -118,7 +118,7 @@ function MemoryView({ memory, authService, currentUserId }) {
     return (
         <div>
             <div className="memory-content">{memory.content}</div>
-            <CommentThread 
+            <CommentThread
                 memoryId={memory.id}
                 authService={authService}
                 currentUserId={currentUserId}
@@ -131,9 +131,9 @@ function MemoryView({ memory, authService, currentUserId }) {
 ### Vue.js Component
 ```vue
 <template>
-    <CommentThreadVue 
-        :memory-id="memoryId" 
-        :auth-service="authService" 
+    <CommentThreadVue
+        :memory-id="memoryId"
+        :auth-service="authService"
     />
 </template>
 
@@ -292,7 +292,7 @@ const approvalWithFeedback = {
 // Comments appear as timeline events
 const timelineWithDiscussion = timeline.map(event => ({
   ...event,
-  discussion_activity: event.type === 'memory_created' ? 
+  discussion_activity: event.type === 'memory_created' ?
     await discussionManager.getMemoryComments(event.memory_id) : null
 }));
 ```

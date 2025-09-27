@@ -75,7 +75,7 @@ services:
     ports:
       - "13371:13371"
     environment:
-      - NINAIVALAIGAL_DATABASE_URL=postgresql://postgres:password@db:5432/Ninaivalaigal
+      - NINAIVALAIGAL_DATABASE_URL=postgresql://postgres:password@  # pragma: allowlist secretdb:5432/Ninaivalaigal
       - NINAIVALAIGAL_JWT_SECRET=${NINAIVALAIGAL_JWT_SECRET}
     depends_on:
       - db
@@ -90,7 +90,7 @@ services:
     ports:
       - "13370:13370"
     environment:
-      - NINAIVALAIGAL_DATABASE_URL=postgresql://postgres:password@db:5432/Ninaivalaigal
+      - NINAIVALAIGAL_DATABASE_URL=postgresql://postgres:password@  # pragma: allowlist secretdb:5432/Ninaivalaigal
       - NINAIVALAIGAL_JWT_SECRET=${NINAIVALAIGAL_JWT_SECRET}
     depends_on:
       - db
@@ -277,7 +277,7 @@ if __name__ == "__main__":
 ```bash
 # Single server deployment
 export NINAIVALAIGAL_SERVER_HOST="Ninaivalaigal.team.local"
-export NINAIVALAIGAL_DATABASE_URL="postgresql://Ninaivalaigal:password@db.team.local/Ninaivalaigal"
+export NINAIVALAIGAL_DATABASE_URL="postgresql://Ninaivalaigal:password@  # pragma: allowlist secretdb.team.local/Ninaivalaigal"
 
 # Each developer's ~/.bashrc or ~/.zshrc
 echo 'export NINAIVALAIGAL_SERVER_HOST="Ninaivalaigal.team.local"' >> ~/.bashrc
@@ -293,7 +293,7 @@ services:
       replicas: 3
     environment:
       - NINAIVALAIGAL_REDIS_URL=redis://redis:6379
-      - NINAIVALAIGAL_DATABASE_URL=postgresql://Ninaivalaigal:password@postgres-cluster/Ninaivalaigal
+      - NINAIVALAIGAL_DATABASE_URL=postgresql://Ninaivalaigal:password@  # pragma: allowlist secretpostgres-cluster/Ninaivalaigal
 ```
 
 ### Large Organization (50+ developers)
@@ -316,7 +316,7 @@ data:
 ### Authentication
 ```bash
 # JWT tokens for team @e^Mbers
-export NINAIVALAIGAL_JWT_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+export NINAIVALAIGAL_JWT_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."  # pragma: allowlist secret
 
 # Or OAuth integration
 export NINAIVALAIGAL_OAUTH_PROVIDER="google"

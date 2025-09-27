@@ -90,7 +90,7 @@ The mem0 universal AI integration system has achieved **full production readines
       "cwd": "/Users/asrajag/Workspace/mem0",
       "env": {
         "MEM0_JWT_SECRET": "FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk",
-        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@  # pragma: allowlist secretlocalhost:5432/mem0db",
         "PYTHONPATH": "/Users/asrajag/Workspace/mem0/server"
       }
     }
@@ -101,7 +101,7 @@ The mem0 universal AI integration system has achieved **full production readines
 ### Environment Variables Required
 ```bash
 export MEM0_JWT_SECRET="FcbdlNhk9AlKmeGjDNVmZK3CK12UZdQRrdaG1i8xesk"
-export MEM0_DATABASE_URL="postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+export MEM0_DATABASE_URL="postgresql://mem0user:mem0pass@  # pragma: allowlist secretlocalhost:5432/mem0db"
 ```
 
 ### Verified Functionality

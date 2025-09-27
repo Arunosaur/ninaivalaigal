@@ -1,8 +1,8 @@
 # SPEC-072: Apple Container CLI Integration
 
-**Status**: ✅ COMPLETE  
-**Priority**: Medium  
-**Category**: Development Experience  
+**Status**: ✅ COMPLETE
+**Priority**: Medium
+**Category**: Development Experience
 
 ## Overview
 
@@ -37,7 +37,7 @@ Native ARM64 container runtime integration providing 3-5x performance improvemen
 ## Benefits
 
 - **Development Speed**: Faster build and test cycles
-- **Resource Efficiency**: Lower CPU and memory usage  
+- **Resource Efficiency**: Lower CPU and memory usage
 - **Native Performance**: No virtualization overhead
 - **Simplified Setup**: No Docker Desktop required
 

@@ -59,7 +59,7 @@ SYSTEM (highest precedence)
 ### 3. Authentication Integration
 
 #### JWT Token Enhancement
-JWT tokens now include:
+JWT token  # pragma: allowlist secrets now include:
 ```json
 {
   "user_id": 123,
@@ -77,7 +77,7 @@ JWT tokens now include:
 ```
 
 #### RBAC Middleware
-- Extracts RBAC context from JWT tokens
+- Extracts RBAC context from JWT token  # pragma: allowlist secrets
 - Validates permissions for each request
 - Provides decorators for endpoint protection
 
@@ -184,12 +184,12 @@ Request Flow:
 # Login and receive JWT with roles
 curl -X POST http://localhost:13370/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password"}'
+  -d '{"email":"user@example.com","password  # pragma: allowlist secret":"password"}'
 
 # Response includes RBAC roles
 {
   "user": {
-    "jwt_token": "eyJ...",
+    "jwt_token  # pragma: allowlist secret": "eyJ...",
     "rbac_roles": {
       "global": "MEMBER",
       "team:1": "ADMIN"
@@ -239,7 +239,7 @@ curl -X POST http://localhost:13370/rbac/access-requests/1/approve \
 
 ### 3. Performance Optimization
 - Database indexes on RBAC tables
-- JWT token caching strategies
+- JWT token  # pragma: allowlist secret caching strategies
 - Permission check optimization
 - Audit log rotation
 

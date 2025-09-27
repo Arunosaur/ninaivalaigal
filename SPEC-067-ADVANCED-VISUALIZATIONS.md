@@ -15,7 +15,7 @@
 
 ### **Core Philosophy**: "Make Intelligence Visible"
 - **Graph-based relationship navigation** - See how memories connect
-- **Memory clusters and tag maps** - Understand knowledge organization  
+- **Memory clusters and tag maps** - Understand knowledge organization
 - **Interactive impact trails** - Visualize how ideas spread through the team
 - **PageRank visual feedback** - See why content ranks highly
 - **Real-time collaboration patterns** - Watch team dynamics unfold
@@ -31,12 +31,12 @@ graph TD
     D --> E[Visual Node Generation]
     E --> F[D3.js Force Layout]
     F --> G[Interactive Graph Render]
-    
+
     H[User Interaction] --> I[Node Selection]
     I --> J[Relationship Highlighting]
     J --> K[Detail Panel Update]
     K --> L[Related Content Loading]
-    
+
     M[Real-time Updates] --> N[WebSocket Event]
     N --> O[Graph Data Update]
     O --> P[Smooth Animation]
@@ -52,7 +52,7 @@ graph LR
     D --> E[Team Member Engagement]
     E --> F[Approval Process]
     F --> G[Knowledge Integration]
-    
+
     H[Visual Trail] --> I[Animated Path]
     I --> J[Timeline Markers]
     J --> K[Impact Metrics]
@@ -68,7 +68,7 @@ graph TD
     D --> E[Heatmap Generation]
     E --> F[Color Interpolation]
     F --> G[Interactive Overlay]
-    
+
     H[Time Dimension] --> I[Animation Frames]
     I --> J[Temporal Patterns]
     J --> K[Peak Detection]
@@ -160,14 +160,14 @@ async def get_knowledge_graph_data(
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Get graph data for D3.js network visualization"""
-    
+
 @router.get("/visualizations/impact-trail/{memory_id}")
 async def get_memory_impact_trail(
     memory_id: str,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Get impact trail data for specific memory"""
-    
+
 @router.get("/visualizations/collaboration-heatmap")
 async def get_collaboration_heatmap(
     team_id: Optional[int] = None,
@@ -188,13 +188,13 @@ async def get_pagerank_breakdown(
 ```python
 def generate_graph_layout(nodes: List[GraphNode], edges: List[GraphEdge]) -> Dict[str, Any]:
     """Generate optimized layout for D3.js force simulation"""
-    
+
 def calculate_impact_trail(memory_id: str) -> List[ImpactEvent]:
     """Calculate chronological impact events for memory"""
-    
+
 def generate_collaboration_matrix(team_id: int, time_range: str) -> np.ndarray:
     """Generate collaboration intensity matrix for heatmap"""
-    
+
 def analyze_pagerank_factors(memory_id: str) -> Dict[str, float]:
     """Break down PageRank score into contributing factors"""
 ```
@@ -221,7 +221,7 @@ export const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
   const [visualizationData, setVisualizationData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const svgRef = useRef<SVGSVGElement>(null);
-  
+
   // WebSocket for real-time updates
   useEffect(() => {
     const ws = new WebSocket(`ws://localhost:8000/visualizations/ws/${type}`);
@@ -231,14 +231,14 @@ export const VisualizationContainer: React.FC<VisualizationContainerProps> = ({
     };
     return () => ws.close();
   }, [type]);
-  
+
   // D3.js rendering logic
   useEffect(() => {
     if (visualizationData && svgRef.current) {
       renderVisualization(svgRef.current, visualizationData, config);
     }
   }, [visualizationData, config]);
-  
+
   return (
     <div className="visualization-container">
       <svg ref={svgRef} width="100%" height="100%" />
@@ -259,16 +259,16 @@ export const KnowledgeGraphNetwork: React.FC<KnowledgeGraphProps> = ({
   onEdgeClick
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
-  
+
   useEffect(() => {
     const svg = d3.select(svgRef.current);
-    
+
     // Force simulation setup
     const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(edges).id(d => d.id))
       .force("charge", d3.forceManyBody().strength(-300))
       .force("center", d3.forceCenter(width / 2, height / 2));
-    
+
     // Node rendering
     const nodeElements = svg.selectAll(".node")
       .data(nodes)
@@ -282,7 +282,7 @@ export const KnowledgeGraphNetwork: React.FC<KnowledgeGraphProps> = ({
         .on("start", dragstarted)
         .on("drag", dragged)
         .on("end", dragended));
-    
+
     // Edge rendering
     const linkElements = svg.selectAll(".link")
       .data(edges)
@@ -290,7 +290,7 @@ export const KnowledgeGraphNetwork: React.FC<KnowledgeGraphProps> = ({
       .append("line")
       .attr("class", "link")
       .attr("stroke-width", d => Math.sqrt(d.weight));
-    
+
     // Animation loop
     simulation.on("tick", () => {
       linkElements
@@ -298,14 +298,14 @@ export const KnowledgeGraphNetwork: React.FC<KnowledgeGraphProps> = ({
         .attr("y1", d => d.source.y)
         .attr("x2", d => d.target.x)
         .attr("y2", d => d.target.y);
-      
+
       nodeElements
         .attr("cx", d => d.x)
         .attr("cy", d => d.y);
     });
-    
+
   }, [nodes, edges]);
-  
+
   return <svg ref={svgRef} width="100%" height="600px" />;
 };
 ```
@@ -321,21 +321,21 @@ export const MemoryImpactTrail: React.FC<ImpactTrailProps> = ({
   currentTime
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
-  
+
   useEffect(() => {
     const svg = d3.select(svgRef.current);
-    
+
     // Timeline setup
     const xScale = d3.scaleTime()
       .domain(d3.extent(impactEvents, d => new Date(d.timestamp)))
       .range([50, width - 50]);
-    
+
     // Path generator for impact trail
     const line = d3.line()
       .x(d => xScale(new Date(d.timestamp)))
       .y(d => yScale(d.impact_score))
       .curve(d3.curveMonotoneX);
-    
+
     // Animated path drawing
     const path = svg.append("path")
       .datum(impactEvents)
@@ -344,7 +344,7 @@ export const MemoryImpactTrail: React.FC<ImpactTrailProps> = ({
       .attr("stroke", "#3b82f6")
       .attr("stroke-width", 3)
       .attr("fill", "none");
-    
+
     // Animate path drawing
     const totalLength = path.node().getTotalLength();
     path
@@ -353,7 +353,7 @@ export const MemoryImpactTrail: React.FC<ImpactTrailProps> = ({
       .transition()
       .duration(2000)
       .attr("stroke-dashoffset", 0);
-    
+
     // Impact event markers
     svg.selectAll(".impact-marker")
       .data(impactEvents)
@@ -366,9 +366,9 @@ export const MemoryImpactTrail: React.FC<ImpactTrailProps> = ({
       .attr("fill", d => getEventColor(d.type))
       .on("mouseover", showTooltip)
       .on("mouseout", hideTooltip);
-    
+
   }, [impactEvents]);
-  
+
   return <svg ref={svgRef} width="100%" height="400px" />;
 };
 ```
@@ -385,23 +385,23 @@ describe('KnowledgeGraphNetwork', () => {
       { id: '1', pagerank_score: 0.8, type: 'memory' },
       { id: '2', pagerank_score: 0.3, type: 'memory' }
     ];
-    
+
     render(<KnowledgeGraphNetwork nodes={mockNodes} edges={[]} />);
-    
+
     const nodes = screen.getAllByClass('node');
     expect(nodes[0]).toHaveAttribute('r', '17.89'); // sqrt(0.8) * 20
     expect(nodes[1]).toHaveAttribute('r', '10.95'); // sqrt(0.3) * 20
   });
-  
+
   it('should handle node interactions correctly', async () => {
     const onNodeClick = jest.fn();
     const mockNodes = [{ id: '1', pagerank_score: 0.5, type: 'memory' }];
-    
+
     render(<KnowledgeGraphNetwork nodes={mockNodes} edges={[]} onNodeClick={onNodeClick} />);
-    
+
     const node = screen.getByClass('node');
     fireEvent.click(node);
-    
+
     expect(onNodeClick).toHaveBeenCalledWith(mockNodes[0]);
   });
 });
@@ -412,24 +412,24 @@ describe('KnowledgeGraphNetwork', () => {
 describe('Real-time Graph Updates', () => {
   it('should update graph when new memory is created', async () => {
     const { rerender } = render(<KnowledgeGraphNetwork nodes={[]} edges={[]} />);
-    
+
     // Simulate WebSocket update
     const newNode = { id: 'new', pagerank_score: 0.6, type: 'memory' };
     rerender(<KnowledgeGraphNetwork nodes={[newNode]} edges={[]} />);
-    
+
     expect(screen.getByClass('node')).toBeInTheDocument();
   });
-  
+
   it('should animate new connections smoothly', async () => {
     // Test animation of new edges
     const mockAnimation = jest.spyOn(d3, 'transition');
-    
+
     const initialEdges = [];
     const newEdges = [{ source: '1', target: '2', weight: 0.5 }];
-    
+
     const { rerender } = render(<KnowledgeGraphNetwork nodes={mockNodes} edges={initialEdges} />);
     rerender(<KnowledgeGraphNetwork nodes={mockNodes} edges={newEdges} />);
-    
+
     expect(mockAnimation).toHaveBeenCalled();
   });
 });
@@ -445,26 +445,26 @@ describe('MemoryImpactTrail', () => {
       { timestamp: '2025-01-01T00:00:00Z', impact_score: 0.3, type: 'creation' },
       { timestamp: '2025-01-02T00:00:00Z', impact_score: 0.7, type: 'discussion' }
     ];
-    
+
     render(<MemoryImpactTrail impactEvents={mockEvents} />);
-    
+
     const markers = screen.getAllByClass('impact-marker');
     expect(markers).toHaveLength(2);
-    
+
     // Verify chronological positioning
     const marker1X = parseFloat(markers[0].getAttribute('cx'));
     const marker2X = parseFloat(markers[1].getAttribute('cx'));
     expect(marker2X).toBeGreaterThan(marker1X);
   });
-  
+
   it('should animate trail drawing correctly', async () => {
     const mockEvents = generateMockImpactEvents(5);
-    
+
     render(<MemoryImpactTrail impactEvents={mockEvents} />);
-    
+
     const path = screen.getByClass('impact-trail');
     expect(path).toHaveAttribute('stroke-dasharray');
-    
+
     // Wait for animation completion
     await waitFor(() => {
       expect(path).toHaveAttribute('stroke-dashoffset', '0');
@@ -483,21 +483,21 @@ describe('Visualization API Integration', () => {
       nodes: [{ id: '1', type: 'memory', pagerank_score: 0.5 }],
       edges: [{ source: '1', target: '2', weight: 0.3 }]
     };
-    
+
     fetchMock.mockResponseOnce(JSON.stringify(mockGraphData));
-    
+
     const { result } = renderHook(() => useKnowledgeGraphData('team_1'));
-    
+
     await waitFor(() => {
       expect(result.current.data).toEqual(mockGraphData);
     });
   });
-  
+
   it('should handle API errors gracefully', async () => {
     fetchMock.mockRejectOnce(new Error('API Error'));
-    
+
     const { result } = renderHook(() => useKnowledgeGraphData('team_1'));
-    
+
     await waitFor(() => {
       expect(result.current.error).toBeTruthy();
       expect(result.current.data).toBeNull();
@@ -513,19 +513,19 @@ describe('Visualization API Integration', () => {
 describe('Performance Tests', () => {
   it('should handle large graphs efficiently', async () => {
     const largeDataset = generateMockGraphData(1000, 2000); // 1000 nodes, 2000 edges
-    
+
     const startTime = performance.now();
     render(<KnowledgeGraphNetwork nodes={largeDataset.nodes} edges={largeDataset.edges} />);
     const endTime = performance.now();
-    
+
     expect(endTime - startTime).toBeLessThan(1000); // Should render in < 1 second
   });
-  
+
   it('should implement virtualization for large datasets', async () => {
     const largeDataset = generateMockGraphData(5000, 10000);
-    
+
     render(<KnowledgeGraphNetwork nodes={largeDataset.nodes} edges={largeDataset.edges} />);
-    
+
     // Should only render visible nodes
     const renderedNodes = screen.getAllByClass('node');
     expect(renderedNodes.length).toBeLessThan(largeDataset.nodes.length);
@@ -538,22 +538,22 @@ describe('Performance Tests', () => {
 describe('Accessibility Tests', () => {
   it('should provide keyboard navigation', async () => {
     render(<KnowledgeGraphNetwork nodes={mockNodes} edges={mockEdges} />);
-    
+
     const firstNode = screen.getAllByClass('node')[0];
     firstNode.focus();
-    
+
     fireEvent.keyDown(firstNode, { key: 'Tab' });
-    
+
     expect(screen.getAllByClass('node')[1]).toHaveFocus();
   });
-  
+
   it('should provide screen reader descriptions', async () => {
     const mockNodes = [
       { id: '1', title: 'Test Memory', pagerank_score: 0.8, type: 'memory' }
     ];
-    
+
     render(<KnowledgeGraphNetwork nodes={mockNodes} edges={[]} />);
-    
+
     const node = screen.getByClass('node');
     expect(node).toHaveAttribute('aria-label', 'Memory: Test Memory, PageRank: 0.8');
   });

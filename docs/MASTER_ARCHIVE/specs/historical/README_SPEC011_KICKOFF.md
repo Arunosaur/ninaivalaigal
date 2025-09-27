@@ -1,6 +1,6 @@
 # Spec 011 Kickoff
 
-This package provides scaffolding for Spec 011 (memory as tokens).
+This package provides scaffolding for Spec 011 (memory as token  # pragma: allowlist secrets).
 
 Includes:
 - FastAPI endpoints for write/query/share

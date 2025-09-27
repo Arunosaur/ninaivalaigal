@@ -19,7 +19,7 @@
 
 ### **🔍 Professional Validation Framework**
 - **Comprehensive Test Suite**: 4 core validators (Similarity, Path, Recommendation, Edge Weight)
-- **Realistic Test Data**: 10 memories, 5 users, 10 tokens with domain-specific relationships
+- **Realistic Test Data**: 10 memories, 5 users, 10 token  # pragma: allowlist secrets with domain-specific relationships
 - **Visual Validation**: Network graphs and accuracy heatmaps with professional visualization
 - **Automated Reporting**: JSON results with detailed metrics and threshold validation
 - **Configurable Thresholds**: 70% similarity, 60% path quality, 60% recommendation, 80% edge weight

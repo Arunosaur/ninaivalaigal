@@ -18,12 +18,12 @@ You're seeing three credentials and wondering why you need all of them:
 Gets these **server-side environment variables**:
 ```bash
 # Server environment (.env file or system environment)
-NINAIVALAIGAL_DATABASE_URL=postgresql://ninaivalaigal_app:strong_password@localhost:5432/ninaivalaigal_db
+NINAIVALAIGAL_DATABASE_URL=postgresql://ninaivalaigal_app:strong_password  # pragma: allowlist secret@localhost:5432/ninaivalaigal_db
 NINAIVALAIGAL_JWT_SECRET=your-super-secret-jwt-signing-key-min-32-chars
 ```
 
 ### **End Users** (People using the system)
-Get **only their personal JWT token**:
+Get **only their personal JWT token  # pragma: allowlist secret**:
 ```json
 {
   "mcpServers": {
@@ -43,7 +43,7 @@ Get **only their personal JWT token**:
 ### **Production Server Setup**
 ```bash
 # /etc/environment or docker-compose.yml
-NINAIVALAIGAL_DATABASE_URL=postgresql://ninaivalaigal_app:prod_password@db:5432/ninaivalaigal_db
+NINAIVALAIGAL_DATABASE_URL=postgresql://ninaivalaigal_app:prod_password  # pragma: allowlist secret@db:5432/ninaivalaigal_db
 NINAIVALAIGAL_JWT_SECRET=production-jwt-secret-key-very-long-and-secure
 ```
 
@@ -55,7 +55,7 @@ NINAIVALAIGAL_JWT_SECRET=production-jwt-secret-key-very-long-and-secure
       "command": "python",
       "args": ["https://your-server.com/mcp_server.py"],
       "env": {
-        "NINAIVALAIGAL_USER_TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.alice_token"
+        "NINAIVALAIGAL_USER_TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.alice_token  # pragma: allowlist secret"
       }
     }
   }
@@ -70,7 +70,7 @@ NINAIVALAIGAL_JWT_SECRET=production-jwt-secret-key-very-long-and-secure
       "command": "python",
       "args": ["https://your-server.com/mcp_server.py"],
       "env": {
-        "NINAIVALAIGAL_USER_TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.bob_token"
+        "NINAIVALAIGAL_USER_TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.bob_token  # pragma: allowlist secret"
       }
     }
   }
@@ -86,15 +86,15 @@ NINAIVALAIGAL_JWT_SECRET=production-jwt-secret-key-very-long-and-secure
 - **Analogy**: Like the key to the bank vault (only bank employees have it)
 
 ### **2. JWT Secret** - Token Factory
-- **Purpose**: Creates and validates user tokens
+- **Purpose**: Creates and validates user token  # pragma: allowlist secrets
 - **Who needs it**: Only the server/application
 - **Security**: Never shared with users
 - **Analogy**: Like the machine that makes credit cards (only the bank has it)
 
 ### **3. User Token** - Individual Identity
 - **Purpose**: Proves who you are to the system
-- **Who needs it**: Each user gets their own unique token
-- **Security**: Each user only gets their own token
+- **Who needs it**: Each user gets their own unique token  # pragma: allowlist secret
+- **Security**: Each user only gets their own token  # pragma: allowlist secret
 - **Analogy**: Like your credit card (made by the bank's machine, but only you have yours)
 
 ## Development vs Production
@@ -113,14 +113,14 @@ Server Environment:
 └── MCP Server running
 
 User Environments:
-├── Alice: NINAIVALAIGAL_USER_TOKEN=alice_token
-├── Bob: NINAIVALAIGAL_USER_TOKEN=bob_token
-└── Charlie: NINAIVALAIGAL_USER_TOKEN=charlie_token
+├── Alice: NINAIVALAIGAL_USER_TOKEN=alice_token  # pragma: allowlist secret
+├── Bob: NINAIVALAIGAL_USER_TOKEN=bob_token  # pragma: allowlist secret
+└── Charlie: NINAIVALAIGAL_USER_TOKEN=charlie_token  # pragma: allowlist secret
 ```
 
 ## Updated VS Code Config (Users Only Need This)
 
-For end users, they only need their token:
+For end users, they only need their token  # pragma: allowlist secret:
 
 ```json
 {
@@ -143,4 +143,4 @@ The server gets the database URL and JWT secret from its environment, not from t
 - **Database URL + JWT Secret** = Server administrator credentials (you)
 - **User Token** = Individual user credentials (each person gets their own)
 - **In development**: You need all three because you're testing everything
-- **In production**: Users only get their token, server keeps the other two secret
+- **In production**: Users only get their token  # pragma: allowlist secret, server keeps the other two secret

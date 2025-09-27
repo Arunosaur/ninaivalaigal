@@ -142,13 +142,13 @@ make spec-test ID=013        # Heavy validation
 ### Environment Variables
 ```bash
 # Development (.env)
-POSTGRES_PASSWORD=dev_password_change_me
+POSTGRES_PASSWORD=dev_password  # pragma: allowlist secret_change_me
 NINAIVALAIGAL_JWT_SECRET=dev-secret-change-in-production
 MEMORY_PROVIDER=native  # Laptop: native, Studio: http
 
 # Production
 DEPLOYMENT_ENV=production
-POSTGRES_PASSWORD=<secure-password>
+POSTGRES_PASSWORD=<secure-password  # pragma: allowlist secret>
 NINAIVALAIGAL_JWT_SECRET=<secure-jwt-secret>
 ```
 

@@ -121,7 +121,7 @@ This comprehensive checklist documents what worked, what didn't work, and lesson
 
 ### 1. **Dynamic SCRAM Password Retrieval**
 ```bash
-SCRAM_PASSWORD=$(container exec nv-db psql -U nina -d nina -t -c "SELECT rolpassword FROM pg_authid WHERE rolname = 'nina';" | tr -d ' ')
+SCRAM_PASSWORD=$(container exec nv-db psql -U nina -d nina -t -c "SELECT rolpassword  # pragma: allowlist secret FROM pg_authid WHERE rolname = 'nina';" | tr -d ' ')
 ```
 **Impact**: Enables container restart compatibility
 

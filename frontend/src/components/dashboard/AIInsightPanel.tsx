@@ -81,8 +81,8 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
         {/* Alert Banner */}
         {alerts.length > 0 && (
           <div className={`border rounded-lg p-3 ${
-            alerts[0].type === 'ai_success' 
-              ? 'bg-green-50 border-green-200' 
+            alerts[0].type === 'ai_success'
+              ? 'bg-green-50 border-green-200'
               : alerts[0].type === 'performance'
               ? 'bg-yellow-50 border-yellow-200'
               : 'bg-blue-50 border-blue-200'
@@ -91,8 +91,8 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
               <span className="text-lg">{alerts[0].icon}</span>
               <div className="flex-1">
                 <p className={`font-medium text-sm ${
-                  alerts[0].type === 'ai_success' 
-                    ? 'text-green-900' 
+                  alerts[0].type === 'ai_success'
+                    ? 'text-green-900'
                     : alerts[0].type === 'performance'
                     ? 'text-yellow-900'
                     : 'text-blue-900'
@@ -100,8 +100,8 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
                   {alerts[0].title}
                 </p>
                 <p className={`text-xs mt-1 ${
-                  alerts[0].type === 'ai_success' 
-                    ? 'text-green-700' 
+                  alerts[0].type === 'ai_success'
+                    ? 'text-green-700'
                     : alerts[0].type === 'performance'
                     ? 'text-yellow-700'
                     : 'text-blue-700'
@@ -119,7 +119,7 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
             <Target className="h-4 w-4 text-blue-500" />
             Tag Suggestion Engine
           </h4>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
@@ -128,12 +128,12 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
                   {(tagSuggestionStats.acceptance_rate * 100).toFixed(1)}%
                 </span>
               </div>
-              <Progress 
-                value={tagSuggestionStats.acceptance_rate * 100} 
+              <Progress
+                value={tagSuggestionStats.acceptance_rate * 100}
                 className="h-2"
               />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-600">Confidence</span>
@@ -141,8 +141,8 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
                   {(tagSuggestionStats.confidence_score * 100).toFixed(1)}%
                 </span>
               </div>
-              <Progress 
-                value={tagSuggestionStats.confidence_score * 100} 
+              <Progress
+                value={tagSuggestionStats.confidence_score * 100}
                 className="h-2"
               />
             </div>
@@ -167,7 +167,7 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
             <Users className="h-4 w-4 text-green-500" />
             PageRank Intelligence
           </h4>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
@@ -176,12 +176,12 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
                   {(pagerankEffectiveness.ranking_accuracy * 100).toFixed(1)}%
                 </span>
               </div>
-              <Progress 
-                value={pagerankEffectiveness.ranking_accuracy * 100} 
+              <Progress
+                value={pagerankEffectiveness.ranking_accuracy * 100}
                 className="h-2"
               />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-600">Engagement Lift</span>
@@ -189,8 +189,8 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
                   +{(pagerankEffectiveness.user_engagement_lift * 100).toFixed(1)}%
                 </span>
               </div>
-              <Progress 
-                value={pagerankEffectiveness.user_engagement_lift * 100} 
+              <Progress
+                value={pagerankEffectiveness.user_engagement_lift * 100}
                 className="h-2"
               />
             </div>
@@ -204,7 +204,7 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
         {/* Intelligence Trends */}
         <div className="space-y-3 pt-3 border-t">
           <h4 className="text-sm font-medium text-gray-700">Performance Trends</h4>
-          
+
           <div className="space-y-2">
             {intelligenceTrends.map((trend, index) => (
               <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">

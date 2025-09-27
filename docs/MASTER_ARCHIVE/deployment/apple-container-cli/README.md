@@ -113,7 +113,7 @@ container ps -a
 ## 🎯 Next Steps
 
 After successful deployment:
-1. **Configure Authentication**: Set up JWT tokens
+1. **Configure Authentication**: Set up JWT token  # pragma: allowlist secrets
 2. **Load Test Data**: Import sample memories
 3. **Test Intelligence**: Verify Redis-powered features
 4. **Monitor Performance**: Use health endpoints

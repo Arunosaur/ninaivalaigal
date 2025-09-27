@@ -20,12 +20,12 @@ class MemoryManager {
         try {
             let url = `${this.baseUrl}/memory/my`;
             const params = new URLSearchParams();
-            
+
             if (teamFilter !== null) params.append('team_filter', teamFilter);
             if (tagFilter) params.append('tag_filter', tagFilter);
-            
+
             if (params.toString()) url += `?${params.toString()}`;
-            
+
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
         } catch (error) {
@@ -40,10 +40,10 @@ class MemoryManager {
                 content: content,
                 memory_type: memoryType
             });
-            
+
             if (teamId !== null) params.append('team_id', teamId);
             if (tags.length > 0) params.append('tags', tags.join(','));
-            
+
             const url = `${this.baseUrl}/memory/create?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -69,7 +69,7 @@ class MemoryManager {
         try {
             const params = new URLSearchParams({ query });
             if (teamId !== null) params.append('team_id', teamId);
-            
+
             const url = `${this.baseUrl}/memory/search?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -83,7 +83,7 @@ class MemoryManager {
         try {
             let url = `${this.baseUrl}/memory/tags`;
             if (teamId !== null) url += `?team_id=${teamId}`;
-            
+
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
         } catch (error) {
@@ -122,7 +122,7 @@ class MemoryDashboard extends React.Component {
             newMemoryTags: '',
             newMemoryTeam: null
         };
-        
+
         this.memoryManager = new MemoryManager('http://localhost:13370', this.props.authService);
         this.teamManager = this.props.teamManager; // Assumes TeamManager from previous example
     }
@@ -133,7 +133,7 @@ class MemoryDashboard extends React.Component {
 
     async loadInitialData() {
         this.setState({ loading: true });
-        
+
         try {
             // Load memories, teams, tags, and stats in parallel
             const [memoriesResult, teamsResult, tagsResult, statsResult] = await Promise.all([
@@ -157,12 +157,12 @@ class MemoryDashboard extends React.Component {
 
     async filterMemories() {
         this.setState({ loading: true });
-        
+
         const result = await this.memoryManager.getMyMemories(
             this.state.selectedTeam,
             this.state.selectedTags.length > 0 ? this.state.selectedTags[0] : null
         );
-        
+
         if (result.success) {
             this.setState({ memories: result.memories, loading: false });
         } else {
@@ -175,14 +175,14 @@ class MemoryDashboard extends React.Component {
             await this.filterMemories();
             return;
         }
-        
+
         this.setState({ loading: true });
-        
+
         const result = await this.memoryManager.searchMemories(
             this.state.searchQuery,
             this.state.selectedTeam
         );
-        
+
         if (result.success) {
             this.setState({ memories: result.memories, loading: false });
         } else {
@@ -192,18 +192,18 @@ class MemoryDashboard extends React.Component {
 
     async createMemory() {
         if (!this.state.newMemoryContent.trim()) return;
-        
+
         const tags = this.state.newMemoryTags
             .split(',')
             .map(tag => tag.trim())
             .filter(tag => tag);
-        
+
         const result = await this.memoryManager.createMemory(
             this.state.newMemoryContent,
             this.state.newMemoryTeam,
             tags
         );
-        
+
         if (result.success) {
             this.setState({
                 newMemoryContent: '',
@@ -226,7 +226,7 @@ class MemoryDashboard extends React.Component {
         return (
             <div className="memory-dashboard">
                 <h1>🧠 Memory System</h1>
-                
+
                 {/* Statistics */}
                 {stats && (
                     <div className="memory-stats">
@@ -265,8 +265,8 @@ class MemoryDashboard extends React.Component {
                         />
                         <select
                             value={this.state.newMemoryTeam || ''}
-                            onChange={(e) => this.setState({ 
-                                newMemoryTeam: e.target.value ? parseInt(e.target.value) : null 
+                            onChange={(e) => this.setState({
+                                newMemoryTeam: e.target.value ? parseInt(e.target.value) : null
                             })}
                         >
                             <option value="">Personal Memory</option>
@@ -294,12 +294,12 @@ class MemoryDashboard extends React.Component {
                             onKeyPress={(e) => e.key === 'Enter' && this.searchMemories()}
                         />
                         <button onClick={() => this.searchMemories()}>Search</button>
-                        
+
                         <select
                             value={this.state.selectedTeam || ''}
                             onChange={(e) => {
-                                this.setState({ 
-                                    selectedTeam: e.target.value ? parseInt(e.target.value) : null 
+                                this.setState({
+                                    selectedTeam: e.target.value ? parseInt(e.target.value) : null
                                 }, () => this.filterMemories());
                             }}
                         >
@@ -310,7 +310,7 @@ class MemoryDashboard extends React.Component {
                                 </option>
                             ))}
                         </select>
-                        
+
                         <button onClick={() => this.loadInitialData()}>
                             Clear Filters
                         </button>
@@ -326,7 +326,7 @@ class MemoryDashboard extends React.Component {
                                 key={tagInfo.tag}
                                 className="tag"
                                 onClick={() => {
-                                    this.setState({ 
+                                    this.setState({
                                         searchQuery: tagInfo.tag,
                                         selectedTags: [tagInfo.tag]
                                     }, () => this.searchMemories());
@@ -355,7 +355,7 @@ class MemoryDashboard extends React.Component {
                                             {new Date(memory.created_at).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    
+
                                     <div className="memory-content">
                                         {memory.type === 'structured' ? (
                                             <div className="structured-content">
@@ -365,7 +365,7 @@ class MemoryDashboard extends React.Component {
                                             <p>{memory.content}</p>
                                         )}
                                     </div>
-                                    
+
                                     <div className="memory-tags">
                                         {memory.tags.map(tag => (
                                             <span key={tag} className="tag small">
@@ -373,7 +373,7 @@ class MemoryDashboard extends React.Component {
                                             </span>
                                         ))}
                                     </div>
-                                    
+
                                     {memory.match_type && (
                                         <div className="match-indicator">
                                             Matched: {memory.match_type}
@@ -391,7 +391,7 @@ class MemoryDashboard extends React.Component {
     renderStructuredContent(content) {
         try {
             const parsed = typeof content === 'string' ? JSON.parse(content) : content;
-            
+
             if (parsed.type === 'URL') {
                 return (
                     <div className="url-memory">
@@ -401,7 +401,7 @@ class MemoryDashboard extends React.Component {
                     </div>
                 );
             }
-            
+
             return <pre>{JSON.stringify(parsed, null, 2)}</pre>;
         } catch (e) {
             return <p>{content}</p>;
@@ -424,17 +424,17 @@ const MemorySystemVue = {
             memoryManager: null
         };
     },
-    
+
     async created() {
         this.memoryManager = new MemoryManager('http://localhost:13370', this.$auth);
         await this.loadMemories();
     },
-    
+
     methods: {
         async loadMemories() {
             this.loading = true;
             const result = await this.memoryManager.getMyMemories(this.selectedTeam);
-            
+
             if (result.success) {
                 this.memories = result.memories;
             } else {
@@ -442,16 +442,16 @@ const MemorySystemVue = {
             }
             this.loading = false;
         },
-        
+
         async searchMemories() {
             if (!this.searchQuery.trim()) {
                 await this.loadMemories();
                 return;
             }
-            
+
             this.loading = true;
             const result = await this.memoryManager.searchMemories(this.searchQuery, this.selectedTeam);
-            
+
             if (result.success) {
                 this.memories = result.memories;
             } else {
@@ -460,20 +460,20 @@ const MemorySystemVue = {
             this.loading = false;
         }
     },
-    
+
     template: `
         <div class="memory-system">
             <h1>🧠 Memory System</h1>
-            
+
             <div v-if="loading">Loading...</div>
             <div v-else-if="error">Error: {{ error }}</div>
-            
+
             <div v-else>
                 <div class="search-section">
                     <input v-model="searchQuery" @keyup.enter="searchMemories" placeholder="Search memories...">
                     <button @click="searchMemories">Search</button>
                 </div>
-                
+
                 <div class="memories-list">
                     <div v-for="memory in memories" :key="memory.id" class="memory-card">
                         <h3>{{ memory.content }}</h3>
@@ -496,14 +496,14 @@ async function memorySystemDemo() {
     // Initialize services
     const auth = new AuthService();
     const memoryManager = new MemoryManager('http://localhost:13370', auth);
-    
+
     // Login first
     await auth.login('user@example.com', 'password');
-    
+
     // Get user's memories
     const memories = await memoryManager.getMyMemories();
     console.log('My memories:', memories);
-    
+
     // Create a personal memory
     const personalMemory = await memoryManager.createMemory(
         'Important meeting notes from today',
@@ -511,7 +511,7 @@ async function memorySystemDemo() {
         ['meeting', 'notes', 'important']
     );
     console.log('Created personal memory:', personalMemory);
-    
+
     // Create a team memory
     const teamMemory = await memoryManager.createMemory(
         'Team decision: Use microservices architecture',
@@ -519,11 +519,11 @@ async function memorySystemDemo() {
         ['team-decision', 'architecture', 'microservices']
     );
     console.log('Created team memory:', teamMemory);
-    
+
     // Search memories
     const searchResults = await memoryManager.searchMemories('meeting');
     console.log('Search results:', searchResults);
-    
+
     // Get memory statistics
     const stats = await memoryManager.getStats();
     console.log('Memory stats:', stats);

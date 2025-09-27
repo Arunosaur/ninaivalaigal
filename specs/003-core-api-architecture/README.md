@@ -1,8 +1,8 @@
 # SPEC-003: Core API Architecture
 
-**Status**: ✅ COMPLETE  
-**Priority**: Critical  
-**Category**: Infrastructure  
+**Status**: ✅ COMPLETE
+**Priority**: Critical
+**Category**: Infrastructure
 
 ## Overview
 

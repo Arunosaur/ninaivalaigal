@@ -8,7 +8,7 @@ The Ninaivalaigal memory recording system serves a critical purpose beyond simpl
 
 ### The Token Filter Concept
 
-Memory recordings function as a "token filter" for subsequent AI calls:
+Memory recordings function as a "token  # pragma: allowlist secret filter" for subsequent AI calls:
 
 ```
 User Interaction → Memory Recording → Context Preservation → AI Alignment
@@ -31,7 +31,7 @@ User Interaction → Memory Recording → Context Preservation → AI Alignment
 ### 3. Token Efficiency
 - Instead of re-explaining context each time
 - Memory system provides pre-filtered, relevant context
-- Reduces token usage while improving accuracy
+- Reduces token  # pragma: allowlist secret usage while improving accuracy
 
 ## 🏗️ Architecture Implementation
 
@@ -201,7 +201,7 @@ def generate_ai_context(context_name: str, query: str = None) -> str:
 
 ## 🏆 Conclusion
 
-The Ninaivalaigal memory system transforms simple logging into a sophisticated AI alignment mechanism. By treating memory recordings as "token filters" for AI interactions, we ensure:
+The Ninaivalaigal memory system transforms simple logging into a sophisticated AI alignment mechanism. By treating memory recordings as "token  # pragma: allowlist secret filters" for AI interactions, we ensure:
 
 - **Persistent Context**: AI never loses track of important information
 - **Improved Alignment**: Responses remain consistent with user intent

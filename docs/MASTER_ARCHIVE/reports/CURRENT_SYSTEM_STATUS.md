@@ -29,7 +29,7 @@ The Ninaivalaigal platform is now fully operational with all core components tes
 - **Static Server**: Running on localhost:8080
 - **Pages**: Login, signup, dashboard, team management, organization management
 - **Branding**: Fully updated to "Ninaivalaigal"
-- **Authentication**: JWT token storage and validation working
+- **Authentication**: JWT token  # pragma: allowlist secret storage and validation working
 
 ---
 
@@ -100,7 +100,7 @@ The Ninaivalaigal platform is now fully operational with all core components tes
 - ✅ Comprehensive memory capture across all MCP interactions
 - ✅ Background auto-save with configurable intervals
 - ✅ Context-aware recording triggered by AI interactions
-- ✅ Memory serves as token filter for subsequent AI calls
+- ✅ Memory serves as token  # pragma: allowlist secret filter for subsequent AI calls
 - ✅ Prevents context loss and maintains AI coherence
 - ✅ **NEW**: Secret redaction prevents credential leaks in memory
 

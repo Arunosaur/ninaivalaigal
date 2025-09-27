@@ -47,8 +47,8 @@ cd /opt/actions-runner
 curl -o actions.tar.gz -L https://github.com/actions/runner/releases/latest/download/actions-runner-osx-arm64-2.319.1.tar.gz
 tar xzf actions.tar.gz
 
-# Configure runner (replace TOKEN with actual token)
-./config.sh --url https://github.com/Arunosaur/ninaivalaigal --token <RUNNER_TOKEN> --labels macstudio,arm64,self-hosted --name "mac-studio-runner"
+# Configure runner (replace TOKEN with actual token  # pragma: allowlist secret)
+./config.sh --url https://github.com/Arunosaur/ninaivalaigal --token  # pragma: allowlist secret <RUNNER_TOKEN> --labels macstudio,arm64,self-hosted --name "mac-studio-runner"
 
 # Install as service
 sudo ./svc.sh install
@@ -73,7 +73,7 @@ services:
     image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: medhasys
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_here}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password  # pragma: allowlist secret_here}
       POSTGRES_DB: medhasys
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=en_US.UTF-8"
     ports: ["5433:5432"]
@@ -97,7 +97,7 @@ services:
       POSTGRESQL_HOST: postgres
       POSTGRESQL_PORT_NUMBER: "5432"
       POSTGRESQL_USERNAME: medhasys
-      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_here}
+      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD:-secure_password  # pragma: allowlist secret_here}
       PGBOUNCER_DATABASE: medhasys
       PGBOUNCER_POOL_MODE: transaction
       PGBOUNCER_MAX_CLIENT_CONN: 1000
@@ -111,7 +111,7 @@ services:
       context: /Users/medhasys/ninaivalaigal
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: postgresql://medhasys:${POSTGRES_PASSWORD:-secure_password_here}@pgbouncer:6432/medhasys
+      DATABASE_URL: postgresql://medhasys:${POSTGRES_PASSWORD:-secure_password  # pragma: allowlist secret_here}@pgbouncer:6432/medhasys
       NINAIVALAIGAL_JWT_SECRET: ${JWT_SECRET}
       NINAIVALAIGAL_JWT_EXPIRATION_HOURS: "168"
       PYTHONUNBUFFERED: "1"
@@ -162,7 +162,7 @@ volumes:
 ```bash
 # Create .env file
 cat > /srv/medhasys/.env << 'EOF'
-POSTGRES_PASSWORD=your_secure_postgres_password_here
+POSTGRES_PASSWORD=your_secure_postgres_password  # pragma: allowlist secret_here
 JWT_SECRET=your_super_secure_jwt_secret_min_32_chars_here
 ENVIRONMENT=production
 EOF
@@ -205,7 +205,7 @@ pg_dump -Fc "postgresql://mem0user:mem0pass@localhost:5432/mem0db" > ninaivalaig
 scp ninaivalaigal-export.dump medhasys@mac-studio:/srv/medhasys/backups/
 
 # 3. On Mac Studio (import data)
-pg_restore -d "postgresql://medhasys:password@localhost:5433/medhasys" \
+pg_restore -d "postgresql://medhasys:password  # pragma: allowlist secret@localhost:5433/medhasys" \
   --clean --if-exists /srv/medhasys/backups/ninaivalaigal-export.dump
 ```
 

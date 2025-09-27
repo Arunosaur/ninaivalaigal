@@ -2,8 +2,8 @@
 
 ## ⚠️ WARNING: BREAKING CHANGE PROTECTION
 
-**Date**: 2025-09-26  
-**Issue**: Auth routes hanging due to Redis middleware  
+**Date**: 2025-09-26
+**Issue**: Auth routes hanging due to Redis middleware
 **Status**: ✅ FIXED - DO NOT REVERT
 
 ---
@@ -25,7 +25,7 @@
 
 ### 2. main.py (Lines 80-83)
 ```python
-# Configure security - TEMPORARILY DISABLED FOR DEBUGGING  
+# Configure security - TEMPORARILY DISABLED FOR DEBUGGING
 # CRITICAL: DO NOT UNCOMMENT UNTIL REDIS CLIENT IS FIXED
 # configure_security(app)  # FIXME: This adds middleware that hangs on /auth routes due to Redis issues
 # ERROR: Causes infinite hang on ALL /auth/* routes due to broken Redis calls
@@ -74,7 +74,7 @@ redis_client.set('test', 'value')  # Should not error
 ## 📋 CHECKLIST BEFORE REVERTING
 
 - [ ] Redis client `.set()` method exists and works
-- [ ] Middleware timeout handling implemented  
+- [ ] Middleware timeout handling implemented
 - [ ] Auth endpoints tested and respond quickly
 - [ ] Fallback logging mechanism in place
 - [ ] Load testing confirms no performance regression

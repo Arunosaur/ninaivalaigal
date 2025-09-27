@@ -38,7 +38,7 @@ jwt_payload = {
 @router.post("/login")
 async def enhanced_login(login_data: UserLogin) -> dict[str, Any]:
     # ... existing auth logic ...
-    
+
     # Create/update user node in graph
     await graph_reasoner.ensure_user_node(
         user_id=user.id,
@@ -46,11 +46,11 @@ async def enhanced_login(login_data: UserLogin) -> dict[str, Any]:
         account_type=user.account_type,
         login_timestamp=datetime.utcnow()
     )
-    
+
     # Link to active memory contexts
     active_contexts = await get_user_active_contexts(user.id)
     context_window = [ctx.id for ctx in active_contexts]
-    
+
     # Enhanced JWT with graph context
     jwt_payload.update({
         "graph_node_id": f"user_{user.id}",
@@ -73,7 +73,7 @@ async def intelligence_routing_middleware(request: Request, call_next):
             "context_window": jwt_token["context_window"],
             "agent_preferences": jwt_token.get("agent_preferences", {})
         }
-    
+
     response = await call_next(request)
     return response
 ```
@@ -143,21 +143,21 @@ async def intelligence_routing_middleware(request: Request, call_next):
    ):
        # Store memory in traditional storage
        memory = await store_memory(memory_data)
-       
+
        # Create memory node in graph
        memory_node = MemoryNode(
            id=f"memory_{memory.id}",
            content=memory.content,
            user_id=current_user.id
        )
-       
+
        # Create relationships
        await graph_reasoner.create_relationship(
            from_node=f"user_{current_user.id}",
            to_node=f"memory_{memory.id}",
            relationship_type="CREATED"
        )
-       
+
        return memory
    ```
 
@@ -175,7 +175,7 @@ async def intelligence_routing_middleware(request: Request, call_next):
            query=query,
            context_window=graph_context["context_window"]
        )
-       
+
        return relevant_memories
    ```
 
@@ -192,10 +192,10 @@ async def intelligence_routing_middleware(request: Request, call_next):
            # Analyze graph context for optimal agent routing
            graph_context = request.state.graph_context
            optimal_agent = await determine_optimal_agent(graph_context)
-           
+
            # Route to specialized agent endpoint
            request.state.target_agent = optimal_agent
-       
+
        return await call_next(request)
    ```
 
@@ -212,10 +212,10 @@ async def intelligence_routing_middleware(request: Request, call_next):
            user_id=current_user.id,
            current_message=message
        )
-       
+
        # Inject into AI prompt
        enhanced_prompt = build_contextual_prompt(message, context_memories)
-       
+
        return await ai_agent.process(enhanced_prompt)
    ```
 
@@ -283,7 +283,7 @@ async def get_agent_preferences(current_user: User = Depends(get_current_user)):
 async def test_jwt_includes_graph_context():
     user = create_test_user()
     jwt_token = create_enhanced_jwt(user, ["context_1", "context_2"])
-    
+
     decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     assert "graph_node_id" in decoded
     assert decoded["context_window"] == ["context_1", "context_2"]

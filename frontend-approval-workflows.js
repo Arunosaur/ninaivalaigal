@@ -22,7 +22,7 @@ class ApprovalManager {
                 memory_id: memoryId,
                 submission_note: submissionNote
             });
-            
+
             const url = `${this.baseUrl}/approval/submit?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -36,7 +36,7 @@ class ApprovalManager {
         try {
             let url = `${this.baseUrl}/approval/pending`;
             if (teamId !== null) url += `?team_id=${teamId}`;
-            
+
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
         } catch (error) {
@@ -49,7 +49,7 @@ class ApprovalManager {
         try {
             const params = new URLSearchParams({ review_note: reviewNote });
             const url = `${this.baseUrl}/approval/${approvalId}/approve?${params.toString()}`;
-            
+
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
         } catch (error) {
@@ -62,7 +62,7 @@ class ApprovalManager {
         try {
             const params = new URLSearchParams({ review_note: reviewNote });
             const url = `${this.baseUrl}/approval/${approvalId}/reject?${params.toString()}`;
-            
+
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
         } catch (error) {
@@ -87,7 +87,7 @@ class ApprovalManager {
         try {
             let url = `${this.baseUrl}/approval/my-submissions`;
             if (statusFilter) url += `?status_filter=${statusFilter}`;
-            
+
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
         } catch (error) {
@@ -100,7 +100,7 @@ class ApprovalManager {
         try {
             let url = `${this.baseUrl}/approval/team/${teamId}/history`;
             if (statusFilter) url += `?status_filter=${statusFilter}`;
-            
+
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
         } catch (error) {
@@ -137,7 +137,7 @@ class ApprovalDashboard extends React.Component {
             reviewNote: '',
             submissionNote: ''
         };
-        
+
         this.approvalManager = new ApprovalManager('http://localhost:13370', this.props.authService);
         this.memoryManager = this.props.memoryManager;
         this.teamManager = this.props.teamManager;
@@ -149,7 +149,7 @@ class ApprovalDashboard extends React.Component {
 
     async loadInitialData() {
         this.setState({ loading: true });
-        
+
         try {
             const [pendingResult, submissionsResult, statsResult] = await Promise.all([
                 this.approvalManager.getPendingApprovals(),
@@ -170,10 +170,10 @@ class ApprovalDashboard extends React.Component {
 
     async submitMemoryForApproval(memoryId) {
         const result = await this.approvalManager.submitForApproval(
-            memoryId, 
+            memoryId,
             this.state.submissionNote
         );
-        
+
         if (result.success) {
             this.setState({ submissionNote: '' });
             await this.loadInitialData();
@@ -185,10 +185,10 @@ class ApprovalDashboard extends React.Component {
 
     async approveMemory(approvalId) {
         const result = await this.approvalManager.approveMemory(
-            approvalId, 
+            approvalId,
             this.state.reviewNote
         );
-        
+
         if (result.success) {
             this.setState({ reviewNote: '' });
             await this.loadInitialData();
@@ -200,10 +200,10 @@ class ApprovalDashboard extends React.Component {
 
     async rejectMemory(approvalId) {
         const result = await this.approvalManager.rejectMemory(
-            approvalId, 
+            approvalId,
             this.state.reviewNote
         );
-        
+
         if (result.success) {
             this.setState({ reviewNote: '' });
             await this.loadInitialData();
@@ -219,13 +219,13 @@ class ApprovalDashboard extends React.Component {
             approved: { color: 'green', text: '✅ Approved' },
             rejected: { color: 'red', text: '❌ Rejected' }
         };
-        
+
         const badge = badges[status] || { color: 'gray', text: status };
         return (
-            <span style={{ 
-                backgroundColor: badge.color, 
-                color: 'white', 
-                padding: '4px 8px', 
+            <span style={{
+                backgroundColor: badge.color,
+                color: 'white',
+                padding: '4px 8px',
                 borderRadius: '4px',
                 fontSize: '12px'
             }}>
@@ -235,13 +235,13 @@ class ApprovalDashboard extends React.Component {
     }
 
     render() {
-        const { 
-            pendingApprovals, 
-            mySubmissions, 
-            stats, 
-            selectedTab, 
-            loading, 
-            error 
+        const {
+            pendingApprovals,
+            mySubmissions,
+            stats,
+            selectedTab,
+            loading,
+            error
         } = this.state;
 
         if (loading) return <div className="loading">Loading approvals...</div>;
@@ -250,7 +250,7 @@ class ApprovalDashboard extends React.Component {
         return (
             <div className="approval-dashboard">
                 <h1>📤 Approval Workflows</h1>
-                
+
                 {/* Statistics */}
                 {stats && (
                     <div className="approval-stats">
@@ -274,19 +274,19 @@ class ApprovalDashboard extends React.Component {
 
                 {/* Tab Navigation */}
                 <div className="tab-navigation">
-                    <button 
+                    <button
                         className={selectedTab === 'pending' ? 'active' : ''}
                         onClick={() => this.setState({ selectedTab: 'pending' })}
                     >
                         ⏳ Pending Approvals ({pendingApprovals.length})
                     </button>
-                    <button 
+                    <button
                         className={selectedTab === 'submissions' ? 'active' : ''}
                         onClick={() => this.setState({ selectedTab: 'submissions' })}
                     >
                         📝 My Submissions ({mySubmissions.length})
                     </button>
-                    <button 
+                    <button
                         className={selectedTab === 'history' ? 'active' : ''}
                         onClick={() => this.setState({ selectedTab: 'history' })}
                     >
@@ -309,13 +309,13 @@ class ApprovalDashboard extends React.Component {
                                             {this.getStatusBadge(approval.status)}
                                             <span className="team-badge">Team {approval.team_id}</span>
                                         </div>
-                                        
+
                                         <div className="memory-content">
                                             <p><strong>Content:</strong> {approval.memory_content}</p>
                                             <p><strong>Submission Note:</strong> {approval.submission_note}</p>
                                             <p><strong>Submitted:</strong> {new Date(approval.submitted_at).toLocaleString()}</p>
                                         </div>
-                                        
+
                                         <div className="review-actions">
                                             <textarea
                                                 placeholder="Review note (optional)"
@@ -323,13 +323,13 @@ class ApprovalDashboard extends React.Component {
                                                 onChange={(e) => this.setState({ reviewNote: e.target.value })}
                                             />
                                             <div className="action-buttons">
-                                                <button 
+                                                <button
                                                     className="approve-btn"
                                                     onClick={() => this.approveMemory(approval.id)}
                                                 >
                                                     ✅ Approve
                                                 </button>
-                                                <button 
+                                                <button
                                                     className="reject-btn"
                                                     onClick={() => this.rejectMemory(approval.id)}
                                                 >
@@ -361,11 +361,11 @@ class ApprovalDashboard extends React.Component {
                                                 {new Date(submission.submitted_at).toLocaleDateString()}
                                             </span>
                                         </div>
-                                        
+
                                         <div className="submission-content">
                                             <p><strong>Content:</strong> {submission.memory_content}</p>
                                             <p><strong>Your Note:</strong> {submission.submission_note}</p>
-                                            
+
                                             {submission.reviewed_at && (
                                                 <div className="review-info">
                                                     <p><strong>Reviewed:</strong> {new Date(submission.reviewed_at).toLocaleString()}</p>
@@ -408,16 +408,16 @@ const ApprovalWorkflowsVue = {
             approvalManager: null
         };
     },
-    
+
     async created() {
         this.approvalManager = new ApprovalManager('http://localhost:13370', this.$auth);
         await this.loadApprovals();
     },
-    
+
     methods: {
         async loadApprovals() {
             this.loading = true;
-            
+
             try {
                 const [pendingResult, submissionsResult] = await Promise.all([
                     this.approvalManager.getPendingApprovals(),
@@ -429,10 +429,10 @@ const ApprovalWorkflowsVue = {
             } catch (error) {
                 this.error = error.message;
             }
-            
+
             this.loading = false;
         },
-        
+
         async approveMemory(approvalId, reviewNote) {
             const result = await this.approvalManager.approveMemory(approvalId, reviewNote);
             if (result.success) {
@@ -441,14 +441,14 @@ const ApprovalWorkflowsVue = {
             }
         }
     },
-    
+
     template: `
         <div class="approval-workflows">
             <h1>📤 Approval Workflows</h1>
-            
+
             <div v-if="loading">Loading...</div>
             <div v-else-if="error">Error: {{ error }}</div>
-            
+
             <div v-else>
                 <div class="tabs">
                     <button @click="selectedTab = 'pending'" :class="{ active: selectedTab === 'pending' }">
@@ -458,7 +458,7 @@ const ApprovalWorkflowsVue = {
                         My Submissions ({{ mySubmissions.length }})
                     </button>
                 </div>
-                
+
                 <div v-if="selectedTab === 'pending'" class="pending-approvals">
                     <div v-for="approval in pendingApprovals" :key="approval.id" class="approval-card">
                         <h3>{{ approval.memory_content }}</h3>
@@ -466,7 +466,7 @@ const ApprovalWorkflowsVue = {
                         <button @click="approveMemory(approval.id, 'Approved')">Approve</button>
                     </div>
                 </div>
-                
+
                 <div v-if="selectedTab === 'submissions'" class="my-submissions">
                     <div v-for="submission in mySubmissions" :key="submission.id" class="submission-card">
                         <h3>{{ submission.memory_content }}</h3>
@@ -489,24 +489,24 @@ class MemoryWithApproval extends React.Component {
     async createAndSubmitMemory(content, teamId, tags, submissionNote) {
         // First create the memory
         const memoryResult = await this.memoryManager.createMemory(content, teamId, tags);
-        
+
         if (memoryResult.success) {
             // Then submit for approval
             const approvalResult = await this.approvalManager.submitForApproval(
-                memoryResult.memory.id, 
+                memoryResult.memory.id,
                 submissionNote
             );
-            
+
             return {
                 success: approvalResult.success,
                 memory: memoryResult.memory,
                 approval: approvalResult.approval,
-                message: approvalResult.success ? 
-                    'Memory created and submitted for approval!' : 
+                message: approvalResult.success ?
+                    'Memory created and submitted for approval!' :
                     `Memory created but approval failed: ${approvalResult.error}`
             };
         }
-        
+
         return memoryResult;
     }
 
@@ -525,37 +525,37 @@ async function approvalWorkflowDemo() {
     // Initialize services
     const auth = new AuthService();
     const approvalManager = new ApprovalManager('http://localhost:13370', auth);
-    
+
     // Login first
     await auth.login('teamadmin@example.com', 'password');
-    
+
     // Submit memory for approval
     const submission = await approvalManager.submitForApproval(
         123, // memory ID
         'Important team update that should be shared'
     );
     console.log('Submission result:', submission);
-    
+
     // Get pending approvals (as reviewer)
     const pending = await approvalManager.getPendingApprovals();
     console.log('Pending approvals:', pending);
-    
+
     // Approve a memory
     const approval = await approvalManager.approveMemory(
         1, // approval ID
         'Looks good for team sharing'
     );
     console.log('Approval result:', approval);
-    
+
     // Get approval statistics
     const stats = await approvalManager.getApprovalStats();
     console.log('Approval stats:', stats);
 }
 
-export { 
-    ApprovalManager, 
-    ApprovalDashboard, 
-    ApprovalWorkflowsVue, 
+export {
+    ApprovalManager,
+    ApprovalDashboard,
+    ApprovalWorkflowsVue,
     MemoryWithApproval,
-    approvalWorkflowDemo 
+    approvalWorkflowDemo
 };

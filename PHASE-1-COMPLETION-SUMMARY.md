@@ -27,7 +27,7 @@
 
 ### **Enhanced JSON Auth Middleware**
 - **File**: `server/enhanced_auth_middleware.py`
-- **Features**: 
+- **Features**:
   - Proper JSON body parsing with Content-Length handling
   - JWT validation with comprehensive error responses
   - RBAC permissions with role-based access control
@@ -41,20 +41,20 @@ SECURED_ENDPOINTS = [
     "POST /memory-system/memories",
     "PUT /memory-system/memories/{id}",
     "DELETE /memory-system/memories/{id}",
-    
-    # Approval workflows  
+
+    # Approval workflows
     "POST /approval-workflows/submit",
     "PUT /approval-workflows/approve/{id}",
     "DELETE /approval-workflows/{id}",
-    
+
     # Discussion layer
     "POST /comments/add",
     "DELETE /comments/delete",
-    
+
     # AI intelligence
     "POST /tag-suggester/suggest",
     "POST /graph-rank/recommendations",
-    
+
     # Team management
     "POST /teams-working/teams",
     "PUT /teams-working/teams/{id}",

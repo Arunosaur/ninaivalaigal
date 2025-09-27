@@ -64,9 +64,9 @@ export const SentimentTrendGraph: React.FC<SentimentTrendGraphProps> = ({
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -122,23 +122,23 @@ export const SentimentTrendGraph: React.FC<SentimentTrendGraphProps> = ({
         {/* Alert Banner */}
         {alerts.length > 0 && (
           <div className={`border rounded-lg p-3 ${
-            alerts[0].type === 'positive_trend' 
-              ? 'bg-green-50 border-green-200' 
+            alerts[0].type === 'positive_trend'
+              ? 'bg-green-50 border-green-200'
               : 'bg-yellow-50 border-yellow-200'
           }`}>
             <div className="flex items-start gap-2">
               <span className="text-lg">{alerts[0].icon}</span>
               <div className="flex-1">
                 <p className={`font-medium text-sm ${
-                  alerts[0].type === 'positive_trend' 
-                    ? 'text-green-900' 
+                  alerts[0].type === 'positive_trend'
+                    ? 'text-green-900'
                     : 'text-yellow-900'
                 }`}>
                   {alerts[0].title}
                 </p>
                 <p className={`text-xs mt-1 ${
-                  alerts[0].type === 'positive_trend' 
-                    ? 'text-green-700' 
+                  alerts[0].type === 'positive_trend'
+                    ? 'text-green-700'
                     : 'text-yellow-700'
                 }`}>
                   {alerts[0].description}
@@ -159,13 +159,13 @@ export const SentimentTrendGraph: React.FC<SentimentTrendGraphProps> = ({
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tickFormatter={formatDate}
                 tick={{ fontSize: 12 }}
                 stroke="#666"
               />
-              <YAxis 
+              <YAxis
                 domain={[0, 1]}
                 tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
                 tick={{ fontSize: 12 }}

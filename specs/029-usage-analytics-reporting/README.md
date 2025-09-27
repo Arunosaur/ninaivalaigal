@@ -1,8 +1,8 @@
 # SPEC-029: Usage Analytics & Reporting
 
-**Status**: ✅ COMPLETE  
-**Priority**: High  
-**Category**: Analytics  
+**Status**: ✅ COMPLETE
+**Priority**: High
+**Category**: Analytics
 
 ## Overview
 

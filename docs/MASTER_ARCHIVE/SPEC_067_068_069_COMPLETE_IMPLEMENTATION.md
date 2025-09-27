@@ -84,7 +84,7 @@ GET /teams/{team_id}/api-keys-overview  # Team quota and usage overview
 - **Payment Management**: Secure payment method updates via Stripe integration
 
 #### **Advanced Usage Monitoring**
-- **Multi-Metric Tracking**: Members, storage, API calls, memory tokens
+- **Multi-Metric Tracking**: Members, storage, API calls, memory token  # pragma: allowlist secrets
 - **Visual Progress Bars**: Color-coded usage indicators (green/yellow/red)
 - **Overage Alerts**: Proactive notifications for approaching limits
 - **Quota Management**: Clear visibility into plan limits and remaining capacity
@@ -211,7 +211,7 @@ GET /partners/admin/revenue-share/{id}     # Revenue calculations
 - **Cross-Tenant Validation**: Ensures complete data isolation between tenants
 - **Permission Boundary Testing**: Validates access control across tenant boundaries
 - **Rate Limiting Verification**: Per-tenant rate limiting enforcement
-- **JWT Scope Enforcement**: Comprehensive token permission validation
+- **JWT Scope Enforcement**: Comprehensive token  # pragma: allowlist secret permission validation
 
 #### **Snapshot Regression Testing**
 - **API Response Snapshots**: Automated detection of breaking API changes
@@ -247,7 +247,7 @@ class EnhancedTestRunner             # Orchestrated test execution
 
 #### **Security & Isolation**
 - **100% Multi-Tenant Isolation**: Complete tenant boundary validation
-- **JWT Security Testing**: Comprehensive token validation and scope enforcement
+- **JWT Security Testing**: Comprehensive token  # pragma: allowlist secret validation and scope enforcement
 - **API Security Hardening**: Fuzz testing prevents injection vulnerabilities
 - **Access Control Validation**: RBAC testing across all endpoints
 

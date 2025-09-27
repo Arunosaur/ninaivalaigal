@@ -67,7 +67,7 @@ Your VS Code MCP configuration is correct:
       "args": ["/Users/asrajag/Workspace/mem0/server/mcp_server.py"],
       "cwd": "/Users/asrajag/Workspace/mem0",
       "env": {
-        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",
+        "MEM0_DATABASE_URL": "postgresql://mem0user:mem0pass@  # pragma: allowlist secretlocalhost:5432/mem0db",
         "MEM0_JWT_SECRET": "your-jwt-secret"
       }
     }

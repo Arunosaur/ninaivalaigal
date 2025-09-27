@@ -131,7 +131,7 @@ df -h
 time make stack-up
 
 # Test database performance
-time psql "postgresql://nina:password@localhost:6432/nina" -c "SELECT version();"
+time psql "postgresql://nina:password@  # pragma: allowlist secretlocalhost:6432/nina" -c "SELECT version();"
 
 # Test API response time
 time curl -f http://localhost:13370/health

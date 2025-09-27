@@ -84,7 +84,7 @@
 
 ### Immediate Impact
 - **Smart content discovery** through AI ranking
-- **Automated organization** via tag suggestions  
+- **Automated organization** via tag suggestions
 - **Personalized experiences** with recommendations
 - **Data-driven insights** for team optimization
 
@@ -106,7 +106,7 @@ This completes the **Memory Intelligence** vision for Ninaivalaigal:
 
 ## Files Added/Modified
 - server/graph_rank.py (NEW)
-- server/tag_suggester.py (NEW) 
+- server/tag_suggester.py (NEW)
 - server/insights_api.py (NEW)
 - server/main.py (MODIFIED - added AI routers)
 - frontend-ai-intelligence.js (NEW)

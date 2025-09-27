@@ -12,9 +12,9 @@ class AuthService {
             const response = await fetch(
                 `${this.baseUrl}/auth-working/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
             );
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 this.token = data.jwt_token;
                 localStorage.setItem('jwt_token', this.token);
@@ -35,7 +35,7 @@ class AuthService {
 
     async validateToken() {
         if (!this.token) return { valid: false, error: 'No token' };
-        
+
         try {
             const response = await fetch(
                 `${this.baseUrl}/auth-working/validate-token?token=${encodeURIComponent(this.token)}`

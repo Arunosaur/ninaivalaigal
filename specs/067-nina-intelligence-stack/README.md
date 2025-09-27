@@ -1,8 +1,8 @@
 # SPEC-067: Nina Intelligence Stack Architecture
 
-**Status**: ✅ COMPLETE  
-**Priority**: Critical  
-**Category**: Infrastructure  
+**Status**: ✅ COMPLETE
+**Priority**: Critical
+**Category**: Infrastructure
 
 ## Overview
 
@@ -22,6 +22,6 @@ Consolidated database architecture combining PostgreSQL 15, Apache AGE graph dat
 ## Related SPECs
 
 - SPEC-019: Database Management Migration
-- SPEC-060: Property Graph Memory Model  
+- SPEC-060: Property Graph Memory Model
 - SPEC-061: Graph Reasoner
 - SPEC-062: GraphOps Deployment

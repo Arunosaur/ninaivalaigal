@@ -15,7 +15,7 @@ This document maps **sensitivity tiers** into **enforceable code constructs**:
 | **Tier 1 – Internal** | Low-risk internal ops data | Dev logs, team discussions without PII |
 | **Tier 2 – Confidential** | Business-sensitive, restricted to team/org | Design docs, strategy notes, non-public product info |
 | **Tier 3 – Restricted** | Personally Identifiable Information (PII) & regulated data | Customer names, emails, internal HR data |
-| **Tier 4 – Secrets** | High-risk credentials & tokens, must never be stored in raw form | API keys, JWTs, DB passwords |
+| **Tier 4 – Secrets** | High-risk credentials & token  # pragma: allowlist secrets, must never be stored in raw form | API keys, JWTs, DB password  # pragma: allowlist secrets |
 
 ---
 

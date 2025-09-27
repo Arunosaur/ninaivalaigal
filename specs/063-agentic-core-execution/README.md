@@ -1,8 +1,8 @@
 # SPEC-063: Agentic Core Execution Framework
 
-**Status**: ✅ COMPLETE  
-**Priority**: Critical  
-**Category**: AI Intelligence  
+**Status**: ✅ COMPLETE
+**Priority**: Critical
+**Category**: AI Intelligence
 
 ## Overview
 

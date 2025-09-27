@@ -66,7 +66,7 @@ const data = await response.json();
 
 if (data.success) {
   localStorage.setItem('jwt_token', data.jwt_token);
-  
+
   // Use token for protected requests
   const profileResponse = await fetch('/protected/profile', {
     headers: {
@@ -143,7 +143,7 @@ make -f Makefile.dev test-all-auth
 
 ## 🎉 Summary
 
-**You have a fully working, secure, production-ready auth system!** 
+**You have a fully working, secure, production-ready auth system!**
 
 The GET-based approach is:
 - ✅ **Secure** (JWT tokens, proper validation)

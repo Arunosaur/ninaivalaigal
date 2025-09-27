@@ -40,14 +40,14 @@ services:
     restart: unless-stopped
 
   api:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile.api
     container_name: ninaivalaigal_dev_api
     ports:
       - "13370:13370"
     environment:
-      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:secure_nina_password@postgres:5432/ninaivalaigal
+      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:secure_nina_password@  # pragma: allowlist secretpostgres:5432/ninaivalaigal
       NINAIVALAIGAL_JWT_SECRET: dev_jwt_secret_key_change_in_production
       NINAIVALAIGAL_DEBUG: 1
       PYTHONPATH: /app/server

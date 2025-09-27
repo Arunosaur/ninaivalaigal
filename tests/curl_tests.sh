@@ -24,14 +24,14 @@ run_test() {
     local test_name="$1"
     local expected_status="$2"
     local curl_cmd="$3"
-    
+
     TESTS_TOTAL=$((TESTS_TOTAL + 1))
     echo -e "${BLUE}🧪 Test $TESTS_TOTAL: $test_name${NC}"
-    
+
     # Run curl and capture status code
     local status_code
     status_code=$(eval "$curl_cmd" -w "%{http_code}" -s -o /dev/null)
-    
+
     if [ "$status_code" = "$expected_status" ]; then
         echo -e "${GREEN}✅ PASS - Status: $status_code${NC}"
         TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -46,19 +46,19 @@ run_test_with_output() {
     local test_name="$1"
     local expected_status="$2"
     local curl_cmd="$3"
-    
+
     TESTS_TOTAL=$((TESTS_TOTAL + 1))
     echo -e "${BLUE}🧪 Test $TESTS_TOTAL: $test_name${NC}"
-    
+
     # Run curl and capture both output and status
     local response
     local status_code
     response=$(eval "$curl_cmd" -w "\\n%{http_code}" -s)
     status_code=$(echo "$response" | tail -n1)
     local body=$(echo "$response" | head -n -1)
-    
+
     echo "Response: $body"
-    
+
     if [ "$status_code" = "$expected_status" ]; then
         echo -e "${GREEN}✅ PASS - Status: $status_code${NC}"
         TESTS_PASSED=$((TESTS_PASSED + 1))

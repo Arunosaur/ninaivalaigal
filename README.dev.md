@@ -110,11 +110,11 @@ The old `container` commands are replaced with standard `docker`:
 
 ## Why This Setup?
 
-✅ **Live file sync** - No more injection hacks  
-✅ **Multi-arch builds** - ARM64 + x86_64 support  
-✅ **Open source** - No licensing issues  
-✅ **CI compatible** - GitHub Actions work perfectly  
-✅ **Simple** - Standard Docker commands  
+✅ **Live file sync** - No more injection hacks
+✅ **Multi-arch builds** - ARM64 + x86_64 support
+✅ **Open source** - No licensing issues
+✅ **CI compatible** - GitHub Actions work perfectly
+✅ **Simple** - Standard Docker commands
 
 ---
 

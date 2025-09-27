@@ -50,7 +50,7 @@ CREATE TABLE team_memberships (
 ### John's Enhanced JWT Token
 ```python
 # When John logs in
-token = jwt.encode({
+token  # pragma: allowlist secret = jwt.encode({
     'user_id': 'john',
     'email': 'john@acmecorp.com',
     'organization_id': 'acme_corp',
@@ -132,8 +132,8 @@ USING (
 ### Context Scoping Logic
 ```python
 class HierarchicalMemoryManager:
-    def __init__(self, jwt_token):
-        self.user_info = jwt.decode(jwt_token, JWT_SECRET)
+    def __init__(self, jwt_token  # pragma: allowlist secret):
+        self.user_info = jwt.decode(jwt_token  # pragma: allowlist secret, JWT_SECRET)
         self.user_id = self.user_info['user_id']
         self.org_id = self.user_info['organization_id']
         self.teams = self.user_info['teams']

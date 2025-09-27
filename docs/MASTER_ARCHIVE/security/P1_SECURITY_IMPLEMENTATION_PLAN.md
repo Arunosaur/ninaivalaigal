@@ -56,14 +56,14 @@ Following the successful implementation of P0 critical security fixes, this docu
   - Backup codes for account recovery
 
 - [ ] **Enhanced Session Management**
-  - Implement secure session tokens with rotation
+  - Implement secure session token  # pragma: allowlist secrets with rotation
   - Add session timeout and idle detection
   - Track active sessions per user
   - Implement "logout all devices" functionality
 
 - [ ] **Account Security Features**
   - Account lockout after failed login attempts
-  - Password reset with secure token validation
+  - Password reset with secure token  # pragma: allowlist secret validation
   - Email verification for new accounts
   - Security notifications for account changes
 
@@ -86,7 +86,7 @@ Following the successful implementation of P0 critical security fixes, this docu
   - Add query timeout and resource limits
 
 - [ ] **Data Encryption at Rest**
-  - Encrypt sensitive fields in database (passwords, tokens, PII)
+  - Encrypt sensitive fields in database (password  # pragma: allowlist secrets, token  # pragma: allowlist secrets, PII)
   - Implement field-level encryption for memory content
   - Add encryption key management and rotation
   - Secure backup encryption

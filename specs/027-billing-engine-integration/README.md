@@ -1,8 +1,8 @@
 # SPEC-027: Billing Engine Integration
 
-**Status**: ✅ COMPLETE  
-**Priority**: Critical  
-**Category**: Business Logic  
+**Status**: ✅ COMPLETE
+**Priority**: Critical
+**Category**: Business Logic
 
 ## Overview
 

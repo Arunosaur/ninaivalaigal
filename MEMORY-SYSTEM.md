@@ -127,7 +127,7 @@ import { MemoryDashboard } from './frontend-memory-system.js';
 
 function App() {
     return (
-        <MemoryDashboard 
+        <MemoryDashboard
             authService={authService}
             teamManager={teamManager}
         />
@@ -274,7 +274,7 @@ This memory system provides:
 
 **The memory system unlocks everything else:**
 - ✅ **Approval workflows** can now operate on memories
-- ✅ **Timeline features** can organize memories chronologically  
+- ✅ **Timeline features** can organize memories chronologically
 - ✅ **Context systems** can link memories to specific contexts
 - ✅ **AI features** can analyze and suggest memories
 

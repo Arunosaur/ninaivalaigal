@@ -4,7 +4,7 @@
 
 You're concerned about this database URL:
 ```
-"NINAIVALAIGAL_DATABASE_URL": "postgresql://ninaivalaigal_app:app_secret@localhost:5432/ninaivalaigal_db"
+"NINAIVALAIGAL_DATABASE_URL": "postgresql://ninaivalaigal_app:app_secret@  # pragma: allowlist secretlocalhost:5432/ninaivalaigal_db"
 ```
 
 **Your valid concerns:**
@@ -138,17 +138,17 @@ openssl rand -base64 32
 ### 2. Set Environment Variables (Secure)
 ```bash
 # In your server environment (NOT in code)
-export NINAIVALAIGAL_DATABASE_URL="postgresql://ninaivalaigal_app:kJ8n3mP9qR7sT2vW5xY8zA1bC4dE6fG9hI0jK3lM6nO7pQ8r@localhost:5432/ninaivalaigal_db"
+export NINAIVALAIGAL_DATABASE_URL="postgresql://ninaivalaigal_app:kJ8n3mP9qR7sT2vW5xY8zA1bC4dE6fG9hI0jK3lM6nO7pQ8r@  # pragma: allowlist secretlocalhost:5432/ninaivalaigal_db"
 ```
 
 ### 3. Users Never See This
 Users only get their JWT tokens:
 ```bash
 # Alice gets this (no database password)
-export NINAIVALAIGAL_USER_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+export NINAIVALAIGAL_USER_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."  # pragma: allowlist secret
 
 # Bob gets this (different token, no database password)
-export NINAIVALAIGAL_USER_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+export NINAIVALAIGAL_USER_TOKEN="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."  # pragma: allowlist secret
 ```
 
 ## Think of It Like This

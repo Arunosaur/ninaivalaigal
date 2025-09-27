@@ -46,7 +46,7 @@ open http://localhost:13370/docs
 
 ### Stack Components
 - **nina-intelligence-db**: PostgreSQL 15 + pgvector (port 5432)
-- **nina-intelligence-cache**: Redis 7-alpine (port 6379)  
+- **nina-intelligence-cache**: Redis 7-alpine (port 6379)
 - **nv-api**: FastAPI application (port 13370)
 - **nv-ui**: Frontend interface (port 8080)
 
@@ -96,12 +96,12 @@ make coverage-dashboard
 # Test login endpoint
 curl -X POST http://localhost:13370/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"testpass123"}'
+  -d '{"email":"test@example.com","password  # pragma: allowlist secret":"testpass123"}'
 
 # Test signup endpoint
 curl -X POST http://localhost:13370/auth/signup/individual \
   -H "Content-Type: application/json" \
-  -d '{"email":"new@example.com","password":"strongpass123","full_name":"Test User"}'
+  -d '{"email":"new@example.com","password  # pragma: allowlist secret":"strongpass123","full_name":"Test User"}'
 ```
 
 ## 🔧 Development Commands
@@ -312,7 +312,7 @@ make monitor-production
 
 ---
 
-**Need Help?** 
+**Need Help?**
 - Check the troubleshooting section above
 - Review test outputs for specific error messages
 - Consult the comprehensive test plan for expected behaviors

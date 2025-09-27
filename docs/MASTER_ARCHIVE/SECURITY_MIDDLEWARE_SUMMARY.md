@@ -19,7 +19,7 @@ Comprehensive security middleware suite for the Ninaivalaigal platform addressin
 - **Size limits**: Configurable decompression size limits (10MB default)
 
 ### 3. Global Log Scrubbing (`server/security/logging/global_scrubber.py`)
-- **Pattern-based detection**: AWS keys, JWT tokens, Base64 secrets
+- **Pattern-based detection**: AWS keys, JWT token  # pragma: allowlist secrets, Base64 secrets
 - **Recursive scrubbing**: Handles nested dictionaries and lists
 - **JSON-aware**: Preserves structure while scrubbing content
 - **OpenTelemetry integration**: Span attribute scrubbing

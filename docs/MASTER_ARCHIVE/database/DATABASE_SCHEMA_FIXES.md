@@ -17,7 +17,7 @@ Fixed critical database schema mismatches that were preventing MCP server memory
 - **Impact**: Memory operations failed with schema errors
 
 ### 3. User Context Assignment
-- **Issue**: MCP server using hardcoded `DEFAULT_USER_ID = 1` instead of JWT token user ID
+- **Issue**: MCP server using hardcoded `DEFAULT_USER_ID = 1` instead of JWT token  # pragma: allowlist secret user ID
 - **Impact**: Contexts not properly assigned to authenticated users
 
 ## Solutions Applied

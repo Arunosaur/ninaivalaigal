@@ -57,7 +57,7 @@ Based on comprehensive testing and the memory context provided, here's the defin
 ### **✅ USER MANAGEMENT - WORKING**
 - **User Creation**: ✅ Database models, signup API, authentication
 - **Team Management**: ✅ Team creation, member management, organization structure
-- **Authentication**: ✅ JWT tokens, login/signup flow, session management
+- **Authentication**: ✅ JWT token  # pragma: allowlist secrets, login/signup flow, session management
 
 ### **✅ MEMORY RECORDING & RECALL - WORKING**
 - **Legacy System**: ✅ Auto recording (11/11 tests passing), memory storage, context management

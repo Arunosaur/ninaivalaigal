@@ -210,12 +210,12 @@ enhanced_prompt = await enhance_ai_prompt(
 **Enhanced Prompt with mem0:**
 ```
 # Personal Coding Preferences:
-- Always validate JWT tokens before processing
+- Always validate JWT token  # pragma: allowlist secrets before processing
 - Prefer async/await over .then() chains
 - Use TypeScript interfaces for better type safety
 
 # Team Standards & Patterns:
-- Team standard: Use bcrypt for password hashing
+- Team standard: Use bcrypt for password  # pragma: allowlist secret hashing
 - All auth functions must return standardized response format
 - Follow team's error handling patterns
 

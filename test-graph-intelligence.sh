@@ -80,7 +80,7 @@ echo '{
       },
       {
         "id": "memory_2",
-        "type": "memory", 
+        "type": "memory",
         "label": "Team decision: Use GET-based endpoints...",
         "data": { "id": 2, "content": "Team decision: Use GET-based endpoints for MVP" }
       }

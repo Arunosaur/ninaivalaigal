@@ -22,7 +22,7 @@ class TimelineManager {
             if (eventTypes) params.append('event_types', eventTypes);
             if (teamFilter !== null) params.append('team_filter', teamFilter);
             if (contextFilter !== null) params.append('context_filter', contextFilter);
-            
+
             const url = `${this.baseUrl}/timeline/my?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -37,7 +37,7 @@ class TimelineManager {
             const params = new URLSearchParams({ days_back: daysBack });
             if (eventTypes) params.append('event_types', eventTypes);
             if (contextFilter !== null) params.append('context_filter', contextFilter);
-            
+
             const url = `${this.baseUrl}/timeline/team/${teamId}?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -51,7 +51,7 @@ class TimelineManager {
         try {
             const params = new URLSearchParams({ days_back: daysBack });
             if (eventTypes) params.append('event_types', eventTypes);
-            
+
             const url = `${this.baseUrl}/timeline/context/${contextId}?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -63,12 +63,12 @@ class TimelineManager {
     // Get visualization data
     async getVisualizationData(daysBack = 30, teamFilter = null, granularity = 'day') {
         try {
-            const params = new URLSearchParams({ 
+            const params = new URLSearchParams({
                 days_back: daysBack,
                 granularity: granularity
             });
             if (teamFilter !== null) params.append('team_filter', teamFilter);
-            
+
             const url = `${this.baseUrl}/timeline/visualization?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -100,7 +100,7 @@ class D3TimelineVisualization {
         this.margin = { top: 20, right: 30, bottom: 40, left: 50 };
         this.innerWidth = this.width - this.margin.left - this.margin.right;
         this.innerHeight = this.height - this.margin.top - this.margin.bottom;
-        
+
         this.initializeSVG();
     }
 
@@ -144,14 +144,14 @@ class D3TimelineVisualization {
 
     async renderTimeline(daysBack = 30, teamFilter = null) {
         const vizData = await this.timelineManager.getVisualizationData(daysBack, teamFilter);
-        
+
         if (!vizData.success) {
             console.error('Failed to load visualization data:', vizData.error);
             return;
         }
 
         const timelineData = vizData.visualization.timeline_data;
-        
+
         // Parse dates and prepare data
         const data = timelineData.map(d => ({
             date: new Date(d.date),
@@ -209,11 +209,11 @@ class D3TimelineVisualization {
                 self.tooltip.transition()
                     .duration(200)
                     .style('opacity', .9);
-                
+
                 const eventTypesList = Object.entries(d.eventTypes)
                     .map(([type, count]) => `${type}: ${count}`)
                     .join('<br>');
-                
+
                 self.tooltip.html(`
                     <strong>${d.date.toLocaleDateString()}</strong><br>
                     Total Events: ${d.totalEvents}<br>
@@ -260,14 +260,14 @@ class TimelineDashboard extends React.Component {
             error: null,
             viewMode: 'timeline' // timeline, stats, visualization
         };
-        
+
         this.timelineManager = new TimelineManager('http://localhost:13370', this.props.authService);
         this.visualizationRef = React.createRef();
     }
 
     async componentDidMount() {
         await this.loadTimelineData();
-        
+
         // Initialize D3 visualization if in visualization mode
         if (this.state.viewMode === 'visualization') {
             this.initializeVisualization();
@@ -276,7 +276,7 @@ class TimelineDashboard extends React.Component {
 
     async loadTimelineData() {
         this.setState({ loading: true });
-        
+
         try {
             const [timelineResult, statsResult] = await Promise.all([
                 this.timelineManager.getMyTimeline(
@@ -337,7 +337,7 @@ class TimelineDashboard extends React.Component {
         const now = new Date();
         const diffMs = now - date;
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 0) return 'Today';
         if (diffDays === 1) return 'Yesterday';
         if (diffDays < 7) return `${diffDays} days ago`;
@@ -353,17 +353,17 @@ class TimelineDashboard extends React.Component {
         return (
             <div className="timeline-dashboard">
                 <h1>📅 Knowledge Timeline</h1>
-                
+
                 {/* Controls */}
                 <div className="timeline-controls">
                     <div className="view-mode-tabs">
-                        <button 
+                        <button
                             className={viewMode === 'timeline' ? 'active' : ''}
                             onClick={() => this.setState({ viewMode: 'timeline' })}
                         >
                             📋 Timeline
                         </button>
-                        <button 
+                        <button
                             className={viewMode === 'visualization' ? 'active' : ''}
                             onClick={() => {
                                 this.setState({ viewMode: 'visualization' });
@@ -372,14 +372,14 @@ class TimelineDashboard extends React.Component {
                         >
                             📊 Visualization
                         </button>
-                        <button 
+                        <button
                             className={viewMode === 'stats' ? 'active' : ''}
                             onClick={() => this.setState({ viewMode: 'stats' })}
                         >
                             📈 Statistics
                         </button>
                     </div>
-                    
+
                     <div className="timeline-filters">
                         <select
                             value={this.state.daysBack}
@@ -392,14 +392,14 @@ class TimelineDashboard extends React.Component {
                             <option value={30}>Last 30 days</option>
                             <option value={90}>Last 90 days</option>
                         </select>
-                        
+
                         <input
                             type="text"
                             placeholder="Filter event types..."
                             value={this.state.eventTypeFilter}
                             onChange={(e) => this.setState({ eventTypeFilter: e.target.value })}
                         />
-                        
+
                         <button onClick={() => this.loadTimelineData()}>
                             🔄 Refresh
                         </button>
@@ -419,7 +419,7 @@ class TimelineDashboard extends React.Component {
                                         <div className="event-icon" style={{ color: this.getEventColor(event.event_type) }}>
                                             {this.getEventIcon(event.event_type)}
                                         </div>
-                                        
+
                                         <div className="event-content">
                                             <div className="event-header">
                                                 <h3>{event.title}</h3>
@@ -427,9 +427,9 @@ class TimelineDashboard extends React.Component {
                                                     {this.formatEventTime(event.timestamp)}
                                                 </span>
                                             </div>
-                                            
+
                                             <p className="event-description">{event.description}</p>
-                                            
+
                                             <div className="event-meta">
                                                 <span className="event-user">👤 {event.user_name}</span>
                                                 {event.team_id && (
@@ -439,7 +439,7 @@ class TimelineDashboard extends React.Component {
                                                     <span className="event-context">📁 Context {event.context_id}</span>
                                                 )}
                                             </div>
-                                            
+
                                             <div className="event-tags">
                                                 {event.tags.map(tag => (
                                                     <span key={tag} className="tag">{tag}</span>
@@ -465,24 +465,24 @@ class TimelineDashboard extends React.Component {
                 {viewMode === 'stats' && stats && (
                     <div className="stats-view">
                         <h2>📈 Timeline Statistics</h2>
-                        
+
                         <div className="stats-grid">
                             <div className="stat-card">
                                 <h3>{stats.total_events}</h3>
                                 <p>Total Events</p>
                             </div>
-                            
+
                             <div className="stat-card">
                                 <h3>{Object.keys(stats.daily_activity).length}</h3>
                                 <p>Active Days</p>
                             </div>
-                            
+
                             <div className="stat-card">
                                 <h3>{Object.keys(stats.user_activity).length}</h3>
                                 <p>Active Users</p>
                             </div>
                         </div>
-                        
+
                         <div className="stats-details">
                             <div className="stat-section">
                                 <h3>📊 Event Types</h3>
@@ -496,7 +496,7 @@ class TimelineDashboard extends React.Component {
                                     ))}
                                 </div>
                             </div>
-                            
+
                             <div className="stat-section">
                                 <h3>📤 Approval Pipeline</h3>
                                 <div className="approval-stats">
@@ -538,26 +538,26 @@ const TimelineVue = {
             timelineManager: null
         };
     },
-    
+
     async created() {
         this.timelineManager = new TimelineManager('http://localhost:13370', this.$auth);
         await this.loadTimeline();
     },
-    
+
     methods: {
         async loadTimeline() {
             this.loading = true;
-            
+
             try {
                 const result = await this.timelineManager.getMyTimeline(this.daysBack);
                 this.timeline = result.success ? result.timeline : [];
             } catch (error) {
                 this.error = error.message;
             }
-            
+
             this.loading = false;
         },
-        
+
         getEventIcon(eventType) {
             const icons = {
                 memory_created: '🧠',
@@ -569,14 +569,14 @@ const TimelineVue = {
             return icons[eventType] || '📝';
         }
     },
-    
+
     template: `
         <div class="timeline-vue">
             <h1>📅 Knowledge Timeline</h1>
-            
+
             <div v-if="loading">Loading timeline...</div>
             <div v-else-if="error">Error: {{ error }}</div>
-            
+
             <div v-else>
                 <div class="timeline-controls">
                     <select v-model="daysBack" @change="loadTimeline">
@@ -585,7 +585,7 @@ const TimelineVue = {
                         <option value="90">Last 90 days</option>
                     </select>
                 </div>
-                
+
                 <div class="timeline-events">
                     <div v-for="event in timeline" :key="event.id" class="timeline-event">
                         <div class="event-icon">{{ getEventIcon(event.event_type) }}</div>
@@ -609,31 +609,31 @@ async function timelineDemo() {
     // Initialize timeline manager
     const auth = new AuthService();
     const timelineManager = new TimelineManager('http://localhost:13370', auth);
-    
+
     // Login first
     await auth.login('user@example.com', 'password');
-    
+
     // Get user's timeline
     const timeline = await timelineManager.getMyTimeline(30);
     console.log('My timeline:', timeline);
-    
+
     // Get team timeline
     const teamTimeline = await timelineManager.getTeamTimeline(1, 30);
     console.log('Team timeline:', teamTimeline);
-    
+
     // Get visualization data
     const vizData = await timelineManager.getVisualizationData(30);
     console.log('Visualization data:', vizData);
-    
+
     // Get statistics
     const stats = await timelineManager.getTimelineStats(30);
     console.log('Timeline stats:', stats);
 }
 
-export { 
-    TimelineManager, 
-    D3TimelineVisualization, 
-    TimelineDashboard, 
-    TimelineVue, 
-    timelineDemo 
+export {
+    TimelineManager,
+    D3TimelineVisualization,
+    TimelineDashboard,
+    TimelineVue,
+    timelineDemo
 };

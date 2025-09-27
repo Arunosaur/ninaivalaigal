@@ -82,7 +82,7 @@ POST /standalone-teams/{team_id}/nonprofit/apply # Apply for non-profit status
 - **Invoice Generation**: PDF invoice generation with automated email delivery
 
 #### **Usage-Based Billing**
-- **Metered Usage**: Track API calls, storage, memory tokens, and other metrics
+- **Metered Usage**: Track API calls, storage, memory token  # pragma: allowlist secrets, and other metrics
 - **Overage Billing**: Automatic billing for usage exceeding plan limits
 - **Real-time Tracking**: Usage recording with timestamp and metadata
 - **Billing Period Management**: Proper handling of billing cycles and proration
@@ -148,7 +148,7 @@ GET /billing-engine/analytics/{team_id}          # Get billing analytics
 ```python
 # Automated customer communication:
 - Standard: 1, 3, 7, 14 day escalation
-- Aggressive: 1, 2, 4, 7 day escalation  
+- Aggressive: 1, 2, 4, 7 day escalation
 - Gentle: 3, 7, 14, 30 day escalation
 - Email templates with personalization
 - Response tracking and resolution management

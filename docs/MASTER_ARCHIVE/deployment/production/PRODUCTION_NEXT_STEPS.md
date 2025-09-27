@@ -32,7 +32,7 @@ curl http://localhost:13370/health/detailed
 ### 3. Configure Secrets Management
 ```bash
 # Add to GitHub repository secrets:
-POSTGRES_PASSWORD=<secure_password>
+POSTGRES_PASSWORD=<secure_password  # pragma: allowlist secret>
 JWT_SECRET=<32_char_secret>
 MEMORY_SHARED_SECRET=<hmac_secret>
 

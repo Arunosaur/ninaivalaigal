@@ -67,7 +67,7 @@ The Ninaivalaigal security middleware suite is complete and ready for external c
 
 **Security Test Coverage:**
 - Binary masquerade detection accuracy
-- JWT verification with various token types
+- JWT verification with various token  # pragma: allowlist secret types
 - Idempotency key collision prevention
 - Configuration validation for production safety
 - Middleware chain order consistency

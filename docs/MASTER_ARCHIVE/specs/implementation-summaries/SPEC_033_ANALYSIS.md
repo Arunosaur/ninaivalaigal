@@ -43,11 +43,11 @@ Frontend → FastAPI → Redis Cache → PostgreSQL/PgBouncer
 - **Integration**: Memory API (`server/memory_api.py`)
 - **Cache Key**: `memory:<memory_id>`
 - **TTL**: 1 hour (configurable)
-- **Benefit**: 100x faster memory retrieval for frequently accessed tokens
+- **Benefit**: 100x faster memory retrieval for frequently accessed token  # pragma: allowlist secrets
 
 #### **2. Relevance Score Caching (SPEC-031 Ready)**
 - **Integration**: Future relevance ranking system
-- **Cache Key**: `score:<user_id>:<context_id>:<token_id>`
+- **Cache Key**: `score:<user_id>:<context_id>:<token  # pragma: allowlist secret_id>`
 - **TTL**: 15 minutes
 - **Benefit**: Instant relevance scoring without expensive vector computations
 
@@ -73,7 +73,7 @@ Frontend → FastAPI → Redis Cache → PostgreSQL/PgBouncer
 ### **Phase 1: Core Redis Infrastructure (1-2 days)**
 1. **Docker Compose Integration**
    - Add Redis service to `docker-compose.yml`
-   - Configure Redis with password protection
+   - Configure Redis with password  # pragma: allowlist secret protection
    - Set up Redis ACLs for security
 
 2. **Python Redis Client**
@@ -153,7 +153,7 @@ Frontend → FastAPI → Redis Cache → PostgreSQL/PgBouncer
 ## 🔐 **SECURITY CONSIDERATIONS**
 
 ### **Redis Security**
-- **Password Protection**: Strong Redis password via environment variables
+- **Password Protection**: Strong Redis password  # pragma: allowlist secret via environment variables
 - **ACL Configuration**: User-specific access controls
 - **Network Security**: Redis accessible only within container network
 - **Data Encryption**: Consider Redis TLS for production

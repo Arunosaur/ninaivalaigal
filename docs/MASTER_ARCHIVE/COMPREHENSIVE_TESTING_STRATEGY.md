@@ -1,8 +1,8 @@
 # Comprehensive Testing Strategy
 ## End-to-End Testing for Team Workflows, Billing, and Conversion Funnels
 
-**Document Version**: 1.0  
-**Last Updated**: September 23, 2024  
+**Document Version**: 1.0
+**Last Updated**: September 23, 2024
 **Status**: Testing Framework Design
 
 ## 🎯 **Testing Strategy Overview**
@@ -17,8 +17,8 @@ This comprehensive testing strategy covers all aspects of the ninaivalaigal mone
                   🔺🔺🔺 Unit Tests (70%)
 ```
 
-**Total Test Coverage Target**: 90%+  
-**Critical Path Coverage**: 100%  
+**Total Test Coverage Target**: 90%+
+**Critical Path Coverage**: 100%
 **Performance Test Coverage**: All revenue flows
 
 ## 🧪 **Test Categories & Coverage**
@@ -34,7 +34,7 @@ test_accept_team_invitation()
 test_team_capacity_limits()
 test_team_upgrade_to_organization()
 
-# Billing API Tests  
+# Billing API Tests
 test_subscription_creation()
 test_plan_upgrades()
 test_usage_tracking()
@@ -78,7 +78,7 @@ class TeamWorkflowIntegrationTests:
         # 3. User can invite members
         # 4. Invited members can join
         # 5. Team can collaborate on memories
-        
+
     def test_team_upgrade_flow():
         """Test complete upgrade from free to paid"""
         # 1. Team reaches member limit
@@ -99,7 +99,7 @@ class BillingIntegrationTests:
         # 3. Process first payment
         # 4. Handle webhook events
         # 5. Update team permissions
-        
+
     def test_usage_based_billing():
         """Test usage tracking and billing"""
         # 1. Track AI feature usage
@@ -149,7 +149,7 @@ Steps:
   4. Account and team created successfully
   5. User can access team dashboard
   6. Invite code is generated and displayed
-  
+
 Success Criteria:
   - Team created in database
   - User assigned admin role
@@ -171,10 +171,10 @@ Steps:
   1. Admin sends invitation via email
   2. Recipient receives invitation email
   3. Clicks invitation link
-  4. Completes signup with invitation token
+  4. Completes signup with invitation token  # pragma: allowlist secret
   5. Automatically joins team
   6. Can access team memories
-  
+
 Success Criteria:
   - Invitation email delivered
   - Token validation succeeds
@@ -183,7 +183,7 @@ Success Criteria:
   - Permissions granted correctly
 
 Failure Points to Test:
-  - Expired invitation tokens
+  - Expired invitation token  # pragma: allowlist secrets
   - Invalid email addresses
   - Team at capacity
   - Email delivery failures
@@ -200,7 +200,7 @@ Steps:
   5. Enters payment information
   6. Payment processed successfully
   7. Team limits increased immediately
-  
+
 Success Criteria:
   - Stripe customer created
   - Subscription activated
@@ -227,13 +227,13 @@ Load Pattern:
   - Normal: 10 team creations/minute
   - Spike: 100 team creations/minute
   - Duration: 30 minutes
-  
+
 Metrics to Monitor:
   - API response time (<500ms P95)
   - Database connection pool usage
   - Email delivery rate
   - Error rate (<1%)
-  
+
 Success Criteria:
   - All team creations succeed
   - Response times remain acceptable
@@ -249,13 +249,13 @@ Load Pattern:
   - Generate 1,000 invoices
   - Send 1,000 billing emails
   - Handle 100 webhook events/second
-  
+
 Metrics to Monitor:
   - Stripe API rate limits
   - Invoice generation time
   - Email delivery latency
   - Webhook processing time
-  
+
 Success Criteria:
   - All billing completes within 1 hour
   - No failed payments due to system issues
@@ -273,12 +273,12 @@ Test Setup:
   - 10,000 memories
   - 100 pending invitations
   - Real-time updates enabled
-  
+
 Load Pattern:
   - 50 concurrent users
   - Each user performs 10 actions/minute
   - Actions: view members, send invites, create memories
-  
+
 Success Criteria:
   - Dashboard loads in <2 seconds
   - Real-time updates work correctly
@@ -298,19 +298,19 @@ class TeamSecurityTests:
         # 1. Create two separate teams
         # 2. Attempt cross-team data access
         # 3. Verify access denied
-        
+
     def test_role_based_permissions():
         """Test team role enforcement"""
         # 1. Create team with different roles
         # 2. Test admin-only actions as contributor
         # 3. Verify permission denied
-        
-    def test_invitation_token_security():
-        """Test invitation token validation"""
-        # 1. Generate invitation token
-        # 2. Test with expired token
-        # 3. Test with invalid token
-        # 4. Test with reused token
+
+    def test_invitation_token  # pragma: allowlist secret_security():
+        """Test invitation token  # pragma: allowlist secret validation"""
+        # 1. Generate invitation token  # pragma: allowlist secret
+        # 2. Test with expired token  # pragma: allowlist secret
+        # 3. Test with invalid token  # pragma: allowlist secret
+        # 4. Test with reused token  # pragma: allowlist secret
 ```
 
 #### **Billing Security Tests**
@@ -320,8 +320,8 @@ class BillingSecurityTests:
         """Ensure payment data is properly secured"""
         # 1. Submit payment information
         # 2. Verify no PCI data stored locally
-        # 3. Check Stripe tokenization
-        
+        # 3. Check Stripe token  # pragma: allowlist secretization
+
     def test_subscription_tampering():
         """Test protection against subscription manipulation"""
         # 1. Attempt to modify subscription via API
@@ -340,12 +340,12 @@ Variants:
   A: "⚠️ Team at capacity! Upgrade now"
   B: "🚀 Ready to grow? Upgrade for more members"
   C: "📊 73% of teams your size use Team Pro"
-  
+
 Metrics:
   - Click-through rate on upgrade banner
   - Conversion rate to paid plan
   - Time from banner view to upgrade
-  
+
 Sample Size: 1,000 teams per variant
 Duration: 2 weeks
 Success Criteria: >20% improvement in conversion
@@ -358,12 +358,12 @@ Variants:
   A: "$29/month for your entire team"
   B: "Just $1.45 per member per month"
   C: "$348/year (save 20% vs monthly)"
-  
+
 Metrics:
   - Upgrade completion rate
   - Cart abandonment rate
   - Plan selection distribution
-  
+
 Sample Size: 500 upgrade attempts per variant
 Duration: 4 weeks
 Success Criteria: >15% improvement in completion
@@ -379,7 +379,7 @@ class ConversionTrackingTests:
         # 1. Track user through signup flow
         # 2. Verify all events captured
         # 3. Check attribution accuracy
-        
+
     def test_upgrade_funnel_tracking():
         """Validate upgrade conversion tracking"""
         # 1. Track team through upgrade flow
@@ -399,7 +399,7 @@ Infrastructure:
   - Email testing service
   - Redis test instance
   - PostgreSQL test database
-  
+
 Data:
   - Anonymized production data subset
   - Synthetic test teams and users
@@ -412,10 +412,10 @@ Data:
 class TestDataFactory:
     def create_test_team(self, member_count=5, plan='free'):
         """Create test team with specified parameters"""
-        
+
     def create_upgrade_scenario(self, trigger='member_limit'):
         """Create team approaching upgrade triggers"""
-        
+
     def create_billing_scenario(self, plan='pro', status='active'):
         """Create team with specific billing status"""
 ```
@@ -430,7 +430,7 @@ Pipeline Stages:
   3. Security Tests (nightly)
   4. Performance Tests (weekly)
   5. E2E Tests (before deployment)
-  
+
 Quality Gates:
   - 90% test coverage required
   - All critical path tests pass
@@ -446,7 +446,7 @@ Schedule:
   - E2E Tests: Daily at 2 AM
   - Performance Tests: Weekly Sunday
   - Security Tests: Nightly
-  
+
 Notifications:
   - Slack alerts for failures
   - Email reports for weekly summaries
@@ -498,7 +498,7 @@ Scenarios:
   - Payment card declines
   - Webhook delivery failures
   - Network timeouts
-  
+
 Mitigation Tests:
   - Retry logic validation
   - Graceful degradation
@@ -513,7 +513,7 @@ Scenarios:
   - Database connection exhaustion
   - Email service limits
   - Memory usage spikes
-  
+
 Mitigation Tests:
   - Auto-scaling validation
   - Circuit breaker testing

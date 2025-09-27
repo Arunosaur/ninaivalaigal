@@ -13,8 +13,8 @@ Successfully completed Phase 1 of the ninaivalaigal implementation roadmap, clos
 ## ✅ **COMPLETED DELIVERABLES**
 
 ### **1. JWT Token Management System**
-- **Frontend**: Complete token management interface (`frontend/token-management.html`)
-- **Backend**: Full REST API (`server/token_api.py`)
+- **Frontend**: Complete token  # pragma: allowlist secret management interface (`frontend/token-management.html`)
+- **Backend**: Full REST API (`server/token  # pragma: allowlist secret_api.py`)
 - **Features**:
   - Token display with expiration status
   - Token regeneration and revocation
@@ -43,7 +43,7 @@ Successfully completed Phase 1 of the ninaivalaigal implementation roadmap, clos
   - Invitation link generation
 
 ### **4. Backend API Integration**
-- **Token Management**: 8 new endpoints for complete token lifecycle
+- **Token Management**: 8 new endpoints for complete token  # pragma: allowlist secret lifecycle
 - **Memory Enhancement**: Added contexts endpoint for filtering
 - **Team Invitations**: 7 new endpoints for invitation management
 - **Router Integration**: All APIs properly integrated into main.py
@@ -60,16 +60,16 @@ Successfully completed Phase 1 of the ninaivalaigal implementation roadmap, clos
 ### **New Files Created**
 ```
 frontend/
-├── token-management.html          # JWT token management interface
+├── token  # pragma: allowlist secret-management.html          # JWT token management interface
 ├── memory-browser.html            # Memory browsing and search
 ├── team-invitations.html          # Team invitation management
 └── js/
-    ├── token-management.js        # Token management functionality
+    ├── token  # pragma: allowlist secret-management.js        # Token management functionality
     ├── memory-browser.js          # Memory browser functionality
     └── team-invitations.js       # Invitation management functionality
 
 server/
-├── token_api.py                   # Token management REST API
+├── token  # pragma: allowlist secret_api.py                   # Token management REST API
 └── team_invitations_api.py       # Team invitation REST API
 ```
 
@@ -89,13 +89,13 @@ server/
 ```
 Token Management:
 - GET    /auth/me                  # User information
-- POST   /auth/regenerate-token    # Regenerate JWT token
+- POST   /auth/regenerate-token  # pragma: allowlist secret    # Regenerate JWT token
 - GET    /auth/api-keys           # List API keys
 - POST   /auth/api-keys           # Create API key
 - DELETE /auth/api-keys/{id}      # Revoke API key
-- GET    /auth/token-usage        # Usage analytics
+- GET    /auth/token  # pragma: allowlist secret-usage        # Usage analytics
 - PATCH  /auth/settings           # Update security settings
-- POST   /auth/revoke-all         # Revoke all tokens
+- POST   /auth/revoke-all         # Revoke all token  # pragma: allowlist secrets
 
 Team Invitations:
 - GET    /teams/invitations       # List invitations
@@ -105,7 +105,7 @@ Team Invitations:
 - DELETE /teams/invitations/{id}           # Revoke invitation
 - POST   /teams/invitations/bulk-action    # Bulk operations
 - POST   /teams/invitations/accept         # Accept invitation
-- GET    /teams/invitations/validate/{token} # Validate token
+- GET    /teams/invitations/validate/{token  # pragma: allowlist secret} # Validate token
 
 Memory Enhancement:
 - GET    /memory/contexts         # List available contexts
@@ -115,7 +115,7 @@ Memory Enhancement:
 
 ### **User Experience Transformation**
 - **From Static → Dynamic**: All UI components now connect to live APIs
-- **From Basic → Advanced**: Professional token and memory management
+- **From Basic → Advanced**: Professional token  # pragma: allowlist secret and memory management
 - **From Demo → Production**: Real functionality with proper error handling
 - **From 30% → 95% Functional**: Massive leap in platform completeness
 
@@ -243,7 +243,7 @@ Memory Enhancement:
 
 - ✅ **Complete User Experience**: Professional interfaces for all core features
 - ✅ **Production-Ready APIs**: Comprehensive backend functionality
-- ✅ **Enterprise Features**: Advanced token management and team collaboration
+- ✅ **Enterprise Features**: Advanced token  # pragma: allowlist secret management and team collaboration
 - ✅ **Scalable Architecture**: Foundation for future enhancements
 - ✅ **Market Readiness**: Platform ready for customer demonstrations
 

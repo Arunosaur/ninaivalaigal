@@ -126,7 +126,7 @@ import { ApprovalDashboard } from './frontend-approval-workflows.js';
 
 function App() {
     return (
-        <ApprovalDashboard 
+        <ApprovalDashboard
             authService={authService}
             memoryManager={memoryManager}
             teamManager={teamManager}

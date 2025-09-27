@@ -20,7 +20,7 @@ frontend/
 
 ### **1. User Authentication & Onboarding**
 - ✅ **Signup Page**: Account type selection (Individual vs Organization)
-- ✅ **Login Page**: Email/password authentication with "Remember me"
+- ✅ **Login Page**: Email/password  # pragma: allowlist secret authentication with "Remember me"
 - ✅ **Modern Design**: Tailwind CSS with gradient backgrounds and card shadows
 - ✅ **Responsive Layout**: Mobile-friendly design patterns
 
@@ -62,9 +62,9 @@ Features Implemented:
 ### **Authentication (login.html)**
 ```html
 Features Implemented:
-✅ Email/password login form
+✅ Email/password  # pragma: allowlist secret login form
 ✅ "Remember me" functionality
-✅ "Forgot password" link (placeholder)
+✅ "Forgot password  # pragma: allowlist secret" link (placeholder)
 ✅ Error message display
 ✅ Redirect to dashboard on success
 ```
@@ -83,9 +83,9 @@ Features Implemented:
 ## ❌ **IDENTIFIED GAPS & MISSING FEATURES**
 
 ### **1. JWT Token Management UI**
-- ❌ **Token Display**: No UI to view current JWT tokens
-- ❌ **Token Revocation**: No interface to revoke/regenerate tokens
-- ❌ **Token Expiry**: No display of token expiration times
+- ❌ **Token Display**: No UI to view current JWT token  # pragma: allowlist secrets
+- ❌ **Token Revocation**: No interface to revoke/regenerate token  # pragma: allowlist secrets
+- ❌ **Token Expiry**: No display of token  # pragma: allowlist secret expiration times
 - ❌ **API Key Management**: No interface for API key generation
 
 ### **2. User Invitation System**
@@ -201,8 +201,8 @@ Features Implemented:
    - Test end-to-end user flows
 
 2. **Implement JWT Token Management**
-   - Add token display in user profile
-   - Implement token regeneration functionality
+   - Add token  # pragma: allowlist secret display in user profile
+   - Implement token  # pragma: allowlist secret regeneration functionality
    - Add API key management interface
 
 3. **Build Memory Management Interface**

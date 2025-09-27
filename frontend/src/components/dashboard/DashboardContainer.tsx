@@ -32,16 +32,16 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
   // WebSocket connection for real-time updates
   useEffect(() => {
     const ws = new WebSocket(`ws://localhost:8000/dashboard-widgets/ws/${userId}`);
-    
+
     ws.onopen = () => {
       setIsConnected(true);
       console.log('Dashboard WebSocket connected');
-      
+
       // Subscribe to widgets based on user role
-      const widgets = userRole === 'user' 
+      const widgets = userRole === 'user'
         ? ['top_memories', 'sentiment_trends']
         : ['top_memories', 'sentiment_trends', 'ai_performance'];
-      
+
       widgets.forEach(widgetId => {
         ws.send(JSON.stringify({
           type: 'subscribe_widget',
@@ -52,7 +52,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      
+
       if (message.type === 'widget_update') {
         setWidgetData(prev => ({
           ...prev,
@@ -66,7 +66,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
         setLastUpdate(new Date());
       } else if (message.type === 'smart_alert') {
         setNotifications(prev => [message.alert, ...prev.slice(0, 9)]); // Keep last 10
-        
+
         // Auto-open drawer for high priority alerts
         if (message.alert.priority === 'high') {
           setIsNotificationDrawerOpen(true);
@@ -92,10 +92,10 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
   // Load initial widget data
   useEffect(() => {
     const loadWidgetData = async () => {
-      const widgets = userRole === 'user' 
+      const widgets = userRole === 'user'
         ? ['top_memories', 'sentiment_trends']
         : ['top_memories', 'sentiment_trends', 'ai_performance'];
-      
+
       for (const widgetId of widgets) {
         try {
           const response = await fetch(`/api/dashboard-widgets/widgets/${widgetId}`, {
@@ -103,7 +103,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           });
-          
+
           if (response.ok) {
             const result = await response.json();
             setWidgetData(prev => ({
@@ -128,7 +128,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
   const refreshAllWidgets = async () => {
     // Trigger manual refresh of all widgets
     const widgets = Object.keys(widgetData);
-    
+
     for (const widgetId of widgets) {
       try {
         const response = await fetch(`/api/dashboard-widgets/widgets/${widgetId}`, {
@@ -136,7 +136,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           setWidgetData(prev => ({
@@ -153,12 +153,12 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
         console.error(`Failed to refresh widget ${widgetId}:`, error);
       }
     }
-    
+
     setLastUpdate(new Date());
   };
 
   const totalAlerts = Object.values(widgetData).reduce(
-    (sum, widget) => sum + (widget.alerts?.length || 0), 
+    (sum, widget) => sum + (widget.alerts?.length || 0),
     0
   ) + notifications.length;
 
@@ -175,7 +175,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
               Real-time insights and team collaboration analytics
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {/* Connection Status */}
             <div className="flex items-center gap-2">
@@ -186,12 +186,12 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
                 {isConnected ? 'Live' : 'Disconnected'}
               </span>
             </div>
-            
+
             {/* Last Update */}
             <span className="text-xs text-gray-500">
               Updated {lastUpdate.toLocaleTimeString()}
             </span>
-            
+
             {/* Notifications */}
             <Button
               variant="outline"
@@ -201,7 +201,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
             >
               <Bell className="h-4 w-4" />
               {totalAlerts > 0 && (
-                <Badge 
+                <Badge
                   className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-red-500"
                   variant="destructive"
                 >
@@ -209,7 +209,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
                 </Badge>
               )}
             </Button>
-            
+
             {/* Refresh */}
             <Button
               variant="outline"
@@ -218,7 +218,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
-            
+
             {/* Settings */}
             <Button
               variant="outline"
@@ -228,7 +228,7 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
             </Button>
           </div>
         </div>
-        
+
         {/* Role Badge */}
         <div className="mt-3">
           <Badge variant="outline" className="capitalize">

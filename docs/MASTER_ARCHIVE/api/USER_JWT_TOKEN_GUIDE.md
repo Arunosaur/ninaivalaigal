@@ -65,7 +65,7 @@ Users can extract tokens from their browser:
 ### CLI Integration
 ```bash
 # Set environment variable
-export MEM0_USER_TOKEN="your-jwt-token-here"
+export MEM0_USER_TOKEN="your-jwt-token-here"  # pragma: allowlist secret
 
 # Use with CLI commands
 ./client/mem0 recall --context my-project

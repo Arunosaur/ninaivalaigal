@@ -23,7 +23,7 @@
 ### Review Focus Areas
 
 #### 🔒 Security & Authentication
-- JWT token implementation and validation
+- JWT token  # pragma: allowlist secret implementation and validation
 - User isolation and data separation
 - Password hashing and storage
 - API endpoint security

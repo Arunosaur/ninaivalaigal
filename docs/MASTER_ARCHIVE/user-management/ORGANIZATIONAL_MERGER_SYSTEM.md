@@ -189,14 +189,14 @@ merger_config = {
 ### Sarah's Updated Token (StartupXYZ → Acme Corp)
 ```python
 # Before merger
-old_token = {
+old_token  # pragma: allowlist secret = {
     'user_id': 'sarah',
     'organization_id': 'startup_xyz',
     'teams': [{'team_id': 'product_team', 'role': 'lead'}]
 }
 
 # After selective merger
-new_token = {
+new_token  # pragma: allowlist secret = {
     'user_id': 'sarah',
     'primary_organization_id': 'acme_corp',
     'original_organization_id': 'startup_xyz',

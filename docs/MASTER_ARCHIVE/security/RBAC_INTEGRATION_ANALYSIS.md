@@ -18,7 +18,7 @@ This document analyzes the existing RBAC package (`ninaivalaigal_ci_rbac_pack`) 
 - **JWT-based authentication** with environment variable security
 - **Basic user roles** stored in database (`User.role` field)
 - **Password hashing** with bcrypt
-- **Session management** through JWT tokens
+- **Session management** through JWT token  # pragma: allowlist secrets
 - **Input validation** and security measures implemented
 
 ### Database Schema Support
@@ -115,7 +115,7 @@ class Resource(Enum):
 4. **API Structure**: RESTful APIs can integrate permission checks
 
 ### ⚠️ Components Requiring Modification
-1. **Authentication Middleware**: Need to add RBAC context to JWT tokens
+1. **Authentication Middleware**: Need to add RBAC context to JWT token  # pragma: allowlist secrets
 2. **API Endpoints**: All endpoints need permission decorators
 3. **Database Models**: Need to align with RBAC role definitions
 4. **Frontend**: UI needs to respect user permissions
@@ -166,7 +166,7 @@ Missing audit capabilities:
 4. **Update database models** to support RBAC
 
 ### Phase 2: Authentication Integration
-1. **Enhance JWT tokens** with RBAC context
+1. **Enhance JWT token  # pragma: allowlist secrets** with RBAC context
 2. **Update authentication middleware** to include permissions
 3. **Create permission decorators** for API endpoints
 4. **Implement role-based API responses**

@@ -14,17 +14,17 @@ Based on comprehensive testing and analysis, ninaivalaigal has achieved:
 
 ### **1.1 JWT Token Management UI** 🔴 **CRITICAL**
 ```typescript
-Priority: HIGHEST - Users must be able to manage their tokens
+Priority: HIGHEST - Users must be able to manage their token  # pragma: allowlist secrets
 Files to create:
-- frontend/token-management.html
-- frontend/js/token-api.js
+- frontend/token  # pragma: allowlist secret-management.html
+- frontend/js/token  # pragma: allowlist secret-api.js
 
 Features:
-✅ Display current JWT tokens with expiry
-✅ Regenerate/rotate tokens with one click
+✅ Display current JWT token  # pragma: allowlist secrets with expiry
+✅ Regenerate/rotate token  # pragma: allowlist secrets with one click
 ✅ API key generation for external tools
 ✅ Token usage analytics
-✅ Revoke compromised tokens
+✅ Revoke compromised token  # pragma: allowlist secrets
 ```
 
 ### **1.2 Memory Browsing & Management UI** 🔴 **CRITICAL**
@@ -117,13 +117,13 @@ Implementation:
 - UI for memory ranking visualization
 
 Database Changes:
-ALTER TABLE memory_tokens ADD COLUMN relevance_score NUMERIC DEFAULT 0.0;
-ALTER TABLE memory_tokens ADD COLUMN pinned BOOLEAN DEFAULT FALSE;
-ALTER TABLE memory_tokens ADD COLUMN last_used_at TIMESTAMP;
-ALTER TABLE memory_tokens ADD COLUMN access_count INTEGER DEFAULT 0;
+ALTER TABLE memory_token  # pragma: allowlist secrets ADD COLUMN relevance_score NUMERIC DEFAULT 0.0;
+ALTER TABLE memory_token  # pragma: allowlist secrets ADD COLUMN pinned BOOLEAN DEFAULT FALSE;
+ALTER TABLE memory_token  # pragma: allowlist secrets ADD COLUMN last_used_at TIMESTAMP;
+ALTER TABLE memory_token  # pragma: allowlist secrets ADD COLUMN access_count INTEGER DEFAULT 0;
 
 UI Features:
-✅ 👍 Like/unlike memory tokens
+✅ 👍 Like/unlike memory token  # pragma: allowlist secrets
 ✅ 📌 Pin important memories
 ✅ 📊 Memory relevance dashboard
 ✅ 🔍 Smart memory search
@@ -155,8 +155,8 @@ Features:
 
 ### **Day 1-2: JWT Token Management**
 ```bash
-1. Create frontend/token-management.html
-2. Implement token display and regeneration
+1. Create frontend/token  # pragma: allowlist secret-management.html
+2. Implement token  # pragma: allowlist secret display and regeneration
 3. Connect to existing JWT endpoints
 4. Add to main navigation
 ```
@@ -180,7 +180,7 @@ Features:
 ## 🎯 **SUCCESS METRICS**
 
 ### **Phase 1 Completion Criteria:**
-- ✅ Users can manage JWT tokens via UI
+- ✅ Users can manage JWT token  # pragma: allowlist secrets via UI
 - ✅ Users can browse and search memories
 - ✅ All UI components connect to live APIs
 - ✅ Team invitations work end-to-end

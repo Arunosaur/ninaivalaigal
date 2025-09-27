@@ -1,8 +1,8 @@
 # SPEC-028: Invoice Management System
 
-**Status**: 🔄 PARTIAL  
-**Priority**: High  
-**Category**: Business Logic  
+**Status**: 🔄 PARTIAL
+**Priority**: High
+**Category**: Business Logic
 
 ## Overview
 

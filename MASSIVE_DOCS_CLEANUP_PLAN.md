@@ -1,7 +1,7 @@
 # MASSIVE DOCUMENTATION CLEANUP PLAN
 
-**CRITICAL ISSUE**: 368 markdown files across the project (completely unmanageable)  
-**TARGET**: Reduce to ~50-80 essential files (80% reduction)  
+**CRITICAL ISSUE**: 368 markdown files across the project (completely unmanageable)
+**TARGET**: Reduce to ~50-80 essential files (80% reduction)
 **STRATEGY**: Aggressive consolidation with historical preservation
 
 ## 📊 **CURRENT DOCUMENTATION BREAKDOWN**
@@ -127,14 +127,14 @@ ninaivalaigal/
 for spec_dir in specs/[0-9]*; do
     if [ -d "$spec_dir" ]; then
         echo "Cleaning $spec_dir"
-        
+
         # Create archive if there are extra files
         extra_files=$(find "$spec_dir" -name "*.md" -not -name "README.md" | wc -l)
         if [ "$extra_files" -gt 0 ]; then
             mkdir -p "$spec_dir/archive"
             find "$spec_dir" -name "*.md" -not -name "README.md" -not -path "*/archive/*" -exec mv {} "$spec_dir/archive/" \;
         fi
-        
+
         # Remove empty subdirectories (except archive)
         find "$spec_dir" -type d -empty -not -name "archive" -delete
     fi
@@ -151,8 +151,8 @@ mkdir -p docs/MASTER_ARCHIVE/
 
 # Archive major documentation directories
 ARCHIVE_DIRS=(
-    "security" "development" "pipeline" "testing" "specs" 
-    "user-management" "deployment" "runbooks" "legacy" 
+    "security" "development" "pipeline" "testing" "specs"
+    "user-management" "deployment" "runbooks" "legacy"
     "reports" "readmes" "product" "database" "api" "architecture"
 )
 
@@ -181,7 +181,7 @@ for file in docs/*.md; do
                 break
             fi
         done
-        
+
         if [ "$keep" = false ]; then
             echo "Archiving $file"
             mv "$file" docs/MASTER_ARCHIVE/

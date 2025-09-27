@@ -144,7 +144,7 @@ python main.py
 1. **Store Context in One IDE:**
 ```
 # In VS Code
-@mem0 remember "Working on user authentication module using JWT tokens"
+@mem0 remember "Working on user authentication module using JWT token  # pragma: allowlist secrets"
 @mem0 remember "Current issue: Token refresh logic needs optimization"
 ```
 
@@ -152,7 +152,7 @@ python main.py
 ```
 # In Windsurf
 @mem0 recall
-# Should return the JWT and token refresh memories
+# Should return the JWT and token  # pragma: allowlist secret refresh memories
 ```
 
 3. **Cross-Team Knowledge Sharing:**

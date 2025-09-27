@@ -24,7 +24,7 @@ Team Members → Shared FastAPI Server (with complete auth & sharing)
 ```
 
 **Current Implementation Status:**
-- ✅ **Complete JWT Authentication**: User registration, login, token management
+- ✅ **Complete JWT Authentication**: User registration, login, token  # pragma: allowlist secret management
 - ✅ **Multi-Level Sharing**: Personal, Team, Organization, Public contexts
 - ✅ **Role-Based Permissions**: Owner/Admin/Member/Viewer with inheritance
 - ✅ **Organization Management**: Full org/team/user hierarchy support
@@ -51,14 +51,14 @@ Team Members → Individual MCP servers (stdio, local AI tools)
 ## Security Implementation Plan
 
 ### ✅ **COMPLETED: Enterprise-Grade Security**
-- **JWT Authentication**: Complete token-based authentication with bcrypt password hashing
+- **JWT Authentication**: Complete token  # pragma: allowlist secret-based authentication with bcrypt password  # pragma: allowlist secret hashing
 - **User Isolation**: Cryptographic separation of user data preventing cross-user access
 - **Multi-Level Authorization**: Role-based permissions with hierarchical inheritance
 - **API Security**: Secure endpoints with proper validation and error handling
 - **Audit Trail**: Complete tracking of sharing activities and permission changes
 
 ### Phase 1: Authentication ✅ COMPLETE
-- JWT token-based authentication ✅
+- JWT token  # pragma: allowlist secret-based authentication ✅
 - User registration/login endpoints ✅
 - API key generation for programmatic access ✅
 

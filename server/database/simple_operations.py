@@ -6,9 +6,10 @@ Contains only the essential methods needed for auth to work
 from .manager import DatabaseManager
 from .models import User
 
+
 class SimpleDatabaseOperations(DatabaseManager):
     """Simplified database operations class without problematic inheritance"""
-    
+
     def get_user_by_email(self, email: str):
         """Get user by email"""
         session = self.get_session()
@@ -16,7 +17,7 @@ class SimpleDatabaseOperations(DatabaseManager):
             return session.query(User).filter(User.email == email).first()
         finally:
             session.close()
-    
+
     def get_user_by_id(self, user_id):
         """Get user by ID"""
         session = self.get_session()
@@ -24,7 +25,7 @@ class SimpleDatabaseOperations(DatabaseManager):
             return session.query(User).filter(User.id == user_id).first()
         finally:
             session.close()
-    
+
     def create_user(self, **kwargs):
         """Create a new user"""
         session = self.get_session()
@@ -38,7 +39,7 @@ class SimpleDatabaseOperations(DatabaseManager):
             raise e
         finally:
             session.close()
-    
+
     def authenticate_user(self, email: str, password_hash: str):
         """Authenticate user by email and password hash"""
         user = self.get_user_by_email(email)

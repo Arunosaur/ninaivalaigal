@@ -58,7 +58,7 @@
 ```bash
 # Delete conflicting status reports
 rm SPEC_AUDIT_2024.md
-rm SPEC_CLEANUP_PLAN.md  
+rm SPEC_CLEANUP_PLAN.md
 rm SPEC-STATUS-ANALYSIS.md
 rm docs/specs/COMPREHENSIVE_SPEC_STATUS_REPORT.md
 
@@ -197,7 +197,7 @@ mv specs/SPEC-063-agentic-core-execution-framework.md specs/063-agentic-core-exe
     ├── 026-standalone-teams-billing/
     ├── 031-memory-relevance-ranking/
     ├── 033-redis-integration/
-    ├── 038-memory-token-preloading/
+    ├── 038-memory-token  # pragma: allowlist secret-preloading/
     ├── 045-intelligent-session-management/
     ├── 060-apache-age-deployment/
     ├── 061-property-graph-intelligence/

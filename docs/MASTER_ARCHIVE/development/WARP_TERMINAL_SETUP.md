@@ -23,10 +23,10 @@ cd /Users/asrajag/Workspace/mem0
 ### 3. Authenticate (Optional - for multi-user)
 ```bash
 # Register a new user (first time)
-./client/mem0 auth register --username yourname --email your@email.com --password yourpass
+./client/mem0 auth register --username yourname --email your@email.com --password  # pragma: allowlist secret yourpass
 
 # Or login with existing user
-./client/mem0 auth login --username yourname --password yourpass
+./client/mem0 auth login --username yourname --password  # pragma: allowlist secret yourpass
 
 # Verify authentication
 ./client/mem0 auth me
@@ -146,9 +146,9 @@ curl -s http://localhost:13370/contexts
 ./client/mem0 auth me
 
 # Re-authenticate if needed
-./client/mem0 auth login --username yourname --password yourpass
+./client/mem0 auth login --username yourname --password  # pragma: allowlist secret yourpass
 
-# Check token file exists
+# Check token  # pragma: allowlist secret file exists
 ls -la ~/.mem0/auth.json
 ```
 
