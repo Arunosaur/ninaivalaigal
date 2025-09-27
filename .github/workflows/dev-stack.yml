@@ -1,0 +1,98 @@
+name: Development Stack CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-auth-endpoints:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build and start development stack
+      run: |
+        docker-compose -f docker-compose.dev.yml up -d --build
+        
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for API to be ready..."
+        timeout 60 bash -c 'until curl -f http://localhost:13370/health; do sleep 2; done'
+        
+    - name: Test auth endpoints
+      run: |
+        echo "Testing /auth/login endpoint..."
+        response=$(curl -s -X POST http://localhost:13370/auth/login \
+          -H "Content-Type: application/json" \
+          -d '{"email": "test@ninaivalaigal.com", "password": "test"}' \
+          -w "%{http_code}")
+        
+        echo "Response: $response"
+        
+        # Test simple-login as backup
+        echo "Testing /simple-login endpoint..."
+        simple_response=$(curl -s -X POST http://localhost:13370/simple-login \
+          -H "Content-Type: application/json" \
+          -d '{"email": "test@ninaivalaigal.com", "password": "test"}' \
+          -w "%{http_code}")
+        
+        echo "Simple response: $simple_response"
+        
+    - name: Test other critical endpoints
+      run: |
+        echo "Testing health endpoint..."
+        curl -f http://localhost:13370/health
+        
+        echo "Testing graph health..."
+        curl -s http://localhost:13370/graph-intelligence/health || echo "Graph endpoint not critical for this test"
+        
+    - name: Show logs on failure
+      if: failure()
+      run: |
+        echo "=== API Logs ==="
+        docker-compose -f docker-compose.dev.yml logs api
+        echo "=== Database Logs ==="
+        docker-compose -f docker-compose.dev.yml logs postgres
+        
+    - name: Cleanup
+      if: always()
+      run: |
+        docker-compose -f docker-compose.dev.yml down -v
+
+  multiarch-build:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Build and push multi-arch API image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.api
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          ghcr.io/arunosaur/ninaivalaigal-api:latest
+          ghcr.io/arunosaur/ninaivalaigal-api:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

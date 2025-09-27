@@ -141,26 +141,28 @@ from routers.recording import router as recording_router
 from routers.teams import router as teams_router
 from routers.users import router as users_router
 
-# Import routers after app initialization to avoid import-time database connections
 # TEMPORARILY COMMENTED OUT TO ISOLATE HANGING ISSUE
 # from signup_api import router as signup_router
 from test_raw_body import router as test_raw_router
 from auth_working import router as auth_working_router
 from protected_routes import router as protected_router
 from teams_working import router as teams_working_router
-from memory_system import router as memory_system_router
-from approval_workflows import router as approval_workflows_router
-from context_scoping import router as context_scoping_router
-from timeline_api import router as timeline_api_router
-from discussion_api import router as discussion_api_router
-from graph_rank import router as graph_rank_router
-from tag_suggester import router as tag_suggester_router
-from insights_api import router as insights_api_router
+from memory_system_api import router as memory_router
+from approval_workflows_api import router as approval_router
+from discussion_layer_api import router as discussion_router
+from timeline_api import router as timeline_router
+from teams_working_api import router as teams_router
+from tag_suggester import router as tag_router
+from graph_rank import router as graph_router
+from insights_api import router as insights_router
+from dashboard_widgets_api import router as dashboard_router
+from gamification_api import router as gamification_router
 from standalone_teams_api import router as standalone_teams_router
 from standalone_teams_billing_api import router as standalone_teams_billing_router
 from team_api_keys_api import router as team_api_keys_router
 from team_billing_portal_api import router as team_billing_portal_router
 from unified_macro_intelligence_api import router as macro_intelligence_router
+{{ ... }}
 from usage_analytics_api import router as usage_analytics_router
 from vendor_admin_api import router as vendor_admin_router
 
@@ -177,6 +179,8 @@ app.include_router(discussion_api_router)  # DISCUSSION API - THE PLATFORM'S VOI
 app.include_router(graph_rank_router)  # GRAPH RANKING - PAGERANK INTELLIGENCE
 app.include_router(tag_suggester_router)  # TAG SUGGESTER - GPT-POWERED AUTO-TAGGING
 app.include_router(insights_api_router)  # INSIGHTS API - DASHBOARD INTELLIGENCE
+app.include_router(dashboard_router)  # DASHBOARD WIDGETS - REAL-TIME AI INSIGHTS
+app.include_router(gamification_router)  # GAMIFICATION - BADGES & LEADERBOARDS
 app.include_router(organizations_router)
 app.include_router(teams_router)
 app.include_router(users_router)

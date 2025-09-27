@@ -1,0 +1,232 @@
+# 🧬 ninaivalaigal API Test Collection
+# Use with VS Code REST Client extension or similar HTTP clients
+
+### Variables
+@baseUrl = http://localhost:13370
+@contentType = application/json
+
+### 🏥 Health Check
+GET {{baseUrl}}/health
+
+### 📖 API Documentation
+GET {{baseUrl}}/docs
+
+### 📋 OpenAPI Schema
+GET {{baseUrl}}/openapi.json
+
+### ===== AUTHENTICATION TESTS =====
+
+### 🔐 Valid Login Test
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "password": "testpassword123"
+}
+
+### 🔐 Login - Missing Email (400 Error)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "password": "testpassword123"
+}
+
+### 🔐 Login - Invalid Email Format (400 Error)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "not-an-email",
+  "password": "testpassword123"
+}
+
+### 🔐 Login - Non-existent User (401 Error)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "nonexistent@example.com",
+  "password": "wrongpassword"
+}
+
+### 🔐 Login - Empty Credentials (400 Error)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "",
+  "password": ""
+}
+
+### ===== SIGNUP TESTS =====
+
+### 📝 Valid Individual Signup
+POST {{baseUrl}}/auth/signup/individual
+Content-Type: {{contentType}}
+
+{
+  "email": "newuser@example.com",
+  "password": "strongpassword123",
+  "full_name": "John Doe",
+  "preferred_name": "John"
+}
+
+### 📝 Signup - Weak Password (400 Error)
+POST {{baseUrl}}/auth/signup/individual
+Content-Type: {{contentType}}
+
+{
+  "email": "weakpass@example.com",
+  "password": "123",
+  "full_name": "Weak Password User"
+}
+
+### 📝 Signup - Invalid Email (400 Error)
+POST {{baseUrl}}/auth/signup/individual
+Content-Type: {{contentType}}
+
+{
+  "email": "invalid-email",
+  "password": "validpassword123",
+  "full_name": "Invalid Email User"
+}
+
+### 📝 Signup - Missing Required Fields (422 Error)
+POST {{baseUrl}}/auth/signup/individual
+Content-Type: {{contentType}}
+
+{
+  "email": "incomplete@example.com"
+}
+
+### 🏢 Valid Organization Signup
+POST {{baseUrl}}/auth/signup/organization
+Content-Type: {{contentType}}
+
+{
+  "organization_name": "Test Company Inc",
+  "admin_email": "admin@testcompany.com",
+  "admin_password": "adminpassword123",
+  "admin_full_name": "Admin User",
+  "industry": "Technology",
+  "size": "small"
+}
+
+### ===== EMAIL VERIFICATION TESTS =====
+
+### ✉️ Verify Email - Valid Token
+POST {{baseUrl}}/auth/verify-email
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "verification_token": "valid-token-here"
+}
+
+### ✉️ Verify Email - Invalid Token (400 Error)
+POST {{baseUrl}}/auth/verify-email
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "verification_token": "invalid-token"
+}
+
+### ===== AUTHENTICATED REQUESTS =====
+
+### 👤 Get Current User Info (requires JWT token)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### ===== EDGE CASE TESTS =====
+
+### 🔒 SQL Injection Attempt (should be handled safely)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "'; DROP TABLE users; --",
+  "password": "test123"
+}
+
+### 🔒 XSS Attempt (should be sanitized)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "<script>alert('xss')</script>@example.com",
+  "password": "test123"
+}
+
+### 🔒 Unicode Characters Test
+POST {{baseUrl}}/auth/signup/individual
+Content-Type: {{contentType}}
+
+{
+  "email": "tëst@éxample.com",
+  "password": "tëstpässwörd123",
+  "full_name": "Tëst Üser"
+}
+
+### 🔒 Very Long Input Test
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "verylongemailaddressthatexceedsnormallimitsandtestsvalidation@example.com",
+  "password": "verylongpasswordthatmightcauseissuesifnothandledproperly123456789"
+}
+
+### ===== PERFORMANCE TESTS =====
+
+### ⚡ Rapid Fire Login (for rate limiting test)
+# Run this multiple times quickly to test rate limiting
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "ratelimit@example.com",
+  "password": "testpassword123"
+}
+
+### ===== TEAM & ORGANIZATION TESTS =====
+
+### 👥 Join Team by Code
+POST {{baseUrl}}/auth/join-team-by-code
+Content-Type: {{contentType}}
+
+{
+  "invitation_code": "TEAM123",
+  "user_email": "newmember@example.com"
+}
+
+### 🏢 Get Organization Invitations
+GET {{baseUrl}}/auth/organizations/org-123/invitations
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+### ===== TEST ENDPOINTS =====
+
+### 🧪 Test Endpoint (for debugging)
+POST {{baseUrl}}/auth/test
+Content-Type: {{contentType}}
+
+{
+  "test_data": "Hello from HTTP client",
+  "timestamp": "2024-09-25T12:00:00Z"
+}
+
+### 🧪 Login Test Endpoint
+POST {{baseUrl}}/auth/login-test
+Content-Type: {{contentType}}
+
+{}
+
+### 🧪 Authenticate Test Endpoint
+POST {{baseUrl}}/auth/authenticate
+Content-Type: {{contentType}}
+
+{
+  "test": true
+}

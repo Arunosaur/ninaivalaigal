@@ -1,0 +1,431 @@
+name: 🧪 Auth API Tests & Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'server/**'
+      - 'tests/**'
+      - 'requirements.txt'
+      - 'Dockerfile.api'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'server/**'
+      - 'tests/**'
+      - 'requirements.txt'
+      - 'Dockerfile.api'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # ===== UNIT TESTS =====
+  unit-tests:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: pgvector/pgvector:pg15
+        env:
+          POSTGRES_USER: nina
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: ninaivalaigal_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-asyncio
+
+    - name: 🔧 Set up environment variables
+      run: |
+        echo "NINAIVALAIGAL_JWT_SECRET=test-jwt-secret-for-ci" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://nina:test_password@localhost:5432/ninaivalaigal_test" >> $GITHUB_ENV
+        echo "REDIS_HOST=localhost" >> $GITHUB_ENV
+        echo "REDIS_PORT=6379" >> $GITHUB_ENV
+
+    - name: 🗄️ Set up database
+      run: |
+        # Wait for PostgreSQL to be ready
+        until pg_isready -h localhost -p 5432 -U nina; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        
+        # Create test database if it doesn't exist
+        PGPASSWORD=test_password createdb -h localhost -U nina ninaivalaigal_test || true
+
+    - name: 🧪 Run unit tests with coverage
+      run: |
+        cd server
+        pytest ../tests/unit/ -v \
+          --cov=. \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term-missing \
+          --cov-fail-under=10
+
+    - name: 📊 Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./server/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: 📈 Upload coverage artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: server/htmlcov/
+
+  # ===== API INTEGRATION TESTS =====
+  api-tests:
+    name: 🔗 API Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    
+    services:
+      postgres:
+        image: pgvector/pgvector:pg15
+        env:
+          POSTGRES_USER: nina
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: ninaivalaigal
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install uvicorn
+
+    - name: 🔧 Set up environment variables
+      run: |
+        echo "NINAIVALAIGAL_JWT_SECRET=test-jwt-secret-for-ci" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://nina:test_password@localhost:5432/ninaivalaigal" >> $GITHUB_ENV
+        echo "REDIS_HOST=localhost" >> $GITHUB_ENV
+        echo "REDIS_PORT=6379" >> $GITHUB_ENV
+
+    - name: 🗄️ Set up database
+      run: |
+        # Wait for services to be ready
+        until pg_isready -h localhost -p 5432 -U nina; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        
+        until redis-cli -h localhost -p 6379 ping; do
+          echo "Waiting for Redis..."
+          sleep 2
+        done
+        
+        # Create database
+        PGPASSWORD=test_password createdb -h localhost -U nina ninaivalaigal || true
+
+    - name: 🚀 Start API server
+      run: |
+        cd server
+        uvicorn main:app --host 0.0.0.0 --port 8000 &
+        echo $! > api_server.pid
+        
+        # Wait for API to be ready
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
+
+    - name: 🧪 Run API tests
+      run: |
+        # Make test script executable
+        chmod +x tests/curl_tests.sh
+        
+        # Run comprehensive API tests
+        BASE_URL="http://localhost:8000" ./tests/curl_tests.sh
+
+    - name: 🛑 Stop API server
+      if: always()
+      run: |
+        if [ -f server/api_server.pid ]; then
+          kill $(cat server/api_server.pid) || true
+        fi
+
+  # ===== SECURITY TESTS =====
+  security-tests:
+    name: 🔒 Security Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 🔍 Run security scan with bandit
+      run: |
+        pip install bandit[toml]
+        bandit -r server/ -f json -o bandit-report.json || true
+
+    - name: 🔍 Run dependency vulnerability scan
+      run: |
+        pip install safety
+        safety check --json --output safety-report.json || true
+
+    - name: 📊 Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  # ===== DOCKER BUILD TEST =====
+  docker-build:
+    name: 🐳 Docker Build Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 🏗️ Build API Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.api
+        push: false
+        tags: nina-api:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: 🧪 Test Docker image
+      run: |
+        # Start services for testing
+        docker run -d --name test-postgres \
+          -e POSTGRES_USER=nina \
+          -e POSTGRES_PASSWORD=test_password \
+          -e POSTGRES_DB=ninaivalaigal \
+          -p 5432:5432 \
+          pgvector/pgvector:pg15
+
+        docker run -d --name test-redis \
+          -p 6379:6379 \
+          redis:7-alpine
+
+        # Wait for services
+        sleep 10
+
+        # Test API container
+        docker run --rm \
+          --network host \
+          -e NINAIVALAIGAL_JWT_SECRET=test-jwt-secret \
+          -e DATABASE_URL=postgresql://nina:test_password@localhost:5432/ninaivalaigal \
+          -e REDIS_HOST=localhost \
+          -e REDIS_PORT=6379 \
+          nina-api:test \
+          python -c "
+        import requests
+        import time
+        import subprocess
+        import sys
+        
+        # Start the server in background
+        proc = subprocess.Popen(['uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '8000'])
+        
+        # Wait for server to start
+        time.sleep(10)
+        
+        try:
+            # Test health endpoint
+            response = requests.get('http://localhost:8000/health', timeout=10)
+            assert response.status_code == 200
+            print('✅ Docker container health check passed')
+        except Exception as e:
+            print(f'❌ Docker container test failed: {e}')
+            sys.exit(1)
+        finally:
+            proc.terminate()
+        "
+
+  # ===== PERFORMANCE TESTS =====
+  performance-tests:
+    name: ⚡ Performance Tests
+    runs-on: ubuntu-latest
+    needs: api-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg15
+        env:
+          POSTGRES_USER: nina
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: ninaivalaigal
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install locust
+
+    - name: 🚀 Start API server
+      run: |
+        cd server
+        export NINAIVALAIGAL_JWT_SECRET=test-jwt-secret-for-ci
+        export DATABASE_URL=postgresql://nina:test_password@localhost:5432/ninaivalaigal
+        export REDIS_HOST=localhost
+        export REDIS_PORT=6379
+        
+        uvicorn main:app --host 0.0.0.0 --port 8000 &
+        echo $! > api_server.pid
+        
+        # Wait for API to be ready
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
+
+    - name: ⚡ Run performance tests
+      run: |
+        # Create simple locust test file
+        cat > locustfile.py << 'EOF'
+        from locust import HttpUser, task, between
+        
+        class AuthUser(HttpUser):
+            wait_time = between(1, 3)
+            
+            @task
+            def health_check(self):
+                self.client.get("/health")
+            
+            @task
+            def login_test(self):
+                self.client.post("/auth/login-test", json={})
+        EOF
+        
+        # Run load test
+        locust -f locustfile.py --host=http://localhost:8000 \
+          --users 10 --spawn-rate 2 --run-time 30s --headless \
+          --csv=performance_results
+
+    - name: 📊 Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-results
+        path: performance_results*
+
+    - name: 🛑 Stop API server
+      if: always()
+      run: |
+        if [ -f server/api_server.pid ]; then
+          kill $(cat server/api_server.pid) || true
+        fi
+
+  # ===== SUMMARY =====
+  test-summary:
+    name: 📋 Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, api-tests, security-tests, docker-build]
+    if: always()
+
+    steps:
+    - name: 📊 Generate test summary
+      run: |
+        echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Unit Tests | ${{ needs.unit-tests.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| API Tests | ${{ needs.api-tests.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Security Tests | ${{ needs.security-tests.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Docker Build | ${{ needs.docker-build.result == 'success' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ needs.unit-tests.result }}" == "success" && "${{ needs.api-tests.result }}" == "success" ]]; then
+          echo "🎉 **All critical tests passed!** Ready for deployment." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Some tests failed.** Please review the results above." >> $GITHUB_STEP_SUMMARY
+        fi
