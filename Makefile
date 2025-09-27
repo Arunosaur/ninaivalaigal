@@ -902,6 +902,69 @@ pre-commit-update:
 	@echo "🔄 Updating pre-commit hooks..."
 	pre-commit clean
 	pre-commit autoupdate
+
+# Foundation SPEC Test targets
+test-foundation:
+	@echo "🧪 Running Foundation SPEC Tests..."
+	pytest tests/foundation/ -v --cov=server --cov-report=html --cov-report=term
+
+test-foundation-spec-007:
+	@echo "🔍 Testing SPEC-007: Unified Context Scope System"
+	pytest tests/foundation/spec_007/ -v
+
+test-foundation-spec-012:
+	@echo "💾 Testing SPEC-012: Memory Substrate"
+	pytest tests/foundation/spec_012/ -v
+
+test-foundation-spec-016:
+	@echo "🔄 Testing SPEC-016: CI/CD Pipeline Architecture"
+	pytest tests/foundation/spec_016/ -v
+
+test-foundation-spec-020:
+	@echo "🏗️ Testing SPEC-020: Memory Provider Architecture"
+	pytest tests/foundation/spec_020/ -v
+
+test-foundation-spec-049:
+	@echo "🤝 Testing SPEC-049: Memory Sharing Collaboration"
+	pytest tests/foundation/spec_049/ -v
+
+test-foundation-spec-052:
+	@echo "📊 Testing SPEC-052: Comprehensive Test Coverage"
+	pytest tests/foundation/spec_052/ -v
+
+test-foundation-spec-058:
+	@echo "📚 Testing SPEC-058: Documentation Expansion"
+	pytest tests/foundation/spec_058/ -v
+
+# Foundation test monitoring and validation
+check-env:
+	@echo "🔍 Validating Foundation test environment..."
+	./scripts/check-env.sh
+
+test-foundation-performance:
+	@echo "⚡ Running Foundation performance benchmarks..."
+	pytest tests/foundation/ -k "performance" --benchmark-only -v
+
+test-foundation-chaos:
+	@echo "💥 Running Foundation chaos tests..."
+	pytest tests/foundation/ -k "chaos" -v
+
+test-foundation-coverage:
+	@echo "📈 Generating Foundation coverage report..."
+	pytest tests/foundation/ --cov=server --cov-report=html --cov-report=xml --cov-fail-under=85
+
+# Foundation test reporting
+foundation-report:
+	@echo "📊 Generating Foundation test report..."
+	pytest tests/foundation/ --cov=server --cov-report=html --html=reports/foundation-test-report.html --self-contained-html
+
+# Foundation test cleanup
+clean-foundation-reports:
+	@echo "🧹 Cleaning Foundation test reports..."
+	rm -rf htmlcov/
+	rm -rf reports/
+	rm -f coverage.xml
+	rm -f .coverage
 	@echo "✅ Pre-commit hooks updated"
 
 pre-commit-run:
