@@ -1023,6 +1023,38 @@ validate-spec-022:
 	@test -f .github/workflows/promotion-pipeline.yml && echo "✅ Promotion workflow present" || echo "❌ Missing promotion workflow"
 	@echo "🎉 SPEC-022 validation complete!"
 
+# SPEC-041: Graph Intelligence Extensions
+test-intelligence:
+	@echo "🧠 Testing Graph Intelligence Extensions..."
+	pytest tests/intelligence/ -v
+
+test-memory-federation:
+	@echo "🔗 Testing Memory Federation Engine..."
+	pytest tests/intelligence/test_memory_federation.py -v
+
+test-graph-ml:
+	@echo "🤖 Testing Graph ML Engine..."
+	pytest tests/intelligence/test_graph_ml.py -v
+
+test-analytics:
+	@echo "📊 Testing Graph Analytics Engine..."
+	pytest tests/intelligence/test_analytics.py -v
+
+validate-spec-041:
+	@echo "✅ Validating SPEC-041: Graph Intelligence Extensions"
+	@echo "📊 Checking intelligence components..."
+	@test -d server/intelligence && echo "✅ Intelligence package present" || echo "❌ Missing intelligence package"
+	@test -f server/intelligence/memory_federation.py && echo "✅ Memory federation engine present" || echo "❌ Missing federation engine"
+	@test -f server/intelligence/graph_ml.py && echo "✅ Graph ML engine present" || echo "❌ Missing ML engine"
+	@test -f server/intelligence/analytics.py && echo "✅ Analytics engine present" || echo "❌ Missing analytics engine"
+	@test -f server/routers/intelligence.py && echo "✅ Intelligence API router present" || echo "❌ Missing API router"
+	@echo "🧪 Checking test coverage..."
+	@test -d tests/intelligence && echo "✅ Intelligence tests present" || echo "❌ Missing intelligence tests"
+	@test -f tests/intelligence/test_memory_federation.py && echo "✅ Federation tests present" || echo "❌ Missing federation tests"
+	@test -f tests/intelligence/test_graph_ml.py && echo "✅ ML tests present" || echo "❌ Missing ML tests"
+	@test -f tests/intelligence/test_analytics.py && echo "✅ Analytics tests present" || echo "❌ Missing analytics tests"
+	@echo "🎉 SPEC-041 validation complete!"
+
 deploy-staging:
 	@echo "🎯 Deploying to staging environment..."
 	kubectl apply -k k8s/overlays/staging/
