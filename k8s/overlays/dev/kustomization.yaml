@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ninaivalaigal-dev
+
+resources:
+- ../../base/api-server
+- ../../base/postgresql
+- ../../base/redis
+- ../../base/ingress
+
+commonLabels:
+  environment: dev
+  project: ninaivalaigal
+
+images:
+- name: ninaivalaigal/api-server
+  newTag: dev-latest
+
+replicas:
+- name: ninaivalaigal-api
+  count: 1
+- name: postgresql
+  count: 1
+- name: redis
+  count: 1
+
+patchesStrategicMerge:
+- patches/api-server-dev.yaml
+- patches/postgresql-dev.yaml
+- patches/redis-dev.yaml
+
+secretGenerator:
+- name: database-secret
+  literals:
+  - url=postgresql://postgres:dev_password@postgresql-service:5432/foundation_test
+- name: redis-secret
+  literals:
+  - url=redis://redis-service:6379/15
+- name: api-secret
+  literals:
+  - jwt-secret=dev-jwt-secret-key-change-in-prod
+
+configMapGenerator:
+- name: postgresql-config
+  files:
+  - postgresql.conf=configs/postgresql-dev.conf
+- name: redis-config
+  files:
+  - redis.conf=configs/redis-dev.conf

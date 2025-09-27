@@ -1,0 +1,84 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ninaivalaigal
+  namespace: argocd
+spec:
+  description: Ninaivalaigal Memory & Graph Intelligence Platform
+  
+  sourceRepos:
+  - https://github.com/Arunosaur/ninaivalaigal.git
+  
+  destinations:
+  - namespace: ninaivalaigal-dev
+    server: https://kubernetes.default.svc
+  - namespace: ninaivalaigal-staging
+    server: https://kubernetes.default.svc
+  - namespace: ninaivalaigal-prod
+    server: https://kubernetes.default.svc
+    
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: ''
+    kind: PersistentVolume
+  - group: networking.k8s.io
+    kind: Ingress
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRole
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Secret
+  - group: ''
+    kind: Service
+  - group: ''
+    kind: ServiceAccount
+  - group: ''
+    kind: PersistentVolumeClaim
+  - group: apps
+    kind: Deployment
+  - group: apps
+    kind: ReplicaSet
+  - group: apps
+    kind: StatefulSet
+  - group: networking.k8s.io
+    kind: NetworkPolicy
+  - group: policy
+    kind: PodDisruptionBudget
+  - group: autoscaling
+    kind: HorizontalPodAutoscaler
+    
+  roles:
+  - name: developer
+    description: Developer access to dev environment
+    policies:
+    - p, proj:ninaivalaigal:developer, applications, get, ninaivalaigal/ninaivalaigal-dev, allow
+    - p, proj:ninaivalaigal:developer, applications, sync, ninaivalaigal/ninaivalaigal-dev, allow
+    groups:
+    - ninaivalaigal:developers
+    
+  - name: operator
+    description: Operator access to all environments
+    policies:
+    - p, proj:ninaivalaigal:operator, applications, *, ninaivalaigal/*, allow
+    - p, proj:ninaivalaigal:operator, repositories, *, *, allow
+    groups:
+    - ninaivalaigal:operators
+    
+  syncWindows:
+  - kind: allow
+    schedule: '0 9-17 * * 1-5'  # Business hours Mon-Fri
+    duration: 8h
+    applications:
+    - ninaivalaigal-dev
+    - ninaivalaigal-staging
+  - kind: deny
+    schedule: '0 18-8 * * *'     # Outside business hours
+    duration: 14h
+    applications:
+    - ninaivalaigal-prod
