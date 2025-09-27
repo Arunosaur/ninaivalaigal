@@ -936,6 +936,22 @@ test-foundation-spec-058:
 	@echo "📚 Testing SPEC-058: Documentation Expansion"
 	pytest tests/foundation/spec_058/ -v
 
+test-foundation-spec-060:
+	@echo "🔗 Testing SPEC-060: Unification"
+	pytest tests/foundation/spec_060/ -v
+
+test-foundation-spec-061:
+	@echo "⚡ Testing SPEC-061: Advanced Execution"
+	pytest tests/foundation/spec_061/ -v
+
+test-foundation-spec-062:
+	@echo "🏗️ Testing SPEC-062: GraphOps Deployment"
+	pytest tests/foundation/spec_062/ -v
+
+test-foundation-spec-063:
+	@echo "🤖 Testing SPEC-063: Agentic Core"
+	pytest tests/foundation/spec_063/ -v
+
 # Foundation test monitoring and validation
 check-env:
 	@echo "🔍 Validating Foundation test environment..."
