@@ -1,0 +1,343 @@
+name: PR Quality Gates
+
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, synchronize, ready_for_review]
+
+env:
+  POSTGRES_PASSWORD: foundation_test_password_123  # pragma: allowlist secret
+  REDIS_PASSWORD: foundation_redis_456  # pragma: allowlist secret
+  COVERAGE_THRESHOLD: 85
+  PERFORMANCE_THRESHOLD_MS: 100
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    name: Quality Gates Validation
+    
+    # Skip draft PRs
+    if: github.event.pull_request.draft == false
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: foundation_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for coverage comparison
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r server/requirements.txt
+          pip install pytest pytest-cov pytest-benchmark
+
+      - name: Quality Gate 1 - Foundation SPEC Tests
+        id: foundation_tests
+        run: |
+          echo "🧪 Running Foundation SPEC Tests..."
+          
+          # Run Foundation tests with coverage
+          pytest tests/foundation/ \
+            --cov=server \
+            --cov-report=xml \
+            --cov-report=term \
+            --cov-fail-under=${{ env.COVERAGE_THRESHOLD }} \
+            --maxfail=5 \
+            --tb=short \
+            -v
+          
+          echo "foundation_tests_passed=true" >> $GITHUB_OUTPUT
+
+      - name: Quality Gate 2 - Coverage Threshold Check
+        id: coverage_check
+        run: |
+          echo "📊 Checking coverage threshold..."
+          
+          # Extract coverage percentage from XML report
+          if [ -f coverage.xml ]; then
+            coverage_percent=$(python -c "
+            import xml.etree.ElementTree as ET
+            tree = ET.parse('coverage.xml')
+            root = tree.getroot()
+            line_rate = float(root.attrib['line-rate'])
+            print(f'{line_rate * 100:.1f}')
+            ")
+            
+            echo "Current coverage: ${coverage_percent}%"
+            echo "Required threshold: ${{ env.COVERAGE_THRESHOLD }}%"
+            
+            # Check if coverage meets threshold
+            if (( $(echo "$coverage_percent >= ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+              echo "✅ Coverage threshold met: ${coverage_percent}%"
+              echo "coverage_passed=true" >> $GITHUB_OUTPUT
+              echo "coverage_percent=${coverage_percent}" >> $GITHUB_OUTPUT
+            else
+              echo "❌ Coverage below threshold: ${coverage_percent}% < ${{ env.COVERAGE_THRESHOLD }}%"
+              echo "coverage_passed=false" >> $GITHUB_OUTPUT
+              echo "coverage_percent=${coverage_percent}" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "❌ Coverage report not found"
+            exit 1
+          fi
+
+      - name: Quality Gate 3 - Performance Regression Check
+        id: performance_check
+        run: |
+          echo "⚡ Running performance regression check..."
+          
+          # Run performance benchmarks
+          pytest tests/foundation/ \
+            -k "performance" \
+            --benchmark-only \
+            --benchmark-json=benchmark_results.json \
+            -v || true
+          
+          # Check if benchmark results exist
+          if [ -f benchmark_results.json ]; then
+            # Extract average execution time
+            avg_time_ms=$(python -c "
+            import json
+            with open('benchmark_results.json', 'r') as f:
+                data = json.load(f)
+            if 'benchmarks' in data and data['benchmarks']:
+                avg_time = sum(b['stats']['mean'] for b in data['benchmarks']) / len(data['benchmarks'])
+                print(f'{avg_time * 1000:.2f}')
+            else:
+                print('0')
+            ")
+            
+            echo "Average performance: ${avg_time_ms}ms"
+            echo "Performance threshold: ${{ env.PERFORMANCE_THRESHOLD_MS }}ms"
+            
+            # Check performance threshold
+            if (( $(echo "$avg_time_ms <= ${{ env.PERFORMANCE_THRESHOLD_MS }}" | bc -l) )); then
+              echo "✅ Performance within threshold: ${avg_time_ms}ms"
+              echo "performance_passed=true" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️ Performance regression detected: ${avg_time_ms}ms > ${{ env.PERFORMANCE_THRESHOLD_MS }}ms"
+              echo "performance_passed=false" >> $GITHUB_OUTPUT
+              # Don't fail on performance regression, just warn
+            fi
+          else
+            echo "ℹ️ No performance benchmarks found"
+            echo "performance_passed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Quality Gate 4 - Security Scan
+        id: security_scan
+        run: |
+          echo "🛡️ Running security scan..."
+          
+          # Install security scanning tools
+          pip install bandit safety
+          
+          # Run Bandit security scan
+          echo "Running Bandit security scan..."
+          bandit -r server/ -f json -o bandit_results.json || true
+          
+          # Check Bandit results
+          if [ -f bandit_results.json ]; then
+            high_severity=$(python -c "
+            import json
+            with open('bandit_results.json', 'r') as f:
+                data = json.load(f)
+            high_issues = [r for r in data.get('results', []) if r.get('issue_severity') == 'HIGH']
+            print(len(high_issues))
+            ")
+            
+            echo "High severity security issues: $high_severity"
+            
+            if [ "$high_severity" -eq 0 ]; then
+              echo "✅ No high severity security issues found"
+              echo "security_passed=true" >> $GITHUB_OUTPUT
+            else
+              echo "❌ High severity security issues found: $high_severity"
+              echo "security_passed=false" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "⚠️ Security scan results not found"
+            echo "security_passed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Quality Gate 5 - Code Quality Check
+        id: code_quality
+        run: |
+          echo "📋 Running code quality check..."
+          
+          # Install code quality tools
+          pip install flake8 pylint
+          
+          # Run Flake8 for code style
+          echo "Running Flake8 code style check..."
+          flake8 server/ --count --select=E9,F63,F7,F82 --show-source --statistics > flake8_results.txt || true
+          
+          # Check Flake8 results
+          error_count=$(cat flake8_results.txt | tail -n 1 | awk '{print $1}' || echo "0")
+          
+          echo "Code style errors: $error_count"
+          
+          if [ "$error_count" -eq 0 ]; then
+            echo "✅ No critical code style errors found"
+            echo "code_quality_passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Critical code style errors found: $error_count"
+            echo "code_quality_passed=false" >> $GITHUB_OUTPUT
+            cat flake8_results.txt
+            exit 1
+          fi
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ github.run_number }}
+          path: |
+            coverage.xml
+            htmlcov/
+
+      - name: Upload Performance Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-report-${{ github.run_number }}
+          path: benchmark_results.json
+
+      - name: Upload Security Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-${{ github.run_number }}
+          path: bandit_results.json
+
+      - name: Quality Gates Summary
+        if: always()
+        run: |
+          echo "## 🚦 Quality Gates Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Foundation Tests
+          if [ "${{ steps.foundation_tests.outputs.foundation_tests_passed }}" == "true" ]; then
+            echo "✅ **Foundation SPEC Tests**: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Foundation SPEC Tests**: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Coverage
+          if [ "${{ steps.coverage_check.outputs.coverage_passed }}" == "true" ]; then
+            echo "✅ **Coverage Threshold**: PASSED (${{ steps.coverage_check.outputs.coverage_percent }}%)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Coverage Threshold**: FAILED (${{ steps.coverage_check.outputs.coverage_percent }}% < ${{ env.COVERAGE_THRESHOLD }}%)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Performance
+          if [ "${{ steps.performance_check.outputs.performance_passed }}" == "true" ]; then
+            echo "✅ **Performance Check**: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Performance Check**: WARNING (regression detected)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Security
+          if [ "${{ steps.security_scan.outputs.security_passed }}" == "true" ]; then
+            echo "✅ **Security Scan**: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Security Scan**: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Code Quality
+          if [ "${{ steps.code_quality.outputs.code_quality_passed }}" == "true" ]; then
+            echo "✅ **Code Quality**: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Code Quality**: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**All quality gates must pass before PR can be merged.**" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment PR with Results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const foundationPassed = '${{ steps.foundation_tests.outputs.foundation_tests_passed }}' === 'true';
+            const coveragePassed = '${{ steps.coverage_check.outputs.coverage_passed }}' === 'true';
+            const performancePassed = '${{ steps.performance_check.outputs.performance_passed }}' === 'true';
+            const securityPassed = '${{ steps.security_scan.outputs.security_passed }}' === 'true';
+            const codeQualityPassed = '${{ steps.code_quality.outputs.code_quality_passed }}' === 'true';
+            
+            const coveragePercent = '${{ steps.coverage_check.outputs.coverage_percent }}';
+            
+            const allPassed = foundationPassed && coveragePassed && securityPassed && codeQualityPassed;
+            
+            const body = `## 🚦 Quality Gates Results
+            
+            ${allPassed ? '✅ **All Quality Gates PASSED**' : '❌ **Quality Gates FAILED**'}
+            
+            | Quality Gate | Status | Details |
+            |--------------|--------|---------|
+            | Foundation SPEC Tests | ${foundationPassed ? '✅ PASSED' : '❌ FAILED'} | All Foundation SPECs validated |
+            | Coverage Threshold | ${coveragePassed ? '✅ PASSED' : '❌ FAILED'} | ${coveragePercent}% (required: ${{ env.COVERAGE_THRESHOLD }}%) |
+            | Performance Check | ${performancePassed ? '✅ PASSED' : '⚠️ WARNING'} | Performance regression check |
+            | Security Scan | ${securityPassed ? '✅ PASSED' : '❌ FAILED'} | No high severity issues |
+            | Code Quality | ${codeQualityPassed ? '✅ PASSED' : '❌ FAILED'} | Code style and quality check |
+            
+            ${allPassed ? 
+              '🎉 **This PR is ready for review and merge!**' : 
+              '🔧 **Please fix the failing quality gates before requesting review.**'
+            }
+            
+            📊 **Artifacts**: Coverage, performance, and security reports are available in the workflow artifacts.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  # Require all quality gates to pass
+  quality-gates-check:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    if: always()
+    steps:
+      - name: Check Quality Gates Status
+        run: |
+          if [ "${{ needs.quality-gates.result }}" != "success" ]; then
+            echo "❌ Quality gates failed. PR cannot be merged."
+            exit 1
+          else
+            echo "✅ All quality gates passed. PR is ready for merge."
+          fi
