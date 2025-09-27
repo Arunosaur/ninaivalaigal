@@ -1055,6 +1055,38 @@ validate-spec-041:
 	@test -f tests/intelligence/test_analytics.py && echo "✅ Analytics tests present" || echo "❌ Missing analytics tests"
 	@echo "🎉 SPEC-041 validation complete!"
 
+# SPEC-042: Auth-Aware Test Harness
+test-auth-aware:
+	@echo "🔐 Testing Auth-Aware Test Harness..."
+	pytest tests/auth_aware/ -v
+
+test-multi-user:
+	@echo "👥 Testing Multi-User Scenarios..."
+	pytest tests/auth_aware/test_multi_user_scenarios.py -v
+
+test-rbac:
+	@echo "🛡️ Testing RBAC Validation..."
+	pytest tests/auth_aware/test_rbac_validation.py -v
+
+test-security:
+	@echo "🔒 Testing Security Scenarios..."
+	pytest tests/auth_aware/test_security_scenarios.py -v
+
+validate-spec-042:
+	@echo "✅ Validating SPEC-042: Auth-Aware Test Harness"
+	@echo "📊 Checking auth-aware components..."
+	@test -d tests/auth_aware && echo "✅ Auth-aware test package present" || echo "❌ Missing auth-aware package"
+	@test -f tests/auth_aware/multi_user_manager.py && echo "✅ Multi-user manager present" || echo "❌ Missing multi-user manager"
+	@test -f tests/auth_aware/rbac_engine.py && echo "✅ RBAC engine present" || echo "❌ Missing RBAC engine"
+	@test -f tests/auth_aware/security_scenarios.py && echo "✅ Security scenarios present" || echo "❌ Missing security scenarios"
+	@test -f tests/auth_aware/models.py && echo "✅ Auth models present" || echo "❌ Missing auth models"
+	@echo "🧪 Checking test scenarios..."
+	@test -f tests/auth_aware/test_multi_user_scenarios.py && echo "✅ Multi-user tests present" || echo "❌ Missing multi-user tests"
+	@test -f tests/auth_aware/test_rbac_validation.py && echo "✅ RBAC tests present" || echo "❌ Missing RBAC tests"
+	@test -f tests/auth_aware/test_security_scenarios.py && echo "✅ Security tests present" || echo "❌ Missing security tests"
+	@test -f tests/auth_aware/test_fixtures.py && echo "✅ Test fixtures present" || echo "❌ Missing test fixtures"
+	@echo "🎉 SPEC-042 validation complete!"
+
 deploy-staging:
 	@echo "🎯 Deploying to staging environment..."
 	kubectl apply -k k8s/overlays/staging/
