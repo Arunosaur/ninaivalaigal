@@ -3,7 +3,7 @@ Database Operations Module
 Modular breakdown of database operations for better maintainability
 """
 
-from .context_ops import ContextOperations
+from .context_ops import ContextOps as ContextOperations
 from .memory_ops import MemoryOperations
 from .organization_ops import OrganizationOperations
 from .rbac_ops import RBACOperations

@@ -637,3 +637,84 @@ async def get_revenue_forecast(
             / 3,
         },
     }
+
+
+def get_team_growth_metrics(db: Session = Depends(get_db)):
+    """Get real team growth metrics for dashboard widgets"""
+    try:
+        # Get actual team counts from database
+        total_teams = db.query(Team).count()
+
+        # Get teams created in different time periods
+        now = datetime.utcnow()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        week_start = now - timedelta(days=7)
+        month_start = now - timedelta(days=30)
+
+        teams_created_today = (
+            db.query(Team).filter(Team.created_at >= today_start).count()
+        )
+        teams_created_this_week = (
+            db.query(Team).filter(Team.created_at >= week_start).count()
+        )
+        teams_created_this_month = (
+            db.query(Team).filter(Team.created_at >= month_start).count()
+        )
+
+        # Get member counts (assuming TeamMembership table exists)
+        total_members = db.query(User).count()
+        members_added_today = (
+            db.query(User).filter(User.created_at >= today_start).count()
+        )
+        members_added_this_week = (
+            db.query(User).filter(User.created_at >= week_start).count()
+        )
+        members_added_this_month = (
+            db.query(User).filter(User.created_at >= month_start).count()
+        )
+
+        # Calculate growth rate
+        previous_month_teams = (
+            db.query(Team)
+            .filter(
+                Team.created_at < month_start,
+                Team.created_at >= month_start - timedelta(days=30),
+            )
+            .count()
+        )
+
+        growth_rate = 0.0
+        if previous_month_teams > 0:
+            growth_rate = (
+                (teams_created_this_month - previous_month_teams) / previous_month_teams
+            ) * 100
+
+        return {
+            "teams_created_today": teams_created_today,
+            "teams_created_this_week": teams_created_this_week,
+            "teams_created_this_month": teams_created_this_month,
+            "total_teams": total_teams,
+            "members_added_today": members_added_today,
+            "members_added_this_week": members_added_this_week,
+            "members_added_this_month": members_added_this_month,
+            "total_members": total_members,
+            "growth_rate": round(growth_rate, 1),
+            "weekly_trend": [],  # Would need more complex query for trends
+            "monthly_trend": [],  # Would need more complex query for trends
+        }
+    except Exception as e:
+        # Fallback to basic metrics if database query fails
+        return {
+            "teams_created_today": 0,
+            "teams_created_this_week": 0,
+            "teams_created_this_month": 0,
+            "total_teams": 0,
+            "members_added_today": 0,
+            "members_added_this_week": 0,
+            "members_added_this_month": 0,
+            "total_members": 0,
+            "growth_rate": 0.0,
+            "weekly_trend": [],
+            "monthly_trend": [],
+            "error": str(e),
+        }

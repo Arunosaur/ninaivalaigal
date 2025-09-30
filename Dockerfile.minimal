@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install minimal dependencies
+RUN pip install fastapi uvicorn
+
+# Copy minimal API
+COPY server/main_minimal.py /app/main.py
+
+# Expose port
+EXPOSE 8000
+
+# Run the minimal API
+CMD ["python", "main.py"]

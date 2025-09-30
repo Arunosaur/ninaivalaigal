@@ -94,6 +94,13 @@
                         🔍 Filters
                     </button>
 
+                    <!-- Narrative Mode Toggle (SPEC-076) -->
+                    <button onclick="toggleNarrativeMode()" id="narrative-toggle"
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                        <span>📖</span>
+                        <span id="narrative-toggle-text">Narrative Mode</span>
+                    </button>
+
                     <button onclick="exportMemories()"
                             class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
                         📤 Export
@@ -260,6 +267,7 @@
         </div>
     </div>
 
+    <script src="js/graphops-narrative.js"></script>
     <script src="js/memory-browser.js"></script>
 </body>
 </html>
