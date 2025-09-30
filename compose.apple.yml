@@ -1,0 +1,104 @@
+version: '3.8'
+
+# Apple Container CLI Runtime Configuration
+# Usage: NINA_ENV=prod NINA_RUNTIME=apple make stack-up
+
+services:
+  postgres:
+    image: nina-intelligence-db:arm64
+    container_name: nina-${NINA_ENV:-prod}-db
+    environment:
+      POSTGRES_DB: nina_${NINA_ENV:-prod}
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - "${POSTGRES_PORT:-5652}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nina -d nina_${NINA_ENV:-prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: nina-${NINA_ENV:-prod}-redis
+    ports:
+      - "${REDIS_PORT:-6599}:6379"
+    environment:
+      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-nina_redis_password}
+    command: redis-server --requirepass ${NINA_REDIS_PASSWORD:-nina_redis_password} --maxmemory 1gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  pgbouncer:
+    image: nina-pgbouncer:arm64
+    container_name: nina-${NINA_ENV:-prod}-pgbouncer
+    ports:
+      - "${PGBOUNCER_PORT:-6652}:6432"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
+      POSTGRES_DB: nina_${NINA_ENV:-prod}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api:
+    image: nina-api:arm64
+    container_name: nina-${NINA_ENV:-prod}-api
+    ports:
+      - "${API_PORT:-13590}:13370"
+    environment:
+      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-secure_nina_password}@pgbouncer:6432/nina_${NINA_ENV:-prod}
+      NINAIVALAIGAL_JWT_SECRET: ${NINA_JWT_SECRET:-production_jwt_secret}
+      NINAIVALAIGAL_DEBUG: ${NINA_DEBUG:-0}
+      PYTHONPATH: /app/server
+      PORT: 13370
+      UVICORN_RELOAD: 0
+    depends_on:
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:13370/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  ui:
+    image: nina-ui:arm64
+    container_name: nina-${NINA_ENV:-prod}-ui
+    ports:
+      - "${UI_PORT:-8301}:8081"
+    environment:
+      NODE_ENV: production
+      API_URL: http://localhost:${API_PORT:-13370}
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    name: nina_network

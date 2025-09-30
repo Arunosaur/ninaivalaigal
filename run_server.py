@@ -1,32 +1,43 @@
-#!/usr/bin/env python3
-"""
-Proper server startup script that handles imports correctly
-"""
-
+# run_server.py
 import os
 import sys
-from pathlib import Path
 
-# Add server directory to Python path
-server_dir = Path(__file__).parent / "server"
-sys.path.insert(0, str(server_dir))
+import structlog
+import uvicorn
+from fastapi import FastAPI
 
-# Change to server directory for relative imports to work
-os.chdir(server_dir)
+# Ensure current directory is on sys.path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# ✅ Configure structlog properly
+structlog.configure(
+    processors=[
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.JSONRenderer(),
+    ]
+)
+logger = structlog.get_logger()
+
+# ✅ Import the FastAPI app safely
+try:
+    from main import app
+except ImportError as e:
+    logger.error("Failed to import app", error=str(e))
+    sys.exit(1)
+
+if not isinstance(app, FastAPI):
+    logger.error("Imported app is not a FastAPI instance")
+    sys.exit(1)
 
 if __name__ == "__main__":
+    logger.info("Starting Uvicorn server", host="0.0.0.0", port=8000)
     try:
-        import uvicorn
-        from main import app
-
-        print("🚀 Starting Ninaivalaigal server...")
-        print("✅ All imports successful")
-
-        # Run with uvicorn
         uvicorn.run(
-            "main:app", host="0.0.0.0", port=8000, reload=True, log_level="info"
+            "main:app",
+            host="0.0.0.0",
+            port=8000,
+            reload=os.getenv("UVICORN_RELOAD", "false").lower() == "true",
         )
-    except ImportError as e:
-        print(f"❌ Import error: {e}")
-        print("💡 Make sure you're running from the project root directory")
+    except Exception as e:
+        logger.error("Uvicorn failed to start", error=str(e))
         sys.exit(1)

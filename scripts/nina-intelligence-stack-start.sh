@@ -1,8 +1,27 @@
 #!/usr/bin/env bash
 # Nina Intelligence Stack Orchestrator
-# Starts the consolidated nina-intelligence-db + nina-intelligence-cache + API stack
+# Starts the consolidated ninaivalaigal-{env}-{service}-{runtime} stack
 
 set -euo pipefail
+
+# Environment and runtime detection
+NINA_ENV="${NINA_ENV:-dev}"
+NINA_RUNTIME="${NINA_RUNTIME:-apple}"
+
+# Dynamic port assignment
+POSTGRES_PORT="$("$(dirname "$0")/get-port.sh" postgres "$NINA_ENV" "$NINA_RUNTIME")"
+REDIS_PORT="$("$(dirname "$0")/get-port.sh" redis "$NINA_ENV" "$NINA_RUNTIME")"
+API_PORT="$("$(dirname "$0")/get-port.sh" api "$NINA_ENV" "$NINA_RUNTIME")"
+UI_PORT="$("$(dirname "$0")/get-port.sh" ui "$NINA_ENV" "$NINA_RUNTIME")"
+
+# Unified container names
+DB_CONTAINER="ninaivalaigal-${NINA_ENV}-db-${NINA_RUNTIME}"
+REDIS_CONTAINER="ninaivalaigal-${NINA_ENV}-redis-${NINA_RUNTIME}"
+API_CONTAINER="ninaivalaigal-${NINA_ENV}-api-${NINA_RUNTIME}"
+UI_CONTAINER="ninaivalaigal-${NINA_ENV}-ui-${NINA_RUNTIME}"
+
+# Database name
+DB_NAME="ninaivalaigal_${NINA_ENV}"
 
 DB_ONLY=false
 SKIP_API=false
@@ -30,32 +49,39 @@ log() {
 }
 
 log "🚀 Starting Nina Intelligence Stack..."
+log "📍 Environment: $NINA_ENV"
+log "🐳 Runtime: $NINA_RUNTIME"
+log "🔌 Postgres: localhost:$POSTGRES_PORT"
+log "🔴 Redis: localhost:$REDIS_PORT"
+log "🌐 API: localhost:$API_PORT"
+log "🎨 UI: localhost:$UI_PORT"
+echo
 
-# 1) nina-intelligence-db (PostgreSQL + Apache AGE + pgvector)
-log "Starting nina-intelligence-db..."
-if container list | grep -q "nina-intelligence-db.*running"; then
-  log "nina-intelligence-db already running, skipping start."
+# 1) Database (PostgreSQL + Apache AGE + pgvector)
+log "Starting $DB_CONTAINER..."
+if container list | grep -q "$DB_CONTAINER.*running"; then
+  log "$DB_CONTAINER already running, skipping start."
 else
   # Clean up any stopped container first
-  container stop nina-intelligence-db >/dev/null 2>&1 || true
-  container delete nina-intelligence-db >/dev/null 2>&1 || true
+  container stop "$DB_CONTAINER" >/dev/null 2>&1 || true
+  container delete "$DB_CONTAINER" >/dev/null 2>&1 || true
 
-  container run -d --name nina-intelligence-db \
-    -p 5432:5432 \
-    -e POSTGRES_DB=ninaivalaigal \
+  container run -d --name "$DB_CONTAINER" \
+    -p "$POSTGRES_PORT:5432" \
+    -e POSTGRES_DB="$DB_NAME" \
     -e POSTGRES_USER=nina \
-    -e POSTGRES_PASSWORD=secure_nina_password \
-    -v nina_intelligence_db_data:/var/lib/postgresql/data \
+    -e POSTGRES_PASSWORD="${NINA_DB_PASSWORD:-secure_nina_password}" \
+    -v "ninaivalaigal_${NINA_ENV}_db_data:/var/lib/postgresql/data" \
     nina-intelligence-db:arm64
 
-  log "nina-intelligence-db started successfully."
+  log "$DB_CONTAINER started successfully."
 
   # Wait for database to be ready
   log "Waiting for database to be ready..."
   sleep 10
 
   # Initialize tables if needed
-  container exec nina-intelligence-db psql -U nina -d ninaivalaigal -c "
+  container exec "$DB_CONTAINER" psql -U nina -d "$DB_NAME" -c "
     CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         email VARCHAR(255) NOT NULL UNIQUE,
@@ -80,33 +106,33 @@ else
   " >/dev/null 2>&1 || log "Database initialization completed or already done."
 fi
 
-# Stop early if db-only
 if $DB_ONLY; then
   log "Database only requested. Done."
   exit 0
 fi
 
-# 2) nina-intelligence-cache (Redis)
-if ! $SKIP_CACHE; then
-  log "Starting nina-intelligence-cache..."
-  if container list | grep -q "nina-intelligence-cache.*running"; then
-    log "nina-intelligence-cache already running, skipping start."
-  else
-    # Clean up any stopped Redis container first
-    container stop nina-intelligence-cache >/dev/null 2>&1 || true
-    container delete nina-intelligence-cache >/dev/null 2>&1 || true
+# 2) Redis Cache
+log "Starting $REDIS_CONTAINER..."
+if container list | grep -q "$REDIS_CONTAINER.*running"; then
+  log "$REDIS_CONTAINER already running, skipping start."
+else
+  # Clean up any stopped container first
+  container stop "$REDIS_CONTAINER" >/dev/null 2>&1 || true
+  container delete "$REDIS_CONTAINER" >/dev/null 2>&1 || true
 
-    container run -d --name nina-intelligence-cache \
-      -p 6379:6379 \
-      -v nina_intelligence_cache_data:/data \
-      redis:7-alpine redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
-    log "nina-intelligence-cache started successfully."
+  container run -d --name "$REDIS_CONTAINER" \
+    -p "$REDIS_PORT:6379" \
+    -e REDIS_PASSWORD="${NINA_REDIS_PASSWORD:-nina_redis_${NINA_ENV}_password}" \
+    -v "ninaivalaigal_${NINA_ENV}_redis_data:/data" \
+    redis:7-alpine redis-server --requirepass "${NINA_REDIS_PASSWORD:-nina_redis_${NINA_ENV}_password}" --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+  log "$REDIS_CONTAINER started successfully."
   fi
 else
   log "Skipping nina-intelligence-cache per flag."
 fi
 
-# 3) API
+{{ ... }}
 if ! $SKIP_API; then
   log "Starting API..."
 

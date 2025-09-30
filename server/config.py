@@ -49,11 +49,45 @@ def load_config() -> dict[str, Any]:
 
 
 def get_dynamic_database_url() -> str:
-    """Get database URL with dynamic container IP resolution"""
+    """Get database URL with dynamic container IP resolution and environment awareness"""
     # Check if we have environment override first
     env_db_url = os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL")
     if env_db_url:
         return env_db_url
+
+    # Get environment and runtime for dynamic discovery
+    nina_env = os.getenv("NINA_ENV", "dev")
+    nina_runtime = os.getenv("NINA_RUNTIME", "docker")
+
+    # Calculate dynamic port using our port assignment logic
+    try:
+        import subprocess
+
+        script_path = os.path.join(
+            os.path.dirname(__file__), "..", "scripts", "get-port.sh"
+        )
+        postgres_port = subprocess.run(
+            [script_path, "postgres", nina_env, nina_runtime],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout.strip()
+
+        pgbouncer_port = subprocess.run(
+            [script_path, "pgbouncer", nina_env, nina_runtime],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout.strip()
+    except:
+        # Fallback to default ports
+        postgres_port = "5432"
+        pgbouncer_port = "6432"
+
+    # Construct database name following our naming convention
+    db_name = f"ninaivalaigal_{nina_env}"
+    db_user = os.getenv("NINA_DB_USER", "ninaivalaigal_app")
+    db_password = os.getenv("NINA_DB_PASSWORD", "secure_nina_password")
 
     # Try to get dynamic container IPs (works for both Apple Container CLI and Docker)
     try:
@@ -72,10 +106,11 @@ def get_dynamic_database_url() -> str:
         )
 
         if result.returncode == 0:
-            # Try to get PgBouncer IP first (preferred for connection pooling)
+            # Try to get PgBouncer IP first (preferred for production)
+            pgbouncer_container = f"ninaivalaigal-{nina_env}-pgbouncer"
             try:
                 pgb_result = subprocess.run(
-                    [container_cmd, "inspect", "nv-pgbouncer"],
+                    [container_cmd, "inspect", pgbouncer_container],
                     capture_output=True,
                     text=True,
                     timeout=5,
@@ -84,10 +119,10 @@ def get_dynamic_database_url() -> str:
                     pgb_data = json.loads(pgb_result.stdout)
                     if pgb_data and len(pgb_data) > 0:
                         pgb_ip = pgb_data[0]["networks"][0]["address"].split("/")[0]
-                        db_url = (
-                            f"postgresql://nina:change_me_securely@{pgb_ip}:6432/nina"
+                        db_url = f"postgresql://{db_user}:{db_password}@{pgb_ip}:{pgbouncer_port}/{db_name}"
+                        print(
+                            f"🔗 Using PgBouncer at {pgb_ip}:{pgbouncer_port} for {db_name}"
                         )
-                        print(f"🔗 Using PgBouncer at {pgb_ip}:6432")
                         return db_url
             except (
                 subprocess.TimeoutExpired,
@@ -97,22 +132,23 @@ def get_dynamic_database_url() -> str:
             ):
                 pass
 
-            # Fallback to direct database connection
+            # Fallback to direct PostgreSQL connection
+            postgres_container = f"ninaivalaigal-{nina_env}-db"
             try:
-                db_result = subprocess.run(
-                    [container_cmd, "inspect", "nv-db"],
+                pg_result = subprocess.run(
+                    [container_cmd, "inspect", postgres_container],
                     capture_output=True,
                     text=True,
                     timeout=5,
                 )
-                if db_result.returncode == 0:
-                    db_data = json.loads(db_result.stdout)
-                    if db_data and len(db_data) > 0:
-                        db_ip = db_data[0]["networks"][0]["address"].split("/")[0]
-                        db_url = (
-                            f"postgresql://nina:change_me_securely@{db_ip}:5432/nina"
+                if pg_result.returncode == 0:
+                    pg_data = json.loads(pg_result.stdout)
+                    if pg_data and len(pg_data) > 0:
+                        pg_ip = pg_data[0]["networks"][0]["address"].split("/")[0]
+                        db_url = f"postgresql://{db_user}:{db_password}@{pg_ip}:{postgres_port}/{db_name}"
+                        print(
+                            f"🔗 Using PostgreSQL at {pg_ip}:{postgres_port} for {db_name}"
                         )
-                        print(f"🔗 Using direct DB at {db_ip}:5432")
                         return db_url
             except (
                 subprocess.TimeoutExpired,
@@ -122,12 +158,15 @@ def get_dynamic_database_url() -> str:
             ):
                 pass
 
-    except (subprocess.TimeoutExpired, FileNotFoundError):
+    except subprocess.TimeoutExpired:
         pass
 
-    # Final fallback to localhost (for development)
-    print("⚠️ Falling back to localhost database connection")
-    return "postgresql://nina:change_me_securely@localhost:5433/nina"
+    # Fallback to localhost with calculated ports and proper naming
+    fallback_url = (
+        f"postgresql://{db_user}:{db_password}@localhost:{postgres_port}/{db_name}"
+    )
+    print(f"⚠️ Using fallback connection: localhost:{postgres_port}/{db_name}")
+    return fallback_url
 
 
 def get_database_url() -> str:

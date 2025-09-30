@@ -1,0 +1,109 @@
+version: '3.8'
+
+# Colima Runtime Configuration
+# Usage: NINA_ENV=dev NINA_RUNTIME=colima docker-compose -f compose.colima.yml up -d
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: ninaivalaigal-${NINA_ENV:-dev}-db
+    environment:
+      POSTGRES_DB: ninaivalaigal_${NINA_ENV:-dev}
+      POSTGRES_USER: ${NINA_DB_USER:-nina}
+      POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - "${POSTGRES_PORT:-5442}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+      - ./scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${NINA_DB_USER:-nina} -d ninaivalaigal_${NINA_ENV:-dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ninaivalaigal-${NINA_ENV:-dev}-redis
+    ports:
+      - "${REDIS_PORT:-6389}:6379"
+    environment:
+      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-nina_redis_password}
+    command: redis-server --requirepass ${NINA_REDIS_PASSWORD:-nina_redis_password} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: ninaivalaigal-${NINA_ENV:-dev}-api
+    ports:
+      - "${API_PORT:-13380}:13370"
+    environment:
+      NINA_ENV: ${NINA_ENV:-dev}
+      NINA_RUNTIME: ${NINA_RUNTIME:-colima}
+      NINA_DB_USER: nina
+      NINA_DB_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
+      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-secure_nina_password}@postgres:5432/ninaivalaigal_dev
+      NINAIVALAIGAL_JWT_SECRET: ${NINA_JWT_SECRET:-dev_jwt_secret}
+      NINAIVALAIGAL_DEBUG: ${NINA_DEBUG:-1}
+      PYTHONPATH: /app/server
+      PORT: 13370
+      UVICORN_RELOAD: ${NINA_LIVE_RELOAD:-1}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      # Live mounts for development
+      - ./server:/app/server:rw
+      - ./backups:/app/backups:rw
+      - api_cache:/app/server/__pycache__
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:13370/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: ninaivalaigal-${NINA_ENV:-dev}-ui
+    ports:
+      - "${UI_PORT:-8091}:8081"
+    volumes:
+      - ./ui:/app/ui:rw
+      - ./static:/app/static:rw
+    environment:
+      NODE_ENV: ${NINA_ENV:-development}
+      API_URL: http://localhost:${API_PORT:-13370}
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  api_cache:
+    driver: local
+
+networks:
+  default:
+    name: ninaivalaigal_${NINA_ENV:-dev}_network

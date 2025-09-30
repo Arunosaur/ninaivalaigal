@@ -1321,20 +1321,76 @@ emergency-restart:
 	@echo "✅ Emergency restart completed with automation restored"
 
 ## ========================================
-## NINA INTELLIGENCE STACK (CONSOLIDATED)
+## NINA INTELLIGENCE STACK (TRIPLE-LAYER DETECTION)
 ## ========================================
 
-## start nina intelligence stack: nina-intelligence-db + nina-intelligence-cache + API
-nina-stack-up:
-	@$(SCRIPTS)/nina-intelligence-stack-start.sh
+# Environment & Runtime Detection with Fallbacks
+NINA_ENV ?= dev
+NINA_RUNTIME ?= docker
+
+# Dynamic port assignment
+POSTGRES_PORT := $(shell $(SCRIPTS)/get-port.sh postgres $(NINA_ENV) $(NINA_RUNTIME))
+REDIS_PORT := $(shell $(SCRIPTS)/get-port.sh redis $(NINA_ENV) $(NINA_RUNTIME))
+API_PORT := $(shell $(SCRIPTS)/get-port.sh api $(NINA_ENV) $(NINA_RUNTIME))
+UI_PORT := $(shell $(SCRIPTS)/get-port.sh ui $(NINA_ENV) $(NINA_RUNTIME))
+PGBOUNCER_PORT := $(shell $(SCRIPTS)/get-port.sh pgbouncer $(NINA_ENV) $(NINA_RUNTIME))
+
+# Export for docker-compose
+export NINA_ENV
+export NINA_RUNTIME
+export POSTGRES_PORT
+export REDIS_PORT
+export API_PORT
+export UI_PORT
+export PGBOUNCER_PORT
+
+## start nina intelligence stack with environment and runtime detection
+stack-up:
+	@echo "🚀 Starting Nina Intelligence Stack..."
+	@echo "📍 Environment: $(NINA_ENV)"
+	@echo "🐳 Runtime: $(NINA_RUNTIME)"
+	@echo "🔌 Postgres: localhost:$(POSTGRES_PORT)"
+	@echo "🔴 Redis: localhost:$(REDIS_PORT)"
+	@echo "🌐 API: localhost:$(API_PORT)"
+	@echo "🎨 UI: localhost:$(UI_PORT)"
+	@echo ""
+	@if [ "$(NINA_RUNTIME)" = "apple" ]; then \
+		echo "🍎 Using Apple Container CLI..."; \
+		$(SCRIPTS)/nina-intelligence-stack-start.sh --env $(NINA_ENV) --runtime $(NINA_RUNTIME); \
+	else \
+		echo "🐳 Using Docker Compose..."; \
+		docker-compose -f compose.$(NINA_RUNTIME).yml up -d --build; \
+	fi
+	@echo "✅ Stack started successfully!"
 
 ## stop nina intelligence stack
-nina-stack-down:
-	@$(SCRIPTS)/nina-intelligence-stack-stop.sh
+stack-down:
+	@echo "🛑 Stopping Nina Intelligence Stack ($(NINA_ENV)/$(NINA_RUNTIME))..."
+	@if [ "$(NINA_RUNTIME)" = "apple" ]; then \
+		$(SCRIPTS)/nina-intelligence-stack-stop.sh --env $(NINA_ENV); \
+	else \
+		docker-compose -f compose.$(NINA_RUNTIME).yml down; \
+	fi
+	@echo "✅ Stack stopped successfully!"
 
 ## show nina intelligence stack status
-nina-stack-status:
-	@$(SCRIPTS)/nina-intelligence-stack-status.sh
+stack-status:
+	@echo "📊 Nina Intelligence Stack Status"
+	@echo "=================================="
+	@echo "Environment: $(NINA_ENV)"
+	@echo "Runtime: $(NINA_RUNTIME)"
+	@echo "Ports: DB:$(POSTGRES_PORT) Redis:$(REDIS_PORT) API:$(API_PORT) UI:$(UI_PORT)"
+	@echo ""
+	@if [ "$(NINA_RUNTIME)" = "apple" ]; then \
+		$(SCRIPTS)/nina-intelligence-stack-status.sh --env $(NINA_ENV); \
+	else \
+		docker-compose -f compose.$(NINA_RUNTIME).yml ps; \
+	fi
+
+## legacy compatibility
+nina-stack-up: stack-up
+nina-stack-down: stack-down
+nina-stack-status: stack-status
 
 ## start only nina-intelligence-db (PostgreSQL + Apache AGE + pgvector)
 nina-db-only:
@@ -1371,3 +1427,69 @@ nina-health-logs:
 nina-ui-open:
 	@echo "🌐 Opening Nina Intelligence UI..."
 	@open http://localhost:8081
+
+# =============================================================================
+# AI-FIRST FRONTEND DEVELOPMENT
+# =============================================================================
+
+## install frontend dependencies
+frontend-install:
+	@echo "📦 Installing frontend dependencies..."
+	@cd frontend && npm install
+
+## start Storybook for component development
+frontend-storybook:
+	@echo "📖 Starting Storybook..."
+	@cd frontend && npm run storybook
+
+## build Storybook for deployment
+frontend-build-storybook:
+	@echo "🏗️ Building Storybook..."
+	@cd frontend && npm run build-storybook
+
+## run frontend linting
+frontend-lint:
+	@echo "🔍 Running frontend linting..."
+	@cd frontend && npm run lint
+
+## fix frontend linting issues
+frontend-lint-fix:
+	@echo "🔧 Fixing frontend linting issues..."
+	@cd frontend && npm run lint:fix
+
+## run frontend type checking
+frontend-typecheck:
+	@echo "🔍 Running TypeScript type checking..."
+	@cd frontend && npm run type-check
+
+## run all frontend quality checks
+frontend-quality: frontend-lint frontend-typecheck
+	@echo "✅ All frontend quality checks passed"
+
+## Day-1 demo: generate Button component with AI
+frontend-demo:
+	@echo "🤖 AI Frontend Demo: Button Component"
+	@echo "📖 Storybook: http://localhost:6006"
+	@echo "🎨 Design Tokens: frontend/design/tokens.json"
+	@echo "🧩 Components: frontend/components/Button.tsx"
+	@cd frontend && npm run storybook
+
+## validate frontend foundation
+frontend-validate:
+	@echo "🔍 Validating frontend foundation..."
+	@test -f frontend/design/tokens.json || (echo "❌ Missing tokens.json" && exit 1)
+	@test -f frontend/components/Button.tsx || (echo "❌ Missing Button component" && exit 1)
+	@test -f frontend/components/Button.stories.tsx || (echo "❌ Missing Button stories" && exit 1)
+	@test -f frontend/tailwind.config.js || (echo "❌ Missing Tailwind config" && exit 1)
+	@test -f frontend/.storybook/main.ts || (echo "❌ Missing Storybook config" && exit 1)
+	@echo "✅ Frontend foundation validated"
+
+## setup complete AI-first frontend workflow
+frontend-setup: frontend-install frontend-validate
+	@echo "🚀 AI-first frontend setup complete!"
+	@echo ""
+	@echo "Next steps:"
+	@echo "1. Run 'make frontend-storybook' to start component development"
+	@echo "2. Open http://localhost:6006 to see Button component"
+	@echo "3. Use AI to generate new components based on Button pattern"
+	@echo "4. Run 'make frontend-quality' before committing"
