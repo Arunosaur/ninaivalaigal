@@ -73,6 +73,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Process the request
         response = await call_next(request)
 
+        # Remove Content-Length if present to avoid conflicts
+        # Starlette will recalculate it automatically
+        if "content-length" in response.headers:
+            del response.headers["content-length"]
+
         # Add security headers
         for header_name, header_value in self.headers.items():
             # Skip cache control headers for static assets

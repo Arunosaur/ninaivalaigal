@@ -97,15 +97,6 @@ app.add_middleware(
 
 
 # Content-Length enforcement middleware - FIXED
-@app.middleware("http")
-async def enforce_content_length(request: Request, call_next):
-    response: Response = await call_next(request)
-    # Only set Content-Length when body is present (skip streaming responses)
-    if hasattr(response, "body") and response.body:
-        response.headers["Content-Length"] = str(len(response.body))
-    return response
-
-
 # Configure security
 import os
 
