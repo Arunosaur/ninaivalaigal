@@ -1,3 +1,8 @@
+"""RBAC Permissions Module.
+
+Defines roles, actions, resources, and permission policies for role-based access control.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -5,6 +10,8 @@ from enum import Enum, auto
 
 
 class Role(Enum):
+    """User roles in the system."""
+
     VIEWER = auto()  # Read-only access
     MEMBER = auto()  # Basic user permissions
     MAINTAINER = auto()  # Advanced user permissions
@@ -14,6 +21,8 @@ class Role(Enum):
 
 
 class Action(Enum):
+    """Actions that can be performed on resources."""
+
     READ = auto()
     CREATE = auto()
     UPDATE = auto()
@@ -31,6 +40,8 @@ class Action(Enum):
 
 
 class Resource(Enum):
+    """Resources that can be accessed in the system."""
+
     MEMORY = auto()
     CONTEXT = auto()
     TEAM = auto()
@@ -57,6 +68,7 @@ POLICY: dict[tuple[Role, Resource], set[Action]] = {}
 
 
 def allow(role: Role, res: Resource, *actions: Action):
+    """Add permissions to the policy for a role and resource."""
     POLICY.setdefault((role, res), set()).update(actions)
 
 
@@ -192,6 +204,8 @@ allow(Role.VIEWER, Resource.API, Action.READ)
 
 @dataclass(frozen=True)
 class SubjectContext:
+    """Context for a subject (user) with org, team, and role information."""
+
     org_id: str
     team_ids: set[str]
     roles: dict[str, Role]
@@ -245,7 +259,7 @@ def has_role_precedence(role1: Role, role2: Role) -> bool:
 
 def get_user_permissions(role: Role) -> dict[Resource, set[Action]]:
     """Get all permissions for a given role"""
-    permissions = {}
+    permissions: dict[Resource, set[Action]] = {}
     for (r, resource), actions in POLICY.items():
         if r == role:
             if resource not in permissions:
@@ -272,6 +286,8 @@ def can_delegate_permission(
 
 
 def require_permission(resource: Resource, action: Action):
+    """Require specific permissions for a function."""
+
     def decorator(func):
         def wrapper(subject_ctx: SubjectContext, *args, **kwargs):
             if not authorize(

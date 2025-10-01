@@ -14,6 +14,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Middleware to add security headers to all HTTP responses"""
 
     def __init__(self, app, custom_headers: dict[str, str] | None = None):
+        """Initialize the instance."""
         super().__init__(app)
         self.headers = self._get_default_headers()
 
@@ -23,12 +24,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
     def _get_default_headers(self) -> dict[str, str]:
         """Get default security headers with environment variable overrides"""
-
         # Content Security Policy
-        csp_policy = os.getenv(
-            "CSP_POLICY",
-            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self'",
+        default_csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' https:; "
+            "connect-src 'self'"
         )
+        csp_policy = os.getenv("CSP_POLICY", default_csp)
 
         # HSTS max age
         hsts_max_age = os.getenv("HSTS_MAX_AGE", "63072000")  # 2 years
@@ -47,7 +52,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             # Referrer Policy
             "Referrer-Policy": "strict-origin-when-cross-origin",
             # Permissions Policy (formerly Feature Policy)
-            "Permissions-Policy": "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()",
+            "Permissions-Policy": (
+                "geolocation=(), microphone=(), camera=(), "
+                "payment=(), usb=(), magnetometer=(), gyroscope=()"
+            ),
             # Cross-Origin policies
             "Cross-Origin-Embedder-Policy": "require-corp",
             "Cross-Origin-Opener-Policy": "same-origin",
@@ -62,7 +70,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         """Add security headers to response"""
-
         # Process the request
         response = await call_next(request)
 
@@ -110,9 +117,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # API endpoints should not be cached
         if path.startswith("/api/") or path.startswith("/rbac/"):
-            response.headers[
-                "Cache-Control"
-            ] = "no-store, no-cache, must-revalidate, private, max-age=0"
+            response.headers["Cache-Control"] = (
+                "no-store, no-cache, must-revalidate, private, max-age=0"
+            )
 
         # Admin endpoints get extra protection
         if path.startswith("/admin/"):
@@ -121,9 +128,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Memory endpoints (sensitive data)
         if path.startswith("/memory") or path.startswith("/contexts"):
-            response.headers[
-                "Cache-Control"
-            ] = "no-store, no-cache, must-revalidate, private, max-age=0"
+            response.headers["Cache-Control"] = (
+                "no-store, no-cache, must-revalidate, private, max-age=0"
+            )
             response.headers["X-Robots-Tag"] = "noindex, nofollow"
 
 
@@ -134,10 +141,16 @@ class DevelopmentSecurityHeaders(SecurityHeadersMiddleware):
         """Get development-friendly security headers"""
         headers = super()._get_default_headers()
 
-        # Relax CSP for development
-        headers[
-            "Content-Security-Policy"
-        ] = "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https: http:; connect-src 'self' ws: wss: http: https:"
+        # Relax CSP for development (allow Swagger UI CDN resources)
+        csp_directives = [
+            "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+            "img-src 'self' data: https: http:",
+            "font-src 'self' https://cdn.jsdelivr.net",
+            "connect-src 'self' ws: wss: http: https:",
+        ]
+        headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
         # Remove HSTS in development
         if "Strict-Transport-Security" in headers:
@@ -152,7 +165,7 @@ class DevelopmentSecurityHeaders(SecurityHeadersMiddleware):
 
 def get_security_headers_middleware(development_mode: bool = False):
     """
-    Factory function to get appropriate security headers middleware.
+    Get appropriate security headers middleware.
 
     Args:
         development_mode: Whether to use development-friendly headers

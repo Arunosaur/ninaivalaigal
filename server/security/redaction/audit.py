@@ -6,7 +6,7 @@ Comprehensive audit trail for all redaction events with immutable logging.
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -71,6 +71,7 @@ class RedactionAuditLogger:
     """Audit logger for redaction events"""
 
     def __init__(self, database_manager=None):
+        """Initialize the instance."""
         self.database_manager = database_manager
         self._event_buffer = []
         self._buffer_size = 100
@@ -113,9 +114,11 @@ class RedactionAuditLogger:
         audit_event = RedactionAuditEvent(
             id=event_id,
             timestamp=datetime.utcnow(),
-            event_type=AuditEventType.REDACTION_APPLIED
-            if redaction_result.total_secrets_found > 0
-            else AuditEventType.REDACTION_SKIPPED,
+            event_type=(
+                AuditEventType.REDACTION_APPLIED
+                if redaction_result.total_secrets_found > 0
+                else AuditEventType.REDACTION_SKIPPED
+            ),
             user_id=user_id,
             context_id=context_id,
             request_id=request_id,
@@ -165,9 +168,11 @@ class RedactionAuditLogger:
             request_id=request_id,
             redaction_applied=True,
             redaction_type="contextual_redaction",
-            sensitivity_tier=ContextSensitivity(sensitivity_tier)
-            if isinstance(sensitivity_tier, str)
-            else sensitivity_tier,
+            sensitivity_tier=(
+                ContextSensitivity(sensitivity_tier)
+                if isinstance(sensitivity_tier, str)
+                else sensitivity_tier
+            ),
             patterns_matched=[],
             entropy_score=None,
             original_length=len(original_text),
@@ -176,9 +181,11 @@ class RedactionAuditLogger:
             confidence_scores={},
             metadata={
                 "secrets_found": secrets_found,
-                "redaction_ratio": len(redacted_text) / len(original_text)
-                if len(original_text) > 0
-                else 0,
+                "redaction_ratio": (
+                    len(redacted_text) / len(original_text)
+                    if len(original_text) > 0
+                    else 0
+                ),
             },
         )
 
@@ -281,10 +288,10 @@ class RedactionAuditLogger:
         session = self.database_manager.get_session()
         try:
             # Insert into redaction_audits table
-            audit_data = event.to_dict()
+            _ = event.to_dict()
 
             # Convert to database format
-            db_record = {
+            _ = {
                 "id": event.id,
                 "timestamp": event.timestamp,
                 "user_id": event.user_id,
@@ -390,13 +397,13 @@ class RedactionAuditLogger:
         Returns:
             Dictionary with redaction statistics
         """
-        cutoff_time = datetime.utcnow().replace(microsecond=0) - datetime.timedelta(
+        cutoff_time = datetime.utcnow().replace(microsecond=0) - timedelta(
             hours=time_period_hours
         )
 
         events = self.get_audit_events(user_id=user_id, start_time=cutoff_time)
 
-        stats = {
+        stats: dict[str, Any] = {
             "total_events": len(events),
             "redactions_applied": len([e for e in events if e.redaction_applied]),
             "redactions_skipped": len([e for e in events if not e.redaction_applied]),
@@ -406,26 +413,24 @@ class RedactionAuditLogger:
             "failures": len(
                 [e for e in events if e.event_type == AuditEventType.REDACTION_FAILED]
             ),
-            "avg_processing_time_ms": sum(e.processing_time_ms for e in events)
-            / len(events)
-            if events
-            else 0,
+            "avg_processing_time_ms": (
+                sum(e.processing_time_ms for e in events) / len(events) if events else 0
+            ),
             "patterns_detected": {},
             "sensitivity_tiers": {},
             "time_period_hours": time_period_hours,
         }
 
         # Count patterns and tiers
+        patterns_detected: dict[str, int] = stats["patterns_detected"]  # type: ignore
+        sensitivity_tiers: dict[str, int] = stats["sensitivity_tiers"]  # type: ignore
+
         for event in events:
             for pattern in event.patterns_matched:
-                stats["patterns_detected"][pattern] = (
-                    stats["patterns_detected"].get(pattern, 0) + 1
-                )
+                patterns_detected[pattern] = patterns_detected.get(pattern, 0) + 1
 
             tier = event.sensitivity_tier.value
-            stats["sensitivity_tiers"][tier] = (
-                stats["sensitivity_tiers"].get(tier, 0) + 1
-            )
+            sensitivity_tiers[tier] = sensitivity_tiers.get(tier, 0) + 1
 
         return stats
 

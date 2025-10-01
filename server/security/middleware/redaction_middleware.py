@@ -9,19 +9,25 @@ import sys
 import time
 from typing import Any
 
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-
-from ..redaction import ContextSensitivity, RedactionEngine, redaction_audit_logger
-
+# Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from rbac_middleware import RBACContext
+
+from fastapi import Request, Response  # noqa: E402
+from rbac_middleware import RBACContext  # noqa: E402
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
+
+from ..redaction import (  # noqa: E402
+    ContextSensitivity,
+    RedactionEngine,
+    redaction_audit_logger,
+)
 
 
 class RedactionMiddleware(BaseHTTPMiddleware):
     """Middleware for automatic redaction of sensitive data"""
 
     def __init__(self, app, enabled: bool = True):
+        """Initialize the instance."""
         super().__init__(app)
         self.enabled = enabled
         self.redaction_engine = RedactionEngine()
@@ -40,7 +46,6 @@ class RedactionMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         """Apply redaction to request/response if needed"""
-
         if not self.enabled:
             return await call_next(request)
 
@@ -77,7 +82,6 @@ class RedactionMiddleware(BaseHTTPMiddleware):
         self, path: str, rbac_context: RBACContext | None
     ) -> ContextSensitivity:
         """Determine sensitivity tier for the endpoint"""
-
         # Check specific endpoint mappings
         for endpoint_prefix, tier in self.redaction_endpoints.items():
             if path.startswith(endpoint_prefix):
@@ -101,7 +105,6 @@ class RedactionMiddleware(BaseHTTPMiddleware):
         self, request: Request, sensitivity_tier: ContextSensitivity
     ):
         """Redact sensitive data in request body"""
-
         # Only redact POST/PUT/PATCH requests with JSON bodies
         if request.method not in ["POST", "PUT", "PATCH"]:
             return
@@ -143,13 +146,17 @@ class RedactionMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             # Log redaction failure but don't block the request
-            redaction_audit_logger.log_redaction_failure(
+            await redaction_audit_logger.log_redaction_failure(
                 error_message=str(e),
-                text_length=len(body) if "body" in locals() else 0,
-                sensitivity_tier=sensitivity_tier,
                 user_id=getattr(
                     getattr(request.state, "rbac_context", None), "user_id", None
                 ),
+                context_data={
+                    "text_length": len(body) if "body" in locals() else 0,
+                    "sensitivity_tier": (
+                        sensitivity_tier.value if sensitivity_tier else None
+                    ),
+                },
                 request_id=getattr(request.state, "request_id", None),
             )
 
@@ -161,7 +168,6 @@ class RedactionMiddleware(BaseHTTPMiddleware):
         processing_time: float,
     ):
         """Redact sensitive data in response body"""
-
         # Only redact JSON responses
         content_type = response.headers.get("content-type", "")
         if "application/json" not in content_type:
@@ -214,13 +220,19 @@ class RedactionMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             # Log redaction failure but don't block the response
-            redaction_audit_logger.log_redaction_failure(
+            await redaction_audit_logger.log_redaction_failure(
                 error_message=str(e),
-                text_length=len(response_body) if "response_body" in locals() else 0,
-                sensitivity_tier=sensitivity_tier,
                 user_id=getattr(
                     getattr(request.state, "rbac_context", None), "user_id", None
                 ),
+                context_data={
+                    "text_length": (
+                        len(response_body) if "response_body" in locals() else 0
+                    ),
+                    "sensitivity_tier": (
+                        sensitivity_tier.value if sensitivity_tier else None
+                    ),
+                },
                 request_id=getattr(request.state, "request_id", None),
             )
 
@@ -233,12 +245,12 @@ class SelectiveRedactionMiddleware(RedactionMiddleware):
     """Redaction middleware that only applies to specific endpoints"""
 
     def __init__(self, app, redaction_config: dict[str, ContextSensitivity]):
+        """Initialize the instance."""
         super().__init__(app)
         self.redaction_endpoints = redaction_config
 
     async def dispatch(self, request: Request, call_next):
         """Only apply redaction to configured endpoints"""
-
         # Check if this endpoint needs redaction
         needs_redaction = False
         sensitivity_tier = ContextSensitivity.INTERNAL
@@ -252,6 +264,9 @@ class SelectiveRedactionMiddleware(RedactionMiddleware):
         if not needs_redaction:
             return await call_next(request)
 
+        # Store sensitivity tier for parent class to use
+        request.state.redaction_sensitivity_tier = sensitivity_tier
+
         # Apply redaction using parent class logic
         return await super().dispatch(request, call_next)
 
@@ -260,12 +275,12 @@ class RedactionBypassMiddleware(BaseHTTPMiddleware):
     """Middleware to bypass redaction for specific users or conditions"""
 
     def __init__(self, app, bypass_roles: list | None = None):
+        """Initialize the instance."""
         super().__init__(app)
         self.bypass_roles = bypass_roles or []
 
     async def dispatch(self, request: Request, call_next):
         """Check if redaction should be bypassed"""
-
         # Check RBAC context for bypass conditions
         rbac_context = getattr(request.state, "rbac_context", None)
 
@@ -279,7 +294,7 @@ class RedactionBypassMiddleware(BaseHTTPMiddleware):
 
 def create_redaction_middleware(config: dict[str, Any]):
     """
-    Factory function to create redaction middleware with configuration.
+    Create redaction middleware with configuration.
 
     Args:
         config: Configuration dictionary with redaction settings

@@ -13,11 +13,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from fastapi import HTTPException, Request
-from starlette.middleware.base import BaseHTTPMiddleware
-
+# Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from rbac.permissions import Role
+
+from fastapi import HTTPException, Request  # noqa: E402
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
+
+from rbac.permissions import Role  # noqa: E402
 
 
 class RateLimitType(Enum):
@@ -42,6 +44,7 @@ class TokenBucket:
     """Token bucket algorithm for rate limiting"""
 
     def __init__(self, capacity: int, refill_rate: float):
+        """Initialize the instance."""
         self.capacity = capacity
         self.tokens = capacity
         self.refill_rate = refill_rate
@@ -71,9 +74,10 @@ class SlidingWindowCounter:
     """Sliding window counter for rate limiting"""
 
     def __init__(self, window_seconds: int, limit: int):
+        """Initialize the instance."""
         self.window_seconds = window_seconds
         self.limit = limit
-        self.requests = deque()
+        self.requests: deque[float] = deque()
 
     def is_allowed(self) -> bool:
         """Check if request is allowed within the sliding window"""
@@ -101,6 +105,7 @@ class EnhancedRateLimiter:
     """Enhanced rate limiter with RBAC awareness"""
 
     def __init__(self):
+        """Initialize the instance."""
         # Rate limits by endpoint pattern and role
         self.endpoint_limits = {
             # Authentication endpoints (stricter limits)
@@ -296,6 +301,7 @@ class EnhancedRateLimiter:
     async def is_rate_limited(
         self, user_id: str, endpoint: str
     ) -> tuple[bool, dict[str, Any]]:
+        """Check if a user is rate limited for an endpoint."""
         # Start cleanup task if not already started
         if not self._cleanup_started:
             self._start_cleanup_task()
@@ -326,7 +332,6 @@ class EnhancedRateLimiter:
         self, user_id: str, endpoint: str, config: RateLimitConfig
     ) -> bool:
         """Check if request is within limits"""
-
         if config.limit_type == RateLimitType.REQUESTS_PER_MINUTE:
             return self._check_sliding_window(user_id, endpoint, config)
 
@@ -403,16 +408,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """FastAPI middleware for rate limiting"""
 
     def __init__(self, app, rate_limiter: EnhancedRateLimiter | None = None):
+        """Initialize the instance."""
         super().__init__(app)
         self.rate_limiter = rate_limiter or EnhancedRateLimiter()
 
     async def dispatch(self, request: Request, call_next):
         """Apply rate limiting to requests"""
-
         # Check rate limit
         is_allowed, rate_info = await self.rate_limiter.check_rate_limit(request)
 
-        if not is_allowed:
+        if not is_allowed and rate_info:
             # Rate limit exceeded
             raise HTTPException(
                 status_code=429,

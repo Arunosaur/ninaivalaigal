@@ -55,7 +55,9 @@ class SecurityAlertManager:
     """Manage security-related alerts and notifications"""
 
     def __init__(self):
+        """Initialize the security alert manager."""
         self.recent_events = []  # Store recent security events
+        self.active_alerts: list[SecurityAlert] = []  # Store active alerts
         self.alert_thresholds = {
             "failed_logins_per_minute": 10,
             "permission_denials_per_minute": 50,
@@ -83,7 +85,6 @@ class SecurityAlertManager:
         metadata: dict[str, Any] | None = None,
     ):
         """Log a security event for monitoring"""
-
         event = {
             "timestamp": datetime.utcnow(),
             "event_type": event_type,
@@ -105,7 +106,6 @@ class SecurityAlertManager:
 
     async def _check_immediate_alerts(self, event: dict[str, Any]):
         """Check for alerts that should trigger immediately"""
-
         event_type = event["event_type"]
         user_id = event.get("user_id")
 
@@ -133,8 +133,6 @@ class SecurityAlertManager:
 
     async def check_security_thresholds(self):
         """Check security metrics against thresholds"""
-        current_time = datetime.utcnow()
-
         # Check failed login attempts (last minute)
         failed_logins = self._count_events_in_window(
             SecurityEventType.FAILED_LOGIN, minutes=1
@@ -222,7 +220,6 @@ class SecurityAlertManager:
         metadata: dict[str, Any] | None = None,
     ):
         """Send security alert"""
-
         import uuid
 
         alert = SecurityAlert(
@@ -254,7 +251,7 @@ class SecurityAlertManager:
     async def _store_alert(self, alert: SecurityAlert):
         """Store alert in database (placeholder)"""
         # This would integrate with the database manager
-        alert_data = {
+        _ = {
             "id": alert.id,
             "timestamp": alert.timestamp.isoformat(),
             "severity": alert.severity.value,
@@ -300,7 +297,9 @@ class SecurityAlertManager:
             event for event in self.recent_events if event["timestamp"] > cutoff_time
         ]
 
-        stats = {
+        from typing import Any
+
+        stats: dict[str, Any] = {
             "total_events": len(recent_events),
             "events_by_type": {},
             "events_by_hour": {},
@@ -317,18 +316,16 @@ class SecurityAlertManager:
         }
 
         # Count events by type
+        events_by_type: dict[str, int] = stats["events_by_type"]  # type: ignore
         for event in recent_events:
             event_type = event["event_type"].value
-            stats["events_by_type"][event_type] = (
-                stats["events_by_type"].get(event_type, 0) + 1
-            )
+            events_by_type[event_type] = events_by_type.get(event_type, 0) + 1
 
         # Count events by hour
+        events_by_hour: dict[str, int] = stats["events_by_hour"]  # type: ignore
         for event in recent_events:
             hour_key = event["timestamp"].strftime("%Y-%m-%d %H:00")
-            stats["events_by_hour"][hour_key] = (
-                stats["events_by_hour"].get(hour_key, 0) + 1
-            )
+            events_by_hour[hour_key] = events_by_hour.get(hour_key, 0) + 1
 
         return stats
 

@@ -7,8 +7,18 @@ Implements entropy-based and context-aware pattern detection for identifying sec
 import re
 from dataclasses import dataclass
 from enum import Enum
+from typing import TypedDict
 
 from ..utils.entropy import EntropyCalculator
+
+
+class PatternConfig(TypedDict, total=False):
+    """Configuration for secret pattern detection"""
+
+    pattern: str
+    confidence: float
+    replacement: str
+    context_required: list[str]
 
 
 class SecretType(Enum):
@@ -47,6 +57,7 @@ class EntropyDetector:
     def __init__(
         self, min_entropy: float = 4.5, min_length: int = 20, max_length: int = 200
     ):
+        """Initialize the instance."""
         self.min_entropy = min_entropy
         self.min_length = min_length
         self.max_length = max_length
@@ -156,7 +167,7 @@ class EntropyDetector:
 class ContextAwareDetector:
     """Context-aware pattern detection for provider-specific secrets"""
 
-    PROVIDER_PATTERNS = {
+    PROVIDER_PATTERNS: dict[SecretType, PatternConfig] = {
         SecretType.AWS_ACCESS_KEY: {
             "pattern": r"AKIA[0-9A-Z]{16}",
             "confidence": 0.95,
@@ -199,18 +210,25 @@ class ContextAwareDetector:
             "replacement": "<REDACTED_PHONE>",
         },
         SecretType.CREDIT_CARD: {
-            "pattern": r"\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3[0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b",
+            "pattern": (
+                r"\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|"
+                r"3[0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b"
+            ),
             "confidence": 0.9,
             "replacement": "<REDACTED_CREDIT_CARD>",
         },
         SecretType.GENERIC_API_KEY: {
-            "pattern": r'[Aa][Pp][Ii][-_]?[Kk][Ee][Yy][\s]*[:=][\s]*["\']?([A-Za-z0-9_\-]{20,})["\']?',
+            "pattern": (
+                r"[Aa][Pp][Ii][-_]?[Kk][Ee][Yy][\s]*[:=][\s]*"
+                r'["\']?([A-Za-z0-9_\-]{20,})["\']?'
+            ),
             "confidence": 0.7,
             "replacement": "<REDACTED_API_KEY>",
         },
     }
 
     def __init__(self):
+        """Initialize the instance."""
         self.compiled_patterns = {}
         self._compile_patterns()
 
@@ -276,6 +294,7 @@ class CombinedSecretDetector:
     """Combined detector using both entropy and pattern-based detection"""
 
     def __init__(self, min_entropy: float = 4.5, min_length: int = 20):
+        """Initialize the instance."""
         self.entropy_detector = EntropyDetector(min_entropy, min_length)
         self.pattern_detector = ContextAwareDetector()
 
@@ -310,7 +329,7 @@ class CombinedSecretDetector:
         # Sort by confidence (descending) then by position
         matches.sort(key=lambda m: (-m.confidence, m.start_pos))
 
-        deduplicated = []
+        deduplicated: list[SecretMatch] = []
         for match in matches:
             # Check if this match overlaps with any existing match
             overlaps = False
