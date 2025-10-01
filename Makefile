@@ -1,8 +1,116 @@
-# Makefile for ninaivalaigal stack (Apple container)
+# Makefile for ninaivalaigal stack
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws-vm deploy-gcp-vm deploy-azure-vm deploy-aws deploy-gcp deploy-azure k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local nina-stack-up nina-stack-down nina-stack-status nina-db-only environment-health smoke-tests lint-enhanced pre-commit-install pre-commit-run environment-recovery
+.PHONY: docker-dev-up docker-dev-down colima-dev-up colima-dev-down apple-dev-up apple-dev-down docker-test-up docker-test-down colima-test-up colima-test-down apple-test-up apple-test-down docker-prod-up docker-prod-down colima-prod-up colima-prod-down apple-prod-up apple-prod-down health logs stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws-vm deploy-gcp-vm deploy-azure-vm deploy-aws deploy-gcp deploy-azure k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local nina-stack-up nina-stack-down nina-stack-status nina-db-only environment-health smoke-tests lint-enhanced pre-commit-install pre-commit-run environment-recovery
+
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🚀 QUICK START COMMANDS (Colleague-Friendly)
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## Docker Development Environment
+docker-dev-up:
+	@echo "🐳 Starting Docker dev environment (ports: 5432, 6379, 13370, 8081)..."
+	@NINA_ENV=dev docker-compose -f compose.docker.yml up -d
+	@echo "✅ Docker dev is running! API: http://localhost:13370/docs"
+
+docker-dev-down:
+	@echo "🛑 Stopping Docker dev environment..."
+	@NINA_ENV=dev docker-compose -f compose.docker.yml down
+
+## Colima Development Environment
+colima-dev-up:
+	@echo "🦙 Starting Colima dev environment (ports: 5442, 6389, 13380, 8091)..."
+	@NINA_ENV=dev docker-compose -f compose.colima.yml up -d
+	@echo "✅ Colima dev is running! API: http://localhost:13380/docs"
+
+colima-dev-down:
+	@echo "🛑 Stopping Colima dev environment..."
+	@NINA_ENV=dev docker-compose -f compose.colima.yml down
+
+## Apple Container CLI Development Environment
+apple-dev-up:
+	@echo "🍎 Starting Apple CLI dev environment (ports: 5452, 6399, 13390, 8101)..."
+	@NINA_ENV=dev docker-compose -f compose.apple.yml up -d
+	@echo "✅ Apple CLI dev is running! API: http://localhost:13390/docs"
+
+apple-dev-down:
+	@echo "🛑 Stopping Apple CLI dev environment..."
+	@NINA_ENV=dev docker-compose -f compose.apple.yml down
+
+## Docker Test Environment
+docker-test-up:
+	@echo "🐳 Starting Docker test environment (ports: 5532, 6479, 13470)..."
+	@NINA_ENV=test POSTGRES_PORT=5532 REDIS_PORT=6479 API_PORT=13470 docker-compose -f compose.docker.yml up -d
+	@echo "✅ Docker test is running! API: http://localhost:13470/health"
+
+docker-test-down:
+	@echo "🛑 Stopping Docker test environment..."
+	@NINA_ENV=test docker-compose -f compose.docker.yml down
+
+## Colima Test Environment
+colima-test-up:
+	@echo "🦙 Starting Colima test environment (ports: 5542, 6489, 13480)..."
+	@NINA_ENV=test POSTGRES_PORT=5542 REDIS_PORT=6489 API_PORT=13480 docker-compose -f compose.colima.yml up -d
+	@echo "✅ Colima test is running! API: http://localhost:13480/health"
+
+colima-test-down:
+	@echo "🛑 Stopping Colima test environment..."
+	@NINA_ENV=test docker-compose -f compose.colima.yml down
+
+## Apple Container CLI Test Environment
+apple-test-up:
+	@echo "🍎 Starting Apple CLI test environment (ports: 5552, 6499, 13490)..."
+	@NINA_ENV=test POSTGRES_PORT=5552 REDIS_PORT=6499 API_PORT=13490 docker-compose -f compose.apple.yml up -d
+	@echo "✅ Apple CLI test is running! API: http://localhost:13490/health"
+
+apple-test-down:
+	@echo "🛑 Stopping Apple CLI test environment..."
+	@NINA_ENV=test docker-compose -f compose.apple.yml down
+
+## Docker Production Environment
+docker-prod-up:
+	@echo "🐳 Starting Docker prod environment (ports: 5632, 6579, 13570)..."
+	@NINA_ENV=prod POSTGRES_PORT=5632 REDIS_PORT=6579 API_PORT=13570 docker-compose -f compose.docker.yml up -d
+	@echo "✅ Docker prod is running! API: http://localhost:13570/health"
+
+docker-prod-down:
+	@echo "🛑 Stopping Docker prod environment..."
+	@NINA_ENV=prod docker-compose -f compose.docker.yml down
+
+## Colima Production Environment
+colima-prod-up:
+	@echo "🦙 Starting Colima prod environment (ports: 5642, 6589, 13580)..."
+	@NINA_ENV=prod POSTGRES_PORT=5642 REDIS_PORT=6589 API_PORT=13580 docker-compose -f compose.colima.yml up -d
+	@echo "✅ Colima prod is running! API: http://localhost:13580/health"
+
+colima-prod-down:
+	@echo "🛑 Stopping Colima prod environment..."
+	@NINA_ENV=prod docker-compose -f compose.colima.yml down
+
+## Apple Container CLI Production Environment
+apple-prod-up:
+	@echo "🍎 Starting Apple CLI prod environment (ports: 5652, 6599, 13590)..."
+	@NINA_ENV=prod POSTGRES_PORT=5652 REDIS_PORT=6599 API_PORT=13590 docker-compose -f compose.apple.yml up -d
+	@echo "✅ Apple CLI prod is running! API: http://localhost:13590/health"
+
+apple-prod-down:
+	@echo "🛑 Stopping Apple CLI prod environment..."
+	@NINA_ENV=prod docker-compose -f compose.apple.yml down
+
+## Quick health check for all running containers
+health:
+	@echo "🏥 Checking health of all services..."
+	@docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep ninaivalaigal || echo "No ninaivalaigal containers running"
+
+## View logs from all running containers
+logs:
+	@echo "📋 Showing logs from all ninaivalaigal containers..."
+	@docker ps --filter "name=ninaivalaigal" --format "{{.Names}}" | xargs -I {} sh -c 'echo "=== {} ===" && docker logs --tail=20 {}'
+
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📚 LEGACY COMMANDS (Apple Container CLI specific)
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## start full stack: DB → Redis → PgBouncer → eM → API → UI
 stack-up:
