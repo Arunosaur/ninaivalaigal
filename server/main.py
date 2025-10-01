@@ -280,20 +280,64 @@ def get_user_role_from_request(request: Request) -> Role | None:
     """
     Extract user role from request context.
 
+    Tries multiple sources in order:
+    1. RBAC context (if middleware set it)
+    2. JWT token from Authorization header
+    3. Development mode fallback (SYSTEM role)
+
     Returns:
         User's RBAC role, or None if unauthenticated
     """
-    # Check if RBAC context is available
+    # Method 1: Check if RBAC context is available (set by middleware)
     if hasattr(request.state, "rbac_context"):
         rbac_context = request.state.rbac_context
         if hasattr(rbac_context, "role"):
             return rbac_context.role
 
-    # TODO: Add JWT/session-based role extraction here
-    # For now, return SYSTEM role in development for testing
+    # Method 2: Extract from JWT token in Authorization header
+    auth_header = request.headers.get("authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        try:
+            import jwt
+            from auth import JWT_ALGORITHM, JWT_SECRET
+
+            # Decode JWT token
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+
+            # Extract role from token
+            # Token can have either 'role' (string) or 'roles' (dict)
+            if "role" in payload:
+                role_str = payload["role"]
+                # Convert string to Role enum
+                try:
+                    return Role[role_str.upper()]
+                except (KeyError, AttributeError):
+                    logger.warning(f"Invalid role in JWT: {role_str}")
+
+            elif "roles" in payload:
+                # Handle roles dict format: {"global": "MEMBER", "teams": {...}}
+                roles_dict = payload["roles"]
+                if isinstance(roles_dict, dict) and "global" in roles_dict:
+                    role_str = roles_dict["global"]
+                    try:
+                        return Role[role_str.upper()]
+                    except (KeyError, AttributeError):
+                        logger.warning(f"Invalid global role in JWT: {role_str}")
+
+        except jwt.ExpiredSignatureError:
+            logger.warning("JWT token expired")
+        except jwt.InvalidTokenError as e:
+            logger.warning(f"Invalid JWT token: {e}")
+        except Exception as e:
+            logger.error(f"Error extracting role from JWT: {e}")
+
+    # Method 3: Development mode fallback
+    # In development, allow unauthenticated access with SYSTEM role for testing
     if os.getenv("ENVIRONMENT", "production").lower() == "development":
         return Role.SYSTEM
 
+    # No authentication found
     return None
 
 

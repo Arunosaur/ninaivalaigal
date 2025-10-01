@@ -22,11 +22,13 @@ from pydantic import BaseModel, Field
 
 logger = structlog.get_logger(__name__)
 
-router = APIRouter(prefix="/health", tags=["memory-health"])
+router = APIRouter(prefix="/health", tags=["health"])
 
 
 # Request/Response models
 class MemoryHealthResponse(BaseModel):
+    """Response model for memory health analysis."""
+
     memory_id: str
     user_id: int
     health_status: str
@@ -42,6 +44,8 @@ class MemoryHealthResponse(BaseModel):
 
 
 class OrphanedTokenResponse(BaseModel):
+    """Response model for orphaned token information."""
+
     token_id: str
     user_id: int
     last_accessed: datetime | None
@@ -53,6 +57,8 @@ class OrphanedTokenResponse(BaseModel):
 
 
 class SystemHealthReportResponse(BaseModel):
+    """Response model for system-wide health report."""
+
     report_id: str
     generated_at: datetime
     total_memories: int
@@ -68,6 +74,8 @@ class SystemHealthReportResponse(BaseModel):
 
 
 class HealthSummaryResponse(BaseModel):
+    """Response model for health summary."""
+
     user_id: int
     total_memories: int
     health_distribution: dict[str, int]
@@ -79,6 +87,8 @@ class HealthSummaryResponse(BaseModel):
 
 
 class CleanupRecommendationRequest(BaseModel):
+    """Request model for cleanup recommendations."""
+
     memory_ids: list[str]
     cleanup_type: str = Field(..., description="archive, delete, or review")
     confirm_action: bool = Field(False, description="Confirm the cleanup action")
@@ -384,10 +394,7 @@ async def get_health_metrics(
 
 def _determine_cleanup_action(health_metrics: MemoryHealthMetrics) -> str:
     """Determine recommended cleanup action based on health metrics"""
-
-    if health_metrics.health_status == HealthStatus.ORPHANED:
-        return "delete"
-    elif health_metrics.health_status == HealthStatus.CRITICAL:
+    if health_metrics.health_status == HealthStatus.CRITICAL:
         if health_metrics.quality_score < 0.1:
             return "delete"
         else:
@@ -400,7 +407,6 @@ def _determine_cleanup_action(health_metrics: MemoryHealthMetrics) -> str:
 
 def _assess_cleanup_impact(health_metrics: MemoryHealthMetrics) -> str:
     """Assess the impact of cleaning up a memory"""
-
     if health_metrics.access_frequency == 0:
         return "low_impact"
     elif health_metrics.access_frequency < 3:
