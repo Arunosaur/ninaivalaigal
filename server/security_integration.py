@@ -8,11 +8,14 @@ import os
 
 from fastapi import FastAPI, Request
 from rbac_middleware import RBACContext
-from security import RedactionEngine, RedactionMiddleware, SecurityHeadersMiddleware
+from security import RedactionEngine, SecurityHeadersMiddleware
 from security.audit import SecurityEventType, security_alert_manager
 from security.middleware import EnhancedRateLimiter
 from security.middleware.rate_limiting import RateLimitMiddleware
 from security.redaction.config import ContextSensitivity, redaction_config
+
+# RedactionMiddleware temporarily disabled - causes response body consumption
+# from security import RedactionMiddleware
 
 
 class SecurityManager:
@@ -40,8 +43,8 @@ class SecurityManager:
         # Add rate limiting middleware
         app.add_middleware(RateLimitMiddleware, rate_limiter=self.rate_limiter)
 
-        # Add redaction middleware
-        app.add_middleware(RedactionMiddleware, enabled=redaction_config.enabled)
+        # Add redaction middleware (disabled for now - causing response body issues)
+        # app.add_middleware(RedactionMiddleware, enabled=redaction_config.enabled)
 
         # Add security event handlers
         self._add_security_event_handlers(app)
