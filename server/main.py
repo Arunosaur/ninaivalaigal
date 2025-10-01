@@ -107,7 +107,10 @@ async def enforce_content_length(request: Request, call_next):
 
 
 # Configure security
-configure_security(app)
+import os
+
+is_development = os.getenv("ENVIRONMENT", "production").lower() == "development"
+configure_security(app, development_mode=is_development)
 
 
 @app.on_event("startup")
