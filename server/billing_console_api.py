@@ -10,23 +10,20 @@ from uuid import UUID
 
 import stripe
 from auth import get_current_user, get_db
-from database import Organization, Team, User
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from models.standalone_teams import (
-    StandaloneTeamManager,
-    TeamMembership,
-    TeamUpgradeHistory,
-)
-from pydantic import BaseModel, EmailStr, validator
-from rbac_middleware import require_permission
-from sqlalchemy import and_, desc, func
+from database import User
+from fastapi import APIRouter, Depends, HTTPException
+from models.standalone_teams import StandaloneTeamManager, TeamMembership
+from pydantic import BaseModel, EmailStr
+
+# from rbac_middleware import require_permission
+# from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
 
 # Initialize Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "sk_test_...")
 
 # Initialize router
-router = APIRouter(prefix="/billing", tags=["billing-console"])
+router = APIRouter(prefix="/billing", tags=["billing"])
 
 
 # Pydantic Models
@@ -228,7 +225,10 @@ def get_upgrade_recommendations(
                 {
                     "type": "member_limit",
                     "title": "Team Growing Fast!",
-                    "message": f"You have {usage.members_count}/5 members. Upgrade to Team Pro for up to 20 members.",
+                    "message": (
+                        f"You have {usage.members_count}/5 members. "
+                        "Upgrade to Team Pro for up to 20 members."
+                    ),
                     "cta": "Upgrade to Team Pro",
                 }
             )
@@ -238,7 +238,10 @@ def get_upgrade_recommendations(
                 {
                     "type": "usage_limit",
                     "title": "High AI Usage",
-                    "message": f"You've used {usage.ai_queries_count}/100 AI queries. Upgrade for unlimited queries.",
+                    "message": (
+                        f"You've used {usage.ai_queries_count}/100 AI queries. "
+                        "Upgrade for unlimited queries."
+                    ),
                     "cta": "Get Unlimited AI",
                 }
             )
@@ -249,7 +252,10 @@ def get_upgrade_recommendations(
                 {
                     "type": "member_limit",
                     "title": "Scaling Beyond Team Pro",
-                    "message": f"You have {usage.members_count}/20 members. Consider Team Enterprise for 50 members.",
+                    "message": (
+                        f"You have {usage.members_count}/20 members. "
+                        "Consider Team Enterprise for 50 members."
+                    ),
                     "cta": "Upgrade to Enterprise",
                 }
             )
@@ -259,7 +265,10 @@ def get_upgrade_recommendations(
                 {
                     "type": "storage_limit",
                     "title": "Storage Almost Full",
-                    "message": f"You're using {usage.storage_used_gb:.1f}/10GB storage. Enterprise offers unlimited storage.",
+                    "message": (
+                        f"You're using {usage.storage_used_gb:.1f}/10GB storage. "
+                        "Enterprise offers unlimited storage."
+                    ),
                     "cta": "Get Unlimited Storage",
                 }
             )
@@ -270,7 +279,10 @@ def get_upgrade_recommendations(
                 {
                     "type": "organization_ready",
                     "title": "Ready for Organization Plan",
-                    "message": f"With {usage.members_count} members, you might benefit from Organization features.",
+                    "message": (
+                        f"With {usage.members_count} members, "
+                        "you might benefit from Organization features."
+                    ),
                     "cta": "Explore Organization Plan",
                 }
             )
@@ -290,9 +302,7 @@ async def get_billing_dashboard(
     team_manager: StandaloneTeamManager = Depends(get_team_manager),
     db: Session = Depends(get_db),
 ) -> BillingDashboardResponse:
-    """
-    Get comprehensive billing dashboard data for current user's team
-    """
+    """Get comprehensive billing dashboard data for current user's team"""
     # Get user's team
     user_team = team_manager.get_user_team(current_user.id, db)
     if not user_team:
@@ -345,9 +355,7 @@ async def create_subscription(
     team_manager: StandaloneTeamManager = Depends(get_team_manager),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Create a new subscription for the user's team
-    """
+    """Create a new subscription for the user's team"""
     # Get user's team
     user_team = team_manager.get_user_team(current_user.id, db)
     if not user_team:
@@ -427,9 +435,7 @@ async def update_subscription(
     team_manager: StandaloneTeamManager = Depends(get_team_manager),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Update existing subscription
-    """
+    """Update existing subscription"""
     # Get user's team
     user_team = team_manager.get_user_team(current_user.id, db)
     if not user_team:
@@ -456,9 +462,7 @@ async def cancel_subscription(
     team_manager: StandaloneTeamManager = Depends(get_team_manager),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Cancel current subscription
-    """
+    """Cancel current subscription"""
     # Get user's team
     user_team = team_manager.get_user_team(current_user.id, db)
     if not user_team:
@@ -495,9 +499,7 @@ async def get_team_usage(
     team_manager: StandaloneTeamManager = Depends(get_team_manager),
     db: Session = Depends(get_db),
 ) -> UsageMetrics:
-    """
-    Get detailed usage metrics for a team
-    """
+    """Get detailed usage metrics for a team"""
     # Verify user has access to this team
     membership = team_manager.get_team_membership(team_id, current_user.id, db)
     if not membership:
@@ -512,9 +514,7 @@ async def get_billing_history(
     team_manager: StandaloneTeamManager = Depends(get_team_manager),
     db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
-    """
-    Get billing history and invoices
-    """
+    """Get billing history and invoices"""
     # Get user's team
     user_team = team_manager.get_user_team(current_user.id, db)
     if not user_team:
@@ -538,9 +538,7 @@ async def get_billing_history(
 async def stripe_webhook(
     request: Dict[str, Any], db: Session = Depends(get_db)
 ) -> Dict[str, str]:
-    """
-    Handle Stripe webhooks for billing events
-    """
+    """Handle Stripe webhooks for billing events"""
     # In production, you would:
     # 1. Verify the webhook signature
     # 2. Handle different event types (payment_succeeded, subscription_updated, etc.)
@@ -566,9 +564,7 @@ async def stripe_webhook(
 
 # Helper function for upgrade recommendations in team dashboard
 def get_billing_upgrade_prompt(team_id: UUID, db: Session) -> Optional[Dict[str, Any]]:
-    """
-    Get upgrade prompt for team dashboard integration
-    """
+    """Get upgrade prompt for team dashboard integration"""
     usage = calculate_usage_metrics(team_id, db)
 
     # Determine current plan based on member count (simplified)
