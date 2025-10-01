@@ -21,7 +21,7 @@ docker-dev-down:
 ## Colima Development Environment
 colima-dev-up:
 	@echo "🦙 Starting Colima dev environment (ports: 5442, 6389, 13380, 8091)..."
-	@NINA_ENV=dev docker-compose -f compose.colima.yml up -d
+	@NINA_ENV=dev POSTGRES_PORT=5442 REDIS_PORT=6389 API_PORT=13380 UI_PORT=8091 docker-compose -f compose.colima.yml up -d
 	@echo "✅ Colima dev is running! API: http://localhost:13380/docs"
 
 colima-dev-down:
@@ -31,7 +31,7 @@ colima-dev-down:
 ## Apple Container CLI Development Environment
 apple-dev-up:
 	@echo "🍎 Starting Apple CLI dev environment (ports: 5452, 6399, 13390, 8101)..."
-	@NINA_ENV=dev docker-compose -f compose.apple.yml up -d
+	@NINA_ENV=dev POSTGRES_PORT=5452 REDIS_PORT=6399 API_PORT=13390 UI_PORT=8101 docker-compose -f compose.apple.yml up -d
 	@echo "✅ Apple CLI dev is running! API: http://localhost:13390/docs"
 
 apple-dev-down:
