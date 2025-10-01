@@ -14,20 +14,25 @@ from auth import (
     create_access_token,
     get_current_user,
 )
-from database import get_db
+
+# from database import get_db  # TODO: Uncomment when implementing database operations
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/auth", tags=["token-management"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 class TokenRegenerateResponse(BaseModel):
+    """Response model for token regeneration."""
+
     token: str
     expires_at: datetime
     message: str
 
 
 class UserSettings(BaseModel):
+    """User settings for token management."""
+
     auto_token_rotation: bool = False
     ip_restrictions: list[str] = []
 
@@ -68,7 +73,10 @@ async def regenerate_jwt_token(current_user: dict = Depends(get_current_user)):
         return TokenRegenerateResponse(
             token=new_token,
             expires_at=expires_at,
-            message="Token regenerated successfully. Please update your applications with the new token.",
+            message=(
+                "Token regenerated successfully. "
+                "Please update your applications with the new token."
+            ),
         )
 
     except Exception as e:
@@ -82,9 +90,7 @@ async def regenerate_jwt_token(current_user: dict = Depends(get_current_user)):
 async def list_api_keys(current_user: dict = Depends(get_current_user)):
     """List all API keys for the current user"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
-
+        # TODO: Implement with get_db() and user_id
         # TODO: Implement actual database query
         # For now, return sample data
         sample_keys = [
@@ -123,8 +129,8 @@ async def create_api_key(
 ):
     """Create a new API key for the current user"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
+        # db = get_db()  # TODO: Implement database operations
+        # user_id = current_user.get("user_id")  # TODO: Use for database queries
 
         # Generate secure API key
         key_id = f"nv_{secrets.token_urlsafe(16)}"
@@ -161,9 +167,7 @@ async def create_api_key(
 async def revoke_api_key(key_id: str, current_user: dict = Depends(get_current_user)):
     """Revoke an API key"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
-
+        # TODO: Implement with get_db() and user_id
         # TODO: Implement actual database deletion/deactivation
         # For now, just return success
 
@@ -180,9 +184,7 @@ async def revoke_api_key(key_id: str, current_user: dict = Depends(get_current_u
 async def get_token_usage(current_user: dict = Depends(get_current_user)):
     """Get token usage analytics for the current user"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
-
+        # TODO: Implement with get_db() and user_id
         # TODO: Implement actual usage tracking from database
         # For now, return sample data
         sample_usage = TokenUsage(
@@ -225,9 +227,7 @@ async def update_user_settings(
 ):
     """Update user security settings"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
-
+        # TODO: Implement with get_db() and user_id
         # TODO: Implement actual settings storage in database
         # For now, just return success
 
@@ -244,9 +244,7 @@ async def update_user_settings(
 async def revoke_all_tokens(current_user: dict = Depends(get_current_user)):
     """Revoke all tokens and API keys for the current user"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
-
+        # TODO: Implement with get_db() and user_id
         # TODO: Implement actual token/API key revocation in database
         # This should:
         # 1. Add current JWT to blacklist
