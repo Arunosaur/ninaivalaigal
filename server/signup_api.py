@@ -28,7 +28,7 @@ from database import Organization, OrganizationRegistration, User, UserInvitatio
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 # Initialize router
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 # Database helper
@@ -356,7 +356,6 @@ async def accept_invitation(
                 raise HTTPException(status_code=400, detail="Invitation has expired")
 
             # Create user account
-            password_hash = hash_password(user_data["password"])
             try:
                 # Create user in database
                 user = db.create_user(
@@ -366,6 +365,9 @@ async def accept_invitation(
                     password=user_data["password"],
                     account_type="team_member",
                 )
+
+                # Generate verification token for email confirmation
+                verification_token = generate_verification_token()
 
                 # Create default role assignment
                 from rbac_models import RoleAssignment
@@ -410,21 +412,23 @@ async def accept_invitation(
 
             # Send verification email
             background_tasks.add_task(
-                send_verification_email, new_user.email, verification_token
+                send_verification_email, user.email, verification_token
             )
 
             return {
                 "success": True,
                 "message": "Invitation accepted successfully",
-                "user_id": new_user.id,
+                "user_id": user.id,
                 "organization_id": invitation.organization_id,
                 "teams": [invitation.team_id] if invitation.team_id else [],
                 "jwt_token": jwt_token,
                 "context_access": {
                     "personal": ["personal-contexts"],
-                    "team": [f"team-{invitation.team_id}-contexts"]
-                    if invitation.team_id
-                    else [],
+                    "team": (
+                        [f"team-{invitation.team_id}-contexts"]
+                        if invitation.team_id
+                        else []
+                    ),
                     "organization": ["org-wide-contexts"],
                 },
             }
@@ -447,9 +451,7 @@ async def accept_invitation(
 async def get_current_user_info(
     current_user: User = Depends(lambda: None),  # TODO: Add proper auth dependency
 ) -> dict[str, Any]:
-    """
-    Get current user information and context access
-    """
+    """Get current user information and context access."""
     try:
         # TODO: Implement with proper authentication
         return {
