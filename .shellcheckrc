@@ -1,0 +1,11 @@
+# Developer convenience - suppress common warnings locally
+# CI runs with strict mode (no disables) for bulletproof standards
+
+# Disable warnings for unused variables (often used for color codes)
+disable=SC2034
+
+# Disable warnings for declare and assign separately
+disable=SC2155
+
+# Disable info about double quoting
+disable=SC2086

@@ -1,0 +1,79 @@
+name: ShellCheck Strict
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**.sh'
+      - 'scripts/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.sh'
+      - 'scripts/**'
+
+jobs:
+  shellcheck-strict:
+    name: ShellCheck (Strict Mode - No Disables)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck in strict mode
+        run: |
+          # Install shellcheck
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+          echo "🔍 Running ShellCheck in STRICT MODE (no .shellcheckrc)"
+          echo "This enforces bulletproof shell script standards in CI"
+          echo ""
+
+          # Find all shell scripts
+          SCRIPTS=$(find . -type f -name "*.sh" -not -path "./.git/*" -not -path "./venv/*" -not -path "./.venv/*")
+
+          if [ -z "$SCRIPTS" ]; then
+            echo "No shell scripts found"
+            exit 0
+          fi
+
+          # Run shellcheck WITHOUT .shellcheckrc (strict mode)
+          FAILED=0
+          for script in $SCRIPTS; do
+            echo "Checking: $script"
+            if ! shellcheck --exclude=.shellcheckrc "$script"; then
+              FAILED=1
+              echo "❌ FAILED: $script"
+            else
+              echo "✅ PASSED: $script"
+            fi
+            echo ""
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "❌ ShellCheck STRICT MODE FAILED"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            echo "Some shell scripts have issues that need fixing."
+            echo ""
+            echo "Local development uses .shellcheckrc for convenience,"
+            echo "but CI enforces strict standards for production quality."
+            echo ""
+            echo "Fix the issues above before merging."
+            echo ""
+            exit 1
+          fi
+
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ All shell scripts passed ShellCheck STRICT MODE"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: Report results
+        if: failure()
+        run: |
+          echo "::error::ShellCheck strict mode found issues. Please fix before merging."
