@@ -74,12 +74,14 @@ performance_monitor = get_performance_monitor()
 start_performance_monitoring()
 
 # Initialize FastAPI app
+# Disable default docs - we'll add protected, role-scoped docs below
 app = FastAPI(
     title="ninaivalaigal Memory Management API",
     description="Enterprise-grade AI memory management platform",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=None,  # Disabled - using protected endpoint
+    redoc_url=None,  # Disabled - using protected endpoint
+    openapi_url=None,  # Disabled - using protected endpoint
 )
 
 # Configure CORS
@@ -262,10 +264,91 @@ def custom_generate_unique_id(route: APIRoute):
 app.router.route_class.unique_id = custom_generate_unique_id
 
 
-# Custom OpenAPI endpoint to fix Content-Length issues
+# ============================================================================
+# PROTECTED DOCUMENTATION ENDPOINTS (Role-Scoped)
+# ============================================================================
+# These endpoints require authentication and filter docs based on user role
+# Prevents API reconnaissance and enforces defense-in-depth
+
+from fastapi.openapi.docs import get_swagger_ui_html
+from openapi_filter import get_endpoint_count, get_filtered_openapi
+
+from rbac.permissions import Role
+
+
+def get_user_role_from_request(request: Request) -> Role | None:
+    """
+    Extract user role from request context.
+
+    Returns:
+        User's RBAC role, or None if unauthenticated
+    """
+    # Check if RBAC context is available
+    if hasattr(request.state, "rbac_context"):
+        rbac_context = request.state.rbac_context
+        if hasattr(rbac_context, "role"):
+            return rbac_context.role
+
+    # TODO: Add JWT/session-based role extraction here
+    # For now, return SYSTEM role in development for testing
+    if os.getenv("ENVIRONMENT", "production").lower() == "development":
+        return Role.SYSTEM
+
+    return None
+
+
 @app.get("/openapi.json", include_in_schema=False)
-async def custom_openapi():
-    return JSONResponse(app.openapi())
+async def protected_openapi(request: Request):
+    """
+    Protected OpenAPI schema endpoint.
+
+    Returns filtered schema based on user's role/scope.
+    Unauthenticated users get empty schema.
+    """
+    user_role = get_user_role_from_request(request)
+
+    # Generate filtered schema
+    filtered_schema = get_filtered_openapi(
+        app=app,
+        role=user_role,
+        title=f"ninaivalaigal API ({user_role.name if user_role else 'Public'})",
+        version="1.0.0",
+    )
+
+    endpoint_count = get_endpoint_count(filtered_schema)
+    logger.info(
+        f"OpenAPI schema requested",
+        role=user_role.name if user_role else "unauthenticated",
+        endpoints_visible=endpoint_count,
+    )
+
+    return JSONResponse(filtered_schema)
+
+
+@app.get("/docs", include_in_schema=False)
+async def protected_docs(request: Request):
+    """
+    Protected Swagger UI documentation.
+
+    Requires authentication. Shows only endpoints user is allowed to call.
+    """
+    user_role = get_user_role_from_request(request)
+
+    if user_role is None:
+        # Unauthenticated - return 401 or redirect to login
+        return JSONResponse(
+            status_code=401,
+            content={
+                "detail": "Authentication required to view API documentation",
+                "hint": "Please sign in to access interactive API docs",
+            },
+        )
+
+    # Return Swagger UI with role-filtered OpenAPI
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json",
+        title=f"ninaivalaigal API Docs ({user_role.name})",
+    )
 
 
 # Root endpoint handled by API routers
