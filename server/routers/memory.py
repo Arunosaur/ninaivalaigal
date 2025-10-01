@@ -4,17 +4,34 @@ Extracted from main.py for better code organization
 """
 
 import json
+from typing import List
 
 from auth import get_current_user
 from database import DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from models.api_models import MemoryPayload
-from rbac.permissions import Action, Resource
+from pydantic import BaseModel
 from rbac_middleware import get_rbac_context, require_permission
 from security_integration import redact_text
 
+from rbac.permissions import Action, Resource
+
 # Initialize router
 router = APIRouter(prefix="/memory", tags=["memory"])
+
+
+# Request/Response models for tokenize endpoint
+class TokenizeRequest(BaseModel):
+    """Request model for memory tokenization"""
+
+    text: str
+
+
+class TokenizeResponse(BaseModel):
+    """Response model for memory tokenization"""
+
+    tokens: List[str]
+    count: int
 
 
 # Database manager dependency
@@ -178,3 +195,34 @@ async def record_interaction(
         raise HTTPException(
             status_code=500, detail=f"Failed to record interaction: {str(e)}"
         )
+
+
+@router.post("/tokenize", response_model=TokenizeResponse)
+async def tokenize_memory(request: TokenizeRequest):
+    """
+    Tokenize memory text for context injection.
+
+    This is a simple word-based tokenizer for MVP.
+    Future enhancements can integrate with proper NLP tokenizers (spaCy, NLTK, etc.)
+
+    Args:
+        request: TokenizeRequest with text to tokenize
+
+    Returns:
+        TokenizeResponse with tokens and count
+
+    Example:
+        POST /memory/tokenize
+        {"text": "Remember this important meeting"}
+
+        Response:
+        {"tokens": ["Remember", "this", "important", "meeting"], "count": 4}
+    """
+    try:
+        # Simple word-based tokenization (MVP)
+        # Split on whitespace and filter empty strings
+        tokens = [token.strip() for token in request.text.split() if token.strip()]
+
+        return TokenizeResponse(tokens=tokens, count=len(tokens))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Tokenization failed: {str(e)}")

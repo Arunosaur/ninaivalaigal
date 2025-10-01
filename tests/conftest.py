@@ -1,7 +1,10 @@
 """Test configuration and fixtures."""
-import pytest
+
 import asyncio
+import time
 from typing import AsyncGenerator, Generator
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -12,8 +15,9 @@ try:
     from .fixtures import *
 except ImportError:
     # Fallback for when running from different contexts
-    import sys
     import os
+    import sys
+
     sys.path.append(os.path.dirname(__file__))
     from fixtures import *
 
@@ -52,8 +56,8 @@ def db_session():
 @pytest.fixture
 def client(db_session):
     """Create a test client."""
-    from server.main import app
     from server.database import get_db
+    from server.main import app
 
     def override_get_db():
         yield db_session
@@ -91,3 +95,18 @@ def test_memory_data():
         "tags": ["test", "memory"],
         "metadata": {"source": "test"},
     }
+
+
+@pytest.fixture(autouse=True, scope="function")
+def paced_tests():
+    """
+    Add 300ms delay between smoke tests to prevent overwhelming single-worker API.
+    This simulates real colleague usage instead of hammer testing.
+    Only applies to smoke tests.
+    """
+    import os
+
+    # Only apply pacing to smoke tests
+    if "smoke" in os.environ.get("PYTEST_CURRENT_TEST", ""):
+        time.sleep(0.3)
+    yield

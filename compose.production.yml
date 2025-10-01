@@ -1,0 +1,120 @@
+version: '3.8'
+
+# Production Stack for Mac Studio - Centralized MCP Server
+# Colleagues access via Tailscale Funnel URL
+# No local setup required for colleagues
+
+services:
+  postgres:
+    image: postgres:15.8
+    container_name: ninaivalaigal-prod-db
+    environment:
+      POSTGRES_DB: ninaivalaigal_prod
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nina -d ninaivalaigal_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ninaivalaigal_prod_network
+
+  redis:
+    image: redis:7.4.0-alpine
+    container_name: ninaivalaigal-prod-redis
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
+    command: redis-server --requirepass ${NINA_REDIS_PASSWORD:-secure_nina_password} --maxmemory 2gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_prod_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${NINA_REDIS_PASSWORD:-secure_nina_password}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ninaivalaigal_prod_network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: ninaivalaigal-prod-api
+    command: ["python", "run_server.py"]
+    ports:
+      - "8000:8000"  # Internal port for Tailscale Funnel
+    environment:
+      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-secure_nina_password}@postgres:5432/ninaivalaigal_prod
+      NINAIVALAIGAL_JWT_SECRET: ${NINA_JWT_SECRET:-prod_jwt_secret_change_me}
+      NINAIVALAIGAL_DEBUG: "0"  # Production mode
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
+      REDIS_DB: 0
+      PYTHONPATH: /app/server
+      PORT: 8000
+      UVICORN_RELOAD: "0"
+      # Production settings
+      ENVIRONMENT: production
+      ALLOWED_HOSTS: "*"  # Tailscale Funnel will handle this
+      CORS_ORIGINS: "*"  # Configure based on your needs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./server:/app/server:ro
+      - ./backups:/app/backups:rw
+      - ./logs:/app/logs:rw
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - ninaivalaigal_prod_network
+
+  # MCP Server - Exposes memory management capabilities
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: ninaivalaigal-prod-mcp
+    ports:
+      - "3000:3000"  # MCP server port
+    environment:
+      API_URL: http://api:8000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
+      MCP_PORT: 3000
+      ENVIRONMENT: production
+    depends_on:
+      - api
+      - redis
+    restart: unless-stopped
+    networks:
+      - ninaivalaigal_prod_network
+
+volumes:
+  postgres_prod_data:
+    driver: local
+  redis_prod_data:
+    driver: local
+
+networks:
+  ninaivalaigal_prod_network:
+    driver: bridge

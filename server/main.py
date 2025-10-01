@@ -18,9 +18,10 @@ from auto_recording import get_auto_recorder
 # Configuration and core services
 from config import get_database_url, load_config
 from database import DatabaseManager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
 
 # Middleware and security
@@ -95,11 +96,12 @@ app.add_middleware(
 # app.middleware("http")(rbac_middleware)  # THIS WAS BLOCKING - NOT ASYNC!
 
 
-# Content-Length enforcement middleware to fix large response issues
+# Content-Length enforcement middleware - FIXED
 @app.middleware("http")
-async def enforce_content_length(request, call_next):
-    response = await call_next(request)
-    if hasattr(response, "body"):
+async def enforce_content_length(request: Request, call_next):
+    response: Response = await call_next(request)
+    # Only set Content-Length when body is present (skip streaming responses)
+    if hasattr(response, "body") and response.body:
         response.headers["Content-Length"] = str(len(response.body))
     return response
 
@@ -138,6 +140,14 @@ async def shutdown_event():
         logger.warning(f"Redis shutdown error: {e}")
 
 
+# Custom OpenAPI Fix - prevent Content-Length issues with large schema
+@app.get("/openapi.json", include_in_schema=False)
+async def custom_openapi():
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(app.openapi())
+
+
 # Include routers
 app.include_router(health_router)
 app.include_router(metrics_router)
@@ -160,6 +170,7 @@ from graph_usage_analytics import router as graph_usage_analytics_router
 from graph_validation_checklist import router as graph_validation_router
 from insights_api import router as insights_router
 from invoice_management_api import router as invoice_management_router
+from memory_health_api import router as memory_health_router
 from memory_injection_api import router as memory_injection_router
 from memory_suggestions_api import router as memory_suggestions_router
 from memory_system import router as memory_system_router
@@ -223,6 +234,7 @@ app.include_router(vendor_admin_router)
 app.include_router(ai_feedback_router)
 app.include_router(memory_suggestions_router)
 app.include_router(memory_injection_router)
+app.include_router(memory_health_router)
 app.include_router(standalone_teams_router)
 app.include_router(enhanced_signup_router)
 app.include_router(billing_console_router)
@@ -248,9 +260,17 @@ if os.path.exists(frontend_dir):
 
 
 # Frontend page routes
+# Custom route ID generator and OpenAPI fix
+def custom_generate_unique_id(route: APIRoute):
+    return f"{route.name}_{route.path}"
+
+
+app.router.route_class.unique_id = custom_generate_unique_id
+
+
 # Custom OpenAPI endpoint to fix Content-Length issues
 @app.get("/openapi.json", include_in_schema=False)
-async def get_openapi():
+async def custom_openapi():
     return JSONResponse(app.openapi())
 
 

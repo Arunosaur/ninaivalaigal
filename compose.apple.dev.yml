@@ -1,43 +1,51 @@
 version: '3.8'
 
+# Apple Container CLI - Development Environment
+# Optimized for M1/M2 Macs with native ARM performance
+# Usage: docker-compose -f compose.apple.dev.yml up -d
+
 services:
   postgres:
     image: postgres:15.8
     platform: linux/arm64
-    container_name: ninaivalaigal-apple-${NINA_ENV:-dev}-db
+    container_name: ninaivalaigal-apple-dev-db
     environment:
-      POSTGRES_DB: ninaivalaigal_${NINA_ENV:-dev}
+      POSTGRES_DB: ninaivalaigal_dev
       POSTGRES_USER: nina
       POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
       POSTGRES_HOST_AUTH_METHOD: md5
     ports:
-      - "${POSTGRES_PORT:-5452}:5432"
+      - "5452:5432"  # Apple/Dev port from matrix
     volumes:
-      - ./data/postgres_${NINA_ENV:-dev}:/var/lib/postgresql/data
+      - ./data/postgres_dev:/var/lib/postgresql/data  # Bind mount - shared with docker and colima
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nina -d ninaivalaigal_${NINA_ENV:-dev}"]
+      test: ["CMD-SHELL", "pg_isready -U nina -d ninaivalaigal_dev"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - ninaivalaigal_apple_dev_network
 
   redis:
     image: redis:7.4.0-alpine
     platform: linux/arm64
-    container_name: ninaivalaigal-apple-${NINA_ENV:-dev}-redis
+    container_name: ninaivalaigal-apple-dev-redis
     ports:
-      - "${REDIS_PORT:-6399}:6379"
+      - "6399:6379"  # Apple/Dev port from matrix
     environment:
       REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
     command: redis-server --requirepass ${NINA_REDIS_PASSWORD:-secure_nina_password} --maxmemory 1gb --maxmemory-policy allkeys-lru
     volumes:
-      - ./data/redis_${NINA_ENV:-dev}:/data
+      - ./data/redis_dev:/data  # Bind mount - shared with docker and colima
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${NINA_REDIS_PASSWORD:-secure_nina_password}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
     restart: unless-stopped
+    networks:
+      - ninaivalaigal_apple_dev_network
 
   api:
     build:
@@ -46,12 +54,12 @@ services:
       platforms:
         - linux/arm64
     platform: linux/arm64
-    container_name: ninaivalaigal-apple-${NINA_ENV:-dev}-api
+    container_name: ninaivalaigal-apple-dev-api
     command: ["python", "run_server.py"]
     ports:
-      - "${API_PORT:-13390}:8000"
+      - "13390:8000"  # Apple/Dev port from matrix
     environment:
-      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-secure_nina_password}@postgres:5432/ninaivalaigal_${NINA_ENV:-dev}
+      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-secure_nina_password}@postgres:5432/ninaivalaigal_dev
       NINAIVALAIGAL_JWT_SECRET: ${NINA_JWT_SECRET:-dev_jwt_secret}
       NINAIVALAIGAL_DEBUG: "1"
       REDIS_HOST: redis
@@ -75,6 +83,8 @@ services:
       timeout: 10s
       retries: 3
     restart: unless-stopped
+    networks:
+      - ninaivalaigal_apple_dev_network
 
   ui:
     build:
@@ -83,16 +93,20 @@ services:
       platforms:
         - linux/arm64
     platform: linux/arm64
-    container_name: ninaivalaigal-apple-${NINA_ENV:-dev}-ui
+    container_name: ninaivalaigal-apple-dev-ui
     ports:
-      - "${UI_PORT:-8101}:8081"
+      - "8101:8081"  # Apple/Dev port from matrix
     environment:
       NODE_ENV: development
-      VITE_API_URL: http://localhost:${API_PORT:-13390}
+      VITE_API_URL: http://localhost:13390
     depends_on:
       - api
     restart: unless-stopped
+    networks:
+      - ninaivalaigal_apple_dev_network
+
+# No volumes section needed - using bind mounts
 
 networks:
-  default:
-    name: ninaivalaigal_apple_${NINA_ENV:-dev}_network
+  ninaivalaigal_apple_dev_network:
+    driver: bridge

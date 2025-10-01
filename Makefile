@@ -2,7 +2,7 @@
 
 SCRIPTS := scripts
 
-.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws-vm deploy-gcp-vm deploy-azure-vm deploy-aws deploy-gcp deploy-azure k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local nina-stack-up nina-stack-down nina-stack-status nina-db-only
+.PHONY: stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui logs backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop health metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws-vm deploy-gcp-vm deploy-azure-vm deploy-aws deploy-gcp deploy-azure k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local nina-stack-up nina-stack-down nina-stack-status nina-db-only environment-health smoke-tests lint-enhanced pre-commit-install pre-commit-run environment-recovery
 
 ## start full stack: DB → Redis → PgBouncer → eM → API → UI
 stack-up:
@@ -1493,3 +1493,63 @@ frontend-setup: frontend-install frontend-validate
 	@echo "2. Open http://localhost:6006 to see Button component"
 	@echo "3. Use AI to generate new components based on Button pattern"
 	@echo "4. Run 'make frontend-quality' before committing"
+
+# ========================================
+# ENVIRONMENT VALIDATION & RECOVERY
+# ========================================
+
+## comprehensive environment health check
+environment-health:
+	@echo "Running comprehensive environment health check..."
+	@chmod +x scripts/environment-health-check.sh
+	@scripts/environment-health-check.sh
+
+## run smoke tests for critical infrastructure
+smoke-tests:
+	@echo "Running smoke tests with retry logic..."
+	@REDIS_PASSWORD=secure_nina_password python -m pytest tests/smoke/ -v --tb=short -k "not ui"
+
+## run enhanced linting with comprehensive checks
+lint-enhanced:
+	@echo "Running enhanced linting..."
+	@pre-commit run --all-files --config .pre-commit-config-enhanced.yaml
+
+## install pre-commit hooks
+pre-commit-install:
+	@echo "Installing pre-commit hooks..."
+	@pip install pre-commit
+	@pre-commit install --config .pre-commit-config-enhanced.yaml
+	@pre-commit install --hook-type commit-msg --config .pre-commit-config-enhanced.yaml
+
+## run pre-commit hooks manually
+pre-commit-run:
+	@echo "Running pre-commit hooks..."
+	@pre-commit run --all-files --config .pre-commit-config-enhanced.yaml
+
+## environment recovery - restart everything cleanly
+environment-recovery:
+	@echo "Performing environment recovery..."
+	@echo "1. Stopping all containers..."
+	@make stack-down || true
+	@echo "2. Cleaning up containers and volumes..."
+	@docker system prune -f || true
+	@echo "3. Starting fresh environment..."
+	@make stack-up
+	@echo "4. Running health check..."
+	@make environment-health
+	@echo "5. Running smoke tests..."
+	@make smoke-tests
+
+## validate environment before deployment
+validate-environment: environment-health smoke-tests
+	@echo "Environment validation complete!"
+
+## continuous environment monitoring (runs every 5 minutes)
+environment-monitor:
+	@echo "Starting continuous environment monitoring..."
+	@while true; do \
+		echo "=== Environment Check at $$(date) ==="; \
+		make environment-health || echo "Health check failed"; \
+		echo "Sleeping for 5 minutes..."; \
+		sleep 300; \
+	done

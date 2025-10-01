@@ -42,7 +42,7 @@ class RedisQueueManager:
                 # Fallback to individual components
                 host = os.getenv("REDIS_HOST", "localhost")
                 port = int(os.getenv("REDIS_PORT", "6379"))
-                password = os.getenv("REDIS_PASSWORD", "nina_redis_dev_password")
+                password = os.getenv("REDIS_PASSWORD", "secure_nina_password")
                 db = int(os.getenv("REDIS_DB", "0"))
 
                 self.redis_conn = redis.Redis(

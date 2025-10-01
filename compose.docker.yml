@@ -15,7 +15,7 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres_${NINA_ENV:-dev}:/var/lib/postgresql/data  # Bind mount - shared across runtimes
       - ./backups:/backups
       - ./scripts:/docker-entrypoint-initdb.d
     healthcheck:
@@ -31,12 +31,12 @@ services:
     ports:
       - "${REDIS_PORT:-6379}:6379"
     environment:
-      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-nina_redis_password}
-    command: redis-server --requirepass ${NINA_REDIS_PASSWORD:-nina_redis_password} --maxmemory 512mb --maxmemory-policy allkeys-lru
+      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
+    command: redis-server --requirepass ${NINA_REDIS_PASSWORD:-secure_nina_password} --maxmemory 512mb --maxmemory-policy allkeys-lru
     volumes:
-      - redis_data:/data
+      - ./data/redis_${NINA_ENV:-dev}:/data  # Bind mount - shared across runtimes
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${NINA_REDIS_PASSWORD:-secure_nina_password}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -47,15 +47,16 @@ services:
       context: .
       dockerfile: Dockerfile.api
     container_name: ninaivalaigal-${NINA_ENV:-dev}-api
+    command: ["python", "run_server.py"]
     ports:
-      - "${API_PORT:-8080}:8000"
+      - "13370:8000"
     environment:
       NINAIVALAIGAL_DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-secure_nina_password}@postgres:5432/ninaivalaigal_${NINA_ENV:-dev}
       NINAIVALAIGAL_JWT_SECRET: ${NINA_JWT_SECRET:-dev_jwt_secret}
       NINAIVALAIGAL_DEBUG: ${NINA_DEBUG:-1}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-nina_redis_password}
+      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
       REDIS_DB: 0
       PYTHONPATH: /app/server
       PORT: 8000
@@ -69,7 +70,7 @@ services:
       - ./server:/app/server:ro
       - ./backups:/app/backups:rw
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:13370/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -92,11 +93,7 @@ services:
       - api
     restart: unless-stopped
 
-volumes:
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local
+# No volumes section needed - using bind mounts
 
 networks:
   default:

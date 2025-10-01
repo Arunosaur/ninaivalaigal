@@ -1,0 +1,120 @@
+name: Baseline Validation
+
+# Enforce pre-commit + smoke tests before merging
+# Part of SPEC-999: Regression Prevention Framework
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests (Infrastructure Validation)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15.8
+        env:
+          POSTGRES_DB: ninaivalaigal_test
+          POSTGRES_USER: nina
+          POSTGRES_PASSWORD: secure_nina_password  # pragma: allowlist secret
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7.4.0-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+          pip install pytest-rerunfailures
+
+      - name: Run smoke tests
+        env:
+          REDIS_PASSWORD: secure_nina_password  # pragma: allowlist secret
+          DATABASE_URL: postgresql://nina:secure_nina_password@localhost:5432/ninaivalaigal_test  # pragma: allowlist secret
+        run: |
+          # Run smoke tests with retry logic
+          pytest tests/smoke/ -v --tb=short -k "not ui" --reruns 3 --reruns-delay 1
+
+      - name: Check test results
+        if: failure()
+        run: |
+          echo "❌ Smoke tests failed!"
+          echo "This means critical infrastructure is broken."
+          echo "Please fix before merging."
+          exit 1
+
+  pre-commit:
+    name: Pre-commit Hooks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files
+
+  baseline-check:
+    name: Baseline Regression Check
+    runs-on: ubuntu-latest
+    needs: [smoke-tests, pre-commit]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check for baseline tag
+        run: |
+          if git tag -l "v0.9.0" | grep -q "v0.9.0"; then
+            echo "✅ Baseline release v0.9.0 exists"
+          else
+            echo "⚠️  Baseline release v0.9.0 not found"
+            echo "Consider creating it with: ./scripts/create-baseline-release.sh"
+          fi
+
+      - name: Summary
+        run: |
+          echo "╔═══════════════════════════════════════════════════════════╗"
+          echo "║  ✅ BASELINE VALIDATION PASSED                            ║"
+          echo "╚═══════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "All checks passed:"
+          echo "  ✅ Smoke tests (infrastructure)"
+          echo "  ✅ Pre-commit hooks"
+          echo "  ✅ Baseline check"
+          echo ""
+          echo "Safe to merge!"

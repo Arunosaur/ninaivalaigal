@@ -29,6 +29,10 @@ mem0.config.json
 .env.production
 .env.staging
 
+# Data directories (bind mounts - shared across runtimes)
+data/postgres_*/
+data/redis_*/
+
 # Ignore server process file
 .server.pid
 

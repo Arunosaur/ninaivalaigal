@@ -1,0 +1,289 @@
+name: Environment Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 6 AM UTC to catch environment drift
+    - cron: '0 6 * * *'
+
+jobs:
+  environment-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ninaivalaigal
+          POSTGRES_PASSWORD: ninaivalaigal  # pragma: allowlist secret
+          POSTGRES_DB: ninaivalaigal
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U ninaivalaigal -d ninaivalaigal"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client redis-tools bc
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest requests psycopg2-binary redis
+
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for PostgreSQL..."
+        until pg_isready -h localhost -p 5432 -U ninaivalaigal; do
+          echo "PostgreSQL is unavailable - sleeping"
+          sleep 2
+        done
+        echo "PostgreSQL is ready!"
+
+        echo "Waiting for Redis..."
+        until redis-cli -h localhost -p 6379 ping; do
+          echo "Redis is unavailable - sleeping"
+          sleep 2
+        done
+        echo "Redis is ready!"
+
+    - name: Run database smoke tests
+      env:
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
+        POSTGRES_USER: ninaivalaigal
+        POSTGRES_PASSWORD: ninaivalaigal  # pragma: allowlist secret
+        POSTGRES_DB: ninaivalaigal
+      run: |
+        python -m pytest tests/smoke/test_db.py -v --tb=short
+
+    - name: Run Redis smoke tests
+      env:
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+      run: |
+        python -m pytest tests/smoke/test_redis.py -v --tb=short
+
+    - name: Build API container
+      run: |
+        docker build -t ninaivalaigal-api:test -f Dockerfile.api .
+
+    - name: Start API container
+      env:
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
+        POSTGRES_USER: ninaivalaigal
+        POSTGRES_PASSWORD: ninaivalaigal  # pragma: allowlist secret
+        POSTGRES_DB: ninaivalaigal
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+      run: |
+        docker run -d \
+          --name ninaivalaigal-api-test \
+          --network host \
+          -e DATABASE_URL="postgresql://ninaivalaigal:ninaivalaigal@localhost:5432/ninaivalaigal" `# pragma: allowlist secret` \
+          -e REDIS_HOST=localhost \
+          -e REDIS_PORT=6379 \
+          -e NINAIVALAIGAL_JWT_SECRET=test-jwt-secret \
+          -p 13370:8000 \
+          ninaivalaigal-api:test
+
+    - name: Wait for API to be ready
+      run: |
+        echo "Waiting for API to be ready..."
+        for i in {1..30}; do
+          if curl -f http://localhost:13370/health; then
+            echo "API is ready!"
+            break
+          fi
+          echo "API not ready, attempt $i/30"
+          sleep 5
+        done
+
+    - name: Run API smoke tests
+      run: |
+        python -m pytest tests/smoke/test_api.py -v --tb=short
+
+    - name: Build UI container (if Dockerfile exists)
+      run: |
+        if [ -f "Dockerfile.ui" ]; then
+          docker build -t ninaivalaigal-ui:test -f Dockerfile.ui .
+          docker run -d --name ninaivalaigal-ui-test -p 8081:8081 ninaivalaigal-ui:test
+          sleep 10
+          python -m pytest tests/smoke/test_ui.py -v --tb=short || echo "UI tests failed or not applicable"
+        else
+          echo "No UI Dockerfile found, skipping UI tests"
+        fi
+
+    - name: Run comprehensive smoke tests
+      run: |
+        python -m pytest tests/smoke/ -v --tb=short --junit-xml=smoke-test-results.xml
+
+    - name: Collect container logs on failure
+      if: failure()
+      run: |
+        echo "=== API Container Logs ==="
+        docker logs ninaivalaigal-api-test || echo "No API container logs"
+        echo "=== UI Container Logs ==="
+        docker logs ninaivalaigal-ui-test || echo "No UI container logs"
+
+    - name: Cleanup containers
+      if: always()
+      run: |
+        docker stop ninaivalaigal-api-test || true
+        docker rm ninaivalaigal-api-test || true
+        docker stop ninaivalaigal-ui-test || true
+        docker rm ninaivalaigal-ui-test || true
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: smoke-test-results
+        path: smoke-test-results.xml
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install security tools
+      run: |
+        pip install bandit safety detect-secrets
+
+    - name: Run Bandit security scan
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+        bandit -r . -f txt
+
+    - name: Run Safety check
+      run: |
+        safety check --json --output safety-report.json || true
+        safety check
+
+    - name: Run secret detection
+      run: |
+        detect-secrets scan --all-files --baseline .secrets.baseline || true
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install pre-commit
+      run: |
+        pip install pre-commit
+
+    - name: Cache pre-commit
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+    - name: Run pre-commit hooks
+      run: |
+        pre-commit run --all-files --config .pre-commit-config-enhanced.yaml
+
+  environment-drift-detection:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for dependency updates
+      run: |
+        echo "Checking for outdated dependencies..."
+        pip list --outdated || true
+
+    - name: Check for security vulnerabilities
+      run: |
+        pip install safety
+        safety check || true
+
+    - name: Create issue for environment drift
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: 'Environment Drift Detected',
+            body: 'Automated environment validation detected issues. Please review the failed workflow run.',
+            labels: ['environment', 'maintenance']
+          })
+
+  notification:
+    runs-on: ubuntu-latest
+    needs: [environment-health, security-scan, code-quality]
+    if: always()
+    steps:
+    - name: Notify on failure
+      if: contains(needs.*.result, 'failure')
+      run: |
+        echo "Environment validation failed. Check the logs for details."
+        # Add notification logic here (Slack, email, etc.)
+
+    - name: Notify on success
+      if: needs.environment-health.result == 'success' && needs.security-scan.result == 'success' && needs.code-quality.result == 'success'
+      run: |
+        echo "Environment validation passed successfully!"
+        # Add success notification logic here

@@ -15,7 +15,7 @@ services:
     ports:
       - "${POSTGRES_PORT:-5442}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres_${NINA_ENV:-dev}:/var/lib/postgresql/data  # Bind mount - shared across runtimes
       - ./backups:/backups
       - ./scripts:/docker-entrypoint-initdb.d
     healthcheck:
@@ -34,7 +34,7 @@ services:
       REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-nina_redis_password}
     command: redis-server --requirepass ${NINA_REDIS_PASSWORD:-nina_redis_password} --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
-      - redis_data:/data
+      - ./data/redis_${NINA_ENV:-dev}:/data  # Bind mount - shared across runtimes
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
@@ -96,10 +96,13 @@ services:
       - api
     restart: unless-stopped
 
+# Volumes section
 volumes:
   postgres_data:
+    name: postgres_${NINA_ENV:-dev}_data  # Shared with docker and apple
     driver: local
   redis_data:
+    name: redis_${NINA_ENV:-dev}_data  # Shared with docker and apple
     driver: local
   api_cache:
     driver: local
