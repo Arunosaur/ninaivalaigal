@@ -66,6 +66,7 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
       REDIS_DB: 0
+      REDIS_URL: redis://:${NINA_REDIS_PASSWORD:-secure_nina_password}@redis:6379/0
       PYTHONPATH: /app/server
       PORT: 8000
       UVICORN_RELOAD: "0"
