@@ -8,7 +8,7 @@ import os
 import time
 from typing import Optional, Tuple
 
-import aioredis
+import redis.asyncio as aioredis
 from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -35,7 +35,7 @@ class RedisRateLimiterMiddleware(BaseHTTPMiddleware):
         if not self.redis:
             try:
                 redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
-                self.redis = await aioredis.from_url(
+                self.redis = aioredis.from_url(
                     redis_url, decode_responses=True
                 )
             except Exception as e:
