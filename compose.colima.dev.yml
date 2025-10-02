@@ -1,21 +1,21 @@
 version: '3.8'
 
-# Apple Container CLI - Development Environment
+# Colima/Docker - Development Environment
 # Optimized for M1/M2 Macs with native ARM performance
-# Usage: docker-compose -f compose.apple.dev.yml up -d
+# Usage: COMPOSE_PROJECT_NAME=ninaivalaigal-colima docker-compose -f compose.apple.dev.yml up -d
 
 services:
   postgres:
     image: postgres:15.8
     platform: linux/arm64
-    container_name: ninaivalaigal-apple-dev-db
+    container_name: ninaivalaigal-dev-db
     environment:
       POSTGRES_DB: ninaivalaigal_dev
       POSTGRES_USER: nina
       POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
       POSTGRES_HOST_AUTH_METHOD: md5
     ports:
-      - "5452:5432"  # Apple/Dev port from matrix
+      - "5432:5432"  # Dev environment shared database
     volumes:
       - ./data/postgres_dev:/var/lib/postgresql/data  # Bind mount - shared with docker and colima
     healthcheck:
@@ -30,9 +30,9 @@ services:
   redis:
     image: redis:7.4.0-alpine
     platform: linux/arm64
-    container_name: ninaivalaigal-apple-dev-redis
+    container_name: ninaivalaigal-dev-redis
     ports:
-      - "6399:6379"  # Apple/Dev port from matrix
+      - "6389:6379"  # Colima/Dev port (+10 offset)
     environment:
       REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
     command: redis-server --requirepass ${NINA_REDIS_PASSWORD:-secure_nina_password} --maxmemory 1gb --maxmemory-policy allkeys-lru
@@ -54,10 +54,10 @@ services:
       platforms:
         - linux/arm64
     platform: linux/arm64
-    container_name: ninaivalaigal-apple-dev-api
+    container_name: ninaivalaigal-dev-api
     command: ["python", "run_server.py"]
     ports:
-      - "13390:8000"  # Apple/Dev port from matrix
+      - "13380:8000"  # Colima/Dev port (+10 offset)
     environment:
       NINAIVALAIGAL_DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-secure_nina_password}@postgres:5432/ninaivalaigal_dev
       NINAIVALAIGAL_JWT_SECRET: ${NINA_JWT_SECRET:-dev_jwt_secret}
@@ -77,7 +77,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./server:/app/server:ro
+      - ./server:/app/server
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -94,12 +94,12 @@ services:
       platforms:
         - linux/arm64
     platform: linux/arm64
-    container_name: ninaivalaigal-apple-dev-ui
+    container_name: ninaivalaigal-dev-ui
     ports:
-      - "8101:8081"  # Apple/Dev port from matrix
+      - "8091:8081"  # Colima/Dev port (+10 offset)
     environment:
       NODE_ENV: development
-      VITE_API_URL: http://localhost:13390
+      VITE_API_URL: http://localhost:13380
     depends_on:
       - api
     restart: unless-stopped

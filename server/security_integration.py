@@ -12,6 +12,7 @@ from security import RedactionEngine, SecurityHeadersMiddleware
 from security.audit import SecurityEventType, security_alert_manager
 from security.middleware import EnhancedRateLimiter
 from security.middleware.rate_limiting import RateLimitMiddleware
+from security.middleware.redis_rate_limiter import RedisRateLimiterMiddleware
 from security.redaction.config import ContextSensitivity, redaction_config
 
 # RedactionMiddleware temporarily disabled - causes response body consumption
@@ -40,8 +41,8 @@ class SecurityManager:
         else:
             app.add_middleware(SecurityHeadersMiddleware)
 
-        # Add rate limiting middleware (temporarily disabled for admin console debugging)
-        # app.add_middleware(RateLimitMiddleware, rate_limiter=self.rate_limiter)
+        # Add Redis-backed rate limiting middleware (production-ready)
+        app.add_middleware(RedisRateLimiterMiddleware, limit=100, window=60)
 
         # Add redaction middleware (disabled for now - causing response body issues)
         # app.add_middleware(RedactionMiddleware, enabled=redaction_config.enabled)
