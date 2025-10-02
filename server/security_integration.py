@@ -40,8 +40,8 @@ class SecurityManager:
         else:
             app.add_middleware(SecurityHeadersMiddleware)
 
-        # Add rate limiting middleware
-        app.add_middleware(RateLimitMiddleware, rate_limiter=self.rate_limiter)
+        # Add rate limiting middleware (temporarily disabled for admin console debugging)
+        # app.add_middleware(RateLimitMiddleware, rate_limiter=self.rate_limiter)
 
         # Add redaction middleware (disabled for now - causing response body issues)
         # app.add_middleware(RedactionMiddleware, enabled=redaction_config.enabled)
