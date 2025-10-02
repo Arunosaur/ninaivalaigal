@@ -89,8 +89,8 @@ services:
 
   ui:
     build:
-      context: ./ui
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.ui
       platforms:
         - linux/arm64
     platform: linux/arm64
