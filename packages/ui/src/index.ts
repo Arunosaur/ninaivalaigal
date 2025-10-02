@@ -1,4 +1,4 @@
 // Shared UI components and design tokens
-// This will be populated with components from frontend/
-
-export {}
+export { Button, type ButtonProps } from './components/Button'
+export { Card, type CardProps } from './components/Card'
+export { Input, type InputProps } from './components/Input'
