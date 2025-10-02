@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:13370'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:13390'
 
 // Admin Analytics API client
 export const adminApi = {
