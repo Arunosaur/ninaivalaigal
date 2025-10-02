@@ -29,7 +29,7 @@ export default function Login() {
       <div className="max-w-md w-full">
         <div className="bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Nina Admin Console</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">Ninaivalaigal Admin Console</h1>
             <p className="text-gray-400">Platform Operations & Analytics</p>
           </div>
 

@@ -17,6 +17,22 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/admin-analytics", tags=["admin"])
 
 
+# Admin role check dependency
+async def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Verify user has admin role"""
+    # Check if user is admin (you can customize this based on your User model)
+    # Option 1: Check if user has is_admin flag
+    if hasattr(current_user, "is_admin") and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    # Option 2: Check if user email is in admin list (temporary solution)
+    admin_emails = ["admin@ninaivalaigal.com", "swami@ninaivalaigal.com"]
+    if current_user.email not in admin_emails:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    return current_user
+
+
 # Pydantic Models
 class PlatformMetrics(BaseModel):
     """High-level platform metrics"""
@@ -312,7 +328,7 @@ def generate_mock_user_engagement() -> UserEngagement:
 
 @router.get("/platform-overview")
 async def get_platform_overview(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
 ) -> PlatformMetrics:
     """Get high-level platform metrics overview"""
 
@@ -386,7 +402,7 @@ async def get_platform_overview(
 
 @router.get("/churn-analysis")
 async def get_churn_analysis(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
 ) -> ChurnAnalysis:
     """Get comprehensive churn analysis and early warning indicators"""
 
@@ -400,7 +416,7 @@ async def get_churn_analysis(
 
 @router.get("/revenue-cohorts")
 async def get_revenue_cohorts(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
 ) -> RevenueCohorts:
     """Get revenue cohort analysis and customer lifetime value metrics"""
 
@@ -414,7 +430,7 @@ async def get_revenue_cohorts(
 
 @router.get("/user-engagement")
 async def get_user_engagement(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
 ) -> UserEngagement:
     """Get user engagement and activity metrics"""
 
@@ -428,7 +444,7 @@ async def get_user_engagement(
 
 @router.get("/business-intelligence")
 async def get_business_intelligence(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
 ) -> BusinessIntelligence:
     """Get comprehensive business intelligence dashboard"""
 
@@ -518,7 +534,7 @@ async def get_business_intelligence(
 
 @router.get("/alerts")
 async def get_active_alerts(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ) -> List[Dict[str, Any]]:
     """Get active alerts and notifications"""
 
@@ -581,7 +597,7 @@ async def acknowledge_alert(
 async def export_analytics_csv(
     report_type: str = Query(..., description="Type of report to export"),
     date_range: str = Query("30d", description="Date range for export"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ) -> Dict[str, Any]:
     """Export analytics data as CSV"""
 
@@ -604,7 +620,7 @@ async def export_analytics_csv(
 
 @router.get("/real-time-metrics")
 async def get_real_time_metrics(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
 ) -> Dict[str, Any]:
     """Get real-time platform metrics for live dashboard"""
 

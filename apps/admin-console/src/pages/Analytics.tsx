@@ -71,7 +71,7 @@ export default function Analytics() {
       <header className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Nina Admin Console</h1>
+            <h1 className="text-2xl font-bold text-white">Ninaivalaigal Admin Console</h1>
             <nav className="flex space-x-4">
               <Link to="/analytics" className="text-blue-400 hover:text-blue-300 px-3 py-2 rounded-md text-sm font-medium">
                 Analytics
