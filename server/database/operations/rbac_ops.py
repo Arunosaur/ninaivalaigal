@@ -3,6 +3,8 @@ RBAC Operations
 Database operations for Role-Based Access Control and permissions
 """
 
+from uuid import UUID
+
 from ..manager import DatabaseManager
 from ..models import Context, ContextPermission, Organization, Team, User
 
@@ -11,7 +13,7 @@ class RBACOperations(DatabaseManager):
     """Role-Based Access Control database operations"""
 
     def share_context_with_user(
-        self, context_id: int, user_id: int, permission_level: str, granted_by: int
+        self, context_id: UUID, user_id: UUID, permission_level: str, granted_by: UUID
     ):
         """Share a context with a specific user"""
         session = self.get_session()
@@ -32,7 +34,7 @@ class RBACOperations(DatabaseManager):
             session.close()
 
     def share_context_with_team(
-        self, context_id: int, team_id: int, permission_level: str, granted_by: int
+        self, context_id: UUID, team_id: UUID, permission_level: str, granted_by: UUID
     ):
         """Share a context with a team"""
         session = self.get_session()
@@ -54,10 +56,10 @@ class RBACOperations(DatabaseManager):
 
     def share_context_with_organization(
         self,
-        context_id: int,
-        organization_id: int,
+        context_id: UUID,
+        organization_id: UUID,
         permission_level: str,
-        granted_by: int,
+        granted_by: UUID,
     ):
         """Share a context with an organization"""
         session = self.get_session()
@@ -78,7 +80,7 @@ class RBACOperations(DatabaseManager):
             session.close()
 
     def check_context_permission(
-        self, context_id: int, user_id: int, required_permission: str = "read"
+        self, context_id: UUID, user_id: UUID, required_permission: str = "read"
     ):
         """Check if a user has permission to access a context"""
         session = self.get_session()
@@ -148,7 +150,7 @@ class RBACOperations(DatabaseManager):
         finally:
             session.close()
 
-    def get_user_contexts(self, user_id: int):
+    def get_user_contexts(self, user_id: UUID):
         """Get all contexts a user can access"""
         session = self.get_session()
         try:
@@ -217,7 +219,7 @@ class RBACOperations(DatabaseManager):
             session.close()
 
     def _get_user_context_permission_level(
-        self, context_id: int, user_id: int, session
+        self, context_id: UUID, user_id: UUID, session
     ):
         """Get the highest permission level a user has for a context"""
         # Check if user owns the context
@@ -285,7 +287,7 @@ class RBACOperations(DatabaseManager):
         return max_permission
 
     def revoke_context_permission(
-        self, context_id: int, permission_id: int, user_id: int
+        self, context_id: UUID, permission_id: UUID, user_id: UUID
     ):
         """Revoke a specific context permission"""
         session = self.get_session()
@@ -312,7 +314,7 @@ class RBACOperations(DatabaseManager):
         finally:
             session.close()
 
-    def get_context_permissions(self, context_id: int, user_id: int):
+    def get_context_permissions(self, context_id: UUID, user_id: UUID):
         """Get all permissions for a context (if user has admin access)"""
         session = self.get_session()
         try:
@@ -387,7 +389,7 @@ class RBACOperations(DatabaseManager):
             session.close()
 
     def update_context_permission(
-        self, permission_id: int, new_permission_level: str, user_id: int
+        self, permission_id: UUID, new_permission_level: str, user_id: UUID
     ):
         """Update an existing context permission"""
         session = self.get_session()
@@ -418,7 +420,7 @@ class RBACOperations(DatabaseManager):
         finally:
             session.close()
 
-    def check_user_admin(self, user_id: int):
+    def check_user_admin(self, user_id: UUID):
         """Check if user is a system administrator"""
         session = self.get_session()
         try:
@@ -427,7 +429,7 @@ class RBACOperations(DatabaseManager):
         finally:
             session.close()
 
-    def get_user_permissions_summary(self, user_id: int):
+    def get_user_permissions_summary(self, user_id: UUID):
         """Get a summary of all permissions for a user"""
         session = self.get_session()
         try:
