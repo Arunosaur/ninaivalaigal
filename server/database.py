@@ -124,6 +124,12 @@ class Team(Base):
     members = relationship("TeamMember", back_populates="team")
     contexts = relationship("Context", back_populates="team")
     permissions = relationship("ContextPermission", back_populates="team")
+    invitations = relationship(
+        "TeamInvitation", back_populates="team", cascade="all, delete-orphan"
+    )
+    memberships = relationship(
+        "TeamMembership", back_populates="team", cascade="all, delete-orphan"
+    )
 
 
 class TeamMember(Base):
