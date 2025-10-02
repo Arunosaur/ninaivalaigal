@@ -15,6 +15,7 @@ from sqlalchemy.orm import relationship
 
 from rbac.permissions import Action, Resource, Role
 
+
 class RoleAssignment(Base):
     """Role assignments for users in different scopes"""
 
@@ -68,6 +69,7 @@ class PermissionAudit(Base):
         return f"<PermissionAudit(user_id={self.user_id}, action={self.action.name}, resource={self.resource.name}, allowed={self.allowed})>"
 
 
+class PermissionDelegation(Base):
     """Temporary permission delegations between users"""
 
     __tablename__ = "permission_delegations"
@@ -80,7 +82,34 @@ class PermissionAudit(Base):
     resource_id = Column(String(50), nullable=True)
     scope_type = Column(String(20), nullable=True)
     scope_id = Column(String(50), nullable=True)
-{{ ... }}
+    granted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    reason = Column(Text, nullable=True)
+
+    # Relationships
+    delegator = relationship("User", foreign_keys=[delegator_id])
+    delegate = relationship("User", foreign_keys=[delegate_id])
+
+    def get_actions(self):
+        """Get list of Action enums from stored string"""
+        if not self.actions:
+            return []
+        return [
+            Action[action.strip()]
+            for action in self.actions.split(",")
+            if action.strip()
+        ]
+
+    def set_actions(self, actions):
+        """Set actions from list of Action enums"""
+        self.actions = ",".join([action.name for action in actions])
+
+    def __repr__(self):
+        return f"<PermissionDelegation(delegator_id={self.delegator_id}, delegate_id={self.delegate_id}, resource={self.resource.name})>"
+
+
+class AccessRequest(Base):
     """Requests for elevated access or permissions"""
 
     __tablename__ = "access_requests"
@@ -103,7 +132,7 @@ class PermissionAudit(Base):
     expires_at = Column(DateTime, nullable=True)
 
     # Relationships
-{{ ... }}
+    requester = relationship("User", foreign_keys=[requester_id])
     reviewer = relationship("User", foreign_keys=[reviewed_by])
 
     def __repr__(self):
