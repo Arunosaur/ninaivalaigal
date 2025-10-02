@@ -78,6 +78,10 @@ class User(Base):
     user_permissions = relationship(
         "ContextPermission", foreign_keys="[ContextPermission.user_id]"
     )
+    
+    # RBAC relationships
+    role_assignments = relationship("RoleAssignment", foreign_keys="[RoleAssignment.user_id]", back_populates="user")
+    permission_audits = relationship("PermissionAudit", back_populates="user")
 
 
 class Memory(Base):
