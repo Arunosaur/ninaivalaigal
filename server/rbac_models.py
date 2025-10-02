@@ -9,24 +9,25 @@ from datetime import datetime
 from database import Base
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
 from sqlalchemy.orm import relationship
 
 from rbac.permissions import Action, Resource, Role
-
 
 class RoleAssignment(Base):
     """Role assignments for users in different scopes"""
 
     __tablename__ = "role_assignments"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     role = Column(SQLEnum(Role), nullable=False)
     scope_type = Column(
         String(20), nullable=False, index=True
     )  # 'global', 'org', 'team', 'context'
     scope_id = Column(String(50), nullable=True, index=True)  # ID of org/team/context
-    granted_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    granted_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     granted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False, index=True)
@@ -46,8 +47,8 @@ class PermissionAudit(Base):
 
     __tablename__ = "permission_audits"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     action = Column(SQLEnum(Action), nullable=False, index=True)
     resource = Column(SQLEnum(Resource), nullable=False, index=True)
     resource_id = Column(String(50), nullable=True, index=True)
@@ -67,53 +68,25 @@ class PermissionAudit(Base):
         return f"<PermissionAudit(user_id={self.user_id}, action={self.action.name}, resource={self.resource.name}, allowed={self.allowed})>"
 
 
-class PermissionDelegation(Base):
     """Temporary permission delegations between users"""
 
     __tablename__ = "permission_delegations"
 
-    id = Column(Integer, primary_key=True, index=True)
-    delegator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    delegate_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    delegator_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    delegate_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     resource = Column(SQLEnum(Resource), nullable=False)
     actions = Column(String(255), nullable=False)  # Comma-separated action names
     resource_id = Column(String(50), nullable=True)
     scope_type = Column(String(20), nullable=True)
     scope_id = Column(String(50), nullable=True)
-    granted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False, index=True)
-    reason = Column(Text, nullable=True)
-
-    # Relationships
-    delegator = relationship("User", foreign_keys=[delegator_id])
-    delegate = relationship("User", foreign_keys=[delegate_id])
-
-    def get_actions(self):
-        """Get list of Action enums from stored string"""
-        if not self.actions:
-            return []
-        return [
-            Action[action.strip()]
-            for action in self.actions.split(",")
-            if action.strip()
-        ]
-
-    def set_actions(self, actions):
-        """Set actions from list of Action enums"""
-        self.actions = ",".join([action.name for action in actions])
-
-    def __repr__(self):
-        return f"<PermissionDelegation(delegator_id={self.delegator_id}, delegate_id={self.delegate_id}, resource={self.resource.name})>"
-
-
-class AccessRequest(Base):
+{{ ... }}
     """Requests for elevated access or permissions"""
 
     __tablename__ = "access_requests"
 
-    id = Column(Integer, primary_key=True, index=True)
-    requester_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    requester_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     resource = Column(SQLEnum(Resource), nullable=False)
     action = Column(SQLEnum(Action), nullable=False)
     resource_id = Column(String(50), nullable=True)
@@ -124,13 +97,13 @@ class AccessRequest(Base):
     status = Column(
         String(20), default="pending", nullable=False, index=True
     )  # pending, approved, rejected
-    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     reviewed_at = Column(DateTime, nullable=True)
     review_reason = Column(Text, nullable=True)
     expires_at = Column(DateTime, nullable=True)
 
     # Relationships
-    requester = relationship("User", foreign_keys=[requester_id])
+{{ ... }}
     reviewer = relationship("User", foreign_keys=[reviewed_by])
 
     def __repr__(self):
