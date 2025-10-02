@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import adminApi from '../services/api'
+import authService from '../services/auth'
 
 interface PlatformMetrics {
   total_users: number
@@ -19,15 +20,31 @@ export default function Analytics() {
   const [metrics, setMetrics] = useState<PlatformMetrics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
+    // Check authentication
+    if (!authService.isAuthenticated()) {
+      navigate('/login')
+      return
+    }
+
     async function fetchMetrics() {
       try {
         const data = await adminApi.getPlatformMetrics()
         setMetrics(data)
+        setError(null)
         setLoading(false)
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to fetch metrics:', err)
+
+        // If unauthorized, redirect to login
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          authService.logout()
+          navigate('/login')
+          return
+        }
+
         setError('Failed to load analytics data. Using mock data.')
         // Fallback to mock data
         setMetrics({
@@ -46,7 +63,7 @@ export default function Analytics() {
       }
     }
     fetchMetrics()
-  }, [])
+  }, [navigate])
 
   return (
     <div className="min-h-screen bg-gray-900">
