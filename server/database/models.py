@@ -79,9 +79,8 @@ class User(Base):
         "ContextPermission", foreign_keys="[ContextPermission.user_id]"
     )
     
-    # RBAC relationships
-    role_assignments = relationship("RoleAssignment", foreign_keys="[RoleAssignment.user_id]", back_populates="user")
-    permission_audits = relationship("PermissionAudit", back_populates="user")
+    # RBAC relationships (defined in rbac_models.py)
+    # These are added dynamically by rbac_models.py to avoid circular imports
 
 
 class Memory(Base):
