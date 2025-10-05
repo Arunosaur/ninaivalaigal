@@ -1,21 +1,40 @@
 version: '3.8'
 
 # Docker Runtime Configuration
-# Usage: NINA_ENV=dev NINA_RUNTIME=docker docker-compose -f compose.docker.yml up -d
+#
+# PROFILES:
+#   external - Customer-facing app (public)
+#   internal - Admin console + monitoring + workers (staff-only)
+#
+# USAGE:
+#   make docker-dev-up-external    # Customer app only
+#   make docker-dev-up-internal    # Admin + infra
+#   make docker-dev-up-all         # Everything
+#
+# Or directly:
+#   docker-compose -f compose.docker.yml --profile external up -d
+#   docker-compose -f compose.docker.yml --profile internal up -d
 
 services:
   postgres:
-    image: postgres:15
+    # Using proven nina-intelligence-db with pgvector + Apache AGE
+    # Will use GHCR image if available, otherwise builds locally
+    image: ${NINA_DB_IMAGE:-ghcr.io/arunosaur/ninaivalaigal-db:latest}
+    build:
+      context: ./containers/consolidated-db
+      dockerfile: Dockerfile
+    platform: linux/arm64
     container_name: ninaivalaigal-${NINA_ENV:-dev}-db
+    pull_policy: missing  # Only pull if not available locally
     environment:
       POSTGRES_DB: ninaivalaigal_${NINA_ENV:-dev}
       POSTGRES_USER: nina
-      POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
+      POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-dev_password_change_in_production}
       POSTGRES_HOST_AUTH_METHOD: md5
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - ./data/postgres_${NINA_ENV:-dev}:/var/lib/postgresql/data  # Bind mount - shared across runtimes
+      - postgres_data:/var/lib/postgresql/data
       - ./backups:/backups
       - ./scripts:/docker-entrypoint-initdb.d
     healthcheck:
@@ -31,15 +50,39 @@ services:
     ports:
       - "${REDIS_PORT:-6379}:6379"
     environment:
-      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
-    command: redis-server --requirepass ${NINA_REDIS_PASSWORD:-secure_nina_password} --maxmemory 512mb --maxmemory-policy allkeys-lru
+      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-dev_redis_password}
+    command:
+      - sh
+      - -c
+      - |
+        redis-server \
+          --requirepass "$$REDIS_PASSWORD" \
+          --maxmemory 512mb \
+          --maxmemory-policy allkeys-lru \
+          --save 60 1000 \
+          --appendonly yes
     volumes:
-      - ./data/redis_${NINA_ENV:-dev}:/data  # Bind mount - shared across runtimes
+      - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${NINA_REDIS_PASSWORD:-secure_nina_password}", "ping"]
+      test: ["CMD", "sh", "-c", "redis-cli -a $$REDIS_PASSWORD ping"]
       interval: 10s
       timeout: 3s
       retries: 5
+    restart: unless-stopped
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: ninaivalaigal-${NINA_ENV:-dev}-pgbouncer
+    ports:
+      - "${PGBOUNCER_PORT:-6432}:5432"
+    environment:
+      DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-secure_nina_password}@postgres:5432/ninaivalaigal_${NINA_ENV:-dev}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 100
+      DEFAULT_POOL_SIZE: 20
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
   api:
@@ -47,53 +90,141 @@ services:
       context: .
       dockerfile: Dockerfile.api
     container_name: ninaivalaigal-${NINA_ENV:-dev}-api
-    command: ["python", "run_server.py"]
+    profiles: ["external", "internal"]  # API serves both
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     ports:
-      - "13370:8000"
+      - "${API_PORT:-13370}:8000"
     environment:
-      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-secure_nina_password}@postgres:5432/ninaivalaigal_${NINA_ENV:-dev}
-      NINAIVALAIGAL_JWT_SECRET: ${NINA_JWT_SECRET:-dev_jwt_secret}
-      NINAIVALAIGAL_DEBUG: ${NINA_DEBUG:-1}
+      # Environment
+      NINA_ENV: ${NINA_ENV:-dev}
+      NINA_RUNTIME: docker
+
+      # Database
+      NINAIVALAIGAL_DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-dev_password_change_in_production}@postgres:5432/ninaivalaigal_${NINA_ENV:-dev}
+      DATABASE_URL: postgresql://nina:${NINA_DB_PASSWORD:-dev_password_change_in_production}@postgres:5432/ninaivalaigal_${NINA_ENV:-dev}
+
+      # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-secure_nina_password}
+      REDIS_PASSWORD: ${NINA_REDIS_PASSWORD:-dev_redis_password}
       REDIS_DB: 0
+
+      # Auth
+      NINAIVALAIGAL_JWT_SECRET: ${NINA_JWT_SECRET:-dev_jwt_secret_change_in_production}
+      JWT_SECRET_KEY: ${NINA_JWT_SECRET:-dev_jwt_secret_change_in_production}
+
+      # API Config
       PYTHONPATH: /app/server
       PORT: 8000
-      UVICORN_RELOAD: ${NINA_LIVE_RELOAD:-0}
+      UVICORN_RELOAD: ${UVICORN_RELOAD:-1}
+      NINAIVALAIGAL_DEBUG: ${NINA_DEBUG:-1}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+
+      # CORS (allow both apps)
+      CORS_ORIGINS: "http://localhost:${CUSTOMER_APP_PORT:-8081},http://localhost:${ADMIN_CONSOLE_PORT:-8181}"
+
     depends_on:
-      postgres:
-        condition: service_healthy
+      pgbouncer:
+        condition: service_started
       redis:
         condition: service_healthy
     volumes:
-      - ./server:/app/server:ro
-      - ./backups:/app/backups:rw
+      - ./server:/app/server:${VOLUME_MODE:-rw}
+      - ./alembic:/app/alembic:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
     restart: unless-stopped
 
-  ui:
+  # ===========================================================================
+  # EXTERNAL PROFILE - Customer-facing app (public)
+  # ===========================================================================
+
+  customer-app:
     build:
       context: .
-      dockerfile: Dockerfile.ui
-    container_name: ninaivalaigal-${NINA_ENV:-dev}-ui
+      dockerfile: ./apps/customer/Dockerfile
+    container_name: ninaivalaigal-${NINA_ENV:-dev}-customer-app
+    profiles: ["external"]
     ports:
-      - "${UI_PORT:-8081}:8081"
-    volumes:
-      - ./ui:/app/ui:ro
-      - ./static:/app/static:ro
+      - "${CUSTOMER_APP_PORT:-8081}:8101"
     environment:
-      NODE_ENV: ${NINA_ENV:-development}
-      API_URL: http://localhost:${API_PORT:-13370}
+      NODE_ENV: ${NODE_ENV:-development}
+      VITE_API_URL: http://localhost:${API_PORT:-13370}
+      VITE_APP_NAME: "Ninaivalaigal"
+      VITE_ENV: ${NINA_ENV:-dev}
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    volumes:
+      - ./apps/customer/src:/app/src:${VOLUME_MODE:-rw}
+      - ./apps/customer/public:/app/public:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8101"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     restart: unless-stopped
 
-# No volumes section needed - using bind mounts
+  # ===========================================================================
+  # INTERNAL PROFILE - Admin console + infrastructure (staff-only)
+  # ===========================================================================
+
+  admin-console:
+    build:
+      context: .
+      dockerfile: ./apps/admin-console/Dockerfile
+    container_name: ninaivalaigal-${NINA_ENV:-dev}-admin-console
+    profiles: ["internal"]
+    ports:
+      - "${ADMIN_CONSOLE_PORT:-8181}:8102"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      VITE_API_URL: http://localhost:${API_PORT:-13370}
+      VITE_APP_NAME: "Ninaivalaigal Admin Console"
+      VITE_ENV: ${NINA_ENV:-dev}
+      VITE_INTERNAL_APP: "true"
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - ./frontend/admin:/app/admin:${VOLUME_MODE:-rw}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8102"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Future internal services go here:
+  # prometheus:
+  #   profiles: ["internal"]
+  # grafana:
+  #   profiles: ["internal"]
+  # worker:
+  #   profiles: ["internal"]
+
+# ==============================================================================
+# VOLUMES - Shared data per environment
+# ==============================================================================
+
+volumes:
+  postgres_data:
+    name: ninaivalaigal_${NINA_ENV:-dev}_postgres_data
+    driver: local
+
+  redis_data:
+    name: ninaivalaigal_${NINA_ENV:-dev}_redis_data
+    driver: local
+
+# ==============================================================================
+# NETWORKS
+# ==============================================================================
 
 networks:
   default:

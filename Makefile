@@ -10,9 +10,29 @@ SCRIPTS := scripts
 
 ## Docker Development Environment
 docker-dev-up:
-	@echo "🐳 Starting Docker dev environment (ports: 5432, 6379, 13370, 8081)..."
-	@NINA_ENV=dev docker-compose -f compose.docker.yml up -d
-	@echo "✅ Docker dev is running! API: http://localhost:13370/docs"
+	@echo "🐳 Starting Docker dev - ALL SERVICES (Customer + Admin)..."
+	@echo "   Ports: API=13370, Customer=8081, Admin=8181"
+	@NINA_RUNTIME=docker POSTGRES_PORT=5432 PGBOUNCER_PORT=6432 REDIS_PORT=6379 API_PORT=13370 CUSTOMER_APP_PORT=8081 ADMIN_CONSOLE_PORT=8181 \
+		docker-compose -f compose.docker.yml --env-file .env.dev --profile external --profile internal up -d
+	@echo "✅ Docker dev is running!"
+	@echo "   Customer App: http://localhost:8081"
+	@echo "   Admin Console: http://localhost:8181"
+	@echo "   API Docs: http://localhost:13370/docs"
+
+docker-dev-up-external:
+	@echo "🐳 Starting Docker dev - EXTERNAL (Customer App only)..."
+	@set -a && . .env.dev && set +a && \
+		NINA_RUNTIME=docker POSTGRES_PORT=5432 PGBOUNCER_PORT=6432 REDIS_PORT=6379 API_PORT=13370 CUSTOMER_APP_PORT=8081 ADMIN_CONSOLE_PORT=8181 \
+		docker-compose -f compose.docker.yml --profile external up -d --remove-orphans
+	@echo "✅ Customer App: http://localhost:8081"
+	@echo "✅ API: http://localhost:13370/docs"
+
+docker-dev-up-internal:
+	@echo "🔧 Starting Docker dev - INTERNAL (Admin Console only)..."
+	@NINA_RUNTIME=docker POSTGRES_PORT=5432 PGBOUNCER_PORT=6432 REDIS_PORT=6379 API_PORT=13370 CUSTOMER_APP_PORT=8081 ADMIN_CONSOLE_PORT=8181 \
+		docker-compose -f compose.docker.yml --env-file .env.dev --profile internal up -d
+	@echo "✅ Admin Console: http://localhost:8181"
+	@echo "✅ API: http://localhost:13370/docs"
 
 docker-dev-down:
 	@echo "🛑 Stopping Docker dev environment..."
@@ -20,9 +40,25 @@ docker-dev-down:
 
 ## Colima Development Environment
 colima-dev-up:
-	@echo "🦙 Starting Colima dev environment (ports: 5442, 6389, 13380, 8091)..."
-	@NINA_ENV=dev POSTGRES_PORT=5442 REDIS_PORT=6389 API_PORT=13380 UI_PORT=8091 docker-compose -f compose.colima.yml up -d
-	@echo "✅ Colima dev is running! API: http://localhost:13380/docs"
+	@echo "🦙 Starting Colima dev - ALL SERVICES (Customer + Admin)..."
+	@echo "   Ports: API=8010, Customer=3010, Admin=3011"
+	@NINA_ENV=dev docker-compose -f compose.colima.yml --profile external --profile internal up -d
+	@echo "✅ Colima dev is running!"
+	@echo "   Customer App: http://localhost:3010"
+	@echo "   Admin Console: http://localhost:3011"
+	@echo "   API Docs: http://localhost:8010/docs"
+
+colima-dev-up-external:
+	@echo "🦙 Starting Colima dev - EXTERNAL (Customer App only)..."
+	@NINA_ENV=dev docker-compose -f compose.colima.yml --profile external up -d
+	@echo "✅ Customer App: http://localhost:3010"
+	@echo "✅ API: http://localhost:8010/docs"
+
+colima-dev-up-internal:
+	@echo "🔧 Starting Colima dev - INTERNAL (Admin Console only)..."
+	@NINA_ENV=dev docker-compose -f compose.colima.yml --profile internal up -d
+	@echo "✅ Admin Console: http://localhost:3011"
+	@echo "✅ API: http://localhost:8010/docs"
 
 colima-dev-down:
 	@echo "🛑 Stopping Colima dev environment..."
@@ -30,13 +66,29 @@ colima-dev-down:
 
 ## Apple Container CLI Development Environment
 apple-dev-up:
-	@echo "🍎 Starting Apple CLI dev environment (ports: 5452, 6399, 13390, 8101)..."
-	@NINA_ENV=dev POSTGRES_PORT=5452 REDIS_PORT=6399 API_PORT=13390 UI_PORT=8101 docker-compose -f compose.apple.yml up -d
-	@echo "✅ Apple CLI dev is running! API: http://localhost:13390/docs"
+	@echo "🍎 Starting Apple CLI dev - ALL SERVICES (Customer + Admin)..."
+	@echo "   Ports: API=8020, Customer=3020, Admin=3021"
+	@NINA_ENV=dev container compose -f compose.apple.yml --profile external --profile internal up -d
+	@echo "✅ Apple CLI dev is running!"
+	@echo "   Customer App: http://localhost:3020"
+	@echo "   Admin Console: http://localhost:3021"
+	@echo "   API Docs: http://localhost:8020/docs"
+
+apple-dev-up-external:
+	@echo "🍎 Starting Apple CLI dev - EXTERNAL (Customer App only)..."
+	@NINA_ENV=dev container compose -f compose.apple.yml --profile external up -d
+	@echo "✅ Customer App: http://localhost:3020"
+	@echo "✅ API: http://localhost:8020/docs"
+
+apple-dev-up-internal:
+	@echo "🔧 Starting Apple CLI dev - INTERNAL (Admin Console only)..."
+	@NINA_ENV=dev container compose -f compose.apple.yml --profile internal up -d
+	@echo "✅ Admin Console: http://localhost:3021"
+	@echo "✅ API: http://localhost:8020/docs"
 
 apple-dev-down:
 	@echo "🛑 Stopping Apple CLI dev environment..."
-	@NINA_ENV=dev docker-compose -f compose.apple.yml down
+	@NINA_ENV=dev container compose -f compose.apple.yml down
 
 ## Docker Test Environment
 docker-test-up:
@@ -61,12 +113,12 @@ colima-test-down:
 ## Apple Container CLI Test Environment
 apple-test-up:
 	@echo "🍎 Starting Apple CLI test environment (ports: 5552, 6499, 13490)..."
-	@NINA_ENV=test POSTGRES_PORT=5552 REDIS_PORT=6499 API_PORT=13490 docker-compose -f compose.apple.yml up -d
+	@NINA_ENV=test POSTGRES_PORT=5552 REDIS_PORT=6499 API_PORT=13490 container compose -f compose.apple.yml up -d
 	@echo "✅ Apple CLI test is running! API: http://localhost:13490/health"
 
 apple-test-down:
 	@echo "🛑 Stopping Apple CLI test environment..."
-	@NINA_ENV=test docker-compose -f compose.apple.yml down
+	@NINA_ENV=test container compose -f compose.apple.yml down
 
 ## Docker Production Environment
 docker-prod-up:
@@ -91,12 +143,12 @@ colima-prod-down:
 ## Apple Container CLI Production Environment
 apple-prod-up:
 	@echo "🍎 Starting Apple CLI prod environment (ports: 5652, 6599, 13590)..."
-	@NINA_ENV=prod POSTGRES_PORT=5652 REDIS_PORT=6599 API_PORT=13590 docker-compose -f compose.apple.yml up -d
+	@NINA_ENV=prod POSTGRES_PORT=5652 REDIS_PORT=6599 API_PORT=13590 container compose -f compose.apple.yml up -d
 	@echo "✅ Apple CLI prod is running! API: http://localhost:13590/health"
 
 apple-prod-down:
 	@echo "🛑 Stopping Apple CLI prod environment..."
-	@NINA_ENV=prod docker-compose -f compose.apple.yml down
+	@NINA_ENV=prod container compose -f compose.apple.yml down
 
 ## Quick health check for all running containers
 health:
@@ -407,6 +459,11 @@ terraform-destroy-azure:
 build-images:
 	@echo "🏗️  Building container images..."
 	@$(SCRIPTS)/build-images.sh
+
+build-db:
+	@echo "🏗️  Building database image (PostgreSQL + pgvector + Apache AGE)..."
+	docker-compose -f compose.docker.yml build postgres
+	@echo "✅ Database image built: nina-intelligence-db:arm64"
 
 install:
 	@echo "📦 Installing ninaivalaigal..."
@@ -1661,3 +1718,29 @@ environment-monitor:
 		echo "Sleeping for 5 minutes..."; \
 		sleep 300; \
 	done
+
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 👥 STAFF MANAGEMENT (SPEC-085)
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## Run database migration for staff management
+migrate-staff:
+	@echo "🔄 Running staff management migration..."
+	@conda run -n nina alembic upgrade head
+	@echo "✅ Migration complete!"
+
+## Seed initial admin account
+seed-staff:
+	@echo "🌱 Seeding initial staff accounts..."
+	@conda run -n nina python scripts/seed_initial_staff.py
+	@echo "✅ Staff seeding complete!"
+
+## Complete staff setup (migrate + seed)
+setup-staff: migrate-staff seed-staff
+	@echo "✅ Staff management system ready!"
+	@echo "   Admin Console: http://localhost:8181/staff-login.html"
+
+## Check staff table
+check-staff:
+	@echo "📊 Checking staff accounts..."
+	@conda run -n nina python -c "from sqlalchemy import create_engine, text; import os; engine = create_engine(os.getenv('DATABASE_URL', 'postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev')); with engine.connect() as conn: result = conn.execute(text('SELECT email, role, is_active FROM staff')); print('\\nStaff Accounts:'); print('-' * 60); [print(f'{row[0]:40} {row[1]:10} {\"Active\" if row[2] else \"Inactive\"}') for row in result]; print('-' * 60)"
