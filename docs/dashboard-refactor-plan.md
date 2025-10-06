@@ -45,7 +45,7 @@ Transform the current dashboard into a modular, plug-and-play container architec
 - **AI Performance** - PageRank effectiveness, tag acceptance rates
 - **Discussion Insights** - Sentiment trends, engagement levels
 
-#### 🎯 Action Widgets  
+#### 🎯 Action Widgets
 - **Quick Memory Create** - Streamlined memory creation
 - **Pending Approvals** - Review queue with one-click actions
 - **Recent Discussions** - Latest comments and replies
@@ -79,17 +79,17 @@ class DashboardContainer extends React.Component<DashboardContainerProps> {
   private widgetRegistry: WidgetRegistry;
   private layoutManager: LayoutManager;
   private updateManager: RealTimeUpdateManager;
-  
+
   constructor(props: DashboardContainerProps) {
     super(props);
     this.widgetRegistry = new WidgetRegistry();
     this.layoutManager = new LayoutManager(props.user.role);
     this.updateManager = new RealTimeUpdateManager();
   }
-  
+
   render() {
     const layout = this.layoutManager.getLayoutForRole(this.props.user.role);
-    
+
     return (
       <div className="dashboard-container">
         <DashboardHeader user={this.props.user} />
@@ -100,9 +100,9 @@ class DashboardContainer extends React.Component<DashboardContainerProps> {
       </div>
     );
   }
-  
+
   private renderWidgets() {
-    return this.props.widgets?.map(widgetConfig => 
+    return this.props.widgets?.map(widgetConfig =>
       this.widgetRegistry.createWidget(widgetConfig, this.props.user)
     );
   }
@@ -124,29 +124,29 @@ interface WidgetConfig {
 
 class WidgetRegistry {
   private widgets: Map<WidgetType, WidgetFactory> = new Map();
-  
+
   constructor() {
     this.registerDefaultWidgets();
   }
-  
+
   registerWidget(type: WidgetType, factory: WidgetFactory) {
     this.widgets.set(type, factory);
   }
-  
+
   createWidget(config: WidgetConfig, user: AuthenticatedUser): React.ReactElement {
     // Check permissions
     if (!this.hasPermission(user, config.permissions)) {
       return <UnauthorizedWidget />;
     }
-    
+
     const factory = this.widgets.get(config.type);
     if (!factory) {
       return <ErrorWidget message={`Unknown widget type: ${config.type}`} />;
     }
-    
+
     return factory.create(config, user);
   }
-  
+
   private registerDefaultWidgets() {
     this.registerWidget('memory-analytics', new MemoryAnalyticsWidgetFactory());
     this.registerWidget('ai-intelligence', new AIIntelligenceWidgetFactory());
@@ -170,15 +170,15 @@ interface DashboardLayout {
 
 class LayoutManager {
   private layouts: Map<UserRole, DashboardLayout> = new Map();
-  
+
   constructor() {
     this.initializeDefaultLayouts();
   }
-  
+
   getLayoutForRole(role: UserRole): DashboardLayout {
     return this.layouts.get(role) || this.getDefaultLayout();
   }
-  
+
   private initializeDefaultLayouts() {
     // User Dashboard Layout
     this.layouts.set('user', {
@@ -209,7 +209,7 @@ class LayoutManager {
       gridConfig: { columns: 12, rowHeight: 60 },
       theme: 'user-theme'
     });
-    
+
     // Team Admin Dashboard Layout
     this.layouts.set('team_admin', {
       role: 'team_admin',
@@ -246,7 +246,7 @@ class LayoutManager {
       gridConfig: { columns: 12, rowHeight: 60 },
       theme: 'admin-theme'
     });
-    
+
     // Org Admin Dashboard Layout
     this.layouts.set('org_admin', {
       role: 'org_admin',
@@ -294,27 +294,27 @@ class LayoutManager {
 class RealTimeUpdateManager {
   private websocket: WebSocket | null = null;
   private subscribers: Map<string, UpdateCallback[]> = new Map();
-  
+
   constructor() {
     this.initializeWebSocket();
   }
-  
+
   subscribe(widgetId: string, callback: UpdateCallback) {
     if (!this.subscribers.has(widgetId)) {
       this.subscribers.set(widgetId, []);
     }
     this.subscribers.get(widgetId)!.push(callback);
   }
-  
+
   private initializeWebSocket() {
     this.websocket = new WebSocket('ws://localhost:8000/ws/dashboard');
-    
+
     this.websocket.onmessage = (event) => {
       const update = JSON.parse(event.data);
       this.handleUpdate(update);
     };
   }
-  
+
   private handleUpdate(update: DashboardUpdate) {
     const callbacks = this.subscribers.get(update.widgetId) || [];
     callbacks.forEach(callback => callback(update));
@@ -334,7 +334,7 @@ interface ResponsiveGridProps {
 class ResponsiveGrid extends React.Component<ResponsiveGridProps> {
   render() {
     const { layout } = this.props;
-    
+
     return (
       <GridLayout
         className="dashboard-grid"
@@ -352,7 +352,7 @@ class ResponsiveGrid extends React.Component<ResponsiveGridProps> {
       </GridLayout>
     );
   }
-  
+
   private handleLayoutChange = (layout: Layout[]) => {
     // Save layout changes to user preferences
     this.saveUserLayout(layout);
@@ -373,24 +373,24 @@ interface MemoryAnalyticsWidgetProps {
 
 class MemoryAnalyticsWidget extends React.Component<MemoryAnalyticsWidgetProps> {
   private updateManager: RealTimeUpdateManager;
-  
+
   constructor(props: MemoryAnalyticsWidgetProps) {
     super(props);
     this.updateManager = new RealTimeUpdateManager();
     this.updateManager.subscribe(props.config.id, this.handleUpdate);
   }
-  
+
   render() {
     return (
       <WidgetContainer title="Memory Analytics" config={this.props.config}>
         <div className="memory-analytics">
-          <MetricCard 
-            title="Memories Created" 
+          <MetricCard
+            title="Memories Created"
             value={this.state.memoriesCreated}
             trend={this.state.creationTrend}
           />
-          <MetricCard 
-            title="Approval Rate" 
+          <MetricCard
+            title="Approval Rate"
             value={`${this.state.approvalRate}%`}
             trend={this.state.approvalTrend}
           />
@@ -401,7 +401,7 @@ class MemoryAnalyticsWidget extends React.Component<MemoryAnalyticsWidgetProps> 
       </WidgetContainer>
     );
   }
-  
+
   private handleUpdate = (update: DashboardUpdate) => {
     if (update.type === 'memory_analytics') {
       this.setState({ ...update.data });
@@ -421,18 +421,18 @@ class AIIntelligenceWidget extends React.Component {
         <div className="ai-intelligence">
           <TabContainer>
             <Tab title="PageRank">
-              <RankedMemoryVisualization 
+              <RankedMemoryVisualization
                 aiManager={this.aiManager}
                 teamFilter={this.props.user.team_id}
               />
             </Tab>
             <Tab title="Tag Suggestions">
-              <TagSuggestionInterface 
+              <TagSuggestionInterface
                 aiManager={this.aiManager}
               />
             </Tab>
             <Tab title="Recommendations">
-              <PersonalizedRecommendations 
+              <PersonalizedRecommendations
                 userId={this.props.user.user_id}
                 aiManager={this.aiManager}
               />
@@ -465,17 +465,17 @@ $breakpoints: (
       margin-bottom: 1rem;
     }
   }
-  
+
   @include tablet {
     .widget {
       width: calc(50% - 0.5rem);
-      
+
       &.widget-large {
         width: 100%;
       }
     }
   }
-  
+
   @include desktop {
     .widget {
       // Grid-based sizing
@@ -504,12 +504,12 @@ class AuthAwareWidget extends React.Component {
   private hasPermission(permission: Permission): boolean {
     return this.props.user.permissions.includes(permission);
   }
-  
+
   render() {
     if (!this.hasPermission('read:widget_data')) {
       return <UnauthorizedWidget />;
     }
-    
+
     return (
       <div className="widget">
         {this.renderContent()}

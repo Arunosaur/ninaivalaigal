@@ -116,7 +116,7 @@ import { AIIntelligenceDashboard } from './frontend-ai-intelligence.js';
 
 function App() {
     return (
-        <AIIntelligenceDashboard 
+        <AIIntelligenceDashboard
             authService={authService}
             teamId={1}
         />
