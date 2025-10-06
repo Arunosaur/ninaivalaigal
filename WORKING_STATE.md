@@ -2,50 +2,52 @@
 **Version:** v0.9-pre-phase1
 **Last Updated:** October 5, 2025 - 23:49
 **Purpose:** Lock down what works to prevent regressions
-
 ---
 
-## ✅ What Works Right Now
+## What Works Right Now
 
 ### Infrastructure
-- [ ] **Apple Container CLI** - Status: [DOCUMENT TOMORROW]
-  - Command: `./scripts/nv-stack-start.sh`
-  - Expected result: Containers start without errors
-
-- [ ] **PostgreSQL Database** - Status: [TEST TOMORROW]
+- [x] **PostgreSQL Database** - Status: WORKING
   - Host: `localhost:5432`
   - Database: `ninaivalaigal_dev`
   - User: `nina`
-  - Test: `psql -h localhost -U nina -d ninaivalaigal_dev -c "SELECT 1"`
+  - Test: `psql -h localhost -U nina -d ninaivalaigal_dev -c "SELECT 1"` PASSES
+  - smoke test: PASSING
 
-- [ ] **Redis Cache** - Status: [TEST TOMORROW]
-  - Host: `localhost:6379`
-  - Test: `redis-cli -h localhost ping`
+- [ ] **Redis Cache** - Status: NOT ACCESSIBLE
+  - redis-cli command not found
+  - Container may not be running
+  - Test: `redis-cli -h localhost ping` FAILS
 
-- [ ] **PgBouncer** - Status: [DOCUMENT TOMORROW]
+- [ ] **Apple Container CLI** - Status: NEEDS TESTING
+  - Command: `./scripts/nv-stack-start.sh`
+  - Expected result: Containers start without errors
+
+- [ ] **PgBouncer** - Status: NEEDS TESTING
   - Expected: Working or bypassed (document which)
 
 ### API Endpoints
-- [ ] **Health Check** - Status: [TEST TOMORROW]
+- [ ] **Health Check** - Status: ⏭️ NOT TESTED (API not running)
   - Endpoint: `GET http://localhost:13370/health`
-  - Expected: 200 OK
+  - Smoke test: SKIPPED (expected)
 
-- [ ] **User Signup** - Status: [TEST TOMORROW]
+- [ ] **User Signup** - Status: ⏭️ NOT TESTED (API not running)
   - Endpoint: `POST /auth/signup`
   - Expected: Not 404
 
-- [ ] **User Login** - Status: [TEST TOMORROW]
+- [ ] **User Login** - Status: ⏭️ NOT TESTED (API not running)
   - Endpoint: `POST /auth/login`
   - Expected: Returns JWT
 
 ### Database Schema
-- [ ] **Migrations Applied** - Status: [CHECK TOMORROW]
+- [ ] **Migrations Applied** - Status: ❌ CHECK FAILED
   - Command: `cd server && alembic current`
-  - Current version: [DOCUMENT TOMORROW]
+  - Error: "No 'script_location' key found in configuration"
+  - Fix needed: Alembic config issue
 
-- [ ] **Tables Exist** - Status: [LIST TOMORROW]
+- [ ] **Tables Exist** - Status: [NEEDS CHECK]
   - Run: `psql -h localhost -U nina -d ninaivalaigal_dev -c "\dt"`
-  - Tables: [DOCUMENT TOMORROW]
+  - Tables: [NEEDS VERIFICATION]
 
 ### Extensions
 - [ ] **Apache AGE** - Status: [CHECK TOMORROW]
