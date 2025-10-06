@@ -1,8 +1,10 @@
+"""Alembic migration environment configuration."""
+
 import os
 
 from sqlalchemy import engine_from_config, pool
 
-from alembic import context
+from alembic import context  # type: ignore
 
 config = context.config
 config.set_main_option(
@@ -13,6 +15,7 @@ target_metadata = None
 
 
 def run_migrations_offline():
+    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(url=url, literal_binds=True)
     with context.begin_transaction():
@@ -20,9 +23,10 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
+    """Run migrations in 'online' mode."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
-        prefix="",
+        prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:

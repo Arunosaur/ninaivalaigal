@@ -1,27 +1,34 @@
 # 🔒 Current Working State
 **Version:** v0.9-pre-phase1
-**Last Updated:** October 5, 2025 - 23:49
+**Last Updated:** October 6, 2025 - 11:09
 **Purpose:** Lock down what works to prevent regressions
 ---
 
 ## What Works Right Now
 
 ### Infrastructure
-- [x] **PostgreSQL Database** - Status: WORKING
-  - Host: `localhost:5432`
+- [x] **PostgreSQL Database (Apple CLI)** - Status: ✅ WORKING
+  - Container: `ninaivalaigal-dev-db` (Apple Container CLI)
+  - Image: `nina-intelligence-db:arm64`
+  - Host: `localhost:5452` (Apple CLI dev port)
   - Database: `ninaivalaigal_dev`
   - User: `nina`
-  - Test: `psql -h localhost -U nina -d ninaivalaigal_dev -c "SELECT 1"` PASSES
-  - smoke test: PASSING
+  - Password: `dev_password_change_in_production`  <!-- pragma: allowlist secret -->
+  - Extensions: ✅ pgvector v0.5.1, ✅ Apache AGE v1.5.0
+  - Status: Fully operational with all extensions loaded
+  - Test: `PGPASSWORD=dev_password_change_in_production psql -h localhost -p 5452 -U nina -d ninaivalaigal_dev -c "\dx"` ✅ PASSES
 
-- [ ] **Redis Cache** - Status: NOT ACCESSIBLE
-  - redis-cli command not found
-  - Container may not be running
-  - Test: `redis-cli -h localhost ping` FAILS
+- [x] **Redis Cache (Apple CLI)** - Status: ✅ WORKING
+  - Container: `ninaivalaigal-dev-redis`
+  - Host: `localhost:6399` (Apple CLI dev port)
+  - Password: `dev_redis_password`  <!-- pragma: allowlist secret -->
+  - Status: Running and accessible
+  - Test: `redis-cli -h localhost -p 6399 -a dev_redis_password ping` ✅ PASSES
 
-- [ ] **Apple Container CLI** - Status: NEEDS TESTING
-  - Command: `./scripts/nv-stack-start.sh`
-  - Expected result: Containers start without errors
+- [x] **Apple Container CLI** - Status: ✅ WORKING
+  - Unified naming: `ninaivalaigal-{env}-{service}`
+  - Port matrix followed: Apple CLI dev uses 5452 (DB), 6399 (Redis)
+  - Containers running successfully
 
 - [ ] **PgBouncer** - Status: NEEDS TESTING
   - Expected: Working or bypassed (document which)
