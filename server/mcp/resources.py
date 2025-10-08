@@ -17,6 +17,7 @@ try:
 except ImportError:
 
     class Resource:
+
         def __init__(self, uri, name, description, mimeType, text):
             self.uri = uri
             self.name = name
@@ -25,6 +26,7 @@ except ImportError:
             self.text = text
 
     class TextResourceContents:
+
         def __init__(self, text):
             self.text = text
 

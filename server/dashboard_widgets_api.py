@@ -65,6 +65,7 @@ class WidgetData(BaseModel):
 
 # WebSocket Connection Manager for Real-time Updates
 class DashboardConnectionManager:
+
     def __init__(self):
         self.active_connections: Dict[str, WebSocket] = {}
         self.user_widgets: Dict[str, List[str]] = {}

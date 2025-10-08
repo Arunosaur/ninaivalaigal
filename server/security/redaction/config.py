@@ -253,6 +253,5 @@ RULE_DEFINITIONS = {
     ),
 }
 
-
 # Global redaction configuration instance
 redaction_config = RedactionConfig()

@@ -123,7 +123,7 @@ class GraphIntelligenceEngine:
         synced_count = 0
         for memory in memories:
             # Create Memory node in graph
-            _ =  """
+            _ = """
             SELECT * FROM cypher('ninaivalaigal_intelligence', $$
                 MERGE (m:Memory {{
                     memory_id: '{memory.id}',

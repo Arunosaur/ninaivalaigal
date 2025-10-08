@@ -32,7 +32,6 @@ from redis_client import get_redis_client
 # from sklearn.metrics.pairwise import cosine_similarity
 # Note: Using basic similarity calculations to avoid external dependencies
 
-
 logger = structlog.get_logger(__name__)
 
 

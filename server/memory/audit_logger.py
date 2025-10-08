@@ -734,7 +734,7 @@ class MemorySharingAuditLogger:
         """Monitor for security patterns and generate alerts"""
         try:
             # Reset counters older than 1 hour
-            _ =  datetime.now(timezone.utc) - timedelta(hours=1)
+            _ = datetime.now(timezone.utc) - timedelta(hours=1)
 
             # This is a simplified version - in production you'd have more sophisticated pattern detection
 

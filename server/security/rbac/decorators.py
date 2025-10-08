@@ -129,6 +129,7 @@ def require_permission(
     """Decorator to require specific permission for resource access."""
 
     def decorator(func: Callable) -> Callable:
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             # Extract user context from kwargs
@@ -162,6 +163,7 @@ def require_role(required_role: Role):
     """Decorator to require specific role."""
 
     def decorator(func: Callable) -> Callable:
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             user_role = kwargs.get("user_role")

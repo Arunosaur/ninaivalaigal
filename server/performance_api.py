@@ -57,7 +57,7 @@ async def get_performance_health() -> Dict:
         manager = get_performance_manager()
         health = await manager.health_check()
 
-        _ =  200 if health["overall_status"] == "healthy" else 503
+        _ = 200 if health["overall_status"] == "healthy" else 503
 
         return {
             "status": health["overall_status"],
