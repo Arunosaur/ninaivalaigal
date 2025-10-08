@@ -5,7 +5,6 @@ Extracted from main.py for better code organization
 
 import json
 import os
-import subprocess
 from typing import Any
 
 
@@ -18,9 +17,9 @@ def load_config() -> dict[str, Any]:
     default_config = {
         "storage": {
             "type": "postgresql",
-            "url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret
+            "url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret  # noqa: E501
         },
-        "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret
+        "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret  # noqa: E501
     }
 
     # Load from environment variables first (highest priority)
@@ -79,7 +78,7 @@ def get_dynamic_database_url() -> str:
             text=True,
             timeout=5,
         ).stdout.strip()
-    except:
+    except Exception:
         # Fallback to default ports
         postgres_port = "5432"
         pgbouncer_port = "6432"
@@ -119,9 +118,13 @@ def get_dynamic_database_url() -> str:
                     pgb_data = json.loads(pgb_result.stdout)
                     if pgb_data and len(pgb_data) > 0:
                         pgb_ip = pgb_data[0]["networks"][0]["address"].split("/")[0]
-                        db_url = f"postgresql://{db_user}:{db_password}@{pgb_ip}:{pgbouncer_port}/{db_name}"
+                        db_url = (
+                            f"postgresql://{db_user}:{db_password}@"
+                            f"{pgb_ip}:{pgbouncer_port}/{db_name}"
+                        )
                         print(
-                            f"🔗 Using PgBouncer at {pgb_ip}:{pgbouncer_port} for {db_name}"
+                            f"🔗 Using PgBouncer at {pgb_ip}:{pgbouncer_port} "
+                            f"for {db_name}"
                         )
                         return db_url
             except (
@@ -145,9 +148,13 @@ def get_dynamic_database_url() -> str:
                     pg_data = json.loads(pg_result.stdout)
                     if pg_data and len(pg_data) > 0:
                         pg_ip = pg_data[0]["networks"][0]["address"].split("/")[0]
-                        db_url = f"postgresql://{db_user}:{db_password}@{pg_ip}:{postgres_port}/{db_name}"
+                        db_url = (
+                            f"postgresql://{db_user}:{db_password}@"
+                            f"{pg_ip}:{postgres_port}/{db_name}"
+                        )
                         print(
-                            f"🔗 Using PostgreSQL at {pg_ip}:{postgres_port} for {db_name}"
+                            f"🔗 Using PostgreSQL at {pg_ip}:{postgres_port} "
+                            f"for {db_name}"
                         )
                         return db_url
             except (
