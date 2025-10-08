@@ -3,7 +3,6 @@ SPEC-063: Agentic Core Execution Framework
 Central routing mechanism for intelligent agent execution and orchestration
 """
 
-import asyncio
 import time
 import uuid
 from typing import Any, Dict, List, Optional

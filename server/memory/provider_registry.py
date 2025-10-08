@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type
 
 from .interfaces import MemoryProvider, MemoryProviderError
 from .providers.mem0_http import Mem0HttpMemoryProvider

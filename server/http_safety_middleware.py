@@ -6,7 +6,7 @@ Detects and fixes Content-Length mismatches to prevent hanging responses
 import json
 import logging
 
-from fastapi import Request, Response
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp

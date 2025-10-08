@@ -15,14 +15,13 @@ import uvicorn
 from approval_workflow import ApprovalWorkflowManager
 from auto_recording import get_auto_recorder
 from database import DatabaseManager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 # Middleware and security
 from observability import MetricsMiddleware, health_router, metrics_router
-from performance_monitor import get_performance_monitor, start_performance_monitoring
 from rate_limiting import rate_limit_middleware
 from rbac_middleware import rbac_middleware
 from redis_client import redis_client
@@ -58,8 +57,8 @@ auto_recorder = get_auto_recorder(db_manager)
 approval_manager = ApprovalWorkflowManager(db_manager)
 
 # Performance monitoring
-performance_monitor = get_performance_monitor()
-start_performance_monitoring()
+# performance_monitor = get_performance_monitor()
+# start_performance_monitoring()
 
 # Initialize FastAPI app
 app = FastAPI(

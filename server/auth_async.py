@@ -10,7 +10,6 @@ from typing import Any, Dict, Optional
 
 import bcrypt
 import jwt
-from database import User
 from database.simple_operations import SimpleDatabaseOperations
 
 logger = logging.getLogger(__name__)
