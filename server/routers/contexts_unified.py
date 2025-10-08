@@ -388,7 +388,10 @@ async def share_context(
         if sum(x is not None for x in targets) != 1:
             raise HTTPException(
                 status_code=400,
-                detail="Must specify exactly one of: shared_with_user_id, shared_with_team_id, shared_with_organization_id",
+                detail=(
+                    "Must specify exactly one of: shared_with_user_id, "
+                    "shared_with_team_id, shared_with_organization_id"
+                ),
             )
 
         success = await context_ops.share_context(

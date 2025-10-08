@@ -196,7 +196,9 @@ class RBACIntegrationTester:
                     self.log_test(
                         "RBAC API - Status",
                         True,
-                        f"RBAC system active with {data.get('statistics', {}).get('total_role_assignments', 0)} role assignments",
+                        f"RBAC system active with "
+                        f"{data.get('statistics', {}).get('total_role_assignments', 0)} "
+                        f"role assignments",
                     )
                     status_test = True
                 else:
