@@ -45,7 +45,10 @@ def get_user_organizations(
 
 
 @router.get("/me/teams")
-def get_user_teams(current_user: User = Depends(get_current_user)):
+def get_user_teams(
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
     """Get teams the current user belongs to"""
     try:
         teams = db.get_user_teams(current_user.id)
@@ -68,7 +71,10 @@ def get_user_teams(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/me/contexts")
-def get_user_accessible_contexts(current_user: User = Depends(get_current_user)):
+def get_user_accessible_contexts(
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
     """Get all contexts the user can access"""
     try:
         contexts = db.get_user_contexts(current_user.id)

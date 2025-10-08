@@ -326,7 +326,7 @@ async def get_available_tags(
 
 @router.get("/stats")
 async def get_memory_stats(
-    user: Dict[str, Any] = Depends(get_current_user)
+    user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get memory statistics for the user"""
     user_id = user["user_id"]

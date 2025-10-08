@@ -60,32 +60,33 @@ async def request_cross_team_access(
     return result
 
 
-@router.post("/action")
+@router.post("/approval-action")
 async def handle_approval_action(
-    action_data: ApprovalAction, current_user: User = Depends(get_current_user)
+    approval_action: ApprovalAction,
+    current_user: User = Depends(get_current_user),
+    approval_manager: ApprovalWorkflowManager = Depends(get_approval_manager),
 ):
-    """Approve or reject a cross-team access request"""
-    if action_data.action == "approve":
+    """Approve or reject an approval request"""
+    if approval_action.action == "approve":
         result = approval_manager.approve_request(
-            action_data.request_id, current_user.id
+            approval_action.request_id, current_user.id
         )
-    elif action_data.action == "reject":
+    elif approval_action.action == "reject":
         result = approval_manager.reject_request(
-            action_data.request_id, current_user.id, action_data.reason
+            approval_action.request_id, current_user.id, approval_action.reason
         )
     else:
         raise HTTPException(
             status_code=400, detail="Invalid action. Must be 'approve' or 'reject'"
         )
 
-    if not result["success"]:
-        raise HTTPException(status_code=400, detail=result["error"])
-
-    return result
-
 
 @router.get("/pending")
-async def get_pending_approvals(current_user: User = Depends(get_current_user)):
+async def get_pending_requests(
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+    approval_manager: ApprovalWorkflowManager = Depends(get_approval_manager),
+):
     """Get pending approval requests for user's teams"""
     user_teams = db.get_user_teams(current_user.id)
     team_ids = [team.id for team in user_teams]
@@ -99,11 +100,12 @@ async def get_pending_approvals(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/status/{request_id}")
-async def get_approval_status(
-    request_id: int, current_user: User = Depends(get_current_user)
+async def get_request_status(
+    request_id: str,
+    current_user: User = Depends(get_current_user),
+    approval_manager: ApprovalWorkflowManager = Depends(get_approval_manager),
 ):
     """Get status of a specific approval request"""
     result = approval_manager.get_request_status(request_id)
     if not result["success"]:
         raise HTTPException(status_code=404, detail=result["error"])
-    return result

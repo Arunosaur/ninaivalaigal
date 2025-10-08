@@ -44,7 +44,7 @@ USERS_DB = {
 
 @router.get("/my")
 async def get_my_teams(
-    user: Dict[str, Any] = Depends(get_current_user)
+    user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """List teams the user belongs to"""
     user_id = user["user_id"]

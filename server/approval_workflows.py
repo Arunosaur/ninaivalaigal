@@ -426,7 +426,7 @@ async def get_team_approval_history(
 
 @router.get("/stats")
 async def get_approval_stats(
-    user: Dict[str, Any] = Depends(get_current_user)
+    user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get approval statistics for the user"""
     user_id = user["user_id"]

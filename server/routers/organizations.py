@@ -59,7 +59,11 @@ async def create_organization(
 
 @router.get("")
 @require_permission(Resource.ORG, Action.READ)
-def get_organizations(request: Request, current_user: User = Depends(get_current_user)):
+def get_organizations(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
     """Get all organizations"""
     try:
         organizations = db.get_all_organizations()
@@ -83,7 +87,11 @@ def get_organizations(request: Request, current_user: User = Depends(get_current
 
 
 @router.get("/{org_id}/teams")
-def get_organization_teams(org_id: int, current_user: User = Depends(get_current_user)):
+def get_organization_teams(
+    org_id: int,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
     """Get all teams in an organization"""
     try:
         teams = db.get_organization_teams(org_id)

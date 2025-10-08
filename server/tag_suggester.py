@@ -438,7 +438,7 @@ async def get_tag_analytics(
 
 @router.get("/tag-clusters")
 async def get_tag_clusters(
-    user: Dict[str, Any] = Depends(get_current_user)
+    user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get tag clusters and relationships for visualization"""
 

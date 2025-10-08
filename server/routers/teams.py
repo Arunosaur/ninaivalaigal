@@ -52,12 +52,12 @@ async def create_team(
 @router.post("/{team_id}/members")
 @require_permission(Resource.TEAM, Action.ADMINISTER)
 def add_team_member(
-    request: Request,
     team_id: int,
     member_data: TeamMemberAdd,
     current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
 ):
-    """Add a member to a team"""
+    """Add member to team"""
     try:
         # In a real implementation, check if current user has permission to add members
         db.add_team_member(team_id, member_data.user_id, member_data.role)
@@ -74,12 +74,12 @@ def add_team_member(
 @router.delete("/{team_id}/members/{user_id}")
 @require_permission(Resource.TEAM, Action.ADMINISTER)
 def remove_team_member(
-    request: Request,
     team_id: int,
     user_id: int,
     current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
 ):
-    """Remove a member from a team"""
+    """Remove member from team"""
     try:
         # In a real implementation, check if current user has permission to remove members
         db.remove_team_member(team_id, user_id)
@@ -94,7 +94,11 @@ def remove_team_member(
 
 
 @router.get("/{team_id}/members")
-def get_team_members(team_id: int, current_user: User = Depends(get_current_user)):
+def get_team_members(
+    team_id: int,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
     """Get team members"""
     try:
         members = db.get_team_members(team_id)
@@ -117,7 +121,10 @@ def get_team_members(team_id: int, current_user: User = Depends(get_current_user
 
 
 @router.get("")
-def get_all_teams(current_user: User = Depends(get_current_user)):
+def get_all_teams(
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
     """Get all teams (admin endpoint)"""
     try:
         # In a real implementation, this would check admin permissions

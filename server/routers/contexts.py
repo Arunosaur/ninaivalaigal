@@ -60,6 +60,7 @@ def share_context(
     context_id: int,
     share_data: ContextShare,
     current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
 ):
     """Share context with user/team/organization"""
     try:
@@ -106,6 +107,7 @@ def transfer_context(
     context_id: int,
     transfer_data: ContextTransfer,
     current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
 ):
     """Transfer context ownership"""
     try:
@@ -126,19 +128,36 @@ def transfer_context(
 
 
 @router.get("")
-def get_all_contexts(current_user: User = Depends(get_current_user)):
-    """Get all contexts with user isolation"""
+def list_contexts(
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """List contexts accessible to current user"""
     try:
         contexts = db.get_user_contexts(current_user.id)
-        return {"contexts": contexts}
+        return {
+            "contexts": [
+                {
+                    "id": c.id,
+                    "name": c.name,
+                    "description": c.description,
+                    "scope": c.scope,
+                }
+                for c in contexts
+            ]
+        }
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to share context: {str(e)}"
+            status_code=500, detail=f"Failed to list contexts: {str(e)}"
         )
 
 
 @router.delete("/{context_name}")
-def delete_context(context_name: str, current_user: User = Depends(get_current_user)):
+def delete_context(
+    context_name: str,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
     """Delete context with mandatory user authentication"""
     try:
         # Check if context exists and user has permission

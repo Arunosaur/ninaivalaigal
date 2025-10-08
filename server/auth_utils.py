@@ -56,7 +56,7 @@ def require_role(required_role: str):
     """
 
     def role_checker(
-        user: Dict[str, Any] = Depends(get_current_user)
+        user: Dict[str, Any] = Depends(get_current_user),
     ) -> Dict[str, Any]:
         if user["role"] != required_role:
             raise HTTPException(
@@ -74,7 +74,7 @@ def require_account_type(required_type: str):
     """
 
     def type_checker(
-        user: Dict[str, Any] = Depends(get_current_user)
+        user: Dict[str, Any] = Depends(get_current_user),
     ) -> Dict[str, Any]:
         if user["account_type"] != required_type:
             raise HTTPException(

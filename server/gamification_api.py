@@ -441,7 +441,7 @@ async def celebrate_badge(
 # Widget Integration
 @router.get("/widget-data")
 async def get_gamification_widget_data(
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """Get gamification data for dashboard widgets"""
 

@@ -118,7 +118,10 @@ async def get_recording_status(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/active")
-def get_active_recording_context(current_user: User = Depends(get_current_user)):
+def get_active_recording_context(
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
     """Get active recording context with user isolation (legacy endpoint)"""
     try:
         active_context = db.get_active_context(current_user.id)

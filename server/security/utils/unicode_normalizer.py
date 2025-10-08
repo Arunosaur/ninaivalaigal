@@ -9,15 +9,15 @@ import unicodedata
 
 # Zero-width and invisible characters that should be removed
 ZERO_WIDTH_CHARS = {
-    "\u200B",  # Zero Width Space
-    "\u200C",  # Zero Width Non-Joiner
-    "\u200D",  # Zero Width Joiner
+    "\u200b",  # Zero Width Space
+    "\u200c",  # Zero Width Non-Joiner
+    "\u200d",  # Zero Width Joiner
     "\u2060",  # Word Joiner
-    "\uFEFF",  # Zero Width No-Break Space (BOM)
-    "\u00AD",  # Soft Hyphen
-    "\u034F",  # Combining Grapheme Joiner
-    "\u061C",  # Arabic Letter Mark
-    "\u180E",  # Mongolian Vowel Separator
+    "\ufeff",  # Zero Width No-Break Space (BOM)
+    "\u00ad",  # Soft Hyphen
+    "\u034f",  # Combining Grapheme Joiner
+    "\u061c",  # Arabic Letter Mark
+    "\u180e",  # Mongolian Vowel Separator
 }
 
 # Homoglyph mappings to ASCII equivalents

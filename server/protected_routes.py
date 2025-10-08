@@ -95,7 +95,7 @@ async def get_all_users(user: Dict[str, Any] = Depends(require_role("admin"))):
 # Organization-only routes
 @router.get("/org/settings")
 async def get_org_settings(
-    user: Dict[str, Any] = Depends(require_account_type("organization"))
+    user: Dict[str, Any] = Depends(require_account_type("organization")),
 ):
     """Get organization settings - org accounts only"""
     return {
