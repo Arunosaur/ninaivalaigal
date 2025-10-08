@@ -332,7 +332,9 @@ def test_tier_awareness():
 
     # Test with different thresholds
     wrapper_strict = TierAwareDetectorWrapper(mock_detector, fail_closed_threshold=3)
-    # wrapper_lenient = TierAwareDetectorWrapper(mock_detector, fail_closed_threshold=5)  # noqa: F841
+    # wrapper_lenient = TierAwareDetectorWrapper(
+    #     mock_detector, fail_closed_threshold=5
+    # )  # noqa: F841
 
     test_cases = [
         ("normal text", DataTier.PUBLIC, True),

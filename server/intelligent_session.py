@@ -424,8 +424,8 @@ class IntelligentSessionManager:
             session = json.loads(session_data)
 
             # Get session metadata
-            meta_key = self._make_session_meta_key(session_id)
-            meta_data = await self.redis.redis.get(meta_key)
+            # meta_key = self._make_session_meta_key(session_id)
+            # meta_data = await self.redis.redis.get(meta_key)
             # meta = json.loads(meta_data) if meta_data else {}  # noqa: F841
 
             # Get activity data
