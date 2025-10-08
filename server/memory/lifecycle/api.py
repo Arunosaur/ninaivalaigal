@@ -38,9 +38,7 @@ class LifecycleStatusEnum(str, Enum):
 
 class SetMemoryTTLRequest(BaseModel):
     memory_id: str = Field(..., description="UUID of the memory to set TTL for")
-    ttl_hours: int = Field(
-        ..., ge=1, le=8760, description="TTL in hours (1 hour to 1 year)"
-    )
+    ttl_hours: int = Field(..., ge=1, le=8760, description="TTL in hours (1 hour to 1 year)")
 
 
 class CreateLifecyclePolicyRequest(BaseModel):
@@ -126,12 +124,12 @@ async def get_memory_gc() -> MemoryGarbageCollector:
 @lifecycle_router.post(
     "/memories/{memory_id}/ttl",
     summary="Set TTL for a memory",
-    description="Set a time-to-live for a specific memory. After the TTL expires, the memory will be marked as expired.",
+    description="Set a time-to-live for a specific memory. After the TTL expires, the memory will be marked as expired.",  # noqa: E501
 )
 async def set_memory_ttl(
-    memory_id: str,
-    request: SetMemoryTTLRequest,
-    gc: MemoryGarbageCollector = Depends(get_memory_gc),
+        memory_id: str,
+        request: SetMemoryTTLRequest,
+        gc: MemoryGarbageCollector = Depends(get_memory_gc),
 ):
     """Set TTL for a specific memory"""
     try:
@@ -139,9 +137,7 @@ async def set_memory_ttl(
 
         async with gc.pool.acquire() as conn:
             # Check if memory exists
-            memory_exists = await conn.fetchval(
-                "SELECT EXISTS(SELECT 1 FROM memory_records WHERE id = $1)", memory_id
-            )
+            memory_exists = await conn.fetchval("SELECT EXISTS(SELECT 1 FROM memory_records WHERE id = $1)", memory_id)
 
             if not memory_exists:
                 raise HTTPException(status_code=404, detail="Memory not found")
@@ -188,16 +184,12 @@ async def set_memory_ttl(
     summary="Remove TTL from a memory",
     description="Remove the TTL from a memory, making it permanent until archived by policy.",
 )
-async def remove_memory_ttl(
-    memory_id: str, gc: MemoryGarbageCollector = Depends(get_memory_gc)
-):
+async def remove_memory_ttl(memory_id: str, gc: MemoryGarbageCollector = Depends(get_memory_gc)):
     """Remove TTL from a specific memory"""
     try:
         async with gc.pool.acquire() as conn:
             # Check if memory exists
-            memory_exists = await conn.fetchval(
-                "SELECT EXISTS(SELECT 1 FROM memory_records WHERE id = $1)", memory_id
-            )
+            memory_exists = await conn.fetchval("SELECT EXISTS(SELECT 1 FROM memory_records WHERE id = $1)", memory_id)
 
             if not memory_exists:
                 raise HTTPException(status_code=404, detail="Memory not found")
@@ -234,9 +226,7 @@ async def remove_memory_ttl(
     response_model=MemoryLifecycleInfo,
     summary="Get lifecycle info for a memory",
 )
-async def get_memory_lifecycle_info(
-    memory_id: str, gc: MemoryGarbageCollector = Depends(get_memory_gc)
-):
+async def get_memory_lifecycle_info(memory_id: str, gc: MemoryGarbageCollector = Depends(get_memory_gc)):
     """Get lifecycle information for a specific memory"""
     try:
         async with gc.pool.acquire() as conn:
@@ -283,11 +273,11 @@ async def get_memory_lifecycle_info(
     summary="Get lifecycle statistics",
 )
 async def get_lifecycle_stats(
-    scope: str | None = Query(None, regex="^(personal|team|organization)$"),
-    user_id: str | None = Query(None),
-    team_id: str | None = Query(None),
-    org_id: str | None = Query(None),
-    gc: MemoryGarbageCollector = Depends(get_memory_gc),
+        scope: str | None = Query(None, regex="^(personal|team|organization)$"),
+        user_id: str | None = Query(None),
+        team_id: str | None = Query(None),
+        org_id: str | None = Query(None),
+        gc: MemoryGarbageCollector = Depends(get_memory_gc),
 ):
     """Get memory lifecycle statistics for a scope"""
     try:
@@ -305,10 +295,8 @@ async def get_lifecycle_stats(
     summary="Manually run lifecycle cycle",
 )
 async def run_lifecycle_cycle(
-    dry_run: bool = Query(
-        False, description="Run in dry-run mode without making changes"
-    ),
-    gc: MemoryGarbageCollector = Depends(get_memory_gc),
+        dry_run: bool = Query(False, description="Run in dry-run mode without making changes"),
+        gc: MemoryGarbageCollector = Depends(get_memory_gc),
 ):
     """Manually trigger a memory lifecycle management cycle"""
     try:
@@ -345,8 +333,8 @@ async def run_lifecycle_cycle(
     summary="Create lifecycle policy",
 )
 async def create_lifecycle_policy(
-    request: CreateLifecyclePolicyRequest,
-    gc: MemoryGarbageCollector = Depends(get_memory_gc),
+        request: CreateLifecyclePolicyRequest,
+        gc: MemoryGarbageCollector = Depends(get_memory_gc),
 ):
     """Create a new lifecycle policy"""
     try:
@@ -399,10 +387,10 @@ async def create_lifecycle_policy(
     summary="List lifecycle policies",
 )
 async def list_lifecycle_policies(
-    scope: str | None = Query(None, regex="^(personal|team|organization)$"),
-    policy_type: LifecyclePolicyType | None = Query(None),
-    enabled: bool | None = Query(None),
-    gc: MemoryGarbageCollector = Depends(get_memory_gc),
+        scope: str | None = Query(None, regex="^(personal|team|organization)$"),
+        policy_type: LifecyclePolicyType | None = Query(None),
+        enabled: bool | None = Query(None),
+        gc: MemoryGarbageCollector = Depends(get_memory_gc),
 ):
     """List lifecycle policies with optional filtering"""
     try:
@@ -415,9 +403,7 @@ async def list_lifecycle_policies(
                 ORDER BY created_at DESC
             """
 
-            policies = await conn.fetch(
-                query, scope, policy_type.value if policy_type else None, enabled
-            )
+            policies = await conn.fetch(query, scope, policy_type.value if policy_type else None, enabled)
 
             return [
                 LifecyclePolicyResponse(
@@ -431,8 +417,7 @@ async def list_lifecycle_policies(
                     enabled=policy["enabled"],
                     created_at=policy["created_at"],
                     updated_at=policy["updated_at"],
-                )
-                for policy in policies
+                ) for policy in policies
             ]
 
     except Exception as e:

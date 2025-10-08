@@ -113,8 +113,8 @@ async def list_team_invitations(current_user: dict = Depends(get_current_user)):
 
 @router.post("/invitations", response_model=TeamInvitationResponse)
 async def send_team_invitation(
-    invitation_data: TeamInvitationCreate,
-    current_user: dict = Depends(get_current_user),
+        invitation_data: TeamInvitationCreate,
+        current_user: dict = Depends(get_current_user),
 ):
     """Send a team invitation"""
     try:
@@ -145,7 +145,7 @@ async def send_team_invitation(
             expires_at=expires_at,
             message=invitation_data.message,
             sent_by=current_user.get("email", "current-user@company.com"),
-            invitation_link=f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/accept-invitation?token={invitation_token}",
+            invitation_link=f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/accept-invitation?token={invitation_token}",  # noqa: E501
         )
 
         # Send email invitation
@@ -161,9 +161,7 @@ async def send_team_invitation(
 
 
 @router.post("/invitations/{invitation_id}/resend")
-async def resend_team_invitation(
-    invitation_id: str, current_user: dict = Depends(get_current_user)
-):
+async def resend_team_invitation(invitation_id: str, current_user: dict = Depends(get_current_user)):
     """Resend a team invitation"""
     try:
         get_db()
@@ -186,9 +184,9 @@ async def resend_team_invitation(
 
 @router.patch("/invitations/{invitation_id}/extend")
 async def extend_team_invitation(
-    invitation_id: str,
-    extend_days: int = 14,
-    current_user: dict = Depends(get_current_user),
+        invitation_id: str,
+        extend_days: int = 14,
+        current_user: dict = Depends(get_current_user),
 ):
     """Extend a team invitation expiration"""
     try:
@@ -211,9 +209,7 @@ async def extend_team_invitation(
 
 
 @router.delete("/invitations/{invitation_id}")
-async def revoke_team_invitation(
-    invitation_id: str, current_user: dict = Depends(get_current_user)
-):
+async def revoke_team_invitation(invitation_id: str, current_user: dict = Depends(get_current_user)):
     """Revoke a team invitation"""
     try:
         get_db()
@@ -234,9 +230,7 @@ async def revoke_team_invitation(
 
 
 @router.post("/invitations/bulk-action")
-async def bulk_invitation_action(
-    bulk_action: BulkInvitationAction, current_user: dict = Depends(get_current_user)
-):
+async def bulk_invitation_action(bulk_action: BulkInvitationAction, current_user: dict = Depends(get_current_user)):
     """Perform bulk actions on multiple invitations"""
     try:
         get_db()
@@ -336,7 +330,7 @@ async def send_invitation_email(invitation: TeamInvitationResponse, token: str):
         html_content = f"""
         <html>
         <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">  # noqa: E501
                 <h1 style="color: white; margin: 0;">Ninaivalaigal</h1>
                 <p style="color: white; opacity: 0.9; margin: 10px 0 0 0;">Team Invitation</p>
             </div>

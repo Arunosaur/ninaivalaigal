@@ -80,9 +80,7 @@ class UniversalAIWrapper:
         self.db = DatabaseManager(load_config())
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
-    async def enhance_ai_prompt(
-        self, context: AIContext, original_prompt: str
-    ) -> dict[str, Any]:
+    async def enhance_ai_prompt(self, context: AIContext, original_prompt: str) -> dict[str, Any]:
         """Enhance any AI prompt with relevant mem0 memories"""
         try:
             # Get relevant memories from all levels
@@ -96,18 +94,12 @@ class UniversalAIWrapper:
                 }
 
             # Build enhanced prompt
-            enhanced_prompt = self._build_enhanced_prompt(
-                original_prompt, memories, context
-            )
+            enhanced_prompt = self._build_enhanced_prompt(original_prompt, memories, context)
 
             # Store interaction for learning
-            await self._store_ai_interaction(
-                context, original_prompt, enhanced_prompt, memories
-            )
+            await self._store_ai_interaction(context, original_prompt, enhanced_prompt, memories)
 
-            logger.info(
-                f"Enhanced {context.ai_model.value} prompt with {len(memories)} memories"
-            )
+            logger.info(f"Enhanced {context.ai_model.value} prompt with {len(memories)} memories")
 
             return {
                 "enhanced_prompt": enhanced_prompt,
@@ -125,18 +117,14 @@ class UniversalAIWrapper:
                 "error": str(e),
             }
 
-    async def _get_hierarchical_memories(
-        self, context: AIContext
-    ) -> list[MemoryContext]:
+    async def _get_hierarchical_memories(self, context: AIContext) -> list[MemoryContext]:
         """Get memories from all hierarchy levels: Personal → Team → Cross-Team → Organizational"""
         all_memories = []
 
         try:
             # 1. Personal memories (highest priority)
             if context.user_id:
-                personal_memories = await self._get_memories_by_level(
-                    "personal", context
-                )
+                personal_memories = await self._get_memories_by_level("personal", context)
                 all_memories.extend(personal_memories)
 
             # 2. Team memories
@@ -150,9 +138,7 @@ class UniversalAIWrapper:
 
             # 4. Organizational memories (lowest priority but broadest)
             if context.organization_id:
-                org_memories = await self._get_memories_by_level(
-                    "organization", context
-                )
+                org_memories = await self._get_memories_by_level("organization", context)
                 all_memories.extend(org_memories)
 
             # 5. Project-specific memories
@@ -169,9 +155,7 @@ class UniversalAIWrapper:
             logger.error(f"Error getting hierarchical memories: {e}")
             return []
 
-    async def _get_memories_by_level(
-        self, level: str, context: AIContext
-    ) -> list[MemoryContext]:
+    async def _get_memories_by_level(self, level: str, context: AIContext) -> list[MemoryContext]:
         """Get memories for a specific hierarchy level"""
         try:
             # Build query based on level and context
@@ -200,13 +184,11 @@ class UniversalAIWrapper:
                         content=memory.get("data", ""),
                         context_name=memory.get("context", "unknown"),
                         relevance_score=0.7,  # Will be calculated by ranking
-                        timestamp=datetime.fromisoformat(
-                            memory.get("created_at", datetime.now().isoformat())
-                        ),
+                        timestamp=datetime.fromisoformat(memory.get("created_at",
+                                                                    datetime.now().isoformat())),
                         memory_type=level,
                         source=memory.get("source", "database"),
-                    )
-                )
+                    ))
 
             return memories
 
@@ -232,7 +214,10 @@ class UniversalAIWrapper:
                 "jsonrpc": "2.0",
                 "id": 1,
                 "method": "tools/call",
-                "params": {"name": tool, "arguments": params},
+                "params": {
+                    "name": tool,
+                    "arguments": params
+                },
             }
 
             # Execute MCP server query via subprocess
@@ -244,9 +229,7 @@ class UniversalAIWrapper:
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            stdout, stderr = await process.communicate(
-                input=json.dumps(mcp_request).encode()
-            )
+            stdout, stderr = await process.communicate(input=json.dumps(mcp_request).encode())
 
             if process.returncode == 0:
                 response = json.loads(stdout.decode())
@@ -259,9 +242,7 @@ class UniversalAIWrapper:
             logger.error(f"Error querying MCP server: {e}")
             return ""
 
-    def _parse_memories_response(
-        self, response: str, level: str
-    ) -> list[MemoryContext]:
+    def _parse_memories_response(self, response: str, level: str) -> list[MemoryContext]:
         """Parse memory response from MCP server into MemoryContext objects"""
         memories = []
 
@@ -293,9 +274,7 @@ class UniversalAIWrapper:
 
         return memories
 
-    def _rank_memories_by_relevance(
-        self, memories: list[MemoryContext], context: AIContext
-    ) -> list[MemoryContext]:
+    def _rank_memories_by_relevance(self, memories: list[MemoryContext], context: AIContext) -> list[MemoryContext]:
         """Rank memories by relevance to current context"""
         for memory in memories:
             score = 0
@@ -334,9 +313,7 @@ class UniversalAIWrapper:
         memories.sort(key=lambda x: x.relevance_score, reverse=True)
         return memories
 
-    def _build_enhanced_prompt(
-        self, original_prompt: str, memories: list[MemoryContext], context: AIContext
-    ) -> str:
+    def _build_enhanced_prompt(self, original_prompt: str, memories: list[MemoryContext], context: AIContext) -> str:
         """Build enhanced prompt with hierarchical memories"""
         if not memories:
             return original_prompt
@@ -426,7 +403,8 @@ class UniversalAIWrapper:
             await self._query_mcp_server(
                 "remember",
                 {
-                    "text": f"AI interaction enhanced with {len(memories)} memories for {context.language} in {context.ai_model.value}",
+                    "text":
+                    f"AI interaction enhanced with {len(memories)} memories for {context.language} in {context.ai_model.value}",  # noqa: E501
                     "context": f"ai_interactions_{context.project_context or 'default'}",
                     "metadata": interaction_data,
                 },

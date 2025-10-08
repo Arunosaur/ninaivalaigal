@@ -90,9 +90,7 @@ class GraphReasoner:
         Returns:
             ContextExplanation with reasoning paths and evidence
         """
-        cache_key = (
-            f"context_explanation:{memory_id}:{user_id}:{context_type}:{max_depth}"
-        )
+        cache_key = (f"context_explanation:{memory_id}:{user_id}:{context_type}:{max_depth}")
 
         # Check Redis cache first
         cached_result = await self.redis_client.get(cache_key)
@@ -104,9 +102,9 @@ class GraphReasoner:
         logger.info(f"Computing context explanation for memory: {memory_id}")
 
         # Find all paths from user to memory
-        reasoning_paths = await self._find_reasoning_paths(
-            start_node_id=user_id, target_node_id=memory_id, max_depth=max_depth
-        )
+        reasoning_paths = await self._find_reasoning_paths(start_node_id=user_id,
+                                                           target_node_id=memory_id,
+                                                           max_depth=max_depth)
 
         # Analyze path significance
         primary_path = self._select_primary_path(reasoning_paths)
@@ -117,9 +115,7 @@ class GraphReasoner:
         confidence = self._calculate_explanation_confidence(reasoning_paths)
 
         # Gather supporting evidence
-        supporting_evidence = await self._gather_supporting_evidence(
-            memory_id, reasoning_paths
-        )
+        supporting_evidence = await self._gather_supporting_evidence(memory_id, reasoning_paths)
 
         explanation = ContextExplanation(
             memory_id=memory_id,
@@ -131,9 +127,7 @@ class GraphReasoner:
         )
 
         # Cache the result
-        await self.redis_client.setex(
-            cache_key, self.cache_ttl, json.dumps(explanation.__dict__, default=str)
-        )
+        await self.redis_client.setex(cache_key, self.cache_ttl, json.dumps(explanation.__dict__, default=str))
 
         return explanation
 
@@ -156,9 +150,7 @@ class GraphReasoner:
         Returns:
             RelevanceInference with suggested memories and agents
         """
-        cache_key = (
-            f"relevance_inference:{current_memory_id}:{user_id}:{suggestion_count}"
-        )
+        cache_key = (f"relevance_inference:{current_memory_id}:{user_id}:{suggestion_count}")
 
         # Check Redis cache
         cached_result = await self.redis_client.get(cache_key)
@@ -170,30 +162,21 @@ class GraphReasoner:
         logger.info(f"Computing relevance inference for memory: {current_memory_id}")
 
         # Find connected memories through various relationship types
-        connected_memories = await self._find_connected_memories_multi_hop(
-            current_memory_id, max_depth=2
-        )
+        connected_memories = await self._find_connected_memories_multi_hop(current_memory_id, max_depth=2)
 
         # Find relevant agents based on memory patterns
         relevant_agents = await self._find_relevant_agents(current_memory_id, user_id)
 
         # Calculate proximity metrics
-        proximity_metrics = await self._calculate_proximity_metrics(
-            current_memory_id, connected_memories + relevant_agents
-        )
+        proximity_metrics = await self._calculate_proximity_metrics(current_memory_id,
+                                                                    connected_memories + relevant_agents)
 
         # Score and rank suggestions
-        memory_scores = await self._score_memory_suggestions(
-            connected_memories, proximity_metrics
-        )
-        agent_scores = await self._score_agent_suggestions(
-            relevant_agents, proximity_metrics
-        )
+        memory_scores = await self._score_memory_suggestions(connected_memories, proximity_metrics)
+        agent_scores = await self._score_agent_suggestions(relevant_agents, proximity_metrics)
 
         # Select top suggestions
-        suggested_memories = self._select_top_suggestions(
-            memory_scores, suggestion_count
-        )
+        suggested_memories = self._select_top_suggestions(memory_scores, suggestion_count)
         suggested_agents = self._select_top_suggestions(
             agent_scores,
             min(suggestion_count, 3),  # Fewer agent suggestions
@@ -205,15 +188,16 @@ class GraphReasoner:
         inference = RelevanceInference(
             suggested_memories=suggested_memories,
             suggested_agents=suggested_agents,
-            reasoning_scores={**memory_scores, **agent_scores},
+            reasoning_scores={
+                **memory_scores,
+                **agent_scores
+            },
             proximity_metrics=proximity_metrics,
             confidence=confidence,
         )
 
         # Cache the result
-        await self.redis_client.setex(
-            cache_key, self.cache_ttl, json.dumps(inference.__dict__, default=str)
-        )
+        await self.redis_client.setex(cache_key, self.cache_ttl, json.dumps(inference.__dict__, default=str))
 
         return inference
 
@@ -241,19 +225,13 @@ class GraphReasoner:
         logger.info(f"Processing feedback loop: {feedback_type} = {feedback_score}")
 
         # Store feedback in graph as weighted edge
-        await self._store_feedback_edge(
-            user_id, memory_id, feedback_type, feedback_score, context_data
-        )
+        await self._store_feedback_edge(user_id, memory_id, feedback_type, feedback_score, context_data)
 
         # Update graph weights based on feedback
-        weight_updates = await self._update_graph_weights(
-            user_id, memory_id, feedback_score
-        )
+        weight_updates = await self._update_graph_weights(user_id, memory_id, feedback_score)
 
         # Adjust traversal parameters
-        traversal_updates = await self._adjust_traversal_parameters(
-            user_id, feedback_type, feedback_score
-        )
+        traversal_updates = await self._adjust_traversal_parameters(user_id, feedback_type, feedback_score)
 
         # Invalidate related caches
         await self._invalidate_feedback_caches(user_id, memory_id)
@@ -301,9 +279,7 @@ class GraphReasoner:
         pattern_analysis = await self._find_network_patterns(network_data, user_id)
 
         # Generate insights and recommendations
-        insights = await self._generate_network_insights(
-            structure_analysis, pattern_analysis
-        )
+        insights = await self._generate_network_insights(structure_analysis, pattern_analysis)
 
         analysis_result = {
             "user_id": user_id,
@@ -325,9 +301,8 @@ class GraphReasoner:
 
     # Private helper methods
 
-    async def _find_reasoning_paths(
-        self, start_node_id: str, target_node_id: str, max_depth: int
-    ) -> list[ReasoningPath]:
+    async def _find_reasoning_paths(self, start_node_id: str, target_node_id: str,
+                                    max_depth: int) -> list[ReasoningPath]:
         """Find all reasoning paths between two nodes"""
         cypher_query = f"""
         MATCH path = (start)-[*1..{max_depth}]-(target)
@@ -377,9 +352,7 @@ class GraphReasoner:
         # Return highest scoring path
         return max(scored_paths, key=lambda x: x[1])[0]
 
-    def _generate_retrieval_reason(
-        self, path: ReasoningPath | None, context_type: str
-    ) -> str:
+    def _generate_retrieval_reason(self, path: ReasoningPath | None, context_type: str) -> str:
         """Generate human-readable retrieval reason"""
         if not path:
             return f"Memory retrieved through {context_type} context"
@@ -416,18 +389,14 @@ class GraphReasoner:
 
         return min(avg_confidence + boost, 1.0)
 
-    async def _gather_supporting_evidence(
-        self, memory_id: str, paths: list[ReasoningPath]
-    ) -> list[str]:
+    async def _gather_supporting_evidence(self, memory_id: str, paths: list[ReasoningPath]) -> list[str]:
         """Gather supporting evidence for the explanation"""
         evidence = []
 
         # Add path-based evidence
         for path in paths[:3]:  # Top 3 paths
             if path.confidence > 0.5:
-                evidence.append(
-                    f"Strong {path.reasoning} (confidence: {path.confidence:.2f})"
-                )
+                evidence.append(f"Strong {path.reasoning} (confidence: {path.confidence:.2f})")
 
         # Add temporal evidence
         cypher_query = f"""
@@ -443,9 +412,7 @@ class GraphReasoner:
 
         return evidence
 
-    async def _find_connected_memories_multi_hop(
-        self, memory_id: str, max_depth: int = 2
-    ) -> list[str]:
+    async def _find_connected_memories_multi_hop(self, memory_id: str, max_depth: int = 2) -> list[str]:
         """Find connected memories through multi-hop traversal"""
         cypher_query = f"""
         MATCH (m:Memory {{id: '{memory_id}'}})-[*1..{max_depth}]-(connected:Memory)
@@ -465,7 +432,7 @@ class GraphReasoner:
         MATCH (m:Memory {{id: '{memory_id}'}})-[:LINKED_TO]-(macro:Macro)-[:TRIGGERED_BY]-(agent:Agent)
         RETURN DISTINCT agent.id as agent_id
         UNION
-        MATCH (u:User {{id: '{user_id}'}})-[:CREATED]-(mem:Memory)-[:LINKED_TO]-(macro:Macro)-[:TRIGGERED_BY]-(agent:Agent)
+        MATCH (u:User {{id: '{user_id}'}})-[:CREATED]-(mem:Memory)-[:LINKED_TO]-(macro:Macro)-[:TRIGGERED_BY]-(agent:Agent)  # noqa: E501
         RETURN DISTINCT agent.id as agent_id
         LIMIT 10
         """
@@ -482,9 +449,7 @@ class GraphReasoner:
         else:
             return f"Path through {' → '.join(edges)}"
 
-    async def _calculate_proximity_metrics(
-        self, source_id: str, target_ids: list[str]
-    ) -> dict[str, float]:
+    async def _calculate_proximity_metrics(self, source_id: str, target_ids: list[str]) -> dict[str, float]:
         """Calculate proximity metrics between source and targets"""
         metrics = {}
 
@@ -500,17 +465,14 @@ class GraphReasoner:
             if result:
                 distance = result[0].get("distance", float("inf"))
                 # Convert distance to proximity (closer = higher score)
-                metrics[target_id] = (
-                    1.0 / (1.0 + distance) if distance < float("inf") else 0.0
-                )
+                metrics[target_id] = (1.0 / (1.0 + distance) if distance < float("inf") else 0.0)
             else:
                 metrics[target_id] = 0.0
 
         return metrics
 
-    async def _score_memory_suggestions(
-        self, memory_ids: list[str], proximity_metrics: dict[str, float]
-    ) -> dict[str, float]:
+    async def _score_memory_suggestions(self, memory_ids: list[str],
+                                        proximity_metrics: dict[str, float]) -> dict[str, float]:
         """Score memory suggestions based on various factors"""
         scores = {}
 
@@ -534,9 +496,7 @@ class GraphReasoner:
 
                 # Combine factors
                 connection_boost = min(connection_count * 0.05, 0.3)
-                final_score = (
-                    proximity_score * 0.4 + base_score * 0.4 + connection_boost * 0.2
-                )
+                final_score = (proximity_score * 0.4 + base_score * 0.4 + connection_boost * 0.2)
 
                 scores[memory_id] = final_score
             else:
@@ -544,9 +504,8 @@ class GraphReasoner:
 
         return scores
 
-    async def _score_agent_suggestions(
-        self, agent_ids: list[str], proximity_metrics: dict[str, float]
-    ) -> dict[str, float]:
+    async def _score_agent_suggestions(self, agent_ids: list[str], proximity_metrics: dict[str,
+                                                                                           float]) -> dict[str, float]:
         """Score agent suggestions based on relevance and activity"""
         scores = {}
 
@@ -576,16 +535,12 @@ class GraphReasoner:
 
         return scores
 
-    def _select_top_suggestions(
-        self, scores: dict[str, float], count: int
-    ) -> list[str]:
+    def _select_top_suggestions(self, scores: dict[str, float], count: int) -> list[str]:
         """Select top suggestions based on scores"""
         sorted_items = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         return [item[0] for item in sorted_items[:count]]
 
-    def _calculate_inference_confidence(
-        self, memory_scores: dict[str, float], agent_scores: dict[str, float]
-    ) -> float:
+    def _calculate_inference_confidence(self, memory_scores: dict[str, float], agent_scores: dict[str, float]) -> float:
         """Calculate confidence in the inference results"""
         all_scores = list(memory_scores.values()) + list(agent_scores.values())
 
@@ -629,9 +584,7 @@ class GraphReasoner:
 
         await self.age_client.execute_cypher(cypher_query)
 
-    async def _update_graph_weights(
-        self, user_id: str, memory_id: str, feedback_score: float
-    ) -> dict[str, int]:
+    async def _update_graph_weights(self, user_id: str, memory_id: str, feedback_score: float) -> dict[str, int]:
         """Update graph weights based on feedback"""
         # Update weights on related edges
         cypher_query = f"""
@@ -645,9 +598,8 @@ class GraphReasoner:
 
         return {"updated_edges": updated_edges}
 
-    async def _adjust_traversal_parameters(
-        self, user_id: str, feedback_type: str, feedback_score: float
-    ) -> dict[str, Any]:
+    async def _adjust_traversal_parameters(self, user_id: str, feedback_type: str,
+                                           feedback_score: float) -> dict[str, Any]:
         """Adjust traversal parameters based on feedback"""
         # Store user-specific traversal preferences
         preferences_key = f"traversal_prefs:{user_id}"
@@ -691,9 +643,7 @@ class GraphReasoner:
             if keys:
                 await self.redis_client.delete(*keys)
 
-    async def _analyze_network_structure(
-        self, network_data: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def _analyze_network_structure(self, network_data: dict[str, Any]) -> dict[str, Any]:
         """Analyze the structure of the memory network"""
         nodes = network_data.get("nodes", [])
         edges = network_data.get("edges", [])
@@ -701,9 +651,7 @@ class GraphReasoner:
         # Basic structural metrics
         node_count = len(nodes)
         edge_count = len(edges)
-        density = (
-            (2 * edge_count) / (node_count * (node_count - 1)) if node_count > 1 else 0
-        )
+        density = ((2 * edge_count) / (node_count * (node_count - 1)) if node_count > 1 else 0)
 
         # Count node types
         node_types: dict[str, int] = {}
@@ -719,9 +667,7 @@ class GraphReasoner:
             "avg_connections": edge_count / node_count if node_count > 0 else 0,
         }
 
-    async def _find_network_patterns(
-        self, network_data: dict[str, Any], user_id: str
-    ) -> dict[str, Any]:
+    async def _find_network_patterns(self, network_data: dict[str, Any], user_id: str) -> dict[str, Any]:
         """Find patterns and clusters in the network"""
         edges = network_data.get("edges", [])
 
@@ -734,56 +680,45 @@ class GraphReasoner:
             node_connections[target] = node_connections.get(target, 0) + 1
 
         # Find hubs (top 10% most connected)
-        sorted_nodes = sorted(
-            node_connections.items(), key=lambda x: x[1], reverse=True
-        )
+        sorted_nodes = sorted(node_connections.items(), key=lambda x: x[1], reverse=True)
         hub_count = max(1, len(sorted_nodes) // 10)
         hubs = sorted_nodes[:hub_count]
 
         return {
-            "hubs": [{"node_id": hub[0], "connections": hub[1]} for hub in hubs],
+            "hubs": [{
+                "node_id": hub[0],
+                "connections": hub[1]
+            } for hub in hubs],
             "connection_distribution": dict(sorted_nodes[:10]),  # Top 10
         }
 
-    async def _generate_network_insights(
-        self, structure: dict[str, Any], patterns: dict[str, Any]
-    ) -> list[str]:
+    async def _generate_network_insights(self, structure: dict[str, Any], patterns: dict[str, Any]) -> list[str]:
         """Generate insights and recommendations from network analysis"""
         insights = []
 
         # Density insights
         density = structure.get("density", 0)
         if density < 0.1:
-            insights.append(
-                "Low network density suggests opportunities for more memory connections"
-            )
+            insights.append("Low network density suggests opportunities for more memory connections")
         elif density > 0.7:
-            insights.append(
-                "High network density indicates well-connected memory system"
-            )
+            insights.append("High network density indicates well-connected memory system")
 
         # Hub insights
         hubs = patterns.get("hubs", [])
         if hubs:
             top_hub = hubs[0]
-            insights.append(
-                f"Memory hub '{top_hub['node_id']}' has "
-                f"{top_hub['connections']} connections"
-            )
+            insights.append(f"Memory hub '{top_hub['node_id']}' has "
+                            f"{top_hub['connections']} connections")
 
         # Connection insights
         avg_connections = structure.get("avg_connections", 0)
         if avg_connections < 2:
-            insights.append(
-                "Consider creating more memory relationships for better context"
-            )
+            insights.append("Consider creating more memory relationships for better context")
 
         return insights
 
 
 # Factory function for dependency injection
-def create_graph_reasoner(
-    age_client: ApacheAGEClient, redis_client: RedisClient
-) -> GraphReasoner:
+def create_graph_reasoner(age_client: ApacheAGEClient, redis_client: RedisClient) -> GraphReasoner:
     """Create GraphReasoner instance with dependency injection"""
     return GraphReasoner(age_client, redis_client)

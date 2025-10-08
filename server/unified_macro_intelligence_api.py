@@ -29,9 +29,7 @@ class MacroInsightRequest(BaseModel):
     team_id: Optional[str] = None
     org_id: Optional[str] = None
     time_range_days: int = Field(default=30, ge=1, le=365)
-    analysis_types: List[str] = Field(
-        default=["patterns", "trends", "insights", "recommendations"]
-    )
+    analysis_types: List[str] = Field(default=["patterns", "trends", "insights", "recommendations"])
     include_predictions: bool = Field(default=True)
     context_filter: Optional[str] = None
 
@@ -97,9 +95,7 @@ class MacroIntelligenceEngine:
         self.relevance_engine = relevance_engine
         self.cache_ttl = 3600  # 1 hour cache
 
-    async def analyze_memory_patterns(
-        self, user_id: str, days: int = 30
-    ) -> List[MemoryPattern]:
+    async def analyze_memory_patterns(self, user_id: str, days: int = 30) -> List[MemoryPattern]:
         """Analyze memory usage patterns for insights"""
         cache_key = f"macro:patterns:{user_id}:{days}"
 
@@ -114,14 +110,21 @@ class MacroIntelligenceEngine:
                 pattern_type="daily_peak",
                 frequency=85,
                 contexts=["work", "research"],
-                time_distribution={"morning": 40, "afternoon": 45, "evening": 15},
+                time_distribution={
+                    "morning": 40,
+                    "afternoon": 45,
+                    "evening": 15
+                },
                 confidence=0.87,
             ),
             MemoryPattern(
                 pattern_type="context_clustering",
                 frequency=72,
                 contexts=["project_alpha", "meetings"],
-                time_distribution={"weekday": 80, "weekend": 20},
+                time_distribution={
+                    "weekday": 80,
+                    "weekend": 20
+                },
                 confidence=0.74,
             ),
             MemoryPattern(
@@ -134,15 +137,11 @@ class MacroIntelligenceEngine:
         ]
 
         # Cache results
-        await self.redis.setex(
-            cache_key, self.cache_ttl, json.dumps([p.__dict__ for p in patterns])
-        )
+        await self.redis.setex(cache_key, self.cache_ttl, json.dumps([p.__dict__ for p in patterns]))
 
         return patterns
 
-    async def generate_insights(
-        self, patterns: List[MemoryPattern], user_id: str
-    ) -> List[MacroInsight]:
+    async def generate_insights(self, patterns: List[MemoryPattern], user_id: str) -> List[MacroInsight]:
         """Generate actionable insights from patterns"""
         insights = []
 
@@ -153,61 +152,48 @@ class MacroIntelligenceEngine:
                         id=str(uuid4()),
                         type="insight",
                         title="Peak Productivity Hours Identified",
-                        description=(
-                            f"Your memory activity peaks during afternoon hours "
-                            f"({pattern.time_distribution['afternoon']}% of activity). "
-                            f"Consider scheduling important tasks during this time."
-                        ),
+                        description=(f"Your memory activity peaks during afternoon hours "
+                                     f"({pattern.time_distribution['afternoon']}% of activity). "
+                                     f"Consider scheduling important tasks during this time."),
                         confidence_score=pattern.confidence,
                         impact_level="high",
                         category="productivity",
-                        data_points=[
-                            {
-                                "metric": "time_distribution",
-                                "values": pattern.time_distribution,
-                                "contexts": pattern.contexts,
-                            }
-                        ],
+                        data_points=[{
+                            "metric": "time_distribution",
+                            "values": pattern.time_distribution,
+                            "contexts": pattern.contexts,
+                        }],
                         actionable_items=[
                             "Schedule important meetings in the afternoon",
                             "Block afternoon time for deep work",
                             "Use morning for routine tasks",
                         ],
                         created_at=datetime.utcnow(),
-                    )
-                )
+                    ))
 
-            elif (
-                pattern.pattern_type == "context_clustering"
-                and pattern.confidence > 0.7
-            ):
+            elif (pattern.pattern_type == "context_clustering" and pattern.confidence > 0.7):
                 insights.append(
                     MacroInsight(
                         id=str(uuid4()),
                         type="pattern",
                         title="Context Clustering Detected",
-                        description=(
-                            f"Strong correlation between {', '.join(pattern.contexts)} "
-                            f"contexts suggests workflow optimization opportunities."
-                        ),
+                        description=(f"Strong correlation between {', '.join(pattern.contexts)} "
+                                     f"contexts suggests workflow optimization opportunities."),
                         confidence_score=pattern.confidence,
                         impact_level="medium",
                         category="efficiency",
-                        data_points=[
-                            {
-                                "metric": "context_correlation",
-                                "contexts": pattern.contexts,
-                                "frequency": pattern.frequency,
-                            }
-                        ],
+                        data_points=[{
+                            "metric": "context_correlation",
+                            "contexts": pattern.contexts,
+                            "frequency": pattern.frequency,
+                        }],
                         actionable_items=[
                             "Create templates for recurring context combinations",
                             "Set up automated workflows",
                             "Consider context-specific memory organization",
                         ],
                         created_at=datetime.utcnow(),
-                    )
-                )
+                    ))
 
             elif pattern.pattern_type == "knowledge_gaps" and pattern.confidence > 0.85:
                 insights.append(
@@ -215,34 +201,27 @@ class MacroIntelligenceEngine:
                         id=str(uuid4()),
                         type="recommendation",
                         title="Learning Opportunities Identified",
-                        description=(
-                            "Consistent gaps in documentation and learning contexts "
-                            "suggest structured learning could improve productivity."
-                        ),
+                        description=("Consistent gaps in documentation and learning contexts "
+                                     "suggest structured learning could improve productivity."),
                         confidence_score=pattern.confidence,
                         impact_level="high",
                         category="learning",
-                        data_points=[
-                            {
-                                "metric": "gap_frequency",
-                                "value": pattern.frequency,
-                                "contexts": pattern.contexts,
-                            }
-                        ],
+                        data_points=[{
+                            "metric": "gap_frequency",
+                            "value": pattern.frequency,
+                            "contexts": pattern.contexts,
+                        }],
                         actionable_items=[
                             "Schedule regular learning sessions",
                             "Create knowledge base templates",
                             "Set up documentation workflows",
                         ],
                         created_at=datetime.utcnow(),
-                    )
-                )
+                    ))
 
         return insights
 
-    async def generate_predictions(
-        self, patterns: List[MemoryPattern], user_id: str
-    ) -> List[MacroInsight]:
+    async def generate_predictions(self, patterns: List[MemoryPattern], user_id: str) -> List[MacroInsight]:
         """Generate predictive insights"""
         predictions = []
 
@@ -253,31 +232,26 @@ class MacroIntelligenceEngine:
                     id=str(uuid4()),
                     type="prediction",
                     title="Memory Usage Forecast",
-                    description="Based on current patterns, expect 25% increase in memory activity next week during project deadlines.",
+                    description="Based on current patterns, expect 25% increase in memory activity next week during project deadlines.",  # noqa: E501
                     confidence_score=0.78,
                     impact_level="medium",
                     category="productivity",
-                    data_points=[
-                        {
-                            "metric": "predicted_increase",
-                            "value": 25,
-                            "timeframe": "next_week",
-                        }
-                    ],
+                    data_points=[{
+                        "metric": "predicted_increase",
+                        "value": 25,
+                        "timeframe": "next_week",
+                    }],
                     actionable_items=[
                         "Prepare additional memory capacity",
                         "Schedule memory organization time",
                         "Set up automated backups",
                     ],
                     created_at=datetime.utcnow(),
-                )
-            )
+                ))
 
         return predictions
 
-    async def calculate_summary_metrics(
-        self, insights: List[MacroInsight]
-    ) -> Dict[str, Any]:
+    async def calculate_summary_metrics(self, insights: List[MacroInsight]) -> Dict[str, Any]:
         """Calculate summary metrics for the analysis"""
         if not insights:
             return {"total_insights": 0, "avg_confidence": 0.0}
@@ -289,24 +263,16 @@ class MacroIntelligenceEngine:
         impact_counts = {}
 
         for insight in insights:
-            category_counts[insight.category] = (
-                category_counts.get(insight.category, 0) + 1
-            )
-            impact_counts[insight.impact_level] = (
-                impact_counts.get(insight.impact_level, 0) + 1
-            )
+            category_counts[insight.category] = (category_counts.get(insight.category, 0) + 1)
+            impact_counts[insight.impact_level] = (impact_counts.get(insight.impact_level, 0) + 1)
 
         return {
             "total_insights": total_insights,
             "avg_confidence": round(avg_confidence, 3),
             "insights_by_category": category_counts,
             "insights_by_impact": impact_counts,
-            "high_impact_insights": len(
-                [i for i in insights if i.impact_level == "high"]
-            ),
-            "actionable_recommendations": sum(
-                len(i.actionable_items) for i in insights
-            ),
+            "high_impact_insights": len([i for i in insights if i.impact_level == "high"]),
+            "actionable_recommendations": sum(len(i.actionable_items) for i in insights),
         }
 
 
@@ -329,10 +295,10 @@ async def get_intelligence_engine():
 
 @router.post("/analyze", response_model=MacroIntelligenceResponse)
 async def analyze_macro_intelligence(
-    request: MacroInsightRequest,
-    background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+        request: MacroInsightRequest,
+        background_tasks: BackgroundTasks,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
 ):
     """Generate macro intelligence analysis"""
 
@@ -352,9 +318,7 @@ async def analyze_macro_intelligence(
         engine = await get_intelligence_engine()
 
         # Analyze memory patterns
-        patterns = await engine.analyze_memory_patterns(
-            target_user_id, request.time_range_days
-        )
+        patterns = await engine.analyze_memory_patterns(target_user_id, request.time_range_days)
 
         # Generate insights
         insights = []
@@ -398,9 +362,7 @@ async def analyze_macro_intelligence(
         )
 
         # Store analysis results in background
-        background_tasks.add_task(
-            store_analysis_results, analysis_id, response, processing_time
-        )
+        background_tasks.add_task(store_analysis_results, analysis_id, response, processing_time)
 
         return response
 
@@ -409,9 +371,7 @@ async def analyze_macro_intelligence(
 
 
 @router.get("/insights/{analysis_id}")
-async def get_analysis_results(
-    analysis_id: str, current_user: User = Depends(get_current_user)
-):
+async def get_analysis_results(analysis_id: str, current_user: User = Depends(get_current_user)):
     """Retrieve stored analysis results"""
 
     engine = await get_intelligence_engine()
@@ -440,7 +400,11 @@ async def get_intelligence_metrics(current_user: User = Depends(get_current_user
             "collaboration": 289,
             "efficiency": 181,
         },
-        insights_by_impact={"high": 387, "medium": 623, "low": 237},
+        insights_by_impact={
+            "high": 387,
+            "medium": 623,
+            "low": 237
+        },
         processing_time_ms=1250.0,
         cache_hit_rate=0.73,
     )
@@ -450,9 +414,9 @@ async def get_intelligence_metrics(current_user: User = Depends(get_current_user
 
 @router.post("/insights/{insight_id}/feedback")
 async def provide_insight_feedback(
-    insight_id: str,
-    feedback: Dict[str, Any],
-    current_user: User = Depends(get_current_user),
+        insight_id: str,
+        feedback: Dict[str, Any],
+        current_user: User = Depends(get_current_user),
 ):
     """Provide feedback on insight quality"""
 
@@ -467,38 +431,64 @@ async def provide_insight_feedback(
         "timestamp": datetime.utcnow().isoformat(),
     }
 
-    await engine.redis.setex(
-        feedback_key, 86400 * 30, json.dumps(feedback_data)
-    )  # 30 days
+    await engine.redis.setex(feedback_key, 86400 * 30, json.dumps(feedback_data))  # 30 days
 
     return {"message": "Feedback recorded successfully", "insight_id": insight_id}
 
 
 @router.get("/trends")
-async def get_intelligence_trends(
-    days: int = 30, current_user: User = Depends(get_current_user)
-):
+async def get_intelligence_trends(days: int = 30, current_user: User = Depends(get_current_user)):
     """Get intelligence trends over time"""
 
     # Mock trend data (in production, calculate from historical analyses)
     trends = {
         "insight_generation_trend": [
-            {"date": "2024-09-01", "count": 23},
-            {"date": "2024-09-02", "count": 31},
-            {"date": "2024-09-03", "count": 28},
+            {
+                "date": "2024-09-01",
+                "count": 23
+            },
+            {
+                "date": "2024-09-02",
+                "count": 31
+            },
+            {
+                "date": "2024-09-03",
+                "count": 28
+            },
             # ... more data points
         ],
         "confidence_trend": [
-            {"date": "2024-09-01", "avg_confidence": 0.78},
-            {"date": "2024-09-02", "avg_confidence": 0.82},
-            {"date": "2024-09-03", "avg_confidence": 0.85},
+            {
+                "date": "2024-09-01",
+                "avg_confidence": 0.78
+            },
+            {
+                "date": "2024-09-02",
+                "avg_confidence": 0.82
+            },
+            {
+                "date": "2024-09-03",
+                "avg_confidence": 0.85
+            },
             # ... more data points
         ],
         "category_trends": {
-            "productivity": {"growth_rate": 0.15, "trend": "increasing"},
-            "learning": {"growth_rate": 0.08, "trend": "stable"},
-            "collaboration": {"growth_rate": 0.22, "trend": "increasing"},
-            "efficiency": {"growth_rate": -0.05, "trend": "decreasing"},
+            "productivity": {
+                "growth_rate": 0.15,
+                "trend": "increasing"
+            },
+            "learning": {
+                "growth_rate": 0.08,
+                "trend": "stable"
+            },
+            "collaboration": {
+                "growth_rate": 0.22,
+                "trend": "increasing"
+            },
+            "efficiency": {
+                "growth_rate": -0.05,
+                "trend": "decreasing"
+            },
         },
     }
 
@@ -508,9 +498,7 @@ async def get_intelligence_trends(
 # Background Tasks
 
 
-async def store_analysis_results(
-    analysis_id: str, response: MacroIntelligenceResponse, processing_time: float
-):
+async def store_analysis_results(analysis_id: str, response: MacroIntelligenceResponse, processing_time: float):
     """Store analysis results for future retrieval"""
 
     engine = await get_intelligence_engine()
@@ -520,14 +508,10 @@ async def store_analysis_results(
     result_data = response.dict()
     result_data["processing_time_ms"] = processing_time
 
-    await engine.redis.setex(
-        cache_key, 86400 * 7, json.dumps(result_data, default=str)
-    )  # 7 days
+    await engine.redis.setex(cache_key, 86400 * 7, json.dumps(result_data, default=str))  # 7 days
 
     # Update metrics
     metrics_key = f"macro:metrics:{datetime.utcnow().date()}"
     await engine.redis.hincrby(metrics_key, "total_analyses", 1)
-    await engine.redis.hincrbyfloat(
-        metrics_key, "total_processing_time", processing_time
-    )
+    await engine.redis.hincrbyfloat(metrics_key, "total_processing_time", processing_time)
     await engine.redis.expire(metrics_key, 86400 * 30)  # 30 days

@@ -126,9 +126,7 @@ def calculate_monthly_revenue(plan: str) -> float:
     return revenue_map.get(plan, 0.0)
 
 
-def calculate_conversion_probability(
-    team: Team, member_count: int, db: Session
-) -> float:
+def calculate_conversion_probability(team: Team, member_count: int, db: Session) -> float:
     """Calculate probability of team upgrading based on usage patterns"""
     base_probability = 0.1  # 10% base conversion rate
 
@@ -145,14 +143,10 @@ def calculate_conversion_probability(
             base_probability += 0.1
 
     # Factor 3: Invitation activity (active teams more likely to convert)
-    recent_invitations = (
-        db.query(TeamInvitation)
-        .filter(
-            TeamInvitation.team_id == team.id,
-            TeamInvitation.created_at >= datetime.utcnow() - timedelta(days=7),
-        )
-        .count()
-    )
+    recent_invitations = (db.query(TeamInvitation).filter(
+        TeamInvitation.team_id == team.id,
+        TeamInvitation.created_at >= datetime.utcnow() - timedelta(days=7),
+    ).count())
 
     if recent_invitations > 0:
         base_probability += 0.15
@@ -162,9 +156,9 @@ def calculate_conversion_probability(
 
 @router.get("/dashboard", response_model=AnalyticsDashboard)
 async def get_analytics_dashboard(
-    period: str = Query("30d", description="Time period: 7d, 30d, 90d"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+        period: str = Query("30d", description="Time period: 7d, 30d, 90d"),
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
 ) -> AnalyticsDashboard:
     """
     Get comprehensive analytics dashboard
@@ -176,36 +170,21 @@ async def get_analytics_dashboard(
 
     # Overview metrics
     total_teams = db.query(Team).filter(Team.is_standalone is True).count()
-    total_members = (
-        db.query(TeamMembership).filter(TeamMembership.status == "active").count()
-    )
+    total_members = (db.query(TeamMembership).filter(TeamMembership.status == "active").count())
 
-    recent_teams = (
-        db.query(Team)
-        .filter(Team.is_standalone is True, Team.created_at >= start_date)
-        .count()
-    )
+    recent_teams = (db.query(Team).filter(Team.is_standalone is True, Team.created_at >= start_date).count())
 
-    recent_invitations = (
-        db.query(TeamInvitation).filter(TeamInvitation.created_at >= start_date).count()
-    )
+    recent_invitations = (db.query(TeamInvitation).filter(TeamInvitation.created_at >= start_date).count())
 
-    accepted_invitations = (
-        db.query(TeamInvitation)
-        .filter(
-            TeamInvitation.created_at >= start_date, TeamInvitation.status == "accepted"
-        )
-        .count()
-    )
+    accepted_invitations = (db.query(TeamInvitation).filter(TeamInvitation.created_at >= start_date,
+                                                            TeamInvitation.status == "accepted").count())
 
     # Calculate revenue
-    teams_with_members = (
-        db.query(Team.id, func.count(TeamMembership.id).label("member_count"))
-        .join(TeamMembership, Team.id == TeamMembership.team_id)
-        .filter(Team.is_standalone is True, TeamMembership.status == "active")
-        .group_by(Team.id)
-        .all()
-    )
+    teams_with_members = (db.query(Team.id,
+                                   func.count(TeamMembership.id).label("member_count")).join(
+                                       TeamMembership, Team.id == TeamMembership.team_id).filter(
+                                           Team.is_standalone is True,
+                                           TeamMembership.status == "active").group_by(Team.id).all())
 
     total_revenue = 0.0
     for team_id, member_count in teams_with_members:
@@ -219,10 +198,7 @@ async def get_analytics_dashboard(
         "recent_invitations": recent_invitations,
         "monthly_revenue": total_revenue,
         "avg_team_size": total_members / max(total_teams, 1),
-        "invitation_acceptance_rate": (
-            accepted_invitations / max(recent_invitations, 1)
-        )
-        * 100,
+        "invitation_acceptance_rate": (accepted_invitations / max(recent_invitations, 1)) * 100,
     }
 
     # Growth metrics (simplified - in production, this would use time-series data)
@@ -238,11 +214,8 @@ async def get_analytics_dashboard(
                 members_added=max(0, int((total_members / days) + (i % 5 - 2))),
                 total_members=int(total_members * (i + 1) / days),
                 invitations_sent=max(0, int((recent_invitations / days) + (i % 4 - 1))),
-                invitations_accepted=max(
-                    0, int((accepted_invitations / days) + (i % 3 - 1))
-                ),
-            )
-        )
+                invitations_accepted=max(0, int((accepted_invitations / days) + (i % 3 - 1))),
+            ))
 
     # Conversion funnel
     conversion_funnel = ConversionMetrics(
@@ -252,8 +225,7 @@ async def get_analytics_dashboard(
         team_creation_rate=(recent_teams / max(recent_teams * 2, 1)) * 100,
         invitations_sent=recent_invitations,
         invitations_accepted=accepted_invitations,
-        invitation_acceptance_rate=(accepted_invitations / max(recent_invitations, 1))
-        * 100,
+        invitation_acceptance_rate=(accepted_invitations / max(recent_invitations, 1)) * 100,
         upgrades_initiated=max(1, int(recent_teams * 0.15)),  # 15% initiate upgrades
         upgrades_completed=max(1, int(recent_teams * 0.08)),  # 8% complete upgrades
         upgrade_conversion_rate=8.0,  # 8% conversion rate
@@ -294,9 +266,7 @@ async def get_analytics_dashboard(
     # Revenue projection
     growth_rate = (recent_teams / max(total_teams - recent_teams, 1)) * 100
     projected_teams = int(total_teams * (1 + growth_rate / 100))
-    projected_revenue = (
-        total_revenue * (1 + growth_rate / 100) * 1.1
-    )  # 10% conversion improvement
+    projected_revenue = (total_revenue * (1 + growth_rate / 100) * 1.1)  # 10% conversion improvement
 
     revenue_projection = RevenueProjection(
         period="next_30d",
@@ -311,23 +281,18 @@ async def get_analytics_dashboard(
     )
 
     # Top teams
-    top_teams_query = (
-        db.query(Team, func.count(TeamMembership.id).label("member_count"))
-        .join(TeamMembership, Team.id == TeamMembership.team_id)
-        .filter(Team.is_standalone is True, TeamMembership.status == "active")
-        .group_by(Team.id)
-        .order_by(desc("member_count"))
-        .limit(10)
-        .all()
-    )
+    top_teams_query = (db.query(Team,
+                                func.count(TeamMembership.id).label("member_count")).join(
+                                    TeamMembership, Team.id == TeamMembership.team_id).filter(
+                                        Team.is_standalone is True,
+                                        TeamMembership.status == "active").group_by(Team.id).order_by(
+                                            desc("member_count")).limit(10).all())
 
     top_teams = []
     for team, member_count in top_teams_query:
         plan = calculate_team_plan(member_count)
         monthly_revenue = calculate_monthly_revenue(plan)
-        conversion_probability = calculate_conversion_probability(
-            team, member_count, db
-        )
+        conversion_probability = calculate_conversion_probability(team, member_count, db)
 
         top_teams.append(
             TeamAnalytics(
@@ -341,38 +306,34 @@ async def get_analytics_dashboard(
                 ai_queries_count=member_count * 50,  # Estimate
                 last_activity=datetime.utcnow() - timedelta(hours=member_count % 24),
                 conversion_probability=conversion_probability,
-            )
-        )
+            ))
 
     # Alerts
     alerts = []
     if growth_rate < 5:
-        alerts.append(
-            {
-                "type": "warning",
-                "title": "Low Growth Rate",
-                "message": f"Team growth rate is {growth_rate:.1f}%, below 5% target",
-            }
-        )
+        alerts.append({
+            "type": "warning",
+            "title": "Low Growth Rate",
+            "message": f"Team growth rate is {growth_rate:.1f}%, below 5% target",
+        })
 
     if overview["invitation_acceptance_rate"] < 50:
-        alerts.append(
-            {
-                "type": "warning",
-                "title": "Low Invitation Acceptance",
-                "message": f"Invitation acceptance rate is {overview['invitation_acceptance_rate']:.1f}%, below 50% target",
-            }
-        )
+        alerts.append({
+            "type":
+            "warning",
+            "title":
+            "Low Invitation Acceptance",
+            "message":
+            f"Invitation acceptance rate is {overview['invitation_acceptance_rate']:.1f}%, below 50% target",
+        })
 
     high_conversion_teams = [t for t in top_teams if t.conversion_probability > 0.7]
     if high_conversion_teams:
-        alerts.append(
-            {
-                "type": "opportunity",
-                "title": "High Conversion Potential",
-                "message": f"{len(high_conversion_teams)} teams have >70% conversion probability",
-            }
-        )
+        alerts.append({
+            "type": "opportunity",
+            "title": "High Conversion Potential",
+            "message": f"{len(high_conversion_teams)} teams have >70% conversion probability",
+        })
 
     return AnalyticsDashboard(
         overview=overview,
@@ -387,10 +348,10 @@ async def get_analytics_dashboard(
 
 @router.get("/teams/{team_id}/usage")
 async def get_team_usage_details(
-    team_id: UUID,
-    period: str = Query("30d", description="Time period: 7d, 30d, 90d"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+        team_id: UUID,
+        period: str = Query("30d", description="Time period: 7d, 30d, 90d"),
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Get detailed usage analytics for a specific team"""
 
@@ -400,25 +361,18 @@ async def get_team_usage_details(
         raise HTTPException(status_code=404, detail="Team not found")
 
     # Get team members
-    members = (
-        db.query(TeamMembership)
-        .filter(TeamMembership.team_id == team_id, TeamMembership.status == "active")
-        .all()
-    )
+    members = (db.query(TeamMembership).filter(TeamMembership.team_id == team_id,
+                                               TeamMembership.status == "active").all())
 
     # Get invitations
-    invitations = (
-        db.query(TeamInvitation).filter(TeamInvitation.team_id == team_id).all()
-    )
+    invitations = (db.query(TeamInvitation).filter(TeamInvitation.team_id == team_id).all())
 
     # Calculate usage metrics
     days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 30)
     start_date = datetime.utcnow() - timedelta(days=days)
 
     recent_invitations = [inv for inv in invitations if inv.created_at >= start_date]
-    accepted_invitations = [
-        inv for inv in recent_invitations if inv.status == "accepted"
-    ]
+    accepted_invitations = [inv for inv in recent_invitations if inv.status == "accepted"]
 
     plan = calculate_team_plan(len(members))
     monthly_revenue = calculate_monthly_revenue(plan)
@@ -441,27 +395,16 @@ async def get_team_usage_details(
         "growth_metrics": {
             "invitations_sent": len(recent_invitations),
             "invitations_accepted": len(accepted_invitations),
-            "acceptance_rate": (
-                len(accepted_invitations) / max(len(recent_invitations), 1)
-            )
-            * 100,
-            "growth_rate": (
-                len(accepted_invitations)
-                / max(len(members) - len(accepted_invitations), 1)
-            )
-            * 100,
+            "acceptance_rate": (len(accepted_invitations) / max(len(recent_invitations), 1)) * 100,
+            "growth_rate": (len(accepted_invitations) / max(len(members) - len(accepted_invitations), 1)) * 100,
         },
         "conversion_analysis": {
-            "conversion_probability": conversion_probability,
+            "conversion_probability":
+            conversion_probability,
             "upgrade_triggers": [
                 f"Team size: {len(members)}/5 (Free limit)" if plan == "free" else None,
                 "High invitation activity" if len(recent_invitations) > 2 else None,
-                (
-                    "Team age > 30 days"
-                    if team.created_at
-                    and (datetime.utcnow() - team.created_at).days > 30
-                    else None
-                ),
+                ("Team age > 30 days" if team.created_at and (datetime.utcnow() - team.created_at).days > 30 else None),
             ],
             "recommended_actions": [
                 "Send upgrade notification" if conversion_probability > 0.6 else None,
@@ -474,27 +417,23 @@ async def get_team_usage_details(
 
 @router.get("/conversion-opportunities")
 async def get_conversion_opportunities(
-    min_probability: float = Query(0.5, description="Minimum conversion probability"),
-    limit: int = Query(20, description="Maximum number of opportunities"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+        min_probability: float = Query(0.5, description="Minimum conversion probability"),
+        limit: int = Query(20, description="Maximum number of opportunities"),
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
     """Get teams with high conversion probability"""
 
     # Get all teams with member counts
-    teams_with_members = (
-        db.query(Team.id, func.count(TeamMembership.id).label("member_count"))
-        .join(TeamMembership, Team.id == TeamMembership.team_id)
-        .filter(Team.is_standalone.is_(True), TeamMembership.status == "active")
-        .group_by(Team.id)
-        .all()
-    )
+    teams_with_members = (db.query(Team.id,
+                                   func.count(TeamMembership.id).label("member_count")).join(
+                                       TeamMembership, Team.id == TeamMembership.team_id).filter(
+                                           Team.is_standalone.is_(True),
+                                           TeamMembership.status == "active").group_by(Team.id).all())
 
     opportunities = []
     for team, member_count in teams_with_members:
-        conversion_probability = calculate_conversion_probability(
-            team, member_count, db
-        )
+        conversion_probability = calculate_conversion_probability(team, member_count, db)
 
         if conversion_probability >= min_probability:
             plan = calculate_team_plan(member_count)
@@ -503,31 +442,28 @@ async def get_conversion_opportunities(
             if plan != "free":
                 continue
 
-            opportunities.append(
-                {
-                    "team_id": str(team.id),
-                    "team_name": team.name,
-                    "member_count": member_count,
-                    "current_plan": plan,
-                    "conversion_probability": conversion_probability,
-                    "potential_revenue": 29.0,  # Team Pro price
-                    "created_date": team.created_at,
-                    "triggers": [
-                        f"Team size: {member_count}/5" if member_count >= 4 else None,
-                        (
-                            "Active team"
-                            if team.created_at
-                            and (datetime.utcnow() - team.created_at).days > 7
-                            else None
-                        ),
-                    ],
-                    "recommended_action": (
-                        "Send upgrade notification"
-                        if conversion_probability > 0.7
-                        else "Monitor usage"
-                    ),
-                }
-            )
+            opportunities.append({
+                "team_id":
+                str(team.id),
+                "team_name":
+                team.name,
+                "member_count":
+                member_count,
+                "current_plan":
+                plan,
+                "conversion_probability":
+                conversion_probability,
+                "potential_revenue":
+                29.0,  # Team Pro price
+                "created_date":
+                team.created_at,
+                "triggers": [
+                    f"Team size: {member_count}/5" if member_count >= 4 else None,
+                    ("Active team" if team.created_at and (datetime.utcnow() - team.created_at).days > 7 else None),
+                ],
+                "recommended_action":
+                ("Send upgrade notification" if conversion_probability > 0.7 else "Monitor usage"),
+            })
 
     # Sort by conversion probability
     opportunities.sort(key=lambda x: x["conversion_probability"], reverse=True)
@@ -537,9 +473,9 @@ async def get_conversion_opportunities(
 
 @router.get("/revenue-forecast")
 async def get_revenue_forecast(
-    months: int = Query(12, description="Number of months to forecast"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+        months: int = Query(12, description="Number of months to forecast"),
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Generate revenue forecast based on current trends"""
 
@@ -547,13 +483,11 @@ async def get_revenue_forecast(
     total_teams = db.query(Team).filter(Team.is_standalone is True).count()
 
     # Calculate current revenue
-    teams_with_members = (
-        db.query(Team.id, func.count(TeamMembership.id).label("member_count"))
-        .join(TeamMembership, Team.id == TeamMembership.team_id)
-        .filter(Team.is_standalone is True, TeamMembership.status == "active")
-        .group_by(Team.id)
-        .all()
-    )
+    teams_with_members = (db.query(Team.id,
+                                   func.count(TeamMembership.id).label("member_count")).join(
+                                       TeamMembership, Team.id == TeamMembership.team_id).filter(
+                                           Team.is_standalone is True,
+                                           TeamMembership.status == "active").group_by(Team.id).all())
 
     current_revenue = 0.0
     plan_distribution = {
@@ -575,7 +509,7 @@ async def get_revenue_forecast(
     forecast = []
     for month in range(1, months + 1):
         # Project team growth
-        projected_teams = int(total_teams * (1 + monthly_growth_rate) ** month)
+        projected_teams = int(total_teams * (1 + monthly_growth_rate)**month)
 
         # Project conversions
         free_teams = plan_distribution["free"]
@@ -584,30 +518,21 @@ async def get_revenue_forecast(
         # Update plan distribution
         plan_distribution["free"] -= monthly_conversions
         plan_distribution["team_pro"] += int(monthly_conversions * 0.8)  # 80% to Pro
-        plan_distribution["team_enterprise"] += int(
-            monthly_conversions * 0.2
-        )  # 20% to Enterprise
+        plan_distribution["team_enterprise"] += int(monthly_conversions * 0.2)  # 20% to Enterprise
 
         # Calculate revenue
-        monthly_revenue = (
-            plan_distribution["team_pro"] * 29.0
-            + plan_distribution["team_enterprise"] * 99.0
-            + plan_distribution["organization"] * 500.0
-        )
+        monthly_revenue = (plan_distribution["team_pro"] * 29.0 + plan_distribution["team_enterprise"] * 99.0 +
+                           plan_distribution["organization"] * 500.0)
 
-        forecast.append(
-            {
-                "month": month,
-                "date": (datetime.utcnow() + timedelta(days=30 * month)).strftime(
-                    "%Y-%m"
-                ),
-                "projected_teams": projected_teams,
-                "projected_revenue": monthly_revenue,
-                "plan_distribution": dict(plan_distribution),
-                "growth_rate": monthly_growth_rate * 100,
-                "conversion_rate": conversion_rate * 100,
-            }
-        )
+        forecast.append({
+            "month": month,
+            "date": (datetime.utcnow() + timedelta(days=30 * month)).strftime("%Y-%m"),
+            "projected_teams": projected_teams,
+            "projected_revenue": monthly_revenue,
+            "plan_distribution": dict(plan_distribution),
+            "growth_rate": monthly_growth_rate * 100,
+            "conversion_rate": conversion_rate * 100,
+        })
 
     return {
         "current_metrics": {
@@ -622,18 +547,11 @@ async def get_revenue_forecast(
         },
         "forecast": forecast,
         "summary": {
-            "year_1_revenue": (
-                forecast[11]["projected_revenue"] if len(forecast) >= 12 else 0
-            ),
-            "year_1_teams": (
-                forecast[11]["projected_teams"] if len(forecast) >= 12 else 0
-            ),
-            "total_conversions": sum(
-                f["plan_distribution"]["team_pro"]
-                + f["plan_distribution"]["team_enterprise"]
-                for f in forecast[-3:]
-            )
-            / 3,
+            "year_1_revenue": (forecast[11]["projected_revenue"] if len(forecast) >= 12 else 0),
+            "year_1_teams": (forecast[11]["projected_teams"] if len(forecast) >= 12 else 0),
+            "total_conversions":
+            sum(f["plan_distribution"]["team_pro"] + f["plan_distribution"]["team_enterprise"]
+                for f in forecast[-3:]) / 3,
         },
     }
 
@@ -650,43 +568,25 @@ def get_team_growth_metrics(db: Session = Depends(get_db)):
         week_start = now - timedelta(days=7)
         month_start = now - timedelta(days=30)
 
-        teams_created_today = (
-            db.query(Team).filter(Team.created_at >= today_start).count()
-        )
-        teams_created_this_week = (
-            db.query(Team).filter(Team.created_at >= week_start).count()
-        )
-        teams_created_this_month = (
-            db.query(Team).filter(Team.created_at >= month_start).count()
-        )
+        teams_created_today = (db.query(Team).filter(Team.created_at >= today_start).count())
+        teams_created_this_week = (db.query(Team).filter(Team.created_at >= week_start).count())
+        teams_created_this_month = (db.query(Team).filter(Team.created_at >= month_start).count())
 
         # Get member counts (assuming TeamMembership table exists)
         total_members = db.query(User).count()
-        members_added_today = (
-            db.query(User).filter(User.created_at >= today_start).count()
-        )
-        members_added_this_week = (
-            db.query(User).filter(User.created_at >= week_start).count()
-        )
-        members_added_this_month = (
-            db.query(User).filter(User.created_at >= month_start).count()
-        )
+        members_added_today = (db.query(User).filter(User.created_at >= today_start).count())
+        members_added_this_week = (db.query(User).filter(User.created_at >= week_start).count())
+        members_added_this_month = (db.query(User).filter(User.created_at >= month_start).count())
 
         # Calculate growth rate
-        previous_month_teams = (
-            db.query(Team)
-            .filter(
-                Team.created_at < month_start,
-                Team.created_at >= month_start - timedelta(days=30),
-            )
-            .count()
-        )
+        previous_month_teams = (db.query(Team).filter(
+            Team.created_at < month_start,
+            Team.created_at >= month_start - timedelta(days=30),
+        ).count())
 
         growth_rate = 0.0
         if previous_month_teams > 0:
-            growth_rate = (
-                (teams_created_this_month - previous_month_teams) / previous_month_teams
-            ) * 100
+            growth_rate = ((teams_created_this_month - previous_month_teams) / previous_month_teams) * 100
 
         return {
             "teams_created_today": teams_created_today,

@@ -44,9 +44,10 @@ class BinaryMasqueradeDetector:
     def __init__(self, max_check_bytes: int = 1024):
         self.max_check_bytes = max_check_bytes
 
-    def detect_masquerade(
-        self, content: bytes, declared_content_type: str, filename: str | None = None
-    ) -> dict[str, Any]:
+    def detect_masquerade(self,
+                          content: bytes,
+                          declared_content_type: str,
+                          filename: str | None = None) -> dict[str, Any]:
         """
         Detect if binary content is masquerading as text.
 
@@ -65,44 +66,38 @@ class BinaryMasqueradeDetector:
             return result
 
         # Check first bytes for binary signatures
-        signature_result = self._check_binary_signatures(
-            content[: self.max_check_bytes]
-        )
+        signature_result = self._check_binary_signatures(content[:self.max_check_bytes])
         if signature_result["detected"]:
             result["evidence"].append("binary_signature")
             result["detected_type"] = signature_result["type"]
             result["confidence"] += 0.8
 
         # Check for null bytes (strong binary indicator)
-        null_byte_result = self._check_null_bytes(content[: self.max_check_bytes])
+        null_byte_result = self._check_null_bytes(content[:self.max_check_bytes])
         if null_byte_result["detected"]:
             result["evidence"].append("null_bytes")
             result["confidence"] += 0.7
 
         # Check entropy (high entropy suggests binary)
-        entropy_result = self._check_entropy(content[: self.max_check_bytes])
+        entropy_result = self._check_entropy(content[:self.max_check_bytes])
         if entropy_result["high_entropy"]:
             result["evidence"].append("high_entropy")
             result["confidence"] += 0.3
 
         # Check non-printable character ratio
-        printable_result = self._check_printable_ratio(content[: self.max_check_bytes])
+        printable_result = self._check_printable_ratio(content[:self.max_check_bytes])
         if printable_result["low_printable"]:
             result["evidence"].append("low_printable_ratio")
             result["confidence"] += 0.4
 
         # Check content-type vs detected type mismatch
-        if result["detected_type"] and not self._types_compatible(
-            declared_content_type, result["detected_type"]
-        ):
+        if result["detected_type"] and not self._types_compatible(declared_content_type, result["detected_type"]):
             result["evidence"].append("content_type_mismatch")
             result["confidence"] += 0.5
 
         # Check filename extension mismatch
         if filename:
-            extension_result = self._check_extension_mismatch(
-                filename, declared_content_type, result["detected_type"]
-            )
+            extension_result = self._check_extension_mismatch(filename, declared_content_type, result["detected_type"])
             if extension_result["mismatch"]:
                 result["evidence"].append("extension_mismatch")
                 result["confidence"] += 0.3
@@ -174,9 +169,9 @@ class BinaryMasqueradeDetector:
         for byte in content:
             # Printable ASCII range (32-126) plus common whitespace
             if 32 <= byte <= 126 or byte in [
-                9,
-                10,
-                13,
+                    9,
+                    10,
+                    13,
             ]:  # tab, newline, carriage return
                 printable_count += 1
 
@@ -199,26 +194,24 @@ class BinaryMasqueradeDetector:
 
         # Text types should not be detected as binary types
         if declared_main == "text" and detected_main in [
-            "image",
-            "audio",
-            "video",
-            "application",
+                "image",
+                "audio",
+                "video",
+                "application",
         ]:
             return False
 
         # Application/json should not be detected as binary
         if declared_type.lower() == "application/json" and detected_main in [
-            "image",
-            "audio",
-            "video",
+                "image",
+                "audio",
+                "video",
         ]:
             return False
 
         return True
 
-    def _check_extension_mismatch(
-        self, filename: str, declared_type: str, detected_type: str | None
-    ) -> dict[str, Any]:
+    def _check_extension_mismatch(self, filename: str, declared_type: str, detected_type: str | None) -> dict[str, Any]:
         """Check for filename extension vs content type mismatch."""
         if not filename or "." not in filename:
             return {"mismatch": False}
@@ -327,22 +320,18 @@ def test_binary_masquerade_detection():
 
     results = []
     for i, case in enumerate(test_cases):
-        result = detector.detect_masquerade(
-            case["content"], case["declared_type"], case["filename"]
-        )
+        result = detector.detect_masquerade(case["content"], case["declared_type"], case["filename"])
 
         test_passed = result["is_masquerade"] == case["should_detect"]
 
-        results.append(
-            {
-                "test_case": i + 1,
-                "expected_detection": case["should_detect"],
-                "actual_detection": result["is_masquerade"],
-                "confidence": result["confidence"],
-                "evidence": result["evidence"],
-                "test_passed": test_passed,
-            }
-        )
+        results.append({
+            "test_case": i + 1,
+            "expected_detection": case["should_detect"],
+            "actual_detection": result["is_masquerade"],
+            "confidence": result["confidence"],
+            "evidence": result["evidence"],
+            "test_passed": test_passed,
+        })
 
     return {
         "total_tests": len(test_cases),
@@ -360,5 +349,5 @@ if __name__ == "__main__":
     for result in test_results["test_results"]:
         status = "✅" if result["test_passed"] else "❌"
         print(
-            f"{status} Test {result['test_case']}: {result['confidence']:.2f} confidence, evidence: {result['evidence']}"
+            f"{status} Test {result['test_case']}: {result['confidence']:.2f} confidence, evidence: {result['evidence']}"  # noqa: E501
         )

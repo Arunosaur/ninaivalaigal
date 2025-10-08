@@ -106,17 +106,15 @@ def get_memory_intelligence_insights(team_id: int = None) -> Dict[str, Any]:
 
 
 @router.get("/team/{team_id}/dashboard")
-async def get_team_dashboard(
-    team_id: int, days_back: int = 30, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_team_dashboard(team_id: int,
+                             days_back: int = 30,
+                             user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get comprehensive team dashboard insights"""
 
     # Check team access (simplified)
     user_role = user.get("role", "user")
     if user_role not in ["admin", "org_admin", "team_admin"]:
-        raise HTTPException(
-            status_code=403, detail="Access denied - admin role required"
-        )
+        raise HTTPException(status_code=403, detail="Access denied - admin role required")
 
     # Get productivity insights
     productivity = get_team_productivity_insights(team_id, days_back)
@@ -129,8 +127,7 @@ async def get_team_dashboard(
         productivity["memory_activity"]["quality_score"],
         productivity["approval_efficiency"]["approval_rate"],
         productivity["discussion_engagement"]["sentiment_score"],
-        productivity["knowledge_growth"]["knowledge_velocity"]
-        / 2.0,  # Normalize to 0-1
+        productivity["knowledge_growth"]["knowledge_velocity"] / 2.0,  # Normalize to 0-1
     ]
     team_health_score = sum(health_factors) / len(health_factors)
 
@@ -140,24 +137,16 @@ async def get_team_dashboard(
 
     # Memory activity insights
     if productivity["memory_activity"]["trend"] == "up":
-        insights.append(
-            "📈 Memory creation is trending upward - team is actively capturing knowledge"
-        )
+        insights.append("📈 Memory creation is trending upward - team is actively capturing knowledge")
 
     if productivity["approval_efficiency"]["avg_approval_time_hours"] > 24:
-        recommendations.append(
-            "⚡ Consider streamlining approval process - current avg time is 18.5 hours"
-        )
+        recommendations.append("⚡ Consider streamlining approval process - current avg time is 18.5 hours")
 
     if productivity["discussion_engagement"]["sentiment_score"] > 0.7:
-        insights.append(
-            "😊 Team discussions are predominantly positive - healthy collaboration"
-        )
+        insights.append("😊 Team discussions are predominantly positive - healthy collaboration")
 
     if intelligence["ai_suggestions"]["tag_acceptance_rate"] < 0.7:
-        recommendations.append(
-            "🏷️ Review AI tag suggestions - acceptance rate could be improved"
-        )
+        recommendations.append("🏷️ Review AI tag suggestions - acceptance rate could be improved")
 
     return {
         "success": True,
@@ -170,10 +159,7 @@ async def get_team_dashboard(
             "recommendations": recommendations,
             "time_period": {
                 "days_back": days_back,
-                "start_date": (
-                    datetime.utcnow() - timedelta(days=days_back)
-                ).isoformat()
-                + "Z",
+                "start_date": (datetime.utcnow() - timedelta(days=days_back)).isoformat() + "Z",
                 "end_date": datetime.utcnow().isoformat() + "Z",
             },
         },
@@ -183,9 +169,9 @@ async def get_team_dashboard(
 
 @router.get("/memory-trends")
 async def get_memory_trends(
-    days_back: int = 30,
-    team_filter: Optional[int] = None,
-    user: Dict[str, Any] = Depends(get_current_user),
+        days_back: int = 30,
+        team_filter: Optional[int] = None,
+        user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get memory creation and engagement trends over time"""
 
@@ -200,34 +186,25 @@ async def get_memory_trends(
         base_memories = 2 if i % 7 < 5 else 1  # Weekday vs weekend pattern
         variation = (i % 3) - 1  # Add some variation
 
-        trend_data.append(
-            {
-                "date": date.strftime("%Y-%m-%d"),
-                "memories_created": max(0, base_memories + variation),
-                "memories_approved": max(0, base_memories + variation - 1),
-                "comments_added": max(0, (base_memories + variation) * 2),
-                "contexts_linked": max(0, base_memories + variation // 2),
-                "avg_sentiment": 0.7 + (i % 5) * 0.05,  # Vary between 0.7-0.9
-                "pagerank_activity": 0.5 + (i % 4) * 0.1,  # Vary between 0.5-0.8
-            }
-        )
+        trend_data.append({
+            "date": date.strftime("%Y-%m-%d"),
+            "memories_created": max(0, base_memories + variation),
+            "memories_approved": max(0, base_memories + variation - 1),
+            "comments_added": max(0, (base_memories + variation) * 2),
+            "contexts_linked": max(0, base_memories + variation // 2),
+            "avg_sentiment": 0.7 + (i % 5) * 0.05,  # Vary between 0.7-0.9
+            "pagerank_activity": 0.5 + (i % 4) * 0.1,  # Vary between 0.5-0.8
+        })
 
     # Calculate trend indicators
     recent_week = trend_data[-7:]
     previous_week = trend_data[-14:-7] if len(trend_data) >= 14 else trend_data[:7]
 
-    recent_avg_memories = sum(d["memories_created"] for d in recent_week) / len(
-        recent_week
-    )
-    previous_avg_memories = sum(d["memories_created"] for d in previous_week) / len(
-        previous_week
-    )
+    recent_avg_memories = sum(d["memories_created"] for d in recent_week) / len(recent_week)
+    previous_avg_memories = sum(d["memories_created"] for d in previous_week) / len(previous_week)
 
-    memory_trend = (
-        "up"
-        if recent_avg_memories > previous_avg_memories
-        else "down" if recent_avg_memories < previous_avg_memories else "stable"
-    )
+    memory_trend = ("up" if recent_avg_memories > previous_avg_memories else
+                    "down" if recent_avg_memories < previous_avg_memories else "stable")
 
     return {
         "success": True,
@@ -237,11 +214,9 @@ async def get_memory_trends(
                 "total_memories": sum(d["memories_created"] for d in trend_data),
                 "total_approvals": sum(d["memories_approved"] for d in trend_data),
                 "total_comments": sum(d["comments_added"] for d in trend_data),
-                "avg_daily_memories": sum(d["memories_created"] for d in trend_data)
-                / len(trend_data),
+                "avg_daily_memories": sum(d["memories_created"] for d in trend_data) / len(trend_data),
                 "memory_trend": memory_trend,
-                "avg_sentiment": sum(d["avg_sentiment"] for d in trend_data)
-                / len(trend_data),
+                "avg_sentiment": sum(d["avg_sentiment"] for d in trend_data) / len(trend_data),
             },
         },
         "visualization_config": {
@@ -254,15 +229,18 @@ async def get_memory_trends(
                 "comments_added": "#FF9800",
             },
         },
-        "filters": {"days_back": days_back, "team_filter": team_filter},
+        "filters": {
+            "days_back": days_back,
+            "team_filter": team_filter
+        },
     }
 
 
 @router.get("/sentiment-analysis")
 async def get_sentiment_analysis(
-    days_back: int = 30,
-    team_filter: Optional[int] = None,
-    user: Dict[str, Any] = Depends(get_current_user),
+        days_back: int = 30,
+        team_filter: Optional[int] = None,
+        user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get sentiment analysis across discussions and memories"""
 
@@ -279,11 +257,31 @@ async def get_sentiment_analysis(
             },
         },
         "sentiment_by_topic": {
-            "authentication": {"score": 0.82, "volume": 23, "trend": "stable"},
-            "performance": {"score": 0.78, "volume": 18, "trend": "up"},
-            "architecture": {"score": 0.71, "volume": 15, "trend": "up"},
-            "code-review": {"score": 0.85, "volume": 12, "trend": "stable"},
-            "planning": {"score": 0.69, "volume": 8, "trend": "down"},
+            "authentication": {
+                "score": 0.82,
+                "volume": 23,
+                "trend": "stable"
+            },
+            "performance": {
+                "score": 0.78,
+                "volume": 18,
+                "trend": "up"
+            },
+            "architecture": {
+                "score": 0.71,
+                "volume": 15,
+                "trend": "up"
+            },
+            "code-review": {
+                "score": 0.85,
+                "volume": 12,
+                "trend": "stable"
+            },
+            "planning": {
+                "score": 0.69,
+                "volume": 8,
+                "trend": "down"
+            },
         },
         "sentiment_timeline": [
             {
@@ -348,33 +346,26 @@ async def get_sentiment_analysis(
     insights = []
 
     if sentiment_data["overall_sentiment"]["score"] > 0.7:
-        insights.append(
-            "😊 Team communication is predominantly positive - healthy collaboration environment"
-        )
+        insights.append("😊 Team communication is predominantly positive - healthy collaboration environment")
 
     # Find most positive topic
-    most_positive_topic = max(
-        sentiment_data["sentiment_by_topic"].items(), key=lambda x: x[1]["score"]
-    )
+    most_positive_topic = max(sentiment_data["sentiment_by_topic"].items(), key=lambda x: x[1]["score"])
     insights.append(
-        f"🌟 '{most_positive_topic[0]}' generates the most positive discussions (score: {most_positive_topic[1]['score']:.2f})"
+        f"🌟 '{most_positive_topic[0]}' generates the most positive discussions (score: {most_positive_topic[1]['score']:.2f})"  # noqa: E501
     )
 
     # Check for trending topics
-    trending_up = [
-        topic
-        for topic, data in sentiment_data["sentiment_by_topic"].items()
-        if data["trend"] == "up"
-    ]
+    trending_up = [topic for topic, data in sentiment_data["sentiment_by_topic"].items() if data["trend"] == "up"]
     if trending_up:
-        insights.append(
-            f"📈 Trending topics with improving sentiment: {', '.join(trending_up)}"
-        )
+        insights.append(f"📈 Trending topics with improving sentiment: {', '.join(trending_up)}")
 
     return {
-        "success": True,
-        "sentiment_analysis": sentiment_data,
-        "insights": insights,
+        "success":
+        True,
+        "sentiment_analysis":
+        sentiment_data,
+        "insights":
+        insights,
         "recommendations": [
             "Continue fostering positive discussions around high-performing topics",
             "Monitor topics with declining sentiment for potential issues",
@@ -382,28 +373,32 @@ async def get_sentiment_analysis(
         ],
         "time_period": {
             "days_back": days_back,
-            "start_date": (datetime.utcnow() - timedelta(days=days_back)).isoformat()
-            + "Z",
+            "start_date": (datetime.utcnow() - timedelta(days=days_back)).isoformat() + "Z",
             "end_date": datetime.utcnow().isoformat() + "Z",
         },
     }
 
 
 @router.get("/knowledge-hotspots")
-async def get_knowledge_hotspots(
-    team_filter: Optional[int] = None, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_knowledge_hotspots(team_filter: Optional[int] = None,
+                                 user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get knowledge hotspots - most discussed and linked topics per context"""
 
     # Mock hotspot data combining context, memory, and discussion data
     hotspots = [
         {
-            "context_id": "context_1",
-            "context_title": "Auth System Development",
-            "hotspot_score": 0.89,
-            "memory_count": 8,
-            "discussion_count": 23,
-            "avg_sentiment": 0.82,
+            "context_id":
+            "context_1",
+            "context_title":
+            "Auth System Development",
+            "hotspot_score":
+            0.89,
+            "memory_count":
+            8,
+            "discussion_count":
+            23,
+            "avg_sentiment":
+            0.82,
             "top_memories": [
                 {
                     "id": "memory_2",
@@ -419,27 +414,35 @@ async def get_knowledge_hotspots(
                 },
             ],
             "trending_tags": ["authentication", "performance", "endpoints"],
-            "activity_trend": "up",
-            "knowledge_density": 0.75,
+            "activity_trend":
+            "up",
+            "knowledge_density":
+            0.75,
         },
         {
-            "context_id": "context_2",
-            "context_title": "Performance Optimization",
-            "hotspot_score": 0.72,
-            "memory_count": 5,
-            "discussion_count": 15,
-            "avg_sentiment": 0.78,
-            "top_memories": [
-                {
-                    "id": "memory_5",
-                    "title": "Database Query Optimization",
-                    "discussion_count": 4,
-                    "pagerank_score": 0.68,
-                }
-            ],
+            "context_id":
+            "context_2",
+            "context_title":
+            "Performance Optimization",
+            "hotspot_score":
+            0.72,
+            "memory_count":
+            5,
+            "discussion_count":
+            15,
+            "avg_sentiment":
+            0.78,
+            "top_memories": [{
+                "id": "memory_5",
+                "title": "Database Query Optimization",
+                "discussion_count": 4,
+                "pagerank_score": 0.68,
+            }],
             "trending_tags": ["performance", "database", "optimization"],
-            "activity_trend": "stable",
-            "knowledge_density": 0.68,
+            "activity_trend":
+            "stable",
+            "knowledge_density":
+            0.68,
         },
     ]
 
@@ -460,41 +463,34 @@ async def get_knowledge_hotspots(
             "cross_pollination_score": 0.65,  # How much knowledge flows between contexts
         },
         "visualization_data": {
-            "heatmap_data": [
-                {
-                    "context": h["context_title"],
-                    "activity": h["hotspot_score"],
-                    "sentiment": h["avg_sentiment"],
-                }
-                for h in hotspots
-            ],
+            "heatmap_data": [{
+                "context": h["context_title"],
+                "activity": h["hotspot_score"],
+                "sentiment": h["avg_sentiment"],
+            } for h in hotspots],
             "network_data": {
-                "nodes": [
-                    {
-                        "id": h["context_id"],
-                        "label": h["context_title"],
-                        "size": h["memory_count"],
-                    }
-                    for h in hotspots
-                ],
-                "edges": [
-                    {
-                        "source": "context_1",
-                        "target": "context_2",
-                        "weight": 0.4,
-                        "type": "knowledge_flow",
-                    }
-                ],
+                "nodes": [{
+                    "id": h["context_id"],
+                    "label": h["context_title"],
+                    "size": h["memory_count"],
+                } for h in hotspots],
+                "edges": [{
+                    "source": "context_1",
+                    "target": "context_2",
+                    "weight": 0.4,
+                    "type": "knowledge_flow",
+                }],
             },
         },
-        "filters": {"team_filter": team_filter},
+        "filters": {
+            "team_filter": team_filter
+        },
     }
 
 
 @router.get("/ai-performance")
-async def get_ai_performance_metrics(
-    days_back: int = 30, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_ai_performance_metrics(days_back: int = 30,
+                                     user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get AI system performance metrics for PageRank and tag suggestions"""
 
     # Mock AI performance data
@@ -565,20 +561,20 @@ async def get_ai_performance_metrics(
         ai_insights.append("🎯 PageRank algorithm is performing well with 84% accuracy")
 
     if ai_metrics["tag_suggestion_performance"]["acceptance_rate"] < 0.7:
-        ai_recommendations.append(
-            "🏷️ Consider fine-tuning tag suggestion model - acceptance rate is 67%"
-        )
+        ai_recommendations.append("🏷️ Consider fine-tuning tag suggestion model - acceptance rate is 67%")
 
     if ai_metrics["recommendation_engine"]["click_through_rate"] > 0.3:
-        ai_insights.append(
-            "🎯 Recommendation engine is driving good engagement with 34% CTR"
-        )
+        ai_insights.append("🎯 Recommendation engine is driving good engagement with 34% CTR")
 
     return {
-        "success": True,
-        "ai_performance": ai_metrics,
-        "insights": ai_insights,
-        "recommendations": ai_recommendations,
+        "success":
+        True,
+        "ai_performance":
+        ai_metrics,
+        "insights":
+        ai_insights,
+        "recommendations":
+        ai_recommendations,
         "optimization_opportunities": [
             "Increase tag suggestion confidence threshold to improve acceptance rate",
             "A/B test different PageRank damping factors for better ranking",
@@ -586,8 +582,7 @@ async def get_ai_performance_metrics(
         ],
         "time_period": {
             "days_back": days_back,
-            "start_date": (datetime.utcnow() - timedelta(days=days_back)).isoformat()
-            + "Z",
+            "start_date": (datetime.utcnow() - timedelta(days=days_back)).isoformat() + "Z",
             "end_date": datetime.utcnow().isoformat() + "Z",
         },
     }

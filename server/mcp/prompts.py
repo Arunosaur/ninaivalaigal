@@ -40,12 +40,10 @@ async def analyze_context(context_name: str) -> Prompt:
             return Prompt(
                 name=f"analyze-context-{context_name}",
                 description=f"Analysis prompt for empty context '{context_name}'",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": f"The context '{context_name}' is empty. No memories to analyze.",
-                    }
-                ],
+                messages=[{
+                    "role": "user",
+                    "content": f"The context '{context_name}' is empty. No memories to analyze.",
+                }],
             )
 
         # Prepare memory data for analysis
@@ -57,14 +55,12 @@ async def analyze_context(context_name: str) -> Prompt:
                 text = str(memory.get("data", ""))
 
             if text:
-                memory_texts.append(
-                    {
-                        "text": text,
-                        "type": memory.get("type", "unknown"),
-                        "source": memory.get("source", "unknown"),
-                        "created_at": memory.get("created_at", "unknown"),
-                    }
-                )
+                memory_texts.append({
+                    "text": text,
+                    "type": memory.get("type", "unknown"),
+                    "source": memory.get("source", "unknown"),
+                    "created_at": memory.get("created_at", "unknown"),
+                })
 
         analysis_prompt = f"""Please analyze the memories in the context '{context_name}'.
 
@@ -88,19 +84,20 @@ Focus on actionable insights that would help the user better understand and util
         return Prompt(
             name=f"analyze-context-{context_name}",
             description=f"Analysis prompt for context '{context_name}' with {len(memories)} memories",
-            messages=[{"role": "user", "content": analysis_prompt}],
+            messages=[{
+                "role": "user",
+                "content": analysis_prompt
+            }],
         )
 
     except Exception as e:
         return Prompt(
             name=f"analyze-context-{context_name}-error",
             description=f"Error analyzing context '{context_name}'",
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Error analyzing context '{context_name}': {str(e)}",
-                }
-            ],
+            messages=[{
+                "role": "user",
+                "content": f"Error analyzing context '{context_name}': {str(e)}",
+            }],
         )
 
 
@@ -118,8 +115,11 @@ async def summarize_session() -> Prompt:
                 messages=[
                     {
                         "role": "user",
-                        "content": f"No recent memories found for user {DEFAULT_USER_ID}. Session appears to be just starting or no activity has been recorded.",
-                    }
+                        "content": (
+                            f"No recent memories found for user {DEFAULT_USER_ID}. "
+                            f"Session appears to be just starting or no activity has been recorded."
+                        ),
+                    },
                 ],
             )
 
@@ -137,7 +137,8 @@ async def summarize_session() -> Prompt:
             "total_recent_memories": len(recent_memories),
             "active_contexts": len(context_groups),
             "context_breakdown": {
-                context: len(memories) for context, memories in context_groups.items()
+                context: len(memories)
+                for context, memories in context_groups.items()
             },
             "memories_by_context": context_groups,
         }
@@ -155,24 +156,25 @@ Please provide:
 5. **Recommendations**: What should the user focus on next or what actions might be helpful?
 6. **Context Connections**: Are there relationships between different contexts that suggest broader projects or themes?
 
-Focus on providing actionable insights that help the user understand their recent activity and plan next steps effectively."""
+Focus on providing actionable insights that help the user understand their recent activity and plan next steps effectively."""  # noqa: E501
 
         return Prompt(
             name="summarize-session",
-            description=f"Session summary with {len(recent_memories)} recent memories across {len(context_groups)} contexts",
-            messages=[{"role": "user", "content": summary_prompt}],
+            description=f"Session summary with {len(recent_memories)} recent memories across {len(context_groups)} contexts",  # noqa: E501
+            messages=[{
+                "role": "user",
+                "content": summary_prompt
+            }],
         )
 
     except Exception as e:
         return Prompt(
             name="summarize-session-error",
             description="Error generating session summary",
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Error generating session summary: {str(e)}",
-                }
-            ],
+            messages=[{
+                "role": "user",
+                "content": f"Error generating session summary: {str(e)}",
+            }],
         )
 
 
@@ -192,13 +194,11 @@ async def enhance_memory_context(context_name: str, new_memory_text: str) -> Pro
                     text = str(memory.get("data", ""))
 
                 if text:
-                    context_summary.append(
-                        {
-                            "text": text[:200] + "..." if len(text) > 200 else text,
-                            "type": memory.get("type", "unknown"),
-                            "created_at": memory.get("created_at", "unknown"),
-                        }
-                    )
+                    context_summary.append({
+                        "text": text[:200] + "..." if len(text) > 200 else text,
+                        "type": memory.get("type", "unknown"),
+                        "created_at": memory.get("created_at", "unknown"),
+                    })
 
         enhancement_prompt = f"""Please help enhance and contextualize a new memory entry.
 
@@ -221,19 +221,20 @@ Focus on making the memory more useful and connected to the existing knowledge i
         return Prompt(
             name=f"enhance-memory-{context_name}",
             description=f"Memory enhancement prompt for context '{context_name}'",
-            messages=[{"role": "user", "content": enhancement_prompt}],
+            messages=[{
+                "role": "user",
+                "content": enhancement_prompt
+            }],
         )
 
     except Exception as e:
         return Prompt(
             name=f"enhance-memory-{context_name}-error",
             description=f"Error enhancing memory for context '{context_name}'",
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Error enhancing memory for context '{context_name}': {str(e)}",
-                }
-            ],
+            messages=[{
+                "role": "user",
+                "content": f"Error enhancing memory for context '{context_name}': {str(e)}",
+            }],
         )
 
 
@@ -248,12 +249,12 @@ async def cross_context_insights() -> Prompt:
             return Prompt(
                 name="cross-context-insights-empty",
                 description="Cross-context analysis with no contexts",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": f"No contexts found for user {DEFAULT_USER_ID}. Cannot perform cross-context analysis.",
-                    }
-                ],
+                messages=[{
+                    "role":
+                    "user",
+                    "content":
+                    f"No contexts found for user {DEFAULT_USER_ID}. Cannot perform cross-context analysis.",
+                }],
             )
 
         # Sample memories from each context
@@ -276,7 +277,7 @@ async def cross_context_insights() -> Prompt:
                         "context_info": context_info,
                     }
 
-        insights_prompt = f"""Please analyze patterns and insights across multiple contexts for comprehensive understanding.
+        insights_prompt = f"""Please analyze patterns and insights across multiple contexts for comprehensive understanding.  # noqa: E501
 
 User ID: {DEFAULT_USER_ID}
 Total Contexts: {len(all_contexts)}
@@ -299,17 +300,18 @@ Focus on providing high-level insights that help optimize the overall knowledge 
         return Prompt(
             name="cross-context-insights",
             description=f"Cross-context analysis across {len(context_samples)} active contexts",
-            messages=[{"role": "user", "content": insights_prompt}],
+            messages=[{
+                "role": "user",
+                "content": insights_prompt
+            }],
         )
 
     except Exception as e:
         return Prompt(
             name="cross-context-insights-error",
             description="Error generating cross-context insights",
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Error generating cross-context insights: {str(e)}",
-                }
-            ],
+            messages=[{
+                "role": "user",
+                "content": f"Error generating cross-context insights: {str(e)}",
+            }],
         )

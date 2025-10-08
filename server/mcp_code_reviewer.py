@@ -142,8 +142,7 @@ class CodeAnalyzer:
                     suggestion="Fix the syntax error before proceeding",
                     category="syntax",
                     confidence=1.0,
-                )
-            )
+                ))
             return issues
 
         # Security analysis
@@ -160,9 +159,7 @@ class CodeAnalyzer:
 
         return issues
 
-    def _analyze_python_security(
-        self, tree: ast.AST, content: str, file_path: str
-    ) -> list[CodeIssue]:
+    def _analyze_python_security(self, tree: ast.AST, content: str, file_path: str) -> list[CodeIssue]:
         """Security-focused analysis for Python code"""
         issues = []
 
@@ -180,14 +177,11 @@ class CodeAnalyzer:
                                 severity="high",
                                 title=f"Dangerous function usage: {func_name}",
                                 description=f"Use of {func_name}() can lead to security vulnerabilities",
-                                code_snippet=self._get_code_snippet(
-                                    content, node.lineno
-                                ),
+                                code_snippet=self._get_code_snippet(content, node.lineno),
                                 suggestion=f"Replace {func_name}() with safer alternatives",
                                 category="security",
                                 confidence=0.9,
-                            )
-                        )
+                            ))
 
             # Check for SQL injection vulnerabilities
             elif isinstance(node, ast.Str):
@@ -201,14 +195,11 @@ class CodeAnalyzer:
                                 severity="high",
                                 title="Potential SQL Injection",
                                 description="String formatting in SQL queries can lead to injection attacks",
-                                code_snippet=self._get_code_snippet(
-                                    content, node.lineno
-                                ),
+                                code_snippet=self._get_code_snippet(content, node.lineno),
                                 suggestion="Use parameterized queries or prepared statements",
                                 category="security",
                                 confidence=0.8,
-                            )
-                        )
+                            ))
 
             # Check for hardcoded secrets
             elif isinstance(node, ast.Str):
@@ -225,14 +216,11 @@ class CodeAnalyzer:
                             suggestion="Move secrets to environment variables or secure config",
                             category="security",
                             confidence=0.7,
-                        )
-                    )
+                        ))
 
         return issues
 
-    def _analyze_python_performance(
-        self, tree: ast.AST, content: str, file_path: str
-    ) -> list[CodeIssue]:
+    def _analyze_python_performance(self, tree: ast.AST, content: str, file_path: str) -> list[CodeIssue]:
         """Performance-focused analysis for Python code"""
         issues = []
 
@@ -242,10 +230,7 @@ class CodeAnalyzer:
             if isinstance(node, ast.For):
                 # Check if using list.append in loop when list comprehension could be used
                 if isinstance(node.iter, ast.Call):
-                    if (
-                        isinstance(node.iter.func, ast.Name)
-                        and node.iter.func.id == "range"
-                    ):
+                    if (isinstance(node.iter.func, ast.Name) and node.iter.func.id == "range"):
                         if len(node.iter.args) == 1:
                             issues.append(
                                 CodeIssue(
@@ -255,14 +240,11 @@ class CodeAnalyzer:
                                     severity="medium",
                                     title="Inefficient Loop",
                                     description="Consider using list comprehension for better performance",
-                                    code_snippet=self._get_code_snippet(
-                                        content, node.lineno
-                                    ),
+                                    code_snippet=self._get_code_snippet(content, node.lineno),
                                     suggestion="Use list comprehension: [x*2 for x in range(n)]",
                                     category="performance",
                                     confidence=0.6,
-                                )
-                            )
+                                ))
 
             # Check for unnecessary list creation
             elif isinstance(node, ast.ListComp):
@@ -279,14 +261,11 @@ class CodeAnalyzer:
                             suggestion="Consider breaking into multiple lines or using traditional loop",
                             category="maintainability",
                             confidence=0.5,
-                        )
-                    )
+                        ))
 
         return issues
 
-    def _analyze_python_quality(
-        self, tree: ast.AST, content: str, file_path: str
-    ) -> list[CodeIssue]:
+    def _analyze_python_quality(self, tree: ast.AST, content: str, file_path: str) -> list[CodeIssue]:
         """Code quality analysis for Python code"""
         issues = []
 
@@ -307,8 +286,7 @@ class CodeAnalyzer:
                             suggestion="Break down into smaller functions",
                             category="maintainability",
                             confidence=0.8,
-                        )
-                    )
+                        ))
 
                 # Check function length
                 if len(node.body) > 50:
@@ -324,14 +302,11 @@ class CodeAnalyzer:
                             suggestion="Consider breaking into smaller functions",
                             category="maintainability",
                             confidence=0.6,
-                        )
-                    )
+                        ))
 
         return issues
 
-    def _analyze_python_best_practices(
-        self, tree: ast.AST, content: str, file_path: str
-    ) -> list[CodeIssue]:
+    def _analyze_python_best_practices(self, tree: ast.AST, content: str, file_path: str) -> list[CodeIssue]:
         """Best practices analysis for Python code"""
         issues = []
 
@@ -360,8 +335,7 @@ class CodeAnalyzer:
                             suggestion="Add docstring describing the function/class purpose",
                             category="documentation",
                             confidence=0.7,
-                        )
-                    )
+                        ))
 
         # Check for bare except clauses
         for node in ast.walk(tree):
@@ -379,8 +353,7 @@ class CodeAnalyzer:
                             suggestion="Specify exception types: except (ValueError, TypeError):",
                             category="error_handling",
                             confidence=0.8,
-                        )
-                    )
+                        ))
 
         return issues
 
@@ -405,8 +378,7 @@ class CodeAnalyzer:
                         suggestion="Remove console.log or replace with proper logging",
                         category="best_practices",
                         confidence=0.6,
-                    )
-                )
+                    ))
 
             # Check for eval usage
             if "eval(" in line:
@@ -422,8 +394,7 @@ class CodeAnalyzer:
                         suggestion="Avoid eval() - find alternative approaches",
                         category="security",
                         confidence=0.9,
-                    )
-                )
+                    ))
 
             # Check for hardcoded secrets
             if self._looks_like_secret(line):
@@ -439,8 +410,7 @@ class CodeAnalyzer:
                         suggestion="Move secrets to environment variables",
                         category="security",
                         confidence=0.7,
-                    )
-                )
+                    ))
 
         return issues
 
@@ -452,9 +422,7 @@ class CodeAnalyzer:
 
         for i, line in enumerate(lines, 1):
             # Check for sudo without proper validation
-            if "sudo" in line and not any(
-                skip in line for skip in ["#", "echo", "read"]
-            ):
+            if "sudo" in line and not any(skip in line for skip in ["#", "echo", "read"]):
                 issues.append(
                     CodeIssue(
                         file_path=file_path,
@@ -467,8 +435,7 @@ class CodeAnalyzer:
                         suggestion="Add input validation before sudo commands",
                         category="security",
                         confidence=0.7,
-                    )
-                )
+                    ))
 
             # Check for command injection vulnerabilities
             if "$" in line and ("eval" in line or "bash -c" in line):
@@ -484,8 +451,7 @@ class CodeAnalyzer:
                         suggestion="Use proper quoting or command arrays",
                         category="security",
                         confidence=0.8,
-                    )
-                )
+                    ))
 
             # Check for set -e missing
             if i == 1 and "set -e" not in content[:200]:
@@ -501,8 +467,7 @@ class CodeAnalyzer:
                         suggestion="Add 'set -e' after shebang for better error handling",
                         category="best_practices",
                         confidence=0.5,
-                    )
-                )
+                    ))
 
         return issues
 
@@ -514,9 +479,7 @@ class CodeAnalyzer:
 
         for i, line in enumerate(lines, 1):
             # Check for TODO/FIXME comments
-            if any(
-                marker in line.upper() for marker in ["TODO", "FIXME", "XXX", "HACK"]
-            ):
+            if any(marker in line.upper() for marker in ["TODO", "FIXME", "XXX", "HACK"]):
                 issues.append(
                     CodeIssue(
                         file_path=file_path,
@@ -529,8 +492,7 @@ class CodeAnalyzer:
                         suggestion="Address the TODO item or remove if completed",
                         category="documentation",
                         confidence=0.8,
-                    )
-                )
+                    ))
 
             # Check for very long lines
             if len(line) > 120:
@@ -546,8 +508,7 @@ class CodeAnalyzer:
                         suggestion="Break long lines for better readability",
                         category="style",
                         confidence=0.6,
-                    )
-                )
+                    ))
 
             # Check for trailing whitespace
             if line.rstrip() != line:
@@ -563,8 +524,7 @@ class CodeAnalyzer:
                         suggestion="Remove trailing whitespace",
                         category="style",
                         confidence=1.0,
-                    )
-                )
+                    ))
 
         return issues
 
@@ -603,9 +563,7 @@ class CodeAnalyzer:
 
         return False
 
-    def _get_code_snippet(
-        self, content: str, line_number: int, context: int = 2
-    ) -> str:
+    def _get_code_snippet(self, content: str, line_number: int, context: int = 2) -> str:
         """Get code snippet around a line number"""
         lines = content.splitlines()
         start = max(0, line_number - context - 1)
@@ -631,27 +589,26 @@ class CodeAnalyzer:
         if language == "python":
             comment_lines = sum(1 for line in lines if line.strip().startswith("#"))
         elif language in ["javascript", "typescript"]:
-            comment_lines = sum(
-                1
-                for line in lines
-                if line.strip().startswith("//") or line.strip().startswith("/*")
-            )
+            comment_lines = sum(1 for line in lines if line.strip().startswith("//") or line.strip().startswith("/*"))
 
         return {
             "total_lines": total_lines,
             "non_empty_lines": non_empty_lines,
             "comment_lines": comment_lines,
             "code_lines": non_empty_lines - comment_lines,
-            "comment_ratio": (
-                comment_lines / non_empty_lines if non_empty_lines > 0 else 0
-            ),
+            "comment_ratio": (comment_lines / non_empty_lines if non_empty_lines > 0 else 0),
         }
 
     def _create_summary(self, issues: list[CodeIssue]) -> dict[str, int]:
         """Create summary of issues by severity and category"""
         summary = {
             "total_issues": len(issues),
-            "severity_breakdown": {"high": 0, "medium": 0, "low": 0, "info": 0},
+            "severity_breakdown": {
+                "high": 0,
+                "medium": 0,
+                "low": 0,
+                "info": 0
+            },
             "category_breakdown": {},
         }
 
@@ -691,8 +648,11 @@ class CodeReviewerServer(Server):
                             },
                             "focus_areas": {
                                 "type": "array",
-                                "items": {"type": "string"},
-                                "description": "Areas to focus on: security, performance, maintainability, best_practices",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description":
+                                "Areas to focus on: security, performance, maintainability, best_practices",
                                 "default": [
                                     "security",
                                     "performance",
@@ -715,13 +675,17 @@ class CodeReviewerServer(Server):
                             },
                             "file_extensions": {
                                 "type": "array",
-                                "items": {"type": "string"},
+                                "items": {
+                                    "type": "string"
+                                },
                                 "description": "File extensions to analyze (e.g., ['.py', '.js'])",
                                 "default": [".py", ".js", ".ts", ".sh"],
                             },
                             "exclude_patterns": {
                                 "type": "array",
-                                "items": {"type": "string"},
+                                "items": {
+                                    "type": "string"
+                                },
                                 "description": "Patterns to exclude (e.g., ['__pycache__', '*.pyc'])",
                                 "default": [
                                     "__pycache__",
@@ -789,53 +753,36 @@ class CodeReviewerServer(Server):
 
             if name == "analyze_file":
                 file_path = arguments.get("file_path")
-                focus_areas = arguments.get(
-                    "focus_areas", ["security", "performance", "maintainability"]
-                )
+                focus_areas = arguments.get("focus_areas", ["security", "performance", "maintainability"])
 
                 try:
-                    result = await asyncio.get_event_loop().run_in_executor(
-                        self.analyzer.executor, self.analyzer.analyze_file, file_path
-                    )
+                    result = await asyncio.get_event_loop().run_in_executor(self.analyzer.executor,
+                                                                            self.analyzer.analyze_file, file_path)
 
                     # Filter issues by focus areas if specified
                     if focus_areas != ["security", "performance", "maintainability"]:
-                        result.issues = [
-                            issue
-                            for issue in result.issues
-                            if issue.category in focus_areas
-                        ]
+                        result.issues = [issue for issue in result.issues if issue.category in focus_areas]
 
                     return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": json.dumps(
-                                    asdict(result), indent=2, default=str
-                                ),
-                            }
-                        ]
+                        "content": [{
+                            "type": "text",
+                            "text": json.dumps(asdict(result), indent=2, default=str),
+                        }]
                     }
 
                 except Exception as e:
                     return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"Error analyzing file {file_path}: {str(e)}",
-                            }
-                        ],
+                        "content": [{
+                            "type": "text",
+                            "text": f"Error analyzing file {file_path}: {str(e)}",
+                        }],
                         "isError": True,
                     }
 
             elif name == "analyze_directory":
                 directory_path = arguments.get("directory_path")
-                file_extensions = arguments.get(
-                    "file_extensions", [".py", ".js", ".ts", ".sh"]
-                )
-                exclude_patterns = arguments.get(
-                    "exclude_patterns", ["__pycache__", "*.pyc", "node_modules", ".git"]
-                )
+                file_extensions = arguments.get("file_extensions", [".py", ".js", ".ts", ".sh"])
+                exclude_patterns = arguments.get("exclude_patterns", ["__pycache__", "*.pyc", "node_modules", ".git"])
 
                 try:
                     results = []
@@ -852,36 +799,28 @@ class CodeReviewerServer(Server):
 
                             if not should_exclude:
                                 try:
-                                    result = (
-                                        await asyncio.get_event_loop().run_in_executor(
-                                            self.analyzer.executor,
-                                            self.analyzer.analyze_file,
-                                            str(file_path),
-                                        )
-                                    )
+                                    result = (await asyncio.get_event_loop().run_in_executor(
+                                        self.analyzer.executor,
+                                        self.analyzer.analyze_file,
+                                        str(file_path),
+                                    ))
                                     results.append(asdict(result))
                                 except Exception as e:
-                                    results.append(
-                                        {"file_path": str(file_path), "error": str(e)}
-                                    )
+                                    results.append({"file_path": str(file_path), "error": str(e)})
 
                     return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": json.dumps(results, indent=2, default=str),
-                            }
-                        ]
+                        "content": [{
+                            "type": "text",
+                            "text": json.dumps(results, indent=2, default=str),
+                        }]
                     }
 
                 except Exception as e:
                     return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"Error analyzing directory {directory_path}: {str(e)}",
-                            }
-                        ],
+                        "content": [{
+                            "type": "text",
+                            "text": f"Error analyzing directory {directory_path}: {str(e)}",
+                        }],
                         "isError": True,
                     }
 
@@ -894,12 +833,10 @@ class CodeReviewerServer(Server):
                     return {"content": [{"type": "text", "text": report}]}
                 except Exception as e:
                     return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"Error generating report: {str(e)}",
-                            }
-                        ],
+                        "content": [{
+                            "type": "text",
+                            "text": f"Error generating report: {str(e)}",
+                        }],
                         "isError": True,
                     }
 
@@ -907,42 +844,35 @@ class CodeReviewerServer(Server):
                 file_path = arguments.get("file_path")
 
                 try:
-                    result = await asyncio.get_event_loop().run_in_executor(
-                        self.analyzer.executor, self.analyzer.analyze_file, file_path
-                    )
+                    result = await asyncio.get_event_loop().run_in_executor(self.analyzer.executor,
+                                                                            self.analyzer.analyze_file, file_path)
 
                     # Filter only security issues
-                    security_issues = [
-                        issue for issue in result.issues if issue.category == "security"
-                    ]
+                    security_issues = [issue for issue in result.issues if issue.category == "security"]
 
                     return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": json.dumps(
-                                    {
-                                        "file_path": file_path,
-                                        "security_issues": [
-                                            asdict(issue) for issue in security_issues
-                                        ],
-                                        "total_security_issues": len(security_issues),
-                                    },
-                                    indent=2,
-                                    default=str,
-                                ),
-                            }
-                        ]
+                        "content": [{
+                            "type":
+                            "text",
+                            "text":
+                            json.dumps(
+                                {
+                                    "file_path": file_path,
+                                    "security_issues": [asdict(issue) for issue in security_issues],
+                                    "total_security_issues": len(security_issues),
+                                },
+                                indent=2,
+                                default=str,
+                            ),
+                        }]
                     }
 
                 except Exception as e:
                     return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"Error checking security for {file_path}: {str(e)}",
-                            }
-                        ],
+                        "content": [{
+                            "type": "text",
+                            "text": f"Error checking security for {file_path}: {str(e)}",
+                        }],
                         "isError": True,
                     }
 
@@ -950,44 +880,35 @@ class CodeReviewerServer(Server):
                 file_path = arguments.get("file_path")
 
                 try:
-                    result = await asyncio.get_event_loop().run_in_executor(
-                        self.analyzer.executor, self.analyzer.analyze_file, file_path
-                    )
+                    result = await asyncio.get_event_loop().run_in_executor(self.analyzer.executor,
+                                                                            self.analyzer.analyze_file, file_path)
 
                     # Filter only performance issues
-                    perf_issues = [
-                        issue
-                        for issue in result.issues
-                        if issue.category == "performance"
-                    ]
+                    perf_issues = [issue for issue in result.issues if issue.category == "performance"]
 
                     return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": json.dumps(
-                                    {
-                                        "file_path": file_path,
-                                        "performance_issues": [
-                                            asdict(issue) for issue in perf_issues
-                                        ],
-                                        "total_performance_issues": len(perf_issues),
-                                    },
-                                    indent=2,
-                                    default=str,
-                                ),
-                            }
-                        ]
+                        "content": [{
+                            "type":
+                            "text",
+                            "text":
+                            json.dumps(
+                                {
+                                    "file_path": file_path,
+                                    "performance_issues": [asdict(issue) for issue in perf_issues],
+                                    "total_performance_issues": len(perf_issues),
+                                },
+                                indent=2,
+                                default=str,
+                            ),
+                        }]
                     }
 
                 except Exception as e:
                     return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"Error auditing performance for {file_path}: {str(e)}",
-                            }
-                        ],
+                        "content": [{
+                            "type": "text",
+                            "text": f"Error auditing performance for {file_path}: {str(e)}",
+                        }],
                         "isError": True,
                     }
 
@@ -1022,36 +943,24 @@ class CodeReviewerServer(Server):
 
             total_issues += len(result.get("issues", []))
             summary = result.get("summary", {})
-            severity_counts["high"] += summary.get("severity_breakdown", {}).get(
-                "high", 0
-            )
-            severity_counts["medium"] += summary.get("severity_breakdown", {}).get(
-                "medium", 0
-            )
-            severity_counts["low"] += summary.get("severity_breakdown", {}).get(
-                "low", 0
-            )
-            severity_counts["info"] += summary.get("severity_breakdown", {}).get(
-                "info", 0
-            )
+            severity_counts["high"] += summary.get("severity_breakdown", {}).get("high", 0)
+            severity_counts["medium"] += summary.get("severity_breakdown", {}).get("medium", 0)
+            severity_counts["low"] += summary.get("severity_breakdown", {}).get("low", 0)
+            severity_counts["info"] += summary.get("severity_breakdown", {}).get("info", 0)
 
-        lines.extend(
-            [
-                "## Summary\n",
-                f"- **Total Files Analyzed**: {total_files}\n",
-                f"- **Total Issues Found**: {total_issues}\n",
-                f"- **High Severity**: {severity_counts['high']}\n",
-                f"- **Medium Severity**: {severity_counts['medium']}\n",
-                f"- **Low Severity**: {severity_counts['low']}\n",
-                f"- **Info**: {severity_counts['info']}\n\n",
-            ]
-        )
+        lines.extend([
+            "## Summary\n",
+            f"- **Total Files Analyzed**: {total_files}\n",
+            f"- **Total Issues Found**: {total_issues}\n",
+            f"- **High Severity**: {severity_counts['high']}\n",
+            f"- **Medium Severity**: {severity_counts['medium']}\n",
+            f"- **Low Severity**: {severity_counts['low']}\n",
+            f"- **Info**: {severity_counts['info']}\n\n",
+        ])
 
         for result in analysis_results:
             if "error" in result:
-                lines.append(
-                    f"## {result['file_path']}\n**Error**: {result['error']}\n\n"
-                )
+                lines.append(f"## {result['file_path']}\n**Error**: {result['error']}\n\n")
                 continue
 
             file_path = result["file_path"]
@@ -1060,30 +969,26 @@ class CodeReviewerServer(Server):
             issues = result.get("issues", [])
             metrics = result.get("metrics", {})
 
-            lines.extend(
-                [
-                    f"## {file_path}\n",
-                    f"**Language**: {language}\n",
-                    f"**Lines**: {total_lines}\n",
-                    f"**Code Lines**: {metrics.get('code_lines', 'N/A')}\n",
-                    f"**Comment Ratio**: {metrics.get('comment_ratio', 0):.1%}\n\n",
-                ]
-            )
+            lines.extend([
+                f"## {file_path}\n",
+                f"**Language**: {language}\n",
+                f"**Lines**: {total_lines}\n",
+                f"**Code Lines**: {metrics.get('code_lines', 'N/A')}\n",
+                f"**Comment Ratio**: {metrics.get('comment_ratio', 0):.1%}\n\n",
+            ])
 
             if issues:
                 lines.append("### Issues Found\n\n")
                 for issue in issues:
-                    lines.extend(
-                        [
-                            f"#### {issue['title']} ({issue['severity'].upper()})\n",
-                            f"**File**: {issue['file_path']}:{issue['line_number']}\n",
-                            f"**Type**: {issue['issue_type']}\n",
-                            f"**Category**: {issue['category']}\n",
-                            f"**Description**: {issue['description']}\n",
-                            f"**Suggestion**: {issue['suggestion']}\n\n",
-                            f"```code\n{issue['code_snippet']}\n```\n\n",
-                        ]
-                    )
+                    lines.extend([
+                        f"#### {issue['title']} ({issue['severity'].upper()})\n",
+                        f"**File**: {issue['file_path']}:{issue['line_number']}\n",
+                        f"**Type**: {issue['issue_type']}\n",
+                        f"**Category**: {issue['category']}\n",
+                        f"**Description**: {issue['description']}\n",
+                        f"**Suggestion**: {issue['suggestion']}\n\n",
+                        f"```code\n{issue['code_snippet']}\n```\n\n",
+                    ])
             else:
                 lines.append("### ✅ No Issues Found\n\n")
 
@@ -1116,54 +1021,38 @@ class CodeReviewerServer(Server):
 
         # Summary
         total_files = len(analysis_results)
-        total_issues = sum(
-            len(result.get("issues", []))
-            for result in analysis_results
-            if "error" not in result
-        )
+        total_issues = sum(len(result.get("issues", [])) for result in analysis_results if "error" not in result)
         severity_counts = {"high": 0, "medium": 0, "low": 0, "info": 0}
 
         for result in analysis_results:
             if "error" not in result:
                 summary = result.get("summary", {})
-                severity_counts["high"] += summary.get("severity_breakdown", {}).get(
-                    "high", 0
-                )
-                severity_counts["medium"] += summary.get("severity_breakdown", {}).get(
-                    "medium", 0
-                )
-                severity_counts["low"] += summary.get("severity_breakdown", {}).get(
-                    "low", 0
-                )
-                severity_counts["info"] += summary.get("severity_breakdown", {}).get(
-                    "info", 0
-                )
+                severity_counts["high"] += summary.get("severity_breakdown", {}).get("high", 0)
+                severity_counts["medium"] += summary.get("severity_breakdown", {}).get("medium", 0)
+                severity_counts["low"] += summary.get("severity_breakdown", {}).get("low", 0)
+                severity_counts["info"] += summary.get("severity_breakdown", {}).get("info", 0)
 
-        html.extend(
-            [
-                '<div class="summary">',
-                "<h2>Summary</h2>",
-                f"<p><strong>Total Files Analyzed:</strong> {total_files}</p>",
-                f"<p><strong>Total Issues Found:</strong> {total_issues}</p>",
-                f'<p><strong>High Severity:</strong> {severity_counts["high"]}</p>',
-                f'<p><strong>Medium Severity:</strong> {severity_counts["medium"]}</p>',
-                f'<p><strong>Low Severity:</strong> {severity_counts["low"]}</p>',
-                f'<p><strong>Info:</strong> {severity_counts["info"]}</p>',
-                "</div>",
-            ]
-        )
+        html.extend([
+            '<div class="summary">',
+            "<h2>Summary</h2>",
+            f"<p><strong>Total Files Analyzed:</strong> {total_files}</p>",
+            f"<p><strong>Total Issues Found:</strong> {total_issues}</p>",
+            f'<p><strong>High Severity:</strong> {severity_counts["high"]}</p>',
+            f'<p><strong>Medium Severity:</strong> {severity_counts["medium"]}</p>',
+            f'<p><strong>Low Severity:</strong> {severity_counts["low"]}</p>',
+            f'<p><strong>Info:</strong> {severity_counts["info"]}</p>',
+            "</div>",
+        ])
 
         # File details
         for result in analysis_results:
             if "error" in result:
-                html.extend(
-                    [
-                        '<div class="file">',
-                        f'<h3>{result["file_path"]}</h3>',
-                        f'<p><strong>Error:</strong> {result["error"]}</p>',
-                        "</div>",
-                    ]
-                )
+                html.extend([
+                    '<div class="file">',
+                    f'<h3>{result["file_path"]}</h3>',
+                    f'<p><strong>Error:</strong> {result["error"]}</p>',
+                    "</div>",
+                ])
                 continue
 
             file_path = result["file_path"]
@@ -1172,34 +1061,30 @@ class CodeReviewerServer(Server):
             issues = result.get("issues", [])
             metrics = result.get("metrics", {})
 
-            html.extend(
-                [
-                    '<div class="file">',
-                    f"<h3>{file_path}</h3>",
-                    f"<p><strong>Language:</strong> {language}</p>",
-                    f"<p><strong>Lines:</strong> {total_lines}</p>",
-                    f'<p><strong>Code Lines:</strong> {metrics.get("code_lines", "N/A")}</p>',
-                    f'<p><strong>Comment Ratio:</strong> {metrics.get("comment_ratio", 0):.1%}</p>',
-                ]
-            )
+            html.extend([
+                '<div class="file">',
+                f"<h3>{file_path}</h3>",
+                f"<p><strong>Language:</strong> {language}</p>",
+                f"<p><strong>Lines:</strong> {total_lines}</p>",
+                f'<p><strong>Code Lines:</strong> {metrics.get("code_lines", "N/A")}</p>',
+                f'<p><strong>Comment Ratio:</strong> {metrics.get("comment_ratio", 0):.1%}</p>',
+            ])
 
             if issues:
                 html.append("<h4>Issues Found</h4>")
                 for issue in issues:
                     severity_class = issue["severity"]
-                    html.extend(
-                        [
-                            f'<div class="issue {severity_class}">',
-                            f'<h5>{issue["title"]} ({issue["severity"].upper()})</h5>',
-                            f'<p><strong>File:</strong> {issue["file_path"]}:{issue["line_number"]}</p>',
-                            f'<p><strong>Type:</strong> {issue["issue_type"]}</p>',
-                            f'<p><strong>Category:</strong> {issue["category"]}</p>',
-                            f'<p><strong>Description:</strong> {issue["description"]}</p>',
-                            f'<p><strong>Suggestion:</strong> {issue["suggestion"]}</p>',
-                            f'<pre><code>{issue["code_snippet"]}</code></pre>',
-                            "</div>",
-                        ]
-                    )
+                    html.extend([
+                        f'<div class="issue {severity_class}">',
+                        f'<h5>{issue["title"]} ({issue["severity"].upper()})</h5>',
+                        f'<p><strong>File:</strong> {issue["file_path"]}:{issue["line_number"]}</p>',
+                        f'<p><strong>Type:</strong> {issue["issue_type"]}</p>',
+                        f'<p><strong>Category:</strong> {issue["category"]}</p>',
+                        f'<p><strong>Description:</strong> {issue["description"]}</p>',
+                        f'<p><strong>Suggestion:</strong> {issue["suggestion"]}</p>',
+                        f'<pre><code>{issue["code_snippet"]}</code></pre>',
+                        "</div>",
+                    ])
             else:
                 html.append("<p><strong>✅ No Issues Found</strong></p>")
 

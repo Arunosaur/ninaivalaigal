@@ -148,24 +148,20 @@ class AIFeedbackSystem:
             cutoff_date = datetime.utcnow() - timedelta(days=days_back)
 
             # Get feedback data for analysis
-            feedback_data = await self._get_feedback_data(
-                user_id=user_id, feedback_type=feedback_type, since_date=cutoff_date
-            )
+            feedback_data = await self._get_feedback_data(user_id=user_id,
+                                                          feedback_type=feedback_type,
+                                                          since_date=cutoff_date)
 
             patterns = []
 
             # Pattern 1: Memory relevance patterns
             if not feedback_type or feedback_type == FeedbackType.MEMORY_RELEVANCE:
-                relevance_patterns = await self._analyze_memory_relevance_patterns(
-                    feedback_data
-                )
+                relevance_patterns = await self._analyze_memory_relevance_patterns(feedback_data)
                 patterns.extend(relevance_patterns)
 
             # Pattern 2: Context quality patterns
             if not feedback_type or feedback_type == FeedbackType.CONTEXT_QUALITY:
-                context_patterns = await self._analyze_context_quality_patterns(
-                    feedback_data
-                )
+                context_patterns = await self._analyze_context_quality_patterns(feedback_data)
                 patterns.extend(context_patterns)
 
             # Pattern 3: Temporal patterns
@@ -174,9 +170,7 @@ class AIFeedbackSystem:
 
             # Pattern 4: User behavior patterns
             if user_id:
-                behavior_patterns = await self._analyze_user_behavior_patterns(
-                    user_id, feedback_data
-                )
+                behavior_patterns = await self._analyze_user_behavior_patterns(user_id, feedback_data)
                 patterns.extend(behavior_patterns)
 
             # Store patterns for future use
@@ -197,9 +191,7 @@ class AIFeedbackSystem:
             logger.error("Failed to analyze feedback patterns", error=str(e))
             raise
 
-    async def generate_context_improvements(
-        self, patterns: List[LearningPattern]
-    ) -> List[ContextImprovement]:
+    async def generate_context_improvements(self, patterns: List[LearningPattern]) -> List[ContextImprovement]:
         """
         Generate actionable context improvements based on learned patterns.
         """
@@ -234,9 +226,7 @@ class AIFeedbackSystem:
             logger.error("Failed to generate context improvements", error=str(e))
             raise
 
-    async def apply_learning_adjustments(
-        self, user_id: str, context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def apply_learning_adjustments(self, user_id: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply learned adjustments to improve context quality.
         """
@@ -248,21 +238,18 @@ class AIFeedbackSystem:
 
             # Apply memory relevance adjustments
             if "memory_relevance" in user_patterns:
-                adjusted_context = await self._apply_relevance_adjustments(
-                    adjusted_context, user_patterns["memory_relevance"]
-                )
+                adjusted_context = await self._apply_relevance_adjustments(adjusted_context,
+                                                                           user_patterns["memory_relevance"])
 
             # Apply context quality adjustments
             if "context_quality" in user_patterns:
-                adjusted_context = await self._apply_quality_adjustments(
-                    adjusted_context, user_patterns["context_quality"]
-                )
+                adjusted_context = await self._apply_quality_adjustments(adjusted_context,
+                                                                         user_patterns["context_quality"])
 
             # Apply temporal adjustments
             if "temporal_preferences" in user_patterns:
-                adjusted_context = await self._apply_temporal_adjustments(
-                    adjusted_context, user_patterns["temporal_preferences"]
-                )
+                adjusted_context = await self._apply_temporal_adjustments(adjusted_context,
+                                                                          user_patterns["temporal_preferences"])
 
             logger.debug(
                 "Learning adjustments applied",
@@ -276,9 +263,7 @@ class AIFeedbackSystem:
             logger.error("Failed to apply learning adjustments", error=str(e))
             return context  # Return original context on error
 
-    async def get_feedback_insights(
-        self, user_id: Optional[str] = None, days_back: int = 30
-    ) -> Dict[str, Any]:
+    async def get_feedback_insights(self, user_id: Optional[str] = None, days_back: int = 30) -> Dict[str, Any]:
         """
         Get insights from collected feedback for analytics.
         """
@@ -292,9 +277,7 @@ class AIFeedbackSystem:
             improvements = await self._get_improvement_metrics(user_id, cutoff_date)
 
             # Get learning effectiveness
-            effectiveness = await self._calculate_learning_effectiveness(
-                user_id, cutoff_date
-            )
+            effectiveness = await self._calculate_learning_effectiveness(user_id, cutoff_date)
 
             insights = {
                 "feedback_statistics": stats,
@@ -341,24 +324,20 @@ class AIFeedbackSystem:
             return
 
         key = f"feedback:recent:{event.user_id}"
-        value = json.dumps(
-            {
-                "event_id": event.event_id,
-                "feedback_type": event.feedback_type.value,
-                "feedback_value": event.feedback_value.value,
-                "timestamp": event.timestamp.isoformat(),
-                "context": event.context,
-            }
-        )
+        value = json.dumps({
+            "event_id": event.event_id,
+            "feedback_type": event.feedback_type.value,
+            "feedback_value": event.feedback_value.value,
+            "timestamp": event.timestamp.isoformat(),
+            "context": event.context,
+        })
 
         # Store with 1-hour expiry
         await self.redis.lpush(key, value)
         await self.redis.ltrim(key, 0, 99)  # Keep last 100 events
         await self.redis.expire(key, 3600)
 
-    async def _trigger_learning_analysis(
-        self, user_id: str, feedback_type: FeedbackType
-    ) -> None:
+    async def _trigger_learning_analysis(self, user_id: str, feedback_type: FeedbackType) -> None:
         """Trigger learning analysis if conditions are met."""
         # Check if enough feedback collected for analysis
         recent_count = await self._get_recent_feedback_count(user_id, feedback_type)
@@ -367,18 +346,12 @@ class AIFeedbackSystem:
             # Schedule background analysis
             await self._schedule_analysis(user_id, feedback_type)
 
-    async def _analyze_memory_relevance_patterns(
-        self, feedback_data: List[Dict[str, Any]]
-    ) -> List[LearningPattern]:
+    async def _analyze_memory_relevance_patterns(self, feedback_data: List[Dict[str, Any]]) -> List[LearningPattern]:
         """Analyze patterns in memory relevance feedback."""
         patterns = []
 
         # Group by memory characteristics
-        relevance_data = [
-            f
-            for f in feedback_data
-            if f.get("feedback_type") == FeedbackType.MEMORY_RELEVANCE.value
-        ]
+        relevance_data = [f for f in feedback_data if f.get("feedback_type") == FeedbackType.MEMORY_RELEVANCE.value]
 
         if len(relevance_data) < 5:
             return patterns
@@ -395,17 +368,11 @@ class AIFeedbackSystem:
 
         return patterns
 
-    async def _analyze_context_quality_patterns(
-        self, feedback_data: List[Dict[str, Any]]
-    ) -> List[LearningPattern]:
+    async def _analyze_context_quality_patterns(self, feedback_data: List[Dict[str, Any]]) -> List[LearningPattern]:
         """Analyze patterns in context quality feedback."""
         patterns = []
 
-        quality_data = [
-            f
-            for f in feedback_data
-            if f.get("feedback_type") == FeedbackType.CONTEXT_QUALITY.value
-        ]
+        quality_data = [f for f in feedback_data if f.get("feedback_type") == FeedbackType.CONTEXT_QUALITY.value]
 
         if len(quality_data) < 5:
             return patterns
@@ -417,9 +384,7 @@ class AIFeedbackSystem:
 
         return patterns
 
-    async def _analyze_temporal_patterns(
-        self, feedback_data: List[Dict[str, Any]]
-    ) -> List[LearningPattern]:
+    async def _analyze_temporal_patterns(self, feedback_data: List[Dict[str, Any]]) -> List[LearningPattern]:
         """Analyze temporal patterns in feedback."""
         patterns = []
 
@@ -430,9 +395,8 @@ class AIFeedbackSystem:
 
         return patterns
 
-    async def _analyze_user_behavior_patterns(
-        self, user_id: str, feedback_data: List[Dict[str, Any]]
-    ) -> List[LearningPattern]:
+    async def _analyze_user_behavior_patterns(self, user_id: str,
+                                              feedback_data: List[Dict[str, Any]]) -> List[LearningPattern]:
         """Analyze user-specific behavior patterns."""
         patterns = []
 
@@ -448,9 +412,7 @@ class AIFeedbackSystem:
 
         return patterns
 
-    async def _pattern_to_improvement(
-        self, pattern: LearningPattern
-    ) -> Optional[ContextImprovement]:
+    async def _pattern_to_improvement(self, pattern: LearningPattern) -> Optional[ContextImprovement]:
         """Convert a learning pattern to a context improvement."""
         improvement_id = f"imp_{int(time.time())}_{pattern.pattern_id[-8:]}"
 
@@ -458,7 +420,7 @@ class AIFeedbackSystem:
             return ContextImprovement(
                 improvement_id=improvement_id,
                 improvement_type="memory_ranking",
-                description=f"Adjust memory ranking to prefer {pattern.parameters.get('preferred_age', 'recent')} memories",
+                description=f"Adjust memory ranking to prefer {pattern.parameters.get('preferred_age', 'recent')} memories",  # noqa: E501
                 priority="high" if pattern.confidence > 0.8 else "medium",
                 estimated_impact=pattern.confidence * 0.3,
                 implementation_status="pending",

@@ -94,9 +94,7 @@ class TestEdgeQueries:
             # Verify edge properties
             assert triggered_edge.source_id == "macro_001"
             assert triggered_edge.target_id == "agent_001"
-            assert (
-                triggered_edge.relationship_type == RelationshipType.TRIGGERED_BY.value
-            )
+            assert (triggered_edge.relationship_type == RelationshipType.TRIGGERED_BY.value)
             assert triggered_edge.properties["frequency"] == "daily"
             assert triggered_edge.properties["automation_level"] == 0.9
 
@@ -143,9 +141,7 @@ class TestEdgeQueries:
             # Verify edge properties
             assert influences_edge.source_id == "memory_001"
             assert influences_edge.target_id == "memory_002"
-            assert (
-                influences_edge.relationship_type == RelationshipType.INFLUENCES.value
-            )
+            assert (influences_edge.relationship_type == RelationshipType.INFLUENCES.value)
             assert influences_edge.properties["influence_type"] == "prerequisite"
             assert influences_edge.properties["strength"] == 0.8
             assert influences_edge.weight == 0.75
@@ -166,9 +162,7 @@ class TestEdgeQueries:
 
             # Mock successful query execution
             mock_conn.execute.return_value = None
-            mock_conn.fetch.return_value = [
-                {"result": '{"type": "CREATED", "weight": 1.0}'}
-            ]
+            mock_conn.fetch.return_value = [{"result": '{"type": "CREATED", "weight": 1.0}'}]
 
             # Create AGE client
             client = ApacheAGEClient("postgresql://test:test@localhost/test")
@@ -200,9 +194,7 @@ class TestEdgeQueries:
         """Test graph traversal using edge relationships"""
         try:
             # Mock database with traversal results
-            with patch(
-                "server.graph.age_client.asyncpg.create_pool"
-            ) as mock_create_pool:
+            with patch("server.graph.age_client.asyncpg.create_pool") as mock_create_pool:
                 mock_pool = AsyncMock()
                 mock_conn = AsyncMock()
                 mock_create_pool.return_value = mock_pool
@@ -212,10 +204,12 @@ class TestEdgeQueries:
                 mock_conn.execute.return_value = None
                 mock_conn.fetch.return_value = [
                     {
-                        "result": '{"memory_id": "mem_001", "title": "Redis Setup", "depth": 1, "relationships": [{"type": "CREATED", "weight": 1.0}]}'
+                        "result": ('{"memory_id": "mem_001", "title": "Redis Setup", "depth": 1, '
+                                   '"relationships": [{"type": "CREATED", "weight": 1.0}]}')
                     },
                     {
-                        "result": '{"memory_id": "mem_002", "title": "Graph Model", "depth": 2, "relationships": [{"type": "LINKED_TO", "weight": 0.8}]}'
+                        "result": ('{"memory_id": "mem_002", "title": "Graph Model", "depth": 2, '
+                                   '"relationships": [{"type": "LINKED_TO", "weight": 0.8}]}')
                     },
                 ]
 
@@ -245,9 +239,7 @@ class TestEdgeQueries:
         """Test graph-based relevance calculation using edge weights"""
         try:
             # Mock database with relevance calculation results
-            with patch(
-                "server.graph.age_client.asyncpg.create_pool"
-            ) as mock_create_pool:
+            with patch("server.graph.age_client.asyncpg.create_pool") as mock_create_pool:
                 mock_pool = AsyncMock()
                 mock_conn = AsyncMock()
                 mock_create_pool.return_value = mock_pool
@@ -255,11 +247,7 @@ class TestEdgeQueries:
 
                 # Mock relevance calculation results
                 mock_conn.execute.return_value = None
-                mock_conn.fetch.return_value = [
-                    {
-                        "result": '{"avg_weight": 0.85, "path_length": 2, "edge_count": 3}'
-                    }
-                ]
+                mock_conn.fetch.return_value = [{"result": '{"avg_weight": 0.85, "path_length": 2, "edge_count": 3}'}]
 
                 # Mock Redis cache for relevance scores
                 with patch("server.graph.age_client.get_relevance_cache") as mock_cache:
@@ -309,10 +297,7 @@ class TestEdgeQueries:
 
             # Verify properties are correctly formatted
             assert "relevance: 0.9" in cypher_props
-            assert (
-                "auto_tagged: True" in cypher_props
-                or "auto_tagged: true" in cypher_props
-            )
+            assert ("auto_tagged: True" in cypher_props or "auto_tagged: true" in cypher_props)
             assert "confidence: 0.85" in cypher_props
             assert "weight: 0.8" in cypher_props
 
@@ -379,10 +364,7 @@ class TestEdgeQueryPerformance:
             # Benchmark edge creation
             edges = benchmark(create_test_edges)
             assert len(edges) == 10
-            assert all(
-                edge.relationship_type == RelationshipType.LINKED_TO.value
-                for edge in edges
-            )
+            assert all(edge.relationship_type == RelationshipType.LINKED_TO.value for edge in edges)
 
         except ImportError:
             pytest.skip("Edge models not available for benchmarking")
@@ -405,15 +387,13 @@ class TestEdgeQueryPerformance:
             )
 
             # Add additional properties
-            influences_edge.properties.update(
-                {
-                    "algorithm": "graph_neural_network",
-                    "computed_at": datetime.utcnow().isoformat(),
-                    "validation_score": 0.92,
-                    "source_confidence": 0.88,
-                    "target_confidence": 0.91,
-                }
-            )
+            influences_edge.properties.update({
+                "algorithm": "graph_neural_network",
+                "computed_at": datetime.utcnow().isoformat(),
+                "validation_score": 0.92,
+                "source_confidence": 0.88,
+                "target_confidence": 0.91,
+            })
 
             # Benchmark property formatting
             def format_edge_properties():
@@ -464,9 +444,7 @@ class TestComplexGraphQueries:
         """Test getting memory network for visualization"""
         try:
             # Mock database with network results
-            with patch(
-                "server.graph.age_client.asyncpg.create_pool"
-            ) as mock_create_pool:
+            with patch("server.graph.age_client.asyncpg.create_pool") as mock_create_pool:
                 mock_pool = AsyncMock()
                 mock_conn = AsyncMock()
                 mock_create_pool.return_value = mock_pool
@@ -485,11 +463,10 @@ class TestComplexGraphQueries:
                         },
                     ],
                     # Edges query result
-                    [
-                        {
-                            "result": '{"source": "mem_001", "target": "macro_001", "relationship": "LINKED_TO", "weight": 0.9}'
-                        }
-                    ],
+                    [{
+                        "result":
+                        '{"source": "mem_001", "target": "macro_001", "relationship": "LINKED_TO", "weight": 0.9}'
+                    }],
                 ]
 
                 # Mock Redis cache
@@ -499,9 +476,7 @@ class TestComplexGraphQueries:
                     client = ApacheAGEClient("postgresql://test:test@localhost/test")
 
                     # Test memory network retrieval
-                    network = await client.get_memory_network(
-                        user_id="user_001", limit=20
-                    )
+                    network = await client.get_memory_network(user_id="user_001", limit=20)
 
                     # Verify network structure
                     assert "nodes" in network
