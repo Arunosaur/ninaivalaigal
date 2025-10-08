@@ -315,7 +315,7 @@ def test_subject_context_provider():
     response = client.get("/test")
     assert response.status_code == 200
     data = response.json()
-    assert data["authenticated"] == True
+    assert data["authenticated"]
     assert data["user_id"] == "test_123"
     assert data["org_id"] == "org_456"
     assert "admin" in data["roles"]

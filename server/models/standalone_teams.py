@@ -23,6 +23,8 @@ from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
+from ..database.models import Organization, Team, User
+
 
 class TeamInvitation(Base):
     """Team invitation for secure team joining"""

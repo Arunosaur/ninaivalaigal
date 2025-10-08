@@ -16,11 +16,8 @@ from fastapi import Request, Response  # noqa: E402
 from rbac_middleware import RBACContext  # noqa: E402
 from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 
-from ..redaction import (  # noqa: E402
-    ContextSensitivity,
-    RedactionEngine,
-    redaction_audit_logger,
-)
+from ..redaction import RedactionEngine  # noqa: E402
+from ..redaction import ContextSensitivity, redaction_audit_logger
 
 
 class RedactionMiddleware(BaseHTTPMiddleware):

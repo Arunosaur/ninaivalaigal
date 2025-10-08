@@ -33,10 +33,11 @@ find_spec_dir(){
   local spec_id="$1"
 
   # Find SPEC directory by ID
-  local spec_dirs=(specs/${spec_id}-*)
+  local spec_dirs
+  mapfile -t spec_dirs < <(find specs -maxdepth 1 -type d -name "${spec_id}-*")
 
   if [[ ${#spec_dirs[@]} -eq 0 || ! -d "${spec_dirs[0]}" ]]; then
-    die "SPEC $spec_id not found. Available SPECs: $(ls specs/ | grep -E '^[0-9]{3}-' | cut -d'-' -f1 | sort -u | tr '\n' ' ')"
+    die "SPEC $spec_id not found. Available SPECs: $(find specs -maxdepth 1 -type d -name '[0-9][0-9][0-9]-*' | sed 's|.*/||' | cut -d'-' -f1 | sort -u | tr '\n' ' ')"
   fi
 
   if [[ ${#spec_dirs[@]} -gt 1 ]]; then

@@ -30,9 +30,9 @@ def _emit_multipart_reject(reason: str) -> None:
     # Bounded reasons: engine_error, policy_denied, magic_mismatch,
     # part_too_large, too_many_parts, invalid_encoding, archive_blocked
     try:
-        from server.observability.metrics_label_guard import validate_reason_bucket
+        # from server.observability.metrics_label_guard import validate_reason_bucket
 
-        validated_reason = validate_reason_bucket(reason)
+        # validated_reason = validate_reason_bucket(reason)
         # TODO: Wire to actual metrics system
         # metrics.counter("multipart_reject_total", tags={"reason": validated_reason}).increment()
         pass

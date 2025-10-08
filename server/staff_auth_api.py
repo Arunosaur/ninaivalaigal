@@ -15,9 +15,7 @@ from pydantic import BaseModel, EmailStr
 
 # Use standard SQLAlchemy session instead of complex DatabaseOperations
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import Session as SQLAlchemySession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 # Create engine for staff auth
 DATABASE_URL = os.getenv(

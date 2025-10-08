@@ -1,3 +1,5 @@
+"""Redis connection and performance test script for SPEC-033."""
+
 import time
 
 import redis

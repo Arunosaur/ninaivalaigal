@@ -16,7 +16,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "client", "vendor"))
 
 
 class Mem0Client:
+    """Client for interacting with Ninaivalaigal memory server."""
+
     def __init__(self):
+        """Initialize the Mem0Client with base URL and session."""
         self.base_url = "http://127.0.0.1:13370"
         self.session = requests.Session()
 
@@ -101,7 +104,6 @@ class Mem0Client:
 
         response = self.make_request("POST", "/memory", json=data)
         if response.status_code == 200:
-            result = response.json()
             print("✅ Memory entry recorded.")
         else:
             print(f"❌ Failed to record memory: {response.text}")
@@ -120,9 +122,12 @@ class Mem0Client:
                 active_context = active_result.get("recording_context", "")
 
                 if active_context == context_name:
-                    print(
-                        f"⚠️  Cannot delete active context '{context_name}' - stop it first with: mem0 context stop {context_name}"
+                    msg = (
+                        f"⚠️  Cannot delete active context "
+                        f"'{context_name}' - stop it first with: "
+                        f"mem0 context stop {context_name}"
                     )
+                    print(msg)
                     skipped_active += 1
                     continue
 
@@ -130,16 +135,17 @@ class Mem0Client:
             response = self.make_request("DELETE", f"/context/{context_name}")
 
             if response.status_code == 200:
-                result = response.json()
                 print(f"✅ Context '{context_name}' deleted successfully")
                 success_count += 1
             else:
                 print(f"❌ Failed to delete context '{context_name}': {response.text}")
                 failed_count += 1
 
-        print(
-            f"\n📊 Summary: {success_count} deleted, {failed_count} failed, {skipped_active} active contexts skipped"
+        summary = (
+            f"\n📊 Summary: {success_count} deleted, "
+            f"{failed_count} failed, {skipped_active} active contexts skipped"
         )
+        print(summary)
 
     def recall(self, context=None):
         """Retrieve memories"""
@@ -181,8 +187,6 @@ class Mem0Client:
 
         response = self.make_request("POST", "/contexts", json=data)
         if response.status_code == 200:
-            result = response.json()
-            context = result.get("context", {})
             scope_icon = {"personal": "👤", "team": "👥", "organization": "🏢"}.get(
                 scope, "📁"
             )
@@ -194,6 +198,7 @@ class Mem0Client:
 
 
 def main():
+    """Main entry point for eM command-line tool."""
     if len(sys.argv) < 2:
         print("Usage: mem0 <command> [options]")
         print(
@@ -272,9 +277,12 @@ def main():
 
     elif command == "create":
         if len(sys.argv) < 4 or sys.argv[2] != "--context":
-            print(
-                "Usage: mem0 create --context <name> [--scope personal|team|organization] [--description <desc>] [--team-id <id>] [--org-id <id>]"
+            msg = (
+                "Usage: mem0 create --context <name> "
+                "[--scope personal|team|organization] "
+                "[--description <desc>] [--team-id <id>] [--org-id <id>]"
             )
+            print(msg)
             sys.exit(1)
 
         name = sys.argv[3]

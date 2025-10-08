@@ -55,7 +55,7 @@ repos:
       - id: mypy
         additional_dependencies: [types-requests, types-redis, types-python-dateutil]
         args: [--ignore-missing-imports, --no-strict-optional]
-        exclude: ^(server/.*\.py|tests/.*\.py|test_.*\.py|alembic/.*\.py|node_modules/.*|graph-validation/.*|coverage/.*\.py|scripts/.*\.py|run_server\.py|run_server_minimal\.py|mem0|ninaivalaigal_ci_rbac_pack/.*|utils/.*\.py|server/security/.*)$
+        exclude: ^(server/.*\.py|tests/.*\.py|test_.*\.py|alembic/.*\.py|node_modules/.*|graph-validation/.*|coverage/.*\.py|scripts/.*\.py|run_server\.py|run_server_minimal\.py|mem0|client-tools/mem0|client-tools/eM|client-tools/vendor/.*|sidecar/main\.py|mcp_server/main\.py|ninaivalaigal_ci_rbac_pack/.*|utils/.*\.py|server/security/.*)$
 
   # - repo: https://github.com/pycqa/bandit
   #   rev: 1.7.5

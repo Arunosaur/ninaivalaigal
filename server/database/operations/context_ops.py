@@ -10,6 +10,8 @@ from typing import Any, Dict, List, Literal, Optional
 
 import asyncpg
 
+from ..models import Context
+
 logger = logging.getLogger(__name__)
 
 # Type definitions for SPEC-007

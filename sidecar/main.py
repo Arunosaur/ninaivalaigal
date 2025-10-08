@@ -1,3 +1,5 @@
+"""eM Sidecar API - Authenticated memory service with HMAC-SHA256 security."""
+
 import hashlib
 import hmac
 import logging
