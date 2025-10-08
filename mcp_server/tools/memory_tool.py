@@ -1,3 +1,6 @@
+"""Module placeholder."""
+
+
 async def mcp_memory_write(payload):
     return {"status": "ok", "payload": payload}
 

@@ -1,3 +1,5 @@
+"""RBAC role inheritance and expansion utilities."""
+
 ROLE_INHERITANCE = {
     "team_admin": ["org_editor"],
     "org_admin": ["org_editor", "team_admin"],
@@ -7,6 +9,7 @@ ROLE_INHERITANCE = {
 
 
 def expand_roles(roles):
+    """Expand roles to include inherited roles based on hierarchy."""
     out = set(roles)
     changed = True
     while changed:

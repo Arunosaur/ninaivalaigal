@@ -16,7 +16,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "client", "vendor"))
 
 
 class Mem0Client:
+    """Client for interacting with Mem0 HTTP API."""
+
     def __init__(self):
+        """Initialize Mem0 HTTP client."""
         self.base_url = "http://127.0.0.1:13370"
         self.session = requests.Session()
 
@@ -101,7 +104,7 @@ class Mem0Client:
 
         response = self.make_request("POST", "/memory", json=data)
         if response.status_code == 200:
-            result = response.json()
+            # result = response.json()  # noqa: F841
             print("✅ Memory entry recorded.")
         else:
             print(f"❌ Failed to record memory: {response.text}")
@@ -130,7 +133,7 @@ class Mem0Client:
             response = self.make_request("DELETE", f"/context/{context_name}")
 
             if response.status_code == 200:
-                result = response.json()
+                # result = response.json()  # noqa: F841
                 print(f"✅ Context '{context_name}' deleted successfully")
                 success_count += 1
             else:
@@ -194,6 +197,7 @@ class Mem0Client:
 
 
 def main():
+    """Main entry point for eM CLI."""
     if len(sys.argv) < 2:
         print("Usage: mem0 <command> [options]")
         print(
@@ -206,7 +210,6 @@ def main():
 
     if command == "contexts":
         client.contexts()
-
     elif command == "active":
         client.context_active()
 

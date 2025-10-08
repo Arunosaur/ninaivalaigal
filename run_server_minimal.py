@@ -5,7 +5,6 @@ Tests Redis connectivity and provides basic health endpoints
 """
 
 import os
-import sys
 from typing import Any, Dict
 
 import redis
@@ -60,6 +59,8 @@ redis_client = None
 
 
 class HealthResponse(BaseModel):
+    """Health check response model."""
+
     status: str
     redis: Dict[str, Any]
     environment: Dict[str, str]

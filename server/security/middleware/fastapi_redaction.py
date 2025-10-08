@@ -30,7 +30,7 @@ class RedactionASGIMiddleware:
             return
 
         # Buffer to accumulate request body chunks
-        body_parts = []
+        body_parts: list[bytes] = []
         tail = ""
 
         async def redacting_receive() -> Message:
