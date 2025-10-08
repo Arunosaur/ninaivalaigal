@@ -302,7 +302,7 @@ async def get_current_user_optional(request: Request):
         db = get_db()
         user = get_user_by_uuid(db, token_data.user_id)
         return user
-    except:
+    except Exception:
         return None
 
 

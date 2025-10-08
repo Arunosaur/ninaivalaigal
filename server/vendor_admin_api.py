@@ -3,14 +3,13 @@ SPEC-025: Vendor Admin Console (Medhasys Control Panel)
 Multi-tenant management, usage analytics, rate limiting, and audit logging
 """
 
-import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 import structlog
 from auth import get_current_user, require_admin_role
 from database.operations import DatabaseOperations, get_db
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 logger = structlog.get_logger(__name__)

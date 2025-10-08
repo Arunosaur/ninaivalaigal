@@ -479,48 +479,12 @@ class RelevanceEngine:
                 memory_id=memory_id,
                 error=str(e),
             )
-            raise
-
-    async def _calculate_base_relevance_score(
-        self, user_id: int, memory_id: str
-    ) -> float:
-        """Calculate base relevance score for a memory"""
-        try:
-            # This is a simplified version - in practice, this would use
-            # the full relevance calculation logic
-
-            # Get access frequency
-            access_key = f"access:{user_id}:{memory_id}"
-            access_count = await self.redis_client.zcard(access_key)
-
-            # Calculate basic score based on access frequency
-            frequency_score = min(access_count * 0.1, 1.0)
-
-            # Apply time decay (assume recent if no specific timestamp)
-            time_score = 0.8  # Default recent score
-
-            # Calculate base score
-            base_score = (
-                frequency_score * self.weights["frequency"]
-                + time_score * self.weights["time_decay"]
-            )
-
-            return base_score
-
-        except Exception as e:
-            logger.error(
-                "Error calculating base relevance score",
-                user_id=user_id,
-                memory_id=memory_id,
-                error=str(e),
-            )
             return 0.5  # Default neutral score
 
     async def get_cached_score(
         self, user_id: str, context_id: str, token_id: str
     ) -> float | None:
         """Get cached relevance score using SPEC-033 cache"""
-        return await self.relevance_cache.get_score(user_id, context_id, token_id)
 
     async def cache_score(
         self,
