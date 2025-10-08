@@ -12,7 +12,8 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
-from .sharing_contracts import ContractStatus, MemoryLinkContract, ScopeIdentifier
+from .sharing_contracts import (ContractStatus, MemoryLinkContract,
+                                ScopeIdentifier)
 
 logger = logging.getLogger(__name__)
 

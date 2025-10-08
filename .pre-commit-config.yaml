@@ -47,7 +47,7 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: [flake8-docstrings, flake8-bugbear]
-        exclude: ^(server/.*\.py|tests/.*\.py|test_.*\.py|alembic/.*\.py|specs/.*/tests/.*\.py|coverage/.*\.py|scripts/.*\.py|run_server\.py|run_server_minimal\.py|mem0|ninaivalaigal_ci_rbac_pack/.*|client-tools/vendor/.*|.*debug.*\.py|benchmarks/.*\.py|mcp_server/.*\.py|examples/.*\.py|health-monitor.*\.py|utils/.*\.py)$
+        exclude: ^(server/.*_backup\.py|server/memory/lifecycle/test_lifecycle\.py|tests/.*\.py|test_.*\.py|alembic/.*\.py|specs/.*/tests/.*\.py|coverage/.*\.py|scripts/.*\.py|run_server\.py|run_server_minimal\.py|mem0|ninaivalaigal_ci_rbac_pack/.*|client-tools/vendor/.*|.*debug.*\.py|benchmarks/.*\.py|mcp_server/.*\.py|examples/.*\.py|health-monitor.*\.py|utils/.*\.py)$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.7.1

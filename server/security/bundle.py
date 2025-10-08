@@ -12,18 +12,17 @@ from collections.abc import Callable, Iterable
 
 from fastapi import FastAPI, Request
 
-from server.security.idempotency.middleware import (
-    IdempotencyMiddleware,
-    MemoryIdempotencyStore,
-)
+from server.security.idempotency.middleware import (IdempotencyMiddleware,
+                                                    MemoryIdempotencyStore)
 from server.security.logging.global_scrubber import install_global_scrubber
-
 # Core security middleware components
-from server.security.middleware.compression_guard import CompressionGuardMiddleware
-
+from server.security.middleware.compression_guard import \
+    CompressionGuardMiddleware
 # Multipart adapter + detector integration
-from server.security.multipart.starlette_adapter import process_multipart_securely
-from server.security.utils.unicode_normalizer import normalize_unicode_for_detection
+from server.security.multipart.starlette_adapter import \
+    process_multipart_securely
+from server.security.utils.unicode_normalizer import \
+    normalize_unicode_for_detection
 
 # RBAC subject context provider (injectable)
 try:

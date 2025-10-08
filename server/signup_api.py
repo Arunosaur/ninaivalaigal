@@ -7,24 +7,14 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import jwt
-from auth import (
-    JWT_ALGORITHM,
-    JWT_EXPIRATION_HOURS,
-    JWT_SECRET,
-    IndividualUserSignup,
-    InvitationAccept,
-    OrganizationSignup,
-    UserLogin,
-    authenticate_user,
-    create_individual_user,
-    generate_invitation_token,
-    generate_verification_token,
-    hash_password,
-    send_verification_email,
-    validate_email,
-    verify_email_token,
-)
-from database import Organization, OrganizationRegistration, User, UserInvitation
+from auth import (JWT_ALGORITHM, JWT_EXPIRATION_HOURS, JWT_SECRET,
+                  IndividualUserSignup, InvitationAccept, OrganizationSignup,
+                  UserLogin, authenticate_user, create_individual_user,
+                  generate_invitation_token, generate_verification_token,
+                  hash_password, send_verification_email, validate_email,
+                  verify_email_token)
+from database import (Organization, OrganizationRegistration, User,
+                      UserInvitation)
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 # Initialize router

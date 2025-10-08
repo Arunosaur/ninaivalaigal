@@ -18,10 +18,10 @@ from sqlalchemy.orm import sessionmaker
 
 from server.auth import create_access_token, get_current_user, verify_token
 from server.database import Team, User, get_db
-
 # Import our application components
 from server.main import app
-from server.models.standalone_teams import StandaloneTeamManager, TeamMembership
+from server.models.standalone_teams import (StandaloneTeamManager,
+                                            TeamMembership)
 
 
 class AuthTestFramework:

@@ -10,15 +10,8 @@ from typing import Dict, Generator, List, Optional
 
 import pytest
 
-from .models import (
-    AuthTestResults,
-    ComplianceTestResult,
-    SecurityTestResult,
-    TestSession,
-    TestUser,
-    TestUserStatus,
-    UserRole,
-)
+from .models import (AuthTestResults, ComplianceTestResult, SecurityTestResult,
+                     TestSession, TestUser, TestUserStatus, UserRole)
 from .multi_user_manager import MultiUserTestManager
 from .rbac_engine import RBACTestEngine
 from .security_scenarios import SecurityScenarioEngine

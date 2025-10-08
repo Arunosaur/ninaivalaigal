@@ -1,0 +1,130 @@
+🔍 Verifying hook coverage by directory...
+📁 Checking server...
+server/agentic_api.py:239:35: F821 undefined name 'deploy_graph_intelligence'
+        deployment_result = await deploy_graph_intelligence(
+                                  ^
+server/database_old_backup.py:436:31: F821 undefined name 'RecordingContext'
+                session.query(RecordingContext)
+                              ^
+server/main_monolithic_backup.py:429:12: F821 undefined name 'FileResponse'
+    return FileResponse(os.path.join(frontend_dir, "signup.html"))
+           ^
+server/main_monolithic_backup.py:435:12: F821 undefined name 'FileResponse'
+    return FileResponse(os.path.join(frontend_dir, "signup.html"))
+           ^
+server/main_monolithic_backup.py:441:12: F821 undefined name 'FileResponse'
+    return FileResponse(os.path.join(frontend_dir, "signup.html"))
+           ^
+server/main_monolithic_backup.py:447:12: F821 undefined name 'FileResponse'
+    return FileResponse(os.path.join(frontend_dir, "login.html"))
+           ^
+server/main_monolithic_backup.py:453:12: F821 undefined name 'FileResponse'
+    return FileResponse(os.path.join(frontend_dir, "login.html"))
+           ^
+server/main_monolithic_backup.py:459:12: F821 undefined name 'FileResponse'
+    return FileResponse(os.path.join(frontend_dir, "dashboard.html"))
+           ^
+server/main_monolithic_backup.py:465:12: F821 undefined name 'FileResponse'
+    return FileResponse(os.path.join(frontend_dir, "dashboard.html"))
+           ^
+server/mcp/tools.py:211:24: F821 undefined name 'auto_recorder'
+        result = await auto_recorder.start_recording(
+                       ^
+server/mcp/tools.py:212:35: F821 undefined name 'DEFAULT_USER_ID'
+            context_name, user_id=DEFAULT_USER_ID
+                                  ^
+server/mcp/tools.py:217:19: F821 undefined name 'auto_recorder'
+            await auto_recorder.record_interaction(
+                  ^
+server/mcp/tools.py:221:69: F821 undefined name 'DEFAULT_USER_ID'
+                metadata={"event_type": "context_start", "user_id": DEFAULT_USER_ID},
+                                                                    ^
+server/mcp/tools.py:244:28: F821 undefined name 'auto_recorder'
+            result = await auto_recorder.stop_recording(context_name)
+                           ^
+server/mcp/tools.py:251:28: F821 undefined name 'auto_recorder'
+            status = await auto_recorder.get_recording_status()
+                           ^
+server/mcp/tools.py:254:32: F821 undefined name 'auto_recorder'
+                result = await auto_recorder.stop_recording(ctx_name)
+                               ^
+server/mcp/tools.py:281:18: F821 undefined name 'spec_context_manager'
+        result = spec_context_manager.list_contexts(user_info["user_id"])
+                 ^
+server/mcp/tools.py:336:18: F821 undefined name 'approval_manager'
+        result = approval_manager.request_cross_team_access(
+                 ^
+server/mcp/tools.py:378:18: F821 undefined name 'approval_manager'
+        result = approval_manager.initiate_team_merger(
+                 ^
+server/mcp/tools.py:412:18: F821 undefined name 'approval_manager'
+        result = approval_manager.execute_team_merger(
+                 ^
+server/mcp/tools.py:440:18: F821 undefined name 'approval_manager'
+        result = approval_manager.get_merger_status(merger_id)
+                 ^
+server/mcp/tools.py:465:18: F821 undefined name 'approval_manager'
+        result = approval_manager.rollback_team_merger(
+                 ^
+server/mcp/tools.py:492:18: F821 undefined name 'approval_manager'
+        result = approval_manager.process_approval_request(
+                 ^
+server/mcp/tools.py:515:18: F821 undefined name 'approval_manager'
+        result = approval_manager.list_pending_requests(user_info["user_id"])
+                 ^
+server/mcp/tools.py:558:18: F821 undefined name 'spec_context_manager'
+        result = spec_context_manager.enhance_ai_prompt(
+                 ^
+server/mcp/tools.py:580:24: F821 undefined name 'auto_recorder'
+        status = await auto_recorder.get_recording_status()
+                       ^
+server/mcp/tools.py:584:27: F821 undefined name 'spec_context_manager'
+        contexts_result = spec_context_manager.list_contexts(user_info["user_id"])
+                          ^
+server/mcp/tools.py:626:18: F821 undefined name 'spec_context_manager'
+        result = spec_context_manager.store_ai_feedback(
+                 ^
+server/memory/consent_manager.py:383:14: E999 IndentationError: expected an indented block after 'for' statement on line 381
+            existing = next(
+             ^
+server/memory/lifecycle/test_lifecycle.py:194:34: F821 undefined name 'get_memory_gc'
+        app.dependency_overrides[get_memory_gc] = lambda: mock_gc
+                                 ^
+server/memory/lifecycle/test_lifecycle.py:229:34: F821 undefined name 'get_memory_gc'
+        app.dependency_overrides[get_memory_gc] = lambda: mock_gc
+                                 ^
+server/routers/recording.py:69:28: F821 undefined name 'auto_recorder'
+            result = await auto_recorder.stop_recording(context)
+                           ^
+server/routers/recording.py:80:28: F821 undefined name 'auto_recorder'
+            status = await auto_recorder.get_recording_status()
+                           ^
+server/routers/recording.py:83:32: F821 undefined name 'auto_recorder'
+                result = await auto_recorder.stop_recording(context_name)
+                               ^
+server/routers/recording.py:103:24: F821 undefined name 'auto_recorder'
+        status = await auto_recorder.get_recording_status()
+                       ^
+1     E999 IndentationError: expected an indented block after 'for' statement on line 381
+34    F821 undefined name 'deploy_graph_intelligence'
+35
+
+📁 Checking tests...
+tests/chaos/chaos_testing_suite.py:661:21: F821 undefined name 'os'
+                    os.unlink(temp_file.name)
+                    ^
+tests/e2e/test_foundation_matrix.py:168:28: F821 undefined name 'security_manager'
+            result = await security_manager.register_provider_securely(
+                           ^
+tests/e2e/test_foundation_matrix.py:181:34: F821 undefined name 'security_manager'
+            api_key_info = await security_manager.generate_provider_api_key(
+                                 ^
+3     F821 undefined name 'os'
+3
+
+📁 Checking scripts...
+0
+
+📁 Checking utils...
+0
+

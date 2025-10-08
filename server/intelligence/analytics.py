@@ -10,15 +10,9 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .models import (
-    FederationMetrics,
-    GraphMLMetrics,
-    KnowledgeGap,
-    SuggestedConnection,
-    TeamContext,
-    TeamInsights,
-    TrendingTopic,
-)
+from .models import (FederationMetrics, GraphMLMetrics, KnowledgeGap,
+                     SuggestedConnection, TeamContext, TeamInsights,
+                     TrendingTopic)
 
 logger = logging.getLogger(__name__)
 

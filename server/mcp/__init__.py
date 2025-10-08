@@ -9,7 +9,6 @@ This addresses external code review feedback:
 
 from .prompts import *
 from .resources import *
-
 # Import all components for backward compatibility
 from .server import get_user_from_jwt, mcp
 from .tools import *

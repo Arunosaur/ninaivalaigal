@@ -1,4 +1,5 @@
-from server.security.multipart.strict_limits import enforce_part_limits, looks_binary
+from server.security.multipart.strict_limits import (enforce_part_limits,
+                                                     looks_binary)
 
 
 def test_pe_header_is_binary():

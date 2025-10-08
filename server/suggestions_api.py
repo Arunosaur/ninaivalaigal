@@ -13,12 +13,9 @@ from auth import get_current_user
 from database import User
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from suggestions_engine import (
-    IntelligentSuggestionsEngine,
-    SuggestionRequest,
-    SuggestionType,
-    get_suggestions_engine,
-)
+from suggestions_engine import (IntelligentSuggestionsEngine,
+                                SuggestionRequest, SuggestionType,
+                                get_suggestions_engine)
 
 logger = structlog.get_logger(__name__)
 

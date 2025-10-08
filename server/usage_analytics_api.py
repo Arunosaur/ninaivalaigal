@@ -10,12 +10,8 @@ from uuid import UUID
 from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, Depends, HTTPException, Query
-from models.standalone_teams import (
-    StandaloneTeamManager,
-    TeamInvitation,
-    TeamMembership,
-    TeamUpgradeHistory,
-)
+from models.standalone_teams import (StandaloneTeamManager, TeamInvitation,
+                                     TeamMembership, TeamUpgradeHistory)
 from pydantic import BaseModel
 from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session

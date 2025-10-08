@@ -10,14 +10,8 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import httpx
 
-from .models import (
-    AuthTestResult,
-    AuthTestResults,
-    PermissionTestResult,
-    TestUser,
-    TestUserStatus,
-    UserRole,
-)
+from .models import (AuthTestResult, AuthTestResults, PermissionTestResult,
+                     TestUser, TestUserStatus, UserRole)
 
 logger = logging.getLogger(__name__)
 

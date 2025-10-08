@@ -61,7 +61,8 @@ def test_secret_detection():
 def test_redaction_config():
     """Test redaction configuration"""
     try:
-        from security.redaction.config import ContextSensitivity, redaction_config
+        from security.redaction.config import (ContextSensitivity,
+                                               redaction_config)
 
         # Test config access
         assert redaction_config.enabled is not None
@@ -86,8 +87,10 @@ def test_security_middleware_imports():
     """Test security middleware imports"""
     try:
         from security.middleware.rate_limiting import EnhancedRateLimiter
-        from security.middleware.redaction_middleware import RedactionMiddleware
-        from security.middleware.security_headers import SecurityHeadersMiddleware
+        from security.middleware.redaction_middleware import \
+            RedactionMiddleware
+        from security.middleware.security_headers import \
+            SecurityHeadersMiddleware
 
         # Test instantiation
         headers_middleware = SecurityHeadersMiddleware

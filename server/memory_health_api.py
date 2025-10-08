@@ -12,12 +12,8 @@ import structlog
 from auth import get_current_user
 from database import User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from memory_health_engine import (
-    HealthStatus,
-    MemoryHealthEngine,
-    MemoryHealthMetrics,
-    get_health_engine,
-)
+from memory_health_engine import (HealthStatus, MemoryHealthEngine,
+                                  MemoryHealthMetrics, get_health_engine)
 from pydantic import BaseModel, Field
 
 logger = structlog.get_logger(__name__)

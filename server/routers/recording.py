@@ -57,7 +57,9 @@ async def start_recording(
 
 @router.post("/stop")
 async def stop_recording(
-    context: str = None, current_user: User = Depends(get_current_user)
+    context: str = None,
+    current_user: User = Depends(get_current_user),
+    auto_recorder=Depends(get_auto_recorder_instance),
 ):
     """Stop CCTV-style automatic recording"""
     try:
@@ -94,7 +96,10 @@ async def stop_recording(
 
 
 @router.get("/status")
-async def get_recording_status(current_user: User = Depends(get_current_user)):
+async def get_recording_status(
+    current_user: User = Depends(get_current_user),
+    auto_recorder=Depends(get_auto_recorder_instance),
+):
     """Get CCTV recording status for all contexts"""
     try:
         # Use authenticated user ID (mandatory)

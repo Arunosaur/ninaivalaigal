@@ -13,15 +13,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from .models import (
-    EmbeddingUpdate,
-    GraphContext,
-    GraphMLMetrics,
-    RelationshipPrediction,
-    ScoredMemory,
-    UserFeedback,
-    WeightUpdate,
-)
+from .models import (EmbeddingUpdate, GraphContext, GraphMLMetrics,
+                     RelationshipPrediction, ScoredMemory, UserFeedback,
+                     WeightUpdate)
 
 logger = logging.getLogger(__name__)
 

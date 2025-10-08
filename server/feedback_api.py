@@ -12,12 +12,8 @@ import structlog
 from auth import get_current_user
 from database import User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from feedback_engine import (
-    FeedbackEngine,
-    FeedbackSentiment,
-    FeedbackType,
-    get_feedback_engine,
-)
+from feedback_engine import (FeedbackEngine, FeedbackSentiment, FeedbackType,
+                             get_feedback_engine)
 from pydantic import BaseModel, Field
 
 logger = structlog.get_logger(__name__)

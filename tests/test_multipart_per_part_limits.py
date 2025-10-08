@@ -11,17 +11,12 @@ Tests the enhanced multipart validation system with:
 
 import pytest
 
-from server.security.multipart.strict_limits import (
-    PartLimitConfig,
-    detect_magic_bytes,
-    enforce_part_limits,
-    looks_binary,
-)
+from server.security.multipart.strict_limits import (PartLimitConfig,
+                                                     detect_magic_bytes,
+                                                     enforce_part_limits,
+                                                     looks_binary)
 from server.security.multipart.strict_validator import (
-    StrictMultipartValidator,
-    create_permissive_policy,
-    create_strict_policy,
-)
+    StrictMultipartValidator, create_permissive_policy, create_strict_policy)
 
 
 class TestMagicByteDetection:

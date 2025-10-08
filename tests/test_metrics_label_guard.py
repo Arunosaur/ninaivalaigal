@@ -5,14 +5,9 @@ import time
 import pytest
 
 from server.observability.metrics_label_guard import (
-    ALL_REASON_BUCKETS,
-    CORE_ROUTE_TEMPLATES,
-    CardinalityTracker,
-    MetricsLabelGuard,
-    MetricsLabelGuardConfig,
-    validate_metric_labels,
-    validate_metric_labels_legacy,
-)
+    ALL_REASON_BUCKETS, CORE_ROUTE_TEMPLATES, CardinalityTracker,
+    MetricsLabelGuard, MetricsLabelGuardConfig, validate_metric_labels,
+    validate_metric_labels_legacy)
 
 
 class TestCardinalityTracker:

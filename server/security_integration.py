@@ -35,7 +35,8 @@ class SecurityManager:
 
         # Add security headers middleware
         if development_mode:
-            from security.middleware.security_headers import DevelopmentSecurityHeaders
+            from security.middleware.security_headers import \
+                DevelopmentSecurityHeaders
 
             app.add_middleware(DevelopmentSecurityHeaders)
         else:

@@ -79,13 +79,9 @@ async def remember(text: str, context: str = None) -> str:
         # Parse JSON if text looks like structured data
         try:
             data = json.loads(text)
-            memory_type = data.get("type", "note")
-            source = data.get("source", "mcp")
             memory_data = data.get("data", {"text": text})
         except (json.JSONDecodeError, TypeError):
             # Plain text memory
-            memory_type = "note"
-            source = "mcp"
             memory_data = {"text": text}
 
         # Use default context if none provided
@@ -208,6 +204,12 @@ async def context_start(context_name: str) -> str:
     """
     try:
         # Start automatic CCTV recording with user ID from environment
+        auto_recorder = get_component("auto_recorder")
+        DEFAULT_USER_ID = get_component("DEFAULT_USER_ID", 1)
+
+        if not auto_recorder:
+            return "❌ Error: Auto recorder not available"
+
         result = await auto_recorder.start_recording(
             context_name, user_id=DEFAULT_USER_ID
         )
@@ -239,6 +241,10 @@ async def context_stop(context_name: str = None) -> str:
         Confirmation message
     """
     try:
+        auto_recorder = get_component("auto_recorder")
+        if not auto_recorder:
+            return "❌ Error: Auto recorder not available"
+
         if context_name:
             # Stop specific context
             result = await auto_recorder.stop_recording(context_name)
@@ -276,6 +282,10 @@ async def list_contexts() -> str:
     try:
         # Auto-record this operation
         await auto_record_tool_usage("list_contexts", "User requested context list")
+
+        spec_context_manager = get_component("spec_context_manager")
+        if not spec_context_manager:
+            return "❌ Error: Context manager not available"
 
         user_info = get_current_user()
         result = spec_context_manager.list_contexts(user_info["user_id"])
@@ -332,6 +342,10 @@ async def cross_team_share_memory(
         Request status and details
     """
     try:
+        approval_manager = get_component("approval_manager")
+        if not approval_manager:
+            return {"error": "Approval manager not available"}
+
         user_info = get_current_user()
         result = approval_manager.request_cross_team_access(
             requester_user_id=user_info["user_id"],
@@ -374,6 +388,10 @@ async def team_merger_initiate(
         Merger initiation status and details
     """
     try:
+        approval_manager = get_component("approval_manager")
+        if not approval_manager:
+            return {"error": "Approval manager not available"}
+
         user_info = get_current_user()
         result = approval_manager.initiate_team_merger(
             initiator_user_id=user_info["user_id"],
@@ -408,6 +426,10 @@ async def team_merger_execute(merger_id: int) -> dict[str, Any]:
         Execution status and details
     """
     try:
+        approval_manager = get_component("approval_manager")
+        if not approval_manager:
+            return {"error": "Approval manager not available"}
+
         user_info = get_current_user()
         result = approval_manager.execute_team_merger(
             merger_id=merger_id, executor_user_id=user_info["user_id"]
@@ -437,6 +459,10 @@ async def team_merger_status(merger_id: int) -> dict[str, Any]:
         Merger status and details
     """
     try:
+        approval_manager = get_component("approval_manager")
+        if not approval_manager:
+            return {"error": "Approval manager not available"}
+
         result = approval_manager.get_merger_status(merger_id)
 
         await auto_record_tool_usage(
@@ -461,6 +487,10 @@ async def team_merger_rollback(merger_id: int, rollback_reason: str) -> dict[str
         Rollback status and details
     """
     try:
+        approval_manager = get_component("approval_manager")
+        if not approval_manager:
+            return {"error": "Approval manager not available"}
+
         user_info = get_current_user()
         result = approval_manager.rollback_team_merger(
             merger_id=merger_id,
@@ -488,6 +518,10 @@ async def approve_cross_team_request(
         Processing result message
     """
     try:
+        approval_manager = get_component("approval_manager")
+        if not approval_manager:
+            return {"error": "Approval manager not available"}
+
         user_info = get_current_user()
         result = approval_manager.process_approval_request(
             request_id=request_id,
@@ -511,6 +545,10 @@ async def approve_cross_team_request(
 async def list_pending_approvals() -> str:
     """List pending cross-team access requests"""
     try:
+        approval_manager = get_component("approval_manager")
+        if not approval_manager:
+            return {"error": "Approval manager not available"}
+
         user_info = get_current_user()
         result = approval_manager.list_pending_requests(user_info["user_id"])
 
@@ -554,6 +592,10 @@ async def enhance_ai_prompt_tool(
         Enhanced prompt with integrated context
     """
     try:
+        spec_context_manager = get_component("spec_context_manager")
+        if not spec_context_manager:
+            return "❌ Error: Context manager not available"
+
         user_info = get_current_user()
         result = spec_context_manager.enhance_ai_prompt(
             user_id=user_info["user_id"],
@@ -576,6 +618,12 @@ async def enhance_ai_prompt_tool(
 async def get_ai_context(user_id: int = None, project_context: str = None) -> str:
     """Get CCTV recording status and available contexts"""
     try:
+        auto_recorder = get_component("auto_recorder")
+        spec_context_manager = get_component("spec_context_manager")
+
+        if not auto_recorder or not spec_context_manager:
+            return "❌ Error: Required components not available"
+
         # Get recording status
         status = await auto_recorder.get_recording_status()
 
@@ -622,6 +670,10 @@ async def store_ai_feedback(
         Storage confirmation message
     """
     try:
+        spec_context_manager = get_component("spec_context_manager")
+        if not spec_context_manager:
+            return "❌ Error: Context manager not available"
+
         user_info = get_current_user()
         result = spec_context_manager.store_ai_feedback(
             user_id=user_info["user_id"],

@@ -10,14 +10,9 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from server.intelligence.memory_federation import MemoryFederationEngine
-from server.intelligence.models import (
-    FederatedMemory,
-    FederationResult,
-    PrivacyLevel,
-    SharingPolicy,
-    SharingRule,
-    TeamContext,
-)
+from server.intelligence.models import (FederatedMemory, FederationResult,
+                                        PrivacyLevel, SharingPolicy,
+                                        SharingRule, TeamContext)
 
 
 class TestMemoryFederationEngine:

@@ -15,15 +15,11 @@ from sqlalchemy.orm import sessionmaker
 
 from server.database import Base, get_db
 from server.enhanced_signup_api import router as enhanced_signup_router
-
 # Test imports
 from server.main import app
-from server.models.standalone_teams import (
-    StandaloneTeamManager,
-    TeamInvitation,
-    TeamMembership,
-    TeamUpgradeHistory,
-)
+from server.models.standalone_teams import (StandaloneTeamManager,
+                                            TeamInvitation, TeamMembership,
+                                            TeamUpgradeHistory)
 from server.standalone_teams_api import router as standalone_teams_router
 
 

@@ -5,7 +5,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from server.security.rbac.decorators import require_permission, set_jwt_resolver
+from server.security.rbac.decorators import (require_permission,
+                                             set_jwt_resolver)
 from server.security.rbac.jwt_resolver import JWTClaimsResolver
 from server.security.rbac.metrics import rbac_denials_total
 

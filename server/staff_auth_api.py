@@ -12,7 +12,6 @@ import bcrypt
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr
-
 # Use standard SQLAlchemy session instead of complex DatabaseOperations
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker

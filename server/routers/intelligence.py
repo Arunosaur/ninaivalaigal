@@ -11,20 +11,13 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 
 from ..auth.dependencies import get_current_user
 from ..database.connection import get_db_connection
-from ..intelligence import GraphAnalyticsEngine, GraphMLEngine, MemoryFederationEngine
-from ..intelligence.models import (
-    FederationResult,
-    GraphContext,
-    KnowledgeGap,
-    PrivacyLevel,
-    RelationshipPrediction,
-    ScoredMemory,
-    SharingPolicy,
-    TeamContext,
-    TeamInsights,
-    TrendingTopic,
-    UserFeedback,
-)
+from ..intelligence import (GraphAnalyticsEngine, GraphMLEngine,
+                            MemoryFederationEngine)
+from ..intelligence.models import (FederationResult, GraphContext,
+                                   KnowledgeGap, PrivacyLevel,
+                                   RelationshipPrediction, ScoredMemory,
+                                   SharingPolicy, TeamContext, TeamInsights,
+                                   TrendingTopic, UserFeedback)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/intelligence", tags=["Graph Intelligence"])

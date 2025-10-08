@@ -6,7 +6,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from server.security.middleware.fastapi_redaction import RedactionASGIMiddleware
+from server.security.middleware.fastapi_redaction import \
+    RedactionASGIMiddleware
 from server.security.redaction.detector_glue import detector_fn
 
 

@@ -6,13 +6,8 @@ REST API for collecting feedback and managing AI learning
 from typing import Any, Dict, List, Optional
 
 import structlog
-from ai_feedback_system import (
-    AIFeedbackSystem,
-    ContextImprovement,
-    FeedbackType,
-    FeedbackValue,
-    LearningPattern,
-)
+from ai_feedback_system import (AIFeedbackSystem, ContextImprovement,
+                                FeedbackType, FeedbackValue, LearningPattern)
 from auth import get_current_user
 from database.operations import DatabaseOperations, get_db
 from fastapi import APIRouter, Depends, HTTPException, Query

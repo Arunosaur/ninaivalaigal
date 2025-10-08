@@ -3,11 +3,8 @@
 Test P0 Security Fixes - Comprehensive testing of implemented security measures
 """
 
-from input_validation import (
-    InputValidationError,
-    get_api_validator,
-    get_input_validator,
-)
+from input_validation import (InputValidationError, get_api_validator,
+                              get_input_validator)
 from rate_limiting import EndpointRateLimiter, RateLimiter
 from secret_redaction import SecretDetector, get_redaction_pipeline
 from shell_injection_prevention import get_git_sanitizer, get_shell_prevention

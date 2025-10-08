@@ -6,7 +6,6 @@ Tests the FastAPI endpoints for graph reasoning functionality.
 
 import json
 import os
-
 # Add project root to path
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -17,11 +16,8 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from server.graph.graph_reasoner import (
-    ContextExplanation,
-    ReasoningPath,
-    RelevanceInference,
-)
+from server.graph.graph_reasoner import (ContextExplanation, ReasoningPath,
+                                         RelevanceInference)
 from server.graph_intelligence_api import router
 
 

@@ -3,11 +3,8 @@
 import pytest
 
 from server.utils.filename_sanitizer import (
-    is_archive_extension,
-    normalize_content_disposition_filename,
-    sanitize_filename,
-    validate_filename_safety,
-)
+    is_archive_extension, normalize_content_disposition_filename,
+    sanitize_filename, validate_filename_safety)
 
 
 class TestSanitizeFilename:

@@ -379,13 +379,8 @@ class MemoryConsentManager:
             pending_requests = []
 
             for request in self.consent_requests.values():
-                # Check if request already exists
-            existing = next(
-                (r for r in self.consent_requests if r["context_id"] == context_id),
-                None,
-            )
-            if existing:
-                if existing["request_id"] in self.consent_decisions:
+                # Check if request already decided
+                if request.request_id in self.consent_decisions:
                     continue
 
                 # Check if request has expired

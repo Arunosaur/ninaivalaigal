@@ -9,12 +9,8 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import structlog
-from redis_client import (
-    RedisClient,
-    RelevanceScoreCache,
-    get_redis_client,
-    get_relevance_cache,
-)
+from redis_client import (RedisClient, RelevanceScoreCache, get_redis_client,
+                          get_relevance_cache)
 
 logger = structlog.get_logger(__name__)
 

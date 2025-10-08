@@ -12,16 +12,10 @@ from pydantic import BaseModel
 from ..auth_utils import get_current_user
 from ..memory.failover_manager import OperationType, get_failover_manager
 from ..memory.health_monitor import get_health_monitor
-from ..memory.provider_registry import (
-    ProviderConfig,
-    ProviderType,
-    get_provider_registry,
-)
-from ..memory.provider_security import (
-    ProviderPermission,
-    SecurityLevel,
-    get_security_manager,
-)
+from ..memory.provider_registry import (ProviderConfig, ProviderType,
+                                        get_provider_registry)
+from ..memory.provider_security import (ProviderPermission, SecurityLevel,
+                                        get_security_manager)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/providers", tags=["memory-providers"])

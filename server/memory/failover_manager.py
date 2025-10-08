@@ -13,7 +13,8 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from .health_monitor import AlertLevel, HealthStatus, ProviderHealthMonitor
-from .interfaces import MemoryNotFoundError, MemoryProvider, MemoryProviderError
+from .interfaces import (MemoryNotFoundError, MemoryProvider,
+                         MemoryProviderError)
 from .provider_registry import MemoryProviderRegistry, ProviderStatus
 
 logger = logging.getLogger(__name__)

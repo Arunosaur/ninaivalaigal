@@ -11,16 +11,10 @@ import numpy as np
 import pytest
 
 from server.intelligence.graph_ml import GraphMLEngine
-from server.intelligence.models import (
-    EmbeddingUpdate,
-    GraphContext,
-    GraphMLMetrics,
-    RelationshipPrediction,
-    ScoredMemory,
-    TeamContext,
-    UserFeedback,
-    WeightUpdate,
-)
+from server.intelligence.models import (EmbeddingUpdate, GraphContext,
+                                        GraphMLMetrics, RelationshipPrediction,
+                                        ScoredMemory, TeamContext,
+                                        UserFeedback, WeightUpdate)
 
 
 class TestGraphMLEngine:

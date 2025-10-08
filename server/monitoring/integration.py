@@ -10,7 +10,8 @@ import structlog
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from ..performance import get_performance_manager, initialize_performance_optimizations
+from ..performance import (get_performance_manager,
+                           initialize_performance_optimizations)
 from .dashboard import cleanup_dashboard
 from .dashboard import router as dashboard_router
 

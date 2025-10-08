@@ -12,14 +12,8 @@ import structlog
 from auth import get_current_user
 from database import User
 from fastapi import APIRouter, Depends, HTTPException, Query
-from memory_acl_engine import (
-    AccessLevel,
-    AccessRequest,
-    MemoryACLEngine,
-    PermissionType,
-    VisibilityScope,
-    get_acl_engine,
-)
+from memory_acl_engine import (AccessLevel, AccessRequest, MemoryACLEngine,
+                               PermissionType, VisibilityScope, get_acl_engine)
 from pydantic import BaseModel, Field
 
 logger = structlog.get_logger(__name__)

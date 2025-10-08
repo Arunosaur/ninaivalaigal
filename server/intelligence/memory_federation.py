@@ -9,15 +9,8 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set, Tuple
 
-from .models import (
-    FederatedMemory,
-    FederationMetrics,
-    FederationResult,
-    PrivacyLevel,
-    SharingPolicy,
-    SharingRule,
-    TeamContext,
-)
+from .models import (FederatedMemory, FederationMetrics, FederationResult,
+                     PrivacyLevel, SharingPolicy, SharingRule, TeamContext)
 
 logger = logging.getLogger(__name__)
 

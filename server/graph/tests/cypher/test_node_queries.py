@@ -10,17 +10,12 @@ import pytest
 
 # Import our graph models and client
 from server.graph.age_client import ApacheAGEClient
-from server.graph.models.node_models import (
-    AgentType,
-    MemoryNode,
-    MemoryType,
-    NodeType,
-    UserNode,
-    create_agent_node,
-    create_macro_node,
-    create_memory_node,
-    create_user_node,
-)
+from server.graph.models.node_models import (AgentType, MemoryNode, MemoryType,
+                                             NodeType, UserNode,
+                                             create_agent_node,
+                                             create_macro_node,
+                                             create_memory_node,
+                                             create_user_node)
 
 
 class TestNodeQueries:

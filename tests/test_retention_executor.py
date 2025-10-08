@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from server.security.retention.executor import RetentionExecutor, RetentionPolicy
+from server.security.retention.executor import (RetentionExecutor,
+                                                RetentionPolicy)
 
 
 def test_retention_deletes_in_pages():

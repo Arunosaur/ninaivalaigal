@@ -22,10 +22,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
-
 # Middleware and security
 from observability import MetricsMiddleware, health_router, metrics_router
-from performance_monitor import get_performance_monitor, start_performance_monitoring
+from performance_monitor import (get_performance_monitor,
+                                 start_performance_monitoring)
 from rate_limiting import rate_limit_middleware
 from rbac_middleware import rbac_middleware
 from redis_client import redis_client
@@ -251,9 +251,8 @@ from discussion_api import router as discussion_router
 from early_adopter_api import router as early_adopter_router
 from enhanced_signup_api import router as enhanced_signup_router
 from gamification_api import router as gamification_router
-from graph_intelligence_integration_api import (
-    router as graph_intelligence_integration_router,
-)
+from graph_intelligence_integration_api import \
+    router as graph_intelligence_integration_router
 from graph_rank import router as graph_router
 from graph_usage_analytics import router as graph_usage_analytics_router
 from graph_validation_checklist import router as graph_validation_router
@@ -265,7 +264,6 @@ from memory_suggestions_api import router as memory_suggestions_router
 from memory_system import router as memory_system_router
 from partner_ecosystem_api import router as partner_ecosystem_router
 from protected_routes import router as protected_router
-
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router
 # from performance_api import router as performance_router
@@ -279,7 +277,8 @@ from routers.teams import router as teams_router
 from routers.users import router as users_router
 from signup_api import router as signup_router
 from standalone_teams_api import router as standalone_teams_router
-from standalone_teams_billing_api import router as standalone_teams_billing_router
+from standalone_teams_billing_api import \
+    router as standalone_teams_billing_router
 from tag_suggester import router as tag_router
 from team_api_keys_api import router as team_api_keys_router
 from team_billing_portal_api import router as team_billing_portal_router
@@ -454,7 +453,7 @@ async def protected_openapi(request: Request):
 
     endpoint_count = get_endpoint_count(filtered_schema)
     logger.info(
-        f"OpenAPI schema requested",
+        "OpenAPI schema requested",
         role=user_role.name if user_role else "unauthenticated",
         endpoints_visible=endpoint_count,
     )

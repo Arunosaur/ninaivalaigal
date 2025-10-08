@@ -10,12 +10,8 @@ import structlog
 from auth import get_current_user
 from database.operations import DatabaseOperations, get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
-from memory_suggestions import (
-    IntelligentMemorySuggestions,
-    MemorySuggestion,
-    SuggestionContext,
-    SuggestionType,
-)
+from memory_suggestions import (IntelligentMemorySuggestions, MemorySuggestion,
+                                SuggestionContext, SuggestionType)
 from pydantic import BaseModel
 
 logger = structlog.get_logger(__name__)

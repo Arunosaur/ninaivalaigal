@@ -9,7 +9,6 @@ from auth import get_current_user
 from database import User
 from fastapi import APIRouter, Depends, HTTPException, Query
 from memory.factory import get_default_memory_provider
-
 # Import memory provider interfaces and factory
 from memory.interfaces import MemoryProvider, MemoryProviderError
 from pydantic import BaseModel

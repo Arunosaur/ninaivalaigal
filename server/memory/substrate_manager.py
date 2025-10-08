@@ -12,11 +12,8 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Protocol
 
 from .factory import get_memory_provider
-from .interfaces import (
-    MemoryProvider,
-    MemoryProviderConnectionError,
-    MemoryProviderError,
-)
+from .interfaces import (MemoryProvider, MemoryProviderConnectionError,
+                         MemoryProviderError)
 
 logger = logging.getLogger(__name__)
 

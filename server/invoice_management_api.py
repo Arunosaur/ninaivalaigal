@@ -10,7 +10,8 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 import stripe
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
+from fastapi import (APIRouter, BackgroundTasks, Depends, HTTPException,
+                     Response)
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -21,13 +22,8 @@ try:
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.lib.units import inch
-    from reportlab.platypus import (
-        Paragraph,
-        SimpleDocTemplate,
-        Spacer,
-        Table,
-        TableStyle,
-    )
+    from reportlab.platypus import (Paragraph, SimpleDocTemplate, Spacer,
+                                    Table, TableStyle)
 
     REPORTLAB_AVAILABLE = True
 except ImportError:

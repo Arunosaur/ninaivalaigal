@@ -9,12 +9,8 @@ from datetime import datetime
 from typing import Any
 
 import structlog
-from feedback_engine import (
-    FeedbackEvent,
-    FeedbackSentiment,
-    FeedbackType,
-    get_feedback_engine,
-)
+from feedback_engine import (FeedbackEvent, FeedbackSentiment, FeedbackType,
+                             get_feedback_engine)
 
 logger = structlog.get_logger(__name__)
 

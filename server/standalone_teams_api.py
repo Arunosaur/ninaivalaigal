@@ -14,12 +14,8 @@ from uuid import UUID
 from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from models.standalone_teams import (
-    StandaloneTeamManager,
-    TeamInvitation,
-    TeamMembership,
-    TeamUpgradeHistory,
-)
+from models.standalone_teams import (StandaloneTeamManager, TeamInvitation,
+                                     TeamMembership, TeamUpgradeHistory)
 from pydantic import BaseModel, EmailStr, validator
 from rbac_middleware import require_permission
 from sqlalchemy.orm import Session

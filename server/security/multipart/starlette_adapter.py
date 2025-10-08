@@ -8,12 +8,9 @@ from starlette.formparsers import MultiPartParser
 from starlette.requests import Request
 
 from server.security.multipart.strict_limits_hardened import (
-    DEFAULT_MAX_BINARY_PART_BYTES,
-    DEFAULT_MAX_PARTS_PER_REQUEST,
-    DEFAULT_MAX_TEXT_PART_BYTES,
-    detect_enhanced_magic_bytes,
-    require_utf8_text,
-)
+    DEFAULT_MAX_BINARY_PART_BYTES, DEFAULT_MAX_PARTS_PER_REQUEST,
+    DEFAULT_MAX_TEXT_PART_BYTES, detect_enhanced_magic_bytes,
+    require_utf8_text)
 
 REASON_ENGINE_ERROR = "engine_error"
 REASON_POLICY_DENIED = "policy_denied"

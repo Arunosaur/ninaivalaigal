@@ -10,11 +10,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..auth_utils import get_current_user
-from ..memory.substrate_manager import (
-    MemorySubstrateManager,
-    ProviderStatus,
-    get_substrate_manager,
-)
+from ..memory.substrate_manager import (MemorySubstrateManager, ProviderStatus,
+                                        get_substrate_manager)
 
 logger = logging.getLogger(__name__)
 

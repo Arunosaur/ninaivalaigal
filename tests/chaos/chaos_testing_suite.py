@@ -6,6 +6,7 @@ Failure simulation and chaos testing for enterprise resilience validation
 import asyncio
 import json
 import logging
+import os
 import random
 import signal
 import subprocess
@@ -16,7 +17,6 @@ from typing import Any, Callable, Dict, List, Optional
 import psutil
 import pytest
 import redis.asyncio as redis
-
 # Test framework imports
 from httpx import AsyncClient
 
@@ -460,14 +460,11 @@ class TestConcurrentLoadScenarios:
 
             sys.path.append(os.path.join(os.path.dirname(__file__), "../../server"))
 
-            from memory.sharing_contracts import (
-                MemorySharingContractManager,
-                ScopeIdentifier,
-                ScopeType,
-                SharePermission,
-                ShareRequest,
-                VisibilityLevel,
-            )
+            from memory.sharing_contracts import (MemorySharingContractManager,
+                                                  ScopeIdentifier, ScopeType,
+                                                  SharePermission,
+                                                  ShareRequest,
+                                                  VisibilityLevel)
 
             contract_manager = MemorySharingContractManager()
 

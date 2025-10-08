@@ -19,7 +19,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-
 # Middleware and security
 from observability import MetricsMiddleware, health_router, metrics_router
 from rate_limiting import rate_limit_middleware
@@ -29,7 +28,6 @@ from redis_queue import queue_manager
 from routers.approvals import router as approvals_router
 from routers.contexts import router as contexts_router
 from routers.memory import router as memory_router
-
 # Routers
 from routers.organizations import router as organizations_router
 from routers.recording import router as recording_router

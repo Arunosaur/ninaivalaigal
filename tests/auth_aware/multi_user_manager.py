@@ -13,16 +13,9 @@ from typing import Dict, List, Optional, Tuple
 import httpx
 import jwt
 
-from .models import (
-    AuthTestResult,
-    AuthTestResults,
-    ConflictResults,
-    IsolationResults,
-    TestSession,
-    TestUser,
-    TestUserStatus,
-    UserRole,
-)
+from .models import (AuthTestResult, AuthTestResults, ConflictResults,
+                     IsolationResults, TestSession, TestUser, TestUserStatus,
+                     UserRole)
 
 logger = logging.getLogger(__name__)
 

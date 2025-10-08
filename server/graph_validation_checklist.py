@@ -13,10 +13,8 @@ from uuid import uuid4
 
 from auth import get_current_user, get_db
 from fastapi import APIRouter, Depends, HTTPException
-from graph_intelligence_integration_api import (
-    GraphIntelligenceEngine,
-    get_intelligence_engine,
-)
+from graph_intelligence_integration_api import (GraphIntelligenceEngine,
+                                                get_intelligence_engine)
 from pydantic import BaseModel, Field
 from redis_client import get_redis_client
 from sqlalchemy.orm import Session

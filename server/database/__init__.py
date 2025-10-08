@@ -9,20 +9,10 @@ This addresses external code review feedback:
 
 # Import manager and operations
 from .manager import DatabaseManager
-
 # Import all models for backward compatibility
-from .models import (
-    Base,
-    Context,
-    ContextPermission,
-    Memory,
-    Organization,
-    OrganizationRegistration,
-    Team,
-    TeamMember,
-    User,
-    UserInvitation,
-)
+from .models import (Base, Context, ContextPermission, Memory, Organization,
+                     OrganizationRegistration, Team, TeamMember, User,
+                     UserInvitation)
 from .operations import DatabaseOperations, get_db
 
 # Export all for backward compatibility
