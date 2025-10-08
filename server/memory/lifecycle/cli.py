@@ -35,7 +35,6 @@ def get_database_url():
 @click.group(name="lifecycle")
 def lifecycle_cli():
     """Memory lifecycle management commands"""
-    pass
 
 
 @lifecycle_cli.command("stats")

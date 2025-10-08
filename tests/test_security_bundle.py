@@ -7,7 +7,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from server.security.middleware.security_bundle import (
-    SecurityBundle, SecurityBundleMiddleware)
+    SecurityBundle,
+    SecurityBundleMiddleware,
+)
 from server.security.redaction.detector_glue import detector_fn
 
 

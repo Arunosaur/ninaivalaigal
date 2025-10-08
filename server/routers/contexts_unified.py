@@ -12,10 +12,12 @@ from pydantic import BaseModel, Field
 
 from ..auth_utils import get_current_user
 from ..database import get_db_pool
-from ..database.operations.context_ops_unified import (ContextScope,
-                                                       ContextVisibility,
-                                                       PermissionLevel,
-                                                       UnifiedContextOps)
+from ..database.operations.context_ops_unified import (
+    ContextScope,
+    ContextVisibility,
+    PermissionLevel,
+    UnifiedContextOps,
+)
 
 logger = logging.getLogger(__name__)
 

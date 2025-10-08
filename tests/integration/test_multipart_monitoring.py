@@ -10,13 +10,23 @@ from unittest.mock import patch
 
 import pytest
 
-from server.health.multipart_config import (get_multipart_config_health,
-                                            validate_multipart_boot_config)
-from server.security.feature_flags import (emergency_rollback, get_all_flags,
-                                           get_feature_flag_health, set_flag)
+from server.health.multipart_config import (
+    get_multipart_config_health,
+    validate_multipart_boot_config,
+)
+from server.security.feature_flags import (
+    emergency_rollback,
+    get_all_flags,
+    get_feature_flag_health,
+    set_flag,
+)
 from server.security.monitoring.grafana_metrics import (
-    _metrics_collector, get_all_metrics, get_prometheus_metrics,
-    record_multipart_processing, record_multipart_rejection)
+    _metrics_collector,
+    get_all_metrics,
+    get_prometheus_metrics,
+    record_multipart_processing,
+    record_multipart_rejection,
+)
 
 
 class TestMultipartMonitoring:

@@ -11,10 +11,16 @@ from database import DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from rbac_middleware import get_rbac_context, require_permission
-from rbac_models import (AccessRequest, PermissionAudit, PermissionDelegation,
-                         RoleAssignment, assign_role,
-                         get_effective_permissions, get_user_roles,
-                         revoke_role)
+from rbac_models import (
+    AccessRequest,
+    PermissionAudit,
+    PermissionDelegation,
+    RoleAssignment,
+    assign_role,
+    get_effective_permissions,
+    get_user_roles,
+    revoke_role,
+)
 
 from rbac.permissions import Action, Resource, Role
 

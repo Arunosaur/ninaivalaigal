@@ -23,8 +23,13 @@ def mock_load_config():
 
 # Patch the load_config function before importing
 with patch("main.load_config", mock_load_config):
-    from universal_ai_wrapper import (AIContext, AIModel, MCPAIEnhancer,
-                                      MemoryContext, UniversalAIWrapper)
+    from universal_ai_wrapper import (
+        AIContext,
+        AIModel,
+        MCPAIEnhancer,
+        MemoryContext,
+        UniversalAIWrapper,
+    )
 
 
 class TestUniversalAIWrapper:

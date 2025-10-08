@@ -3,15 +3,13 @@ SPEC-049: Memory Consent & Visibility Manager
 Advanced consent tracking and visibility flag management for memory sharing
 """
 
-import asyncio
-import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 
-from .sharing_contracts import MemoryLinkContract, ScopeIdentifier, ScopeType
+from .sharing_contracts import ScopeIdentifier, ScopeType
 
 logger = logging.getLogger(__name__)
 

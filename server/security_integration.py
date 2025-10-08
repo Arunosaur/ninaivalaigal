@@ -11,7 +11,6 @@ from rbac_middleware import RBACContext
 from security import RedactionEngine, SecurityHeadersMiddleware
 from security.audit import SecurityEventType, security_alert_manager
 from security.middleware import EnhancedRateLimiter
-from security.middleware.rate_limiting import RateLimitMiddleware
 from security.middleware.redis_rate_limiter import RedisRateLimiterMiddleware
 from security.redaction.config import ContextSensitivity, redaction_config
 
@@ -35,8 +34,7 @@ class SecurityManager:
 
         # Add security headers middleware
         if development_mode:
-            from security.middleware.security_headers import \
-                DevelopmentSecurityHeaders
+            from security.middleware.security_headers import DevelopmentSecurityHeaders
 
             app.add_middleware(DevelopmentSecurityHeaders)
         else:

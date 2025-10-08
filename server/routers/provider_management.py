@@ -4,18 +4,23 @@ Complete provider management with security, health monitoring, and failover
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from ..auth_utils import get_current_user
-from ..memory.failover_manager import OperationType, get_failover_manager
+from ..memory.failover_manager import get_failover_manager
 from ..memory.health_monitor import get_health_monitor
-from ..memory.provider_registry import (ProviderConfig, ProviderType,
-                                        get_provider_registry)
-from ..memory.provider_security import (ProviderPermission, SecurityLevel,
-                                        get_security_manager)
+from ..memory.provider_registry import (
+    ProviderConfig,
+    ProviderType,
+    get_provider_registry,
+)
+from ..memory.provider_security import (
+    SecurityLevel,
+    get_security_manager,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/providers", tags=["memory-providers"])
@@ -161,7 +166,7 @@ async def trigger_failover(
 
         if backup_provider:
             return {
-                "message": f"Failover successful",
+                "message": "Failover successful",
                 "failed_provider": provider_name,
                 "backup_provider": backup_provider,
             }

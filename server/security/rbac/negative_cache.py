@@ -159,7 +159,7 @@ class JWKSVerifierWithNegativeCache:
 
         try:
             # Attempt verification with existing keys
-            key = self.jwks_client.get_signing_key(kid)
+            self.jwks_client.get_signing_key(kid)
             # Verify JWT here (implementation depends on JWT library)
             result["verified"] = True
             result["payload"] = {"kid": kid, "verified": True}  # Placeholder
@@ -177,7 +177,7 @@ class JWKSVerifierWithNegativeCache:
                     # Force refresh of JWKS
                     self.jwks_client.get_signing_key(kid, refresh=True)
                     # Try verification again after refresh
-                    key = self.jwks_client.get_signing_key(kid)
+                    self.jwks_client.get_signing_key(kid)
                     result["verified"] = True
                     result["payload"] = {"kid": kid, "verified_after_refresh": True}
 
@@ -200,12 +200,12 @@ def test_negative_cache():
 
         # Test caching unknown kid
         await cache.cache_unknown_kid("unknown_kid_1")
-        assert await cache.is_kid_unknown("unknown_kid_1") == True
-        assert await cache.is_kid_unknown("unknown_kid_2") == False
+        assert await cache.is_kid_unknown("unknown_kid_1") is True
+        assert await cache.is_kid_unknown("unknown_kid_2") is False
 
         # Test TTL expiration
         await asyncio.sleep(2.1)  # Wait for TTL to expire
-        assert await cache.is_kid_unknown("unknown_kid_1") == False
+        assert await cache.is_kid_unknown("unknown_kid_1") is False
 
         # Test cache eviction
         await cache.cache_unknown_kid("kid_1")
@@ -218,9 +218,9 @@ def test_negative_cache():
 
         # Test manual removal
         await cache.cache_unknown_kid("test_kid")
-        assert await cache.is_kid_unknown("test_kid") == True
+        assert await cache.is_kid_unknown("test_kid") is True
         await cache.remove_kid("test_kid")
-        assert await cache.is_kid_unknown("test_kid") == False
+        assert await cache.is_kid_unknown("test_kid") is False
 
         return {"test_passed": True, "final_stats": stats}
 

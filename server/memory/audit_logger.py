@@ -10,7 +10,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 
 from .sharing_contracts import MemoryLinkContract, ScopeIdentifier
 
@@ -656,7 +656,7 @@ class MemorySharingAuditLogger:
                     await self.log_event(
                         event_type=AuditEventType.SUSPICIOUS_ACTIVITY,
                         severity=AuditSeverity.WARNING,
-                        description=f"Multiple failed access attempts detected",
+                        description="Multiple failed access attempts detected",
                         user_id=event.user_id,
                         memory_id=event.memory_id,
                         details={"failure_count": self.suspicious_patterns[key]},

@@ -5,9 +5,13 @@ Extends existing signup to support team creation and joining
 
 from typing import Any, Dict
 
-from auth import (IndividualUserSignup, authenticate_user,
-                  create_individual_user, send_verification_email,
-                  validate_email)
+from auth import (
+    IndividualUserSignup,
+    authenticate_user,
+    create_individual_user,
+    send_verification_email,
+    validate_email,
+)
 from database import User, get_db
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from models.standalone_teams import StandaloneTeamManager, TeamInvitation

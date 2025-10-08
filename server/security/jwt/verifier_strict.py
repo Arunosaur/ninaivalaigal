@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 class JWTValidationError(Exception):
     """Strict JWT validation error with detailed context."""
 
-    pass
 
 
 @dataclass

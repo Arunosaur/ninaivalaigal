@@ -17,8 +17,11 @@ from pydantic import BaseModel, EmailStr, Field
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from sqlalchemy.orm import Session
-from standalone_teams_billing_api import (apply_discount_to_amount,
-                                          billing_plans, deduct_team_credits)
+from standalone_teams_billing_api import (
+    apply_discount_to_amount,
+    billing_plans,
+    deduct_team_credits,
+)
 
 # Initialize router
 router = APIRouter(prefix="/billing-engine", tags=["billing"])

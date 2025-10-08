@@ -265,7 +265,6 @@ class SecurityAlertManager:
         }
 
         # Would insert into alert_events table
-        pass
 
     def get_active_alerts(
         self, severity: AlertSeverity | None = None

@@ -11,10 +11,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from server.security.config.validator import (ConfigError,
-                                              load_security_config,
-                                              make_health_router,
-                                              validate_or_raise)
+from server.security.config.validator import (
+    ConfigError,
+    load_security_config,
+    make_health_router,
+    validate_or_raise,
+)
 
 
 def test_production_requires_core_envs():

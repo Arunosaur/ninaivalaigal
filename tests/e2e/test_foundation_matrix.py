@@ -7,6 +7,7 @@ import asyncio
 import json
 import logging
 import os
+
 # Import foundation components for testing
 import sys
 import uuid
@@ -15,16 +16,23 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 import redis.asyncio as redis
+
 # Test framework imports
 from httpx import AsyncClient
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../server"))
 
 from memory.audit_logger import AuditEventType, MemorySharingAuditLogger
-from memory.provider_registry import (MemoryProviderRegistry, ProviderConfig,
-                                      ProviderType)
-from memory.sharing_contracts import (MemorySharingContractManager,
-                                      ScopeIdentifier, ScopeType)
+from memory.provider_registry import (
+    MemoryProviderRegistry,
+    ProviderConfig,
+    ProviderType,
+)
+from memory.sharing_contracts import (
+    MemorySharingContractManager,
+    ScopeIdentifier,
+    ScopeType,
+)
 from memory.temporal_access import AccessType, TemporalAccessManager
 
 logger = logging.getLogger(__name__)
@@ -145,8 +153,10 @@ class TestMemoryProviderMatrix:
         """Test provider security with RBAC integration"""
         try:
             from memory.provider_security import (
-                MemoryProviderSecurityManager, SecurityLevel)
-            
+                MemoryProviderSecurityManager,
+                SecurityLevel,
+            )
+
             # Initialize security manager
             security_manager = MemoryProviderSecurityManager()
 
@@ -209,9 +219,11 @@ class TestMemorySharingMatrix:
             org_scope = ScopeIdentifier(ScopeType.ORGANIZATION, "1", "Acme Corp")
 
             # Test 1: User-to-user sharing
-            from memory.sharing_contracts import (SharePermission,
-                                                  ShareRequest,
-                                                  VisibilityLevel)
+            from memory.sharing_contracts import (
+                SharePermission,
+                ShareRequest,
+                VisibilityLevel,
+            )
 
             user_share_request = ShareRequest(
                 memory_id="test_memory_user_123",
@@ -639,9 +651,11 @@ class TestFailureSimulationMatrix:
                 )
                 bob_scope = ScopeIdentifier(ScopeType.USER, "999", "SharedUser")
 
-                from memory.sharing_contracts import (SharePermission,
-                                                      ShareRequest,
-                                                      VisibilityLevel)
+                from memory.sharing_contracts import (
+                    SharePermission,
+                    ShareRequest,
+                    VisibilityLevel,
+                )
 
                 share_request = ShareRequest(
                     memory_id=memory_id,

@@ -4,7 +4,7 @@ WORKING AUTH SOLUTION - GET-based endpoints that bypass POST body parsing issue
 
 from typing import Any, Dict
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 router = APIRouter(prefix="/auth-working", tags=["auth-working"])
 

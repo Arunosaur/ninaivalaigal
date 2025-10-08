@@ -17,8 +17,13 @@ Key Components:
 """
 
 from .api import lifecycle_router
-from .memory_gc import (LifecycleEventType, LifecyclePolicy, LifecycleStatus,
-                        MemoryGarbageCollector, MemoryLifecycleStats)
+from .memory_gc import (
+    LifecycleEventType,
+    LifecyclePolicy,
+    LifecycleStatus,
+    MemoryGarbageCollector,
+    MemoryLifecycleStats,
+)
 
 __all__ = [
     "MemoryGarbageCollector",

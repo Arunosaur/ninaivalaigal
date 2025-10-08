@@ -15,6 +15,7 @@ Import from operations/ module instead of this file.
 
 # Import the new modular operations
 from .operations import DatabaseOperations
+
 # Legacy compatibility - maintain get_db function
 from .operations.util_ops import get_db
 

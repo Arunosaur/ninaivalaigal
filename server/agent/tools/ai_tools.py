@@ -5,7 +5,7 @@ Interfaces with AI models with memory injection and guardrails
 
 import asyncio
 import time
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import structlog
 

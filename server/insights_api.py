@@ -4,7 +4,7 @@ Aggregates data from all systems to provide actionable insights for teams and ma
 """
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from auth_utils import get_current_user
 from fastapi import APIRouter, Depends, HTTPException

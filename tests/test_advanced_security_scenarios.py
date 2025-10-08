@@ -6,8 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from server.security.middleware.security_bundle import SecurityBundle
-from server.security.redaction.detector_glue import (detector_fn,
-                                                     enhanced_detector_fn)
+from server.security.redaction.detector_glue import detector_fn, enhanced_detector_fn
 
 
 class TestPropertyFuzzScenarios:

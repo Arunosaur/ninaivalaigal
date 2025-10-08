@@ -3,21 +3,18 @@ SPEC-059: Unified Macro Intelligence
 AI differentiation and competitive advantage through intelligent memory analysis and insights
 """
 
-import asyncio
 import json
-import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
-from uuid import UUID, uuid4
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 from auth import get_current_user, get_db
-from database import Organization, Team, User
+from database import User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from redis_client import get_redis_client
 from relevance_engine import RelevanceEngine
-from sqlalchemy import and_, desc, func, text
 from sqlalchemy.orm import Session
 
 # Initialize router
@@ -421,7 +418,7 @@ async def get_analysis_results(
 async def get_intelligence_metrics(current_user: User = Depends(get_current_user)):
     """Get intelligence system metrics"""
 
-    engine = await get_intelligence_engine()
+    await get_intelligence_engine()
 
     # Mock metrics (in production, calculate from actual data)
     metrics = IntelligenceMetrics(

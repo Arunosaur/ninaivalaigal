@@ -3,8 +3,11 @@
 Test P0 Security Fixes - Comprehensive testing of implemented security measures
 """
 
-from input_validation import (InputValidationError, get_api_validator,
-                              get_input_validator)
+from input_validation import (
+    InputValidationError,
+    get_api_validator,
+    get_input_validator,
+)
 from rate_limiting import EndpointRateLimiter, RateLimiter
 from secret_redaction import SecretDetector, get_redaction_pipeline
 from shell_injection_prevention import get_git_sanitizer, get_shell_prevention
@@ -210,11 +213,11 @@ class SecurityTestSuite:
         for value, field_type in valid_test_cases:
             try:
                 if field_type == "email":
-                    result = validator.validate_email(value)
+                    validator.validate_email(value)
                 elif field_type == "password":
-                    result = validator.validate_password(value)
+                    validator.validate_password(value)
                 else:
-                    result = validator.validate_string(value, field_type)
+                    validator.validate_string(value, field_type)
                 print(f"✅ Input Validation: Valid {field_type} accepted")
                 self.test_results.append(
                     ("input_validation", f"valid_{field_type}", True)
@@ -233,7 +236,7 @@ class SecurityTestSuite:
                 "name": "Test User",
                 "account_type": "individual",
             }
-            validated = api_validator.validate_signup_data(signup_data)
+            api_validator.validate_signup_data(signup_data)
             print("✅ API Validation: Signup data validation working")
             self.test_results.append(("input_validation", "api_signup", True))
         except Exception as e:

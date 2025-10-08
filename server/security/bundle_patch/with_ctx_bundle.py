@@ -13,18 +13,17 @@ from fastapi import FastAPI, Request
 
 from server.security.idempotency.middleware import IdempotencyMiddleware
 from server.security.logging.global_scrubber import install_global_scrubber
-from server.security.middleware.compression_guard import \
-    CompressionGuardMiddleware
-from server.security.middleware.content_type_guard import \
-    ContentTypeGuardMiddleware
-from server.security.middleware.redaction_middleware import \
-    RedactionASGIMiddleware
-from server.security.middleware.response_redaction import \
-    ResponseRedactionASGIMiddleware
-from server.security.multipart.starlette_adapter import \
-    MultipartStarletteAdapter
+from server.security.middleware.compression_guard import CompressionGuardMiddleware
+from server.security.middleware.content_type_guard import ContentTypeGuardMiddleware
+from server.security.middleware.redaction_middleware import RedactionASGIMiddleware
+from server.security.middleware.response_redaction import (
+    ResponseRedactionASGIMiddleware,
+)
+from server.security.multipart.starlette_adapter import MultipartStarletteAdapter
 from server.security.rbac.context_provider import (
-    SubjectContextProvider, install_subject_ctx_provider)
+    SubjectContextProvider,
+    install_subject_ctx_provider,
+)
 from server.security.redaction.detector_glue import detector_fn
 
 

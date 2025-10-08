@@ -215,7 +215,7 @@ def require_utf8_text(content: bytes) -> dict[str, Any]:
 
     try:
         # Attempt UTF-8 decode
-        decoded = content.decode("utf-8")
+        content.decode("utf-8")
 
     except UnicodeDecodeError as e:
         result["valid"] = False

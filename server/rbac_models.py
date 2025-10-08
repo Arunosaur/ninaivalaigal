@@ -10,7 +10,7 @@ from datetime import datetime
 from database import Base
 from sqlalchemy import Boolean, Column, DateTime
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -161,7 +161,7 @@ def get_user_roles(db, user_id: int, scope_type: str = None, scope_id: str = Non
     """Get all active role assignments for a user"""
     session = db.get_session()
     query = session.query(RoleAssignment).filter(
-        RoleAssignment.user_id == user_id, RoleAssignment.is_active == True
+        RoleAssignment.user_id == user_id, RoleAssignment.is_active is True
     )
 
     if scope_type:
@@ -248,7 +248,7 @@ def assign_role(
             RoleAssignment.user_id == user_id,
             RoleAssignment.scope_type == scope_type,
             RoleAssignment.scope_id == scope_id,
-            RoleAssignment.is_active == True,
+            RoleAssignment.is_active is True,
         )
         .first()
     )
@@ -283,7 +283,7 @@ def revoke_role(db, user_id: int, scope_type: str, scope_id: str = None):
             RoleAssignment.user_id == user_id,
             RoleAssignment.scope_type == scope_type,
             RoleAssignment.scope_id == scope_id,
-            RoleAssignment.is_active == True,
+            RoleAssignment.is_active is True,
         )
         .first()
     )

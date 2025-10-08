@@ -3,10 +3,10 @@ Authentication utilities for protected routes
 JWT validation and user context management
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import jwt
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 # JWT Configuration

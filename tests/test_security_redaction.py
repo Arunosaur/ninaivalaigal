@@ -5,16 +5,19 @@ Unit tests for security redaction engine
 import pytest
 
 from server.security import RedactionEngine
-from server.security.redaction.audit import (RedactionAuditLogger,
-                                             RedactionEvent,
-                                             RedactionEventType)
-from server.security.redaction.config import (ContextSensitivity,
-                                              redaction_config)
+from server.security.redaction.audit import (
+    RedactionAuditLogger,
+    RedactionEvent,
+    RedactionEventType,
+)
+from server.security.redaction.config import ContextSensitivity, redaction_config
 from server.security.redaction.detectors import SecretDetector
 from server.security.redaction.processors import ContextualRedactor
-from server.security.utils.entropy import (calculate_base64_entropy,
-                                           calculate_entropy,
-                                           calculate_hex_entropy)
+from server.security.utils.entropy import (
+    calculate_base64_entropy,
+    calculate_entropy,
+    calculate_hex_entropy,
+)
 
 
 class TestEntropyCalculation:

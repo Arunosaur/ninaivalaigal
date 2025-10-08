@@ -7,10 +7,9 @@ import time
 from typing import Any, Dict, List, Optional
 
 import structlog
-from agent import AgentCore, ExecutionMode, get_agent_core
-from fastapi import APIRouter, HTTPException, Request
+from agent import ExecutionMode, get_agent_core
+from fastapi import APIRouter, HTTPException
 from graph.intelligence_deployment import (
-    GraphIntelligenceDeployment as graph_intelligence,
     deploy_graph_intelligence,
     get_graph_intelligence_deployment,
 )
@@ -399,7 +398,7 @@ async def agentic_health_check():
 
         # Check agent core
         try:
-            agent_core = get_agent_core()
+            get_agent_core()
             health_status["agentic_core"] = "healthy"
         except Exception as e:
             health_status["agentic_core"] = "unhealthy"

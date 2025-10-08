@@ -3,16 +3,18 @@ Graph Analytics Engine
 Real-time graph intelligence and insights generation
 """
 
-import asyncio
-import json
 import logging
-from collections import Counter, defaultdict
+from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 
-from .models import (FederationMetrics, GraphMLMetrics, KnowledgeGap,
-                     SuggestedConnection, TeamContext, TeamInsights,
-                     TrendingTopic)
+from .models import (
+    KnowledgeGap,
+    SuggestedConnection,
+    TeamContext,
+    TeamInsights,
+    TrendingTopic,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -268,7 +270,7 @@ class GraphAnalyticsEngine:
             Comprehensive team insights with recommendations
         """
         try:
-            start_time = datetime.utcnow() - analysis_period
+            datetime.utcnow() - analysis_period
 
             # Get team context
             team_context = await self._get_team_context(team_id)
@@ -351,7 +353,7 @@ class GraphAnalyticsEngine:
             Real-time analytics data formatted for dashboard
         """
         try:
-            current_time = datetime.utcnow()
+            datetime.utcnow()
 
             if dashboard_type == "overview":
                 return await self._get_overview_analytics(filters)

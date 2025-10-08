@@ -166,7 +166,6 @@ class RedisCallTracker:
 
         # Monkey patch Redis calls to detect hangs
         original_redis_get = None
-        original_redis_set = None
 
         try:
             # Try to patch common Redis methods if they exist

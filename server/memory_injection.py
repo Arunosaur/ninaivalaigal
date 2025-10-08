@@ -3,11 +3,10 @@ SPEC-036: Memory Injection Rules
 Smart memory injection, context rules, and AI integration
 """
 
-import json
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 
 import structlog
 from pydantic import BaseModel

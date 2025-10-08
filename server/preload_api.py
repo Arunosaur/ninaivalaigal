@@ -7,9 +7,13 @@ import structlog
 from auth import get_current_user
 from database import User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from preloading_engine import (MemoryPreloadingEngine, get_preloaded_memory,
-                               get_preloading_engine, get_user_preload_status,
-                               trigger_user_preloading)
+from preloading_engine import (
+    MemoryPreloadingEngine,
+    get_preloaded_memory,
+    get_preloading_engine,
+    get_user_preload_status,
+    trigger_user_preloading,
+)
 from pydantic import BaseModel
 
 logger = structlog.get_logger(__name__)

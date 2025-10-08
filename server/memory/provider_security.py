@@ -3,11 +3,8 @@ SPEC-020: Memory Provider Security Manager
 Secure provider registration with RBAC and API key support
 """
 
-import asyncio
-import base64
 import hashlib
 import hmac
-import json
 import logging
 import secrets
 from dataclasses import dataclass, field
@@ -15,9 +12,8 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
-from ..auth_utils import get_current_user
 from ..database.operations.rbac_ops import RBACOps
-from .provider_registry import ProviderConfig, ProviderType
+from .provider_registry import ProviderConfig
 
 logger = logging.getLogger(__name__)
 

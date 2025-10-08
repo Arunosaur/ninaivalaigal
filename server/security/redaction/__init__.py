@@ -4,8 +4,7 @@ Redaction package for sensitive data detection and redaction
 
 from .audit import AuditEventType, RedactionAuditEvent, RedactionAuditLogger
 from .config import ContextSensitivity, redaction_config
-from .detectors import (CombinedSecretDetector, ContextAwareDetector,
-                        SecretMatch)
+from .detectors import CombinedSecretDetector, ContextAwareDetector, SecretMatch
 from .processors import ContextualRedactor, RedactionResult
 
 # Create global audit logger instance

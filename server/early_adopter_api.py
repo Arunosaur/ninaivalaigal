@@ -3,17 +3,15 @@ Early Adopter Program API
 Manages beta user onboarding, feedback collection, and program analytics
 """
 
-import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 from auth import get_current_user, get_db
-from database import Team, User
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from models.standalone_teams import StandaloneTeamManager, TeamMembership
-from pydantic import BaseModel, EmailStr, validator
-from sqlalchemy import and_, desc, func
+from database import User
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from models.standalone_teams import StandaloneTeamManager
+from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
 # Initialize router

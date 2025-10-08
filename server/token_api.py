@@ -7,8 +7,14 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta
 
-from auth import (ApiKeyCreate, ApiKeyResponse, TokenUsage,
-                  create_access_token, get_current_user)
+from auth import (
+    ApiKeyCreate,
+    ApiKeyResponse,
+    TokenUsage,
+    create_access_token,
+    get_current_user,
+)
+
 # from database import get_db  # TODO: Uncomment when implementing database operations
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -273,4 +279,3 @@ def validate_api_key_permissions(api_key: str, required_permission: str) -> bool
 def log_api_usage(api_key_id: str, endpoint: str, status: str):
     """Log API key usage for analytics"""
     # TODO: Implement usage logging
-    pass

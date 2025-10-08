@@ -10,9 +10,12 @@ import structlog
 from auth import get_current_user
 from database import User
 from fastapi import APIRouter, Depends, HTTPException, Request
-from intelligent_session import (IntelligentSessionManager,
-                                 get_session_analytics, get_session_manager,
-                                 track_activity)
+from intelligent_session import (
+    IntelligentSessionManager,
+    get_session_analytics,
+    get_session_manager,
+    track_activity,
+)
 from pydantic import BaseModel
 
 logger = structlog.get_logger(__name__)

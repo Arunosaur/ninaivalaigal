@@ -12,8 +12,13 @@ import uuid
 from collections.abc import Callable
 
 from fastapi import APIRouter, Request, Response
-from prometheus_client import (CONTENT_TYPE_LATEST, Counter, Gauge, Histogram,
-                               generate_latest)
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Prometheus metrics

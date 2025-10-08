@@ -8,11 +8,15 @@ from fastapi.testclient import TestClient
 
 from server.rbac.permissions import Role
 from server.security.audit import SecurityEventType, security_alert_manager
-from server.security.middleware.rate_limiting import (EnhancedRateLimiter,
-                                                      RateLimitMiddleware)
+from server.security.middleware.rate_limiting import (
+    EnhancedRateLimiter,
+    RateLimitMiddleware,
+)
 from server.security.middleware.redaction_middleware import RedactionMiddleware
 from server.security.middleware.security_headers import (
-    DevelopmentSecurityHeaders, SecurityHeadersMiddleware)
+    DevelopmentSecurityHeaders,
+    SecurityHeadersMiddleware,
+)
 from server.security_integration import SecurityManager, configure_security
 
 

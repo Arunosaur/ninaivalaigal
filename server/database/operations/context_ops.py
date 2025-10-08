@@ -5,8 +5,7 @@ Implements context management with personal/team/organization scopes
 """
 
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from typing import Literal
 
 import asyncpg
 
@@ -148,12 +147,12 @@ class ContextOps:
             if user_id:
                 context = (
                     session.query(Context)
-                    .filter(Context.owner_id == user_id, Context.is_active == True)
+                    .filter(Context.owner_id == user_id, Context.is_active is True)
                     .first()
                 )
             else:
                 context = (
-                    session.query(Context).filter(Context.is_active == True).first()
+                    session.query(Context).filter(Context.is_active is True).first()
                 )
 
             return context
@@ -254,7 +253,6 @@ class ContextOps:
     def start_context(self, context_name: str):
         """Start recording context - MCP compatibility"""
         # For MCP compatibility - could store active context state
-        pass
 
     def stop_context(self, context_name: str = None):
         """Stop recording context - either specific context or all active contexts"""
@@ -269,7 +267,7 @@ class ContextOps:
                     context.is_active = False
             else:
                 # Stop all active contexts
-                session.query(Context).filter(Context.is_active == True).update(
+                session.query(Context).filter(Context.is_active is True).update(
                     {"is_active": False}
                 )
 

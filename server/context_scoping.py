@@ -4,7 +4,7 @@ Links memories to context objects, enabling graph traversal and reasoning
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from auth_utils import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
@@ -241,9 +241,9 @@ async def add_memory_to_context(
     # Check if link already exists
     existing_link = next(
         (
-            l
-            for l in MEMORY_CONTEXT_LINKS_DB
-            if l["memory_id"] == memory_id and l["context_id"] == context_id
+            link
+            for link in MEMORY_CONTEXT_LINKS_DB
+            if link["memory_id"] == memory_id and link["context_id"] == context_id
         ),
         None,
     )
@@ -257,7 +257,7 @@ async def add_memory_to_context(
 
     # Create new memory-context link (graph edge)
     new_link_id = (
-        max([l["id"] for l in MEMORY_CONTEXT_LINKS_DB]) + 1
+        max([link["id"] for link in MEMORY_CONTEXT_LINKS_DB]) + 1
         if MEMORY_CONTEXT_LINKS_DB
         else 1
     )
@@ -304,7 +304,7 @@ async def get_context_graph(
 
     # Get all memory links for this context
     context_links = [
-        l for l in MEMORY_CONTEXT_LINKS_DB if l["context_id"] == context_id
+        link for link in MEMORY_CONTEXT_LINKS_DB if link["context_id"] == context_id
     ]
 
     # Build graph nodes and edges
@@ -431,7 +431,7 @@ async def get_team_context_graph(
         # Add memories if requested
         if include_memories:
             context_links = [
-                l for l in MEMORY_CONTEXT_LINKS_DB if l["context_id"] == context["id"]
+                link for link in MEMORY_CONTEXT_LINKS_DB if link["context_id"] == context["id"]
             ]
 
             for link in context_links:

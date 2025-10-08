@@ -4,16 +4,19 @@ Provides comprehensive analytics for team usage, conversions, and monetization
 """
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from uuid import UUID
 
 from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, Depends, HTTPException, Query
-from models.standalone_teams import (StandaloneTeamManager, TeamInvitation,
-                                     TeamMembership, TeamUpgradeHistory)
+from models.standalone_teams import (
+    StandaloneTeamManager,
+    TeamInvitation,
+    TeamMembership,
+)
 from pydantic import BaseModel
-from sqlalchemy import and_, desc, func
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 # Initialize router
@@ -172,14 +175,14 @@ async def get_analytics_dashboard(
     start_date = datetime.utcnow() - timedelta(days=days)
 
     # Overview metrics
-    total_teams = db.query(Team).filter(Team.is_standalone == True).count()
+    total_teams = db.query(Team).filter(Team.is_standalone is True).count()
     total_members = (
         db.query(TeamMembership).filter(TeamMembership.status == "active").count()
     )
 
     recent_teams = (
         db.query(Team)
-        .filter(Team.is_standalone == True, Team.created_at >= start_date)
+        .filter(Team.is_standalone is True, Team.created_at >= start_date)
         .count()
     )
 
@@ -199,7 +202,7 @@ async def get_analytics_dashboard(
     teams_with_members = (
         db.query(Team.id, func.count(TeamMembership.id).label("member_count"))
         .join(TeamMembership, Team.id == TeamMembership.team_id)
-        .filter(Team.is_standalone == True, TeamMembership.status == "active")
+        .filter(Team.is_standalone is True, TeamMembership.status == "active")
         .group_by(Team.id)
         .all()
     )
@@ -311,7 +314,7 @@ async def get_analytics_dashboard(
     top_teams_query = (
         db.query(Team, func.count(TeamMembership.id).label("member_count"))
         .join(TeamMembership, Team.id == TeamMembership.team_id)
-        .filter(Team.is_standalone == True, TeamMembership.status == "active")
+        .filter(Team.is_standalone is True, TeamMembership.status == "active")
         .group_by(Team.id)
         .order_by(desc("member_count"))
         .limit(10)
@@ -541,13 +544,13 @@ async def get_revenue_forecast(
     """Generate revenue forecast based on current trends"""
 
     # Current metrics
-    total_teams = db.query(Team).filter(Team.is_standalone == True).count()
+    total_teams = db.query(Team).filter(Team.is_standalone is True).count()
 
     # Calculate current revenue
     teams_with_members = (
         db.query(Team.id, func.count(TeamMembership.id).label("member_count"))
         .join(TeamMembership, Team.id == TeamMembership.team_id)
-        .filter(Team.is_standalone == True, TeamMembership.status == "active")
+        .filter(Team.is_standalone is True, TeamMembership.status == "active")
         .group_by(Team.id)
         .all()
     )

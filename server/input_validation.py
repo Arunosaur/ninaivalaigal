@@ -15,7 +15,6 @@ from email_validator import validate_email
 class InputValidationError(Exception):
     """Custom exception for input validation errors"""
 
-    pass
 
 
 class InputValidator:
@@ -409,11 +408,11 @@ def test_input_validation():
     for value, field_type in valid_inputs:
         try:
             if field_type == "email":
-                result = validator.validate_email(value)
+                validator.validate_email(value)
             elif field_type == "password":
-                result = validator.validate_password(value)
+                validator.validate_password(value)
             else:
-                result = validator.validate_string(value, field_type)
+                validator.validate_string(value, field_type)
             print(f"PASSED: Valid {field_type}: {value}")
         except Exception as e:
             print(f"FAILED: Valid {field_type} rejected: {value} - {e}")

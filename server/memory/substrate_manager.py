@@ -4,16 +4,17 @@ Complete memory provider architecture with health monitoring and management
 """
 
 import asyncio
-import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Dict, List, Optional
 
 from .factory import get_memory_provider
-from .interfaces import (MemoryProvider, MemoryProviderConnectionError,
-                         MemoryProviderError)
+from .interfaces import (
+    MemoryProvider,
+    MemoryProviderError,
+)
 
 logger = logging.getLogger(__name__)
 

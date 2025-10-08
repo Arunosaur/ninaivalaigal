@@ -18,8 +18,7 @@ import pytest
 from openai import OpenAI
 from playwright.async_api import async_playwright
 
-from .utils.playwright_helpers import (get_simplified_dom,
-                                       wait_for_navigation_or_change)
+from .utils.playwright_helpers import get_simplified_dom, wait_for_navigation_or_change
 from .utils.prompts import SYSTEM_PROMPT, get_user_prompt
 
 

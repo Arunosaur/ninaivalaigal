@@ -116,31 +116,26 @@ class ContextOperationResult:
 class ContextValidationError(Exception):
     """Context validation error"""
 
-    pass
 
 
 class ContextPermissionError(Exception):
     """Context permission error"""
 
-    pass
 
 
 class OwnershipError(Exception):
     """Ownership management error"""
 
-    pass
 
 
 class TeamManagementError(Exception):
     """Team management error"""
 
-    pass
 
 
 class OrganizationManagementError(Exception):
     """Organization management error"""
 
-    pass
 
 
 class ContextInterface(ABC):
@@ -149,64 +144,54 @@ class ContextInterface(ABC):
     @abstractmethod
     def create_context(self, spec: ContextSpec, user_id: int) -> ContextOperationResult:
         """Create a new context"""
-        pass
 
     @abstractmethod
     def get_context(self, context_id: int, user_id: int) -> ContextOperationResult:
         """Get context by ID"""
-        pass
 
     @abstractmethod
     def list_contexts(
         self, user_id: int, scope: ContextScope | None = None
     ) -> ContextOperationResult:
         """List user-accessible contexts"""
-        pass
 
     @abstractmethod
     def update_context(
         self, context_id: int, updates: dict[str, Any], user_id: int
     ) -> ContextOperationResult:
         """Update context"""
-        pass
 
     @abstractmethod
     def delete_context(self, context_id: int, user_id: int) -> ContextOperationResult:
         """Delete context"""
-        pass
 
     @abstractmethod
     def resolve_context(
         self, name: str, user_id: int, scope_hint: ContextScope | None = None
     ) -> ContextOperationResult:
         """Resolve context by name with scope priority"""
-        pass
 
     @abstractmethod
     def share_context(
         self, context_id: int, permission: ContextPermissionSpec, user_id: int
     ) -> ContextOperationResult:
         """Share context with permissions"""
-        pass
 
     @abstractmethod
     def transfer_context(
         self, context_id: int, target_type: str, target_id: int, user_id: int
     ) -> ContextOperationResult:
         """Transfer context ownership"""
-        pass
 
     @abstractmethod
     def activate_context(self, context_id: int, user_id: int) -> ContextOperationResult:
         """Set context as active"""
-        pass
 
     @abstractmethod
     def deactivate_context(
         self, context_id: int, user_id: int
     ) -> ContextOperationResult:
         """Deactivate context"""
-        pass
 
 
 class ContextValidator:
@@ -542,40 +527,34 @@ class OwnershipInterface(ABC):
         self, team_spec: TeamSpec, owner_ids: list[int]
     ) -> ContextOperationResult:
         """Create team with initial owners"""
-        pass
 
     @abstractmethod
     def create_organization_with_owner(
         self, org_spec: OrganizationSpec, owner_id: int
     ) -> ContextOperationResult:
         """Create organization with initial owner"""
-        pass
 
     @abstractmethod
     def transfer_ownership(
         self, ownership_spec: OwnershipSpec, user_id: int
     ) -> ContextOperationResult:
         """Initiate ownership transfer"""
-        pass
 
     @abstractmethod
     def accept_ownership_transfer(
         self, transfer_id: int, user_id: int
     ) -> ContextOperationResult:
         """Accept ownership transfer"""
-        pass
 
     @abstractmethod
     def reject_ownership_transfer(
         self, transfer_id: int, user_id: int, reason: str
     ) -> ContextOperationResult:
         """Reject ownership transfer"""
-        pass
 
     @abstractmethod
     def get_ownership_transfers(self, user_id: int) -> ContextOperationResult:
         """Get pending ownership transfers for user"""
-        pass
 
     @abstractmethod
     def change_member_role(
@@ -587,7 +566,6 @@ class OwnershipInterface(ABC):
         changed_by: int,
     ) -> ContextOperationResult:
         """Change member role in team or organization"""
-        pass
 
 
 class SpecKitOwnershipManager(OwnershipInterface):

@@ -7,11 +7,9 @@ This addresses external code review feedback:
 - Improve code organization and maintainability
 """
 
-from .prompts import *
-from .resources import *
+
 # Import all components for backward compatibility
 from .server import get_user_from_jwt, mcp
-from .tools import *
 
 # Export all for backward compatibility
 __all__ = [

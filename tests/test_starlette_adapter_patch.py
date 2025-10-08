@@ -7,7 +7,9 @@ from fastapi import HTTPException
 from starlette.requests import Request
 
 from server.security.multipart.starlette_adapter import (
-    DEFAULT_MAX_PARTS_PER_REQUEST, scan_with_starlette)
+    DEFAULT_MAX_PARTS_PER_REQUEST,
+    scan_with_starlette,
+)
 
 
 class MockPart:

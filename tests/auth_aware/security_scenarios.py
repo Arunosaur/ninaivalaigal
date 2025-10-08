@@ -15,8 +15,14 @@ from typing import Any, Dict, List, Optional
 import httpx
 import jwt
 
-from .models import (ComplianceTestResult, LoadTestMetrics, SecurityTestResult,
-                     TestSession, TestUser, UserRole)
+from .models import (
+    ComplianceTestResult,
+    LoadTestMetrics,
+    SecurityTestResult,
+    TestSession,
+    TestUser,
+    UserRole,
+)
 
 logger = logging.getLogger(__name__)
 

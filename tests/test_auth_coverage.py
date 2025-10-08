@@ -14,9 +14,17 @@ from fastapi.testclient import TestClient
 os.environ.setdefault("NINAIVALAIGAL_JWT_SECRET", "test_secret_key_for_testing")
 os.environ.setdefault("NINAIVALAIGAL_ENV", "test")
 
-from server.auth import (authenticate_user, create_access_token, create_user,
-                         get_current_user, get_user_by_email, get_user_by_id,
-                         hash_password, verify_password, verify_token)
+from server.auth import (
+    authenticate_user,
+    create_access_token,
+    create_user,
+    get_current_user,
+    get_user_by_email,
+    get_user_by_id,
+    hash_password,
+    verify_password,
+    verify_token,
+)
 
 
 class TestPasswordHashing:

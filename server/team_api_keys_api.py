@@ -3,22 +3,18 @@ SPEC-067: Team API Keys & Secrets Management
 Secure, auditable, and permission-scoped API keys for team integrations
 """
 
-import base64
 import hashlib
-import json
 import os
 import secrets
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from auth import get_current_user, get_db
 from cryptography.fernet import Fernet
 from database import Team, User
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from models.standalone_teams import StandaloneTeamManager, TeamMembership
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import and_, desc, func, text
 from sqlalchemy.orm import Session
 
 # Initialize router

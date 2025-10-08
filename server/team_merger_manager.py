@@ -502,24 +502,20 @@ class TeamMergerManager:
     def _create_or_get_target_team(self, merger: dict, team_id: str) -> dict:
         """Create or get target team"""
         # Implementation for team creation/retrieval
-        pass
 
     def _migrate_team_members(
         self, merger_id: int, source_teams: list[str], target_team_id: str
     ) -> list[dict]:
         """Migrate team members"""
         # Implementation for member migration
-        pass
 
     def _update_access_permissions(self, merger_id: int, target_team_id: str):
         """Update access permissions after merger"""
         # Implementation for permission updates
-        pass
 
     def _archive_source_teams(self, merger_id: int, source_teams: list[str]):
         """Archive source teams"""
         # Implementation for team archival
-        pass
 
 
 class MemoryMigrationPolicy:

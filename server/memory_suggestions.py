@@ -3,11 +3,9 @@ SPEC-041: Intelligent Related Memory Suggestions
 Related memory discovery, intelligent suggestions, and context linking
 """
 
-import json
-import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import structlog
 from pydantic import BaseModel
@@ -285,7 +283,7 @@ class IntelligentMemorySuggestions:
                         suggestion_type=SuggestionType.SEMANTIC_SIMILAR,
                         relevance_score=memory_data["similarity_score"],
                         confidence=memory_data["similarity_score"] * 0.9,
-                        explanation=f"Similar content to your current memory",
+                        explanation="Similar content to your current memory",
                         metadata={"similarity_score": memory_data["similarity_score"]},
                         suggested_at=datetime.utcnow(),
                     )

@@ -6,7 +6,7 @@ Comprehensive testing and validation for auth system
 import asyncio
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from auth_async import authenticate_user_async, authenticate_user_sync
 
@@ -78,7 +78,7 @@ class AuthHealthChecker:
                     "jwt_token_present": True,
                 }
             else:
-                print(f"❌ Sync auth failed - no result")
+                print("❌ Sync auth failed - no result")
                 return {
                     "status": "fail",
                     "duration": duration,
@@ -116,7 +116,7 @@ class AuthHealthChecker:
                     "jwt_token_present": True,
                 }
             else:
-                print(f"❌ Async auth failed - no result")
+                print("❌ Async auth failed - no result")
                 return {
                     "status": "fail",
                     "duration": duration,
@@ -125,7 +125,7 @@ class AuthHealthChecker:
                 }
 
         except asyncio.TimeoutError:
-            print(f"❌ Async auth timed out")
+            print("❌ Async auth timed out")
             return {
                 "status": "fail",
                 "duration": 10.0,
@@ -167,7 +167,7 @@ class AuthHealthChecker:
                     "user_exists": True,
                 }
             else:
-                print(f"❌ Database connection failed - no user found")
+                print("❌ Database connection failed - no user found")
                 return {
                     "status": "fail",
                     "duration": duration,
@@ -216,7 +216,7 @@ class AuthHealthChecker:
                     "token_valid": True,
                 }
             else:
-                print(f"❌ JWT generation failed - invalid decode")
+                print("❌ JWT generation failed - invalid decode")
                 return {
                     "status": "fail",
                     "duration": duration,

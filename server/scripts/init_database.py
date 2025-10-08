@@ -21,18 +21,18 @@ def main():
         "postgresql://nina:dev_password_change_in_production@localhost:5442/ninaivalaigal_dev",
     )
 
-    print(f"🔧 Initializing database...")
+    print("🔧 Initializing database...")
     print(
         f"   URL: {database_url.replace(':dev_password_change_in_production', ':****')}"
     )
 
     try:
         # Create database manager (this calls create_tables automatically)
-        db_manager = DatabaseManager(database_url)
+        DatabaseManager(database_url)
 
-        print(f"✅ Database tables created successfully!")
+        print("✅ Database tables created successfully!")
         print(f"   Total tables: {len(Base.metadata.tables)}")
-        print(f"\nTables created:")
+        print("\nTables created:")
         for table_name in sorted(Base.metadata.tables.keys()):
             print(f"   - {table_name}")
 

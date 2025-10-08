@@ -29,9 +29,11 @@ from typing import Any
 
 # Import the existing RBAC policy snapshot functionality
 sys.path.append(str(Path(__file__).parent.parent))
-from tests.test_rbac_policy_snapshot import (RBACPolicySnapshot,
-                                             create_production_policy_snapshot,
-                                             validate_policy_against_snapshot)
+from tests.test_rbac_policy_snapshot import (
+    RBACPolicySnapshot,
+    create_production_policy_snapshot,
+    validate_policy_against_snapshot,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -95,9 +97,11 @@ class RBACPolicyGate:
             for role_name, resources in current_matrix.items():
                 for resource_name, permissions in resources.items():
                     # Convert to enum types for snapshot
-                    from tests.test_rbac_policy_snapshot import (Permission,
-                                                                 Resource,
-                                                                 Role)
+                    from tests.test_rbac_policy_snapshot import (
+                        Permission,
+                        Resource,
+                        Role,
+                    )
 
                     try:
                         role = Role(role_name)

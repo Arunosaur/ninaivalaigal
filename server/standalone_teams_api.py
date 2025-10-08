@@ -3,7 +3,6 @@ SPEC-066: Standalone Team Accounts API
 Provides endpoints for team creation, invitation, and management without organization requirement
 """
 
-import secrets
 import smtplib
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
@@ -14,10 +13,12 @@ from uuid import UUID
 from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from models.standalone_teams import (StandaloneTeamManager, TeamInvitation,
-                                     TeamMembership, TeamUpgradeHistory)
+from models.standalone_teams import (
+    StandaloneTeamManager,
+    TeamInvitation,
+    TeamMembership,
+)
 from pydantic import BaseModel, EmailStr, validator
-from rbac_middleware import require_permission
 from sqlalchemy.orm import Session
 
 # Initialize router
@@ -264,7 +265,7 @@ async def get_my_team(
             .filter(
                 TeamMembership.user_id == current_user.id,
                 TeamMembership.status == "active",
-                Team.is_standalone == True,
+                Team.is_standalone is True,
             )
             .first()
         )

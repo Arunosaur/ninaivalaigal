@@ -56,8 +56,8 @@ class BulkInvitationAction(BaseModel):
 async def list_team_invitations(current_user: dict = Depends(get_current_user)):
     """List all team invitations sent by the current user"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
+        get_db()
+        current_user.get("user_id")
 
         # TODO: Implement actual database query
         # For now, return sample data
@@ -118,8 +118,8 @@ async def send_team_invitation(
 ):
     """Send a team invitation"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
+        get_db()
+        current_user.get("user_id")
 
         # Generate invitation token
         invitation_id = f"inv_{secrets.token_urlsafe(16)}"
@@ -166,8 +166,8 @@ async def resend_team_invitation(
 ):
     """Resend a team invitation"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
+        get_db()
+        current_user.get("user_id")
 
         # TODO: Implement actual resend logic
         # For now, just return success
@@ -192,8 +192,8 @@ async def extend_team_invitation(
 ):
     """Extend a team invitation expiration"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
+        get_db()
+        current_user.get("user_id")
 
         # TODO: Implement actual extension logic
         new_expiry = datetime.utcnow() + timedelta(days=extend_days)
@@ -216,8 +216,8 @@ async def revoke_team_invitation(
 ):
     """Revoke a team invitation"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
+        get_db()
+        current_user.get("user_id")
 
         # TODO: Implement actual revocation logic
 
@@ -239,8 +239,8 @@ async def bulk_invitation_action(
 ):
     """Perform bulk actions on multiple invitations"""
     try:
-        db = get_db()
-        user_id = current_user.get("user_id")
+        get_db()
+        current_user.get("user_id")
 
         # TODO: Implement actual bulk actions
 
@@ -261,7 +261,7 @@ async def bulk_invitation_action(
 async def accept_team_invitation(invitation_data: TeamInvitationAccept):
     """Accept a team invitation"""
     try:
-        db = get_db()
+        get_db()
 
         # TODO: Implement actual invitation acceptance logic
         # This would involve:
@@ -289,7 +289,7 @@ async def accept_team_invitation(invitation_data: TeamInvitationAccept):
 async def validate_invitation_token(token: str):
     """Validate an invitation token and return invitation details"""
     try:
-        db = get_db()
+        get_db()
 
         # TODO: Implement actual token validation
         # For now, return sample data

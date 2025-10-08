@@ -14,11 +14,18 @@ os.environ.setdefault("NINAIVALAIGAL_JWT_SECRET", "test_secret_key_for_testing")
 os.environ.setdefault("NINAIVALAIGAL_ENV", "test")
 
 # Import the actual functions from auth.py
-from server.auth import (authenticate_user, create_access_token,
-                         create_individual_user, generate_invitation_token,
-                         generate_verification_token, hash_password,
-                         validate_email, validate_password, verify_password,
-                         verify_token)
+from server.auth import (
+    authenticate_user,
+    create_access_token,
+    create_individual_user,
+    generate_invitation_token,
+    generate_verification_token,
+    hash_password,
+    validate_email,
+    validate_password,
+    verify_password,
+    verify_token,
+)
 
 
 class TestPasswordValidation:

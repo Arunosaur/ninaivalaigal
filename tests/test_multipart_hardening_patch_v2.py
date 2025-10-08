@@ -13,11 +13,19 @@ Tests critical security enhancements:
 import pytest
 
 from server.security.multipart.strict_limits_hardened import (
-    HardenedPartLimitConfig, StreamLimitState, _looks_binary_enhanced,
-    create_hardened_config, detect_enhanced_magic_bytes, detect_mp4_iso_bmff,
-    disallow_archives_for_text, enforce_max_parts_per_request,
-    enforce_part_limits_buffer, enforce_part_limits_stream,
-    reject_content_transfer_encoding, require_utf8_text)
+    HardenedPartLimitConfig,
+    StreamLimitState,
+    _looks_binary_enhanced,
+    create_hardened_config,
+    detect_enhanced_magic_bytes,
+    detect_mp4_iso_bmff,
+    disallow_archives_for_text,
+    enforce_max_parts_per_request,
+    enforce_part_limits_buffer,
+    enforce_part_limits_stream,
+    reject_content_transfer_encoding,
+    require_utf8_text,
+)
 
 
 class TestMachoAndJavaDetection:

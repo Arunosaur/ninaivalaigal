@@ -10,8 +10,12 @@ from typing import Any
 
 import httpx
 
-from ..interfaces import (MemoryItem, MemoryNotFoundError,
-                          MemoryProviderConnectionError, MemoryProviderError)
+from ..interfaces import (
+    MemoryItem,
+    MemoryNotFoundError,
+    MemoryProviderConnectionError,
+    MemoryProviderError,
+)
 
 
 class Mem0HttpMemoryProvider:

@@ -6,7 +6,7 @@ Complete implementation of context management with personal/team/organization sc
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional
 
 import asyncpg
 

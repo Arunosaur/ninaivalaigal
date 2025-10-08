@@ -4,17 +4,15 @@ Intelligent failover logic and fallback routing for memory providers
 """
 
 import asyncio
-import json
 import logging
 import statistics
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
-from .health_monitor import AlertLevel, HealthStatus, ProviderHealthMonitor
-from .interfaces import (MemoryNotFoundError, MemoryProvider,
-                         MemoryProviderError)
+from .health_monitor import HealthStatus, ProviderHealthMonitor
+from .interfaces import MemoryNotFoundError
 from .provider_registry import MemoryProviderRegistry, ProviderStatus
 
 logger = logging.getLogger(__name__)

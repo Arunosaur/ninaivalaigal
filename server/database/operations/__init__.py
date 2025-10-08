@@ -27,7 +27,6 @@ class DatabaseOperations(
     Inherits from all specialized operation modules
     """
 
-    pass
 
 
 __all__ = [

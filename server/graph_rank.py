@@ -3,7 +3,6 @@ Graph Ranking System - PageRank for Memory Intelligence
 Ranks memories and contexts based on connections, discussions, and approvals
 """
 
-import math
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -157,7 +156,7 @@ def calculate_pagerank(
 
                 # Calculate outgoing weight sum for source
                 outgoing_weight_sum = sum(
-                    l["weight"] for l in outgoing_links[source_id]
+                    link["weight"] for link in outgoing_links[source_id]
                 )
 
                 if outgoing_weight_sum > 0:

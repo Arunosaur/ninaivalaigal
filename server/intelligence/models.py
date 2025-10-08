@@ -3,11 +3,10 @@ Graph Intelligence Models
 Data models for advanced graph intelligence features
 """
 
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 
 class SharingPolicy(Enum):

@@ -15,8 +15,10 @@ from starlette.datastructures import UploadFile
 from starlette.requests import Request
 
 from server.security.multipart.strict_limits_hardened import (
-    HardenedPartLimitConfig, enforce_max_parts_per_request,
-    enforce_part_limits_stream)
+    HardenedPartLimitConfig,
+    enforce_max_parts_per_request,
+    enforce_part_limits_stream,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +84,7 @@ async def scan_with_starlette(
 
         if isinstance(field_value, UploadFile):
             # Binary/file upload handling
-            content = await field_value.read()
+            await field_value.read()
 
             # Decide per-part size cap by declared type
             cap = (
@@ -156,11 +158,14 @@ async def scan_with_starlette(
 
 
 # Import helper functions from hardened implementation
-from server.security.multipart.strict_limits_hardened import \
-    _looks_binary_enhanced as looks_binary
 from server.security.multipart.strict_limits_hardened import (
-    disallow_archives_for_text, reject_content_transfer_encoding,
-    require_utf8_text)
+    _looks_binary_enhanced as looks_binary,
+)
+from server.security.multipart.strict_limits_hardened import (
+    disallow_archives_for_text,
+    reject_content_transfer_encoding,
+    require_utf8_text,
+)
 
 
 # Quick test checklist functions for integration validation

@@ -64,7 +64,7 @@ async def stop_recording(
     """Stop CCTV-style automatic recording"""
     try:
         # Use authenticated user ID (mandatory)
-        user_id = current_user.id
+        current_user.id
 
         if context:
             # Stop specific context recording
@@ -103,7 +103,7 @@ async def get_recording_status(
     """Get CCTV recording status for all contexts"""
     try:
         # Use authenticated user ID (mandatory)
-        user_id = current_user.id
+        current_user.id
 
         status = await auto_recorder.get_recording_status()
         return {

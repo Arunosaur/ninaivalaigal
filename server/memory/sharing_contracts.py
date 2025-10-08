@@ -3,14 +3,12 @@ SPEC-049: Memory Sharing Contracts
 Memory link contracts between user/org/agent scopes with consent and visibility management
 """
 
-import asyncio
-import json
 import logging
 import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 

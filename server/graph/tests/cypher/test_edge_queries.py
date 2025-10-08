@@ -10,13 +10,17 @@ import pytest
 
 # Import our graph models and client
 from server.graph.age_client import ApacheAGEClient
-from server.graph.models.edge_models import (CreatedEdge, InfluencesEdge,
-                                             RelationshipType, TaggedWithEdge,
-                                             create_created_edge,
-                                             create_influences_edge,
-                                             create_linked_to_edge,
-                                             create_member_of_edge,
-                                             create_triggered_by_edge)
+from server.graph.models.edge_models import (
+    CreatedEdge,
+    InfluencesEdge,
+    RelationshipType,
+    TaggedWithEdge,
+    create_created_edge,
+    create_influences_edge,
+    create_linked_to_edge,
+    create_member_of_edge,
+    create_triggered_by_edge,
+)
 
 
 class TestEdgeQueries:

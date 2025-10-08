@@ -161,8 +161,7 @@ class TestSecuritySystemIntegration:
 
     def test_audit_logging(self):
         """Test audit logging functionality"""
-        from security.redaction.audit import (AuditEventType,
-                                              RedactionAuditLogger)
+        from security.redaction.audit import AuditEventType, RedactionAuditLogger
 
         logger = RedactionAuditLogger()
 
@@ -201,8 +200,7 @@ class TestSecuritySystemIntegration:
 
     def test_configuration_management(self):
         """Test configuration management"""
-        from security.redaction.config import (ContextSensitivity,
-                                               redaction_config)
+        from security.redaction.config import ContextSensitivity, redaction_config
 
         # Test default configuration
         assert redaction_config.enabled is not None

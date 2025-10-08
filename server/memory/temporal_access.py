@@ -4,16 +4,14 @@ Session-based and time-limited memory sharing with revocation capabilities
 """
 
 import asyncio
-import json
 import logging
 import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Union
+from typing import Any, Callable, Dict, List, Optional, Set
 
-from .sharing_contracts import (ContractStatus, MemoryLinkContract,
-                                ScopeIdentifier)
+from .sharing_contracts import ScopeIdentifier
 
 logger = logging.getLogger(__name__)
 

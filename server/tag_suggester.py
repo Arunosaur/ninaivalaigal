@@ -3,7 +3,6 @@ Tag Suggester System - GPT-Powered Auto-Tagging
 Uses AI to suggest relevant tags for memories based on content analysis
 """
 
-import json
 import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional

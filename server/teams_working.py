@@ -3,9 +3,9 @@ Team Management System with Role-Based Access Control
 GET-based endpoints for team operations
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
-from auth_utils import get_current_user, require_role
+from auth_utils import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
 
 router = APIRouter(prefix="/teams", tags=["teams"])

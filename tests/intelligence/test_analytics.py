@@ -11,10 +11,15 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from server.intelligence.analytics import GraphAnalyticsEngine
-from server.intelligence.models import (FederationMetrics, GraphMLMetrics,
-                                        KnowledgeGap, SuggestedConnection,
-                                        TeamContext, TeamInsights,
-                                        TrendingTopic)
+from server.intelligence.models import (
+    FederationMetrics,
+    GraphMLMetrics,
+    KnowledgeGap,
+    SuggestedConnection,
+    TeamContext,
+    TeamInsights,
+    TrendingTopic,
+)
 
 
 class TestGraphAnalyticsEngine:

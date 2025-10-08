@@ -18,7 +18,7 @@ from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/admin/staff", tags=["Staff Management"])
+router = APIRouter(prefix="/admin/sta", tags=["Staff Management"])
 
 
 # TODO: Add proper RBAC integration later
@@ -36,7 +36,7 @@ def require_admin_role(token: str = None):
 
 
 class StaffCreate(BaseModel):
-    """Request model for creating staff"""
+    """Request model for creating sta"""
 
     name: str = Field(..., min_length=2, max_length=255)
     email: EmailStr
@@ -60,7 +60,7 @@ class StaffResponse(BaseModel):
 
 
 class StaffCreateResponse(BaseModel):
-    """Response after creating staff"""
+    """Response after creating sta"""
 
     staff_id: UUID
     temporary_password: str
@@ -76,7 +76,7 @@ class StaffRoleUpdate(BaseModel):
 
 
 class StaffDeactivate(BaseModel):
-    """Request model for deactivating staff"""
+    """Request model for deactivating sta"""
 
     reason: str = Field(..., min_length=10, max_length=500)
 
@@ -209,8 +209,8 @@ async def create_staff(
     log_staff_activity(
         db=db,
         staff_id=UUID(current_user["user_id"]),
-        action="create_staff",
-        resource_type="staff",
+        action="create_sta",
+        resource_type="sta",
         resource_id=str(staff_id),
         details={
             "new_staff_email": staff_data.email,
@@ -227,7 +227,7 @@ async def create_staff(
         staff_id=staff_id,
         temporary_password=temp_password,
         expires_at=expires_at,
-        message=f"Staff account created. Temporary password expires in 24 hours.",
+        message="Staff account created. Temporary password expires in 24 hours.",
     )
 
 
@@ -353,7 +353,7 @@ async def update_staff_role(
         db=db,
         staff_id=UUID(current_user["user_id"]),
         action="update_staff_role",
-        resource_type="staff",
+        resource_type="sta",
         resource_id=str(staff_id),
         details={
             "old_role": old_role,
@@ -422,8 +422,8 @@ async def deactivate_staff(
     log_staff_activity(
         db=db,
         staff_id=UUID(current_user["user_id"]),
-        action="deactivate_staff",
-        resource_type="staff",
+        action="deactivate_sta",
+        resource_type="sta",
         resource_id=str(staff_id),
         details={"reason": deactivate_data.reason},
         ip_address=request.client.host if request.client else None,

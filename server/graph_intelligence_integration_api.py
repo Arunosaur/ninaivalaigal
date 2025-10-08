@@ -3,20 +3,17 @@ SPEC-040/041: Graph Intelligence Integration
 Complete implementation of graph-based reasoning with data sync and context injection
 """
 
-import asyncio
 import hashlib
 import json
-import os
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
-from uuid import UUID, uuid4
+from datetime import datetime
+from typing import Any, Dict, List
+from uuid import uuid4
 
 from auth import get_current_user, get_db
 from database import Memory, Team, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from redis_client import get_redis_client
-from sqlalchemy import and_, desc, func, text
 from sqlalchemy.orm import Session
 
 # Initialize router
@@ -126,7 +123,7 @@ class GraphIntelligenceEngine:
         synced_count = 0
         for memory in memories:
             # Create Memory node in graph
-            graph_query = f"""
+            graph_query = """
             SELECT * FROM cypher('ninaivalaigal_intelligence', $$
                 MERGE (m:Memory {{
                     memory_id: '{memory.id}',
@@ -284,7 +281,7 @@ class GraphIntelligenceEngine:
     ) -> Dict[str, Any]:
         """Find paths between entities"""
         target_id = parameters.get("target_id")
-        max_depth = parameters.get("max_depth", 3)
+        parameters.get("max_depth", 3)
 
         # Mock path finding
         paths = []
@@ -340,7 +337,7 @@ class GraphIntelligenceEngine:
                     "id": rec_id,
                     "type": entity_type,
                     "recommendation_score": 0.85 - (i * 0.05),
-                    "reason": f"Recommended based on graph proximity and user behavior patterns",
+                    "reason": "Recommended based on graph proximity and user behavior patterns",
                 }
             )
             confidence_scores[rec_id] = 0.85 - (i * 0.05)
@@ -379,7 +376,7 @@ class GraphIntelligenceEngine:
             {
                 "id": cluster_id,
                 "type": "cluster",
-                "entities": [entity_id, f"related_1", f"related_2"],
+                "entities": [entity_id, "related_1", "related_2"],
                 "cohesion_score": 0.75,
                 "cluster_center": entity_id,
             }

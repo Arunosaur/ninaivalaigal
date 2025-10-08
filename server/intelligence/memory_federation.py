@@ -3,14 +3,18 @@ Memory Federation Engine
 Cross-team memory sharing with intelligent privacy and relevance scoring
 """
 
-import asyncio
-import json
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Set, Tuple
+from datetime import datetime
+from typing import Dict, List, Optional
 
-from .models import (FederatedMemory, FederationMetrics, FederationResult,
-                     PrivacyLevel, SharingPolicy, SharingRule, TeamContext)
+from .models import (
+    FederatedMemory,
+    FederationMetrics,
+    FederationResult,
+    PrivacyLevel,
+    SharingRule,
+    TeamContext,
+)
 
 logger = logging.getLogger(__name__)
 

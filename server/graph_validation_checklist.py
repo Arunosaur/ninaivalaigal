@@ -3,21 +3,19 @@ Graph Intelligence Validation Checklist
 SPEC-040/041 Optimization: Comprehensive validation and testing suite for graph reasoning
 """
 
-import asyncio
 import json
 import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
-from uuid import uuid4
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from auth import get_current_user, get_db
+from auth import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
-from graph_intelligence_integration_api import (GraphIntelligenceEngine,
-                                                get_intelligence_engine)
+from graph_intelligence_integration_api import (
+    GraphIntelligenceEngine,
+    get_intelligence_engine,
+)
 from pydantic import BaseModel, Field
-from redis_client import get_redis_client
-from sqlalchemy.orm import Session
 
 # Initialize router
 router = APIRouter(prefix="/graph-validation", tags=["graph-validation"])

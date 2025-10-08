@@ -7,8 +7,11 @@ to prevent future drift and maintain security guarantees.
 
 from fastapi import FastAPI
 
-from server.security.bundle import (SecurityBundle, apply_development_security,
-                                    apply_production_security)
+from server.security.bundle import (
+    SecurityBundle,
+    apply_development_security,
+    apply_production_security,
+)
 
 
 def extract_middleware_chain(app: FastAPI) -> list[str]:

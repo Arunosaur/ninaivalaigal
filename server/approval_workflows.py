@@ -5,7 +5,7 @@ Connects team + memory systems with controlled publishing and accountability
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from auth_utils import get_current_user
 from fastapi import APIRouter, Depends, HTTPException

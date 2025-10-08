@@ -3,10 +3,12 @@ import time
 import jwt
 import pytest
 
-from server.security.jwt.verifier_strict import (JWTValidationError,
-                                                 StrictJWTConfig,
-                                                 create_production_jwt_config,
-                                                 verify_jwt_strict)
+from server.security.jwt.verifier_strict import (
+    JWTValidationError,
+    StrictJWTConfig,
+    create_production_jwt_config,
+    verify_jwt_strict,
+)
 
 SECRET = "dev-secret-key-for-testing-purposes-only"
 

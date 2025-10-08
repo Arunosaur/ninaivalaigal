@@ -3,19 +3,16 @@ SPEC-069: Partner Ecosystem & Referral Program
 Third-party ecosystem with referral tracking, attribution, and revenue sharing
 """
 
-import os
 import secrets
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 
-from auth import get_current_user, get_db
-from database import Team, User
+from auth import get_current_user
+from database import User
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import and_, desc, func
-from sqlalchemy.orm import Session
 
 # Initialize router
 router = APIRouter(prefix="/partners", tags=["partner-ecosystem"])

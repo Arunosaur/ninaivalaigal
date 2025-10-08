@@ -3,18 +3,14 @@ Graph Usage Analytics System
 SPEC-040/041 Optimization: Track usage_count, last_accessed, relevance_score per node
 """
 
-import json
-import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
-from uuid import uuid4
 
 from auth import get_current_user, get_db
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from redis_client import get_redis_client
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 # Initialize router

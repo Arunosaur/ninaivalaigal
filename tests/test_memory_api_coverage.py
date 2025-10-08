@@ -15,11 +15,18 @@ os.environ.setdefault("NINAIVALAIGAL_JWT_SECRET", "test_secret_key_for_testing")
 os.environ.setdefault("NINAIVALAIGAL_ENV", "test")
 
 # Import after setting environment
-from server.memory_api import (add_memory_tag, create_memory, delete_memory,
-                               get_memory, get_memory_attachments,
-                               get_memory_context, list_memories,
-                               remove_memory_tag, search_memories,
-                               update_memory)
+from server.memory_api import (
+    add_memory_tag,
+    create_memory,
+    delete_memory,
+    get_memory,
+    get_memory_attachments,
+    get_memory_context,
+    list_memories,
+    remove_memory_tag,
+    search_memories,
+    update_memory,
+)
 
 
 class TestMemoryCreation:

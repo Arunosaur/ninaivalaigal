@@ -7,18 +7,19 @@ import asyncio
 import json
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from auth_utils import get_current_user
-from fastapi import (APIRouter, Depends, HTTPException, WebSocket,
-                     WebSocketDisconnect)
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+
 # Import our existing intelligence systems
 from graph_rank import get_dashboard_insights
-from insights_api import (get_memory_intelligence_insights,
-                          get_team_productivity_insights)
+from insights_api import (
+    get_memory_intelligence_insights,
+    get_team_productivity_insights,
+)
 from pydantic import BaseModel
 from tag_suggester import get_ai_performance_metrics
-from usage_analytics_api import get_team_growth_metrics
 
 router = APIRouter(prefix="/dashboard-widgets", tags=["dashboard"])
 
@@ -241,7 +242,7 @@ async def get_sentiment_trends_widget_data(
                 "type": "negative_trend",
                 "priority": "medium",
                 "title": "Team sentiment declining",
-                "description": f"Consider checking in with team members",
+                "description": "Consider checking in with team members",
                 "action": "/dashboard/team-health",
                 "icon": "⚠️",
             }

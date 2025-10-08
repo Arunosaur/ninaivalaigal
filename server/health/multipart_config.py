@@ -6,8 +6,10 @@ from typing import Any
 
 from server.security.feature_flags import get_feature_flag_health
 from server.security.multipart.strict_limits_hardened import (
-    DEFAULT_MAX_BINARY_PART_BYTES, DEFAULT_MAX_PARTS_PER_REQUEST,
-    DEFAULT_MAX_TEXT_PART_BYTES)
+    DEFAULT_MAX_BINARY_PART_BYTES,
+    DEFAULT_MAX_PARTS_PER_REQUEST,
+    DEFAULT_MAX_TEXT_PART_BYTES,
+)
 
 
 def get_multipart_config_health() -> dict[str, Any]:
@@ -101,11 +103,10 @@ def validate_multipart_boot_config() -> dict[str, Any]:
 
     try:
         # Test imports
-        from server.security.multipart.starlette_adapter import \
-            scan_with_starlette
         from server.security.multipart.strict_limits_hardened import (
-            detect_enhanced_magic_bytes, reject_content_transfer_encoding,
-            require_utf8_text)
+            detect_enhanced_magic_bytes,
+            require_utf8_text,
+        )
 
     except ImportError as e:
         result["valid"] = False

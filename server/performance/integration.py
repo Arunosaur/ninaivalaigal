@@ -7,7 +7,7 @@ import time
 from typing import Optional
 
 import structlog
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from ..middleware.response_cache import CacheManager, ResponseCacheMiddleware

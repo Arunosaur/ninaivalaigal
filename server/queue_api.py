@@ -10,9 +10,14 @@ from auth import get_current_user
 from database import User
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from redis_queue import (RedisQueueManager, enqueue_cleanup_task,
-                         enqueue_memory_processing, enqueue_notification,
-                         enqueue_relevance_calculation, get_queue_manager)
+from redis_queue import (
+    RedisQueueManager,
+    enqueue_cleanup_task,
+    enqueue_memory_processing,
+    enqueue_notification,
+    enqueue_relevance_calculation,
+    get_queue_manager,
+)
 
 logger = structlog.get_logger(__name__)
 

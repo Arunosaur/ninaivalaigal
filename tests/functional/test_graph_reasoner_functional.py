@@ -18,10 +18,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 
 from server.graph.age_client import ApacheAGEClient
 from server.graph.graph_reasoner import create_graph_reasoner
-from server.graph.models.edge_models import (create_created_edge,
-                                             create_linked_to_edge)
-from server.graph.models.node_models import (MemoryType, create_memory_node,
-                                             create_user_node)
+from server.graph.models.edge_models import create_created_edge, create_linked_to_edge
+from server.graph.models.node_models import (
+    MemoryType,
+    create_memory_node,
+    create_user_node,
+)
 from server.redis_client import RedisClient
 
 

@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from server.security.observability.traceparent_middleware import \
-    TraceparentHeaderMiddleware
+from server.security.observability.traceparent_middleware import (
+    TraceparentHeaderMiddleware,
+)
 
 
 def test_traceparent_header_present():

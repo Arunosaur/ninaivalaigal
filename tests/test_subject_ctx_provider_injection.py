@@ -10,8 +10,10 @@ from fastapi.testclient import TestClient
 
 from server.security.rbac.context import SubjectContext
 from server.security.rbac.context_provider import (
-    create_mock_subject_provider, get_subject_ctx_dep,
-    install_subject_ctx_provider)
+    create_mock_subject_provider,
+    get_subject_ctx_dep,
+    install_subject_ctx_provider,
+)
 
 
 def test_mock_provider_injection():

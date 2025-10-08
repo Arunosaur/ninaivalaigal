@@ -16,9 +16,13 @@ import pytest
 # Add the project root to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from server.graph.graph_reasoner import (ContextExplanation, GraphReasoner,
-                                         ReasoningPath, RelevanceInference,
-                                         create_graph_reasoner)
+from server.graph.graph_reasoner import (
+    ContextExplanation,
+    GraphReasoner,
+    ReasoningPath,
+    RelevanceInference,
+    create_graph_reasoner,
+)
 
 
 @pytest.fixture

@@ -4,7 +4,7 @@ Detects execution intent and routes to appropriate micro-agent chains
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 import structlog
 

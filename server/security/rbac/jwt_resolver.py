@@ -13,8 +13,11 @@ except Exception:  # pragma: no cover
     PyJWKClient = None
 
 from ..observability.tracing import start_span
-from .metrics import (jwt_jwks_fetch_failures_total,
-                      jwt_neg_kid_cache_hits_total, jwt_unknown_kid_total)
+from .metrics import (
+    jwt_jwks_fetch_failures_total,
+    jwt_neg_kid_cache_hits_total,
+    jwt_unknown_kid_total,
+)
 from .subject_ctx import SubjectContext
 
 

@@ -69,16 +69,13 @@ class MemoryProvider(Protocol):
 class MemoryProviderError(Exception):
     """Base exception for memory provider errors"""
 
-    pass
 
 
 class MemoryNotFoundError(MemoryProviderError):
     """Raised when a memory item is not found"""
 
-    pass
 
 
 class MemoryProviderConnectionError(MemoryProviderError):
     """Raised when connection to provider fails"""
 
-    pass

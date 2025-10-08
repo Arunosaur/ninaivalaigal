@@ -4,11 +4,8 @@ SQLAlchemy Mapper Debug Script
 Systematically debug the Team.invitations mapper issue without commenting out code
 """
 
-import os
-import sys
 import traceback
 
-from sqlalchemy import inspect
 from sqlalchemy.orm import configure_mappers
 
 
@@ -28,9 +25,8 @@ def debug_step(step_name, func):
 
 def step1_basic_imports():
     """Test basic model imports"""
-    from database.models import Organization, Team, User
 
-    return f"Imported User, Team, Organization successfully"
+    return "Imported User, Team, Organization successfully"
 
 
 def step2_check_team_attributes():
@@ -71,7 +67,6 @@ def step5_check_team_invitation_relationships():
 def step6_check_registry_state():
     """Check SQLAlchemy registry state"""
     from database.models import Base
-    from sqlalchemy.orm import registry
 
     mappers = list(Base.registry._class_registry.keys())
     return f"Registered classes: {mappers}"

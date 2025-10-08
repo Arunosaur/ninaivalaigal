@@ -151,7 +151,9 @@ class TestStatusCodeIntegration:
         # This test would require mocking parser exceptions
         # For now, verify the pattern exists in the code
         from server.security.multipart.starlette_adapter import (
-            REASON_ENGINE_ERROR, _emit_multipart_reject)
+            REASON_ENGINE_ERROR,
+            _emit_multipart_reject,
+        )
 
         # Verify the function exists and can be called
         _emit_multipart_reject(REASON_ENGINE_ERROR)

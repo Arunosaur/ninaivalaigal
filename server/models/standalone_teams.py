@@ -8,8 +8,15 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from database import Base
-from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer, String,
-                        Text, UniqueConstraint)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
@@ -266,8 +273,7 @@ class StandaloneTeamManager:
         self, team_id: UUID, upgraded_by_user_id: UUID, org_data: dict
     ) -> Optional["Organization"]:
         """Upgrade standalone team to organization"""
-        from database import (  # Import here to avoid circular imports
-            Organization, Team)
+        from database import Organization, Team  # Import here to avoid circular imports
 
         team = (
             self.session.query(Team).filter_by(id=team_id, is_standalone=True).first()

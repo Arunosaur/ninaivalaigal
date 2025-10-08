@@ -5,8 +5,7 @@ Production-ready rate limiting with Redis for consistency across all nodes.
 """
 
 import os
-import time
-from typing import Optional, Tuple
+from typing import Optional
 
 import redis.asyncio as aioredis
 from fastapi import HTTPException, Request

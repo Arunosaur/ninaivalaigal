@@ -172,7 +172,7 @@ class UserOperations(DatabaseManager):
         try:
             query = session.query(User)
             if not include_inactive:
-                query = query.filter(User.is_active == True)
+                query = query.filter(User.is_active is True)
 
             return query.all()
         finally:
@@ -189,7 +189,7 @@ class UserOperations(DatabaseManager):
                     | (User.email.ilike(f"%{query}%"))
                     | (User.full_name.ilike(f"%{query}%"))
                 )
-                .filter(User.is_active == True)
+                .filter(User.is_active is True)
                 .limit(limit)
                 .all()
             )
@@ -209,7 +209,7 @@ class UserOperations(DatabaseManager):
                         | (User.email == username_or_email)
                     )
                     & (User.password_hash == password_hash)
-                    & (User.is_active == True)
+                    & (User.is_active is True)
                 )
                 .first()
             )

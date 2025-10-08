@@ -5,7 +5,7 @@ Ensures all endpoints follow HTTP protocol standards to prevent client hangs
 
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from fastapi import Response
 from fastapi.responses import JSONResponse

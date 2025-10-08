@@ -9,8 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from server.agent import (AgentCore, ExecutionMode, ExecutionResult,
-                          get_agent_core)
+from server.agent import AgentCore, ExecutionMode, ExecutionResult, get_agent_core
 from server.agent.execution_context import ExecutionContext
 from server.agent.intention_router import IntentionRouter
 from server.agent.tools.ai_tools import AIToolchain

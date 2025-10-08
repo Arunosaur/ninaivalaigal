@@ -63,7 +63,6 @@ def load_security_config() -> SecurityConfig:
 class ConfigError(Exception):
     """Configuration validation error."""
 
-    pass
 
 
 def validate_or_raise(cfg: SecurityConfig) -> None:

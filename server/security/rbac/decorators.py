@@ -44,7 +44,6 @@ except ImportError:
 class AccessDeniedError(Exception):
     """Raised when access is denied by RBAC."""
 
-    pass
 
 
 class RBACEnforcer:
