@@ -18,10 +18,14 @@ router = APIRouter()
 
 
 class HealthResponse(BaseModel):
+    """Basic health check response model."""
+
     status: str
 
 
 class DetailedHealthResponse(BaseModel):
+    """Detailed health check response with SLO metrics."""
+
     status: str
     uptime_s: int
     db: dict[str, Any]
@@ -87,8 +91,10 @@ async def _check_database() -> dict[str, Any]:
                     text(
                         """
                     SELECT
-                        (SELECT count(*) FROM pg_stat_activity WHERE state = 'active') as active_connections,
-                        (SELECT setting::int FROM pg_settings WHERE name = 'max_connections') as max_connections
+                        (SELECT count(*) FROM pg_stat_activity
+                         WHERE state = 'active') as active_connections,
+                        (SELECT setting::int FROM pg_settings
+                         WHERE name = 'max_connections') as max_connections
                 """
                     )
                 )
