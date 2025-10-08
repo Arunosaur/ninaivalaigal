@@ -43,6 +43,7 @@ load_config() {
         log_config_error "Defaults file not found: $defaults_file"
         return 1
     fi
+    # shellcheck source=/dev/null
     source "$defaults_file"
     log_config_success "Loaded defaults"
 
@@ -53,6 +54,7 @@ load_config() {
         log_config "Available runtimes: docker, colima, apple"
         return 1
     fi
+    # shellcheck source=/dev/null
     source "$runtime_file"
     log_config_success "Loaded runtime: $runtime"
 
@@ -63,12 +65,14 @@ load_config() {
         log_config "Available environments: dev, test, prod"
         return 1
     fi
+    # shellcheck source=/dev/null
     source "$env_file"
     log_config_success "Loaded environment: $env"
 
     # 4. Load secrets (required for non-dev)
     local secrets_file="${ROOT_DIR_CONFIG}/configs/secrets-${runtime}-${env}.env"
     if [ -f "$secrets_file" ]; then
+        # shellcheck source=/dev/null
         source "$secrets_file"
         log_config_success "Loaded secrets from: secrets-${runtime}-${env}.env"
     else

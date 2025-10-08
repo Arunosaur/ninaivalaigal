@@ -127,12 +127,9 @@ else
     redis:7-alpine redis-server --requirepass "${NINA_REDIS_PASSWORD:-nina_redis_${NINA_ENV}_password}" --maxmemory 512mb --maxmemory-policy allkeys-lru
 
   log "$REDIS_CONTAINER started successfully."
-  fi
-else
-  log "Skipping nina-intelligence-cache per flag."
 fi
 
-{{ ... }}
+# 3) API Server
 if ! $SKIP_API; then
   log "Starting API..."
 

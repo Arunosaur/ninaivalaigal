@@ -108,6 +108,7 @@ load_env() {
     if [ -f "$env_file" ]; then
         # Source the file to load variables
         set -a
+        # shellcheck source=/dev/null
         source "$env_file"
         set +a
         print_status "SUCCESS" "Loaded environment from $env_file"
@@ -185,7 +186,7 @@ validate_monitoring() {
         print_status "INFO" "HealthChecks.io not configured (optional)"
     fi
 
-    return $([ "$validation_passed" = true ] && echo 0 || echo 1)
+    return "$([ "$validation_passed" = true ] && echo 0 || echo 1)"
 }
 
 # Function to set up GitHub secrets

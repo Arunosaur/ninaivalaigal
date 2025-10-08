@@ -40,7 +40,6 @@ Ninaivalaigal Stack Manager - Manage all 9 runtime × environment combinations
 USAGE:
     $(basename "$0") <command> <runtime> <environment> [service] [options]
 
-COMMANDS:
     start       Start the stack
     stop        Stop the stack (preserves data)
     restart     Restart the stack or specific service
@@ -179,7 +178,7 @@ run_compose() {
     compose_cmd=$(get_compose_cmd "$runtime")
 
     local files
-    files=($(get_files "$runtime" "$env"))
+    mapfile -t files < <(get_files "$runtime" "$env")
     local compose_file="${files[0]}"
     local env_file="${files[1]}"
 

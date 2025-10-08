@@ -19,6 +19,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
     HEALTH_MONITORING_ENABLED="true"
     AUTO_RESTART_ENABLED="false"
 else
+    # shellcheck source=/dev/null
     source "$CONFIG_FILE"
 fi
 

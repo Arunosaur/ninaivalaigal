@@ -121,6 +121,7 @@ validate_env() {
 
     # Source the .env file
     set -a
+    # shellcheck source=/dev/null
     source "$env_file"
     set +a
 

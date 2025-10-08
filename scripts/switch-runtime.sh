@@ -36,6 +36,7 @@ log "Switching to $NEW_RUNTIME runtime..."
 
 # Stop all running containers from current runtime
 if [ -f "$CONFIG_FILE" ]; then
+    # shellcheck source=/dev/null
     source "$CONFIG_FILE"
     log "Stopping containers for current runtime: $ACTIVE_RUNTIME"
 
@@ -45,7 +46,7 @@ if [ -f "$CONFIG_FILE" ]; then
             ;;
         docker|colima)
             docker-compose -f "$PROJECT_ROOT/compose.docker.yml" down 2>/dev/null || true
-            docker stop $(docker ps -q --filter name=ninaivalaigal) 2>/dev/null || true
+            docker stop "$(docker ps -q --filter name=ninaivalaigal)" 2>/dev/null || true
             ;;
     esac
 fi
