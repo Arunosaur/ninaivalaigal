@@ -69,7 +69,7 @@ class VendorAdminOperations:
             try:
                 result = await self.db.fetch_one(query, cutoff_time)
                 return result[0] if result else 0
-            except:
+            except Exception:
                 # If table doesn't exist, return estimated value
                 return 0
 
@@ -91,7 +91,7 @@ class VendorAdminOperations:
             try:
                 result = await self.db.fetch_one(query, cutoff_time)
                 return float(result[0]) if result and result[0] else 50.0
-            except:
+            except Exception:
                 # Return default if table doesn't exist
                 return 50.0
 
@@ -115,7 +115,7 @@ class VendorAdminOperations:
             try:
                 result = await self.db.fetch_one(query, cutoff_time)
                 return float(result[0]) if result and result[0] else 0.5
-            except:
+            except Exception:
                 # Return default if table doesn't exist
                 return 0.5
 

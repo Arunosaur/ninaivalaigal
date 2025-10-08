@@ -13,7 +13,7 @@ pytestmark = pytest.mark.skipif(
 async def test_write_query_semantic():
     s = PostgresStore(PGConfig(dsn=os.getenv("DATABASE_URL")))
     await s.ensure_schema()
-    row = await s.write(
+    _ = await s.write(
         {
             "scope": "personal",
             "user_id": "u1",

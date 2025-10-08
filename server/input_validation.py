@@ -9,7 +9,7 @@ import json
 import re
 from typing import Any
 
-from email_validator import validate_email
+from email_validator import validate_email as validate_email_library
 
 
 class InputValidationError(Exception):

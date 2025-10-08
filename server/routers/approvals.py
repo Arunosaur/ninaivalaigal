@@ -68,11 +68,11 @@ async def handle_approval_action(
 ):
     """Approve or reject an approval request"""
     if approval_action.action == "approve":
-        result = approval_manager.approve_request(
+        _ = approval_manager.approve_request(
             approval_action.request_id, current_user.id
         )
     elif approval_action.action == "reject":
-        result = approval_manager.reject_request(
+        _ =  approval_manager.reject_request(
             approval_action.request_id, current_user.id, approval_action.reason
         )
     else:

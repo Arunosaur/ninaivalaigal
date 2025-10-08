@@ -559,7 +559,7 @@ class IntelligentMemorySuggestions:
         try:
             results = await self.db.fetch_all(query, memory_id, user_id, limit)
             return [dict(row) for row in results] if results else []
-        except:
+        except Exception:
             return []  # Graceful fallback
 
     async def _find_similar_by_text(
@@ -579,5 +579,5 @@ class IntelligentMemorySuggestions:
         try:
             results = await self.db.fetch_all(query, query_text, user_id, limit)
             return [dict(row) for row in results] if results else []
-        except:
+        except Exception:
             return []

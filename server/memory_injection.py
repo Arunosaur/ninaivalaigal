@@ -534,5 +534,5 @@ class MemoryInjectionEngine:
         try:
             results = await self.db.fetch_all(query, context.user_id)
             return [dict(row) for row in results] if results else []
-        except:
+        except Exception:
             return []

@@ -305,7 +305,7 @@ def test_shell_injection_prevention():
     print("\nTesting safe commands:")
     for command in safe_commands:
         try:
-            result = prevention.safe_subprocess_run(command, timeout=5)
+            _ =  prevention.safe_subprocess_run(command, timeout=5)
             print(f"PASSED: Safe command executed: {command}")
         except Exception as e:
             print(f"FAILED: Safe command rejected: {command} - {e}")

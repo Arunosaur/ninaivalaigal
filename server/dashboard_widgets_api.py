@@ -94,7 +94,7 @@ class DashboardConnectionManager:
                         }
                     )
                 )
-            except:
+            except Exception:
                 # Connection closed, remove it
                 self.disconnect(user_id)
 
@@ -110,7 +110,7 @@ class DashboardConnectionManager:
                         }
                     )
                 )
-            except:
+            except Exception:
                 self.disconnect(user_id)
 
 

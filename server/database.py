@@ -1274,30 +1274,6 @@ class DatabaseManager:
 
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
-    def get_user_by_id(self, user_id):
-        """Get user by ID"""
-        session = self.get_session()
-        try:
-            return session.query(User).filter(User.id == user_id).first()
-        finally:
-            session.close()
-
-    def get_user_by_email(self, email):
-        """Get user by email"""
-        session = self.get_session()
-        try:
-            return session.query(User).filter(User.email == email).first()
-        finally:
-            session.close()
-
-    def get_user_by_username(self, username: str):
-        """Get user by username"""
-        session = self.get_session()
-        try:
-            return session.query(User).filter(User.username == username).first()
-        finally:
-            session.close()
-
     def get_user_by_id_fixed(self, user_id):
         """Get user by ID - fixed version"""
         session = self.get_session()
