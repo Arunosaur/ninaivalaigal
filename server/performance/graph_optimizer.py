@@ -3,6 +3,7 @@ Graph Database Performance Optimization
 Integrates Apache AGE graph database optimizations with Redis caching
 """
 
+import asyncio
 import hashlib
 import json
 import time

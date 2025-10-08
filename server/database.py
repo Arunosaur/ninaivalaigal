@@ -439,7 +439,7 @@ class DatabaseManager:
         try:
             # Only allow deletion of contexts owned by the authenticated user
             context = (
-                session.query(RecordingContext)
+                session.query(Context)
                 .filter_by(name=context_name, owner_id=user_id)
                 .first()
             )
