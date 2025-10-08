@@ -33,27 +33,17 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    username = Column(
-        String(255), unique=True, nullable=True, index=True
-    )  # Made nullable for email-only signup
-    email = Column(
-        String(255), unique=True, nullable=False, index=True
-    )  # Made required
+    username = Column(String(255), unique=True, nullable=True, index=True)  # Made nullable for email-only signup
+    email = Column(String(255), unique=True, nullable=False, index=True)  # Made required
     name = Column(String(255), nullable=False)  # Full name
     password_hash = Column(String(255), nullable=False)
     account_type = Column(
         String(50), nullable=False, default="individual"
     )  # individual, team_member, organization_admin
-    subscription_tier = Column(
-        String(50), nullable=False, default="free"
-    )  # free, team, enterprise
+    subscription_tier = Column(String(50), nullable=False, default="free")  # free, team, enterprise
     personal_contexts_limit = Column(Integer, default=10)
-    role = Column(
-        String(50), nullable=False, default="user"
-    )  # user, admin, super_admin
-    created_via = Column(
-        String(50), nullable=False, default="signup"
-    )  # signup, invite, admin
+    role = Column(String(50), nullable=False, default="user")  # user, admin, super_admin
+    created_via = Column(String(50), nullable=False, default="signup")  # signup, invite, admin
     email_verified = Column(Boolean, default=False)
     verification_token = Column(String(255), nullable=True)
     last_login = Column(DateTime, nullable=True)
@@ -66,18 +56,14 @@ class User(Base):
     is_system_admin = Column(Boolean, default=False)
 
     # Relationships for sharing system
-    owned_contexts = relationship(
-        "Context", foreign_keys="[Context.owner_id]", back_populates="owner"
-    )
+    owned_contexts = relationship("Context", foreign_keys="[Context.owner_id]", back_populates="owner")
     team_memberships = relationship("TeamMember", back_populates="user")
     granted_permissions = relationship(
         "ContextPermission",
         foreign_keys="[ContextPermission.granted_by]",
         back_populates="granted_by_user",
     )
-    user_permissions = relationship(
-        "ContextPermission", foreign_keys="[ContextPermission.user_id]"
-    )
+    user_permissions = relationship("ContextPermission", foreign_keys="[ContextPermission.user_id]")
 
     # RBAC relationships (defined in rbac_models.py)
     # These are added dynamically by rbac_models.py to avoid circular imports
@@ -89,9 +75,7 @@ class Memory(Base):
     __tablename__ = "memories"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
-    )  # NULL for backward compatibility
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # NULL for backward compatibility
     context = Column(String(255), index=True, nullable=False)
     type = Column(String(100), nullable=False)
     source = Column(String(255), nullable=False)
@@ -139,12 +123,8 @@ class Team(Base):
     members = relationship("TeamMember", back_populates="team")
     contexts = relationship("Context", back_populates="team")
     permissions = relationship("ContextPermission", back_populates="team")
-    invitations = relationship(
-        "TeamInvitation", back_populates="team", cascade="all, delete-orphan"
-    )
-    memberships = relationship(
-        "TeamMembership", back_populates="team", cascade="all, delete-orphan"
-    )
+    invitations = relationship("TeamInvitation", back_populates="team", cascade="all, delete-orphan")
+    memberships = relationship("TeamMembership", back_populates="team", cascade="all, delete-orphan")
 
 
 class TeamMember(Base):
@@ -155,9 +135,7 @@ class TeamMember(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    role = Column(
-        String(50), nullable=False, default="member"
-    )  # owner, admin, member, viewer
+    role = Column(String(50), nullable=False, default="member")  # owner, admin, member, viewer
     joined_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -173,18 +151,12 @@ class Context(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
-    owner_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
-    )  # NULL for team/org owned contexts
-    team_id = Column(
-        UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True
-    )  # NULL for user/org owned contexts
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # NULL for team/org owned contexts
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)  # NULL for user/org owned contexts
     organization_id = Column(
         UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )  # NULL for user/team owned contexts
-    visibility = Column(
-        String(50), nullable=False, default="private"
-    )  # private, team, organization, public
+    visibility = Column(String(50), nullable=False, default="private")  # private, team, organization, public
     is_active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -204,12 +176,8 @@ class ContextPermission(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     context_id = Column(UUID(as_uuid=True), ForeignKey("contexts.id"), nullable=False)
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
-    )  # NULL for team/org permissions
-    team_id = Column(
-        UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True
-    )  # NULL for user/org permissions
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # NULL for team/org permissions
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)  # NULL for user/org permissions
     organization_id = Column(
         UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )  # NULL for user/team permissions
@@ -231,14 +199,10 @@ class OrganizationRegistration(Base):
     __tablename__ = "organization_registrations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    organization_id = Column(
-        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False
-    )
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
     creator_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     registration_data = Column(JSON, nullable=True)  # Additional signup data
-    status = Column(
-        String(50), nullable=False, default="active"
-    )  # active, suspended, cancelled
+    status = Column(String(50), nullable=False, default="active")  # active, suspended, cancelled
     billing_email = Column(String(255), nullable=False)
     company_size = Column(String(50), nullable=True)
     industry = Column(String(100), nullable=True)
@@ -257,16 +221,12 @@ class UserInvitation(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     email = Column(String(255), nullable=False, index=True)
-    organization_id = Column(
-        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
-    )
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)
     invited_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     invitation_token = Column(String(255), unique=True, nullable=False)
     role = Column(String(50), nullable=False, default="user")
-    status = Column(
-        String(50), nullable=False, default="pending"
-    )  # pending, accepted, expired, cancelled
+    status = Column(String(50), nullable=False, default="pending")  # pending, accepted, expired, cancelled
     expires_at = Column(DateTime, nullable=False)
     accepted_at = Column(DateTime, nullable=True)
     invitation_message = Column(Text, nullable=True)

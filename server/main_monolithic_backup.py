@@ -13,6 +13,7 @@ from auto_recording import get_auto_recorder
 from database import Context, ContextPermission, DatabaseManager, TeamMember, User
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from observability import MetricsMiddleware, health_router, metrics_router
 from performance_monitor import get_performance_monitor, start_performance_monitoring
@@ -335,9 +336,7 @@ async def create_organization(
             "message": "Organization created successfully",
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create organization: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create organization: {str(e)}")
 
 
 @app.get("/organizations")
@@ -352,17 +351,13 @@ def get_organizations(request: Request, current_user: User = Depends(get_current
                     "id": org.id,
                     "name": org.name,
                     "description": org.description,
-                    "created_at": (
-                        org.created_at.isoformat() if org.created_at else None
-                    ),
+                    "created_at": (org.created_at.isoformat() if org.created_at else None),
                 }
                 for org in organizations
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get organizations: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get organizations: {str(e)}")
 
 
 @app.get("/users/me/organizations")
@@ -382,9 +377,7 @@ def get_user_organizations(current_user: User = Depends(get_current_user)):
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get user organizations: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user organizations: {str(e)}")
 
 
 @app.get("/organizations/{org_id}/teams")
@@ -405,9 +398,7 @@ def get_organization_teams(org_id: int, current_user: User = Depends(get_current
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get organization teams: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get organization teams: {str(e)}")
 
 
 @app.get("/health")
@@ -475,9 +466,7 @@ def create_team(
 ):
     """Create a new team"""
     try:
-        team = db.create_team(
-            team_data.name, team_data.organization_id, team_data.description
-        )
+        team = db.create_team(team_data.name, team_data.organization_id, team_data.description)
         # Automatically add creator as team admin
         db.add_team_member(team.id, current_user.id, "admin")
         return {
@@ -508,9 +497,7 @@ def add_team_member(
             "message": f"User {member_data.user_id} added to team {team_id} with role {member_data.role}",
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to add team member: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to add team member: {str(e)}")
 
 
 @app.delete("/teams/{team_id}/members/{user_id}")
@@ -530,9 +517,7 @@ def remove_team_member(
             "message": f"User {user_id} removed from team {team_id}",
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to remove team member: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to remove team member: {str(e)}")
 
 
 @app.get("/teams/{team_id}/members")
@@ -554,9 +539,7 @@ def get_team_members(team_id: int, current_user: User = Depends(get_current_user
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get team members: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get team members: {str(e)}")
 
 
 @app.get("/users/me/teams")
@@ -577,9 +560,7 @@ def get_user_teams(current_user: User = Depends(get_current_user)):
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get user teams: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user teams: {str(e)}")
 
 
 @app.get("/teams")
@@ -622,17 +603,9 @@ def share_context(
             # Create permission entry
             permission = ContextPermission(
                 context_id=context_id,
-                user_id=(
-                    share_data.target_id if share_data.target_type == "user" else None
-                ),
-                team_id=(
-                    share_data.target_id if share_data.target_type == "team" else None
-                ),
-                organization_id=(
-                    share_data.target_id
-                    if share_data.target_type == "organization"
-                    else None
-                ),
+                user_id=(share_data.target_id if share_data.target_type == "user" else None),
+                team_id=(share_data.target_id if share_data.target_type == "team" else None),
+                organization_id=(share_data.target_id if share_data.target_type == "organization" else None),
                 permission_level=share_data.permission_level,
                 granted_by=current_user.id,
             )
@@ -683,22 +656,14 @@ async def request_cross_team_access(
 
 
 @app.post("/approval-action")
-async def handle_approval_action(
-    action_data: ApprovalAction, current_user: User = Depends(get_current_user)
-):
+async def handle_approval_action(action_data: ApprovalAction, current_user: User = Depends(get_current_user)):
     """Approve or reject a cross-team access request"""
     if action_data.action == "approve":
-        result = approval_manager.approve_request(
-            action_data.request_id, current_user.id
-        )
+        result = approval_manager.approve_request(action_data.request_id, current_user.id)
     elif action_data.action == "reject":
-        result = approval_manager.reject_request(
-            action_data.request_id, current_user.id, action_data.reason
-        )
+        result = approval_manager.reject_request(action_data.request_id, current_user.id, action_data.reason)
     else:
-        raise HTTPException(
-            status_code=400, detail="Invalid action. Must be 'approve' or 'reject'"
-        )
+        raise HTTPException(status_code=400, detail="Invalid action. Must be 'approve' or 'reject'")
 
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])
@@ -720,9 +685,7 @@ async def get_pending_approvals(current_user: User = Depends(get_current_user)):
 
 
 @app.get("/approval-status/{request_id}")
-async def get_approval_status(
-    request_id: int, current_user: User = Depends(get_current_user)
-):
+async def get_approval_status(request_id: int, current_user: User = Depends(get_current_user)):
     """Get status of a specific approval request"""
     result = approval_manager.get_request_status(request_id)
 
@@ -739,9 +702,7 @@ def get_user_accessible_contexts(current_user: User = Depends(get_current_user))
         contexts = db.get_user_contexts(current_user.id)
         return {"contexts": contexts}
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get user contexts: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user contexts: {str(e)}")
 
 
 # --- Context Creation with Ownership ---
@@ -761,11 +722,7 @@ async def create_context(
             scope=ContextScope(context_data.scope),
             owner_id=current_user.id if context_data.scope == "personal" else None,
             team_id=context_data.team_id if context_data.scope == "team" else None,
-            organization_id=(
-                context_data.organization_id
-                if context_data.scope == "organization"
-                else None
-            ),
+            organization_id=(context_data.organization_id if context_data.scope == "organization" else None),
         )
 
         # Use spec-kit for creation
@@ -795,20 +752,12 @@ async def store_memory(
         user_id = current_user.id
 
         # Extract context from data if provided, otherwise use default
-        context = (
-            entry.data.get("context", "default")
-            if hasattr(entry, "data") and entry.data
-            else "default"
-        )
+        context = entry.data.get("context", "default") if hasattr(entry, "data") and entry.data else "default"
 
         # If Windsurf is sending to hardcoded "test-context", redirect to actual active context
         if context == "test-context" and entry.source == "zsh_session":
             active_contexts = db.get_all_contexts()
-            active_context_names = [
-                ctx.get("name")
-                for ctx in active_contexts
-                if ctx.get("is_active", False)
-            ]
+            active_context_names = [ctx.get("name") for ctx in active_contexts if ctx.get("is_active", False)]
             if active_context_names:
                 # Use the first active context instead of hardcoded test-context
                 context = active_context_names[0]
@@ -854,9 +803,7 @@ async def store_memory(
 
 @app.get("/memory")
 @require_permission(Resource.MEMORY, Action.READ)
-def get_memory(
-    request: Request, context: str, current_user: User = Depends(get_current_user)
-):
+def get_memory(request: Request, context: str, current_user: User = Depends(get_current_user)):
     """Retrieve memories for a context with user isolation"""
     try:
         # Use authenticated user ID (mandatory)
@@ -902,15 +849,11 @@ async def start_recording(context: str, current_user: User = Depends(get_current
             raise HTTPException(status_code=500, detail=result["error"])
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to start recording: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to start recording: {str(e)}")
 
 
 @app.post("/context/stop")
-async def stop_recording(
-    context: str = None, current_user: User = Depends(get_current_user)
-):
+async def stop_recording(context: str = None, current_user: User = Depends(get_current_user)):
     """Stop CCTV-style automatic recording"""
     try:
         # Use authenticated user ID (mandatory)
@@ -954,25 +897,17 @@ async def get_recording_status(current_user: User = Depends(get_current_user)):
 
         status = await auto_recorder.get_recording_status()
         return {
-            "recording_status": (
-                "🎥 CCTV Active"
-                if status["active_contexts"] > 0
-                else "🔴 CCTV Inactive"
-            ),
+            "recording_status": ("🎥 CCTV Active" if status["active_contexts"] > 0 else "🔴 CCTV Inactive"),
             "active_contexts": status["active_contexts"],
             "contexts": status["contexts"],
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get recording status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get recording status: {str(e)}")
 
 
 @app.get("/memory/recall")
-async def recall_hierarchical(
-    query: str, context: str = None, current_user: User = Depends(get_current_user)
-):
+async def recall_hierarchical(query: str, context: str = None, current_user: User = Depends(get_current_user)):
     """Hierarchical memory recall: Personal -> Team -> Organization"""
     try:
         user_id = current_user.id if current_user else None
@@ -993,9 +928,7 @@ async def recall_hierarchical(
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to recall memories: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to recall memories: {str(e)}")
 
 
 @app.post("/memory/record")
@@ -1010,9 +943,7 @@ async def record_interaction(
     try:
         user_id = current_user.id if current_user else None
 
-        success = await auto_recorder.record_interaction(
-            context, interaction_type, content, metadata
-        )
+        success = await auto_recorder.record_interaction(context, interaction_type, content, metadata)
 
         if success:
             return {
@@ -1028,9 +959,7 @@ async def record_interaction(
             }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to record interaction: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to record interaction: {str(e)}")
 
 
 @app.get("/context/active")
@@ -1056,9 +985,7 @@ def get_all_contexts(current_user: User = Depends(get_current_user)):
         contexts = db.get_all_contexts(user_id)
         return {"contexts": contexts}
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to share context: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to share context: {str(e)}")
 
 
 @app.post("/contexts/{context_id}/transfer")
@@ -1083,9 +1010,7 @@ def transfer_context(
             elif context.team_id:
                 # Check if user is team admin
                 team_member = (
-                    session.query(TeamMember)
-                    .filter_by(team_id=context.team_id, user_id=current_user.id)
-                    .first()
+                    session.query(TeamMember).filter_by(team_id=context.team_id, user_id=current_user.id).first()
                 )
                 if team_member and team_member.role in ["admin", "owner"]:
                     is_owner = True
@@ -1170,49 +1095,31 @@ def get_prometheus_metrics():
             current_metrics = perf_monitor.get_current_metrics()
 
             # API request metrics
-            metrics_output.append(
-                "# HELP ninaivalaigal_requests_total Total number of API requests"
-            )
+            metrics_output.append("# HELP ninaivalaigal_requests_total Total number of API requests")
             metrics_output.append("# TYPE ninaivalaigal_requests_total counter")
-            metrics_output.append(
-                f"ninaivalaigal_requests_total {current_metrics.get('requests_total', 0)}"
-            )
+            metrics_output.append(f"ninaivalaigal_requests_total {current_metrics.get('requests_total', 0)}")
 
             # Health check latency
-            metrics_output.append(
-                "# HELP ninaivalaigal_health_latency_seconds Health check response time"
-            )
+            metrics_output.append("# HELP ninaivalaigal_health_latency_seconds Health check response time")
             metrics_output.append("# TYPE ninaivalaigal_health_latency_seconds gauge")
             metrics_output.append(
                 f"ninaivalaigal_health_latency_seconds {current_metrics.get('health_latency_ms', 0) / 1000}"
             )
 
             # Database connection metrics
-            metrics_output.append(
-                "# HELP ninaivalaigal_db_connections_active Active database connections"
-            )
+            metrics_output.append("# HELP ninaivalaigal_db_connections_active Active database connections")
             metrics_output.append("# TYPE ninaivalaigal_db_connections_active gauge")
-            metrics_output.append(
-                f"ninaivalaigal_db_connections_active {current_metrics.get('db_connections', 0)}"
-            )
+            metrics_output.append(f"ninaivalaigal_db_connections_active {current_metrics.get('db_connections', 0)}")
 
             # Memory usage
-            metrics_output.append(
-                "# HELP ninaivalaigal_memory_usage_percent Memory usage percentage"
-            )
+            metrics_output.append("# HELP ninaivalaigal_memory_usage_percent Memory usage percentage")
             metrics_output.append("# TYPE ninaivalaigal_memory_usage_percent gauge")
-            metrics_output.append(
-                f"ninaivalaigal_memory_usage_percent {current_metrics.get('memory_percent', 0)}"
-            )
+            metrics_output.append(f"ninaivalaigal_memory_usage_percent {current_metrics.get('memory_percent', 0)}")
 
             # CPU usage
-            metrics_output.append(
-                "# HELP ninaivalaigal_cpu_usage_percent CPU usage percentage"
-            )
+            metrics_output.append("# HELP ninaivalaigal_cpu_usage_percent CPU usage percentage")
             metrics_output.append("# TYPE ninaivalaigal_cpu_usage_percent gauge")
-            metrics_output.append(
-                f"ninaivalaigal_cpu_usage_percent {current_metrics.get('cpu_percent', 0)}"
-            )
+            metrics_output.append(f"ninaivalaigal_cpu_usage_percent {current_metrics.get('cpu_percent', 0)}")
 
         # Add security metrics
         if hasattr(security_collector, "get_prometheus_metrics"):
@@ -1223,9 +1130,7 @@ def get_prometheus_metrics():
         import time
 
         # System metrics
-        metrics_output.append(
-            "# HELP ninaivalaigal_uptime_seconds Application uptime in seconds"
-        )
+        metrics_output.append("# HELP ninaivalaigal_uptime_seconds Application uptime in seconds")
         metrics_output.append("# TYPE ninaivalaigal_uptime_seconds counter")
         metrics_output.append(
             f"ninaivalaigal_uptime_seconds {time.time() - app.state.start_time if hasattr(app.state, 'start_time') else 0}"
@@ -1234,13 +1139,9 @@ def get_prometheus_metrics():
         # Database health
         try:
             db_healthy = db.health_check() if hasattr(db, "health_check") else True
-            metrics_output.append(
-                "# HELP ninaivalaigal_database_healthy Database health status"
-            )
+            metrics_output.append("# HELP ninaivalaigal_database_healthy Database health status")
             metrics_output.append("# TYPE ninaivalaigal_database_healthy gauge")
-            metrics_output.append(
-                f"ninaivalaigal_database_healthy {1 if db_healthy else 0}"
-            )
+            metrics_output.append(f"ninaivalaigal_database_healthy {1 if db_healthy else 0}")
         except Exception:
             metrics_output.append("ninaivalaigal_database_healthy 0")
 
@@ -1269,10 +1170,7 @@ async def detailed_health():
 
         # Determine overall status
         overall_status = "healthy"
-        if (
-            db_status.get("status") != "healthy"
-            or redis_status.get("status") != "healthy"
-        ):
+        if db_status.get("status") != "healthy" or redis_status.get("status") != "healthy":
             overall_status = "degraded"
 
         return {
@@ -1295,6 +1193,4 @@ async def detailed_health():
 
 # Run the server
 if __name__ == "__main__":
-    import uvicorn
-
     uvicorn.run("main:app", host="127.0.0.1", port=13370, reload=True)

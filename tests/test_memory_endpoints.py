@@ -55,9 +55,7 @@ class TestMemoryAPIEndpoints:
         # Make request (this will test the endpoint logic)
         # Note: We're testing the function logic, not the HTTP layer
         assert mock_provider is not None
-        result = mock_provider.remember(
-            "Test memory content", {"source": "api"}, "ctx_123"
-        )
+        result = mock_provider.remember("Test memory content", {"source": "api"}, "ctx_123")
 
         assert result["id"] == "mem_123"
         assert result["text"] == "Test memory content"
@@ -247,9 +245,7 @@ class TestMemoryProviderIntegration:
         from server.memory_api import RememberRequest
 
         # Test valid request
-        valid_request = RememberRequest(
-            text="Test memory content", meta={"source": "test"}, context_id="ctx_123"
-        )
+        valid_request = RememberRequest(text="Test memory content", meta={"source": "test"}, context_id="ctx_123")
 
         assert valid_request.text == "Test memory content"
         assert valid_request.meta["source"] == "test"
@@ -274,9 +270,7 @@ class TestMemoryAPIErrorHandling:
     def test_authentication_required(self, mock_get_user):
         """Test that authentication is required for memory operations."""
         # Mock authentication failure
-        mock_get_user.side_effect = HTTPException(
-            status_code=401, detail="Not authenticated"
-        )
+        mock_get_user.side_effect = HTTPException(status_code=401, detail="Not authenticated")
 
         # Test that authentication error is raised
         with pytest.raises(HTTPException) as exc_info:

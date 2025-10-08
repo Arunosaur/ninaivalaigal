@@ -27,23 +27,13 @@ router = APIRouter(prefix="/suggestions", tags=["suggestions"])
 
 # Request/Response models
 class GetSuggestionsRequest(BaseModel):
-    memory_id: str | None = Field(
-        None, description="Base memory for similarity suggestions"
-    )
+    memory_id: str | None = Field(None, description="Base memory for similarity suggestions")
     query: str | None = Field(None, description="Query for content-based suggestions")
-    context_id: str | None = Field(
-        None, description="Context for contextual suggestions"
-    )
+    context_id: str | None = Field(None, description="Context for contextual suggestions")
     limit: int = Field(10, ge=1, le=50, description="Maximum number of suggestions")
-    suggestion_types: list[str] | None = Field(
-        None, description="Algorithm types to use"
-    )
-    exclude_memory_ids: list[str] | None = Field(
-        None, description="Memory IDs to exclude"
-    )
-    min_confidence: float = Field(
-        0.3, ge=0.0, le=1.0, description="Minimum confidence threshold"
-    )
+    suggestion_types: list[str] | None = Field(None, description="Algorithm types to use")
+    exclude_memory_ids: list[str] | None = Field(None, description="Memory IDs to exclude")
+    min_confidence: float = Field(0.3, ge=0.0, le=1.0, description="Minimum confidence threshold")
 
 
 class MemorySuggestionResponse(BaseModel):
@@ -136,9 +126,7 @@ async def generate_suggestions(
                 "context_aware": SuggestionType.CONTEXT_AWARE,
                 "hybrid": SuggestionType.HYBRID,
             }
-            suggestion_types = [
-                type_map.get(t) for t in request.suggestion_types if t in type_map
-            ]
+            suggestion_types = [type_map.get(t) for t in request.suggestion_types if t in type_map]
 
         # Create suggestion request
         suggestion_request = SuggestionRequest(
@@ -184,9 +172,7 @@ async def generate_suggestions(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to generate suggestions", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to generate suggestions", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -353,9 +339,7 @@ async def get_trending_memories(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to get trending memories", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to get trending memories", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -446,9 +430,7 @@ async def get_suggestion_stats(
         return stats
 
     except Exception as e:
-        logger.error(
-            "Failed to get suggestion stats", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to get suggestion stats", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -164,9 +164,7 @@ class StrictMultipartValidator:
             result["violations"].append("filename_invalid_characters")
 
         # Check for executable extensions
-        if self.policy.block_executable_extensions and self._is_executable_extension(
-            filename
-        ):
+        if self.policy.block_executable_extensions and self._is_executable_extension(filename):
             result["valid"] = False
             result["violations"].append("executable_extension")
 
@@ -193,9 +191,7 @@ class StrictMultipartValidator:
             return ""
         return "." + filename.split(".")[-1].lower()
 
-    def _detect_content_type_mismatch(
-        self, filename: str, content_type: str
-    ) -> dict[str, str] | None:
+    def _detect_content_type_mismatch(self, filename: str, content_type: str) -> dict[str, str] | None:
         """
         Detect filename/content-type mismatches that could indicate evasion.
 
@@ -285,17 +281,13 @@ class StrictMultipartValidator:
         for part_result in validation_result["part_results"]:
             if not part_result["valid"]:
                 part_violations = ", ".join(part_result["violations"])
-                violations.append(
-                    f"Field '{part_result['field_name']}': {part_violations}"
-                )
+                violations.append(f"Field '{part_result['field_name']}': {part_violations}")
 
         global_violations = validation_result.get("violations", [])
         if global_violations:
             violations.extend([f"Global: {v}" for v in global_violations])
 
-        return "❌ Multipart validation failed:\n" + "\n".join(
-            f"  - {v}" for v in violations
-        )
+        return "❌ Multipart validation failed:\n" + "\n".join(f"  - {v}" for v in violations)
 
 
 def create_strict_policy(
@@ -306,9 +298,7 @@ def create_strict_policy(
     """Create strict multipart policy for production."""
 
     text_types = custom_text_types or StrictMultipartValidator.DEFAULT_TEXT_TYPES
-    binary_types = custom_binary_types or (
-        StrictMultipartValidator.DEFAULT_BINARY_TYPES if allow_binary else set()
-    )
+    binary_types = custom_binary_types or (StrictMultipartValidator.DEFAULT_BINARY_TYPES if allow_binary else set())
 
     return MultipartPolicy(
         allowed_text_types=text_types,
@@ -357,8 +347,7 @@ async def validate_starlette_multipart(
             parts.append(
                 {
                     "field_name": field_name,
-                    "content_type": field_value.content_type
-                    or "application/octet-stream",
+                    "content_type": field_value.content_type or "application/octet-stream",
                     "filename": field_value.filename,
                     "content": content,
                 }

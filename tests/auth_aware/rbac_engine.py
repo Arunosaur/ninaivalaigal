@@ -163,9 +163,7 @@ class RBACTestEngine:
                 # Replace template variables
                 endpoint = self._resolve_endpoint_template(endpoint_template, user)
 
-                result = await self._test_endpoint_permission(
-                    user, token, method, endpoint, expected_result="allow"
-                )
+                result = await self._test_endpoint_permission(user, token, method, endpoint, expected_result="allow")
                 permission_results.append(result)
 
             # Test forbidden endpoints
@@ -175,14 +173,10 @@ class RBACTestEngine:
             for method, endpoint_template in forbidden_endpoints:
                 endpoint = self._resolve_endpoint_template(endpoint_template, user)
 
-                result = await self._test_endpoint_permission(
-                    user, token, method, endpoint, expected_result="deny"
-                )
+                result = await self._test_endpoint_permission(user, token, method, endpoint, expected_result="deny")
                 permission_results.append(result)
 
-            logger.info(
-                f"Tested {len(permission_results)} permissions for role {user.role.value}"
-            )
+            logger.info(f"Tested {len(permission_results)} permissions for role {user.role.value}")
             return permission_results
 
         except Exception as e:
@@ -223,9 +217,7 @@ class RBACTestEngine:
             for method, endpoint_template in forbidden_actions:
                 endpoint = self._resolve_endpoint_template(endpoint_template, user)
 
-                result = await self._test_endpoint_permission(
-                    user, token, method, endpoint, expected_result="deny"
-                )
+                result = await self._test_endpoint_permission(user, token, method, endpoint, expected_result="deny")
                 boundary_results.append(result)
 
             # Test privilege escalation attempts
@@ -239,23 +231,17 @@ class RBACTestEngine:
             for method, endpoint_template in escalation_attempts:
                 endpoint = self._resolve_endpoint_template(endpoint_template, user)
 
-                result = await self._test_privilege_escalation_attempt(
-                    user, token, method, endpoint
-                )
+                result = await self._test_privilege_escalation_attempt(user, token, method, endpoint)
                 boundary_results.append(result)
 
-            logger.info(
-                f"Tested {len(boundary_results)} permission boundaries for {user.role.value}"
-            )
+            logger.info(f"Tested {len(boundary_results)} permission boundaries for {user.role.value}")
             return boundary_results
 
         except Exception as e:
             logger.error(f"Permission boundary testing failed: {e}")
             return []
 
-    async def test_role_switching(
-        self, user: TestUser, target_role: UserRole
-    ) -> AuthTestResults:
+    async def test_role_switching(self, user: TestUser, target_role: UserRole) -> AuthTestResults:
         """
         Test role switching functionality and validation
 
@@ -284,9 +270,7 @@ class RBACTestEngine:
                 )
 
             # Attempt role switch
-            switch_success = await self._attempt_role_switch(
-                user, initial_token, target_role
-            )
+            switch_success = await self._attempt_role_switch(user, initial_token, target_role)
 
             # Validate new permissions if switch was successful
             validation_results = []
@@ -294,9 +278,7 @@ class RBACTestEngine:
                 # Test that new role permissions are active
                 new_token = await self._get_user_token(user)
                 if new_token:
-                    validation_results = await self._validate_role_permissions(
-                        user, new_token, target_role
-                    )
+                    validation_results = await self._validate_role_permissions(user, new_token, target_role)
 
             execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
@@ -338,9 +320,7 @@ class RBACTestEngine:
                 errors=[str(e)],
             )
 
-    async def validate_cross_team_access(
-        self, user: TestUser, target_team_id: str
-    ) -> List[PermissionTestResult]:
+    async def validate_cross_team_access(self, user: TestUser, target_team_id: str) -> List[PermissionTestResult]:
         """
         Validate cross-team access controls
 
@@ -370,13 +350,9 @@ class RBACTestEngine:
 
             for method, endpoint in cross_team_endpoints:
                 # Determine expected result based on user role and team relationship
-                expected_result = self._determine_cross_team_access_expectation(
-                    user, target_team_id, method, endpoint
-                )
+                expected_result = self._determine_cross_team_access_expectation(user, target_team_id, method, endpoint)
 
-                result = await self._test_endpoint_permission(
-                    user, token, method, endpoint, expected_result
-                )
+                result = await self._test_endpoint_permission(user, token, method, endpoint, expected_result)
                 cross_team_results.append(result)
 
             logger.info(f"Tested {len(cross_team_results)} cross-team access scenarios")
@@ -423,9 +399,7 @@ class RBACTestEngine:
 
                 # Prepare request based on method
                 if method == "GET":
-                    response = await client.get(
-                        f"{self.base_url}{endpoint}", headers=headers, timeout=5.0
-                    )
+                    response = await client.get(f"{self.base_url}{endpoint}", headers=headers, timeout=5.0)
                 elif method == "POST":
                     response = await client.post(
                         f"{self.base_url}{endpoint}",
@@ -441,9 +415,7 @@ class RBACTestEngine:
                         timeout=5.0,
                     )
                 elif method == "DELETE":
-                    response = await client.delete(
-                        f"{self.base_url}{endpoint}", headers=headers, timeout=5.0
-                    )
+                    response = await client.delete(f"{self.base_url}{endpoint}", headers=headers, timeout=5.0)
                 else:
                     raise ValueError(f"Unsupported HTTP method: {method}")
 
@@ -485,13 +457,9 @@ class RBACTestEngine:
         self, user: TestUser, token: str, method: str, endpoint: str
     ) -> PermissionTestResult:
         """Test privilege escalation attempt"""
-        return await self._test_endpoint_permission(
-            user, token, method, endpoint, expected_result="deny"
-        )
+        return await self._test_endpoint_permission(user, token, method, endpoint, expected_result="deny")
 
-    async def _attempt_role_switch(
-        self, user: TestUser, token: str, target_role: UserRole
-    ) -> bool:
+    async def _attempt_role_switch(self, user: TestUser, token: str, target_role: UserRole) -> bool:
         """Attempt to switch user role"""
         try:
             async with httpx.AsyncClient() as client:
@@ -508,24 +476,18 @@ class RBACTestEngine:
             logger.error(f"Role switch attempt failed: {e}")
             return False
 
-    async def _validate_role_permissions(
-        self, user: TestUser, token: str, role: UserRole
-    ) -> List[Dict]:
+    async def _validate_role_permissions(self, user: TestUser, token: str, role: UserRole) -> List[Dict]:
         """Validate permissions for a specific role"""
         try:
             role_config = self.role_permissions.get(role, {})
-            test_endpoints = role_config.get("endpoints", [])[
-                :3
-            ]  # Test first 3 for validation
+            test_endpoints = role_config.get("endpoints", [])[:3]  # Test first 3 for validation
 
             validation_results = []
 
             for method, endpoint_template in test_endpoints:
                 endpoint = self._resolve_endpoint_template(endpoint_template, user)
 
-                result = await self._test_endpoint_permission(
-                    user, token, method, endpoint, expected_result="allow"
-                )
+                result = await self._test_endpoint_permission(user, token, method, endpoint, expected_result="allow")
 
                 validation_results.append(
                     {
@@ -543,13 +505,9 @@ class RBACTestEngine:
 
     def _resolve_endpoint_template(self, template: str, user: TestUser) -> str:
         """Resolve endpoint template variables"""
-        return template.format(
-            id=user.user_id, user_id=user.user_id, team_id=user.team_id
-        )
+        return template.format(id=user.user_id, user_id=user.user_id, team_id=user.team_id)
 
-    def _is_role_switch_allowed(
-        self, current_role: UserRole, target_role: UserRole
-    ) -> bool:
+    def _is_role_switch_allowed(self, current_role: UserRole, target_role: UserRole) -> bool:
         """Determine if role switching should be allowed"""
         # Define role switching rules
         allowed_switches = {

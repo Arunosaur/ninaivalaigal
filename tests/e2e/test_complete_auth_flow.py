@@ -55,7 +55,7 @@ class TestCompleteAuthFlow:
                         "role": self.test_user["role"],
                     },
                 )
-            except:
+            except Exception:
                 pass  # User might already exist
 
             try:
@@ -67,7 +67,7 @@ class TestCompleteAuthFlow:
                         "role": self.admin_user["role"],
                     },
                 )
-            except:
+            except Exception:
                 pass  # User might already exist
 
     async def test_01_user_login_success(self):
@@ -292,9 +292,7 @@ class TestCompleteAuthFlow:
     async def test_14_ai_intelligence_without_auth(self):
         """Test AI intelligence fails without authentication"""
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.base_url}/graph-rank/memories", params={"limit": 5}
-            )
+            response = await client.get(f"{self.base_url}/graph-rank/memories", params={"limit": 5})
 
             assert response.status_code == 401
 
@@ -402,9 +400,7 @@ class TestCompleteAuthFlow:
             for auth_header in test_cases:
                 headers = {"Authorization": auth_header} if auth_header else {}
 
-                response = await client.get(
-                    f"{self.base_url}/protected-routes/profile", headers=headers
-                )
+                response = await client.get(f"{self.base_url}/protected-routes/profile", headers=headers)
 
                 assert response.status_code == 401, f"Failed for header: {auth_header}"
 

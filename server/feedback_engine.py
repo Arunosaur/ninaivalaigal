@@ -208,9 +208,7 @@ class FeedbackEngine:
 
         return event.event_id
 
-    async def get_memory_feedback_score(
-        self, user_id: int, memory_id: str
-    ) -> MemoryFeedbackScore | None:
+    async def get_memory_feedback_score(self, user_id: int, memory_id: str) -> MemoryFeedbackScore | None:
         """Get aggregated feedback score for a memory"""
 
         key = f"feedback:score:{user_id}:{memory_id}"
@@ -246,9 +244,7 @@ class FeedbackEngine:
 
         try:
             # Get current feedback score
-            current_score = await self.get_memory_feedback_score(
-                event.user_id, event.memory_id
-            )
+            current_score = await self.get_memory_feedback_score(event.user_id, event.memory_id)
 
             if current_score is None:
                 # Create new feedback score
@@ -281,9 +277,7 @@ class FeedbackEngine:
                 current_score.negative_count += 1
 
             # Calculate total score
-            current_score.total_score = (
-                current_score.implicit_score + current_score.explicit_score
-            )
+            current_score.total_score = current_score.implicit_score + current_score.explicit_score
             current_score.last_updated = datetime.utcnow()
 
             # Store updated score
@@ -307,9 +301,7 @@ class FeedbackEngine:
             )
             raise
 
-    def _normalize_implicit_value(
-        self, feedback_type: FeedbackType, value: float
-    ) -> float:
+    def _normalize_implicit_value(self, feedback_type: FeedbackType, value: float) -> float:
         """Normalize implicit feedback values to 0.0-1.0 range"""
 
         if feedback_type == FeedbackType.IMPLICIT_DWELL:
@@ -324,9 +316,7 @@ class FeedbackEngine:
 
         return 0.5  # Default neutral value
 
-    def _calculate_sentiment(
-        self, feedback_type: FeedbackType, value: float
-    ) -> FeedbackSentiment:
+    def _calculate_sentiment(self, feedback_type: FeedbackType, value: float) -> FeedbackSentiment:
         """Calculate sentiment based on feedback type and value"""
 
         if feedback_type in [FeedbackType.IMPLICIT_DWELL, FeedbackType.IMPLICIT_CLICK]:
@@ -339,9 +329,7 @@ class FeedbackEngine:
 
         return FeedbackSentiment.NEUTRAL
 
-    def _calculate_explicit_value(
-        self, feedback_type: FeedbackType, sentiment: FeedbackSentiment
-    ) -> float:
+    def _calculate_explicit_value(self, feedback_type: FeedbackType, sentiment: FeedbackSentiment) -> float:
         """Calculate explicit feedback value"""
 
         if sentiment == FeedbackSentiment.POSITIVE:
@@ -372,9 +360,7 @@ class FeedbackEngine:
         data["feedback_type"] = event.feedback_type.value
         data["sentiment"] = event.sentiment.value
 
-        await self.redis_client.setex(
-            key, self.feedback_ttl, json.dumps(data, default=str)
-        )
+        await self.redis_client.setex(key, self.feedback_ttl, json.dumps(data, default=str))
 
     async def _store_feedback_score(self, score: MemoryFeedbackScore):
         """Store feedback score in Redis"""
@@ -383,17 +369,13 @@ class FeedbackEngine:
         data = asdict(score)
         data["last_updated"] = score.last_updated.isoformat()
 
-        await self.redis_client.setex(
-            key, self.feedback_ttl, json.dumps(data, default=str)
-        )
+        await self.redis_client.setex(key, self.feedback_ttl, json.dumps(data, default=str))
 
     async def _queue_feedback_processing(self, event: FeedbackEvent):
         """Queue feedback event for background processing"""
 
         try:
-            self.queue_manager.enqueue(
-                "process_feedback_event", event_data=asdict(event)
-            )
+            self.queue_manager.enqueue("process_feedback_event", event_data=asdict(event))
         except Exception as e:
             logger.error(
                 "Failed to queue feedback processing",
@@ -401,19 +383,13 @@ class FeedbackEngine:
                 error=str(e),
             )
 
-    async def _update_relevance_score(
-        self, event: FeedbackEvent, feedback_score: MemoryFeedbackScore
-    ):
+    async def _update_relevance_score(self, event: FeedbackEvent, feedback_score: MemoryFeedbackScore):
         """Update relevance engine with feedback-adjusted scores"""
 
         try:
             # Apply feedback boost/penalty to relevance score
-            feedback_multiplier = 1.0 + (
-                feedback_score.total_score * 0.2
-            )  # 20% max adjustment
-            feedback_multiplier = max(
-                0.5, min(1.5, feedback_multiplier)
-            )  # Clamp to 0.5-1.5x
+            feedback_multiplier = 1.0 + (feedback_score.total_score * 0.2)  # 20% max adjustment
+            feedback_multiplier = max(0.5, min(1.5, feedback_multiplier))  # Clamp to 0.5-1.5x
 
             await self.relevance_engine.update_memory_feedback_score(
                 user_id=event.user_id,

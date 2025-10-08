@@ -95,9 +95,7 @@ class TokenManager:
                 return refreshed_token
             else:
                 # Token refresh failed - preserve memory buffer
-                print(
-                    f"Token refresh failed for user {user_id}, preserving memory buffer"
-                )
+                print(f"Token refresh failed for user {user_id}, preserving memory buffer")
                 return None
 
         return current_token
@@ -128,9 +126,7 @@ class TokenManager:
 
             # Clear buffer after successful save
             session["memory_buffer"] = []
-            print(
-                f"Flushed {len(memory_buffer)} memories for user {user_id} before token expiry"
-            )
+            print(f"Flushed {len(memory_buffer)} memories for user {user_id} before token expiry")
             return True
 
         except Exception as e:
@@ -189,9 +185,7 @@ async def auto_refresh_tokens(db_manager):
                     else:
                         # Refresh failed - save memories before expiry
                         token_manager.flush_memory_buffer(user_id, db_manager)
-                        print(
-                            f"Token refresh failed for user {user_id}, memories saved"
-                        )
+                        print(f"Token refresh failed for user {user_id}, memories saved")
 
             # Sleep for 30 minutes before next check
             await asyncio.sleep(1800)

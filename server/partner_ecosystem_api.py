@@ -57,12 +57,8 @@ class PartnerRegistrationRequest(BaseModel):
     website_url: Optional[str] = Field(None, description="Company website")
     description: str = Field(..., description="Description of services/expertise")
     target_market: str = Field(..., description="Target market or industry")
-    expected_referrals_per_month: int = Field(
-        ..., description="Expected monthly referrals"
-    )
-    integration_type: List[str] = Field(
-        ..., description="Types of integrations planned"
-    )
+    expected_referrals_per_month: int = Field(..., description="Expected monthly referrals")
+    integration_type: List[str] = Field(..., description="Types of integrations planned")
 
 
 class Partner(BaseModel):
@@ -250,9 +246,7 @@ def track_referral_conversion(referral_id: str, team_id: str, conversion_value: 
 
     # Update partner stats
     partner["successful_conversions"] = partner.get("successful_conversions", 0) + 1
-    partner["total_revenue_generated"] = (
-        partner.get("total_revenue_generated", 0) + conversion_value
-    )
+    partner["total_revenue_generated"] = partner.get("total_revenue_generated", 0) + conversion_value
 
     # Update tier if needed
     new_tier = calculate_partner_tier(partner_id)
@@ -263,9 +257,7 @@ def track_referral_conversion(referral_id: str, team_id: str, conversion_value: 
 
 # API Endpoints
 @router.post("/register", response_model=Dict[str, Any])
-async def register_partner(
-    request: PartnerRegistrationRequest, current_user: User = Depends(get_current_user)
-):
+async def register_partner(request: PartnerRegistrationRequest, current_user: User = Depends(get_current_user)):
     """Register new partner"""
 
     partner_id = str(uuid4())
@@ -317,17 +309,11 @@ async def get_partner_dashboard(
 
     # Determine which partner to show
     if partner_id and current_user.role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Admin access required to view other partners"
-        )
+        raise HTTPException(status_code=403, detail="Admin access required to view other partners")
 
     if not partner_id:
         # Find partner by user (assuming user is associated with partner)
-        user_partners = [
-            p
-            for p in partners_store.values()
-            if p.get("registered_by_user_id") == current_user.id
-        ]
+        user_partners = [p for p in partners_store.values() if p.get("registered_by_user_id") == current_user.id]
         if not user_partners:
             raise HTTPException(status_code=404, detail="No partner account found")
         partner_data = user_partners[0]
@@ -345,28 +331,19 @@ async def get_partner_dashboard(
     period_referrals = [
         r
         for r in referral_tracking_store.values()
-        if r["partner_id"] == partner_id
-        and start_date <= datetime.fromisoformat(r["created_at"]) <= end_date
+        if r["partner_id"] == partner_id and start_date <= datetime.fromisoformat(r["created_at"]) <= end_date
     ]
 
     # Calculate metrics
     total_referrals = len(period_referrals)
-    conversions = len(
-        [r for r in period_referrals if r["status"] == ReferralStatus.CONVERTED]
-    )
-    pending_referrals = len(
-        [r for r in period_referrals if r["status"] == ReferralStatus.PENDING]
-    )
+    conversions = len([r for r in period_referrals if r["status"] == ReferralStatus.CONVERTED])
+    pending_referrals = len([r for r in period_referrals if r["status"] == ReferralStatus.PENDING])
 
     total_revenue = sum(
-        r.get("conversion_value", 0)
-        for r in period_referrals
-        if r["status"] == ReferralStatus.CONVERTED
+        r.get("conversion_value", 0) for r in period_referrals if r["status"] == ReferralStatus.CONVERTED
     )
     total_commission = sum(
-        r.get("commission_amount", 0)
-        for r in period_referrals
-        if r["status"] == ReferralStatus.CONVERTED
+        r.get("commission_amount", 0) for r in period_referrals if r["status"] == ReferralStatus.CONVERTED
     )
 
     # Top performing codes
@@ -394,17 +371,9 @@ async def get_partner_dashboard(
         performance_period={"start_date": start_date, "end_date": end_date},
         metrics={
             "total_referrals": total_referrals,
-            "conversion_rate": (
-                round((conversions / total_referrals) * 100, 2)
-                if total_referrals > 0
-                else 0
-            ),
-            "average_conversion_value": (
-                round(total_revenue / conversions, 2) if conversions > 0 else 0
-            ),
-            "integration_readiness_score": calculate_integration_readiness_score(
-                partner_id
-            ),
+            "conversion_rate": (round((conversions / total_referrals) * 100, 2) if total_referrals > 0 else 0),
+            "average_conversion_value": (round(total_revenue / conversions, 2) if conversions > 0 else 0),
+            "integration_readiness_score": calculate_integration_readiness_score(partner_id),
         },
         referral_summary={
             "total": total_referrals,
@@ -449,10 +418,7 @@ async def create_referral_code(
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
 
-    if (
-        current_user.role != "admin"
-        and partner.get("registered_by_user_id") != current_user.id
-    ):
+    if current_user.role != "admin" and partner.get("registered_by_user_id") != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
 
     # Generate referral code
@@ -498,10 +464,7 @@ async def list_partner_referral_codes(
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
 
-    if (
-        current_user.role != "admin"
-        and partner.get("registered_by_user_id") != current_user.id
-    ):
+    if current_user.role != "admin" and partner.get("registered_by_user_id") != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
 
     # Get partner's referral codes
@@ -588,9 +551,7 @@ async def track_referral_signup(
 
 
 @router.post("/admin/approve-partner/{partner_id}")
-async def approve_partner(
-    partner_id: str, current_user: User = Depends(get_current_user)
-):
+async def approve_partner(partner_id: str, current_user: User = Depends(get_current_user)):
     """Approve partner registration (admin only)"""
 
     if current_user.role != "admin":
@@ -606,9 +567,7 @@ async def approve_partner(
     # Approve partner
     partner["status"] = "active"
     partner["approved_at"] = datetime.utcnow()
-    partner["integration_readiness_score"] = calculate_integration_readiness_score(
-        partner_id
-    )
+    partner["integration_readiness_score"] = calculate_integration_readiness_score(partner_id)
 
     return {
         "message": "Partner approved successfully",

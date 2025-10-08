@@ -49,9 +49,7 @@ class BillingTestFramework:
                     "customer": "cus_test_001",
                     "status": "active",
                     "current_period_start": int(datetime.utcnow().timestamp()),
-                    "current_period_end": int(
-                        (datetime.utcnow() + timedelta(days=30)).timestamp()
-                    ),
+                    "current_period_end": int((datetime.utcnow() + timedelta(days=30)).timestamp()),
                     "items": {
                         "data": [
                             {
@@ -132,17 +130,13 @@ class BillingFlowScenarios:
         ):
 
             # Setup mock responses
-            mock_customer_create.return_value = Mock(
-                id="cus_test_001", email="owner@company.com"
-            )
+            mock_customer_create.return_value = Mock(id="cus_test_001", email="owner@company.com")
 
             mock_subscription_create.return_value = Mock(
                 id="sub_test_001",
                 status="active",
                 current_period_start=int(datetime.utcnow().timestamp()),
-                current_period_end=int(
-                    (datetime.utcnow() + timedelta(days=30)).timestamp()
-                ),
+                current_period_end=int((datetime.utcnow() + timedelta(days=30)).timestamp()),
             )
 
             mock_pm_attach.return_value = Mock(id="pm_test_001")
@@ -169,18 +163,14 @@ class BillingFlowScenarios:
                         "test": "subscription_creation_success",
                         "status": "PASS" if response.status_code == 200 else "FAIL",
                         "status_code": response.status_code,
-                        "response_data": (
-                            response.json() if response.status_code == 200 else None
-                        ),
+                        "response_data": (response.json() if response.status_code == 200 else None),
                         "description": "Successful subscription creation",
                     }
                 )
 
                 # Verify Stripe API calls were made
                 assert mock_customer_create.called, "Customer creation should be called"
-                assert (
-                    mock_subscription_create.called
-                ), "Subscription creation should be called"
+                assert mock_subscription_create.called, "Subscription creation should be called"
 
                 test_results.append(
                     {
@@ -240,9 +230,7 @@ class BillingFlowScenarios:
             )
 
         except Exception as e:
-            test_results.append(
-                {"test": "payment_success_webhook", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "payment_success_webhook", "status": "ERROR", "error": str(e)})
 
         # Test failed payment webhook
         try:
@@ -283,9 +271,7 @@ class BillingFlowScenarios:
             )
 
         except Exception as e:
-            test_results.append(
-                {"test": "payment_failure_webhook", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "payment_failure_webhook", "status": "ERROR", "error": str(e)})
 
         return test_results
 
@@ -308,9 +294,7 @@ class BillingFlowScenarios:
                 invoice_data = {
                     "team_id": "team-enterprise-001",
                     "billing_period_start": datetime.utcnow().strftime("%Y-%m-%d"),
-                    "billing_period_end": (
-                        datetime.utcnow() + timedelta(days=30)
-                    ).strftime("%Y-%m-%d"),
+                    "billing_period_end": (datetime.utcnow() + timedelta(days=30)).strftime("%Y-%m-%d"),
                     "line_items": [
                         {
                             "description": "Pro Plan Subscription",
@@ -321,9 +305,7 @@ class BillingFlowScenarios:
                     ],
                 }
 
-                response = self.framework.client.post(
-                    "/invoicing/generate", json=invoice_data, headers=headers
-                )
+                response = self.framework.client.post("/invoicing/generate", json=invoice_data, headers=headers)
 
                 test_results.append(
                     {
@@ -339,16 +321,12 @@ class BillingFlowScenarios:
                     invoice_id = invoice_response.get("invoice_id")
 
                     # Test PDF generation
-                    pdf_response = self.framework.client.get(
-                        f"/invoicing/{invoice_id}/pdf", headers=headers
-                    )
+                    pdf_response = self.framework.client.get(f"/invoicing/{invoice_id}/pdf", headers=headers)
 
                     test_results.append(
                         {
                             "test": "pdf_generation",
-                            "status": (
-                                "PASS" if pdf_response.status_code == 200 else "FAIL"
-                            ),
+                            "status": ("PASS" if pdf_response.status_code == 200 else "FAIL"),
                             "status_code": pdf_response.status_code,
                             "description": "PDF invoice generation",
                         }
@@ -364,9 +342,7 @@ class BillingFlowScenarios:
                     test_results.append(
                         {
                             "test": "invoice_email_sending",
-                            "status": (
-                                "PASS" if email_response.status_code == 200 else "FAIL"
-                            ),
+                            "status": ("PASS" if email_response.status_code == 200 else "FAIL"),
                             "status_code": email_response.status_code,
                             "description": "Invoice email delivery",
                         }
@@ -394,9 +370,7 @@ class BillingFlowScenarios:
             cycle_data = {
                 "team_id": "team-enterprise-001",
                 "billing_frequency": "monthly",
-                "next_billing_date": (datetime.utcnow() + timedelta(days=1)).strftime(
-                    "%Y-%m-%d"
-                ),
+                "next_billing_date": (datetime.utcnow() + timedelta(days=1)).strftime("%Y-%m-%d"),
                 "auto_charge": True,
             }
 
@@ -416,9 +390,7 @@ class BillingFlowScenarios:
             )
 
             # Test billing cycle processing
-            process_response = self.framework.client.post(
-                "/invoicing/process-billing-cycles", headers=headers
-            )
+            process_response = self.framework.client.post("/invoicing/process-billing-cycles", headers=headers)
 
             test_results.append(
                 {
@@ -430,9 +402,7 @@ class BillingFlowScenarios:
             )
 
         except Exception as e:
-            test_results.append(
-                {"test": "billing_cycle_automation", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "billing_cycle_automation", "status": "ERROR", "error": str(e)})
 
         return test_results
 
@@ -456,9 +426,7 @@ class BillingFlowScenarios:
             }
 
             # Test failure recording
-            response = self.framework.client.post(
-                "/invoicing/payment-failures", json=failure_data, headers=headers
-            )
+            response = self.framework.client.post("/invoicing/payment-failures", json=failure_data, headers=headers)
 
             test_results.append(
                 {
@@ -474,25 +442,19 @@ class BillingFlowScenarios:
                 failure_response = response.json()
                 failure_id = failure_response.get("failure_id")
 
-                retry_response = self.framework.client.post(
-                    f"/invoicing/retry-payment/{failure_id}", headers=headers
-                )
+                retry_response = self.framework.client.post(f"/invoicing/retry-payment/{failure_id}", headers=headers)
 
                 test_results.append(
                     {
                         "test": "payment_retry_logic",
-                        "status": (
-                            "PASS" if retry_response.status_code == 200 else "FAIL"
-                        ),
+                        "status": ("PASS" if retry_response.status_code == 200 else "FAIL"),
                         "status_code": retry_response.status_code,
                         "description": "Payment retry mechanism",
                     }
                 )
 
         except Exception as e:
-            test_results.append(
-                {"test": "payment_failure_handling", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "payment_failure_handling", "status": "ERROR", "error": str(e)})
 
         return test_results
 
@@ -522,33 +484,23 @@ class BillingTestRunner:
 
         # Subscription creation tests
         print("  📝 Running subscription creation tests...")
-        results["test_categories"][
-            "subscription_creation"
-        ] = self.scenarios.test_subscription_creation_flow()
+        results["test_categories"]["subscription_creation"] = self.scenarios.test_subscription_creation_flow()
 
         # Payment processing tests
         print("  💰 Running payment processing tests...")
-        results["test_categories"][
-            "payment_processing"
-        ] = self.scenarios.test_payment_processing_flow()
+        results["test_categories"]["payment_processing"] = self.scenarios.test_payment_processing_flow()
 
         # Invoice generation tests
         print("  📄 Running invoice generation tests...")
-        results["test_categories"][
-            "invoice_generation"
-        ] = self.scenarios.test_invoice_generation_flow()
+        results["test_categories"]["invoice_generation"] = self.scenarios.test_invoice_generation_flow()
 
         # Billing cycle automation tests
         print("  🔄 Running billing cycle tests...")
-        results["test_categories"][
-            "billing_automation"
-        ] = self.scenarios.test_billing_cycle_automation()
+        results["test_categories"]["billing_automation"] = self.scenarios.test_billing_cycle_automation()
 
         # Payment failure handling tests
         print("  ⚠️ Running payment failure tests...")
-        results["test_categories"][
-            "failure_handling"
-        ] = self.scenarios.test_payment_failure_handling()
+        results["test_categories"]["failure_handling"] = self.scenarios.test_payment_failure_handling()
 
         # Calculate summary statistics
         total_tests = 0
@@ -571,9 +523,7 @@ class BillingTestRunner:
             "passed": passed_tests,
             "failed": failed_tests,
             "errors": error_tests,
-            "pass_rate": (
-                round((passed_tests / total_tests) * 100, 2) if total_tests > 0 else 0
-            ),
+            "pass_rate": (round((passed_tests / total_tests) * 100, 2) if total_tests > 0 else 0),
         }
 
         print(

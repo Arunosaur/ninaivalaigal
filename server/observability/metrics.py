@@ -22,12 +22,8 @@ from prometheus_client import (
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Prometheus metrics
-REQUESTS = Counter(
-    "http_requests_total", "Total HTTP requests", ["route", "method", "code"]
-)
-DURATION = Histogram(
-    "http_request_duration_seconds", "Request latency", ["route", "method"]
-)
+REQUESTS = Counter("http_requests_total", "Total HTTP requests", ["route", "method", "code"])
+DURATION = Histogram("http_request_duration_seconds", "Request latency", ["route", "method"])
 ERRORS = Counter("app_errors_total", "Application errors", ["type"])
 UPTIME_S = Gauge("app_uptime_seconds", "Process uptime (s)")
 
@@ -78,9 +74,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
             REQUESTS.labels(route=route, method=method, code=500).inc()
 
             # Log error
-            self._log_request(
-                rid, route, method, 500, time.perf_counter() - start_time, error=str(e)
-            )
+            self._log_request(rid, route, method, 500, time.perf_counter() - start_time, error=str(e))
             raise
 
         finally:

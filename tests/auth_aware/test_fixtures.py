@@ -125,9 +125,7 @@ def guest_user() -> TestUser:
 
 
 @pytest.fixture
-def all_role_users(
-    admin_user, team_lead_user, member_user, viewer_user, guest_user
-) -> List[TestUser]:
+def all_role_users(admin_user, team_lead_user, member_user, viewer_user, guest_user) -> List[TestUser]:
     """All role test users"""
     return [admin_user, team_lead_user, member_user, viewer_user, guest_user]
 
@@ -382,9 +380,7 @@ class AuthTestHelper:
     """Helper class for auth testing utilities"""
 
     @staticmethod
-    def generate_test_user(
-        role: UserRole, team_id: str = "test_team", org_id: str = "test_org"
-    ) -> TestUser:
+    def generate_test_user(role: UserRole, team_id: str = "test_team", org_id: str = "test_org") -> TestUser:
         """Generate a test user with specified role"""
         user_id = f"test_{role.value}_{uuid.uuid4().hex[:8]}"
 
@@ -399,9 +395,7 @@ class AuthTestHelper:
         )
 
     @staticmethod
-    def generate_test_session(
-        user: TestUser, expires_in_minutes: int = 60
-    ) -> TestSession:
+    def generate_test_session(user: TestUser, expires_in_minutes: int = 60) -> TestSession:
         """Generate a test session for user"""
         return TestSession(
             session_id=f"session_{user.user_id}_{uuid.uuid4().hex[:8]}",

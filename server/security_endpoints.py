@@ -41,18 +41,14 @@ class AlertResolution(BaseModel):
 
 @security_router.get("/status")
 @require_permission(Resource.SYSTEM, Action.READ)
-async def get_security_status(
-    request: Request, current_user: User = Depends(get_current_user)
-):
+async def get_security_status(request: Request, current_user: User = Depends(get_current_user)):
     """Get overall security system status"""
     try:
         status = security_manager.get_security_status()
 
         # Add alert statistics
         active_alerts = security_alert_manager.get_active_alerts()
-        critical_alerts = security_alert_manager.get_active_alerts(
-            AlertSeverity.CRITICAL
-        )
+        critical_alerts = security_alert_manager.get_active_alerts(AlertSeverity.CRITICAL)
 
         status.update(
             {
@@ -66,16 +62,12 @@ async def get_security_status(
         return status
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get security status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get security status: {str(e)}")
 
 
 @security_router.get("/config")
 @require_permission(Resource.SYSTEM, Action.READ)
-async def get_security_config(
-    request: Request, current_user: User = Depends(get_current_user)
-):
+async def get_security_config(request: Request, current_user: User = Depends(get_current_user)):
     """Get current security configuration"""
     try:
         config = {
@@ -97,9 +89,7 @@ async def get_security_config(
         return config
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get security config: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get security config: {str(e)}")
 
 
 @security_router.put("/config")
@@ -132,9 +122,7 @@ async def update_security_config(
 
         if config_update.default_tier is not None:
             try:
-                redaction_config.default_tier = ContextSensitivity(
-                    config_update.default_tier
-                )
+                redaction_config.default_tier = ContextSensitivity(config_update.default_tier)
                 updated_fields.append("default_tier")
             except ValueError:
                 raise HTTPException(400, f"Invalid tier: {config_update.default_tier}")
@@ -160,9 +148,7 @@ async def update_security_config(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to update security config: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to update security config: {str(e)}")
 
 
 @security_router.get("/alerts")
@@ -186,9 +172,7 @@ async def get_security_alerts(
         if severity:
             try:
                 severity_filter = AlertSeverity(severity.lower())
-                alerts = [
-                    alert for alert in alerts if alert.severity == severity_filter
-                ]
+                alerts = [alert for alert in alerts if alert.severity == severity_filter]
             except ValueError:
                 raise HTTPException(400, f"Invalid severity: {severity}")
 
@@ -214,9 +198,7 @@ async def get_security_alerts(
                     "context_id": alert.context_id,
                     "metadata": alert.metadata,
                     "resolved": alert.resolved,
-                    "resolved_at": (
-                        alert.resolved_at.isoformat() if alert.resolved_at else None
-                    ),
+                    "resolved_at": (alert.resolved_at.isoformat() if alert.resolved_at else None),
                 }
             )
 
@@ -233,9 +215,7 @@ async def get_security_alerts(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get security alerts: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get security alerts: {str(e)}")
 
 
 @security_router.post("/alerts/{alert_id}/resolve")
@@ -271,9 +251,7 @@ async def resolve_security_alert(
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to resolve alert: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to resolve alert: {str(e)}")
 
 
 @security_router.get("/statistics")
@@ -299,9 +277,7 @@ async def get_security_statistics(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get security statistics: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get security statistics: {str(e)}")
 
 
 @security_router.get("/audit/redaction")
@@ -337,9 +313,7 @@ async def get_redaction_audit_logs(
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get redaction audit logs: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get redaction audit logs: {str(e)}")
 
 
 @security_router.post("/test/redaction")
@@ -376,6 +350,4 @@ async def test_redaction(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to test redaction: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to test redaction: {str(e)}")

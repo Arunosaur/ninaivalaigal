@@ -51,9 +51,7 @@ def test_401_vs_403_semantics():
         200,
         204,
     )
-    assert (
-        c.post("/write", headers={"Authorization": "Bearer valid"}).status_code == 403
-    )
+    assert c.post("/write", headers={"Authorization": "Bearer valid"}).status_code == 403
 
     # Editor -> 200 on write
     assert c.post("/write", headers={"Authorization": "Bearer editor"}).status_code in (

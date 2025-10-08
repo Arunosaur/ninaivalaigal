@@ -27,14 +27,10 @@ router = APIRouter(prefix="/contexts", tags=["contexts"])
 # Pydantic models for SPEC-007
 class ContextCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, description="Context name")
-    description: Optional[str] = Field(
-        None, max_length=1000, description="Context description"
-    )
+    description: Optional[str] = Field(None, max_length=1000, description="Context description")
     scope: ContextScope = Field("personal", description="Context scope")
     team_id: Optional[int] = Field(None, description="Team ID for team contexts")
-    organization_id: Optional[int] = Field(
-        None, description="Organization ID for org contexts"
-    )
+    organization_id: Optional[int] = Field(None, description="Organization ID for org contexts")
     visibility: ContextVisibility = Field("private", description="Context visibility")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
 
@@ -106,9 +102,7 @@ async def create_context(
 
         # TODO: Validate team/org membership for team/org contexts
         if context_data.scope == "team" and not context_data.team_id:
-            raise HTTPException(
-                status_code=400, detail="team_id required for team contexts"
-            )
+            raise HTTPException(status_code=400, detail="team_id required for team contexts")
         if context_data.scope == "organization" and not context_data.organization_id:
             raise HTTPException(
                 status_code=400,
@@ -182,9 +176,7 @@ async def get_context(
         context = await context_ops.get_context(context_id, current_user["user_id"])
 
         if not context:
-            raise HTTPException(
-                status_code=404, detail="Context not found or access denied"
-            )
+            raise HTTPException(status_code=404, detail="Context not found or access denied")
 
         return ContextResponse(**context)
 
@@ -217,15 +209,11 @@ async def update_context(
             raise HTTPException(status_code=404, detail="Context not found")
 
         # Return updated context
-        updated_context = await context_ops.get_context(
-            context_id, current_user["user_id"]
-        )
+        updated_context = await context_ops.get_context(context_id, current_user["user_id"])
         return ContextResponse(**updated_context)
 
     except PermissionError:
-        raise HTTPException(
-            status_code=403, detail="Insufficient permissions to update context"
-        )
+        raise HTTPException(status_code=403, detail="Insufficient permissions to update context")
     except HTTPException:
         raise
     except Exception as e:
@@ -247,9 +235,7 @@ async def delete_context(
             raise HTTPException(status_code=404, detail="Context not found")
 
     except PermissionError:
-        raise HTTPException(
-            status_code=403, detail="Insufficient permissions to delete context"
-        )
+        raise HTTPException(status_code=403, detail="Insufficient permissions to delete context")
     except HTTPException:
         raise
     except Exception as e:
@@ -294,9 +280,7 @@ async def grant_permission(
         return {"message": "Permission granted successfully"}
 
     except PermissionError:
-        raise HTTPException(
-            status_code=403, detail="Insufficient permissions to grant access"
-        )
+        raise HTTPException(status_code=403, detail="Insufficient permissions to grant access")
     except HTTPException:
         raise
     except Exception as e:
@@ -337,9 +321,7 @@ async def revoke_permission(
         return {"message": "Permission revoked successfully"}
 
     except PermissionError:
-        raise HTTPException(
-            status_code=403, detail="Insufficient permissions to revoke access"
-        )
+        raise HTTPException(status_code=403, detail="Insufficient permissions to revoke access")
     except HTTPException:
         raise
     except Exception as e:
@@ -355,9 +337,7 @@ async def get_context_permissions(
 ):
     """Get all permissions for a context (admin only)"""
     try:
-        permissions = await context_ops.get_context_permissions(
-            context_id, current_user["user_id"]
-        )
+        permissions = await context_ops.get_context_permissions(context_id, current_user["user_id"])
         return {"permissions": permissions}
 
     except PermissionError:
@@ -411,9 +391,7 @@ async def share_context(
         return {"message": "Context shared successfully"}
 
     except PermissionError:
-        raise HTTPException(
-            status_code=403, detail="Insufficient permissions to share context"
-        )
+        raise HTTPException(status_code=403, detail="Insufficient permissions to share context")
     except HTTPException:
         raise
     except Exception as e:

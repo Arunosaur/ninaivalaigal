@@ -29,15 +29,11 @@ router = APIRouter(prefix="/api/v1/intelligence", tags=["Graph Intelligence"])
 
 
 # Initialize intelligence engines
-federation_engine = MemoryFederationEngine(
-    config={"min_sharing_score": 0.6, "min_discovery_score": 0.5}
-)
+federation_engine = MemoryFederationEngine(config={"min_sharing_score": 0.6, "min_discovery_score": 0.5})
 
 ml_engine = GraphMLEngine(config={"model_cache_size": 100, "prediction_threshold": 0.7})
 
-analytics_engine = GraphAnalyticsEngine(
-    config={"cache_ttl": 300, "max_trends": 50}
-)  # 5 minutes
+analytics_engine = GraphAnalyticsEngine(config={"cache_ttl": 300, "max_trends": 50})  # 5 minutes
 
 
 @router.post("/federation/federate", response_model=FederationResult)
@@ -56,12 +52,8 @@ async def federate_memories(
     """
     try:
         # Verify user has permission to federate from source team
-        if not await _verify_team_permission(
-            current_user["id"], source_team, "federate"
-        ):
-            raise HTTPException(
-                status_code=403, detail="Insufficient permissions for source team"
-            )
+        if not await _verify_team_permission(current_user["id"], source_team, "federate"):
+            raise HTTPException(status_code=403, detail="Insufficient permissions for source team")
 
         # Get memory batch from database
         memory_batch = await _get_memories_by_ids(memory_ids, db)
@@ -77,9 +69,7 @@ async def federate_memories(
         )
 
         # Log federation activity
-        logger.info(
-            f"Federation completed: {len(result.federated_memories)} memories shared"
-        )
+        logger.info(f"Federation completed: {len(result.federated_memories)} memories shared")
 
         return result
 
@@ -336,17 +326,13 @@ async def get_team_insights(
     try:
         analysis_period = timedelta(days=analysis_days)
 
-        team_insights = await analytics_engine.generate_team_insights(
-            team_id=team_id, analysis_period=analysis_period
-        )
+        team_insights = await analytics_engine.generate_team_insights(team_id=team_id, analysis_period=analysis_period)
 
         return team_insights
 
     except Exception as e:
         logger.error(f"Team insights generation failed: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Insights generation failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Insights generation failed: {str(e)}")
 
 
 @router.get("/analytics/dashboard")
@@ -458,9 +444,7 @@ async def _process_feedback_batch(feedback_batch: List[UserFeedback]):
     """Process feedback batch for model improvement"""
     try:
         # Adapt ranking weights based on feedback
-        weight_update = await ml_engine.adapt_ranking_weights(
-            feedback_batch=feedback_batch, learning_rate=0.01
-        )
+        weight_update = await ml_engine.adapt_ranking_weights(feedback_batch=feedback_batch, learning_rate=0.01)
 
         logger.info(f"Processed feedback batch: {weight_update.update_reason}")
 

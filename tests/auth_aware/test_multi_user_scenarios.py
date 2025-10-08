@@ -30,15 +30,10 @@ class TestMultiUserScenarios:
         test_users = concurrent_users[:50]  # Test with 50 concurrent users
 
         # Execute concurrent authentication
-        auth_results = await multi_user_manager.simulate_concurrent_auth(
-            users=test_users, concurrent_limit=25
-        )
+        auth_results = await multi_user_manager.simulate_concurrent_auth(users=test_users, concurrent_limit=25)
 
         # Validate results
-        assert (
-            auth_results.success_rate
-            >= performance_thresholds["concurrent_auth_success_rate"]
-        )
+        assert auth_results.success_rate >= performance_thresholds["concurrent_auth_success_rate"]
         assert auth_results.execution_time_ms <= 10000  # Max 10 seconds for 50 users
         assert auth_results.result == AuthTestResult.PASS
 
@@ -62,10 +57,7 @@ class TestMultiUserScenarios:
         # Create multiple users for each role
         role_users = {}
         for role in UserRole:
-            role_users[role] = [
-                auth_helper.generate_test_user(role, f"team_{role.value}_{i}")
-                for i in range(5)
-            ]
+            role_users[role] = [auth_helper.generate_test_user(role, f"team_{role.value}_{i}") for i in range(5)]
 
         # Flatten all users
         all_users = []
@@ -73,9 +65,7 @@ class TestMultiUserScenarios:
             all_users.extend(users)
 
         # Test concurrent authentication
-        auth_results = await multi_user_manager.simulate_concurrent_auth(
-            users=all_users, concurrent_limit=20
-        )
+        auth_results = await multi_user_manager.simulate_concurrent_auth(users=all_users, concurrent_limit=20)
 
         # Validate that all roles can authenticate concurrently
         assert auth_results.success_rate >= 95.0
@@ -83,15 +73,11 @@ class TestMultiUserScenarios:
 
         # Validate role-specific behavior
         for role, users in role_users.items():
-            role_success_count = sum(
-                1 for user in users if user.status == TestUserStatus.ACTIVE
-            )
+            role_success_count = sum(1 for user in users if user.status == TestUserStatus.ACTIVE)
             assert role_success_count == len(users)  # All users should be active
 
     @pytest.mark.asyncio
-    async def test_session_conflict_detection(
-        self, multi_user_manager: MultiUserTestManager, multi_team_users: List
-    ):
+    async def test_session_conflict_detection(self, multi_user_manager: MultiUserTestManager, multi_team_users: List):
         """Test session conflict detection between concurrent users"""
 
         # Use users from different teams
@@ -111,21 +97,15 @@ class TestMultiUserScenarios:
         assert conflict_results.resolution_time_ms <= 5000  # Max 5 seconds
 
     @pytest.mark.asyncio
-    async def test_cross_team_user_isolation(
-        self, multi_user_manager: MultiUserTestManager, multi_team_users: List
-    ):
+    async def test_cross_team_user_isolation(self, multi_user_manager: MultiUserTestManager, multi_team_users: List):
         """Test user isolation between different teams"""
 
         # Select users from different teams
-        engineering_user = next(
-            u for u in multi_team_users if u.team_id == "engineering_team"
-        )
+        engineering_user = next(u for u in multi_team_users if u.team_id == "engineering_team")
         support_user = next(u for u in multi_team_users if u.team_id == "support_team")
 
         # Test isolation between teams
-        isolation_results = await multi_user_manager.validate_user_isolation(
-            engineering_user, support_user
-        )
+        isolation_results = await multi_user_manager.validate_user_isolation(engineering_user, support_user)
 
         # Validate isolation is maintained
         assert isolation_results.isolation_maintained
@@ -134,10 +114,7 @@ class TestMultiUserScenarios:
         assert len(isolation_results.isolation_violations) == 0
 
         # Validate all cross-access attempts were blocked
-        assert (
-            isolation_results.blocked_attempts
-            == isolation_results.cross_access_attempts
-        )
+        assert isolation_results.blocked_attempts == isolation_results.cross_access_attempts
 
     @pytest.mark.asyncio
     async def test_user_authentication_performance(
@@ -149,17 +126,12 @@ class TestMultiUserScenarios:
         """Test authentication performance under load"""
 
         # Create performance test users
-        perf_users = [
-            auth_helper.generate_test_user(UserRole.MEMBER, f"perf_team_{i}")
-            for i in range(100)
-        ]
+        perf_users = [auth_helper.generate_test_user(UserRole.MEMBER, f"perf_team_{i}") for i in range(100)]
 
         # Measure authentication performance
         start_time = datetime.utcnow()
 
-        auth_results = await multi_user_manager.simulate_concurrent_auth(
-            users=perf_users, concurrent_limit=50
-        )
+        auth_results = await multi_user_manager.simulate_concurrent_auth(users=perf_users, concurrent_limit=50)
 
         total_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
@@ -193,18 +165,14 @@ class TestMultiUserScenarios:
         assert expired_session.time_remaining == timedelta(0)
 
         # Test session renewal
-        new_session = await multi_user_manager._get_user_token(
-            user_with_expired_session
-        )
+        new_session = await multi_user_manager._get_user_token(user_with_expired_session)
 
         # Should get new session, not reuse expired one
         if new_session:
             assert new_session != expired_session.token
 
     @pytest.mark.asyncio
-    async def test_concurrent_team_operations(
-        self, multi_user_manager: MultiUserTestManager, multi_team_users: List
-    ):
+    async def test_concurrent_team_operations(self, multi_user_manager: MultiUserTestManager, multi_team_users: List):
         """Test concurrent operations within and across teams"""
 
         # Group users by team
@@ -217,24 +185,18 @@ class TestMultiUserScenarios:
         # Test concurrent operations within teams
         for team_id, team_users in team_groups.items():
             if len(team_users) >= 2:
-                conflict_results = await multi_user_manager.test_session_conflicts(
-                    team_users[:2]
-                )
+                conflict_results = await multi_user_manager.test_session_conflicts(team_users[:2])
 
                 # Within team operations should not conflict
                 assert not conflict_results.has_conflicts
                 assert conflict_results.conflicts_resolved
 
     @pytest.mark.asyncio
-    async def test_user_role_consistency(
-        self, multi_user_manager: MultiUserTestManager, all_role_users: List
-    ):
+    async def test_user_role_consistency(self, multi_user_manager: MultiUserTestManager, all_role_users: List):
         """Test user role consistency across concurrent operations"""
 
         # Authenticate all role users
-        auth_results = await multi_user_manager.simulate_concurrent_auth(
-            users=all_role_users, concurrent_limit=10
-        )
+        auth_results = await multi_user_manager.simulate_concurrent_auth(users=all_role_users, concurrent_limit=10)
 
         # Validate authentication success
         assert auth_results.success_rate >= 95.0
@@ -264,9 +226,7 @@ class TestMultiUserScenarios:
 
         # Test isolation for each pair
         for user_a, user_b in team_pairs:
-            isolation_results = await multi_user_manager.validate_user_isolation(
-                user_a, user_b
-            )
+            isolation_results = await multi_user_manager.validate_user_isolation(user_a, user_b)
 
             # Validate strict isolation
             assert isolation_results.isolation_maintained
@@ -280,15 +240,9 @@ class TestMultiUserScenarios:
         """Test authentication failure handling in concurrent scenarios"""
 
         # Create mix of valid and invalid users
-        valid_users = [
-            auth_helper.generate_test_user(UserRole.MEMBER, f"valid_team_{i}")
-            for i in range(5)
-        ]
+        valid_users = [auth_helper.generate_test_user(UserRole.MEMBER, f"valid_team_{i}") for i in range(5)]
 
-        invalid_users = [
-            auth_helper.generate_test_user(UserRole.MEMBER, f"invalid_team_{i}")
-            for i in range(5)
-        ]
+        invalid_users = [auth_helper.generate_test_user(UserRole.MEMBER, f"invalid_team_{i}") for i in range(5)]
 
         # Modify invalid users to have wrong passwords
         for user in invalid_users:
@@ -297,9 +251,7 @@ class TestMultiUserScenarios:
         all_test_users = valid_users + invalid_users
 
         # Test concurrent authentication with mixed valid/invalid
-        auth_results = await multi_user_manager.simulate_concurrent_auth(
-            users=all_test_users, concurrent_limit=10
-        )
+        auth_results = await multi_user_manager.simulate_concurrent_auth(users=all_test_users, concurrent_limit=10)
 
         # Should handle failures gracefully
         assert auth_results.success_count == len(valid_users)
@@ -320,9 +272,7 @@ class TestMultiUserScenarios:
         test_users = concurrent_users[:20]
 
         # Authenticate users to create sessions
-        auth_results = await multi_user_manager.simulate_concurrent_auth(
-            users=test_users, concurrent_limit=10
-        )
+        auth_results = await multi_user_manager.simulate_concurrent_auth(users=test_users, concurrent_limit=10)
 
         # Validate session creation
         assert auth_results.success_rate >= 90.0
@@ -339,9 +289,7 @@ class TestMultiUserScenarios:
 
         # Validate session operations
         successful_sessions = sum(
-            1
-            for result in session_results
-            if not isinstance(result, Exception) and result is not None
+            1 for result in session_results if not isinstance(result, Exception) and result is not None
         )
 
         assert successful_sessions >= len(test_users) * 0.9  # 90% success rate

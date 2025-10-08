@@ -85,9 +85,7 @@ class MemoryProviderFailoverManager:
     with support for multiple strategies, health-based routing, and performance optimization.
     """
 
-    def __init__(
-        self, registry: MemoryProviderRegistry, health_monitor: ProviderHealthMonitor
-    ):
+    def __init__(self, registry: MemoryProviderRegistry, health_monitor: ProviderHealthMonitor):
         self.registry = registry
         self.health_monitor = health_monitor
 
@@ -160,15 +158,11 @@ class MemoryProviderFailoverManager:
                         timeout=rule.timeout_ms / 1000.0,
                     )
 
-                    response_time = (
-                        datetime.now(timezone.utc) - operation_start
-                    ).total_seconds() * 1000
+                    response_time = (datetime.now(timezone.utc) - operation_start).total_seconds() * 1000
                     total_attempts += 1
 
                     # Record successful operation
-                    await self._record_operation_success(
-                        provider_name, operation_type, response_time
-                    )
+                    await self._record_operation_success(provider_name, operation_type, response_time)
 
                     # Update circuit breaker
                     self._record_circuit_breaker_success(provider_name, operation_type)
@@ -198,17 +192,13 @@ class MemoryProviderFailoverManager:
                 except asyncio.TimeoutError:
                     error_msg = f"Operation timeout after {rule.timeout_ms}ms"
                     last_error = error_msg
-                    await self._record_operation_failure(
-                        provider_name, operation_type, error_msg
-                    )
+                    await self._record_operation_failure(provider_name, operation_type, error_msg)
                     self._record_circuit_breaker_failure(provider_name, operation_type)
 
                 except Exception as e:
                     error_msg = str(e)
                     last_error = error_msg
-                    await self._record_operation_failure(
-                        provider_name, operation_type, error_msg
-                    )
+                    await self._record_operation_failure(provider_name, operation_type, error_msg)
                     self._record_circuit_breaker_failure(provider_name, operation_type)
 
                     # Don't retry on certain errors
@@ -248,18 +238,12 @@ class MemoryProviderFailoverManager:
             attempts=total_attempts,
         )
 
-    async def configure_failover_rule(
-        self, operation_type: OperationType, rule: FailoverRule
-    ) -> None:
+    async def configure_failover_rule(self, operation_type: OperationType, rule: FailoverRule) -> None:
         """Configure failover rule for an operation type"""
         self.failover_rules[operation_type] = rule
-        logger.info(
-            f"Configured failover rule for {operation_type.value}: {rule.strategy.value}"
-        )
+        logger.info(f"Configured failover rule for {operation_type.value}: {rule.strategy.value}")
 
-    async def get_provider_recommendations(
-        self, operation_type: OperationType, limit: int = 3
-    ) -> List[Dict[str, Any]]:
+    async def get_provider_recommendations(self, operation_type: OperationType, limit: int = 3) -> List[Dict[str, Any]]:
         """Get recommended providers for an operation type"""
         try:
             rule = self.failover_rules.get(operation_type, self._get_default_rule())
@@ -268,27 +252,19 @@ class MemoryProviderFailoverManager:
             recommendations = []
             for provider_name in providers[:limit]:
                 provider_info = await self.registry.list_providers()
-                provider_data = next(
-                    (p for p in provider_info if p["name"] == provider_name), None
-                )
+                provider_data = next((p for p in provider_info if p["name"] == provider_name), None)
 
                 if provider_data:
-                    health = await self.health_monitor.get_provider_health(
-                        provider_name
-                    )
+                    health = await self.health_monitor.get_provider_health(provider_name)
                     metrics = self.provider_metrics.get(provider_name)
 
                     recommendation = {
                         "provider_name": provider_name,
                         "status": provider_data["status"],
                         "health_status": health.status.value if health else "unknown",
-                        "avg_response_time_ms": (
-                            metrics.avg_response_time_ms if metrics else 0
-                        ),
+                        "avg_response_time_ms": (metrics.avg_response_time_ms if metrics else 0),
                         "success_rate": metrics.success_rate if metrics else 0,
-                        "recommendation_score": self._calculate_recommendation_score(
-                            provider_name, operation_type
-                        ),
+                        "recommendation_score": self._calculate_recommendation_score(provider_name, operation_type),
                     }
                     recommendations.append(recommendation)
 
@@ -303,24 +279,14 @@ class MemoryProviderFailoverManager:
         try:
             # Calculate overall statistics
             total_operations = len(self._operation_history)
-            successful_operations = sum(
-                1 for op in self._operation_history if op["success"]
-            )
+            successful_operations = sum(1 for op in self._operation_history if op["success"])
 
-            success_rate = (
-                (successful_operations / total_operations * 100)
-                if total_operations > 0
-                else 0
-            )
+            success_rate = (successful_operations / total_operations * 100) if total_operations > 0 else 0
 
             # Calculate average response times by operation type
             operation_stats = {}
             for op_type in OperationType:
-                type_ops = [
-                    op
-                    for op in self._operation_history
-                    if op["operation_type"] == op_type.value
-                ]
+                type_ops = [op for op in self._operation_history if op["operation_type"] == op_type.value]
                 if type_ops:
                     successful_type_ops = [op for op in type_ops if op["success"]]
                     operation_stats[op_type.value] = {
@@ -328,15 +294,11 @@ class MemoryProviderFailoverManager:
                         "successful_operations": len(successful_type_ops),
                         "success_rate": len(successful_type_ops) / len(type_ops) * 100,
                         "avg_response_time_ms": (
-                            statistics.mean(
-                                [op["response_time_ms"] for op in successful_type_ops]
-                            )
+                            statistics.mean([op["response_time_ms"] for op in successful_type_ops])
                             if successful_type_ops
                             else 0
                         ),
-                        "fallback_usage_rate": sum(
-                            1 for op in type_ops if op.get("fallback_used", False)
-                        )
+                        "fallback_usage_rate": sum(1 for op in type_ops if op.get("fallback_used", False))
                         / len(type_ops)
                         * 100,
                     }
@@ -349,9 +311,7 @@ class MemoryProviderFailoverManager:
                     "avg_response_time_ms": metrics.avg_response_time_ms,
                     "success_rate": metrics.success_rate,
                     "recent_errors": metrics.recent_errors,
-                    "last_used": (
-                        metrics.last_used.isoformat() if metrics.last_used else None
-                    ),
+                    "last_used": (metrics.last_used.isoformat() if metrics.last_used else None),
                 }
 
             # Circuit breaker status
@@ -359,11 +319,7 @@ class MemoryProviderFailoverManager:
             for provider_name, breakers in self.circuit_breakers.items():
                 circuit_breaker_status[provider_name] = {
                     operation_type.value: {
-                        "state": (
-                            "open"
-                            if breaker.get("failures", 0) >= breaker.get("threshold", 5)
-                            else "closed"
-                        ),
+                        "state": ("open" if breaker.get("failures", 0) >= breaker.get("threshold", 5) else "closed"),
                         "failures": breaker.get("failures", 0),
                         "last_failure": breaker.get("last_failure"),
                     }
@@ -376,13 +332,7 @@ class MemoryProviderFailoverManager:
                     "successful_operations": successful_operations,
                     "success_rate": success_rate,
                     "avg_response_time_ms": (
-                        statistics.mean(
-                            [
-                                op["response_time_ms"]
-                                for op in self._operation_history
-                                if op["success"]
-                            ]
-                        )
+                        statistics.mean([op["response_time_ms"] for op in self._operation_history if op["success"]])
                         if successful_operations > 0
                         else 0
                     ),
@@ -419,14 +369,10 @@ class MemoryProviderFailoverManager:
             logger.error(f"Failed to reset circuit breakers: {e}")
 
     # Private methods
-    async def _get_provider_order(
-        self, operation_type: OperationType, rule: FailoverRule
-    ) -> List[str]:
+    async def _get_provider_order(self, operation_type: OperationType, rule: FailoverRule) -> List[str]:
         """Get ordered list of providers based on failover strategy"""
         try:
-            available_providers = await self.registry.list_providers(
-                ProviderStatus.ACTIVE
-            )
+            available_providers = await self.registry.list_providers(ProviderStatus.ACTIVE)
 
             if not available_providers:
                 return []
@@ -438,11 +384,7 @@ class MemoryProviderFailoverManager:
                 return sorted(
                     provider_names,
                     key=lambda name: next(
-                        (
-                            p["priority"]
-                            for p in available_providers
-                            if p["name"] == name
-                        ),
+                        (p["priority"] for p in available_providers if p["name"] == name),
                         999,
                     ),
                 )
@@ -460,22 +402,15 @@ class MemoryProviderFailoverManager:
             elif rule.strategy == FailoverStrategy.ROUND_ROBIN:
                 # Rotate through providers
                 if provider_names:
-                    self._round_robin_index = (self._round_robin_index + 1) % len(
-                        provider_names
-                    )
-                    return (
-                        provider_names[self._round_robin_index :]
-                        + provider_names[: self._round_robin_index]
-                    )
+                    self._round_robin_index = (self._round_robin_index + 1) % len(provider_names)
+                    return provider_names[self._round_robin_index :] + provider_names[: self._round_robin_index]
                 return provider_names
 
             elif rule.strategy == FailoverStrategy.PERFORMANCE_BASED:
                 # Sort by performance metrics
                 provider_scores = []
                 for name in provider_names:
-                    score = await self._calculate_performance_score(
-                        name, operation_type
-                    )
+                    score = await self._calculate_performance_score(name, operation_type)
                     provider_scores.append((name, score))
 
                 provider_scores.sort(key=lambda x: x[1], reverse=True)
@@ -486,25 +421,15 @@ class MemoryProviderFailoverManager:
                 provider_scores = []
                 for name in provider_names:
                     health_score = await self._calculate_health_score(name)
-                    perf_score = await self._calculate_performance_score(
-                        name, operation_type
-                    )
+                    perf_score = await self._calculate_performance_score(name, operation_type)
                     priority = next(
-                        (
-                            p["priority"]
-                            for p in available_providers
-                            if p["name"] == name
-                        ),
+                        (p["priority"] for p in available_providers if p["name"] == name),
                         999,
                     )
-                    priority_score = 1.0 / (
-                        priority + 1
-                    )  # Lower priority number = higher score
+                    priority_score = 1.0 / (priority + 1)  # Lower priority number = higher score
 
                     # Weighted combination
-                    combined_score = (
-                        health_score * 0.4 + perf_score * 0.4 + priority_score * 0.2
-                    )
+                    combined_score = health_score * 0.4 + perf_score * 0.4 + priority_score * 0.2
                     provider_scores.append((name, combined_score))
 
                 provider_scores.sort(key=lambda x: x[1], reverse=True)
@@ -515,11 +440,7 @@ class MemoryProviderFailoverManager:
                 return sorted(
                     provider_names,
                     key=lambda name: next(
-                        (
-                            p["priority"]
-                            for p in available_providers
-                            if p["name"] == name
-                        ),
+                        (p["priority"] for p in available_providers if p["name"] == name),
                         999,
                     ),
                 )
@@ -554,9 +475,7 @@ class MemoryProviderFailoverManager:
             # Response time factor (penalize slow responses)
             response_factor = 1.0
             if health.avg_response_time_ms > 1000:  # > 1 second
-                response_factor = max(
-                    0.1, 1.0 - (health.avg_response_time_ms - 1000) / 10000
-                )
+                response_factor = max(0.1, 1.0 - (health.avg_response_time_ms - 1000) / 10000)
 
             return base_score * uptime_factor * error_factor * response_factor
 
@@ -564,9 +483,7 @@ class MemoryProviderFailoverManager:
             logger.error(f"Failed to calculate health score for {provider_name}: {e}")
             return 0.0
 
-    async def _calculate_performance_score(
-        self, provider_name: str, operation_type: OperationType
-    ) -> float:
+    async def _calculate_performance_score(self, provider_name: str, operation_type: OperationType) -> float:
         """Calculate performance score for a provider and operation type"""
         try:
             metrics = self.provider_metrics.get(provider_name)
@@ -580,18 +497,12 @@ class MemoryProviderFailoverManager:
             # Response time score (faster = better)
             response_score = 1.0
             if metrics.avg_response_time_ms > 100:  # > 100ms
-                response_score = max(
-                    0.1, 1.0 - (metrics.avg_response_time_ms - 100) / 1000
-                )
+                response_score = max(0.1, 1.0 - (metrics.avg_response_time_ms - 100) / 1000)
 
             # Recent usage factor (prefer recently used providers)
             if metrics.last_used:
-                time_since_use = (
-                    datetime.now(timezone.utc) - metrics.last_used
-                ).total_seconds()
-                recency_score = max(
-                    0.1, 1.0 - (time_since_use / 3600)
-                )  # Decay over 1 hour
+                time_since_use = (datetime.now(timezone.utc) - metrics.last_used).total_seconds()
+                recency_score = max(0.1, 1.0 - (time_since_use / 3600))  # Decay over 1 hour
             else:
                 recency_score = 0.1
 
@@ -601,14 +512,10 @@ class MemoryProviderFailoverManager:
             return success_score * response_score * recency_score * error_penalty
 
         except Exception as e:
-            logger.error(
-                f"Failed to calculate performance score for {provider_name}: {e}"
-            )
+            logger.error(f"Failed to calculate performance score for {provider_name}: {e}")
             return 0.0
 
-    def _calculate_recommendation_score(
-        self, provider_name: str, operation_type: OperationType
-    ) -> float:
+    def _calculate_recommendation_score(self, provider_name: str, operation_type: OperationType) -> float:
         """Calculate overall recommendation score for a provider"""
         try:
             # This is a simplified version - in practice you'd combine multiple factors
@@ -616,16 +523,12 @@ class MemoryProviderFailoverManager:
             if not metrics:
                 return 0.0
 
-            return (metrics.success_rate / 100.0) * (
-                1.0 / (metrics.avg_response_time_ms / 100.0 + 1)
-            )
+            return (metrics.success_rate / 100.0) * (1.0 / (metrics.avg_response_time_ms / 100.0 + 1))
 
         except Exception:
             return 0.0
 
-    def _is_circuit_breaker_open(
-        self, provider_name: str, operation_type: OperationType
-    ) -> bool:
+    def _is_circuit_breaker_open(self, provider_name: str, operation_type: OperationType) -> bool:
         """Check if circuit breaker is open for a provider and operation"""
         try:
             if provider_name not in self.circuit_breakers:
@@ -639,9 +542,7 @@ class MemoryProviderFailoverManager:
             if failures >= threshold:
                 # Check if enough time has passed to try again (circuit breaker timeout)
                 if last_failure:
-                    time_since_failure = (
-                        datetime.now(timezone.utc) - last_failure
-                    ).total_seconds()
+                    time_since_failure = (datetime.now(timezone.utc) - last_failure).total_seconds()
                     if time_since_failure > 300:  # 5 minutes
                         # Reset circuit breaker
                         breaker["failures"] = 0
@@ -653,9 +554,7 @@ class MemoryProviderFailoverManager:
         except Exception:
             return False
 
-    def _record_circuit_breaker_success(
-        self, provider_name: str, operation_type: OperationType
-    ) -> None:
+    def _record_circuit_breaker_success(self, provider_name: str, operation_type: OperationType) -> None:
         """Record successful operation for circuit breaker"""
         try:
             if provider_name not in self.circuit_breakers:
@@ -674,9 +573,7 @@ class MemoryProviderFailoverManager:
         except Exception as e:
             logger.error(f"Failed to record circuit breaker success: {e}")
 
-    def _record_circuit_breaker_failure(
-        self, provider_name: str, operation_type: OperationType
-    ) -> None:
+    def _record_circuit_breaker_failure(self, provider_name: str, operation_type: OperationType) -> None:
         """Record failed operation for circuit breaker"""
         try:
             if provider_name not in self.circuit_breakers:
@@ -716,28 +613,21 @@ class MemoryProviderFailoverManager:
                 # Update moving averages
                 total_ops = metrics.total_operations + 1
                 metrics.avg_response_time_ms = (
-                    metrics.avg_response_time_ms * metrics.total_operations
-                    + response_time_ms
+                    metrics.avg_response_time_ms * metrics.total_operations + response_time_ms
                 ) / total_ops
 
                 # Update success rate (simple moving average over last 100 operations)
-                success_count = int(
-                    metrics.success_rate * min(metrics.total_operations, 100) / 100
-                )
+                success_count = int(metrics.success_rate * min(metrics.total_operations, 100) / 100)
                 success_count += 1
                 window_size = min(total_ops, 100)
                 metrics.success_rate = (success_count / window_size) * 100
 
                 metrics.total_operations = total_ops
                 metrics.last_used = datetime.now(timezone.utc)
-                metrics.recent_errors = max(
-                    0, metrics.recent_errors - 1
-                )  # Decay errors
+                metrics.recent_errors = max(0, metrics.recent_errors - 1)  # Decay errors
 
             # Record in health monitor
-            await self.health_monitor.record_health_check(
-                provider_name, response_time_ms, True
-            )
+            await self.health_monitor.record_health_check(provider_name, response_time_ms, True)
 
         except Exception as e:
             logger.error(f"Failed to record operation success: {e}")
@@ -761,9 +651,7 @@ class MemoryProviderFailoverManager:
 
                 # Update success rate
                 total_ops = metrics.total_operations + 1
-                success_count = int(
-                    metrics.success_rate * min(metrics.total_operations, 100) / 100
-                )
+                success_count = int(metrics.success_rate * min(metrics.total_operations, 100) / 100)
                 window_size = min(total_ops, 100)
                 metrics.success_rate = (success_count / window_size) * 100
 
@@ -772,9 +660,7 @@ class MemoryProviderFailoverManager:
                 metrics.recent_errors += 1
 
             # Record in health monitor
-            await self.health_monitor.record_health_check(
-                provider_name, 0.0, False, error_message
-            )
+            await self.health_monitor.record_health_check(provider_name, 0.0, False, error_message)
 
         except Exception as e:
             logger.error(f"Failed to record operation failure: {e}")
@@ -786,9 +672,7 @@ class MemoryProviderFailoverManager:
 
             # Maintain history size limit
             if len(self._operation_history) > self._max_history_size:
-                self._operation_history = self._operation_history[
-                    -self._max_history_size :
-                ]
+                self._operation_history = self._operation_history[-self._max_history_size :]
 
         except Exception as e:
             logger.error(f"Failed to add to history: {e}")

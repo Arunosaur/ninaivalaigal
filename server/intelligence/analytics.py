@@ -57,24 +57,16 @@ class GraphAnalyticsEngine:
         """
         try:
             # Analyze team's knowledge coverage
-            knowledge_coverage = await self._analyze_team_knowledge_coverage(
-                team_context, analysis_window
-            )
+            knowledge_coverage = await self._analyze_team_knowledge_coverage(team_context, analysis_window)
 
             # Identify gaps based on query patterns and failed searches
-            query_gaps = await self._analyze_query_patterns(
-                team_context, analysis_window
-            )
+            query_gaps = await self._analyze_query_patterns(team_context, analysis_window)
 
             # Compare with industry/organizational knowledge standards
-            standard_gaps = await self._compare_with_knowledge_standards(
-                team_context, knowledge_coverage
-            )
+            standard_gaps = await self._compare_with_knowledge_standards(team_context, knowledge_coverage)
 
             # Analyze collaboration patterns to identify missing expertise
-            collaboration_gaps = await self._analyze_collaboration_gaps(
-                team_context, analysis_window
-            )
+            collaboration_gaps = await self._analyze_collaboration_gaps(team_context, analysis_window)
 
             # Combine and score all identified gaps
             all_gaps = query_gaps + standard_gaps + collaboration_gaps
@@ -83,9 +75,7 @@ class GraphAnalyticsEngine:
             for gap_data in all_gaps:
                 if gap_data["confidence"] >= confidence_threshold:
                     # Find potential sources for filling the gap
-                    suggested_sources = await self._find_gap_sources(
-                        gap_data["topic_area"], team_context
-                    )
+                    suggested_sources = await self._find_gap_sources(gap_data["topic_area"], team_context)
 
                     # Identify potential experts
                     potential_experts = await self._identify_topic_experts(
@@ -106,13 +96,9 @@ class GraphAnalyticsEngine:
                     knowledge_gaps.append(gap)
 
             # Sort by urgency and confidence
-            knowledge_gaps.sort(
-                key=lambda g: (g.urgency_score * g.confidence), reverse=True
-            )
+            knowledge_gaps.sort(key=lambda g: (g.urgency_score * g.confidence), reverse=True)
 
-            logger.info(
-                f"Detected {len(knowledge_gaps)} knowledge gaps for team {team_context.team_id}"
-            )
+            logger.info(f"Detected {len(knowledge_gaps)} knowledge gaps for team {team_context.team_id}")
 
             return knowledge_gaps
 
@@ -147,24 +133,18 @@ class GraphAnalyticsEngine:
             creation_data = await self._get_memory_creation_data(scope, start_time)
 
             # Extract topics from memory data
-            topic_activity = await self._extract_topic_activity(
-                access_data, creation_data
-            )
+            topic_activity = await self._extract_topic_activity(access_data, creation_data)
 
             # Calculate trend scores and growth rates
             trending_topics = []
 
             for topic, activity_data in topic_activity.items():
                 # Calculate growth rate compared to previous period
-                growth_rate = await self._calculate_topic_growth_rate(
-                    topic, activity_data, window_delta
-                )
+                growth_rate = await self._calculate_topic_growth_rate(topic, activity_data, window_delta)
 
                 if growth_rate >= min_growth_rate:
                     # Calculate trend score based on multiple factors
-                    trend_score = self._calculate_trend_score(
-                        activity_data, growth_rate, window_delta
-                    )
+                    trend_score = self._calculate_trend_score(activity_data, growth_rate, window_delta)
 
                     # Get related memories and teams
                     related_memories = activity_data.get("memory_ids", [])
@@ -191,9 +171,7 @@ class GraphAnalyticsEngine:
             # Update trend history for future analysis
             self._update_trend_history(trending_topics, time_window)
 
-            logger.info(
-                f"Identified {len(trending_topics)} trending topics in {time_window}"
-            )
+            logger.info(f"Identified {len(trending_topics)} trending topics in {time_window}")
 
             return trending_topics[:20]  # Return top 20 trends
 
@@ -221,17 +199,13 @@ class GraphAnalyticsEngine:
             existing_connections = await self._get_existing_connections(memory_id)
 
             # Find candidate memories for connections
-            candidates = await self._find_connection_candidates(
-                memory_data, existing_connections, context
-            )
+            candidates = await self._find_connection_candidates(memory_data, existing_connections, context)
 
             suggestions = []
 
             for candidate in candidates:
                 # Calculate connection strength and type
-                connection_analysis = await self._analyze_potential_connection(
-                    memory_data, candidate, context
-                )
+                connection_analysis = await self._analyze_potential_connection(memory_data, candidate, context)
 
                 if connection_analysis["confidence"] >= 0.6:
                     suggestion = SuggestedConnection(
@@ -246,9 +220,7 @@ class GraphAnalyticsEngine:
                     suggestions.append(suggestion)
 
             # Sort by potential value and confidence
-            suggestions.sort(
-                key=lambda s: s.potential_value * s.confidence, reverse=True
-            )
+            suggestions.sort(key=lambda s: s.potential_value * s.confidence, reverse=True)
 
             return suggestions[:max_suggestions]
 
@@ -276,29 +248,19 @@ class GraphAnalyticsEngine:
             team_context = await self._get_team_context(team_id)
 
             # Analyze knowledge coverage across different domains
-            knowledge_coverage = await self._analyze_comprehensive_knowledge_coverage(
-                team_context, analysis_period
-            )
+            knowledge_coverage = await self._analyze_comprehensive_knowledge_coverage(team_context, analysis_period)
 
             # Analyze collaboration patterns
-            collaboration_patterns = await self._analyze_team_collaboration_patterns(
-                team_context, analysis_period
-            )
+            collaboration_patterns = await self._analyze_team_collaboration_patterns(team_context, analysis_period)
 
             # Get trending topics for the team
-            trending_topics = await self.identify_trending_topics(
-                scope=f"team:{team_id}", time_window="30d"
-            )
+            trending_topics = await self.identify_trending_topics(scope=f"team:{team_id}", time_window="30d")
 
             # Detect knowledge gaps
-            knowledge_gaps = await self.detect_knowledge_gaps(
-                team_context, analysis_period
-            )
+            knowledge_gaps = await self.detect_knowledge_gaps(team_context, analysis_period)
 
             # Calculate productivity metrics
-            productivity_metrics = await self._calculate_team_productivity_metrics(
-                team_context, analysis_period
-            )
+            productivity_metrics = await self._calculate_team_productivity_metrics(team_context, analysis_period)
 
             # Generate actionable recommendations
             recommendations = await self._generate_team_recommendations(
@@ -391,15 +353,11 @@ class GraphAnalyticsEngine:
         general_areas = ["technical", "process", "business", "communication"]
         for area in general_areas:
             if area not in coverage:
-                coverage[area] = await self._calculate_domain_coverage(
-                    team_context.team_id, area, analysis_window
-                )
+                coverage[area] = await self._calculate_domain_coverage(team_context.team_id, area, analysis_window)
 
         return coverage
 
-    async def _analyze_query_patterns(
-        self, team_context: TeamContext, analysis_window: timedelta
-    ) -> List[Dict]:
+    async def _analyze_query_patterns(self, team_context: TeamContext, analysis_window: timedelta) -> List[Dict]:
         """Analyze query patterns to identify knowledge gaps"""
         gaps = []
 
@@ -440,9 +398,7 @@ class GraphAnalyticsEngine:
         else:
             return timedelta(hours=24)  # Default to 24 hours
 
-    def _calculate_trend_score(
-        self, activity_data: Dict, growth_rate: float, window_delta: timedelta
-    ) -> float:
+    def _calculate_trend_score(self, activity_data: Dict, growth_rate: float, window_delta: timedelta) -> float:
         """Calculate trend score based on activity and growth"""
         base_score = growth_rate
 
@@ -474,20 +430,15 @@ class GraphAnalyticsEngine:
         recommendations = []
 
         # Knowledge coverage recommendations
-        low_coverage_areas = [
-            area for area, score in knowledge_coverage.items() if score < 0.4
-        ]
+        low_coverage_areas = [area for area, score in knowledge_coverage.items() if score < 0.4]
         if low_coverage_areas:
-            recommendations.append(
-                f"Consider building expertise in: {', '.join(low_coverage_areas[:3])}"
-            )
+            recommendations.append(f"Consider building expertise in: {', '.join(low_coverage_areas[:3])}")
 
         # Knowledge gap recommendations
         if knowledge_gaps:
             top_gap = knowledge_gaps[0]
             recommendations.append(
-                f"Priority knowledge gap: {top_gap.topic_area} - "
-                f"consider training or expert consultation"
+                f"Priority knowledge gap: {top_gap.topic_area} - " f"consider training or expert consultation"
             )
 
         # Trending topic recommendations
@@ -501,15 +452,11 @@ class GraphAnalyticsEngine:
         # Collaboration recommendations
         collab_score = collaboration_patterns.get("external_collaboration_score", 0.5)
         if collab_score < 0.3:
-            recommendations.append(
-                "Consider increasing collaboration with other teams to share knowledge"
-            )
+            recommendations.append("Consider increasing collaboration with other teams to share knowledge")
 
         # Productivity recommendations
         knowledge_reuse = productivity_metrics.get("knowledge_reuse_rate", 0.5)
         if knowledge_reuse < 0.4:
-            recommendations.append(
-                "Improve knowledge documentation and sharing to increase reuse"
-            )
+            recommendations.append("Improve knowledge documentation and sharing to increase reuse")
 
         return recommendations[:5]  # Return top 5 recommendations

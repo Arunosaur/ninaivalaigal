@@ -30,9 +30,7 @@ class TestSecurityScenarios:
         test_users = [member_user, viewer_user, guest_user]
 
         for user in test_users:
-            escalation_results = (
-                await security_engine.test_privilege_escalation_attempts(user)
-            )
+            escalation_results = await security_engine.test_privilege_escalation_attempts(user)
 
             # All escalation attempts should be prevented
             for result in escalation_results:
@@ -52,9 +50,7 @@ class TestSecurityScenarios:
                 assert expected_attack in attack_types
 
     @pytest.mark.asyncio
-    async def test_jwt_token_manipulation_attacks(
-        self, security_engine: SecurityScenarioEngine, member_user
-    ):
+    async def test_jwt_token_manipulation_attacks(self, security_engine: SecurityScenarioEngine, member_user):
         """Test JWT token manipulation attack prevention"""
 
         # Get valid token for manipulation tests
@@ -62,9 +58,7 @@ class TestSecurityScenarios:
         assert token is not None
 
         # Test token manipulation attacks
-        manipulation_results = await security_engine.test_token_manipulation_attacks(
-            member_user, token
-        )
+        manipulation_results = await security_engine.test_token_manipulation_attacks(member_user, token)
 
         # All manipulation attempts should be prevented
         for result in manipulation_results:
@@ -84,14 +78,10 @@ class TestSecurityScenarios:
             assert expected_attack in attack_types
 
     @pytest.mark.asyncio
-    async def test_session_hijacking_prevention(
-        self, security_engine: SecurityScenarioEngine, test_session
-    ):
+    async def test_session_hijacking_prevention(self, security_engine: SecurityScenarioEngine, test_session):
         """Test session hijacking prevention mechanisms"""
 
-        hijacking_result = await security_engine.test_session_hijacking_prevention(
-            test_session
-        )
+        hijacking_result = await security_engine.test_session_hijacking_prevention(test_session)
 
         # Session hijacking should be prevented
         assert hijacking_result.is_secure
@@ -100,9 +90,7 @@ class TestSecurityScenarios:
         # Validate hijacking attempt details
         attack_details = hijacking_result.attack_details
         assert attack_details.get("hijack_attempts", 0) > 0
-        assert attack_details.get("prevented_attempts", 0) == attack_details.get(
-            "hijack_attempts", 0
-        )
+        assert attack_details.get("prevented_attempts", 0) == attack_details.get("hijack_attempts", 0)
 
         # Performance validation
         assert hijacking_result.execution_time_ms <= 5000  # Max 5 seconds
@@ -238,9 +226,7 @@ class TestSecurityScenarios:
             security_tasks.append(task)
 
         # Execute concurrent security tests
-        concurrent_results = await asyncio.gather(
-            *security_tasks, return_exceptions=True
-        )
+        concurrent_results = await asyncio.gather(*security_tasks, return_exceptions=True)
 
         # Validate all attacks were prevented
         for i, results in enumerate(concurrent_results):
@@ -253,18 +239,12 @@ class TestSecurityScenarios:
                     assert result.user_id == user.user_id
 
     @pytest.mark.asyncio
-    async def test_security_audit_trail(
-        self, security_engine: SecurityScenarioEngine, admin_user, member_user
-    ):
+    async def test_security_audit_trail(self, security_engine: SecurityScenarioEngine, admin_user, member_user):
         """Test security audit trail generation"""
 
         # Perform security tests that should generate audit logs
-        admin_escalation = await security_engine.test_privilege_escalation_attempts(
-            admin_user
-        )
-        member_escalation = await security_engine.test_privilege_escalation_attempts(
-            member_user
-        )
+        admin_escalation = await security_engine.test_privilege_escalation_attempts(admin_user)
+        member_escalation = await security_engine.test_privilege_escalation_attempts(member_user)
 
         # Validate audit trail exists
         for result in admin_escalation + member_escalation:
@@ -290,18 +270,12 @@ class TestSecurityScenarios:
         start_time = time.time()
 
         # Run comprehensive security tests
-        escalation_results = await security_engine.test_privilege_escalation_attempts(
-            member_user
-        )
+        escalation_results = await security_engine.test_privilege_escalation_attempts(member_user)
 
         # Get token for manipulation tests
         token = await security_engine._get_user_token(member_user)
         if token:
-            manipulation_results = (
-                await security_engine.test_token_manipulation_attacks(
-                    member_user, token
-                )
-            )
+            manipulation_results = await security_engine.test_token_manipulation_attacks(member_user, token)
         else:
             manipulation_results = []
 
@@ -332,9 +306,7 @@ class TestSecurityScenarios:
 
         xss_results = []
         for payload in xss_payloads:
-            result = await self._test_xss_payload(
-                security_engine, member_user, token, payload
-            )
+            result = await self._test_xss_payload(security_engine, member_user, token, payload)
             xss_results.append(result)
 
         # All XSS attempts should be prevented
@@ -358,9 +330,7 @@ class TestSecurityScenarios:
 
         injection_results = []
         for payload in command_payloads:
-            result = await self._test_command_injection_payload(
-                security_engine, member_user, token, payload
-            )
+            result = await self._test_command_injection_payload(security_engine, member_user, token, payload)
             injection_results.append(result)
 
         # All command injection attempts should be prevented
@@ -384,9 +354,7 @@ class TestSecurityScenarios:
 
         traversal_results = []
         for payload in path_payloads:
-            result = await self._test_path_traversal_payload(
-                security_engine, member_user, token, payload
-            )
+            result = await self._test_path_traversal_payload(security_engine, member_user, token, payload)
             traversal_results.append(result)
 
         # All path traversal attempts should be prevented

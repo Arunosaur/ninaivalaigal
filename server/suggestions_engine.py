@@ -132,9 +132,7 @@ class IntelligentSuggestionsEngine:
             logger.error("Failed to initialize suggestions engine", error=str(e))
             raise
 
-    async def generate_suggestions(
-        self, request: SuggestionRequest
-    ) -> SuggestionResponse:
+    async def generate_suggestions(self, request: SuggestionRequest) -> SuggestionResponse:
         """Generate intelligent memory suggestions"""
 
         start_time = time.time()
@@ -166,9 +164,7 @@ class IntelligentSuggestionsEngine:
             # Generate suggestions from each algorithm
             for suggestion_type in suggestion_types:
                 try:
-                    suggestions = await self._generate_by_algorithm(
-                        request, suggestion_type
-                    )
+                    suggestions = await self._generate_by_algorithm(request, suggestion_type)
                     all_suggestions.extend(suggestions)
                     algorithms_used.append(suggestion_type)
                 except Exception as e:
@@ -179,9 +175,7 @@ class IntelligentSuggestionsEngine:
                     )
 
             # Rank and deduplicate suggestions
-            final_suggestions = await self._rank_and_filter_suggestions(
-                all_suggestions, request
-            )
+            final_suggestions = await self._rank_and_filter_suggestions(all_suggestions, request)
 
             # Create response
             generation_time = (time.time() - start_time) * 1000
@@ -212,9 +206,7 @@ class IntelligentSuggestionsEngine:
             return response
 
         except Exception as e:
-            logger.error(
-                "Failed to generate suggestions", user_id=request.user_id, error=str(e)
-            )
+            logger.error("Failed to generate suggestions", user_id=request.user_id, error=str(e))
             raise
 
     async def _generate_by_algorithm(
@@ -233,9 +225,7 @@ class IntelligentSuggestionsEngine:
         else:
             return []
 
-    async def _content_similarity_suggestions(
-        self, request: SuggestionRequest
-    ) -> list[MemorySuggestion]:
+    async def _content_similarity_suggestions(self, request: SuggestionRequest) -> list[MemorySuggestion]:
         """Generate suggestions based on content similarity"""
 
         suggestions = []
@@ -246,14 +236,10 @@ class IntelligentSuggestionsEngine:
 
             if request.memory_id:
                 # Find memories similar to a specific memory
-                similar_memories = await self._find_similar_memories_by_content(
-                    request.user_id, request.memory_id
-                )
+                similar_memories = await self._find_similar_memories_by_content(request.user_id, request.memory_id)
             elif request.query:
                 # Find memories similar to a query
-                similar_memories = await self._find_similar_memories_by_query(
-                    request.user_id, request.query
-                )
+                similar_memories = await self._find_similar_memories_by_query(request.user_id, request.query)
             else:
                 # Find generally popular/relevant memories
                 similar_memories = await self._find_popular_memories(request.user_id)
@@ -281,9 +267,7 @@ class IntelligentSuggestionsEngine:
 
         return suggestions
 
-    async def _collaborative_filtering_suggestions(
-        self, request: SuggestionRequest
-    ) -> list[MemorySuggestion]:
+    async def _collaborative_filtering_suggestions(self, request: SuggestionRequest) -> list[MemorySuggestion]:
         """Generate suggestions based on similar user behavior"""
 
         suggestions = []
@@ -326,18 +310,14 @@ class IntelligentSuggestionsEngine:
 
         return suggestions
 
-    async def _feedback_based_suggestions(
-        self, request: SuggestionRequest
-    ) -> list[MemorySuggestion]:
+    async def _feedback_based_suggestions(self, request: SuggestionRequest) -> list[MemorySuggestion]:
         """Generate suggestions based on high-feedback memories"""
 
         suggestions = []
 
         try:
             # Get memories with high positive feedback
-            high_feedback_memories = await self._get_high_feedback_memories(
-                request.user_id
-            )
+            high_feedback_memories = await self._get_high_feedback_memories(request.user_id)
 
             for memory_data in high_feedback_memories:
                 suggestion = MemorySuggestion(
@@ -366,9 +346,7 @@ class IntelligentSuggestionsEngine:
 
         return suggestions
 
-    async def _context_aware_suggestions(
-        self, request: SuggestionRequest
-    ) -> list[MemorySuggestion]:
+    async def _context_aware_suggestions(self, request: SuggestionRequest) -> list[MemorySuggestion]:
         """Generate suggestions based on current context"""
 
         suggestions = []
@@ -378,9 +356,7 @@ class IntelligentSuggestionsEngine:
                 return suggestions
 
             # Find memories accessed in similar contexts
-            context_memories = await self._get_context_memories(
-                request.user_id, request.context_id
-            )
+            context_memories = await self._get_context_memories(request.user_id, request.context_id)
 
             for memory_data in context_memories:
                 suggestion = MemorySuggestion(
@@ -423,32 +399,22 @@ class IntelligentSuggestionsEngine:
                 unique_suggestions.append(suggestion)
 
         # Filter by minimum confidence
-        filtered_suggestions = [
-            s for s in unique_suggestions if s.confidence >= request.min_confidence
-        ]
+        filtered_suggestions = [s for s in unique_suggestions if s.confidence >= request.min_confidence]
 
         # Filter out excluded memories
         if request.exclude_memory_ids:
-            filtered_suggestions = [
-                s
-                for s in filtered_suggestions
-                if s.memory_id not in request.exclude_memory_ids
-            ]
+            filtered_suggestions = [s for s in filtered_suggestions if s.memory_id not in request.exclude_memory_ids]
 
         # Enhance with relevance scores
         for suggestion in filtered_suggestions:
             try:
                 # Get relevance score from SPEC-031
-                relevance_score = await self._get_memory_relevance_score(
-                    request.user_id, suggestion.memory_id
-                )
+                relevance_score = await self._get_memory_relevance_score(request.user_id, suggestion.memory_id)
                 suggestion.relevance_score = relevance_score
 
                 # Get feedback score from SPEC-040
-                feedback_score_obj = (
-                    await self.feedback_engine.get_memory_feedback_score(
-                        request.user_id, suggestion.memory_id
-                    )
+                feedback_score_obj = await self.feedback_engine.get_memory_feedback_score(
+                    request.user_id, suggestion.memory_id
                 )
                 if feedback_score_obj:
                     suggestion.feedback_score = feedback_score_obj.total_score
@@ -471,9 +437,7 @@ class IntelligentSuggestionsEngine:
 
         return filtered_suggestions
 
-    async def _find_similar_memories_by_content(
-        self, user_id: int, memory_id: str
-    ) -> list[dict[str, Any]]:
+    async def _find_similar_memories_by_content(self, user_id: int, memory_id: str) -> list[dict[str, Any]]:
         """Find memories similar to a given memory by content"""
 
         # This would use actual embeddings and similarity search in production
@@ -488,9 +452,7 @@ class IntelligentSuggestionsEngine:
             for i in range(1, 4)
         ]
 
-    async def _find_similar_memories_by_query(
-        self, user_id: int, query: str
-    ) -> list[dict[str, Any]]:
+    async def _find_similar_memories_by_query(self, user_id: int, query: str) -> list[dict[str, Any]]:
         """Find memories similar to a query"""
 
         # This would use semantic search in production
@@ -559,9 +521,7 @@ class IntelligentSuggestionsEngine:
         except Exception:
             return []
 
-    async def _get_context_memories(
-        self, user_id: int, context_id: str
-    ) -> list[dict[str, Any]]:
+    async def _get_context_memories(self, user_id: int, context_id: str) -> list[dict[str, Any]]:
         """Get memories accessed in similar contexts"""
 
         return [
@@ -596,9 +556,7 @@ class IntelligentSuggestionsEngine:
         ]
         return ":".join(key_parts)
 
-    async def _get_cached_suggestions(
-        self, cache_key: str
-    ) -> SuggestionResponse | None:
+    async def _get_cached_suggestions(self, cache_key: str) -> SuggestionResponse | None:
         """Get cached suggestions if available"""
 
         try:
@@ -610,9 +568,7 @@ class IntelligentSuggestionsEngine:
                 response = SuggestionResponse(
                     suggestions=suggestions,
                     total_found=data["total_found"],
-                    algorithms_used=[
-                        SuggestionType(a) for a in data["algorithms_used"]
-                    ],
+                    algorithms_used=[SuggestionType(a) for a in data["algorithms_used"]],
                     generation_time_ms=data["generation_time_ms"],
                     cached=True,
                     metadata=data["metadata"],
@@ -637,9 +593,7 @@ class IntelligentSuggestionsEngine:
                 "metadata": response.metadata,
             }
 
-            await self.redis_client.setex(
-                cache_key, self.cache_ttl, json.dumps(data, default=str)
-            )
+            await self.redis_client.setex(cache_key, self.cache_ttl, json.dumps(data, default=str))
 
         except Exception as e:
             logger.warning("Failed to cache suggestions", error=str(e))

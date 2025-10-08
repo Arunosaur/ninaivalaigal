@@ -90,9 +90,7 @@ class TestExplainContextPerformance:
         assert result.confidence >= 0.0
 
     @pytest.mark.benchmark(group="explain_context")
-    def test_explain_context_performance_warm_cache(
-        self, benchmark, graph_reasoner, mock_redis_client
-    ):
+    def test_explain_context_performance_warm_cache(self, benchmark, graph_reasoner, mock_redis_client):
         """Benchmark explain_context with warm cache (Redis cache hit)"""
         # Setup cache hit
         cached_data = {
@@ -118,15 +116,11 @@ class TestExplainContextPerformance:
         assert result.retrieval_reason == "Cached reason"
 
     @pytest.mark.benchmark(group="explain_context")
-    def test_explain_context_performance_deep_traversal(
-        self, benchmark, graph_reasoner
-    ):
+    def test_explain_context_performance_deep_traversal(self, benchmark, graph_reasoner):
         """Benchmark explain_context with deep graph traversal"""
 
         async def explain_context_deep():
-            return await graph_reasoner.explain_context(
-                "mem_001", "user_001", max_depth=5
-            )
+            return await graph_reasoner.explain_context("mem_001", "user_001", max_depth=5)
 
         def run_explain_context():
             return asyncio.run(explain_context_deep())
@@ -137,9 +131,7 @@ class TestExplainContextPerformance:
         assert result.memory_id == "mem_001"
 
     @pytest.mark.benchmark(group="explain_context", min_rounds=10)
-    def test_explain_context_performance_bulk_operations(
-        self, benchmark, graph_reasoner
-    ):
+    def test_explain_context_performance_bulk_operations(self, benchmark, graph_reasoner):
         """Benchmark explain_context with multiple concurrent operations"""
 
         async def explain_context_bulk():
@@ -165,9 +157,7 @@ class TestInferRelevancePerformance:
     """Performance benchmarks for infer_relevance"""
 
     @pytest.mark.benchmark(group="infer_relevance")
-    def test_infer_relevance_performance_cold_cache(
-        self, benchmark, graph_reasoner, mock_age_client
-    ):
+    def test_infer_relevance_performance_cold_cache(self, benchmark, graph_reasoner, mock_age_client):
         """Benchmark infer_relevance with cold cache"""
         # Setup multiple query responses for connected memories and agents
         mock_age_client.execute_cypher.side_effect = [
@@ -197,9 +187,7 @@ class TestInferRelevancePerformance:
         assert 0 <= result.confidence <= 1
 
     @pytest.mark.benchmark(group="infer_relevance")
-    def test_infer_relevance_performance_warm_cache(
-        self, benchmark, graph_reasoner, mock_redis_client
-    ):
+    def test_infer_relevance_performance_warm_cache(self, benchmark, graph_reasoner, mock_redis_client):
         """Benchmark infer_relevance with warm cache"""
         # Setup cache hit
         cached_data = {
@@ -224,9 +212,7 @@ class TestInferRelevancePerformance:
         assert result.confidence == 0.75
 
     @pytest.mark.benchmark(group="infer_relevance")
-    def test_infer_relevance_performance_large_suggestion_count(
-        self, benchmark, graph_reasoner, mock_age_client
-    ):
+    def test_infer_relevance_performance_large_suggestion_count(self, benchmark, graph_reasoner, mock_age_client):
         """Benchmark infer_relevance with large suggestion count"""
         # Setup responses for many connected items
         mock_age_client.execute_cypher.side_effect = [
@@ -243,9 +229,7 @@ class TestInferRelevancePerformance:
         ]
 
         async def infer_relevance_large():
-            return await graph_reasoner.infer_relevance(
-                "mem_001", "user_001", suggestion_count=15
-            )
+            return await graph_reasoner.infer_relevance("mem_001", "user_001", suggestion_count=15)
 
         def run_infer_relevance():
             return asyncio.run(infer_relevance_large())
@@ -261,9 +245,7 @@ class TestFeedbackLoopPerformance:
     """Performance benchmarks for feedback_loop"""
 
     @pytest.mark.benchmark(group="feedback_loop")
-    def test_feedback_loop_performance_single_feedback(
-        self, benchmark, graph_reasoner, mock_age_client
-    ):
+    def test_feedback_loop_performance_single_feedback(self, benchmark, graph_reasoner, mock_age_client):
         """Benchmark single feedback_loop operation"""
         # Setup query responses
         mock_age_client.execute_cypher.side_effect = [
@@ -272,9 +254,7 @@ class TestFeedbackLoopPerformance:
         ]
 
         async def feedback_loop_single():
-            return await graph_reasoner.feedback_loop(
-                "user_001", "mem_001", "relevance", 0.8, {"context": "benchmark"}
-            )
+            return await graph_reasoner.feedback_loop("user_001", "mem_001", "relevance", 0.8, {"context": "benchmark"})
 
         def run_feedback_loop():
             return asyncio.run(feedback_loop_single())
@@ -286,9 +266,7 @@ class TestFeedbackLoopPerformance:
         assert "weight_updates" in result
 
     @pytest.mark.benchmark(group="feedback_loop", min_rounds=5)
-    def test_feedback_loop_performance_batch_feedback(
-        self, benchmark, graph_reasoner, mock_age_client
-    ):
+    def test_feedback_loop_performance_batch_feedback(self, benchmark, graph_reasoner, mock_age_client):
         """Benchmark batch feedback_loop operations"""
         # Setup query responses for multiple feedbacks
         mock_age_client.execute_cypher.side_effect = [
@@ -299,11 +277,7 @@ class TestFeedbackLoopPerformance:
         async def feedback_loop_batch():
             tasks = []
             for i in range(5):
-                tasks.append(
-                    graph_reasoner.feedback_loop(
-                        "user_001", f"mem_{i:03d}", "relevance", 0.7 + i * 0.05
-                    )
-                )
+                tasks.append(graph_reasoner.feedback_loop("user_001", f"mem_{i:03d}", "relevance", 0.7 + i * 0.05))
 
             results = await asyncio.gather(*tasks)
             return results
@@ -327,9 +301,7 @@ class TestAnalyzeMemoryNetworkPerformance:
         """Benchmark network analysis with small network"""
 
         async def analyze_network_small():
-            return await graph_reasoner.analyze_memory_network(
-                "user_001", "comprehensive"
-            )
+            return await graph_reasoner.analyze_memory_network("user_001", "comprehensive")
 
         def run_analyze_network():
             return asyncio.run(analyze_network_small())
@@ -343,9 +315,7 @@ class TestAnalyzeMemoryNetworkPerformance:
         assert "insights" in result
 
     @pytest.mark.benchmark(group="analyze_network")
-    def test_analyze_network_performance_large_network(
-        self, benchmark, graph_reasoner, mock_age_client
-    ):
+    def test_analyze_network_performance_large_network(self, benchmark, graph_reasoner, mock_age_client):
         """Benchmark network analysis with large network"""
         # Setup large network data
         large_network = {
@@ -362,9 +332,7 @@ class TestAnalyzeMemoryNetworkPerformance:
         mock_age_client.get_memory_network.return_value = large_network
 
         async def analyze_network_large():
-            return await graph_reasoner.analyze_memory_network(
-                "user_001", "comprehensive"
-            )
+            return await graph_reasoner.analyze_memory_network("user_001", "comprehensive")
 
         def run_analyze_network():
             return asyncio.run(analyze_network_large())
@@ -376,9 +344,7 @@ class TestAnalyzeMemoryNetworkPerformance:
         assert result["network_structure"]["edge_count"] == 100
 
     @pytest.mark.benchmark(group="analyze_network")
-    def test_analyze_network_performance_cached(
-        self, benchmark, graph_reasoner, mock_redis_client
-    ):
+    def test_analyze_network_performance_cached(self, benchmark, graph_reasoner, mock_redis_client):
         """Benchmark network analysis with cache hit"""
         # Setup cache hit
         cached_analysis = {
@@ -392,9 +358,7 @@ class TestAnalyzeMemoryNetworkPerformance:
         mock_redis_client.get.return_value = json.dumps(cached_analysis)
 
         async def analyze_network_cached():
-            return await graph_reasoner.analyze_memory_network(
-                "user_001", "comprehensive"
-            )
+            return await graph_reasoner.analyze_memory_network("user_001", "comprehensive")
 
         def run_analyze_network():
             return asyncio.run(analyze_network_cached())
@@ -484,9 +448,7 @@ class TestConcurrentOperationsPerformance:
         assert analysis_result["user_id"] == "user_001"
 
     @pytest.mark.benchmark(group="concurrent")
-    def test_high_concurrency_performance(
-        self, benchmark, graph_reasoner, mock_age_client
-    ):
+    def test_high_concurrency_performance(self, benchmark, graph_reasoner, mock_age_client):
         """Benchmark high concurrency scenario"""
         # Setup responses for many operations
         mock_age_client.execute_cypher.side_effect = [
@@ -537,14 +499,10 @@ class TestMemoryAndResourceUsage:
     """Benchmarks for memory and resource usage"""
 
     @pytest.mark.benchmark(group="memory_usage")
-    def test_memory_usage_large_dataset(
-        self, benchmark, graph_reasoner, mock_age_client
-    ):
+    def test_memory_usage_large_dataset(self, benchmark, graph_reasoner, mock_age_client):
         """Benchmark memory usage with large dataset"""
         # Setup large dataset responses
-        large_memories = [
-            {"memory_id": f"mem_{i:05d}", "distance": i + 1} for i in range(1000)
-        ]
+        large_memories = [{"memory_id": f"mem_{i:05d}", "distance": i + 1} for i in range(1000)]
         large_agents = [{"agent_id": f"agent_{i:03d}"} for i in range(100)]
 
         mock_age_client.execute_cypher.side_effect = [
@@ -559,9 +517,7 @@ class TestMemoryAndResourceUsage:
         ]
 
         async def large_dataset_operation():
-            return await graph_reasoner.infer_relevance(
-                "mem_001", "user_001", suggestion_count=50
-            )
+            return await graph_reasoner.infer_relevance("mem_001", "user_001", suggestion_count=50)
 
         def run_large_dataset():
             return asyncio.run(large_dataset_operation())
@@ -573,9 +529,7 @@ class TestMemoryAndResourceUsage:
         assert len(result.reasoning_scores) > 0
 
     @pytest.mark.benchmark(group="cache_performance")
-    def test_cache_hit_ratio_performance(
-        self, benchmark, graph_reasoner, mock_redis_client
-    ):
+    def test_cache_hit_ratio_performance(self, benchmark, graph_reasoner, mock_redis_client):
         """Benchmark cache hit ratio and performance"""
         # Setup alternating cache hits and misses
         cache_responses = [None, "cached_data", None, "cached_data"] * 5
@@ -598,9 +552,7 @@ class TestMemoryAndResourceUsage:
                 else:  # Cache miss
                     mock_redis_client.get.return_value = None
 
-                result = await graph_reasoner.explain_context(
-                    f"mem_{i:03d}", "user_001"
-                )
+                result = await graph_reasoner.explain_context(f"mem_{i:03d}", "user_001")
                 results.append(result)
 
             return results
@@ -634,9 +586,7 @@ class TestPerformanceSLOs:
         duration_ms, result = asyncio.run(slo_test())
 
         # SLO: explain_context should complete within 100ms for cold cache
-        assert (
-            duration_ms < 100
-        ), f"explain_context took {duration_ms}ms, exceeds 100ms SLO"
+        assert duration_ms < 100, f"explain_context took {duration_ms}ms, exceeds 100ms SLO"
         assert result.memory_id == "mem_001"
 
     def test_infer_relevance_slo_compliance(self, graph_reasoner, mock_age_client):
@@ -662,9 +612,7 @@ class TestPerformanceSLOs:
         duration_ms, result = asyncio.run(slo_test())
 
         # SLO: infer_relevance should complete within 150ms for cold cache
-        assert (
-            duration_ms < 150
-        ), f"infer_relevance took {duration_ms}ms, exceeds 150ms SLO"
+        assert duration_ms < 150, f"infer_relevance took {duration_ms}ms, exceeds 150ms SLO"
         assert isinstance(result.suggested_memories, list)
 
     def test_feedback_loop_slo_compliance(self, graph_reasoner, mock_age_client):
@@ -676,9 +624,7 @@ class TestPerformanceSLOs:
 
         async def slo_test():
             start_time = datetime.now()
-            result = await graph_reasoner.feedback_loop(
-                "user_001", "mem_001", "relevance", 0.8
-            )
+            result = await graph_reasoner.feedback_loop("user_001", "mem_001", "relevance", 0.8)
             end_time = datetime.now()
 
             duration_ms = (end_time - start_time).total_seconds() * 1000

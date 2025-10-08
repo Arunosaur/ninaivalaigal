@@ -109,9 +109,7 @@ class TestDatabaseFailureScenarios:
             for i in range(10):
                 try:
                     if self.chaos_suite.api_client:
-                        response = await self.chaos_suite.api_client.get(
-                            "/health/detailed"
-                        )
+                        response = await self.chaos_suite.api_client.get("/health/detailed")
                         if response.status_code == 200:
                             success_count += 1
                         else:
@@ -125,9 +123,7 @@ class TestDatabaseFailureScenarios:
 
             logger.info(f"✅ Database failure simulation completed")
             logger.info(f"   Duration: {duration:.1f}s")
-            logger.info(
-                f"   Success rate: {success_count}/{success_count + error_count}"
-            )
+            logger.info(f"   Success rate: {success_count}/{success_count + error_count}")
 
             # Test 3: Recovery validation
             logger.info("🔄 Testing database recovery...")
@@ -151,9 +147,7 @@ class TestDatabaseFailureScenarios:
             if recovered:
                 logger.info(f"✅ Database recovery successful in {recovery_time:.1f}s")
             else:
-                logger.warning(
-                    f"⚠️  Database recovery not detected within {recovery_time:.1f}s"
-                )
+                logger.warning(f"⚠️  Database recovery not detected within {recovery_time:.1f}s")
 
         except Exception as e:
             logger.error(f"❌ Database failure test failed: {e}")
@@ -176,9 +170,7 @@ class TestDatabaseFailureScenarios:
                     pass
 
             baseline_duration = time.time() - start_time
-            baseline_rps = (
-                baseline_requests / baseline_duration if baseline_duration > 0 else 0
-            )
+            baseline_rps = baseline_requests / baseline_duration if baseline_duration > 0 else 0
 
             logger.info(f"✅ Baseline performance: {baseline_rps:.1f} requests/second")
 
@@ -207,9 +199,7 @@ class TestDatabaseFailureScenarios:
                     pass
 
             degraded_duration = time.time() - start_time
-            degraded_rps = (
-                degraded_requests / degraded_duration if degraded_duration > 0 else 0
-            )
+            degraded_rps = degraded_requests / degraded_duration if degraded_duration > 0 else 0
 
             logger.info(f"✅ Degraded performance test completed")
             logger.info(f"   Performance: {degraded_rps:.1f} requests/second")
@@ -250,12 +240,8 @@ class TestRedisFailureScenarios:
                 try:
                     if self.chaos_suite.redis_client:
                         # Test basic Redis operations
-                        await self.chaos_suite.redis_client.set(
-                            f"chaos_test_{i}", f"value_{i}"
-                        )
-                        value = await self.chaos_suite.redis_client.get(
-                            f"chaos_test_{i}"
-                        )
+                        await self.chaos_suite.redis_client.set(f"chaos_test_{i}", f"value_{i}")
+                        value = await self.chaos_suite.redis_client.get(f"chaos_test_{i}")
 
                         if value:
                             operations_successful += 1
@@ -268,28 +254,18 @@ class TestRedisFailureScenarios:
                     operations_attempted += 1
                     logger.debug(f"Expected Redis error during chaos test: {e}")
 
-            success_rate = (
-                (operations_successful / operations_attempted * 100)
-                if operations_attempted > 0
-                else 0
-            )
+            success_rate = (operations_successful / operations_attempted * 100) if operations_attempted > 0 else 0
             logger.info(f"✅ Redis failure simulation completed")
-            logger.info(
-                f"   Success rate: {success_rate:.1f}% ({operations_successful}/{operations_attempted})"
-            )
+            logger.info(f"   Success rate: {success_rate:.1f}% ({operations_successful}/{operations_attempted})")
 
             # Test 3: API functionality without Redis (graceful degradation)
             if self.chaos_suite.api_client:
                 try:
                     response = await self.chaos_suite.api_client.get("/health")
                     if response.status_code == 200:
-                        logger.info(
-                            "✅ API graceful degradation: Working without Redis"
-                        )
+                        logger.info("✅ API graceful degradation: Working without Redis")
                     else:
-                        logger.warning(
-                            f"⚠️  API degradation: Status {response.status_code}"
-                        )
+                        logger.warning(f"⚠️  API degradation: Status {response.status_code}")
                 except Exception as e:
                     logger.warning(f"⚠️  API failed without Redis: {e}")
 
@@ -311,23 +287,17 @@ class TestRedisFailureScenarios:
 
             try:
                 for i in range(1000):  # Attempt to create 10MB of data
-                    await self.chaos_suite.redis_client.set(
-                        f"memory_pressure_{i}", large_data
-                    )
+                    await self.chaos_suite.redis_client.set(f"memory_pressure_{i}", large_data)
                     keys_created += 1
 
                     if i % 100 == 0:
                         # Check Redis memory usage
                         info = await self.chaos_suite.redis_client.info("memory")
                         used_memory = info.get("used_memory", 0)
-                        logger.debug(
-                            f"Redis memory usage: {used_memory / 1024 / 1024:.1f}MB"
-                        )
+                        logger.debug(f"Redis memory usage: {used_memory / 1024 / 1024:.1f}MB")
 
             except Exception as e:
-                logger.info(
-                    f"Redis memory limit reached after {keys_created} keys: {e}"
-                )
+                logger.info(f"Redis memory limit reached after {keys_created} keys: {e}")
 
             # Test 2: Verify Redis still functions under pressure
             try:
@@ -383,11 +353,7 @@ class TestConcurrentLoadScenarios:
                         "request_id": request_id,
                         "status_code": response.status_code,
                         "success": response.status_code == 200,
-                        "response_time": (
-                            response.elapsed.total_seconds()
-                            if hasattr(response, "elapsed")
-                            else 0
-                        ),
+                        "response_time": (response.elapsed.total_seconds() if hasattr(response, "elapsed") else 0),
                     }
                 except Exception as e:
                     return {"request_id": request_id, "success": False, "error": str(e)}
@@ -403,17 +369,13 @@ class TestConcurrentLoadScenarios:
             duration = end_time - start_time
 
             # Analyze results
-            successful_requests = sum(
-                1 for r in results if isinstance(r, dict) and r.get("success", False)
-            )
+            successful_requests = sum(1 for r in results if isinstance(r, dict) and r.get("success", False))
             failed_requests = concurrent_requests - successful_requests
             requests_per_second = concurrent_requests / duration if duration > 0 else 0
 
             logger.info(f"✅ Concurrent API load test completed")
             logger.info(f"   Duration: {duration:.2f}s")
-            logger.info(
-                f"   Successful requests: {successful_requests}/{concurrent_requests}"
-            )
+            logger.info(f"   Successful requests: {successful_requests}/{concurrent_requests}")
             logger.info(f"   Failed requests: {failed_requests}")
             logger.info(f"   Requests per second: {requests_per_second:.1f}")
 
@@ -442,9 +404,7 @@ class TestConcurrentLoadScenarios:
             logger.info(f"✅ Sustained load test completed")
             logger.info(f"   Duration: {sustained_duration}s")
             logger.info(f"   Requests per second: {sustained_rps:.1f}")
-            logger.info(
-                f"   Error rate: {sustained_errors / (sustained_requests + sustained_errors) * 100:.1f}%"
-            )
+            logger.info(f"   Error rate: {sustained_errors / (sustained_requests + sustained_errors) * 100:.1f}%")
 
         except Exception as e:
             logger.error(f"❌ Concurrent load test failed: {e}")
@@ -474,9 +434,7 @@ class TestConcurrentLoadScenarios:
 
             async def create_concurrent_contract(user_id: int):
                 try:
-                    alice_scope = ScopeIdentifier(
-                        ScopeType.USER, str(user_id), f"User{user_id}"
-                    )
+                    alice_scope = ScopeIdentifier(ScopeType.USER, str(user_id), f"User{user_id}")
                     bob_scope = ScopeIdentifier(ScopeType.USER, "999", "SharedUser")
 
                     share_request = ShareRequest(
@@ -487,9 +445,7 @@ class TestConcurrentLoadScenarios:
                         require_consent=False,  # Skip consent for load testing
                     )
 
-                    contract = await contract_manager.create_sharing_contract(
-                        share_request, alice_scope, user_id
-                    )
+                    contract = await contract_manager.create_sharing_contract(share_request, alice_scope, user_id)
 
                     return {
                         "user_id": user_id,
@@ -510,16 +466,12 @@ class TestConcurrentLoadScenarios:
             end_time = time.time()
             duration = end_time - start_time
 
-            successful_contracts = sum(
-                1 for r in results if isinstance(r, dict) and r.get("success", False)
-            )
+            successful_contracts = sum(1 for r in results if isinstance(r, dict) and r.get("success", False))
             failed_contracts = concurrent_users - successful_contracts
 
             logger.info(f"✅ Concurrent memory sharing test completed")
             logger.info(f"   Duration: {duration:.2f}s")
-            logger.info(
-                f"   Successful contracts: {successful_contracts}/{concurrent_users}"
-            )
+            logger.info(f"   Successful contracts: {successful_contracts}/{concurrent_users}")
             logger.info(f"   Failed contracts: {failed_contracts}")
 
         except Exception as e:
@@ -562,20 +514,14 @@ class TestResourceExhaustionScenarios:
 
                     if i % 10 == 0:
                         current_memory = process.memory_info().rss / 1024 / 1024
-                        logger.debug(
-                            f"Allocated {allocated_mb}MB, current usage: {current_memory:.1f}MB"
-                        )
+                        logger.debug(f"Allocated {allocated_mb}MB, current usage: {current_memory:.1f}MB")
 
                         # Test API responsiveness during memory pressure
                         if self.chaos_suite.api_client:
                             try:
-                                response = await self.chaos_suite.api_client.get(
-                                    "/health"
-                                )
+                                response = await self.chaos_suite.api_client.get("/health")
                                 if response.status_code != 200:
-                                    logger.warning(
-                                        f"API degraded under memory pressure: {response.status_code}"
-                                    )
+                                    logger.warning(f"API degraded under memory pressure: {response.status_code}")
                             except Exception as e:
                                 logger.warning(f"API failed under memory pressure: {e}")
 
@@ -631,21 +577,15 @@ class TestResourceExhaustionScenarios:
                     temp_files.append(temp_file)
 
                     if i % 20 == 0:
-                        current_fds = (
-                            process.num_fds() if hasattr(process, "num_fds") else 0
-                        )
+                        current_fds = process.num_fds() if hasattr(process, "num_fds") else 0
                         logger.debug(f"Opened {i} files, current FDs: {current_fds}")
 
                         # Test API responsiveness
                         if self.chaos_suite.api_client:
                             try:
-                                response = await self.chaos_suite.api_client.get(
-                                    "/health"
-                                )
+                                response = await self.chaos_suite.api_client.get("/health")
                                 if response.status_code != 200:
-                                    logger.warning(
-                                        f"API degraded with high FD usage: {response.status_code}"
-                                    )
+                                    logger.warning(f"API degraded with high FD usage: {response.status_code}")
                             except Exception as e:
                                 logger.warning(f"API failed with high FD usage: {e}")
 
@@ -732,9 +672,7 @@ async def run_chaos_testing_suite():
                 logger.error(f"❌ {scenario_name} failed: {e}")
 
         test_results["end_time"] = datetime.now(timezone.utc)
-        test_results["duration_seconds"] = (
-            test_results["end_time"] - test_results["start_time"]
-        ).total_seconds()
+        test_results["duration_seconds"] = (test_results["end_time"] - test_results["start_time"]).total_seconds()
 
         await chaos_suite.teardown_chaos_environment()
 
@@ -768,9 +706,7 @@ async def _generate_chaos_report(test_results: Dict[str, Any]):
 
         for scenario in test_results["chaos_scenarios"]:
             status_icon = "✅" if scenario["status"] == "passed" else "❌"
-            report += (
-                f"- {status_icon} **{scenario['scenario']}**: {scenario['status']}\n"
-            )
+            report += f"- {status_icon} **{scenario['scenario']}**: {scenario['status']}\n"
 
             if scenario["status"] == "failed":
                 report += f"  - Error: {scenario.get('error', 'Unknown error')}\n"

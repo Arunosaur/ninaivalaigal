@@ -104,9 +104,7 @@ class IntelligentMemorySuggestions:
             suggestions.extend(behavioral_suggestions)
 
             # Algorithm 5: Collaborative filtering
-            collaborative_suggestions = await self._get_collaborative_suggestions(
-                context
-            )
+            collaborative_suggestions = await self._get_collaborative_suggestions(context)
             suggestions.extend(collaborative_suggestions)
 
             # Algorithm 6: Trending memories
@@ -114,15 +112,11 @@ class IntelligentMemorySuggestions:
             suggestions.extend(trending_suggestions)
 
             # Combine and rank suggestions
-            ranked_suggestions = await self._rank_and_deduplicate(
-                suggestions, context, max_suggestions, min_confidence
-            )
+            ranked_suggestions = await self._rank_and_deduplicate(suggestions, context, max_suggestions, min_confidence)
 
             # Apply user feedback learning
             if self.feedback_system:
-                ranked_suggestions = await self._apply_feedback_learning(
-                    ranked_suggestions, context
-                )
+                ranked_suggestions = await self._apply_feedback_learning(ranked_suggestions, context)
 
             # Cache results
             if self.redis:
@@ -148,9 +142,7 @@ class IntelligentMemorySuggestions:
         Get suggestions based on current context (e.g., what user is working on).
         """
         try:
-            context = SuggestionContext(
-                user_id=user_id, session_context=current_context
-            )
+            context = SuggestionContext(user_id=user_id, session_context=current_context)
 
             suggestions = await self.get_related_memories(
                 context=context, max_suggestions=max_suggestions, min_confidence=0.4
@@ -160,8 +152,7 @@ class IntelligentMemorySuggestions:
             contextual_suggestions = [
                 s
                 for s in suggestions
-                if s.suggestion_type
-                in [SuggestionType.CONTEXTUAL_RELATED, SuggestionType.SEMANTIC_SIMILAR]
+                if s.suggestion_type in [SuggestionType.CONTEXTUAL_RELATED, SuggestionType.SEMANTIC_SIMILAR]
             ]
 
             return contextual_suggestions[:max_suggestions]
@@ -177,9 +168,7 @@ class IntelligentMemorySuggestions:
         Get suggestions for memory discovery and exploration.
         """
         try:
-            context = SuggestionContext(
-                user_id=user_id, user_preferences={"discovery_type": discovery_type}
-            )
+            context = SuggestionContext(user_id=user_id, user_preferences={"discovery_type": discovery_type})
 
             if discovery_type == "explore":
                 # Focus on diverse, less frequently accessed memories
@@ -232,11 +221,7 @@ class IntelligentMemorySuggestions:
             if self.feedback_system and interaction_type in ["clicked", "used"]:
                 from ai_feedback_system import FeedbackType, FeedbackValue
 
-                feedback_value = (
-                    FeedbackValue.POSITIVE
-                    if interaction_type == "used"
-                    else FeedbackValue.NEUTRAL
-                )
+                feedback_value = FeedbackValue.POSITIVE if interaction_type == "used" else FeedbackValue.NEUTRAL
 
                 await self.feedback_system.collect_feedback(
                     user_id=user_id,
@@ -264,9 +249,7 @@ class IntelligentMemorySuggestions:
 
     # Private helper methods for different suggestion algorithms
 
-    async def _get_semantic_suggestions(
-        self, context: SuggestionContext
-    ) -> List[MemorySuggestion]:
+    async def _get_semantic_suggestions(self, context: SuggestionContext) -> List[MemorySuggestion]:
         """Get suggestions based on semantic similarity using embeddings."""
         try:
             suggestions = []
@@ -291,9 +274,7 @@ class IntelligentMemorySuggestions:
 
             elif context.query_text:
                 # Find memories similar to query text
-                similar_memories = await self._find_similar_by_text(
-                    context.query_text, context.user_id, limit=5
-                )
+                similar_memories = await self._find_similar_by_text(context.query_text, context.user_id, limit=5)
 
                 for memory_data in similar_memories:
                     suggestion = MemorySuggestion(
@@ -313,18 +294,14 @@ class IntelligentMemorySuggestions:
             logger.error("Failed to get semantic suggestions", error=str(e))
             return []
 
-    async def _get_contextual_suggestions(
-        self, context: SuggestionContext
-    ) -> List[MemorySuggestion]:
+    async def _get_contextual_suggestions(self, context: SuggestionContext) -> List[MemorySuggestion]:
         """Get suggestions based on contextual relationships."""
         try:
             suggestions = []
 
             # Get memories from similar contexts
             if context.session_context:
-                contextual_memories = await self._find_by_context(
-                    context.session_context, context.user_id, limit=4
-                )
+                contextual_memories = await self._find_by_context(context.session_context, context.user_id, limit=4)
 
                 for memory_data in contextual_memories:
                     suggestion = MemorySuggestion(
@@ -344,9 +321,7 @@ class IntelligentMemorySuggestions:
             logger.error("Failed to get contextual suggestions", error=str(e))
             return []
 
-    async def _get_temporal_suggestions(
-        self, context: SuggestionContext
-    ) -> List[MemorySuggestion]:
+    async def _get_temporal_suggestions(self, context: SuggestionContext) -> List[MemorySuggestion]:
         """Get suggestions based on temporal adjacency."""
         try:
             suggestions = []
@@ -375,17 +350,13 @@ class IntelligentMemorySuggestions:
             logger.error("Failed to get temporal suggestions", error=str(e))
             return []
 
-    async def _get_behavioral_suggestions(
-        self, context: SuggestionContext
-    ) -> List[MemorySuggestion]:
+    async def _get_behavioral_suggestions(self, context: SuggestionContext) -> List[MemorySuggestion]:
         """Get suggestions based on user behavioral patterns."""
         try:
             suggestions = []
 
             # Get user's frequently accessed memories
-            frequent_memories = await self._get_user_frequent_memories(
-                context.user_id, limit=4
-            )
+            frequent_memories = await self._get_user_frequent_memories(context.user_id, limit=4)
 
             for memory_data in frequent_memories:
                 suggestion = MemorySuggestion(
@@ -405,17 +376,13 @@ class IntelligentMemorySuggestions:
             logger.error("Failed to get behavioral suggestions", error=str(e))
             return []
 
-    async def _get_collaborative_suggestions(
-        self, context: SuggestionContext
-    ) -> List[MemorySuggestion]:
+    async def _get_collaborative_suggestions(self, context: SuggestionContext) -> List[MemorySuggestion]:
         """Get suggestions based on collaborative filtering."""
         try:
             suggestions = []
 
             # Get memories popular among similar users
-            collaborative_memories = await self._find_collaborative_memories(
-                context.user_id, limit=3
-            )
+            collaborative_memories = await self._find_collaborative_memories(context.user_id, limit=3)
 
             for memory_data in collaborative_memories:
                 suggestion = MemorySuggestion(
@@ -435,17 +402,13 @@ class IntelligentMemorySuggestions:
             logger.error("Failed to get collaborative suggestions", error=str(e))
             return []
 
-    async def _get_trending_suggestions(
-        self, context: SuggestionContext
-    ) -> List[MemorySuggestion]:
+    async def _get_trending_suggestions(self, context: SuggestionContext) -> List[MemorySuggestion]:
         """Get suggestions based on trending memories."""
         try:
             suggestions = []
 
             # Get recently popular memories
-            trending_memories = await self._find_trending_memories(
-                context.user_id, limit=3
-            )
+            trending_memories = await self._find_trending_memories(context.user_id, limit=3)
 
             for memory_data in trending_memories:
                 suggestion = MemorySuggestion(
@@ -484,24 +447,15 @@ class IntelligentMemorySuggestions:
                     unique_suggestions.append(suggestion)
 
             # Filter by minimum confidence
-            filtered_suggestions = [
-                s for s in unique_suggestions if s.confidence >= min_confidence
-            ]
+            filtered_suggestions = [s for s in unique_suggestions if s.confidence >= min_confidence]
 
             # Calculate final scores with algorithm weights
             for suggestion in filtered_suggestions:
-                algorithm_weight = self.algorithm_weights.get(
-                    suggestion.suggestion_type, 0.1
-                )
-                suggestion.relevance_score = (
-                    suggestion.relevance_score * algorithm_weight
-                    + suggestion.confidence * 0.3
-                )
+                algorithm_weight = self.algorithm_weights.get(suggestion.suggestion_type, 0.1)
+                suggestion.relevance_score = suggestion.relevance_score * algorithm_weight + suggestion.confidence * 0.3
 
             # Sort by relevance score
-            ranked_suggestions = sorted(
-                filtered_suggestions, key=lambda x: x.relevance_score, reverse=True
-            )
+            ranked_suggestions = sorted(filtered_suggestions, key=lambda x: x.relevance_score, reverse=True)
 
             return ranked_suggestions[:max_suggestions]
 
@@ -527,9 +481,7 @@ class IntelligentMemorySuggestions:
                     pattern_data = user_patterns[pattern_key]
                     adjustment = pattern_data.get("success_rate", 0.5) - 0.5
                     suggestion.relevance_score += adjustment * 0.2
-                    suggestion.confidence = min(
-                        1.0, suggestion.confidence + adjustment * 0.1
-                    )
+                    suggestion.confidence = min(1.0, suggestion.confidence + adjustment * 0.1)
 
             # Re-sort after adjustments
             suggestions.sort(key=lambda x: x.relevance_score, reverse=True)
@@ -542,9 +494,7 @@ class IntelligentMemorySuggestions:
 
     # Database query methods (simplified implementations)
 
-    async def _find_similar_by_embedding(
-        self, memory_id: str, user_id: str, limit: int
-    ) -> List[Dict[str, Any]]:
+    async def _find_similar_by_embedding(self, memory_id: str, user_id: str, limit: int) -> List[Dict[str, Any]]:
         """Find memories similar by embedding vectors."""
         # Placeholder - would use pgvector similarity search
         query = """
@@ -562,9 +512,7 @@ class IntelligentMemorySuggestions:
         except Exception:
             return []  # Graceful fallback
 
-    async def _find_similar_by_text(
-        self, query_text: str, user_id: str, limit: int
-    ) -> List[Dict[str, Any]]:
+    async def _find_similar_by_text(self, query_text: str, user_id: str, limit: int) -> List[Dict[str, Any]]:
         """Find memories similar to text query."""
         # Placeholder - would use text search
         query = """

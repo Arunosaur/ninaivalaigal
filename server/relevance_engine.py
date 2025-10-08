@@ -79,14 +79,10 @@ class RelevanceEngine:
             hour_ago = now - timedelta(hours=1)
 
             # Use sorted set to track accesses with timestamps
-            access_count = await self.redis.redis.zcount(
-                access_key, hour_ago.timestamp(), now.timestamp()
-            )
+            access_count = await self.redis.redis.zcount(access_key, hour_ago.timestamp(), now.timestamp())
 
             # Logarithmic scaling for frequency
-            frequency_score = (
-                math.log(1 + access_count) * self.weights["access_frequency"]
-            )
+            frequency_score = math.log(1 + access_count) * self.weights["access_frequency"]
 
             return frequency_score
 
@@ -99,9 +95,7 @@ class RelevanceEngine:
             )
             return 0.0
 
-    async def calculate_importance_score(
-        self, memory_metadata: dict[str, Any]
-    ) -> float:
+    async def calculate_importance_score(self, memory_metadata: dict[str, Any]) -> float:
         """Calculate user importance flag component of relevance score"""
         try:
             is_important = memory_metadata.get("is_important", False)
@@ -118,9 +112,7 @@ class RelevanceEngine:
 
             # User rating (1-5 scale)
             if user_rating > 0:
-                importance_score += (user_rating / 5.0) * self.weights[
-                    "user_importance"
-                ]
+                importance_score += (user_rating / 5.0) * self.weights["user_importance"]
 
             return importance_score
 
@@ -128,9 +120,7 @@ class RelevanceEngine:
             logger.error("Error calculating importance score", error=str(e))
             return 0.0
 
-    async def calculate_context_score(
-        self, memory_context: str, current_context: str
-    ) -> float:
+    async def calculate_context_score(self, memory_context: str, current_context: str) -> float:
         """Calculate context matching component of relevance score"""
         try:
             if not memory_context or not current_context:
@@ -181,14 +171,10 @@ class RelevanceEngine:
             context_score = 0.0
             if current_context:
                 memory_context = memory_metadata.get("context", "")
-                context_score = await self.calculate_context_score(
-                    memory_context, current_context
-                )
+                context_score = await self.calculate_context_score(memory_context, current_context)
 
             # Combine scores
-            total_score = (
-                time_score + frequency_score + importance_score + context_score
-            )
+            total_score = time_score + frequency_score + importance_score + context_score
 
             logger.debug(
                 "Relevance score calculated",
@@ -226,9 +212,7 @@ class RelevanceEngine:
                 return 0.0
 
             # Calculate new relevance score
-            score = await self.calculate_relevance_score(
-                user_id, memory_id, memory_metadata, current_context
-            )
+            score = await self.calculate_relevance_score(user_id, memory_id, memory_metadata, current_context)
 
             # Store score in Redis with TTL
             score_key = self._make_score_key(user_id, memory_id)
@@ -239,18 +223,14 @@ class RelevanceEngine:
                 "context": current_context,
             }
 
-            await self.redis.redis.setex(
-                score_key, self.score_ttl, json.dumps(score_data)
-            )
+            await self.redis.redis.setex(score_key, self.score_ttl, json.dumps(score_data))
 
             # Track access for frequency calculation
             access_key = self._make_access_key(user_id, memory_id)
             now = datetime.utcnow()
 
             # Add current access to sorted set
-            await self.redis.redis.zadd(
-                access_key, {str(now.timestamp()): now.timestamp()}
-            )
+            await self.redis.redis.zadd(access_key, {str(now.timestamp()): now.timestamp()})
 
             # Remove old accesses (older than 24 hours)
             day_ago = now - timedelta(days=1)
@@ -304,9 +284,7 @@ class RelevanceEngine:
             )
             return None
 
-    async def get_top_memories(
-        self, user_id: str, limit: int = 10, context_id: str = None
-    ) -> list[tuple[str, float]]:
+    async def get_top_memories(self, user_id: str, limit: int = 10, context_id: str = None) -> list[tuple[str, float]]:
         """Get top-N most relevant memories for a user"""
         try:
             if not self.redis.is_connected:
@@ -318,9 +296,7 @@ class RelevanceEngine:
             cached_top = await self.redis.redis.get(top_key)
             if cached_top:
                 data = json.loads(cached_top)
-                logger.debug(
-                    "Top memories cache hit", user_id=user_id, context_id=context_id
-                )
+                logger.debug("Top memories cache hit", user_id=user_id, context_id=context_id)
                 return data[:limit]
 
             # Cache miss - need to rebuild
@@ -347,9 +323,7 @@ class RelevanceEngine:
             memory_scores.sort(key=lambda x: x[1], reverse=True)
 
             # Cache the results
-            await self.redis.redis.setex(
-                top_key, self.top_cache_ttl, json.dumps(memory_scores)
-            )
+            await self.redis.redis.setex(top_key, self.top_cache_ttl, json.dumps(memory_scores))
 
             logger.info(
                 "Top memories rebuilt and cached",
@@ -376,9 +350,7 @@ class RelevanceEngine:
 
             if keys:
                 await self.redis.redis.delete(*keys)
-                logger.debug(
-                    "Top cache invalidated", user_id=user_id, keys_deleted=len(keys)
-                )
+                logger.debug("Top cache invalidated", user_id=user_id, keys_deleted=len(keys))
 
         except Exception as e:
             logger.error("Error invalidating top cache", user_id=user_id, error=str(e))
@@ -432,9 +404,7 @@ class RelevanceEngine:
                 current_score = float(current_score)
             else:
                 # Calculate base relevance score if not cached
-                current_score = await self._calculate_base_relevance_score(
-                    user_id, memory_id
-                )
+                current_score = await self._calculate_base_relevance_score(user_id, memory_id)
 
             # Apply feedback multiplier
             adjusted_score = current_score * feedback_multiplier
@@ -450,14 +420,10 @@ class RelevanceEngine:
             }
 
             # Update relevance score with feedback adjustment
-            await self.redis_client.setex(
-                score_key, self.score_ttl, str(adjusted_score)
-            )
+            await self.redis_client.setex(score_key, self.score_ttl, str(adjusted_score))
 
             # Store feedback metadata
-            await self.redis_client.setex(
-                feedback_key, self.score_ttl, json.dumps(feedback_info)
-            )
+            await self.redis_client.setex(feedback_key, self.score_ttl, json.dumps(feedback_info))
 
             # Invalidate top-N cache to force recalculation
             top_key = f"relevance:top:{user_id}"
@@ -481,9 +447,7 @@ class RelevanceEngine:
             )
             return 0.5  # Default neutral score
 
-    async def get_cached_score(
-        self, user_id: str, context_id: str, token_id: str
-    ) -> float | None:
+    async def get_cached_score(self, user_id: str, context_id: str, token_id: str) -> float | None:
         """Get cached relevance score using SPEC-033 cache"""
 
     async def cache_score(
@@ -495,9 +459,7 @@ class RelevanceEngine:
         ttl: int | None = None,
     ) -> bool:
         """Cache relevance score using SPEC-033 cache"""
-        return await self.relevance_cache.set_score(
-            user_id, context_id, token_id, score, ttl
-        )
+        return await self.relevance_cache.set_score(user_id, context_id, token_id, score, ttl)
 
     async def compute_and_cache_score(
         self,
@@ -520,9 +482,7 @@ class RelevanceEngine:
             return cached_score
 
         # Compute new score
-        score = await self._calculate_base_relevance_score(
-            user_id, token_id, memory_metadata, context_id
-        )
+        score = await self._calculate_base_relevance_score(user_id, token_id, memory_metadata, context_id)
 
         # Cache the computed score
         await self.cache_score(user_id, context_id, token_id, score)
@@ -563,9 +523,7 @@ async def update_memory_relevance(
 ) -> float:
     """Update relevance score for a memory"""
     engine = await get_relevance_engine()
-    return await engine.update_memory_score(
-        user_id, memory_id, memory_metadata, current_context
-    )
+    return await engine.update_memory_score(user_id, memory_id, memory_metadata, current_context)
 
 
 async def get_relevant_memories(

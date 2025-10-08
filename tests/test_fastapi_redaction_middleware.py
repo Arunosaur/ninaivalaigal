@@ -53,9 +53,7 @@ class TestFastAPIRedactionMiddleware:
 
     def test_aws_key_redaction(self, client):
         """Test AWS access key redaction"""
-        payload = {
-            "config": {"aws_access_key": "AKIAIOSFODNN7EXAMPLE", "region": "us-east-1"}
-        }
+        payload = {"config": {"aws_access_key": "AKIAIOSFODNN7EXAMPLE", "region": "us-east-1"}}
 
         response = client.post("/test", json=payload)
         assert response.status_code == 200

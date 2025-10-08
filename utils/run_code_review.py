@@ -57,9 +57,7 @@ def main():
                     print(f"   ⚠️  Found {len(issues)} issues:")
                     severity_count = {}
                     for issue in issues:
-                        severity_count[issue.severity] = (
-                            severity_count.get(issue.severity, 0) + 1
-                        )
+                        severity_count[issue.severity] = severity_count.get(issue.severity, 0) + 1
 
                     for severity, count in severity_count.items():
                         print(f"      {severity.upper()}: {count}")
@@ -91,9 +89,7 @@ def main():
 
         for issue in issues:
             severity_breakdown[issue.severity] += 1
-            category_breakdown[issue.category] = (
-                category_breakdown.get(issue.category, 0) + 1
-            )
+            category_breakdown[issue.category] = category_breakdown.get(issue.category, 0) + 1
 
     print(f"📁 Total Files Analyzed: {total_files}")
     print(f"🔍 Total Issues Found: {total_issues}")
@@ -103,19 +99,14 @@ def main():
     print(f"💡 Info: {severity_breakdown['info']}")
 
     print("\n📂 Category Breakdown:")
-    for category, count in sorted(
-        category_breakdown.items(), key=lambda x: x[1], reverse=True
-    ):
+    for category, count in sorted(category_breakdown.items(), key=lambda x: x[1], reverse=True):
         print(f"   {category}: {count}")
 
     # Save detailed report
     report_file = project_root / "code_review_report.json"
     with open(report_file, "w") as f:
         json.dump(
-            [
-                result.__dict__ if hasattr(result, "__dict__") else result
-                for result in all_results
-            ],
+            [result.__dict__ if hasattr(result, "__dict__") else result for result in all_results],
             f,
             indent=2,
             default=str,

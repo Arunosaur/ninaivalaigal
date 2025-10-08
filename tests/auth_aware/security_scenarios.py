@@ -94,9 +94,7 @@ class SecurityScenarioEngine:
             },
         }
 
-    async def test_privilege_escalation_attempts(
-        self, user: TestUser
-    ) -> List[SecurityTestResult]:
+    async def test_privilege_escalation_attempts(self, user: TestUser) -> List[SecurityTestResult]:
         """
         Test privilege escalation attack prevention
 
@@ -140,9 +138,7 @@ class SecurityScenarioEngine:
             result = await self._test_impersonation_attempt(user, token)
             escalation_results.append(result)
 
-            logger.info(
-                f"Completed {len(escalation_results)} privilege escalation tests"
-            )
+            logger.info(f"Completed {len(escalation_results)} privilege escalation tests")
             return escalation_results
 
         except Exception as e:
@@ -159,9 +155,7 @@ class SecurityScenarioEngine:
                 )
             ]
 
-    async def test_token_manipulation_attacks(
-        self, user: TestUser, token: str
-    ) -> List[SecurityTestResult]:
+    async def test_token_manipulation_attacks(self, user: TestUser, token: str) -> List[SecurityTestResult]:
         """
         Test JWT token manipulation attack prevention
 
@@ -191,18 +185,14 @@ class SecurityScenarioEngine:
             result = await self._test_token_replay(user, token)
             manipulation_results.append(result)
 
-            logger.info(
-                f"Completed {len(manipulation_results)} token manipulation tests"
-            )
+            logger.info(f"Completed {len(manipulation_results)} token manipulation tests")
             return manipulation_results
 
         except Exception as e:
             logger.error(f"Token manipulation testing failed: {e}")
             return []
 
-    async def test_session_hijacking_prevention(
-        self, session: TestSession
-    ) -> SecurityTestResult:
+    async def test_session_hijacking_prevention(self, session: TestSession) -> SecurityTestResult:
         """
         Test session hijacking prevention mechanisms
 
@@ -226,9 +216,7 @@ class SecurityScenarioEngine:
             execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
             # All hijack attempts should be prevented
-            all_prevented = all(
-                attempt.get("prevented", False) for attempt in hijack_attempts
-            )
+            all_prevented = all(attempt.get("prevented", False) for attempt in hijack_attempts)
 
             return SecurityTestResult(
                 test_scenario="session_hijacking",
@@ -239,9 +227,7 @@ class SecurityScenarioEngine:
                 execution_time_ms=execution_time,
                 attack_details={
                     "hijack_attempts": len(hijack_attempts),
-                    "prevented_attempts": sum(
-                        1 for a in hijack_attempts if a.get("prevented")
-                    ),
+                    "prevented_attempts": sum(1 for a in hijack_attempts if a.get("prevented")),
                     "attempt_details": hijack_attempts,
                 },
                 security_logs=[f"Session hijacking attempt from {session.session_id}"],
@@ -366,21 +352,13 @@ class SecurityScenarioEngine:
             compliance_results = []
 
             if compliance_standard == "SOC2":
-                compliance_results.extend(
-                    await self._validate_soc2_requirements(test_scenarios)
-                )
+                compliance_results.extend(await self._validate_soc2_requirements(test_scenarios))
             elif compliance_standard == "GDPR":
-                compliance_results.extend(
-                    await self._validate_gdpr_requirements(test_scenarios)
-                )
+                compliance_results.extend(await self._validate_gdpr_requirements(test_scenarios))
             elif compliance_standard == "ISO27001":
-                compliance_results.extend(
-                    await self._validate_iso27001_requirements(test_scenarios)
-                )
+                compliance_results.extend(await self._validate_iso27001_requirements(test_scenarios))
 
-            logger.info(
-                f"Completed {len(compliance_results)} compliance tests for {compliance_standard}"
-            )
+            logger.info(f"Completed {len(compliance_results)} compliance tests for {compliance_standard}")
             return compliance_results
 
         except Exception as e:
@@ -418,9 +396,7 @@ class SecurityScenarioEngine:
             logger.error(f"Failed to get token for user {user.user_id}: {e}")
             return None
 
-    async def _test_role_parameter_manipulation(
-        self, user: TestUser, token: str
-    ) -> SecurityTestResult:
+    async def _test_role_parameter_manipulation(self, user: TestUser, token: str) -> SecurityTestResult:
         """Test role parameter manipulation attack"""
         start_time = datetime.utcnow()
 
@@ -441,10 +417,7 @@ class SecurityScenarioEngine:
                 execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
                 # Should not grant admin privileges
-                attack_prevented = (
-                    response.status_code != 200
-                    or not self._check_admin_privileges(response)
-                )
+                attack_prevented = response.status_code != 200 or not self._check_admin_privileges(response)
 
                 return SecurityTestResult(
                     test_scenario="privilege_escalation",
@@ -473,9 +446,7 @@ class SecurityScenarioEngine:
                 attack_details={"error": str(e)},
             )
 
-    async def _test_jwt_claims_modification(
-        self, user: TestUser, token: str
-    ) -> SecurityTestResult:
+    async def _test_jwt_claims_modification(self, user: TestUser, token: str) -> SecurityTestResult:
         """Test JWT claims modification attack"""
         start_time = datetime.utcnow()
 
@@ -493,9 +464,7 @@ class SecurityScenarioEngine:
             ]
 
             # Create new token with modified claims (without proper signature)
-            malicious_token = jwt.encode(
-                modified_claims, "fake_secret", algorithm="HS256"
-            )
+            malicious_token = jwt.encode(modified_claims, "fake_secret", algorithm="HS256")
 
             # Attempt to use malicious token
             async with httpx.AsyncClient() as client:
@@ -537,9 +506,7 @@ class SecurityScenarioEngine:
                 attack_details={"error": str(e)},
             )
 
-    async def _test_admin_endpoint_access(
-        self, user: TestUser, token: str
-    ) -> SecurityTestResult:
+    async def _test_admin_endpoint_access(self, user: TestUser, token: str) -> SecurityTestResult:
         """Test unauthorized admin endpoint access"""
         start_time = datetime.utcnow()
 
@@ -572,9 +539,7 @@ class SecurityScenarioEngine:
             execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
             # All admin endpoints should be blocked for non-admin users
-            attack_prevented = (blocked_count == len(admin_endpoints)) or (
-                user.role == UserRole.ADMIN
-            )
+            attack_prevented = (blocked_count == len(admin_endpoints)) or (user.role == UserRole.ADMIN)
 
             return SecurityTestResult(
                 test_scenario="privilege_escalation",
@@ -603,9 +568,7 @@ class SecurityScenarioEngine:
                 attack_details={"error": str(e)},
             )
 
-    async def _test_impersonation_attempt(
-        self, user: TestUser, token: str
-    ) -> SecurityTestResult:
+    async def _test_impersonation_attempt(self, user: TestUser, token: str) -> SecurityTestResult:
         """Test user impersonation attempt"""
         start_time = datetime.utcnow()
 
@@ -624,10 +587,7 @@ class SecurityScenarioEngine:
                 execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
                 # Impersonation should be blocked for non-admin users
-                attack_prevented = (
-                    response.status_code in [401, 403, 404]
-                    or user.role == UserRole.ADMIN
-                )
+                attack_prevented = response.status_code in [401, 403, 404] or user.role == UserRole.ADMIN
 
                 return SecurityTestResult(
                     test_scenario="privilege_escalation",
@@ -655,9 +615,7 @@ class SecurityScenarioEngine:
                 attack_details={"error": str(e)},
             )
 
-    async def _test_signature_stripping(
-        self, user: TestUser, token: str
-    ) -> SecurityTestResult:
+    async def _test_signature_stripping(self, user: TestUser, token: str) -> SecurityTestResult:
         """Test JWT signature stripping attack"""
         start_time = datetime.utcnow()
 
@@ -676,9 +634,7 @@ class SecurityScenarioEngine:
                         timeout=5.0,
                     )
 
-                    execution_time = (
-                        datetime.utcnow() - start_time
-                    ).total_seconds() * 1000
+                    execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
                     # Should reject unsigned token
                     attack_prevented = response.status_code in [401, 403]
@@ -720,9 +676,7 @@ class SecurityScenarioEngine:
                 attack_details={"error": str(e)},
             )
 
-    async def _test_algorithm_confusion(
-        self, user: TestUser, token: str
-    ) -> SecurityTestResult:
+    async def _test_algorithm_confusion(self, user: TestUser, token: str) -> SecurityTestResult:
         """Test JWT algorithm confusion attack"""
         start_time = datetime.utcnow()
 
@@ -737,16 +691,8 @@ class SecurityScenarioEngine:
             import base64
             import json
 
-            header_b64 = (
-                base64.urlsafe_b64encode(json.dumps(header).encode())
-                .decode()
-                .rstrip("=")
-            )
-            payload_b64 = (
-                base64.urlsafe_b64encode(json.dumps(decoded_token).encode())
-                .decode()
-                .rstrip("=")
-            )
+            header_b64 = base64.urlsafe_b64encode(json.dumps(header).encode()).decode().rstrip("=")
+            payload_b64 = base64.urlsafe_b64encode(json.dumps(decoded_token).encode()).decode().rstrip("=")
 
             malicious_token = f"{header_b64}.{payload_b64}."
 
@@ -801,9 +747,7 @@ class SecurityScenarioEngine:
         except Exception:
             return False
 
-    async def _make_rate_limit_request(
-        self, client: httpx.AsyncClient, token: str, request_id: int
-    ) -> Dict:
+    async def _make_rate_limit_request(self, client: httpx.AsyncClient, token: str, request_id: int) -> Dict:
         """Make a single request for rate limiting test"""
         try:
             response = await client.get(

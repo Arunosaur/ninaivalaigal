@@ -43,12 +43,8 @@ class Mem0Client:
                 status = "ACTIVE" if context.get("is_active") else "inactive"
                 created = context.get("created_at", "")[:19]  # Format timestamp
                 scope = context.get("scope", "personal")
-                scope_icon = {"personal": "👤", "team": "👥", "organization": "🏢"}.get(
-                    scope, "📁"
-                )
-                print(
-                    f"  {scope_icon} {context['name']} ({scope}, {status}) - created: {created}"
-                )
+                scope_icon = {"personal": "👤", "team": "👥", "organization": "🏢"}.get(scope, "📁")
+                print(f"  {scope_icon} {context['name']} ({scope}, {status}) - created: {created}")
         else:
             print(f"❌ Failed to get contexts: {response.text}")
 
@@ -187,12 +183,8 @@ class Mem0Client:
 
         response = self.make_request("POST", "/contexts", json=data)
         if response.status_code == 200:
-            scope_icon = {"personal": "👤", "team": "👥", "organization": "🏢"}.get(
-                scope, "📁"
-            )
-            print(
-                f"✅ {scope_icon} Context '{name}' created successfully ({scope} scope)"
-            )
+            scope_icon = {"personal": "👤", "team": "👥", "organization": "🏢"}.get(scope, "📁")
+            print(f"✅ {scope_icon} Context '{name}' created successfully ({scope} scope)")
         else:
             print(f"❌ Failed to create context: {response.text}")
 
@@ -201,9 +193,7 @@ def main():
     """Main entry point for eM command-line tool."""
     if len(sys.argv) < 2:
         print("Usage: mem0 <command> [options]")
-        print(
-            "Commands: contexts, active, start, stop, delete, remember, recall, create"
-        )
+        print("Commands: contexts, active, start, stop, delete, remember, recall, create")
         sys.exit(1)
 
     client = Mem0Client()
@@ -230,9 +220,7 @@ def main():
                 i += 1
 
         if not context:
-            print(
-                "Usage: mem0 start --context <name> [--scope personal|team|organization]"
-            )
+            print("Usage: mem0 start --context <name> [--scope personal|team|organization]")
             sys.exit(1)
 
         client.context_start(context, scope)
@@ -312,9 +300,7 @@ def main():
 
     else:
         print(f"❌ Unknown command: {command}")
-        print(
-            "Available commands: contexts, active, start, stop, delete, remember, recall, create"
-        )
+        print("Available commands: contexts, active, start, stop, delete, remember, recall, create")
 
 
 if __name__ == "__main__":

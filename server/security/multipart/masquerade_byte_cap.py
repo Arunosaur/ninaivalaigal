@@ -48,9 +48,7 @@ class BoundedBinaryMasqueradeDetector(BinaryMasqueradeDetector):
         capped_content = content[:analysis_bytes]
 
         # Use parent detection logic on capped content
-        result = super().detect_masquerade(
-            capped_content, declared_content_type, filename
-        )
+        result = super().detect_masquerade(capped_content, declared_content_type, filename)
 
         # Add byte cap metadata
         result.update(
@@ -58,9 +56,7 @@ class BoundedBinaryMasqueradeDetector(BinaryMasqueradeDetector):
                 "analysis_bytes": analysis_bytes,
                 "total_bytes": total_bytes,
                 "byte_cap_applied": byte_cap_applied,
-                "analysis_percentage": (
-                    (analysis_bytes / total_bytes * 100) if total_bytes > 0 else 0
-                ),
+                "analysis_percentage": ((analysis_bytes / total_bytes * 100) if total_bytes > 0 else 0),
             }
         )
 
@@ -103,9 +99,7 @@ def test_masquerade_byte_cap():
     """Test masquerade detection with byte capping."""
 
     # Create test content larger than cap
-    large_binary_content = b"\x89PNG\r\n\x1a\n" + b"\x00" * (
-        300 * 1024
-    )  # 300KB PNG-like content
+    large_binary_content = b"\x89PNG\r\n\x1a\n" + b"\x00" * (300 * 1024)  # 300KB PNG-like content
     large_text_content = b"This is normal text content. " * (10 * 1024)  # ~290KB text
 
     detector = BoundedBinaryMasqueradeDetector(max_check_bytes=256 * 1024)
@@ -140,9 +134,7 @@ def test_masquerade_byte_cap():
     results = []
 
     for case in test_cases:
-        result = detector.detect_masquerade(
-            case["content"], case["declared_type"], case["filename"]
-        )
+        result = detector.detect_masquerade(case["content"], case["declared_type"], case["filename"])
 
         detection_correct = result["is_masquerade"] == case["should_detect"]
         cap_correct = result["byte_cap_applied"] == case["should_cap"]
@@ -196,7 +188,5 @@ if __name__ == "__main__":
             f"confidence: {result['confidence']:.2f}"
         )
 
-    print(
-        f"\nBounded function detected masquerade: {test_results['bounded_function_detected']}"
-    )
+    print(f"\nBounded function detected masquerade: {test_results['bounded_function_detected']}")
     print(f"Performance: {test_results['performance_summary']}")

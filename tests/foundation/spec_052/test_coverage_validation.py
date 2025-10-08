@@ -60,26 +60,21 @@ class TestCoverageValidation:
             },
         }
 
-    async def test_85_plus_coverage_validated_unit_integration(
-        self, mock_coverage_analyzer, sample_coverage_data
-    ):
+    async def test_85_plus_coverage_validated_unit_integration(self, mock_coverage_analyzer, sample_coverage_data):
         """Test SPEC-052: 85%+ coverage validated (unit + integration)"""
 
         # Test unit test coverage
         unit_coverage = sample_coverage_data["unit_tests"]
-        total_unit_coverage = sum(
-            module["coverage"] * module["files"] for module in unit_coverage.values()
-        ) / sum(module["files"] for module in unit_coverage.values())
+        total_unit_coverage = sum(module["coverage"] * module["files"] for module in unit_coverage.values()) / sum(
+            module["files"] for module in unit_coverage.values()
+        )
 
-        assert (
-            total_unit_coverage >= 85.0
-        ), f"Unit test coverage should be >= 85%, got {total_unit_coverage:.1f}%"
+        assert total_unit_coverage >= 85.0, f"Unit test coverage should be >= 85%, got {total_unit_coverage:.1f}%"
 
         # Test integration test coverage
         integration_coverage = sample_coverage_data["integration_tests"]
         total_integration_coverage = sum(
-            module["coverage"] * module["files"]
-            for module in integration_coverage.values()
+            module["coverage"] * module["files"] for module in integration_coverage.values()
         ) / sum(module["files"] for module in integration_coverage.values())
 
         assert (
@@ -88,9 +83,7 @@ class TestCoverageValidation:
 
         # Test combined coverage
         combined_coverage = (total_unit_coverage + total_integration_coverage) / 2
-        assert (
-            combined_coverage >= 80.0
-        ), f"Combined coverage should be >= 80%, got {combined_coverage:.1f}%"
+        assert combined_coverage >= 80.0, f"Combined coverage should be >= 80%, got {combined_coverage:.1f}%"
 
     async def test_chaos_tests_db_redis_provider_flaps(self, mock_coverage_analyzer):
         """Test SPEC-052: Chaos tests (DB, Redis, provider flaps)"""
@@ -123,16 +116,12 @@ class TestCoverageValidation:
             # Simulate chaos scenario
             if scenario["scenario"] == "connection_timeout":
                 # Simulate connection timeout recovery
-                recovery_time = min(
-                    scenario["duration_seconds"] * 1.5, scenario["max_recovery_time"]
-                )
+                recovery_time = min(scenario["duration_seconds"] * 1.5, scenario["max_recovery_time"])
                 time.sleep(0.001)  # Simulate processing
 
             elif scenario["scenario"] == "connection_pool_exhaustion":
                 # Simulate pool exhaustion recovery
-                recovery_time = min(
-                    scenario["duration_seconds"] * 2, scenario["max_recovery_time"]
-                )
+                recovery_time = min(scenario["duration_seconds"] * 2, scenario["max_recovery_time"])
                 time.sleep(0.001)
 
             elif scenario["scenario"] == "query_timeout":
@@ -143,9 +132,7 @@ class TestCoverageValidation:
             end_time = time.time()
             actual_recovery_time = end_time - start_time
 
-            assert scenario[
-                "expected_recovery"
-            ], f"Scenario {scenario['scenario']} should recover"
+            assert scenario["expected_recovery"], f"Scenario {scenario['scenario']} should recover"
             assert actual_recovery_time < 1.0, f"Test simulation should be fast"
 
         # Test Redis chaos scenarios
@@ -168,12 +155,8 @@ class TestCoverageValidation:
         ]
 
         for scenario in redis_chaos_scenarios:
-            assert (
-                scenario["fallback"] is not None
-            ), f"Redis scenario {scenario['scenario']} should have fallback"
-            assert (
-                scenario["performance_degradation"] < 1.0
-            ), "Performance degradation should be manageable"
+            assert scenario["fallback"] is not None, f"Redis scenario {scenario['scenario']} should have fallback"
+            assert scenario["performance_degradation"] < 1.0, "Performance degradation should be manageable"
 
         # Test provider flapping scenarios
         provider_flap_scenarios = [
@@ -194,9 +177,7 @@ class TestCoverageValidation:
         for scenario in provider_flap_scenarios:
             if scenario["flap_count"] > scenario["circuit_breaker_threshold"]:
                 # Circuit breaker should activate
-                assert (
-                    scenario["flap_count"] > scenario["circuit_breaker_threshold"]
-                ), "Circuit breaker logic validated"
+                assert scenario["flap_count"] > scenario["circuit_breaker_threshold"], "Circuit breaker logic validated"
 
     async def test_manual_automated_hybrid_flows(self, mock_coverage_analyzer):
         """Test SPEC-052: Manual/automated hybrid flows"""
@@ -240,28 +221,20 @@ class TestCoverageValidation:
             automated_coverage = len(flow["automated_steps"]) / (
                 len(flow["automated_steps"]) + len(flow["manual_steps"])
             )
-            manual_coverage = len(flow["manual_steps"]) / (
-                len(flow["automated_steps"]) + len(flow["manual_steps"])
-            )
+            manual_coverage = len(flow["manual_steps"]) / (len(flow["automated_steps"]) + len(flow["manual_steps"]))
 
             flow["total_coverage"] = automated_coverage + manual_coverage
             flow["automated_ratio"] = automated_coverage
             flow["manual_ratio"] = manual_coverage
 
             # Validate hybrid balance
-            assert (
-                flow["total_coverage"] == 1.0
-            ), f"Flow {flow['flow_id']} should have complete coverage"
+            assert flow["total_coverage"] == 1.0, f"Flow {flow['flow_id']} should have complete coverage"
             assert (
                 0.3 <= flow["automated_ratio"] <= 0.8
             ), f"Automated ratio should be balanced: {flow['automated_ratio']:.2f}"
-            assert (
-                0.2 <= flow["manual_ratio"] <= 0.7
-            ), f"Manual ratio should be balanced: {flow['manual_ratio']:.2f}"
+            assert 0.2 <= flow["manual_ratio"] <= 0.7, f"Manual ratio should be balanced: {flow['manual_ratio']:.2f}"
 
-    async def test_improve_observability_on_test_coverage_per_spec(
-        self, sample_coverage_data
-    ):
+    async def test_improve_observability_on_test_coverage_per_spec(self, sample_coverage_data):
         """Test SPEC-052: Improve observability on test coverage per SPEC"""
 
         # Test SPEC-specific coverage mapping
@@ -300,9 +273,7 @@ class TestCoverageValidation:
 
         # Validate SPEC coverage observability
         for spec_id, coverage_data in spec_coverage_mapping.items():
-            assert (
-                len(coverage_data["files"]) > 0
-            ), f"SPEC {spec_id} should have associated files"
+            assert len(coverage_data["files"]) > 0, f"SPEC {spec_id} should have associated files"
 
             # Calculate overall SPEC coverage
             coverages = [
@@ -319,9 +290,7 @@ class TestCoverageValidation:
                     avg_coverage >= 70.0
                 ), f"SPEC {spec_id} should have >= 70% average coverage, got {avg_coverage:.1f}%"
 
-    async def test_dynamic_test_generation_edge_case_permutations(
-        self, mock_coverage_analyzer
-    ):
+    async def test_dynamic_test_generation_edge_case_permutations(self, mock_coverage_analyzer):
         """Test SPEC-052: Dynamic test generation for edge case permutations"""
 
         # Test dynamic test case generation
@@ -359,11 +328,7 @@ class TestCoverageValidation:
                         "function": function_name,
                         "parameter": param,
                         "edge_value": edge_value,
-                        "expected_behavior": (
-                            "error_handling"
-                            if edge_value in ["", None, 0, -1]
-                            else "validation"
-                        ),
+                        "expected_behavior": ("error_handling" if edge_value in ["", None, 0, -1] else "validation"),
                     }
                     generated_tests.append(test_case)
 
@@ -372,18 +337,12 @@ class TestCoverageValidation:
 
         # Test coverage of edge cases
         functions_covered = set(test["function"] for test in generated_tests)
-        assert (
-            "create_memory" in functions_covered
-        ), "Should cover create_memory function"
+        assert "create_memory" in functions_covered, "Should cover create_memory function"
         assert "share_memory" in functions_covered, "Should cover share_memory function"
 
         # Validate edge case categories
-        error_handling_tests = [
-            t for t in generated_tests if t["expected_behavior"] == "error_handling"
-        ]
-        validation_tests = [
-            t for t in generated_tests if t["expected_behavior"] == "validation"
-        ]
+        error_handling_tests = [t for t in generated_tests if t["expected_behavior"] == "error_handling"]
+        validation_tests = [t for t in generated_tests if t["expected_behavior"] == "validation"]
 
         assert len(error_handling_tests) > 0, "Should have error handling tests"
         assert len(validation_tests) > 0, "Should have validation tests"
@@ -410,9 +369,9 @@ class TestCoverageValidation:
         # Calculate summary metrics
         all_coverages = []
         for test_type, modules in sample_coverage_data.items():
-            type_coverage = sum(
-                module["coverage"] * module["files"] for module in modules.values()
-            ) / sum(module["files"] for module in modules.values())
+            type_coverage = sum(module["coverage"] * module["files"] for module in modules.values()) / sum(
+                module["files"] for module in modules.values()
+            )
 
             all_coverages.append(type_coverage)
 
@@ -423,23 +382,15 @@ class TestCoverageValidation:
             elif test_type == "functional_tests":
                 dashboard_data["summary"]["functional_coverage"] = type_coverage
 
-        dashboard_data["summary"]["total_coverage"] = sum(all_coverages) / len(
-            all_coverages
-        )
+        dashboard_data["summary"]["total_coverage"] = sum(all_coverages) / len(all_coverages)
 
         # Generate module breakdown
         for module_path in sample_coverage_data["unit_tests"].keys():
             module_data = {
                 "module": module_path,
-                "unit_coverage": sample_coverage_data["unit_tests"][module_path][
-                    "coverage"
-                ],
-                "integration_coverage": sample_coverage_data["integration_tests"][
-                    module_path
-                ]["coverage"],
-                "functional_coverage": sample_coverage_data["functional_tests"][
-                    module_path
-                ]["coverage"],
+                "unit_coverage": sample_coverage_data["unit_tests"][module_path]["coverage"],
+                "integration_coverage": sample_coverage_data["integration_tests"][module_path]["coverage"],
+                "functional_coverage": sample_coverage_data["functional_tests"][module_path]["coverage"],
                 "file_count": sample_coverage_data["unit_tests"][module_path]["files"],
             }
             dashboard_data["modules"].append(module_data)
@@ -457,13 +408,9 @@ class TestCoverageValidation:
                 )
 
         # Validate dashboard data
-        assert (
-            dashboard_data["summary"]["total_coverage"] > 0
-        ), "Should have total coverage"
+        assert dashboard_data["summary"]["total_coverage"] > 0, "Should have total coverage"
         assert len(dashboard_data["modules"]) > 0, "Should have module data"
-        assert (
-            dashboard_data["summary"]["last_updated"] is not None
-        ), "Should have timestamp"
+        assert dashboard_data["summary"]["last_updated"] is not None, "Should have timestamp"
 
         # Test HTML report generation (simulated)
         html_report_sections = [
@@ -497,15 +444,13 @@ class TestCoverageValidation:
         # Calculate actual coverage
         actual_coverage = {}
         for test_type, modules in sample_coverage_data.items():
-            type_coverage = sum(
-                module["coverage"] * module["files"] for module in modules.values()
-            ) / sum(module["files"] for module in modules.values())
+            type_coverage = sum(module["coverage"] * module["files"] for module in modules.values()) / sum(
+                module["files"] for module in modules.values()
+            )
             actual_coverage[test_type] = type_coverage
 
         # Calculate overall coverage
-        actual_coverage["overall"] = sum(actual_coverage.values()) / len(
-            actual_coverage
-        )
+        actual_coverage["overall"] = sum(actual_coverage.values()) / len(actual_coverage)
 
         # Test threshold enforcement
         threshold_violations = []
@@ -523,9 +468,7 @@ class TestCoverageValidation:
 
         # Validate thresholds (some violations expected in test data)
         for violation in threshold_violations:
-            assert (
-                violation["deficit"] > 0
-            ), f"Deficit should be positive for {violation['test_type']}"
+            assert violation["deficit"] > 0, f"Deficit should be positive for {violation['test_type']}"
             assert (
                 violation["actual"] < violation["threshold"]
             ), f"Actual should be below threshold for {violation['test_type']}"
@@ -576,9 +519,7 @@ class TestCoverageValidation:
                 break
 
         # Validate automation requirements
-        assert (
-            total_duration < 120
-        ), f"Report generation should complete in under 2 minutes, took {total_duration}s"
+        assert total_duration < 120, f"Report generation should complete in under 2 minutes, took {total_duration}s"
 
         # Test retry logic for failed steps
         if not pipeline_success:

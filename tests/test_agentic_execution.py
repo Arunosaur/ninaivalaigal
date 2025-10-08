@@ -52,15 +52,9 @@ class TestAgentCore:
     async def test_execute_inference_mode(self, agent_core):
         """Test execution in inference mode."""
         with (
-            patch.object(
-                agent_core.memory_tool, "get_relevant_memories", new_callable=AsyncMock
-            ) as mock_memories,
-            patch.object(
-                agent_core.ai_toolchain, "inject_memory_context", new_callable=AsyncMock
-            ) as mock_inject,
-            patch.object(
-                agent_core.ai_toolchain, "generate_response", new_callable=AsyncMock
-            ) as mock_generate,
+            patch.object(agent_core.memory_tool, "get_relevant_memories", new_callable=AsyncMock) as mock_memories,
+            patch.object(agent_core.ai_toolchain, "inject_memory_context", new_callable=AsyncMock) as mock_inject,
+            patch.object(agent_core.ai_toolchain, "generate_response", new_callable=AsyncMock) as mock_generate,
         ):
 
             # Setup mocks
@@ -90,9 +84,7 @@ class TestAgentCore:
     @pytest.mark.asyncio
     async def test_execute_search_mode(self, agent_core):
         """Test execution in search mode."""
-        with patch.object(
-            agent_core.memory_tool, "semantic_search", new_callable=AsyncMock
-        ) as mock_search:
+        with patch.object(agent_core.memory_tool, "semantic_search", new_callable=AsyncMock) as mock_search:
             mock_search.return_value = [
                 {"id": "mem1", "content": "search result 1", "similarity_score": 0.9},
                 {"id": "mem2", "content": "search result 2", "similarity_score": 0.8},
@@ -119,14 +111,10 @@ class TestAgentCore:
                 "get_memories_for_summarization",
                 new_callable=AsyncMock,
             ) as mock_memories,
-            patch.object(
-                agent_core.ai_toolchain, "generate_summary", new_callable=AsyncMock
-            ) as mock_summary,
+            patch.object(agent_core.ai_toolchain, "generate_summary", new_callable=AsyncMock) as mock_summary,
         ):
 
-            mock_memories.return_value = [
-                {"id": "mem1", "content": "memory to summarize"}
-            ]
+            mock_memories.return_value = [{"id": "mem1", "content": "memory to summarize"}]
             mock_summary.return_value = "Generated summary of memories"
 
             result = await agent_core.execute(
@@ -145,12 +133,8 @@ class TestAgentCore:
     async def test_execute_analytics_mode(self, agent_core):
         """Test execution in analytics mode."""
         with (
-            patch.object(
-                agent_core.memory_tool, "get_analytics_data", new_callable=AsyncMock
-            ) as mock_data,
-            patch.object(
-                agent_core.data_ops_tool, "perform_analytics", new_callable=AsyncMock
-            ) as mock_analytics,
+            patch.object(agent_core.memory_tool, "get_analytics_data", new_callable=AsyncMock) as mock_data,
+            patch.object(agent_core.data_ops_tool, "perform_analytics", new_callable=AsyncMock) as mock_analytics,
         ):
 
             mock_data.return_value = {"total_memories": 100, "memories": []}
@@ -172,9 +156,7 @@ class TestAgentCore:
     async def test_execute_memory_analysis_mode(self, agent_core):
         """Test execution in memory analysis mode."""
         with (
-            patch.object(
-                agent_core.memory_tool, "analyze_memory_network", new_callable=AsyncMock
-            ) as mock_network,
+            patch.object(agent_core.memory_tool, "analyze_memory_network", new_callable=AsyncMock) as mock_network,
             patch.object(
                 agent_core.ai_toolchain,
                 "generate_memory_insights",
@@ -209,9 +191,7 @@ class TestAgentCore:
         agent_core.max_concurrent_executions = 2
 
         # Start two executions (should succeed)
-        with patch.object(
-            agent_core, "_execute_mode", new_callable=AsyncMock
-        ) as mock_execute:
+        with patch.object(agent_core, "_execute_mode", new_callable=AsyncMock) as mock_execute:
             mock_execute.return_value = {"result": "test"}
 
             task1 = asyncio.create_task(agent_core.execute("test1", "user1"))
@@ -232,9 +212,7 @@ class TestAgentCore:
         """Test that execution metrics are tracked correctly."""
         initial_total = agent_core.metrics["total_executions"]
 
-        with patch.object(
-            agent_core, "_execute_mode", new_callable=AsyncMock
-        ) as mock_execute:
+        with patch.object(agent_core, "_execute_mode", new_callable=AsyncMock) as mock_execute:
             mock_execute.return_value = {"result": "test"}
 
             result = await agent_core.execute(
@@ -346,9 +324,7 @@ class TestIntentionRouter:
         prompt = "Find all my documents about machine learning"
         selected_mode = ExecutionMode.SEARCH
 
-        explanation = intention_router.get_routing_explanation(
-            prompt, selected_mode, None
-        )
+        explanation = intention_router.get_routing_explanation(prompt, selected_mode, None)
 
         assert explanation["selected_mode"] == "search"
         assert "mode_scores" in explanation
@@ -563,9 +539,7 @@ class TestAIToolchain:
         # Test response filtering
         long_response = "A" * 5000  # Exceeds max length
         filtered_response = await ai_toolchain._apply_response_filters(long_response)
-        assert (
-            len(filtered_response) <= ai_toolchain.max_response_length + 50
-        )  # Allow for truncation message
+        assert len(filtered_response) <= ai_toolchain.max_response_length + 50  # Allow for truncation message
 
 
 class TestMemoryAccessTool:
@@ -730,15 +704,9 @@ class TestAgenticIntegration:
         agent_core = AgentCore(redis_client=mock_redis)
 
         with (
-            patch.object(
-                agent_core.memory_tool, "get_relevant_memories", new_callable=AsyncMock
-            ) as mock_memories,
-            patch.object(
-                agent_core.ai_toolchain, "inject_memory_context", new_callable=AsyncMock
-            ) as mock_inject,
-            patch.object(
-                agent_core.ai_toolchain, "generate_response", new_callable=AsyncMock
-            ) as mock_generate,
+            patch.object(agent_core.memory_tool, "get_relevant_memories", new_callable=AsyncMock) as mock_memories,
+            patch.object(agent_core.ai_toolchain, "inject_memory_context", new_callable=AsyncMock) as mock_inject,
+            patch.object(agent_core.ai_toolchain, "generate_response", new_callable=AsyncMock) as mock_generate,
         ):
 
             mock_memories.return_value = [{"id": "mem1", "content": "test memory"}]

@@ -208,14 +208,9 @@ def evaluate_badges(user_stats: Dict[str, Any]) -> List[UserBadge]:
         if highest_earned:
             # Calculate progress toward next level
             next_level = None
-            if (
-                highest_earned.level == BadgeLevel.BRONZE
-                and BadgeLevel.SILVER in levels
-            ):
+            if highest_earned.level == BadgeLevel.BRONZE and BadgeLevel.SILVER in levels:
                 next_level = levels[BadgeLevel.SILVER]
-            elif (
-                highest_earned.level == BadgeLevel.SILVER and BadgeLevel.GOLD in levels
-            ):
+            elif highest_earned.level == BadgeLevel.SILVER and BadgeLevel.GOLD in levels:
                 next_level = levels[BadgeLevel.GOLD]
 
             progress = {}
@@ -294,9 +289,7 @@ async def get_available_badges():
 
 
 @router.get("/badges/user/{user_id}")
-async def get_user_badges(
-    user_id: str, current_user: Dict[str, Any] = Depends(get_current_user)
-):
+async def get_user_badges(user_id: str, current_user: Dict[str, Any] = Depends(get_current_user)):
     """Get badges earned by a specific user"""
 
     # Check permissions (users can view their own badges, admins can view any)
@@ -358,9 +351,7 @@ async def get_leaderboard(
 
 
 @router.get("/progress/{user_id}")
-async def get_badge_progress(
-    user_id: str, current_user: Dict[str, Any] = Depends(get_current_user)
-):
+async def get_badge_progress(user_id: str, current_user: Dict[str, Any] = Depends(get_current_user)):
     """Get detailed progress toward next badges"""
 
     if current_user["id"] != user_id and current_user.get("role") not in [
@@ -397,9 +388,7 @@ async def get_badge_progress(
                     total_progress += percentage
                     criteria_count += 1
 
-                avg_progress = (
-                    total_progress / criteria_count if criteria_count > 0 else 0
-                )
+                avg_progress = total_progress / criteria_count if criteria_count > 0 else 0
 
                 if avg_progress >= 50:  # Show badges that are at least 50% complete
                     close_badges.append(
@@ -423,9 +412,7 @@ async def get_badge_progress(
 
 
 @router.post("/celebrate/{badge_id}")
-async def celebrate_badge(
-    badge_id: str, current_user: Dict[str, Any] = Depends(get_current_user)
-):
+async def celebrate_badge(badge_id: str, current_user: Dict[str, Any] = Depends(get_current_user)):
     """Mark a badge as celebrated (for UI feedback)"""
 
     # This would typically update a database flag
@@ -464,9 +451,7 @@ async def get_gamification_widget_data(
             "total_points": total_points,
             "total_badges": len(earned_badges),
             "team_rank": user_rank or "Unranked",
-            "recent_badges": [
-                badge.dict() for badge in earned_badges[-3:]
-            ],  # Last 3 earned
+            "recent_badges": [badge.dict() for badge in earned_badges[-3:]],  # Last 3 earned
         },
         "team_leaderboard": leaderboard[:5],  # Top 5
         "badge_progress": await get_badge_progress(current_user["id"], current_user),

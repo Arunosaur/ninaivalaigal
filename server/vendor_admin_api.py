@@ -128,9 +128,7 @@ async def list_all_tenants(
     try:
         offset = (page - 1) * limit
 
-        tenants_data = await db.get_tenants_with_metrics(
-            offset=offset, limit=limit, status_filter=status_filter
-        )
+        tenants_data = await db.get_tenants_with_metrics(offset=offset, limit=limit, status_filter=status_filter)
 
         tenants = []
         for tenant_data in tenants_data:
@@ -187,9 +185,7 @@ async def get_tenant_usage_analytics(
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
 
-        usage_data = await db.get_tenant_usage_metrics(
-            tenant_id=tenant_id, start_date=start_date, end_date=end_date
-        )
+        usage_data = await db.get_tenant_usage_metrics(tenant_id=tenant_id, start_date=start_date, end_date=end_date)
 
         metrics = []
         for data in usage_data:
@@ -209,12 +205,8 @@ async def get_tenant_usage_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Failed to get tenant usage analytics", tenant_id=tenant_id, error=str(e)
-        )
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve usage analytics"
-        )
+        logger.error("Failed to get tenant usage analytics", tenant_id=tenant_id, error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to retrieve usage analytics")
 
 
 @router.get("/tenants/{tenant_id}/rate-limits")
@@ -247,9 +239,7 @@ async def get_tenant_rate_limits(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Failed to get tenant rate limits", tenant_id=tenant_id, error=str(e)
-        )
+        logger.error("Failed to get tenant rate limits", tenant_id=tenant_id, error=str(e))
         raise HTTPException(status_code=500, detail="Failed to retrieve rate limits")
 
 
@@ -300,9 +290,7 @@ async def update_tenant_rate_limits(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Failed to update tenant rate limits", tenant_id=tenant_id, error=str(e)
-        )
+        logger.error("Failed to update tenant rate limits", tenant_id=tenant_id, error=str(e))
         raise HTTPException(status_code=500, detail="Failed to update rate limits")
 
 
@@ -445,9 +433,7 @@ async def get_admin_audit_logs(
             )
             logs.append(log)
 
-        total_count = await db.get_admin_audit_logs_count(
-            action_filter=action_filter, tenant_filter=tenant_filter
-        )
+        total_count = await db.get_admin_audit_logs_count(action_filter=action_filter, tenant_filter=tenant_filter)
 
         return {
             "logs": logs,

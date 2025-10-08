@@ -37,9 +37,7 @@ async def test_live_recording():
 
     # Test 3: Add explicit memory
     print("\n3. Adding explicit memory...")
-    memory_result = await remember(
-        "This is a manually added memory", "live-test-context"
-    )
+    memory_result = await remember("This is a manually added memory", "live-test-context")
     print(f"Memory result: {memory_result}")
 
     # Test 4: Use recall (which should auto-record)

@@ -219,13 +219,9 @@ async def coverage_validator():
             return {
                 "total_specs": len(self.coverage_data),
                 "average_coverage": (
-                    sum(self.coverage_data.values()) / len(self.coverage_data)
-                    if self.coverage_data
-                    else 0
+                    sum(self.coverage_data.values()) / len(self.coverage_data) if self.coverage_data else 0
                 ),
-                "specs_meeting_threshold": sum(
-                    1 for c in self.coverage_data.values() if c >= 85.0
-                ),
+                "specs_meeting_threshold": sum(1 for c in self.coverage_data.values() if c >= 85.0),
                 "coverage_by_spec": self.coverage_data.copy(),
             }
 

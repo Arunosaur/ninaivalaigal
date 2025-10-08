@@ -149,9 +149,7 @@ def log_staff_activity(
 # ============================================================================
 
 
-@router.post(
-    "/", response_model=StaffCreateResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/", response_model=StaffCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_staff(
     staff_data: StaffCreate,
     request: Request,
@@ -323,9 +321,7 @@ async def update_staff_role(
     - Logs role change with reason
     """
     # Get current role
-    check_query = text(
-        "SELECT role FROM staff WHERE id = :staff_id AND is_active = true"
-    )
+    check_query = text("SELECT role FROM staff WHERE id = :staff_id AND is_active = true")
     current_role = db.execute(check_query, {"staff_id": str(staff_id)}).fetchone()
 
     if not current_role:

@@ -49,9 +49,7 @@ class TestGraphOpsIntegration:
                 "metadata": {"source": "integration_test"},
             }
 
-            memory_response = requests.post(
-                f"{api_base_url}/memory/create", json=memory_data, timeout=5
-            )
+            memory_response = requests.post(f"{api_base_url}/memory/create", json=memory_data, timeout=5)
 
             if memory_response.status_code == 401:
                 pytest.skip("Authentication required - skipping integration test")
@@ -60,9 +58,7 @@ class TestGraphOpsIntegration:
             memory_id = memory_response.json().get("id")
 
             # 2. Verify graph storage via GraphOps
-            graph_response = requests.get(
-                f"{graphops_base_url}/graph/memory/{memory_id}", timeout=5
-            )
+            graph_response = requests.get(f"{graphops_base_url}/graph/memory/{memory_id}", timeout=5)
 
             assert graph_response.status_code == 200
             graph_data = graph_response.json()
@@ -77,9 +73,7 @@ class TestGraphOpsIntegration:
             # 1. Query graph for related memories
             query_data = {"query": "integration test", "limit": 5}
 
-            graph_response = requests.post(
-                f"{graphops_base_url}/graph/query", json=query_data, timeout=5
-            )
+            graph_response = requests.post(f"{graphops_base_url}/graph/query", json=query_data, timeout=5)
 
             assert graph_response.status_code == 200
             graph_results = graph_response.json()
@@ -88,9 +82,7 @@ class TestGraphOpsIntegration:
             if graph_results.get("memory_ids"):
                 memory_id = graph_results["memory_ids"][0]
 
-                memory_response = requests.get(
-                    f"{api_base_url}/memory/{memory_id}", timeout=5
-                )
+                memory_response = requests.get(f"{api_base_url}/memory/{memory_id}", timeout=5)
 
                 if memory_response.status_code != 401:  # Skip if auth required
                     assert memory_response.status_code == 200
@@ -115,14 +107,9 @@ class TestGraphOpsIntegration:
             )
 
             # Get cache via GraphOps
-            cache_get_response = requests.get(
-                f"{graphops_base_url}/cache/{cache_key}", timeout=5
-            )
+            cache_get_response = requests.get(f"{graphops_base_url}/cache/{cache_key}", timeout=5)
 
-            if (
-                cache_set_response.status_code == 200
-                and cache_get_response.status_code == 200
-            ):
+            if cache_set_response.status_code == 200 and cache_get_response.status_code == 200:
                 cached_data = cache_get_response.json()
                 assert cached_data.get("value") == cache_value
 
@@ -139,13 +126,9 @@ class TestGraphOpsIntegration:
             for i in range(5):
                 # Alternate between API and GraphOps operations
                 if i % 2 == 0:
-                    task = self._create_memory_async(
-                        api_base_url, f"concurrent_test_{i}"
-                    )
+                    task = self._create_memory_async(api_base_url, f"concurrent_test_{i}")
                 else:
-                    task = self._query_graph_async(
-                        graphops_base_url, f"concurrent_test"
-                    )
+                    task = self._query_graph_async(graphops_base_url, f"concurrent_test")
 
                 tasks.append(task)
 
@@ -166,9 +149,7 @@ class TestGraphOpsIntegration:
             else:
                 raise
 
-    async def _create_memory_async(
-        self, api_base_url: str, content: str
-    ) -> Dict[str, Any]:
+    async def _create_memory_async(self, api_base_url: str, content: str) -> Dict[str, Any]:
         """Async helper for memory creation"""
         import aiohttp
 
@@ -180,9 +161,7 @@ class TestGraphOpsIntegration:
             ) as response:
                 return await response.json()
 
-    async def _query_graph_async(
-        self, graphops_base_url: str, query: str
-    ) -> Dict[str, Any]:
+    async def _query_graph_async(self, graphops_base_url: str, query: str) -> Dict[str, Any]:
         """Async helper for graph querying"""
         import aiohttp
 

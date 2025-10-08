@@ -28,19 +28,13 @@ async def test_memory_recording():
     # Test 2: Add some memories
     print("\n2. Adding test memories...")
 
-    memory1 = await remember(
-        "This is a test memory about project planning", "test-personal-scope"
-    )
+    memory1 = await remember("This is a test memory about project planning", "test-personal-scope")
     print(f"Memory 1: {memory1}")
 
-    memory2 = await remember(
-        "Another memory about code review findings", "test-personal-scope"
-    )
+    memory2 = await remember("Another memory about code review findings", "test-personal-scope")
     print(f"Memory 2: {memory2}")
 
-    memory3 = await remember(
-        "Security improvements needed for JWT handling", "test-personal-scope"
-    )
+    memory3 = await remember("Security improvements needed for JWT handling", "test-personal-scope")
     print(f"Memory 3: {memory3}")
 
     # Test 3: Wait a moment for auto-save

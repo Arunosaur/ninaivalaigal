@@ -94,7 +94,7 @@ class TestEdgeQueries:
             # Verify edge properties
             assert triggered_edge.source_id == "macro_001"
             assert triggered_edge.target_id == "agent_001"
-            assert (triggered_edge.relationship_type == RelationshipType.TRIGGERED_BY.value)
+            assert triggered_edge.relationship_type == RelationshipType.TRIGGERED_BY.value
             assert triggered_edge.properties["frequency"] == "daily"
             assert triggered_edge.properties["automation_level"] == 0.9
 
@@ -141,7 +141,7 @@ class TestEdgeQueries:
             # Verify edge properties
             assert influences_edge.source_id == "memory_001"
             assert influences_edge.target_id == "memory_002"
-            assert (influences_edge.relationship_type == RelationshipType.INFLUENCES.value)
+            assert influences_edge.relationship_type == RelationshipType.INFLUENCES.value
             assert influences_edge.properties["influence_type"] == "prerequisite"
             assert influences_edge.properties["strength"] == 0.8
             assert influences_edge.weight == 0.75
@@ -204,12 +204,16 @@ class TestEdgeQueries:
                 mock_conn.execute.return_value = None
                 mock_conn.fetch.return_value = [
                     {
-                        "result": ('{"memory_id": "mem_001", "title": "Redis Setup", "depth": 1, '
-                                   '"relationships": [{"type": "CREATED", "weight": 1.0}]}')
+                        "result": (
+                            '{"memory_id": "mem_001", "title": "Redis Setup", "depth": 1, '
+                            '"relationships": [{"type": "CREATED", "weight": 1.0}]}'
+                        )
                     },
                     {
-                        "result": ('{"memory_id": "mem_002", "title": "Graph Model", "depth": 2, '
-                                   '"relationships": [{"type": "LINKED_TO", "weight": 0.8}]}')
+                        "result": (
+                            '{"memory_id": "mem_002", "title": "Graph Model", "depth": 2, '
+                            '"relationships": [{"type": "LINKED_TO", "weight": 0.8}]}'
+                        )
                     },
                 ]
 
@@ -297,7 +301,7 @@ class TestEdgeQueries:
 
             # Verify properties are correctly formatted
             assert "relevance: 0.9" in cypher_props
-            assert ("auto_tagged: True" in cypher_props or "auto_tagged: true" in cypher_props)
+            assert "auto_tagged: True" in cypher_props or "auto_tagged: true" in cypher_props
             assert "confidence: 0.85" in cypher_props
             assert "weight: 0.8" in cypher_props
 
@@ -387,13 +391,15 @@ class TestEdgeQueryPerformance:
             )
 
             # Add additional properties
-            influences_edge.properties.update({
-                "algorithm": "graph_neural_network",
-                "computed_at": datetime.utcnow().isoformat(),
-                "validation_score": 0.92,
-                "source_confidence": 0.88,
-                "target_confidence": 0.91,
-            })
+            influences_edge.properties.update(
+                {
+                    "algorithm": "graph_neural_network",
+                    "computed_at": datetime.utcnow().isoformat(),
+                    "validation_score": 0.92,
+                    "source_confidence": 0.88,
+                    "target_confidence": 0.91,
+                }
+            )
 
             # Benchmark property formatting
             def format_edge_properties():
@@ -455,18 +461,15 @@ class TestComplexGraphQueries:
                 mock_conn.fetch.side_effect = [
                     # Nodes query result
                     [
-                        {
-                            "result": '{"id": "mem_001", "label": "Memory", "properties": {"title": "Redis Setup"}}'
-                        },
-                        {
-                            "result": '{"id": "macro_001", "label": "Macro", "properties": {"name": "Setup Sequence"}}'
-                        },
+                        {"result": '{"id": "mem_001", "label": "Memory", "properties": {"title": "Redis Setup"}}'},
+                        {"result": '{"id": "macro_001", "label": "Macro", "properties": {"name": "Setup Sequence"}}'},
                     ],
                     # Edges query result
-                    [{
-                        "result":
-                        '{"source": "mem_001", "target": "macro_001", "relationship": "LINKED_TO", "weight": 0.9}'
-                    }],
+                    [
+                        {
+                            "result": '{"source": "mem_001", "target": "macro_001", "relationship": "LINKED_TO", "weight": 0.9}'
+                        }
+                    ],
                 ]
 
                 # Mock Redis cache

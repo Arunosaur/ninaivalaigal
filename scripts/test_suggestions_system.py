@@ -49,9 +49,7 @@ class SuggestionsSystemTester:
                 data = response.json()
                 if data.get("status") == "healthy":
                     algorithms = data.get("algorithms_available", [])
-                    self.log(
-                        f"✅ Suggestions system healthy with {len(algorithms)} algorithms"
-                    )
+                    self.log(f"✅ Suggestions system healthy with {len(algorithms)} algorithms")
                     return True
                 else:
                     self.log(f"❌ Suggestions system unhealthy: {data}")
@@ -76,28 +74,20 @@ class SuggestionsSystemTester:
             }
 
             start_time = time.time()
-            response = self.session.post(
-                f"{API_BASE_URL}/suggestions/generate", json=payload
-            )
+            response = self.session.post(f"{API_BASE_URL}/suggestions/generate", json=payload)
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ General suggestions endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "generate_suggestions_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["generate_suggestions_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Generated {len(data['suggestions'])} suggestions")
-                self.results["performance_metrics"][
-                    "generate_suggestions_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["generate_suggestions_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Generate suggestions failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Generate suggestions failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -119,21 +109,15 @@ class SuggestionsSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Similar memories endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "similar_memories_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["similar_memories_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Found {len(data['suggestions'])} similar memories")
-                self.results["performance_metrics"][
-                    "similar_memories_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["similar_memories_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Similar memories failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Similar memories failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -152,32 +136,20 @@ class SuggestionsSystemTester:
             }
 
             start_time = time.time()
-            response = self.session.post(
-                f"{API_BASE_URL}/suggestions/by-query", json=payload
-            )
+            response = self.session.post(f"{API_BASE_URL}/suggestions/by-query", json=payload)
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
-                self.log(
-                    "✅ Query-based suggestions endpoint accessible (auth required)"
-                )
-                self.results["performance_metrics"][
-                    "query_suggestions_response_time"
-                ] = response_time
+                self.log("✅ Query-based suggestions endpoint accessible (auth required)")
+                self.results["performance_metrics"]["query_suggestions_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Generated {len(data['suggestions'])} query-based suggestions"
-                )
-                self.results["performance_metrics"][
-                    "query_suggestions_response_time"
-                ] = response_time
+                self.log(f"✅ Generated {len(data['suggestions'])} query-based suggestions")
+                self.results["performance_metrics"]["query_suggestions_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Query-based suggestions failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Query-based suggestions failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -195,21 +167,15 @@ class SuggestionsSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Trending memories endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "trending_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["trending_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Found {len(data['suggestions'])} trending memories")
-                self.results["performance_metrics"][
-                    "trending_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["trending_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Trending memories failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Trending memories failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -222,32 +188,20 @@ class SuggestionsSystemTester:
             self.log("Testing personalized suggestions...")
 
             start_time = time.time()
-            response = self.session.get(
-                f"{API_BASE_URL}/suggestions/personalized?limit=15&context_id=work_context"
-            )
+            response = self.session.get(f"{API_BASE_URL}/suggestions/personalized?limit=15&context_id=work_context")
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
-                self.log(
-                    "✅ Personalized suggestions endpoint accessible (auth required)"
-                )
-                self.results["performance_metrics"][
-                    "personalized_response_time"
-                ] = response_time
+                self.log("✅ Personalized suggestions endpoint accessible (auth required)")
+                self.results["performance_metrics"]["personalized_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Generated {len(data['suggestions'])} personalized suggestions"
-                )
-                self.results["performance_metrics"][
-                    "personalized_response_time"
-                ] = response_time
+                self.log(f"✅ Generated {len(data['suggestions'])} personalized suggestions")
+                self.results["performance_metrics"]["personalized_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Personalized suggestions failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Personalized suggestions failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -265,21 +219,15 @@ class SuggestionsSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Suggestion stats endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "stats_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["stats_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Retrieved suggestion statistics: {data}")
-                self.results["performance_metrics"][
-                    "stats_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["stats_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Suggestion stats failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Suggestion stats failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -301,21 +249,15 @@ class SuggestionsSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Suggestion feedback endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "feedback_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["feedback_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Recorded suggestion feedback: {data['message']}")
-                self.results["performance_metrics"][
-                    "feedback_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["feedback_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Suggestion feedback failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Suggestion feedback failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -342,9 +284,7 @@ class SuggestionsSystemTester:
             for endpoint in endpoints:
                 try:
                     if endpoint == "/suggestions/by-query":
-                        response = self.session.post(
-                            f"{API_BASE_URL}{endpoint}", json={"query": "test"}
-                        )
+                        response = self.session.post(f"{API_BASE_URL}{endpoint}", json={"query": "test"})
                     else:
                         response = self.session.get(f"{API_BASE_URL}{endpoint}")
 
@@ -358,9 +298,7 @@ class SuggestionsSystemTester:
                         accessible_count += 1
                         self.log(f"✅ Endpoint accessible: {endpoint}")
                     else:
-                        self.log(
-                            f"❌ Endpoint issue: {endpoint} - {response.status_code}"
-                        )
+                        self.log(f"❌ Endpoint issue: {endpoint} - {response.status_code}")
                 except Exception as e:
                     self.log(f"❌ Endpoint error: {endpoint} - {str(e)}")
 
@@ -395,12 +333,8 @@ class SuggestionsSystemTester:
             avg_response_time = sum(request_times) / len(request_times)
             max_response_time = max(request_times)
 
-            self.results["performance_metrics"][
-                "avg_health_response_time"
-            ] = avg_response_time
-            self.results["performance_metrics"][
-                "max_health_response_time"
-            ] = max_response_time
+            self.results["performance_metrics"]["avg_health_response_time"] = avg_response_time
+            self.results["performance_metrics"]["max_health_response_time"] = max_response_time
 
             # Performance targets for suggestions (more lenient than basic operations)
             if avg_response_time < 100:  # 100ms target
@@ -486,9 +420,7 @@ class SuggestionsSystemTester:
         if success_rate >= 80:
             self.log("\n🎉 SPEC-041 INTELLIGENT SUGGESTIONS SYSTEM: OPERATIONAL ✅")
         elif success_rate >= 60:
-            self.log(
-                "\n⚠️ SPEC-041 INTELLIGENT SUGGESTIONS SYSTEM: PARTIALLY OPERATIONAL"
-            )
+            self.log("\n⚠️ SPEC-041 INTELLIGENT SUGGESTIONS SYSTEM: PARTIALLY OPERATIONAL")
         else:
             self.log("\n❌ SPEC-041 INTELLIGENT SUGGESTIONS SYSTEM: NEEDS ATTENTION")
 

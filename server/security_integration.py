@@ -59,17 +59,12 @@ class SecurityManager:
                 response = await call_next(request)
 
                 # Log failed authentication attempts
-                if (
-                    request.url.path.startswith("/auth/")
-                    and response.status_code == 401
-                ):
+                if request.url.path.startswith("/auth/") and response.status_code == 401:
                     await security_alert_manager.log_security_event(
                         SecurityEventType.FAILED_LOGIN,
                         metadata={
                             "endpoint": request.url.path,
-                            "ip_address": (
-                                request.client.host if request.client else "unknown"
-                            ),
+                            "ip_address": (request.client.host if request.client else "unknown"),
                             "user_agent": request.headers.get("user-agent", "unknown"),
                         },
                     )
@@ -85,11 +80,7 @@ class SecurityManager:
                         metadata={
                             "endpoint": request.url.path,
                             "method": request.method,
-                            "user_role": (
-                                rbac_context.user_role.value
-                                if rbac_context
-                                else "unknown"
-                            ),
+                            "user_role": (rbac_context.user_role.value if rbac_context else "unknown"),
                         },
                     )
 
@@ -151,9 +142,7 @@ class SecurityManager:
 
         return result.redacted_text
 
-    def _determine_tier_from_rbac(
-        self, rbac_context: RBACContext
-    ) -> ContextSensitivity:
+    def _determine_tier_from_rbac(self, rbac_context: RBACContext) -> ContextSensitivity:
         """Determine sensitivity tier based on RBAC context"""
         from .rbac.permissions import Role
 
@@ -167,13 +156,9 @@ class SecurityManager:
             Role.VIEWER: ContextSensitivity.PUBLIC,
         }
 
-        return role_tier_mapping.get(
-            rbac_context.user_role, ContextSensitivity.INTERNAL
-        )
+        return role_tier_mapping.get(rbac_context.user_role, ContextSensitivity.INTERNAL)
 
-    async def check_cross_org_access(
-        self, rbac_context: RBACContext, target_org_id: int
-    ) -> bool:
+    async def check_cross_org_access(self, rbac_context: RBACContext, target_org_id: int) -> bool:
         """
         Check for cross-organization access attempts and log security events.
 
@@ -253,9 +238,7 @@ async def redact_text(
     rbac_context: RBACContext | None = None,
 ) -> str:
     """Redact sensitive data from text."""
-    return await security_manager.redact_sensitive_data(
-        text, sensitivity_tier, rbac_context
-    )
+    return await security_manager.redact_sensitive_data(text, sensitivity_tier, rbac_context)
 
 
 async def check_cross_org_access(rbac_context: RBACContext, target_org_id: int) -> bool:
@@ -270,9 +253,7 @@ async def log_admin_action(
     metadata: dict | None = None,
 ):
     """Log admin actions."""
-    await security_manager.log_admin_action(
-        rbac_context, action, target_resource, metadata
-    )
+    await security_manager.log_admin_action(rbac_context, action, target_resource, metadata)
 
 
 def configure_security(app: FastAPI, development_mode: bool = False):

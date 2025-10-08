@@ -20,9 +20,7 @@ class TestUnification:
         """Mock graph client for testing"""
         client = AsyncMock()
         client.execute_cypher.return_value = {
-            "nodes": [
-                {"id": "node_1", "type": "Memory", "properties": {"content": "test"}}
-            ],
+            "nodes": [{"id": "node_1", "type": "Memory", "properties": {"content": "test"}}],
             "relationships": [
                 {
                     "id": "rel_1",
@@ -69,37 +67,27 @@ class TestUnification:
         """Test SPEC-060: Unified memory-graph creation workflow"""
 
         # Test memory node creation
-        memories = [
-            node for node in sample_graph_data["nodes"] if node["type"] == "Memory"
-        ]
+        memories = [node for node in sample_graph_data["nodes"] if node["type"] == "Memory"]
         assert len(memories) == 2, "Should have 2 memory nodes"
 
         for memory in memories:
             assert "content" in memory, "Memory nodes should have content"
             assert "user_id" in memory, "Memory nodes should have user_id"
-            assert (
-                memory["user_id"] == "user_1"
-            ), "All memories should belong to same user"
+            assert memory["user_id"] == "user_1", "All memories should belong to same user"
 
     def test_unified_context_integration(self, mock_graph_client, sample_graph_data):
         """Test SPEC-060: Unified context integration"""
 
         # Test context node creation
-        contexts = [
-            node for node in sample_graph_data["nodes"] if node["type"] == "Context"
-        ]
+        contexts = [node for node in sample_graph_data["nodes"] if node["type"] == "Context"]
         assert len(contexts) == 1, "Should have 1 context node"
 
         context = contexts[0]
-        assert (
-            context["name"] == "work/project"
-        ), "Context should have hierarchical name"
+        assert context["name"] == "work/project", "Context should have hierarchical name"
 
         # Test memory-context relationships
         context_relationships = [
-            rel
-            for rel in sample_graph_data["relationships"]
-            if rel["type"] == "BELONGS_TO" and rel["to"] == "ctx_1"
+            rel for rel in sample_graph_data["relationships"] if rel["type"] == "BELONGS_TO" and rel["to"] == "ctx_1"
         ]
         assert len(context_relationships) == 2, "Both memories should belong to context"
 
@@ -107,20 +95,12 @@ class TestUnification:
         """Test SPEC-060: Unified similarity scoring between memories"""
 
         # Test similarity relationships
-        similarity_relationships = [
-            rel
-            for rel in sample_graph_data["relationships"]
-            if rel["type"] == "SIMILAR_TO"
-        ]
-        assert (
-            len(similarity_relationships) == 1
-        ), "Should have 1 similarity relationship"
+        similarity_relationships = [rel for rel in sample_graph_data["relationships"] if rel["type"] == "SIMILAR_TO"]
+        assert len(similarity_relationships) == 1, "Should have 1 similarity relationship"
 
         similarity = similarity_relationships[0]
         assert similarity["score"] == 0.85, "Similarity should have score"
-        assert (
-            0.0 <= similarity["score"] <= 1.0
-        ), "Similarity score should be between 0 and 1"
+        assert 0.0 <= similarity["score"] <= 1.0, "Similarity score should be between 0 and 1"
 
     def test_unified_query_operations(self, mock_graph_client):
         """Test SPEC-060: Unified query operations across memory and graph"""
@@ -148,12 +128,8 @@ class TestUnification:
         ]
 
         for scenario in query_scenarios:
-            assert (
-                scenario["cypher"] is not None
-            ), f"Query scenario {scenario['type']} should have Cypher query"
-            assert (
-                scenario["params"] is not None
-            ), f"Query scenario {scenario['type']} should have parameters"
+            assert scenario["cypher"] is not None, f"Query scenario {scenario['type']} should have Cypher query"
+            assert scenario["params"] is not None, f"Query scenario {scenario['type']} should have parameters"
             assert (
                 scenario["expected_results"] >= 0
             ), f"Query scenario {scenario['type']} should have expected results count"
@@ -183,17 +159,11 @@ class TestUnification:
             )
 
         # Validate performance
-        avg_duration = sum(test["duration_ms"] for test in performance_tests) / len(
-            performance_tests
-        )
+        avg_duration = sum(test["duration_ms"] for test in performance_tests) / len(performance_tests)
         max_duration = max(test["duration_ms"] for test in performance_tests)
 
-        assert (
-            avg_duration < 10.0
-        ), f"Average unified operation should be under 10ms, got {avg_duration:.2f}ms"
-        assert (
-            max_duration < 20.0
-        ), f"Max unified operation should be under 20ms, got {max_duration:.2f}ms"
+        assert avg_duration < 10.0, f"Average unified operation should be under 10ms, got {avg_duration:.2f}ms"
+        assert max_duration < 20.0, f"Max unified operation should be under 20ms, got {max_duration:.2f}ms"
 
     def test_unified_data_consistency(self, mock_graph_client, sample_graph_data):
         """Test SPEC-060: Unified data consistency between memory and graph"""
@@ -213,28 +183,21 @@ class TestUnification:
                 "check": "relationship_integrity",
                 "description": "All relationships should reference existing nodes",
                 "validation": lambda: all(
-                    rel.get("from") and rel.get("to")
-                    for rel in sample_graph_data["relationships"]
+                    rel.get("from") and rel.get("to") for rel in sample_graph_data["relationships"]
                 ),
             },
             {
                 "check": "user_isolation",
                 "description": "User data should be properly isolated",
                 "validation": lambda: len(
-                    set(
-                        node.get("user_id")
-                        for node in sample_graph_data["nodes"]
-                        if node.get("user_id")
-                    )
+                    set(node.get("user_id") for node in sample_graph_data["nodes"] if node.get("user_id"))
                 )
                 <= 1,  # All nodes should belong to same user in test data
             },
         ]
 
         for check in consistency_checks:
-            assert check[
-                "validation"
-            ](), f"Consistency check failed: {check['description']}"
+            assert check["validation"](), f"Consistency check failed: {check['description']}"
 
     def test_unified_error_handling(self, mock_graph_client):
         """Test SPEC-060: Unified error handling across memory and graph operations"""
@@ -262,9 +225,7 @@ class TestUnification:
         ]
 
         for scenario in error_scenarios:
-            assert (
-                scenario["fallback"] is not None
-            ), f"Error scenario {scenario['scenario']} should have fallback"
+            assert scenario["fallback"] is not None, f"Error scenario {scenario['scenario']} should have fallback"
             assert (
                 scenario["expected_behavior"] is not None
             ), f"Error scenario {scenario['scenario']} should define expected behavior"
@@ -301,9 +262,7 @@ class TestUnification:
         ]
 
         for scenario in cache_scenarios:
-            assert (
-                scenario["ttl_seconds"] > 0
-            ), f"Cache scenario {scenario['cache_type']} should have positive TTL"
+            assert scenario["ttl_seconds"] > 0, f"Cache scenario {scenario['cache_type']} should have positive TTL"
             assert (
                 scenario["cache_key_pattern"] is not None
             ), f"Cache scenario {scenario['cache_type']} should have key pattern"
@@ -339,9 +298,7 @@ class TestUnification:
         for test in scalability_tests:
             # Validate scalability parameters
             if "memory_count" in test:
-                assert (
-                    test["memory_count"] > 0
-                ), f"Scalability test {test['test']} should have positive memory count"
+                assert test["memory_count"] > 0, f"Scalability test {test['test']} should have positive memory count"
 
             if "max_query_time_ms" in test:
                 assert (
@@ -349,9 +306,7 @@ class TestUnification:
                 ), f"Scalability test {test['test']} should have positive query time limit"
 
             if "concurrent_users" in test:
-                assert (
-                    test["concurrent_users"] > 0
-                ), f"Scalability test {test['test']} should have positive user count"
+                assert test["concurrent_users"] > 0, f"Scalability test {test['test']} should have positive user count"
 
     @pytest.mark.performance
     def test_unified_integration_performance(self, mock_graph_client):

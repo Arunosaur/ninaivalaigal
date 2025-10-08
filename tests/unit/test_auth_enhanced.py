@@ -13,9 +13,7 @@ class TestAuthModule:
         try:
             from server import auth
 
-            assert hasattr(auth, "create_access_token") or hasattr(
-                auth, "authenticate_user"
-            )
+            assert hasattr(auth, "create_access_token") or hasattr(auth, "authenticate_user")
         except ImportError as e:
             pytest.skip(f"Auth module import failed: {e}")
 

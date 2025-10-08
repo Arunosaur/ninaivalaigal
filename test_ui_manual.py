@@ -39,9 +39,7 @@ def create_test_individual_user():
     print(f"Creating user: {user_data['name']} ({user_data['email']})")
 
     try:
-        response = requests.post(
-            f"{BASE_URL}/auth/signup/individual", json=user_data, timeout=10
-        )
+        response = requests.post(f"{BASE_URL}/auth/signup/individual", json=user_data, timeout=10)
 
         if response.status_code == 200:
             result = response.json()
@@ -80,9 +78,7 @@ def create_test_organization():
     print(f"Admin user: {org_data['user']['name']} ({org_data['user']['email']})")
 
     try:
-        response = requests.post(
-            f"{BASE_URL}/auth/signup/organization", json=org_data, timeout=10
-        )
+        response = requests.post(f"{BASE_URL}/auth/signup/organization", json=org_data, timeout=10)
 
         if response.status_code == 200:
             result = response.json()

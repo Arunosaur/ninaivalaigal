@@ -76,9 +76,7 @@ def get_redis_client() -> redis.Redis:
             redis_client.ping()
             logger.info("Redis connection established", config=REDIS_CONFIG)
         except Exception as e:
-            logger.error(
-                "Failed to connect to Redis", error=str(e), config=REDIS_CONFIG
-            )
+            logger.error("Failed to connect to Redis", error=str(e), config=REDIS_CONFIG)
             raise HTTPException(status_code=503, detail=f"Redis connection failed: {e}")
     return redis_client
 

@@ -156,17 +156,9 @@ def test_method_differentiation_same_template():
     assert len({key_get, key_post, key_delete}) == 3
 
     # Verify no collisions between any pair
-    assert (
-        ScopedKeyHelper.get_collision_info(key_get, key_post)["full_collision"] == False
-    )
-    assert (
-        ScopedKeyHelper.get_collision_info(key_post, key_delete)["full_collision"]
-        == False
-    )
-    assert (
-        ScopedKeyHelper.get_collision_info(key_get, key_delete)["full_collision"]
-        == False
-    )
+    assert ScopedKeyHelper.get_collision_info(key_get, key_post)["full_collision"] == False
+    assert ScopedKeyHelper.get_collision_info(key_post, key_delete)["full_collision"] == False
+    assert ScopedKeyHelper.get_collision_info(key_get, key_delete)["full_collision"] == False
 
 
 def test_high_collision_scenario_detection():
@@ -216,9 +208,7 @@ def test_edge_case_path_templates():
 
     for concrete_path, expected in edge_cases:
         template = ScopedKeyHelper.extract_path_template(concrete_path)
-        assert (
-            template == expected
-        ), f"Path {concrete_path} -> {template}, expected {expected}"
+        assert template == expected, f"Path {concrete_path} -> {template}, expected {expected}"
 
 
 def test_collision_analysis_comprehensive():
@@ -304,6 +294,4 @@ if __name__ == "__main__":
             raise
 
     print(f"\nAll {len(test_functions)} collision prevention tests passed!")
-    print(
-        "Scoped idempotency keys successfully prevent collisions on same template with different paths."
-    )
+    print("Scoped idempotency keys successfully prevent collisions on same template with different paths.")

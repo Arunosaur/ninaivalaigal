@@ -181,9 +181,7 @@ async def get_orphaned_tokens(
         ]
 
     except Exception as e:
-        logger.error(
-            "Failed to get orphaned tokens", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to get orphaned tokens", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -213,9 +211,7 @@ async def generate_health_report(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to generate health report", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to generate health report", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -230,9 +226,7 @@ async def get_health_summary(
         health_report = await engine.generate_health_report(current_user.id)
 
         needs_attention = (
-            health_report.warning_memories
-            + health_report.critical_memories
-            + health_report.orphaned_tokens
+            health_report.warning_memories + health_report.critical_memories + health_report.orphaned_tokens
         )
 
         return HealthSummaryResponse(
@@ -252,9 +246,7 @@ async def get_health_summary(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to get health summary", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to get health summary", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -276,9 +268,7 @@ async def get_common_issues(
         }
 
     except Exception as e:
-        logger.error(
-            "Failed to get common issues", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to get common issues", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -294,9 +284,7 @@ async def get_cleanup_recommendations(
 
         for memory_id in request.memory_ids:
             try:
-                health_metrics = await engine.analyze_memory_health(
-                    current_user.id, memory_id
-                )
+                health_metrics = await engine.analyze_memory_health(current_user.id, memory_id)
 
                 recommendation = {
                     "memory_id": memory_id,
@@ -351,9 +339,7 @@ async def trigger_maintenance_scan(
         }
 
     except Exception as e:
-        logger.error(
-            "Failed to trigger maintenance scan", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to trigger maintenance scan", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -371,14 +357,11 @@ async def get_health_metrics(
             "metrics": health_report.metrics,
             "health_scores": {
                 "avg_quality": health_report.avg_quality_score,
-                "health_ratio": health_report.healthy_memories
-                / max(1, health_report.total_memories),
-                "orphan_ratio": health_report.orphaned_tokens
-                / max(1, health_report.total_memories),
+                "health_ratio": health_report.healthy_memories / max(1, health_report.total_memories),
+                "orphan_ratio": health_report.orphaned_tokens / max(1, health_report.total_memories),
             },
             "trend_indicators": {
-                "needs_attention": health_report.warning_memories
-                + health_report.critical_memories,
+                "needs_attention": health_report.warning_memories + health_report.critical_memories,
                 "system_health": health_report.system_health_status.value,
                 "total_issues": len(health_report.top_issues),
             },
@@ -386,9 +369,7 @@ async def get_health_metrics(
         }
 
     except Exception as e:
-        logger.error(
-            "Failed to get health metrics", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to get health metrics", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -136,9 +136,7 @@ def get_dynamic_database_url():
                     pgb_data = json.loads(pgb_result.stdout)
                     if pgb_data and len(pgb_data) > 0:
                         pgb_ip = pgb_data[0]["networks"][0]["address"].split("/")[0]
-                        db_url = (
-                            f"postgresql://nina:change_me_securely@{pgb_ip}:6432/nina"
-                        )
+                        db_url = f"postgresql://nina:change_me_securely@{pgb_ip}:6432/nina"
                         print(f"🔗 MCP using PgBouncer at {pgb_ip}:6432")
                         return db_url
             except (
@@ -161,9 +159,7 @@ def get_dynamic_database_url():
                     db_data = json.loads(db_result.stdout)
                     if db_data and len(db_data) > 0:
                         db_ip = db_data[0]["networks"][0]["address"].split("/")[0]
-                        db_url = (
-                            f"postgresql://nina:change_me_securely@{db_ip}:5432/nina"
-                        )
+                        db_url = f"postgresql://nina:change_me_securely@{db_ip}:5432/nina"
                         print(f"🔗 MCP using direct DB at {db_ip}:5432")
                         return db_url
             except (

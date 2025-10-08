@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock
 import asyncpg
 import pytest
 
-from .api import lifecycle_router
+from .api import get_memory_gc, lifecycle_router
 from .memory_gc import MemoryGarbageCollector
 
 
@@ -196,12 +196,8 @@ class TestLifecycleAPI:
         client = TestClient(app)
 
         # Mock database operations
-        mock_gc.pool.acquire.return_value.__aenter__.return_value.fetchval.return_value = (
-            True
-        )
-        mock_gc.pool.acquire.return_value.__aenter__.return_value.execute.return_value = (
-            None
-        )
+        mock_gc.pool.acquire.return_value.__aenter__.return_value.fetchval.return_value = True
+        mock_gc.pool.acquire.return_value.__aenter__.return_value.execute.return_value = None
 
         response = client.post(
             "/memory/lifecycle/memories/test-id/ttl",

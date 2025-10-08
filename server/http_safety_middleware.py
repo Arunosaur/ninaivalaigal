@@ -61,8 +61,7 @@ class ContentLengthDiagnosticMiddleware(BaseHTTPMiddleware):
 
                 # Log diagnostic info
                 logger.warning(
-                    f"🔧 FIXED Content-Length: {request.url.path} | "
-                    f"Corrected from {declared_len} to {actual_len}"
+                    f"🔧 FIXED Content-Length: {request.url.path} | " f"Corrected from {declared_len} to {actual_len}"
                 )
 
             # Create new response with corrected body
@@ -118,9 +117,7 @@ class SafeResponseWrapper:
         except Exception as e:
             logger.error(f"Safe response wrapper error: {e}")
             # Fallback to basic response
-            return JSONResponse(
-                content={"error": "Response serialization failed"}, status_code=500
-            )
+            return JSONResponse(content={"error": "Response serialization failed"}, status_code=500)
 
     @staticmethod
     def validate_response_body(body: bytes, declared_length: int) -> bool:
@@ -129,9 +126,7 @@ class SafeResponseWrapper:
         """
         actual_length = len(body)
         if actual_length != declared_length:
-            logger.warning(
-                f"Response body length mismatch: declared={declared_length}, actual={actual_length}"
-            )
+            logger.warning(f"Response body length mismatch: declared={declared_length}, actual={actual_length}")
             return False
         return True
 

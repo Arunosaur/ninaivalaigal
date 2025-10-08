@@ -236,9 +236,7 @@ def effective_role(ctx: SubjectContext, team_id: str | None = None) -> Role | No
     return None
 
 
-def authorize(
-    ctx: SubjectContext, res: Resource, action: Action, team_id: str | None = None
-) -> bool:
+def authorize(ctx: SubjectContext, res: Resource, action: Action, team_id: str | None = None) -> bool:
     """Check if a user is authorized to perform an action on a resource"""
     role = effective_role(ctx, team_id)
     if not role:
@@ -268,9 +266,7 @@ def get_user_permissions(role: Role) -> dict[Resource, set[Action]]:
     return permissions
 
 
-def can_delegate_permission(
-    delegator_role: Role, action: Action, resource: Resource
-) -> bool:
+def can_delegate_permission(delegator_role: Role, action: Action, resource: Resource) -> bool:
     """Check if a role can delegate a specific permission to another user"""
     # Only roles with the permission can delegate it
     allowed_actions = POLICY.get((delegator_role, resource), set())
@@ -290,12 +286,8 @@ def require_permission(resource: Resource, action: Action):
 
     def decorator(func):
         def wrapper(subject_ctx: SubjectContext, *args, **kwargs):
-            if not authorize(
-                subject_ctx, resource, action, team_id=kwargs.get("team_id")
-            ):
-                raise PermissionError(
-                    f"Forbidden: need {action.name} on {resource.name}"
-                )
+            if not authorize(subject_ctx, resource, action, team_id=kwargs.get("team_id")):
+                raise PermissionError(f"Forbidden: need {action.name} on {resource.name}")
             return func(subject_ctx, *args, **kwargs)
 
         return wrapper

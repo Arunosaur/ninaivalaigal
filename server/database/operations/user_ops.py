@@ -47,11 +47,7 @@ class UserOperations(DatabaseManager):
         session = self.get_session()
         try:
             # Check if user already exists
-            existing_user = (
-                session.query(User)
-                .filter((User.username == username) | (User.email == email))
-                .first()
-            )
+            existing_user = session.query(User).filter((User.username == username) | (User.email == email)).first()
 
             if existing_user:
                 if existing_user.username == username:
@@ -204,10 +200,7 @@ class UserOperations(DatabaseManager):
             user = (
                 session.query(User)
                 .filter(
-                    (
-                        (User.username == username_or_email)
-                        | (User.email == username_or_email)
-                    )
+                    ((User.username == username_or_email) | (User.email == username_or_email))
                     & (User.password_hash == password_hash)
                     & (User.is_active is True)
                 )
@@ -228,17 +221,10 @@ class UserOperations(DatabaseManager):
                 return None
 
             # Count user's contexts
-            context_count = (
-                session.query(Context).filter(Context.owner_id == user_id).count()
-            )
+            context_count = session.query(Context).filter(Context.owner_id == user_id).count()
 
             # Count user's memories
-            memory_count = (
-                session.query(Memory)
-                .join(Context)
-                .filter(Context.owner_id == user_id)
-                .count()
-            )
+            memory_count = session.query(Memory).join(Context).filter(Context.owner_id == user_id).count()
 
             return {
                 "user_id": user_id,

@@ -54,9 +54,7 @@ class SecretMatch:
 class EntropyDetector:
     """Entropy-based secret detection"""
 
-    def __init__(
-        self, min_entropy: float = 4.5, min_length: int = 20, max_length: int = 200
-    ):
+    def __init__(self, min_entropy: float = 4.5, min_length: int = 20, max_length: int = 200):
         """Initialize the instance."""
         self.min_entropy = min_entropy
         self.min_length = min_length
@@ -115,9 +113,7 @@ class EntropyDetector:
 
         return candidates
 
-    def _is_high_entropy_secret(
-        self, candidate: str, entropy_metrics: dict[str, float]
-    ) -> bool:
+    def _is_high_entropy_secret(self, candidate: str, entropy_metrics: dict[str, float]) -> bool:
         """Check if candidate is likely a high-entropy secret"""
         return (
             len(candidate) >= self.min_length
@@ -218,10 +214,7 @@ class ContextAwareDetector:
             "replacement": "<REDACTED_CREDIT_CARD>",
         },
         SecretType.GENERIC_API_KEY: {
-            "pattern": (
-                r"[Aa][Pp][Ii][-_]?[Kk][Ee][Yy][\s]*[:=][\s]*"
-                r'["\']?([A-Za-z0-9_\-]{20,})["\']?'
-            ),
+            "pattern": (r"[Aa][Pp][Ii][-_]?[Kk][Ee][Yy][\s]*[:=][\s]*" r'["\']?([A-Za-z0-9_\-]{20,})["\']?'),
             "confidence": 0.7,
             "replacement": "<REDACTED_API_KEY>",
         },
@@ -235,9 +228,7 @@ class ContextAwareDetector:
     def _compile_patterns(self):
         """Pre-compile regex patterns for performance"""
         for secret_type, config in self.PROVIDER_PATTERNS.items():
-            self.compiled_patterns[secret_type] = re.compile(
-                config["pattern"], re.IGNORECASE
-            )
+            self.compiled_patterns[secret_type] = re.compile(config["pattern"], re.IGNORECASE)
 
     def detect_secrets(self, text: str) -> list[SecretMatch]:
         """
@@ -257,9 +248,7 @@ class ContextAwareDetector:
             for match in pattern.finditer(text):
                 # Check context requirements if specified
                 if "context_required" in config:
-                    if not self._check_context_requirements(
-                        text, match, config["context_required"]
-                    ):
+                    if not self._check_context_requirements(text, match, config["context_required"]):
                         continue
 
                 secret_match = SecretMatch(
@@ -268,9 +257,7 @@ class ContextAwareDetector:
                     end_pos=match.end(),
                     matched_text=match.group(),
                     confidence=config["confidence"],
-                    entropy_score=EntropyCalculator.calculate_shannon_entropy(
-                        match.group()
-                    ),
+                    entropy_score=EntropyCalculator.calculate_shannon_entropy(match.group()),
                     pattern_name=secret_type.value,
                     replacement_text=config["replacement"],
                 )
@@ -278,9 +265,7 @@ class ContextAwareDetector:
 
         return matches
 
-    def _check_context_requirements(
-        self, text: str, match: re.Match, required_context: list[str]
-    ) -> bool:
+    def _check_context_requirements(self, text: str, match: re.Match, required_context: list[str]) -> bool:
         """Check if required context words are present near the match"""
         # Look for context words within 50 characters before and after the match
         start = max(0, match.start() - 50)
@@ -345,6 +330,4 @@ class CombinedSecretDetector:
 
     def _matches_overlap(self, match1: SecretMatch, match2: SecretMatch) -> bool:
         """Check if two matches overlap"""
-        return not (
-            match1.end_pos <= match2.start_pos or match2.end_pos <= match1.start_pos
-        )
+        return not (match1.end_pos <= match2.start_pos or match2.end_pos <= match1.start_pos)

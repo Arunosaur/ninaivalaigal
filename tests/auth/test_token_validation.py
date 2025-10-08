@@ -22,17 +22,13 @@ class TestTokenValidation:
         headers = {"Authorization": "Bearer valid_test_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/memory/health", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/memory/health", headers=headers, timeout=5)
 
             # Currently expecting 401 due to auth issues
             if response.status_code == 401:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
-            assert (
-                response.status_code == 200
-            ), f"Valid token access failed: {response.status_code}"
+            assert response.status_code == 200, f"Valid token access failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -42,9 +38,7 @@ class TestTokenValidation:
         headers = {"Authorization": "Bearer invalid_token_12345"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/memory/health", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/memory/health", headers=headers, timeout=5)
 
             # Should reject invalid token
             assert response.status_code in [
@@ -60,9 +54,7 @@ class TestTokenValidation:
         headers = {"Authorization": "Bearer malformed.token.here"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/memory/health", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/memory/health", headers=headers, timeout=5)
 
             # Should reject malformed token
             assert response.status_code in [
@@ -136,9 +128,7 @@ class TestRBACValidation:
         headers = {"Authorization": "Bearer admin_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/admin/users", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/admin/users", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Admin endpoints not implemented")
@@ -160,9 +150,7 @@ class TestRBACValidation:
         headers = {"Authorization": "Bearer user_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/admin/users", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/admin/users", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Admin endpoints not implemented")
@@ -171,9 +159,7 @@ class TestRBACValidation:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Regular user should be forbidden from admin endpoints
-            assert (
-                response.status_code == 403
-            ), f"User role restriction failed: {response.status_code}"
+            assert response.status_code == 403, f"User role restriction failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")

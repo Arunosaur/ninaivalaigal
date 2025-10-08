@@ -4,9 +4,7 @@ import psycopg2
 
 
 def fetch_sample_data():
-    conn = psycopg2.connect(
-        "dbname=your_db user=your_user password=your_pw host=localhost"
-    )
+    conn = psycopg2.connect("dbname=your_db user=your_user password=your_pw host=localhost")
     cur = conn.cursor()
 
     # Sample 5 memories and their tokens

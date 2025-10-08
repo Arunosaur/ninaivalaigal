@@ -75,9 +75,7 @@ class TestSecretDetection:
         secrets = self.detector.detect_secrets(text)
 
         assert len(secrets) > 0, "Should detect AWS access key"
-        aws_secret = next(
-            (s for s in secrets if s.secret_type == "aws_access_key"), None
-        )
+        aws_secret = next((s for s in secrets if s.secret_type == "aws_access_key"), None)
         assert aws_secret is not None, "Should detect AWS access key type"
         assert aws_secret.confidence > 0.8, "Should have high confidence"
 
@@ -86,9 +84,7 @@ class TestSecretDetection:
         text = "GitHub token: ghp_1234567890abcdef1234567890abcdef12345678"
         secrets = self.detector.detect_secrets(text)
 
-        github_secret = next(
-            (s for s in secrets if s.secret_type == "github_token"), None
-        )
+        github_secret = next((s for s in secrets if s.secret_type == "github_token"), None)
         assert github_secret is not None, "Should detect GitHub token"
         assert "ghp_" in github_secret.value, "Should capture the token value"
 
@@ -97,9 +93,7 @@ class TestSecretDetection:
         text = "OpenAI API key: sk-1234567890abcdef1234567890abcdef12345678"
         secrets = self.detector.detect_secrets(text)
 
-        openai_secret = next(
-            (s for s in secrets if s.secret_type == "openai_api_key"), None
-        )
+        openai_secret = next((s for s in secrets if s.secret_type == "openai_api_key"), None)
         assert openai_secret is not None, "Should detect OpenAI API key"
         assert openai_secret.confidence > 0.9, "Should have very high confidence"
 
@@ -168,12 +162,8 @@ class TestContextualRedaction:
         result = self.redactor.redact(text, ContextSensitivity.PUBLIC)
 
         # Public tier should preserve most content
-        assert (
-            "user@example.com" in result.redacted_text
-        ), "Should preserve email in public tier"
-        assert (
-            "sk-abc123" not in result.redacted_text
-        ), "Should still redact API keys in public tier"
+        assert "user@example.com" in result.redacted_text, "Should preserve email in public tier"
+        assert "sk-abc123" not in result.redacted_text, "Should still redact API keys in public tier"
 
     def test_internal_tier_moderate_redaction(self):
         """Test internal tier redaction"""
@@ -191,9 +181,7 @@ class TestContextualRedaction:
 
         # Secrets tier should redact everything sensitive
         assert "sk-abc123" not in result.redacted_text, "Should redact API key"
-        assert (
-            "AKIA1234567890ABCDEF" not in result.redacted_text
-        ), "Should redact AWS key"
+        assert "AKIA1234567890ABCDEF" not in result.redacted_text, "Should redact AWS key"
         assert "user@example.com" not in result.redacted_text, "Should redact email"
         assert "[REDACTED" in result.redacted_text, "Should contain redaction markers"
 
@@ -220,9 +208,7 @@ class TestContextualRedaction:
         assert len(results) == 3, "Should return results for all texts"
         assert results[0].total_secrets_found > 0, "Should find secrets in first text"
         assert results[1].total_secrets_found > 0, "Should find secrets in second text"
-        assert (
-            results[2].total_secrets_found == 0
-        ), "Should find no secrets in third text"
+        assert results[2].total_secrets_found == 0, "Should find no secrets in third text"
 
 
 class TestRedactionAuditLogger:
@@ -265,11 +251,7 @@ class TestRedactionAuditLogger:
         )
 
         # Check that violation was logged
-        violations = [
-            e
-            for e in self.audit_logger.events
-            if e.event_type == RedactionEventType.POLICY_VIOLATION
-        ]
+        violations = [e for e in self.audit_logger.events if e.event_type == RedactionEventType.POLICY_VIOLATION]
         assert len(violations) > 0, "Should log policy violation"
 
     @pytest.mark.asyncio
@@ -282,11 +264,7 @@ class TestRedactionAuditLogger:
         )
 
         # Check that failure was logged
-        failures = [
-            e
-            for e in self.audit_logger.events
-            if e.event_type == RedactionEventType.REDACTION_FAILED
-        ]
+        failures = [e for e in self.audit_logger.events if e.event_type == RedactionEventType.REDACTION_FAILED]
         assert len(failures) > 0, "Should log redaction failure"
 
 
@@ -316,20 +294,14 @@ class TestRedactionEngine:
 
         # Verify redaction occurred
         assert result.total_secrets_found > 0, "Should detect multiple secrets"
-        assert (
-            "sk-1234567890abcdef" not in result.redacted_text
-        ), "Should redact API key"
-        assert (
-            "AKIA1234567890ABCDEF" not in result.redacted_text
-        ), "Should redact AWS key"
+        assert "sk-1234567890abcdef" not in result.redacted_text, "Should redact API key"
+        assert "AKIA1234567890ABCDEF" not in result.redacted_text, "Should redact AWS key"
         assert "admin@company.com" not in result.redacted_text, "Should redact email"
         assert "+1-555-123-4567" not in result.redacted_text, "Should redact phone"
 
         # Verify structure preservation
         assert "Hello team" in result.redacted_text, "Should preserve greeting"
-        assert (
-            "Please keep these secure!" in result.redacted_text
-        ), "Should preserve closing"
+        assert "Please keep these secure!" in result.redacted_text, "Should preserve closing"
         assert "[REDACTED" in result.redacted_text, "Should contain redaction markers"
 
     def test_different_sensitivity_tiers(self):
@@ -345,20 +317,14 @@ class TestRedactionEngine:
 
         # Verify increasing levels of redaction
         assert len(public_result.redacted_text) >= len(internal_result.redacted_text)
-        assert len(internal_result.redacted_text) >= len(
-            confidential_result.redacted_text
-        )
-        assert len(confidential_result.redacted_text) >= len(
-            restricted_result.redacted_text
-        )
+        assert len(internal_result.redacted_text) >= len(confidential_result.redacted_text)
+        assert len(confidential_result.redacted_text) >= len(restricted_result.redacted_text)
         assert len(restricted_result.redacted_text) >= len(secrets_result.redacted_text)
 
     def test_performance_with_large_text(self):
         """Test redaction performance with large text"""
         # Create large text with embedded secrets
-        large_text = (
-            "Normal text. " * 1000 + "API key: sk-abc123 " + "More text. " * 1000
-        )
+        large_text = "Normal text. " * 1000 + "API key: sk-abc123 " + "More text. " * 1000
 
         import time
 
@@ -369,9 +335,7 @@ class TestRedactionEngine:
         processing_time = (end_time - start_time) * 1000  # Convert to milliseconds
 
         assert result.total_secrets_found > 0, "Should find secrets in large text"
-        assert (
-            processing_time < 1000
-        ), f"Should process large text quickly, took {processing_time}ms"
+        assert processing_time < 1000, f"Should process large text quickly, took {processing_time}ms"
 
     def test_unicode_and_special_characters(self):
         """Test redaction with unicode and special characters"""
@@ -388,12 +352,8 @@ class TestConfigurationManagement:
 
     def test_default_configuration(self):
         """Test default configuration values"""
-        assert (
-            redaction_config.enabled == True
-        ), "Redaction should be enabled by default"
-        assert (
-            redaction_config.default_tier == ContextSensitivity.INTERNAL
-        ), "Default tier should be internal"
+        assert redaction_config.enabled == True, "Redaction should be enabled by default"
+        assert redaction_config.default_tier == ContextSensitivity.INTERNAL, "Default tier should be internal"
         assert redaction_config.min_entropy > 0, "Min entropy should be positive"
         assert redaction_config.min_length > 0, "Min length should be positive"
 
@@ -402,12 +362,8 @@ class TestConfigurationManagement:
         for tier in ContextSensitivity:
             rules = redaction_config.get_tier_rules(tier)
             assert rules is not None, f"Tier {tier} should have rules configured"
-            assert (
-                len(rules.allowed_patterns) >= 0
-            ), f"Tier {tier} should have allowed patterns list"
-            assert (
-                len(rules.redaction_patterns) >= 0
-            ), f"Tier {tier} should have redaction patterns list"
+            assert len(rules.allowed_patterns) >= 0, f"Tier {tier} should have allowed patterns list"
+            assert len(rules.redaction_patterns) >= 0, f"Tier {tier} should have redaction patterns list"
 
 
 if __name__ == "__main__":

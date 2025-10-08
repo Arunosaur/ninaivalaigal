@@ -131,9 +131,7 @@ class MemoryProviderSecurityManager:
         """
         try:
             # Check permissions
-            if not await self._check_provider_permission(
-                user_id, ProviderPermission.REGISTER, config.name, source_ip
-            ):
+            if not await self._check_provider_permission(user_id, ProviderPermission.REGISTER, config.name, source_ip):
                 await self._audit_log(
                     config.name,
                     "register",
@@ -146,9 +144,7 @@ class MemoryProviderSecurityManager:
                 raise PermissionError("Insufficient permissions to register provider")
 
             # Validate security level
-            if not await self._validate_security_level(
-                config.name, security_level, user_id
-            ):
+            if not await self._validate_security_level(config.name, security_level, user_id):
                 await self._audit_log(
                     config.name,
                     "register",
@@ -172,9 +168,7 @@ class MemoryProviderSecurityManager:
             # Generate API key if required
             api_key_info = None
             if security_level in [SecurityLevel.API_KEY, SecurityLevel.HYBRID]:
-                api_key_info = await self._generate_api_key(
-                    config.name, user_id, {ProviderPermission.CONFIGURE}
-                )
+                api_key_info = await self._generate_api_key(config.name, user_id, {ProviderPermission.CONFIGURE})
 
             # Store security policy
             self.security_policies[config.name] = policy
@@ -200,15 +194,11 @@ class MemoryProviderSecurityManager:
             if api_key_info:
                 result["api_key"] = api_key_info
 
-            logger.info(
-                f"Securely registered provider {config.name} for user {user_id}"
-            )
+            logger.info(f"Securely registered provider {config.name} for user {user_id}")
             return result
 
         except Exception as e:
-            await self._audit_log(
-                config.name, "register", user_id, None, source_ip, False, str(e)
-            )
+            await self._audit_log(config.name, "register", user_id, None, source_ip, False, str(e))
             logger.error(f"Failed to register provider {config.name}: {e}")
             raise
 
@@ -287,9 +277,7 @@ class MemoryProviderSecurityManager:
 
                 # Map operation to permission
                 permission = self._map_operation_to_permission(operation)
-                return await self._check_provider_permission(
-                    user_id, permission, provider_name, source_ip
-                )
+                return await self._check_provider_permission(user_id, permission, provider_name, source_ip)
 
             elif policy.security_level == SecurityLevel.HYBRID:
                 # Require both API key and RBAC
@@ -305,13 +293,9 @@ class MemoryProviderSecurityManager:
                     )
                     return False
 
-                api_key_valid = await self._validate_api_key(
-                    api_key, provider_name, operation
-                )
+                api_key_valid = await self._validate_api_key(api_key, provider_name, operation)
                 permission = self._map_operation_to_permission(operation)
-                rbac_valid = await self._check_provider_permission(
-                    user_id, permission, provider_name, source_ip
-                )
+                rbac_valid = await self._check_provider_permission(user_id, permission, provider_name, source_ip)
 
                 return api_key_valid and rbac_valid
 
@@ -329,9 +313,7 @@ class MemoryProviderSecurityManager:
 
         except Exception as e:
             logger.error(f"Authentication error for provider {provider_name}: {e}")
-            await self._audit_log(
-                provider_name, operation, user_id, None, source_ip, False, str(e)
-            )
+            await self._audit_log(provider_name, operation, user_id, None, source_ip, False, str(e))
             return False
 
     async def generate_provider_api_key(
@@ -351,21 +333,13 @@ class MemoryProviderSecurityManager:
                 raise PermissionError("Insufficient permissions to manage API keys")
 
             # Check key limits
-            existing_keys = [
-                k
-                for k in self.api_keys.values()
-                if k.provider_name == provider_name and k.is_active
-            ]
+            existing_keys = [k for k in self.api_keys.values() if k.provider_name == provider_name and k.is_active]
 
             if len(existing_keys) >= self.max_keys_per_provider:
-                raise ValueError(
-                    f"Maximum number of API keys ({self.max_keys_per_provider}) reached for provider"
-                )
+                raise ValueError(f"Maximum number of API keys ({self.max_keys_per_provider}) reached for provider")
 
             # Generate API key
-            api_key_info = await self._generate_api_key(
-                provider_name, user_id, permissions, expires_days
-            )
+            api_key_info = await self._generate_api_key(provider_name, user_id, permissions, expires_days)
 
             await self._audit_log(
                 provider_name,
@@ -391,9 +365,7 @@ class MemoryProviderSecurityManager:
             )
             raise
 
-    async def revoke_provider_api_key(
-        self, key_id: str, user_id: int, source_ip: Optional[str] = None
-    ) -> bool:
+    async def revoke_provider_api_key(self, key_id: str, user_id: int, source_ip: Optional[str] = None) -> bool:
         """Revoke an API key"""
         try:
             api_key = self.api_keys.get(key_id)
@@ -425,9 +397,7 @@ class MemoryProviderSecurityManager:
             return True
 
         except Exception as e:
-            await self._audit_log(
-                "unknown", "revoke_api_key", user_id, key_id, source_ip, False, str(e)
-            )
+            await self._audit_log("unknown", "revoke_api_key", user_id, key_id, source_ip, False, str(e))
             raise
 
     async def list_provider_api_keys(
@@ -449,16 +419,8 @@ class MemoryProviderSecurityManager:
                             "key_id": api_key.key_id,
                             "permissions": [p.value for p in api_key.permissions],
                             "created_at": api_key.created_at.isoformat(),
-                            "expires_at": (
-                                api_key.expires_at.isoformat()
-                                if api_key.expires_at
-                                else None
-                            ),
-                            "last_used": (
-                                api_key.last_used.isoformat()
-                                if api_key.last_used
-                                else None
-                            ),
+                            "expires_at": (api_key.expires_at.isoformat() if api_key.expires_at else None),
+                            "last_used": (api_key.last_used.isoformat() if api_key.last_used else None),
                             "usage_count": api_key.usage_count,
                             "is_active": api_key.is_active,
                         }
@@ -467,9 +429,7 @@ class MemoryProviderSecurityManager:
             return keys
 
         except Exception as e:
-            await self._audit_log(
-                provider_name, "list_api_keys", user_id, None, source_ip, False, str(e)
-            )
+            await self._audit_log(provider_name, "list_api_keys", user_id, None, source_ip, False, str(e))
             raise
 
     async def get_security_audit_logs(
@@ -531,18 +491,12 @@ class MemoryProviderSecurityManager:
         """Update security policy for a provider"""
         try:
             # Check permissions
-            if not await self._check_provider_permission(
-                user_id, ProviderPermission.ADMIN, provider_name, source_ip
-            ):
-                raise PermissionError(
-                    "Admin permissions required to update security policy"
-                )
+            if not await self._check_provider_permission(user_id, ProviderPermission.ADMIN, provider_name, source_ip):
+                raise PermissionError("Admin permissions required to update security policy")
 
             policy = self.security_policies.get(provider_name)
             if not policy:
-                raise ValueError(
-                    f"No security policy found for provider {provider_name}"
-                )
+                raise ValueError(f"No security policy found for provider {provider_name}")
 
             # Update policy fields
             if "security_level" in policy_updates:
@@ -603,9 +557,7 @@ class MemoryProviderSecurityManager:
             if expires_days:
                 expires_at = datetime.now(timezone.utc) + timedelta(days=expires_days)
             elif self.key_expiry_days:
-                expires_at = datetime.now(timezone.utc) + timedelta(
-                    days=self.key_expiry_days
-                )
+                expires_at = datetime.now(timezone.utc) + timedelta(days=self.key_expiry_days)
 
             # Create API key object
             api_key = APIKey(
@@ -634,9 +586,7 @@ class MemoryProviderSecurityManager:
             logger.error(f"Failed to generate API key: {e}")
             raise
 
-    async def _validate_api_key(
-        self, api_key_string: str, provider_name: str, operation: str
-    ) -> bool:
+    async def _validate_api_key(self, api_key_string: str, provider_name: str, operation: str) -> bool:
         """Validate an API key"""
         try:
             # Parse API key format: key_id.raw_key
@@ -715,15 +665,11 @@ class MemoryProviderSecurityManager:
             logger.error(f"Permission check error: {e}")
             return False
 
-    async def _validate_security_level(
-        self, provider_name: str, security_level: SecurityLevel, user_id: int
-    ) -> bool:
+    async def _validate_security_level(self, provider_name: str, security_level: SecurityLevel, user_id: int) -> bool:
         """Validate if user can set the requested security level"""
         try:
             # Admin users can set any security level
-            if self.rbac_ops and await self.rbac_ops.check_permission(
-                user_id, ProviderPermission.ADMIN.value
-            ):
+            if self.rbac_ops and await self.rbac_ops.check_permission(user_id, ProviderPermission.ADMIN.value):
                 return True
 
             # Regular users can only set basic security levels

@@ -29,12 +29,8 @@ class AuthTestFramework:
 
     def __init__(self, test_db_url: str = "sqlite:///./test_auth.db"):
         self.test_db_url = test_db_url
-        self.engine = create_engine(
-            test_db_url, connect_args={"check_same_thread": False}
-        )
-        self.TestingSessionLocal = sessionmaker(
-            autocommit=False, autoflush=False, bind=self.engine
-        )
+        self.engine = create_engine(test_db_url, connect_args={"check_same_thread": False})
+        self.TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         self.client = TestClient(app)
         self.test_users = {}
         self.test_teams = {}
@@ -228,17 +224,13 @@ class AuthTestScenarios:
 
                     # Make request to endpoint
                     if endpoint_config["method"] == "GET":
-                        response = self.framework.client.get(
-                            endpoint_config["endpoint"], headers=headers
-                        )
+                        response = self.framework.client.get(endpoint_config["endpoint"], headers=headers)
 
                     # Determine expected result
                     should_have_access = user_role in endpoint_config["required_roles"]
                     actual_has_access = response.status_code != 403
 
-                    test_status = (
-                        "PASS" if should_have_access == actual_has_access else "FAIL"
-                    )
+                    test_status = "PASS" if should_have_access == actual_has_access else "FAIL"
 
                     test_results.append(
                         {
@@ -304,9 +296,7 @@ class AuthTestScenarios:
                         # Check if user should have access to this team
                         is_team_member = user_id in team_data["members"]
                         is_team_owner = user_id == team_data["owner_id"]
-                        is_admin = (
-                            self.framework.test_users[user_type]["role"] == "admin"
-                        )
+                        is_admin = self.framework.test_users[user_type]["role"] == "admin"
 
                         should_have_access = is_team_member or is_team_owner or is_admin
 
@@ -314,11 +304,7 @@ class AuthTestScenarios:
                         response = self.framework.client.get(endpoint, headers=headers)
                         actual_has_access = response.status_code != 403
 
-                        test_status = (
-                            "PASS"
-                            if should_have_access == actual_has_access
-                            else "FAIL"
-                        )
+                        test_status = "PASS" if should_have_access == actual_has_access else "FAIL"
 
                         test_results.append(
                             {
@@ -362,9 +348,7 @@ class AuthTestScenarios:
         }
 
         try:
-            expired_token = jwt.encode(
-                expired_token_data, "secret_key", algorithm="HS256"
-            )
+            expired_token = jwt.encode(expired_token_data, "secret_key", algorithm="HS256")
             headers = {"Authorization": f"Bearer {expired_token}"}
 
             response = self.framework.client.get("/memory/contexts", headers=headers)
@@ -380,9 +364,7 @@ class AuthTestScenarios:
             )
 
         except Exception as e:
-            test_results.append(
-                {"test": "expired_token_rejection", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "expired_token_rejection", "status": "ERROR", "error": str(e)})
 
         # Test malformed token
         try:
@@ -425,9 +407,7 @@ class AuthTestScenarios:
             )
 
         except Exception as e:
-            test_results.append(
-                {"test": "missing_token_rejection", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "missing_token_rejection", "status": "ERROR", "error": str(e)})
 
         return test_results
 
@@ -456,27 +436,19 @@ class AuthTestRunner:
 
         # Token validation tests
         print("  🔑 Running token validation tests...")
-        results["test_categories"][
-            "token_validation"
-        ] = self.scenarios.test_token_validation()
+        results["test_categories"]["token_validation"] = self.scenarios.test_token_validation()
 
         # Role-based access control tests
         print("  👥 Running RBAC tests...")
-        results["test_categories"][
-            "role_based_access"
-        ] = self.scenarios.test_role_based_access()
+        results["test_categories"]["role_based_access"] = self.scenarios.test_role_based_access()
 
         # Team membership tests
         print("  🏢 Running team membership tests...")
-        results["test_categories"][
-            "team_membership"
-        ] = self.scenarios.test_team_membership_access()
+        results["test_categories"]["team_membership"] = self.scenarios.test_team_membership_access()
 
         # Session invalidation tests
         print("  ⏰ Running session invalidation tests...")
-        results["test_categories"][
-            "session_invalidation"
-        ] = self.scenarios.test_session_invalidation()
+        results["test_categories"]["session_invalidation"] = self.scenarios.test_session_invalidation()
 
         # Calculate summary statistics
         total_tests = 0
@@ -499,9 +471,7 @@ class AuthTestRunner:
             "passed": passed_tests,
             "failed": failed_tests,
             "errors": error_tests,
-            "pass_rate": (
-                round((passed_tests / total_tests) * 100, 2) if total_tests > 0 else 0
-            ),
+            "pass_rate": (round((passed_tests / total_tests) * 100, 2) if total_tests > 0 else 0),
         }
 
         print(
@@ -534,20 +504,12 @@ class AuthTestRunner:
 
             category_passed = sum(1 for t in tests if t["status"] == "PASS")
             category_total = len(tests)
-            category_rate = (
-                round((category_passed / category_total) * 100, 2)
-                if category_total > 0
-                else 0
-            )
+            category_rate = round((category_passed / category_total) * 100, 2) if category_total > 0 else 0
 
             report += f"**Category Pass Rate**: {category_passed}/{category_total} ({category_rate}%)\n\n"
 
             for test in tests:
-                status_emoji = (
-                    "✅"
-                    if test["status"] == "PASS"
-                    else "❌" if test["status"] == "FAIL" else "⚠️"
-                )
+                status_emoji = "✅" if test["status"] == "PASS" else "❌" if test["status"] == "FAIL" else "⚠️"
                 report += f"- {status_emoji} **{test['test']}**: {test['status']}\n"
 
                 if test["status"] == "FAIL" and "error" in test:

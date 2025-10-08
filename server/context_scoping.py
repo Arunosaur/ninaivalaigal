@@ -100,11 +100,7 @@ TEAM_MEMBERSHIPS_DB = [
 def get_user_team_role(user_id: int, team_id: int) -> Optional[str]:
     """Get user's role in a specific team"""
     membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == user_id
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == user_id),
         None,
     )
     return membership["role"] if membership else None
@@ -142,9 +138,7 @@ async def create_context(
     if team_id is not None:
         team_role = get_user_team_role(user_id, team_id)
         if not team_role and user_role not in ["admin", "org_admin"]:
-            raise HTTPException(
-                status_code=403, detail="Access denied - not a team member"
-            )
+            raise HTTPException(status_code=403, detail="Access denied - not a team member")
 
     # Parse tags
     tag_list = []
@@ -234,9 +228,7 @@ async def add_memory_to_context(
 
     # Check context access
     if not can_access_context(user_id, context, user_role):
-        raise HTTPException(
-            status_code=403, detail="Access denied - cannot access this context"
-        )
+        raise HTTPException(status_code=403, detail="Access denied - cannot access this context")
 
     # Check if link already exists
     existing_link = next(
@@ -256,11 +248,7 @@ async def add_memory_to_context(
         }
 
     # Create new memory-context link (graph edge)
-    new_link_id = (
-        max([link["id"] for link in MEMORY_CONTEXT_LINKS_DB]) + 1
-        if MEMORY_CONTEXT_LINKS_DB
-        else 1
-    )
+    new_link_id = max([link["id"] for link in MEMORY_CONTEXT_LINKS_DB]) + 1 if MEMORY_CONTEXT_LINKS_DB else 1
 
     new_link = {
         "id": new_link_id,
@@ -284,9 +272,7 @@ async def add_memory_to_context(
 
 
 @router.get("/{context_id}/graph")
-async def get_context_graph(
-    context_id: int, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_context_graph(context_id: int, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get graph representation of context with nodes and edges"""
     user_id = user["user_id"]
     user_role = user["role"]
@@ -298,14 +284,10 @@ async def get_context_graph(
 
     # Check context access
     if not can_access_context(user_id, context, user_role):
-        raise HTTPException(
-            status_code=403, detail="Access denied - cannot access this context"
-        )
+        raise HTTPException(status_code=403, detail="Access denied - cannot access this context")
 
     # Get all memory links for this context
-    context_links = [
-        link for link in MEMORY_CONTEXT_LINKS_DB if link["context_id"] == context_id
-    ]
+    context_links = [link for link in MEMORY_CONTEXT_LINKS_DB if link["context_id"] == context_id]
 
     # Build graph nodes and edges
     nodes = []
@@ -430,11 +412,7 @@ async def get_team_context_graph(
 
         # Add memories if requested
         if include_memories:
-            context_links = [
-                link
-                for link in MEMORY_CONTEXT_LINKS_DB
-                if link["context_id"] == context["id"]
-            ]
+            context_links = [link for link in MEMORY_CONTEXT_LINKS_DB if link["context_id"] == context["id"]]
 
             for link in context_links:
                 memory_id = link["memory_id"]

@@ -143,9 +143,7 @@ def generate_invoice_number() -> str:
     return f"INV-{timestamp}-{random_suffix}"
 
 
-def create_pdf_invoice(
-    invoice: Invoice, tax_settings: Optional[TaxSettings] = None
-) -> bytes:
+def create_pdf_invoice(invoice: Invoice, tax_settings: Optional[TaxSettings] = None) -> bytes:
     """Generate PDF invoice using ReportLab"""
     if not REPORTLAB_AVAILABLE:
         raise HTTPException(
@@ -244,10 +242,7 @@ def create_pdf_invoice(
     line_items_data = [["Description", "Period", "Quantity", "Unit Price", "Total"]]
 
     for item in invoice.line_items:
-        period_str = (
-            f"{item.period_start.strftime('%m/%d')} - "
-            f"{item.period_end.strftime('%m/%d/%Y')}"
-        )
+        period_str = f"{item.period_start.strftime('%m/%d')} - " f"{item.period_end.strftime('%m/%d/%Y')}"
         line_items_data.append(
             [
                 item.description,
@@ -287,13 +282,9 @@ def create_pdf_invoice(
         tax_label = tax_settings.tax_name if tax_settings else "Tax"
         totals_data.append(["", "", "", f"{tax_label}:", f"${invoice.tax_amount:.2f}"])
 
-    totals_data.append(
-        ["", "", "", "<b>Total:</b>", f"<b>${invoice.total_amount:.2f}</b>"]
-    )
+    totals_data.append(["", "", "", "<b>Total:</b>", f"<b>${invoice.total_amount:.2f}</b>"])
 
-    totals_table = Table(
-        totals_data, colWidths=[2.5 * inch, 1.5 * inch, 0.8 * inch, 1 * inch, 1 * inch]
-    )
+    totals_table = Table(totals_data, colWidths=[2.5 * inch, 1.5 * inch, 0.8 * inch, 1 * inch, 1 * inch])
     totals_table.setStyle(
         TableStyle(
             [
@@ -328,8 +319,7 @@ def create_pdf_invoice(
     content.append(Spacer(1, 10))
     content.append(
         Paragraph(
-            "Thank you for your business! For questions about this invoice, "
-            "contact support@ninaivalaigal.com",
+            "Thank you for your business! For questions about this invoice, " "contact support@ninaivalaigal.com",
             styles["Normal"],
         )
     )
@@ -358,15 +348,11 @@ async def generate_invoice(
 
     membership = team_manager.get_team_membership(team_id, current_user.id, db)
     if not membership or membership.role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Only team admins can generate invoices"
-        )
+        raise HTTPException(status_code=403, detail="Only team admins can generate invoices")
 
     # Calculate usage and charges
     member_count = (
-        db.query(TeamMembership)
-        .filter(TeamMembership.team_id == team_id, TeamMembership.status == "active")
-        .count()
+        db.query(TeamMembership).filter(TeamMembership.team_id == team_id, TeamMembership.status == "active").count()
     )
 
     # Determine plan and pricing
@@ -470,9 +456,7 @@ async def get_team_invoices(
 
     # Filter invoices for this team
     team_invoices = [
-        Invoice(**invoice_data)
-        for invoice_data in invoices_db.values()
-        if invoice_data["team_id"] == str(team_id)
+        Invoice(**invoice_data) for invoice_data in invoices_db.values() if invoice_data["team_id"] == str(team_id)
     ]
 
     # Sort by issue date (newest first)
@@ -536,9 +520,7 @@ async def download_invoice_pdf(
     return Response(
         content=pdf_content,
         media_type="application/pdf",
-        headers={
-            "Content-Disposition": f"attachment; filename=invoice-{invoice.invoice_number}.pdf"
-        },
+        headers={"Content-Disposition": f"attachment; filename=invoice-{invoice.invoice_number}.pdf"},
     )
 
 
@@ -561,17 +543,13 @@ async def send_invoice(
     # Verify access
     membership = team_manager.get_team_membership(invoice.team_id, current_user.id, db)
     if not membership or membership.role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Only team admins can send invoices"
-        )
+        raise HTTPException(status_code=403, detail="Only team admins can send invoices")
 
     # Update invoice status
     invoices_db[invoice_id]["status"] = "sent"
 
     # Send email (mock implementation)
-    background_tasks.add_task(
-        send_invoice_email, invoice.billing_email, invoice, invoice_id
-    )
+    background_tasks.add_task(send_invoice_email, invoice.billing_email, invoice, invoice_id)
 
     return {
         "success": True,
@@ -601,9 +579,7 @@ async def update_tax_settings(
     # Verify access
     membership = team_manager.get_team_membership(team_id, current_user.id, db)
     if not membership or membership.role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Only team admins can update tax settings"
-        )
+        raise HTTPException(status_code=403, detail="Only team admins can update tax settings")
 
     # Store tax settings
     tax_settings_db[str(team_id)] = tax_settings.dict()
@@ -623,9 +599,7 @@ async def get_tax_settings(
     # Verify access
     membership = team_manager.get_team_membership(team_id, current_user.id, db)
     if not membership:
-        raise HTTPException(
-            status_code=403, detail="Access denied to team tax settings"
-        )
+        raise HTTPException(status_code=403, detail="Access denied to team tax settings")
 
     tax_settings_data = tax_settings_db.get(str(team_id))
     if tax_settings_data:
@@ -647,9 +621,7 @@ async def setup_billing_cycle(
     # Verify access
     membership = team_manager.get_team_membership(team_id, current_user.id, db)
     if not membership or membership.role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Only team admins can setup billing cycles"
-        )
+        raise HTTPException(status_code=403, detail="Only team admins can setup billing cycles")
 
     # Store billing cycle configuration
     billing_cycles_db[str(team_id)] = cycle_config.dict()
@@ -739,14 +711,10 @@ async def retry_failed_payment(
 
     # Update retry count and schedule retry
     payment_failures_db[failure_id]["retry_count"] += 1
-    payment_failures_db[failure_id]["next_retry_date"] = (
-        datetime.utcnow() + timedelta(days=3)
-    ).isoformat()
+    payment_failures_db[failure_id]["next_retry_date"] = (datetime.utcnow() + timedelta(days=3)).isoformat()
 
     # Process retry
-    background_tasks.add_task(
-        process_payment_retry, failure.invoice_id, failure.team_id
-    )
+    background_tasks.add_task(process_payment_retry, failure.invoice_id, failure.team_id)
 
     return {
         "success": True,

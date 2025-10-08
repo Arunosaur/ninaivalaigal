@@ -115,9 +115,7 @@ class GraphValidationEngine:
             total_tests = 0
             details = {"test_cases": [], "accuracy_scores": []}
 
-            for source_id, expected_similar in self.test_data[
-                "expected_similarities"
-            ].items():
+            for source_id, expected_similar in self.test_data["expected_similarities"].items():
                 total_tests += 1
 
                 # Execute similarity query
@@ -148,9 +146,7 @@ class GraphValidationEngine:
                 if accuracy >= 0.7:  # 70% accuracy threshold
                     passed_tests += 1
 
-            overall_accuracy = sum(details["accuracy_scores"]) / len(
-                details["accuracy_scores"]
-            )
+            overall_accuracy = sum(details["accuracy_scores"]) / len(details["accuracy_scores"])
             execution_time = int((time.time() - start_time) * 1000)
 
             return ValidationResult(
@@ -201,16 +197,12 @@ class GraphValidationEngine:
 
                 if result["results"]:
                     # Check path length and strength
-                    best_path = max(
-                        result["results"], key=lambda p: p.get("strength", 0)
-                    )
+                    best_path = max(result["results"], key=lambda p: p.get("strength", 0))
                     path_length = best_path.get("length", 999)
                     path_strength = best_path.get("strength", 0.0)
 
                     # Score based on length and strength
-                    length_score = (
-                        1.0 if path_length <= path_test["max_length"] else 0.5
-                    )
+                    length_score = 1.0 if path_length <= path_test["max_length"] else 0.5
                     strength_score = path_strength
                     path_quality = (length_score + strength_score) / 2
 
@@ -221,9 +213,7 @@ class GraphValidationEngine:
                         "expected_max_length": path_test["max_length"],
                         "paths_found": paths_found,
                         "path_quality": path_quality,
-                        "results": result["results"][
-                            :2
-                        ],  # First 2 results for inspection
+                        "results": result["results"][:2],  # First 2 results for inspection
                     }
                 )
                 details["path_scores"].append(path_quality)
@@ -231,11 +221,7 @@ class GraphValidationEngine:
                 if path_quality >= 0.6:  # 60% quality threshold
                     passed_tests += 1
 
-            overall_score = (
-                sum(details["path_scores"]) / len(details["path_scores"])
-                if details["path_scores"]
-                else 0.0
-            )
+            overall_score = sum(details["path_scores"]) / len(details["path_scores"]) if details["path_scores"] else 0.0
             execution_time = int((time.time() - start_time) * 1000)
 
             return ValidationResult(
@@ -284,14 +270,10 @@ class GraphValidationEngine:
                 rec_count = len(recommendations)
 
                 # Score based on number and quality of recommendations
-                count_score = min(
-                    rec_count / 3, 1.0
-                )  # Expect at least 3 recommendations
+                count_score = min(rec_count / 3, 1.0)  # Expect at least 3 recommendations
 
                 if recommendations:
-                    avg_confidence = sum(result["confidence_scores"].values()) / len(
-                        result["confidence_scores"]
-                    )
+                    avg_confidence = sum(result["confidence_scores"].values()) / len(result["confidence_scores"])
                     confidence_score = avg_confidence
                 else:
                     confidence_score = 0.0
@@ -305,9 +287,7 @@ class GraphValidationEngine:
                         "recommendations_count": rec_count,
                         "avg_confidence": confidence_score,
                         "overall_score": overall_rec_score,
-                        "recommendations": recommendations[
-                            :2
-                        ],  # First 2 for inspection
+                        "recommendations": recommendations[:2],  # First 2 for inspection
                     }
                 )
                 details["recommendation_scores"].append(overall_rec_score)
@@ -316,8 +296,7 @@ class GraphValidationEngine:
                     passed_tests += 1
 
             overall_score = (
-                sum(details["recommendation_scores"])
-                / len(details["recommendation_scores"])
+                sum(details["recommendation_scores"]) / len(details["recommendation_scores"])
                 if details["recommendation_scores"]
                 else 0.0
             )
@@ -377,9 +356,7 @@ class GraphValidationEngine:
             for rel in test_relationships:
                 # Simulate relationship strength calculation
                 # In production, this would query actual graph data
-                calculated_strength = min(
-                    rel["interaction_count"] * 0.1, 1.0
-                )  # Simple formula
+                calculated_strength = min(rel["interaction_count"] * 0.1, 1.0)  # Simple formula
                 expected_strength = rel["expected_strength"]
 
                 # Calculate accuracy
@@ -400,9 +377,7 @@ class GraphValidationEngine:
                 if accuracy >= 0.8:  # 80% accuracy threshold
                     passed_tests += 1
 
-            overall_score = sum(details["strength_scores"]) / len(
-                details["strength_scores"]
-            )
+            overall_score = sum(details["strength_scores"]) / len(details["strength_scores"])
             execution_time = int((time.time() - start_time) * 1000)
 
             return ValidationResult(
@@ -472,9 +447,7 @@ class GraphValidationEngine:
 class ValidationRequest(BaseModel):
     """Request for validation testing"""
 
-    test_types: List[str] = Field(
-        default=["similarity", "path", "recommendation", "edge_weight"]
-    )
+    test_types: List[str] = Field(default=["similarity", "path", "recommendation", "edge_weight"])
     include_details: bool = Field(default=True)
     cache_results: bool = Field(default=True)
 
@@ -527,30 +500,18 @@ async def run_validation_suite(
         for result in suite_result.results:
             if not result.passed:
                 if result.test_name == "similarity_analysis":
-                    recommendations.append(
-                        "Consider tuning similarity thresholds and algorithms"
-                    )
+                    recommendations.append("Consider tuning similarity thresholds and algorithms")
                 elif result.test_name == "path_discovery":
-                    recommendations.append(
-                        "Optimize path finding algorithms and depth limits"
-                    )
+                    recommendations.append("Optimize path finding algorithms and depth limits")
                 elif result.test_name == "recommendation_engine":
-                    recommendations.append(
-                        "Improve recommendation scoring and filtering"
-                    )
+                    recommendations.append("Improve recommendation scoring and filtering")
                 elif result.test_name == "edge_weight_relevance":
-                    recommendations.append(
-                        "Adjust relationship strength calculation parameters"
-                    )
+                    recommendations.append("Adjust relationship strength calculation parameters")
             elif result.score < 0.8:
-                recommendations.append(
-                    f"Fine-tune {result.test_name} for better performance"
-                )
+                recommendations.append(f"Fine-tune {result.test_name} for better performance")
 
         if not recommendations:
-            recommendations.append(
-                "All tests passed! Graph intelligence system is performing well."
-            )
+            recommendations.append("All tests passed! Graph intelligence system is performing well.")
 
         # Cache results if requested
         if request.cache_results:
@@ -580,9 +541,7 @@ async def run_validation_suite(
         )
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Validation suite failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Validation suite failed: {str(e)}")
 
 
 @router.get("/health")

@@ -156,9 +156,7 @@ def is_allowed(role: Role, resource: Resource, action: Action) -> bool:
     return action in POLICY.get((role, resource), set())
 
 
-def authorize(
-    ctx: SubjectContext, resource: Resource, action: Action, team_id: str | None = None
-) -> bool:
+def authorize(ctx: SubjectContext, resource: Resource, action: Action, team_id: str | None = None) -> bool:
     role = effective_role(ctx, team_id=team_id)
     if role is None:
         return False
@@ -168,12 +166,8 @@ def authorize(
 def require_permission(resource: Resource, action: Action):
     def decorator(func):
         def wrapper(subject_ctx: SubjectContext, *args, **kwargs):
-            if not authorize(
-                subject_ctx, resource, action, team_id=kwargs.get("team_id")
-            ):
-                raise PermissionError(
-                    f"Forbidden: need {action.name} on {resource.name}"
-                )
+            if not authorize(subject_ctx, resource, action, team_id=kwargs.get("team_id")):
+                raise PermissionError(f"Forbidden: need {action.name} on {resource.name}")
             return func(subject_ctx, *args, **kwargs)
 
         return wrapper

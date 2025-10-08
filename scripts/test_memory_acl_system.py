@@ -50,17 +50,13 @@ class MemoryACLSystemTester:
                 data = response.json()
                 if data.get("status") == "healthy":
                     capabilities = data.get("acl_capabilities", [])
-                    self.log(
-                        f"✅ Memory ACL system healthy with {len(capabilities)} capabilities"
-                    )
+                    self.log(f"✅ Memory ACL system healthy with {len(capabilities)} capabilities")
                     return True
                 else:
                     self.log(f"❌ Memory ACL system unhealthy: {data}")
                     return False
             else:
-                self.log(
-                    f"❌ ACL status check failed with status {response.status_code}"
-                )
+                self.log(f"❌ ACL status check failed with status {response.status_code}")
                 return False
 
         except Exception as e:
@@ -85,23 +81,15 @@ class MemoryACLSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Access evaluation endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "access_evaluation_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["access_evaluation_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Access evaluated: {data['granted']} ({data['access_level']})"
-                )
-                self.results["performance_metrics"][
-                    "access_evaluation_response_time"
-                ] = response_time
+                self.log(f"✅ Access evaluated: {data['granted']} ({data['access_level']})")
+                self.results["performance_metrics"]["access_evaluation_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Access evaluation failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Access evaluation failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -121,21 +109,15 @@ class MemoryACLSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Memory ACL retrieval endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "acl_retrieval_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["acl_retrieval_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Memory ACL retrieved: {data['visibility']} visibility")
-                self.results["performance_metrics"][
-                    "acl_retrieval_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["acl_retrieval_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Memory ACL retrieval failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Memory ACL retrieval failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -155,28 +137,20 @@ class MemoryACLSystemTester:
             }
 
             start_time = time.time()
-            response = self.session.post(
-                f"{API_BASE_URL}/acl/memory/{test_memory_id}/share", json=payload
-            )
+            response = self.session.post(f"{API_BASE_URL}/acl/memory/{test_memory_id}/share", json=payload)
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Memory sharing endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "memory_sharing_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["memory_sharing_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Memory shared: {data['message']}")
-                self.results["performance_metrics"][
-                    "memory_sharing_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["memory_sharing_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Memory sharing failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Memory sharing failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -192,28 +166,20 @@ class MemoryACLSystemTester:
             revoke_user_id = 2
 
             start_time = time.time()
-            response = self.session.delete(
-                f"{API_BASE_URL}/acl/memory/{test_memory_id}/share/{revoke_user_id}"
-            )
+            response = self.session.delete(f"{API_BASE_URL}/acl/memory/{test_memory_id}/share/{revoke_user_id}")
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Access revocation endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "access_revocation_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["access_revocation_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Access revoked: {data['message']}")
-                self.results["performance_metrics"][
-                    "access_revocation_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["access_revocation_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Access revocation failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Access revocation failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -229,28 +195,20 @@ class MemoryACLSystemTester:
             payload = {"visibility": "team"}
 
             start_time = time.time()
-            response = self.session.put(
-                f"{API_BASE_URL}/acl/memory/{test_memory_id}/visibility", json=payload
-            )
+            response = self.session.put(f"{API_BASE_URL}/acl/memory/{test_memory_id}/visibility", json=payload)
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Visibility update endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "visibility_update_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["visibility_update_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Visibility updated: {data['new_visibility']}")
-                self.results["performance_metrics"][
-                    "visibility_update_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["visibility_update_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Visibility update failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Visibility update failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -263,30 +221,20 @@ class MemoryACLSystemTester:
             self.log("Testing accessible memories retrieval...")
 
             start_time = time.time()
-            response = self.session.get(
-                f"{API_BASE_URL}/acl/accessible-memories?limit=10&token_id=test_token"
-            )
+            response = self.session.get(f"{API_BASE_URL}/acl/accessible-memories?limit=10&token_id=test_token")
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Accessible memories endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "accessible_memories_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["accessible_memories_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Accessible memories retrieved: {data['total_count']} memories"
-                )
-                self.results["performance_metrics"][
-                    "accessible_memories_response_time"
-                ] = response_time
+                self.log(f"✅ Accessible memories retrieved: {data['total_count']} memories")
+                self.results["performance_metrics"]["accessible_memories_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Accessible memories failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Accessible memories failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -301,28 +249,20 @@ class MemoryACLSystemTester:
             test_memory_id = "test_memory_create_acl_001"
 
             start_time = time.time()
-            response = self.session.post(
-                f"{API_BASE_URL}/acl/memory/{test_memory_id}/create?visibility=private"
-            )
+            response = self.session.post(f"{API_BASE_URL}/acl/memory/{test_memory_id}/create?visibility=private")
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ ACL creation endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "acl_creation_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["acl_creation_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ ACL created: {data['message']}")
-                self.results["performance_metrics"][
-                    "acl_creation_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["acl_creation_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ ACL creation failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ ACL creation failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -340,23 +280,15 @@ class MemoryACLSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ ACL statistics endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "acl_stats_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["acl_stats_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ ACL statistics retrieved: {data['accessible_memories']} accessible"
-                )
-                self.results["performance_metrics"][
-                    "acl_stats_response_time"
-                ] = response_time
+                self.log(f"✅ ACL statistics retrieved: {data['accessible_memories']} accessible")
+                self.results["performance_metrics"]["acl_stats_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ ACL statistics failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ ACL statistics failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -374,21 +306,15 @@ class MemoryACLSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Audit log endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "audit_log_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["audit_log_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Audit log retrieved: {data['total_entries']} entries")
-                self.results["performance_metrics"][
-                    "audit_log_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["audit_log_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Audit log failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Audit log failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -411,23 +337,15 @@ class MemoryACLSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Bulk evaluation endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "bulk_evaluation_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["bulk_evaluation_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Bulk evaluation completed: {data['total_evaluated']} memories"
-                )
-                self.results["performance_metrics"][
-                    "bulk_evaluation_response_time"
-                ] = response_time
+                self.log(f"✅ Bulk evaluation completed: {data['total_evaluated']} memories")
+                self.results["performance_metrics"]["bulk_evaluation_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Bulk evaluation failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Bulk evaluation failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -473,9 +391,7 @@ class MemoryACLSystemTester:
                     elif endpoint == "/acl/memory/test_id/share/2":
                         response = self.session.delete(f"{API_BASE_URL}{endpoint}")
                     elif endpoint == "/acl/memory/test_id/visibility":
-                        response = self.session.put(
-                            f"{API_BASE_URL}{endpoint}", json={"visibility": "private"}
-                        )
+                        response = self.session.put(f"{API_BASE_URL}{endpoint}", json={"visibility": "private"})
                     elif endpoint == "/acl/memory/test_id/create":
                         response = self.session.post(f"{API_BASE_URL}{endpoint}")
                     elif endpoint == "/acl/bulk-evaluate":
@@ -496,9 +412,7 @@ class MemoryACLSystemTester:
                         accessible_count += 1
                         self.log(f"✅ Endpoint accessible: {endpoint}")
                     else:
-                        self.log(
-                            f"❌ Endpoint issue: {endpoint} - {response.status_code}"
-                        )
+                        self.log(f"❌ Endpoint issue: {endpoint} - {response.status_code}")
                 except Exception as e:
                     self.log(f"❌ Endpoint error: {endpoint} - {str(e)}")
 
@@ -533,12 +447,8 @@ class MemoryACLSystemTester:
             avg_response_time = sum(request_times) / len(request_times)
             max_response_time = max(request_times)
 
-            self.results["performance_metrics"][
-                "avg_acl_status_response_time"
-            ] = avg_response_time
-            self.results["performance_metrics"][
-                "max_acl_status_response_time"
-            ] = max_response_time
+            self.results["performance_metrics"]["avg_acl_status_response_time"] = avg_response_time
+            self.results["performance_metrics"]["max_acl_status_response_time"] = max_response_time
 
             # Performance targets for ACL system (security operations can be slower)
             if avg_response_time < 20:  # 20ms target
@@ -570,9 +480,7 @@ class MemoryACLSystemTester:
 
     def run_all_tests(self):
         """Run comprehensive memory ACL system tests"""
-        self.log(
-            "🚀 Starting SPEC-043 Memory Access Control (ACL) Per Token System Tests"
-        )
+        self.log("🚀 Starting SPEC-043 Memory Access Control (ACL) Per Token System Tests")
         self.log("=" * 80)
 
         # Run all tests
@@ -596,9 +504,7 @@ class MemoryACLSystemTester:
     def print_results(self):
         """Print comprehensive test results"""
         self.log("=" * 80)
-        self.log(
-            "🎯 SPEC-043 MEMORY ACCESS CONTROL (ACL) PER TOKEN SYSTEM TEST RESULTS"
-        )
+        self.log("🎯 SPEC-043 MEMORY ACCESS CONTROL (ACL) PER TOKEN SYSTEM TEST RESULTS")
         self.log("=" * 80)
 
         # Test summary

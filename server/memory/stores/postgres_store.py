@@ -28,10 +28,7 @@ class PGConfig:
 
 class PostgresStore:
     def __init__(self, cfg: PGConfig | None = None):
-        dsn = (
-            os.getenv("DATABASE_URL")
-            or "postgresql://postgres:postgres@localhost:5432/postgres"
-        )
+        dsn = os.getenv("DATABASE_URL") or "postgresql://postgres:postgres@localhost:5432/postgres"
         self.cfg = cfg or PGConfig(dsn=dsn)
 
     async def _conn(self):
@@ -128,9 +125,7 @@ class PostgresStore:
                 rows = await cur.fetchall()
         return rows
 
-    async def share(
-        self, record_ids: Sequence[str], to_scope: str, target: dict[str, Any]
-    ) -> int:
+    async def share(self, record_ids: Sequence[str], to_scope: str, target: dict[str, Any]) -> int:
         if not record_ids:
             return 0
         ids_tuple = tuple(record_ids)

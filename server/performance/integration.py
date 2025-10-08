@@ -58,9 +58,7 @@ class PerformanceIntegrationMiddleware(BaseHTTPMiddleware):
 
         # Add performance headers
         response.headers["X-Response-Time"] = f"{duration:.3f}s"
-        response.headers["X-Request-ID"] = request.state.performance_context[
-            "request_id"
-        ]
+        response.headers["X-Request-ID"] = request.state.performance_context["request_id"]
 
         # Log performance metrics
         logger.info(
@@ -133,15 +131,11 @@ class PerformanceManager:
             self.cache_manager = CacheManager(self.redis_client)
 
             # Initialize graph performance optimization
-            self.graph_optimizer = await initialize_graph_performance_optimization(
-                self.redis_client
-            )
+            self.graph_optimizer = await initialize_graph_performance_optimization(self.redis_client)
 
             # Initialize optimized graph intelligence if graph reasoner is provided
             if graph_reasoner:
-                self.graph_intelligence = await create_optimized_graph_intelligence(
-                    graph_reasoner, self.redis_client
-                )
+                self.graph_intelligence = await create_optimized_graph_intelligence(graph_reasoner, self.redis_client)
 
             # Add response caching middleware
             app.add_middleware(
@@ -150,9 +144,7 @@ class PerformanceManager:
             )
 
             # Add performance integration middleware
-            self.performance_middleware = PerformanceIntegrationMiddleware(
-                app, self.redis_client, self.db_manager
-            )
+            self.performance_middleware = PerformanceIntegrationMiddleware(app, self.redis_client, self.db_manager)
             app.add_middleware(
                 type(self.performance_middleware),
                 redis_client=self.redis_client,
@@ -214,15 +206,11 @@ class PerformanceManager:
 
         # Graph performance stats
         if self.graph_optimizer:
-            stats["graph_optimizer"] = (
-                await self.graph_optimizer.get_graph_performance_stats()
-            )
+            stats["graph_optimizer"] = await self.graph_optimizer.get_graph_performance_stats()
 
         # Graph intelligence stats
         if self.graph_intelligence:
-            stats["graph_intelligence"] = (
-                await self.graph_intelligence.get_graph_intelligence_performance_stats()
-            )
+            stats["graph_intelligence"] = await self.graph_intelligence.get_graph_intelligence_performance_stats()
 
         # Redis performance stats
         if self.redis_client:
@@ -233,9 +221,7 @@ class PerformanceManager:
                     "used_memory_human": redis_info.get("used_memory_human", "0B"),
                     "keyspace_hits": redis_info.get("keyspace_hits", 0),
                     "keyspace_misses": redis_info.get("keyspace_misses", 0),
-                    "instantaneous_ops_per_sec": redis_info.get(
-                        "instantaneous_ops_per_sec", 0
-                    ),
+                    "instantaneous_ops_per_sec": redis_info.get("instantaneous_ops_per_sec", 0),
                 }
 
                 # Calculate cache hit rate

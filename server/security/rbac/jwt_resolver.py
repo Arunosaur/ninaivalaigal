@@ -79,13 +79,9 @@ class JWTClaimsResolver:
         self.issuer = issuer
         self.leeway = leeway_seconds
         self._neg_kid = NegativeKidCache(negative_kid_ttl)
-        self._jwks_client = (
-            PyJWKClient(jwks_url, timeout=3) if (jwks_url and PyJWKClient) else None
-        )
+        self._jwks_client = PyJWKClient(jwks_url, timeout=3) if (jwks_url and PyJWKClient) else None
         self._jwks_backoff = Backoff()
-        self.require_claims = set(
-            require_claims or ["sub", "org_id", "team_id", "roles", "exp"]
-        )
+        self.require_claims = set(require_claims or ["sub", "org_id", "team_id", "roles", "exp"])
         self.max_token_lifetime_s = max_token_lifetime_s  # e.g., 3600 for 1h
 
     def _header(self, token: str) -> dict[str, object]:
@@ -147,27 +143,15 @@ class JWTClaimsResolver:
                     return SubjectContext(claims={})
 
             # Required-claims enforcement + max token lifetime
-            missing = [
-                c
-                for c in self.require_claims
-                if c not in claims or claims.get(c) in (None, "", [])
-            ]
+            missing = [c for c in self.require_claims if c not in claims or claims.get(c) in (None, "", [])]
             if missing:
                 if span:
                     span.set_attribute("auth.missing_claims", ",".join(missing))
                 return SubjectContext(claims={})
 
             if self.max_token_lifetime_s:
-                iat = (
-                    int(claims.get("iat", 0))
-                    if isinstance(claims.get("iat"), int)
-                    else 0
-                )
-                exp = (
-                    int(claims.get("exp", 0))
-                    if isinstance(claims.get("exp"), int)
-                    else 0
-                )
+                iat = int(claims.get("iat", 0)) if isinstance(claims.get("iat"), int) else 0
+                exp = int(claims.get("exp", 0)) if isinstance(claims.get("exp"), int) else 0
                 if iat and exp and (exp - iat) > self.max_token_lifetime_s:
                     if span:
                         span.set_attribute("auth.too_long_lifetime", True)
@@ -177,18 +161,12 @@ class JWTClaimsResolver:
             org_id = str(claims.get("org_id")) if claims.get("org_id") else None
             team_id = str(claims.get("team_id")) if claims.get("team_id") else None
             roles_obj = claims.get("roles", [])
-            roles = (
-                [str(r) for r in roles_obj]
-                if isinstance(roles_obj, (list, tuple))
-                else []
-            )
+            roles = [str(r) for r in roles_obj] if isinstance(roles_obj, (list, tuple)) else []
 
             if span:
                 span.set_attribute("auth.alg", ",".join(self.algorithms))
                 span.set_attribute("auth.used_jwks", used_jwks)
-                span.set_attribute(
-                    "auth.kid_present", "kid" in (self._header(token) or {})
-                )
+                span.set_attribute("auth.kid_present", "kid" in (self._header(token) or {}))
 
             return SubjectContext(
                 user_id=user_id,

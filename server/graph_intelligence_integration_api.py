@@ -179,8 +179,9 @@ class GraphIntelligenceEngine:
         """Execute graph-based reasoning queries"""
 
         # Generate cache key
-        query_hash = hashlib.sha256(f"{query_type}:{entity_id}:{entity_type}:{json.dumps(parameters, sort_keys=True)}".
-                                    encode()).hexdigest()[:16]
+        query_hash = hashlib.sha256(
+            f"{query_type}:{entity_id}:{entity_type}:{json.dumps(parameters, sort_keys=True)}".encode()
+        ).hexdigest()[:16]
 
         cache_key = f"graph:reasoning:{query_hash}"
 
@@ -236,20 +237,24 @@ class GraphIntelligenceEngine:
 
         for i in range(min(max_results, 5)):
             similar_id = f"similar_{entity_type.lower()}_{i}"
-            similar_entities.append({
-                "id": similar_id,
-                "type": entity_type,
-                "similarity_score": 0.9 - (i * 0.1),
-                "relationship": "SIMILAR_TO",
-            })
+            similar_entities.append(
+                {
+                    "id": similar_id,
+                    "type": entity_type,
+                    "similarity_score": 0.9 - (i * 0.1),
+                    "relationship": "SIMILAR_TO",
+                }
+            )
             confidence_scores[similar_id] = 0.9 - (i * 0.1)
-            reasoning_paths.append({
-                "source": entity_id,
-                "target": similar_id,
-                "path": [entity_id, similar_id],
-                "relationship_types": ["SIMILAR_TO"],
-                "strength": 0.9 - (i * 0.1),
-            })
+            reasoning_paths.append(
+                {
+                    "source": entity_id,
+                    "target": similar_id,
+                    "path": [entity_id, similar_id],
+                    "relationship_types": ["SIMILAR_TO"],
+                    "strength": 0.9 - (i * 0.1),
+                }
+            )
 
         return {
             "entities": similar_entities,
@@ -269,21 +274,25 @@ class GraphIntelligenceEngine:
 
         if target_id:
             path_id = f"path_{entity_id}_to_{target_id}"
-            paths.append({
-                "id": path_id,
-                "source": entity_id,
-                "target": target_id,
-                "length": 2,
-                "strength": 0.8,
-            })
+            paths.append(
+                {
+                    "id": path_id,
+                    "source": entity_id,
+                    "target": target_id,
+                    "length": 2,
+                    "strength": 0.8,
+                }
+            )
             confidence_scores[path_id] = 0.8
-            reasoning_paths.append({
-                "source": entity_id,
-                "target": target_id,
-                "path": [entity_id, "intermediate", target_id],
-                "relationship_types": ["RELATED_TO", "CONNECTED_TO"],
-                "strength": 0.8,
-            })
+            reasoning_paths.append(
+                {
+                    "source": entity_id,
+                    "target": target_id,
+                    "path": [entity_id, "intermediate", target_id],
+                    "relationship_types": ["RELATED_TO", "CONNECTED_TO"],
+                    "strength": 0.8,
+                }
+            )
 
         return {
             "entities": paths,
@@ -307,20 +316,24 @@ class GraphIntelligenceEngine:
 
         for i in range(min(max_results, 3)):
             rec_id = f"recommendation_{entity_type.lower()}_{i}"
-            recommendations.append({
-                "id": rec_id,
-                "type": entity_type,
-                "recommendation_score": 0.85 - (i * 0.05),
-                "reason": "Recommended based on graph proximity and user behavior patterns",
-            })
+            recommendations.append(
+                {
+                    "id": rec_id,
+                    "type": entity_type,
+                    "recommendation_score": 0.85 - (i * 0.05),
+                    "reason": "Recommended based on graph proximity and user behavior patterns",
+                }
+            )
             confidence_scores[rec_id] = 0.85 - (i * 0.05)
-            reasoning_paths.append({
-                "source": entity_id,
-                "target": rec_id,
-                "path": [entity_id, "pattern_node", rec_id],
-                "relationship_types": ["ACCESSED", "SIMILAR_TO"],
-                "strength": 0.85 - (i * 0.05),
-            })
+            reasoning_paths.append(
+                {
+                    "source": entity_id,
+                    "target": rec_id,
+                    "path": [entity_id, "pattern_node", rec_id],
+                    "relationship_types": ["ACCESSED", "SIMILAR_TO"],
+                    "strength": 0.85 - (i * 0.05),
+                }
+            )
 
         return {
             "entities": recommendations,
@@ -343,13 +356,15 @@ class GraphIntelligenceEngine:
         reasoning_paths = []
 
         cluster_id = f"cluster_{entity_type.lower()}_1"
-        clusters.append({
-            "id": cluster_id,
-            "type": "cluster",
-            "entities": [entity_id, "related_1", "related_2"],
-            "cohesion_score": 0.75,
-            "cluster_center": entity_id,
-        })
+        clusters.append(
+            {
+                "id": cluster_id,
+                "type": "cluster",
+                "entities": [entity_id, "related_1", "related_2"],
+                "cohesion_score": 0.75,
+                "cluster_center": entity_id,
+            }
+        )
         confidence_scores[cluster_id] = 0.75
 
         return {
@@ -380,22 +395,26 @@ class GraphIntelligenceEngine:
         context_sources = []
 
         for entity in related_entities["results"]:
-            enhanced_context.append({
-                "id": entity["id"],
-                "type": entity["type"],
-                "relevance_score": entity.get("similarity_score", 0.0),
-                "context_reason": f"Graph similarity: {entity.get('similarity_score', 0.0):.2f}",
-            })
+            enhanced_context.append(
+                {
+                    "id": entity["id"],
+                    "type": entity["type"],
+                    "relevance_score": entity.get("similarity_score", 0.0),
+                    "context_reason": f"Graph similarity: {entity.get('similarity_score', 0.0):.2f}",
+                }
+            )
             context_sources.append(entity["id"])
 
         # Generate reasoning explanation
         reasoning_explanation = f"Enhanced context for memory {memory_id} using graph-based similarity analysis. "
-        reasoning_explanation += (f"Found {len(enhanced_context)} related entities with average confidence ")
+        reasoning_explanation += f"Found {len(enhanced_context)} related entities with average confidence "
         reasoning_explanation += f"{sum(related_entities['confidence_scores'].values()) / len(related_entities['confidence_scores']):.2f}."  # noqa: E501
 
-        overall_confidence = (sum(related_entities["confidence_scores"].values()) /
-                              len(related_entities["confidence_scores"])
-                              if related_entities["confidence_scores"] else 0.0)
+        overall_confidence = (
+            sum(related_entities["confidence_scores"].values()) / len(related_entities["confidence_scores"])
+            if related_entities["confidence_scores"]
+            else 0.0
+        )
 
         return {
             "enhanced_context": enhanced_context,
@@ -423,10 +442,10 @@ async def get_intelligence_engine(db: Session = Depends(get_db)):
 
 @router.post("/sync", response_model=GraphSyncResponse)
 async def sync_graph_data(
-        request: GraphSyncRequest,
-        background_tasks: BackgroundTasks,
-        current_user: User = Depends(get_current_user),
-        engine: GraphIntelligenceEngine = Depends(get_intelligence_engine),
+    request: GraphSyncRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    engine: GraphIntelligenceEngine = Depends(get_intelligence_engine),
 ):
     """Synchronize relational data to graph database"""
 
@@ -462,9 +481,9 @@ async def sync_graph_data(
 
 @router.post("/reasoning", response_model=GraphReasoningResponse)
 async def execute_graph_reasoning(
-        request: GraphReasoningRequest,
-        current_user: User = Depends(get_current_user),
-        engine: GraphIntelligenceEngine = Depends(get_intelligence_engine),
+    request: GraphReasoningRequest,
+    current_user: User = Depends(get_current_user),
+    engine: GraphIntelligenceEngine = Depends(get_intelligence_engine),
 ):
     """Execute graph-based reasoning queries"""
 
@@ -494,9 +513,9 @@ async def execute_graph_reasoning(
 
 @router.post("/context-injection", response_model=ContextInjectionResponse)
 async def inject_graph_context(
-        request: ContextInjectionRequest,
-        current_user: User = Depends(get_current_user),
-        engine: GraphIntelligenceEngine = Depends(get_intelligence_engine),
+    request: ContextInjectionRequest,
+    current_user: User = Depends(get_current_user),
+    engine: GraphIntelligenceEngine = Depends(get_intelligence_engine),
 ):
     """Inject graph-enhanced context for AI workflows"""
 
@@ -555,8 +574,8 @@ async def graph_integration_health():
 
 @router.get("/metrics")
 async def get_integration_metrics(
-        current_user: User = Depends(get_current_user),
-        engine: GraphIntelligenceEngine = Depends(get_intelligence_engine),
+    current_user: User = Depends(get_current_user),
+    engine: GraphIntelligenceEngine = Depends(get_intelligence_engine),
 ):
     """Get graph intelligence integration metrics"""
 

@@ -45,9 +45,7 @@ REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "secure_nina_password")
 
 # Initialize Redis client
-redis_client = Redis(
-    host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True
-)
+redis_client = Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True)
 
 # Initialize HTTP client
 http_client = httpx.AsyncClient(base_url=API_URL, timeout=30.0)
@@ -146,9 +144,7 @@ async def store_memory(request: MemoryStoreRequest):
         )
 
         if response.status_code != 200:
-            raise HTTPException(
-                status_code=response.status_code, detail=f"API error: {response.text}"
-            )
+            raise HTTPException(status_code=response.status_code, detail=f"API error: {response.text}")
 
         result = response.json()
         logger.info("Memory stored successfully", memory_id=result.get("id"))
@@ -174,9 +170,7 @@ async def recall_memories(request: MemoryRecallRequest):
     This endpoint is called by Copilot to retrieve relevant context
     """
     try:
-        logger.info(
-            "Recalling memories via MCP", query=request.query, context=request.context
-        )
+        logger.info("Recalling memories via MCP", query=request.query, context=request.context)
 
         # Forward to API
         response = await http_client.get(
@@ -189,9 +183,7 @@ async def recall_memories(request: MemoryRecallRequest):
         )
 
         if response.status_code != 200:
-            raise HTTPException(
-                status_code=response.status_code, detail=f"API error: {response.text}"
-            )
+            raise HTTPException(status_code=response.status_code, detail=f"API error: {response.text}")
 
         result = response.json()
         memories = result.get("memories", [])
@@ -232,9 +224,7 @@ async def list_contexts():
         response = await http_client.get("/contexts")
 
         if response.status_code != 200:
-            raise HTTPException(
-                status_code=response.status_code, detail=f"API error: {response.text}"
-            )
+            raise HTTPException(status_code=response.status_code, detail=f"API error: {response.text}")
 
         result = response.json()
         logger.info("Contexts listed successfully", count=len(result))
@@ -262,9 +252,7 @@ async def tokenize_text(text: str):
         response = await http_client.post("/memory/tokenize", json={"text": text})
 
         if response.status_code != 200:
-            raise HTTPException(
-                status_code=response.status_code, detail=f"API error: {response.text}"
-            )
+            raise HTTPException(status_code=response.status_code, detail=f"API error: {response.text}")
 
         result = response.json()
         logger.info("Text tokenized successfully", token_count=result.get("count"))
@@ -315,6 +303,4 @@ if __name__ == "__main__":
     port = int(os.getenv("MCP_PORT", "3000"))
     logger.info(f"Starting MCP server on port {port}")
 
-    uvicorn.run(
-        "main:app", host="0.0.0.0", port=port, log_level="info", access_log=True
-    )
+    uvicorn.run("main:app", host="0.0.0.0", port=port, log_level="info", access_log=True)

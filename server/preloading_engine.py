@@ -22,9 +22,7 @@ class PreloadingConfig:
     def __init__(self):
         self.enabled = os.getenv("PRELOAD_ENABLED", "true").lower() == "true"
         self.startup_preload = os.getenv("PRELOAD_STARTUP", "true").lower() == "true"
-        self.background_refresh = (
-            os.getenv("PRELOAD_BACKGROUND", "true").lower() == "true"
-        )
+        self.background_refresh = os.getenv("PRELOAD_BACKGROUND", "true").lower() == "true"
         self.max_memories_per_user = int(os.getenv("PRELOAD_MAX_MEMORIES", "100"))
         self.refresh_interval_minutes = int(os.getenv("PRELOAD_REFRESH_INTERVAL", "30"))
 
@@ -62,9 +60,7 @@ class MemoryPreloadingEngine:
         """Generate Redis key for preloading status"""
         return f"{self.preload_prefix}status:{user_id}"
 
-    async def get_recent_memories(
-        self, user_id: str, limit: int = 50
-    ) -> list[dict[str, Any]]:
+    async def get_recent_memories(self, user_id: str, limit: int = 50) -> list[dict[str, Any]]:
         """Get recently accessed memories for preloading"""
         try:
             # In a real implementation, this would query the database
@@ -76,9 +72,7 @@ class MemoryPreloadingEngine:
                 memory = {
                     "memory_id": f"recent_mem_{user_id}_{i}",
                     "content": f"Recent memory {i} for user {user_id}",
-                    "last_access_time": (
-                        datetime.utcnow() - timedelta(hours=i)
-                    ).isoformat(),
+                    "last_access_time": (datetime.utcnow() - timedelta(hours=i)).isoformat(),
                     "access_count": 10 - i,  # More recent = more accesses
                     "is_important": i < 5,  # First 5 are important
                     "context": "recent_work",
@@ -98,9 +92,7 @@ class MemoryPreloadingEngine:
             logger.error("Error getting recent memories", user_id=user_id, error=str(e))
             return []
 
-    async def get_frequent_memories(
-        self, user_id: str, limit: int = 30
-    ) -> list[dict[str, Any]]:
+    async def get_frequent_memories(self, user_id: str, limit: int = 30) -> list[dict[str, Any]]:
         """Get high-frequency memories for preloading"""
         try:
             # Simulate frequent memories based on access patterns
@@ -110,9 +102,7 @@ class MemoryPreloadingEngine:
                 memory = {
                     "memory_id": f"freq_mem_{user_id}_{i}",
                     "content": f"Frequently accessed memory {i} for user {user_id}",
-                    "last_access_time": (
-                        datetime.utcnow() - timedelta(days=i + 1)
-                    ).isoformat(),
+                    "last_access_time": (datetime.utcnow() - timedelta(days=i + 1)).isoformat(),
                     "access_count": 50 - (i * 2),  # High access counts
                     "is_important": True,
                     "context": "frequent_tasks",
@@ -129,14 +119,10 @@ class MemoryPreloadingEngine:
             return frequent_memories
 
         except Exception as e:
-            logger.error(
-                "Error getting frequent memories", user_id=user_id, error=str(e)
-            )
+            logger.error("Error getting frequent memories", user_id=user_id, error=str(e))
             return []
 
-    async def get_important_memories(
-        self, user_id: str, limit: int = 20
-    ) -> list[dict[str, Any]]:
+    async def get_important_memories(self, user_id: str, limit: int = 20) -> list[dict[str, Any]]:
         """Get user-flagged important memories for preloading"""
         try:
             # Simulate important/pinned memories
@@ -146,9 +132,7 @@ class MemoryPreloadingEngine:
                 memory = {
                     "memory_id": f"imp_mem_{user_id}_{i}",
                     "content": f"Important memory {i} for user {user_id}",
-                    "last_access_time": (
-                        datetime.utcnow() - timedelta(days=i * 2)
-                    ).isoformat(),
+                    "last_access_time": (datetime.utcnow() - timedelta(days=i * 2)).isoformat(),
                     "access_count": 25 + i,
                     "is_important": True,
                     "is_pinned": True,
@@ -167,14 +151,10 @@ class MemoryPreloadingEngine:
             return important_memories
 
         except Exception as e:
-            logger.error(
-                "Error getting important memories", user_id=user_id, error=str(e)
-            )
+            logger.error("Error getting important memories", user_id=user_id, error=str(e))
             return []
 
-    async def select_memories_for_preloading(
-        self, user_id: str
-    ) -> dict[str, list[dict[str, Any]]]:
+    async def select_memories_for_preloading(self, user_id: str) -> dict[str, list[dict[str, Any]]]:
         """Select memories for preloading based on configured strategies"""
         try:
             if not self.config.enabled:
@@ -190,12 +170,8 @@ class MemoryPreloadingEngine:
 
             # Get memories for each strategy
             recent_memories = await self.get_recent_memories(user_id, recent_limit)
-            frequent_memories = await self.get_frequent_memories(
-                user_id, frequent_limit
-            )
-            important_memories = await self.get_important_memories(
-                user_id, important_limit
-            )
+            frequent_memories = await self.get_frequent_memories(user_id, frequent_limit)
+            important_memories = await self.get_important_memories(user_id, important_limit)
 
             selected_memories = {
                 "recent": recent_memories,
@@ -203,9 +179,7 @@ class MemoryPreloadingEngine:
                 "important": important_memories,
             }
 
-            total_selected = sum(
-                len(memories) for memories in selected_memories.values()
-            )
+            total_selected = sum(len(memories) for memories in selected_memories.values())
 
             logger.info(
                 "Selected memories for preloading",
@@ -219,9 +193,7 @@ class MemoryPreloadingEngine:
             return selected_memories
 
         except Exception as e:
-            logger.error(
-                "Error selecting memories for preloading", user_id=user_id, error=str(e)
-            )
+            logger.error("Error selecting memories for preloading", user_id=user_id, error=str(e))
             return {}
 
     async def preload_memories_to_cache(
@@ -230,9 +202,7 @@ class MemoryPreloadingEngine:
         """Preload selected memories into Redis cache"""
         try:
             if not self.redis.is_connected:
-                logger.warning(
-                    "Redis not connected, skipping preloading", user_id=user_id
-                )
+                logger.warning("Redis not connected, skipping preloading", user_id=user_id)
                 return {}
 
             preload_stats = {}
@@ -253,9 +223,7 @@ class MemoryPreloadingEngine:
                     "user_id": user_id,
                 }
 
-                await self.redis.redis.setex(
-                    preload_key, ttl, json.dumps(memories_data)
-                )
+                await self.redis.redis.setex(preload_key, ttl, json.dumps(memories_data))
 
                 # Also cache individual memories for fast lookup
                 for memory in memories:
@@ -286,9 +254,7 @@ class MemoryPreloadingEngine:
             return preload_stats
 
         except Exception as e:
-            logger.error(
-                "Error preloading memories to cache", user_id=user_id, error=str(e)
-            )
+            logger.error("Error preloading memories to cache", user_id=user_id, error=str(e))
             return {}
 
     async def _update_preload_status(self, user_id: str, preload_stats: dict[str, int]):
@@ -312,9 +278,7 @@ class MemoryPreloadingEngine:
         except Exception as e:
             logger.error("Error updating preload status", user_id=user_id, error=str(e))
 
-    async def get_preloaded_memory(
-        self, user_id: str, memory_id: str
-    ) -> dict[str, Any] | None:
+    async def get_preloaded_memory(self, user_id: str, memory_id: str) -> dict[str, Any] | None:
         """Get a preloaded memory from cache"""
         try:
             if not self.redis.is_connected:
@@ -324,9 +288,7 @@ class MemoryPreloadingEngine:
             cached_memory = await self.redis.redis.get(memory_key)
 
             if cached_memory:
-                logger.debug(
-                    "Preloaded memory cache hit", user_id=user_id, memory_id=memory_id
-                )
+                logger.debug("Preloaded memory cache hit", user_id=user_id, memory_id=memory_id)
                 return json.loads(cached_memory)
 
             return None
@@ -378,9 +340,7 @@ class MemoryPreloadingEngine:
                 }
 
             # Preload memories to cache
-            preload_stats = await self.preload_memories_to_cache(
-                user_id, selected_memories
-            )
+            preload_stats = await self.preload_memories_to_cache(user_id, selected_memories)
 
             return {
                 "user_id": user_id,
@@ -422,16 +382,10 @@ class MemoryPreloadingEngine:
                     await asyncio.sleep(0.1)
 
                 except Exception as e:
-                    logger.error(
-                        "Error warming cache for user", user_id=user_id, error=str(e)
-                    )
-                    warming_results.append(
-                        {"user_id": user_id, "status": "failed", "error": str(e)}
-                    )
+                    logger.error("Error warming cache for user", user_id=user_id, error=str(e))
+                    warming_results.append({"user_id": user_id, "status": "failed", "error": str(e)})
 
-            successful_warmings = sum(
-                1 for r in warming_results if r.get("status") == "completed"
-            )
+            successful_warmings = sum(1 for r in warming_results if r.get("status") == "completed")
 
             logger.info(
                 "Background cache warming completed",

@@ -21,9 +21,7 @@ class TestRBACRestrictions:
         headers = {"Authorization": "Bearer admin_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/admin/users", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/admin/users", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Admin endpoints not implemented")
@@ -32,9 +30,7 @@ class TestRBACRestrictions:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Admin should have access
-            assert (
-                response.status_code == 200
-            ), f"Admin access denied: {response.status_code}"
+            assert response.status_code == 200, f"Admin access denied: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -44,9 +40,7 @@ class TestRBACRestrictions:
         headers = {"Authorization": "Bearer user_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/admin/users", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/admin/users", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Admin endpoints not implemented")
@@ -55,9 +49,7 @@ class TestRBACRestrictions:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Regular user should be forbidden
-            assert (
-                response.status_code == 403
-            ), f"User access not restricted: {response.status_code}"
+            assert response.status_code == 403, f"User access not restricted: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -67,9 +59,7 @@ class TestRBACRestrictions:
         headers = {"Authorization": "Bearer org_admin_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/organization/members", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/organization/members", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Organization endpoints not implemented")
@@ -92,9 +82,7 @@ class TestRBACRestrictions:
 
         try:
             # Try to access org B's data
-            response = requests.get(
-                f"{BASE_URL}/organization/org_b/members", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/organization/org_b/members", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Cross-org endpoints not implemented")
@@ -103,9 +91,7 @@ class TestRBACRestrictions:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Should be forbidden to access other org's data
-            assert (
-                response.status_code == 403
-            ), f"Cross-org access not restricted: {response.status_code}"
+            assert response.status_code == 403, f"Cross-org access not restricted: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -125,9 +111,7 @@ class TestRBACRestrictions:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # User should have access to their own memories
-            assert (
-                response.status_code == 200
-            ), f"Memory access denied: {response.status_code}"
+            assert response.status_code == 200, f"Memory access denied: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -141,9 +125,7 @@ class TestRBACRestrictions:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/memory", json=memory_data, headers=headers, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/memory", json=memory_data, headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Memory creation endpoint not implemented")
@@ -169,9 +151,7 @@ class TestRBACRestrictions:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/memory", json=memory_data, headers=headers, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/memory", json=memory_data, headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Memory creation endpoint not implemented")
@@ -180,9 +160,7 @@ class TestRBACRestrictions:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Read-only user should be forbidden from creating
-            assert (
-                response.status_code == 403
-            ), f"Readonly restriction failed: {response.status_code}"
+            assert response.status_code == 403, f"Readonly restriction failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -197,9 +175,7 @@ class TestPermissionInheritance:
         headers = {"Authorization": "Bearer super_admin_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/admin/system/config", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/admin/system/config", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("System config endpoint not implemented")
@@ -208,9 +184,7 @@ class TestPermissionInheritance:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Super admin should have access to system config
-            assert (
-                response.status_code == 200
-            ), f"Super admin access denied: {response.status_code}"
+            assert response.status_code == 200, f"Super admin access denied: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -220,9 +194,7 @@ class TestPermissionInheritance:
         headers = {"Authorization": "Bearer delegated_admin_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/admin/users", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/admin/users", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Admin endpoints not implemented")

@@ -113,25 +113,17 @@ class TestGraphAnalyticsEngine:
         assert engine.team_analytics == {}
 
     @pytest.mark.asyncio
-    async def test_detect_knowledge_gaps(
-        self, analytics_engine, team_context, sample_knowledge_gaps
-    ):
+    async def test_detect_knowledge_gaps(self, analytics_engine, team_context, sample_knowledge_gaps):
         """Test knowledge gap detection with confidence filtering"""
 
         analysis_window = timedelta(days=30)
         confidence_threshold = 0.7
 
         with (
-            patch.object(
-                analytics_engine, "_analyze_team_knowledge_coverage"
-            ) as mock_coverage,
+            patch.object(analytics_engine, "_analyze_team_knowledge_coverage") as mock_coverage,
             patch.object(analytics_engine, "_analyze_query_patterns") as mock_queries,
-            patch.object(
-                analytics_engine, "_compare_with_knowledge_standards"
-            ) as mock_standards,
-            patch.object(
-                analytics_engine, "_analyze_collaboration_gaps"
-            ) as mock_collab,
+            patch.object(analytics_engine, "_compare_with_knowledge_standards") as mock_standards,
+            patch.object(analytics_engine, "_analyze_collaboration_gaps") as mock_collab,
             patch.object(analytics_engine, "_find_gap_sources") as mock_sources,
             patch.object(analytics_engine, "_identify_topic_experts") as mock_experts,
         ):
@@ -170,20 +162,14 @@ class TestGraphAnalyticsEngine:
             assert len(first_gap.related_queries) > 0
 
     @pytest.mark.asyncio
-    async def test_identify_trending_topics(
-        self, analytics_engine, sample_trending_topics
-    ):
+    async def test_identify_trending_topics(self, analytics_engine, sample_trending_topics):
         """Test trending topic identification with growth rate filtering"""
 
         with (
             patch.object(analytics_engine, "_get_memory_access_data") as mock_access,
-            patch.object(
-                analytics_engine, "_get_memory_creation_data"
-            ) as mock_creation,
+            patch.object(analytics_engine, "_get_memory_creation_data") as mock_creation,
             patch.object(analytics_engine, "_extract_topic_activity") as mock_activity,
-            patch.object(
-                analytics_engine, "_calculate_topic_growth_rate"
-            ) as mock_growth,
+            patch.object(analytics_engine, "_calculate_topic_growth_rate") as mock_growth,
             patch.object(analytics_engine, "_find_peak_activity_time") as mock_peak,
         ):
 
@@ -248,18 +234,10 @@ class TestGraphAnalyticsEngine:
         ]
 
         with (
-            patch.object(
-                analytics_engine, "_get_memory_data", return_value=memory_data
-            ),
-            patch.object(
-                analytics_engine, "_get_existing_connections", return_value=[]
-            ),
-            patch.object(
-                analytics_engine, "_find_connection_candidates", return_value=candidates
-            ),
-            patch.object(
-                analytics_engine, "_analyze_potential_connection"
-            ) as mock_analyze,
+            patch.object(analytics_engine, "_get_memory_data", return_value=memory_data),
+            patch.object(analytics_engine, "_get_existing_connections", return_value=[]),
+            patch.object(analytics_engine, "_find_connection_candidates", return_value=candidates),
+            patch.object(analytics_engine, "_analyze_potential_connection") as mock_analyze,
         ):
 
             # Mock connection analysis - first candidate is relevant, second is not
@@ -302,23 +280,13 @@ class TestGraphAnalyticsEngine:
 
         # Mock all the analysis components
         with (
-            patch.object(
-                analytics_engine, "_get_team_context", return_value=team_context
-            ),
-            patch.object(
-                analytics_engine, "_analyze_comprehensive_knowledge_coverage"
-            ) as mock_coverage,
-            patch.object(
-                analytics_engine, "_analyze_team_collaboration_patterns"
-            ) as mock_collab,
+            patch.object(analytics_engine, "_get_team_context", return_value=team_context),
+            patch.object(analytics_engine, "_analyze_comprehensive_knowledge_coverage") as mock_coverage,
+            patch.object(analytics_engine, "_analyze_team_collaboration_patterns") as mock_collab,
             patch.object(analytics_engine, "identify_trending_topics") as mock_trends,
             patch.object(analytics_engine, "detect_knowledge_gaps") as mock_gaps,
-            patch.object(
-                analytics_engine, "_calculate_team_productivity_metrics"
-            ) as mock_metrics,
-            patch.object(
-                analytics_engine, "_generate_team_recommendations"
-            ) as mock_recommendations,
+            patch.object(analytics_engine, "_calculate_team_productivity_metrics") as mock_metrics,
+            patch.object(analytics_engine, "_generate_team_recommendations") as mock_recommendations,
         ):
 
             # Setup mock returns
@@ -372,9 +340,7 @@ class TestGraphAnalyticsEngine:
                 "Address security knowledge gap",
             ]
 
-            insights = await analytics_engine.generate_team_insights(
-                team_id=team_id, analysis_period=analysis_period
-            )
+            insights = await analytics_engine.generate_team_insights(team_id=team_id, analysis_period=analysis_period)
 
             # Verify insights structure
             assert isinstance(insights, TeamInsights)
@@ -424,12 +390,8 @@ class TestGraphAnalyticsEngine:
             }
 
             # Test different dashboard types
-            overview_data = await analytics_engine.get_real_time_analytics_data(
-                "overview"
-            )
-            team_data = await analytics_engine.get_real_time_analytics_data(
-                "team", filters={"team_id": "engineering"}
-            )
+            overview_data = await analytics_engine.get_real_time_analytics_data("overview")
+            team_data = await analytics_engine.get_real_time_analytics_data("team", filters={"team_id": "engineering"})
             trends_data = await analytics_engine.get_real_time_analytics_data("trends")
             gaps_data = await analytics_engine.get_real_time_analytics_data("gaps")
 
@@ -447,9 +409,7 @@ class TestGraphAnalyticsEngine:
         assert analytics_engine._parse_time_window("24h") == timedelta(hours=24)
         assert analytics_engine._parse_time_window("7d") == timedelta(days=7)
         assert analytics_engine._parse_time_window("2w") == timedelta(weeks=2)
-        assert analytics_engine._parse_time_window("invalid") == timedelta(
-            hours=24
-        )  # Default
+        assert analytics_engine._parse_time_window("invalid") == timedelta(hours=24)  # Default
 
     def test_trend_score_calculation(self, analytics_engine):
         """Test trend score calculation algorithm"""
@@ -459,18 +419,14 @@ class TestGraphAnalyticsEngine:
         growth_rate = 0.5
         window_delta = timedelta(hours=24)
 
-        trend_score = analytics_engine._calculate_trend_score(
-            activity_data, growth_rate, window_delta
-        )
+        trend_score = analytics_engine._calculate_trend_score(activity_data, growth_rate, window_delta)
 
         # Verify score calculation
         assert 0.0 <= trend_score <= 1.0
         assert trend_score > growth_rate  # Should be boosted by activity and diversity
 
     @pytest.mark.asyncio
-    async def test_team_recommendations_generation(
-        self, analytics_engine, team_context
-    ):
+    async def test_team_recommendations_generation(self, analytics_engine, team_context):
         """Test actionable team recommendations generation"""
 
         # Mock data for recommendations
@@ -480,9 +436,7 @@ class TestGraphAnalyticsEngine:
             "security": 0.2,  # Very low coverage
         }
 
-        collaboration_patterns = {
-            "external_collaboration_score": 0.2  # Low collaboration
-        }
+        collaboration_patterns = {"external_collaboration_score": 0.2}  # Low collaboration
 
         trending_topics = [
             TrendingTopic(
@@ -544,16 +498,10 @@ class TestGraphAnalyticsEngine:
         start_time = datetime.utcnow()
 
         with (
-            patch.object(
-                analytics_engine, "_analyze_team_knowledge_coverage", return_value={}
-            ),
+            patch.object(analytics_engine, "_analyze_team_knowledge_coverage", return_value={}),
             patch.object(analytics_engine, "_analyze_query_patterns", return_value=[]),
-            patch.object(
-                analytics_engine, "_compare_with_knowledge_standards", return_value=[]
-            ),
-            patch.object(
-                analytics_engine, "_analyze_collaboration_gaps", return_value=[]
-            ),
+            patch.object(analytics_engine, "_compare_with_knowledge_standards", return_value=[]),
+            patch.object(analytics_engine, "_analyze_collaboration_gaps", return_value=[]),
         ):
 
             await analytics_engine.detect_knowledge_gaps(
@@ -594,15 +542,11 @@ class TestGraphAnalyticsEngine:
 
         analysis_window = timedelta(days=30)
 
-        with patch.object(
-            analytics_engine, "_calculate_domain_coverage"
-        ) as mock_coverage:
+        with patch.object(analytics_engine, "_calculate_domain_coverage") as mock_coverage:
             # Mock coverage scores for different domains
             mock_coverage.side_effect = [0.8, 0.6, 0.4, 0.7, 0.5, 0.3, 0.9]
 
-            coverage = await analytics_engine._analyze_team_knowledge_coverage(
-                team_context, analysis_window
-            )
+            coverage = await analytics_engine._analyze_team_knowledge_coverage(team_context, analysis_window)
 
             # Verify coverage analysis
             assert len(coverage) > 0

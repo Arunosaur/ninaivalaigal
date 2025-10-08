@@ -113,8 +113,8 @@ async def list_team_invitations(current_user: dict = Depends(get_current_user)):
 
 @router.post("/invitations", response_model=TeamInvitationResponse)
 async def send_team_invitation(
-        invitation_data: TeamInvitationCreate,
-        current_user: dict = Depends(get_current_user),
+    invitation_data: TeamInvitationCreate,
+    current_user: dict = Depends(get_current_user),
 ):
     """Send a team invitation"""
     try:
@@ -184,9 +184,9 @@ async def resend_team_invitation(invitation_id: str, current_user: dict = Depend
 
 @router.patch("/invitations/{invitation_id}/extend")
 async def extend_team_invitation(
-        invitation_id: str,
-        extend_days: int = 14,
-        current_user: dict = Depends(get_current_user),
+    invitation_id: str,
+    extend_days: int = 14,
+    current_user: dict = Depends(get_current_user),
 ):
     """Extend a team invitation expiration"""
     try:

@@ -4,7 +4,6 @@ Redis Ping Fix for Graph Intelligence
 Updates Redis client usage to use proper ping() method
 """
 
-import os
 import re
 from pathlib import Path
 

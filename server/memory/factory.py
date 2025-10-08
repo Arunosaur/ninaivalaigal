@@ -27,10 +27,8 @@ def get_memory_provider(provider_type: str | None = None, **kwargs) -> MemoryPro
 
     if provider_type == "http":
         return Mem0HttpMemoryProvider(
-            base_url=kwargs.get("base_url")
-            or os.getenv("MEM0_URL", "http://127.0.0.1:7070"),
-            auth_secret=kwargs.get("auth_secret")
-            or os.getenv("MEMORY_SHARED_SECRET", ""),
+            base_url=kwargs.get("base_url") or os.getenv("MEM0_URL", "http://127.0.0.1:7070"),
+            auth_secret=kwargs.get("auth_secret") or os.getenv("MEMORY_SHARED_SECRET", ""),
             **kwargs,
         )
     elif provider_type == "native":

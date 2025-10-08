@@ -39,9 +39,7 @@ def build_app(with_request_mw: bool, with_response_mw: bool):
     if with_request_mw:
         app.add_middleware(RedactionASGIMiddleware, detector_fn=detector_fn, overlap=64)
     if with_response_mw:
-        app.add_middleware(
-            ResponseRedactionASGIMiddleware, detector_fn=detector_fn, overlap=64
-        )
+        app.add_middleware(ResponseRedactionASGIMiddleware, detector_fn=detector_fn, overlap=64)
     return app
 
 
@@ -56,9 +54,7 @@ def make_payload(size_bytes: int) -> bytes:
 async def run_case(label: str, app, payload: bytes):
     async with AsyncClient(app=app, base_url="http://test") as client:
         t0 = time.perf_counter()
-        r = await client.post(
-            "/echo", content=payload, headers={"content-type": "text/plain"}
-        )
+        r = await client.post("/echo", content=payload, headers={"content-type": "text/plain"})
         dt = time.perf_counter() - t0
         ok = r.status_code == 200 and "<AWS_KEY>" in r.text
         return label, dt, len(payload), ok

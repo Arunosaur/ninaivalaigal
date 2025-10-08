@@ -52,9 +52,7 @@ class TestRedisIntegration:
 
             # Performance validation - second request should be faster
             # Note: This is a basic test; actual performance gains depend on data size
-            print(
-                f"First request: {first_request_time:.3f}s, Second request: {second_request_time:.3f}s"
-            )
+            print(f"First request: {first_request_time:.3f}s, Second request: {second_request_time:.3f}s")
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -77,9 +75,7 @@ class TestRedisIntegration:
     def test_relevance_score_caching(self):
         """Test relevance score caching (SPEC-031 integration)"""
         try:
-            response = requests.get(
-                f"{BASE_URL}/memory/relevance", headers=HEADERS, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/memory/relevance", headers=HEADERS, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Relevance endpoint not implemented yet")
@@ -118,9 +114,7 @@ class TestRedisFailover:
         except redis.ConnectionError:
             # Redis is offline - test that API still works
             try:
-                response = requests.get(
-                    f"{BASE_URL}/memory", headers=HEADERS, timeout=5
-                )
+                response = requests.get(f"{BASE_URL}/memory", headers=HEADERS, timeout=5)
                 if response.status_code == 200:
                     print("✅ API working with Redis offline (fallback mode)")
                 else:
@@ -176,9 +170,7 @@ class TestRedisPerformanceClaims:
                 r.delete(f"perf_test:{i}")
 
             # Performance assertion - should be sub-millisecond for simple operations
-            assert (
-                avg_time < 0.001
-            ), f"Average operation time {avg_time*1000:.3f}ms exceeds 1ms"
+            assert avg_time < 0.001, f"Average operation time {avg_time*1000:.3f}ms exceeds 1ms"
 
         except redis.ConnectionError:
             pytest.skip("Redis not available - run 'make stack-up' first")
@@ -208,9 +200,7 @@ class TestRedisPerformanceClaims:
                 r.delete(f"throughput_test:{i}")
 
             # Validate throughput claim (should be thousands of ops/sec)
-            assert (
-                ops_per_second > 1000
-            ), f"Throughput {ops_per_second:.0f} ops/sec below expected"
+            assert ops_per_second > 1000, f"Throughput {ops_per_second:.0f} ops/sec below expected"
 
         except redis.ConnectionError:
             pytest.skip("Redis not available - run 'make stack-up' first")

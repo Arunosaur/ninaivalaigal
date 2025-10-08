@@ -42,12 +42,8 @@ class TestDatabaseModule:
             # Test DatabaseManager session creation
             if hasattr(database, "DatabaseManager"):
                 # Mock the database URL to avoid actual connection
-                with patch.object(
-                    database.DatabaseManager, "__init__", return_value=None
-                ):
-                    db_manager = database.DatabaseManager.__new__(
-                        database.DatabaseManager
-                    )
+                with patch.object(database.DatabaseManager, "__init__", return_value=None):
+                    db_manager = database.DatabaseManager.__new__(database.DatabaseManager)
 
                     # Mock the get_session method
                     mock_session = Mock()

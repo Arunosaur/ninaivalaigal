@@ -65,7 +65,7 @@ class AIToolchain:
             return prompt
 
         # Limit memories to prevent prompt bloat
-        limited_memories = memories[:min(max_memories, self.max_memory_injection)]
+        limited_memories = memories[: min(max_memories, self.max_memory_injection)]
 
         # Build memory context section
         memory_context = "\n--- RELEVANT MEMORY CONTEXT ---\n"
@@ -201,7 +201,7 @@ class AIToolchain:
             return "No memories available to summarize."
 
         # Build summarization prompt
-        summary_prompt = (f"Please provide a {summary_type} summary of the following memories:\n\n")
+        summary_prompt = f"Please provide a {summary_type} summary of the following memories:\n\n"
 
         for i, memory in enumerate(memories[:20], 1):  # Limit to 20 memories
             content = memory.get("content", "")
@@ -242,7 +242,7 @@ class AIToolchain:
 
         # Truncate if too long
         if len(safe_response) > self.max_response_length:
-            safe_response = (safe_response[:self.max_response_length] + "... [Response truncated for safety]")
+            safe_response = safe_response[: self.max_response_length] + "... [Response truncated for safety]"
 
         return safe_response
 
@@ -278,5 +278,5 @@ class AIToolchain:
 
         # Update average response time
         if self.metrics["total_calls"] > 0:
-            total_time = (self.metrics["avg_response_time"] * (self.metrics["total_calls"] - 1) + response_time)
+            total_time = self.metrics["avg_response_time"] * (self.metrics["total_calls"] - 1) + response_time
             self.metrics["avg_response_time"] = total_time / self.metrics["total_calls"]

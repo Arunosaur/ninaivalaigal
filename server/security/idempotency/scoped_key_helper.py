@@ -114,9 +114,7 @@ class ScopedKeyHelper:
         }
 
     @classmethod
-    def validate_key_scope(
-        cls, scoped_key: str, method: str, path: str, user_id: str | None = None
-    ) -> bool:
+    def validate_key_scope(cls, scoped_key: str, method: str, path: str, user_id: str | None = None) -> bool:
         """Validate that scoped key matches current request context."""
         try:
             parsed = cls.parse_scoped_key(scoped_key)
@@ -201,9 +199,7 @@ def scope_post(
     idempotency_key: str | None = None,
 ) -> str:
     """Quick helper for POST request scoped keys with idempotency."""
-    return ScopedKeyHelper.generate_scoped_key(
-        method, path, user_id, idempotency_key=idempotency_key
-    )
+    return ScopedKeyHelper.generate_scoped_key(method, path, user_id, idempotency_key=idempotency_key)
 
 
 def test_scoped_key_helper():
@@ -274,9 +270,7 @@ def test_scoped_key_helper():
 
     # Test key parsing and validation
     parsed = ScopedKeyHelper.parse_scoped_key(scoped_key)
-    validation_passed = ScopedKeyHelper.validate_key_scope(
-        scoped_key, case["method"], case["path"], case["user_id"]
-    )
+    validation_passed = ScopedKeyHelper.validate_key_scope(scoped_key, case["method"], case["path"], case["user_id"])
 
     results.append(
         {
@@ -288,12 +282,8 @@ def test_scoped_key_helper():
     )
 
     # Test collision detection
-    key1 = ScopedKeyHelper.generate_scoped_key(
-        "POST", "/memories/123", "user1", "org1", "key1"
-    )
-    key2 = ScopedKeyHelper.generate_scoped_key(
-        "POST", "/memories/456", "user1", "org1", "key2"
-    )
+    key1 = ScopedKeyHelper.generate_scoped_key("POST", "/memories/123", "user1", "org1", "key1")
+    key2 = ScopedKeyHelper.generate_scoped_key("POST", "/memories/456", "user1", "org1", "key2")
 
     collision_info = ScopedKeyHelper.get_collision_info(key1, key2)
 
@@ -303,8 +293,7 @@ def test_scoped_key_helper():
             "key1": key1,
             "key2": key2,
             "collision_info": collision_info,
-            "passed": not collision_info["full_collision"]
-            and collision_info["collision_risk"] < 1.0,
+            "passed": not collision_info["full_collision"] and collision_info["collision_risk"] < 1.0,
         }
     )
 

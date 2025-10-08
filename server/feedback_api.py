@@ -38,9 +38,7 @@ class ImplicitFeedbackRequest(BaseModel):
 
 class ExplicitFeedbackRequest(BaseModel):
     memory_id: str
-    feedback_type: str = Field(
-        ..., description="Type: thumbs_up, thumbs_down, quality_note"
-    )
+    feedback_type: str = Field(..., description="Type: thumbs_up, thumbs_down, quality_note")
     sentiment: str = Field(..., description="Sentiment: positive, negative, neutral")
     notes: str | None = None
     context_id: str | None = None
@@ -50,9 +48,7 @@ class ExplicitFeedbackRequest(BaseModel):
 
 class DwellTimeFeedbackRequest(BaseModel):
     memory_id: str
-    dwell_time_seconds: float = Field(
-        ..., ge=0.0, description="Time spent viewing memory"
-    )
+    dwell_time_seconds: float = Field(..., ge=0.0, description="Time spent viewing memory")
     context_id: str | None = None
     query: str | None = None
     session_id: str | None = None
@@ -197,9 +193,7 @@ async def record_explicit_feedback(
             )
 
         if not sentiment:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid sentiment: {request.sentiment}"
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid sentiment: {request.sentiment}")
 
         event_id = await engine.record_explicit_feedback(
             user_id=current_user.id,
@@ -375,9 +369,7 @@ async def get_feedback_stats(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to get feedback stats", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to get feedback stats", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 

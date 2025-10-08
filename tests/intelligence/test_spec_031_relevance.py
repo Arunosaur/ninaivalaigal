@@ -41,15 +41,11 @@ class TestMemoryRelevanceRanking:
             if response.status_code == 404:
                 pytest.skip("Relevance scoring endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Relevance scoring failed: {response.status_code}"
+            assert response.status_code == 200, f"Relevance scoring failed: {response.status_code}"
 
             if response.status_code == 200:
                 result = response.json()
-                assert (
-                    "scores" in result or "rankings" in result
-                ), "Relevance response missing scores"
+                assert "scores" in result or "rankings" in result, "Relevance response missing scores"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -69,9 +65,7 @@ class TestMemoryRelevanceRanking:
             if response.status_code == 404:
                 pytest.skip("Memory ranking endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Memory ranking failed: {response.status_code}"
+            assert response.status_code == 200, f"Memory ranking failed: {response.status_code}"
 
             if response.status_code == 200:
                 result = response.json()
@@ -82,9 +76,7 @@ class TestMemoryRelevanceRanking:
                     for i in range(len(result) - 1):
                         current_score = result[i].get("relevance_score", 0)
                         next_score = result[i + 1].get("relevance_score", 0)
-                        assert (
-                            current_score >= next_score
-                        ), "Memories not properly ranked by relevance"
+                        assert current_score >= next_score, "Memories not properly ranked by relevance"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -111,9 +103,7 @@ class TestMemoryRelevanceRanking:
             if response.status_code == 404:
                 pytest.skip("Context-aware relevance endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Context-aware relevance failed: {response.status_code}"
+            assert response.status_code == 200, f"Context-aware relevance failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -156,10 +146,7 @@ class TestRelevancePerformance:
 
         try:
             # Test scoring performance with multiple memories
-            memories = [
-                {"id": f"mem_{i:03d}", "content": f"test content {i}"}
-                for i in range(50)
-            ]
+            memories = [{"id": f"mem_{i:03d}", "content": f"test content {i}"} for i in range(50)]
 
             relevance_data = {"query": "test performance query", "memories": memories}
 
@@ -175,16 +162,12 @@ class TestRelevancePerformance:
             if response.status_code == 404:
                 pytest.skip("Relevance scoring endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Performance test failed: {response.status_code}"
+            assert response.status_code == 200, f"Performance test failed: {response.status_code}"
 
             print(f"Relevance scoring time for 50 memories: {scoring_time:.3f}s")
 
             # Performance assertion - should handle 50 memories quickly
-            assert (
-                scoring_time < 5.0
-            ), f"Relevance scoring too slow: {scoring_time:.3f}s"
+            assert scoring_time < 5.0, f"Relevance scoring too slow: {scoring_time:.3f}s"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -224,9 +207,7 @@ class TestRelevancePerformance:
 
             assert response2.status_code == 200, "Cached relevance request failed"
 
-            print(
-                f"First request: {first_request_time:.3f}s, Second request: {second_request_time:.3f}s"
-            )
+            print(f"First request: {first_request_time:.3f}s, Second request: {second_request_time:.3f}s")
 
             # Cache should make second request faster (though this depends on implementation)
             # This is more of an observational test

@@ -72,9 +72,7 @@ def get_suggestions_system(
 ) -> IntelligentMemorySuggestions:
     """Get memory suggestions system instance."""
     # In production, this would include Redis and feedback system
-    return IntelligentMemorySuggestions(
-        db_manager=db, redis_client=None, feedback_system=None
-    )
+    return IntelligentMemorySuggestions(db_manager=db, redis_client=None, feedback_system=None)
 
 
 @router.post("/related", response_model=SuggestionsResponse)
@@ -166,9 +164,7 @@ async def get_contextual_suggestions(
             error=str(e),
             user_id=current_user.get("user_id"),
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to get contextual suggestions"
-        )
+        raise HTTPException(status_code=500, detail="Failed to get contextual suggestions")
 
 
 @router.post("/discover", response_model=SuggestionsResponse)
@@ -210,9 +206,7 @@ async def get_discovery_suggestions(
             error=str(e),
             user_id=current_user.get("user_id"),
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to get discovery suggestions"
-        )
+        raise HTTPException(status_code=500, detail="Failed to get discovery suggestions")
 
 
 @router.post("/interaction")
@@ -376,11 +370,7 @@ async def get_suggestion_statistics(
         total_suggestions = sum(row[0] for row in results) if results else 0
         positive_interactions = sum(row[1] for row in results) if results else 0
 
-        interaction_rate = (
-            (positive_interactions / total_suggestions)
-            if total_suggestions > 0
-            else 0.0
-        )
+        interaction_rate = (positive_interactions / total_suggestions) if total_suggestions > 0 else 0.0
 
         # Top performing algorithms
         top_algorithms = []
@@ -407,9 +397,7 @@ async def get_suggestion_statistics(
 
     except Exception as e:
         logger.error("Failed to get suggestion statistics", error=str(e))
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve suggestion statistics"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve suggestion statistics")
 
 
 @router.get("/algorithms")
@@ -474,6 +462,4 @@ async def get_available_algorithms(
 
     except Exception as e:
         logger.error("Failed to get available algorithms", error=str(e))
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve algorithm information"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve algorithm information")

@@ -23,9 +23,7 @@ JWT_EXPIRATION_HOURS = 24
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
     try:
-        return bcrypt.checkpw(
-            plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-        )
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
     except Exception as e:
         logger.error(f"Password verification error: {e}")
         return False
@@ -37,9 +35,7 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 
-async def authenticate_user_async(
-    email: str, password: str
-) -> Optional[Dict[str, Any]]:
+async def authenticate_user_async(email: str, password: str) -> Optional[Dict[str, Any]]:
     """
     Async-compatible user authentication
     Returns user data with JWT token or None if authentication fails

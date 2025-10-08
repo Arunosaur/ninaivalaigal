@@ -132,9 +132,7 @@ class MemoryHealthEngine:
             logger.error("Failed to initialize memory health engine", error=str(e))
             raise
 
-    async def analyze_memory_health(
-        self, user_id: int, memory_id: str
-    ) -> MemoryHealthMetrics:
+    async def analyze_memory_health(self, user_id: int, memory_id: str) -> MemoryHealthMetrics:
         """Analyze health of a specific memory"""
 
         try:
@@ -144,17 +142,13 @@ class MemoryHealthEngine:
             access_data = await self._get_memory_access_data(user_id, memory_id)
 
             # Calculate quality score
-            quality_score = await self._calculate_quality_score(
-                relevance_score, feedback_data, access_data
-            )
+            quality_score = await self._calculate_quality_score(relevance_score, feedback_data, access_data)
 
             # Determine health status
             health_status = self._determine_health_status(quality_score, access_data)
 
             # Identify issues and recommendations
-            issues = await self._identify_issues(
-                user_id, memory_id, relevance_score, feedback_data, access_data
-            )
+            issues = await self._identify_issues(user_id, memory_id, relevance_score, feedback_data, access_data)
             recommendations = self._generate_recommendations(issues, health_status)
 
             return MemoryHealthMetrics(
@@ -164,9 +158,7 @@ class MemoryHealthEngine:
                 quality_score=quality_score,
                 last_accessed=access_data.get("last_accessed"),
                 access_frequency=access_data.get("frequency", 0),
-                feedback_score=(
-                    feedback_data.get("total_score") if feedback_data else None
-                ),
+                feedback_score=(feedback_data.get("total_score") if feedback_data else None),
                 relevance_score=relevance_score,
                 issues=issues,
                 recommendations=recommendations,
@@ -206,9 +198,7 @@ class MemoryHealthEngine:
             return orphaned_tokens
 
         except Exception as e:
-            logger.error(
-                "Failed to detect orphaned tokens", user_id=user_id, error=str(e)
-            )
+            logger.error("Failed to detect orphaned tokens", user_id=user_id, error=str(e))
             return []
 
     async def generate_health_report(self, user_id: int) -> SystemHealthReport:
@@ -235,24 +225,12 @@ class MemoryHealthEngine:
                     )
 
             # Calculate summary statistics
-            healthy_count = sum(
-                1 for m in health_metrics if m.health_status == HealthStatus.HEALTHY
-            )
-            warning_count = sum(
-                1 for m in health_metrics if m.health_status == HealthStatus.WARNING
-            )
-            critical_count = sum(
-                1 for m in health_metrics if m.health_status == HealthStatus.CRITICAL
-            )
-            orphaned_count = sum(
-                1 for m in health_metrics if m.health_status == HealthStatus.ORPHANED
-            )
+            healthy_count = sum(1 for m in health_metrics if m.health_status == HealthStatus.HEALTHY)
+            warning_count = sum(1 for m in health_metrics if m.health_status == HealthStatus.WARNING)
+            critical_count = sum(1 for m in health_metrics if m.health_status == HealthStatus.CRITICAL)
+            orphaned_count = sum(1 for m in health_metrics if m.health_status == HealthStatus.ORPHANED)
 
-            avg_quality = (
-                sum(m.quality_score for m in health_metrics) / len(health_metrics)
-                if health_metrics
-                else 0
-            )
+            avg_quality = sum(m.quality_score for m in health_metrics) / len(health_metrics) if health_metrics else 0
 
             # Determine overall system health
             system_health = self._determine_system_health(
@@ -267,9 +245,7 @@ class MemoryHealthEngine:
             all_issues = [issue for m in health_metrics for issue in m.issues]
             top_issues = self._get_top_issues(all_issues)
 
-            all_recommendations = [
-                rec for m in health_metrics for rec in m.recommendations
-            ]
+            all_recommendations = [rec for m in health_metrics for rec in m.recommendations]
             top_recommendations = self._get_top_recommendations(all_recommendations)
 
             # Additional metrics
@@ -315,14 +291,10 @@ class MemoryHealthEngine:
             return report
 
         except Exception as e:
-            logger.error(
-                "Failed to generate health report", user_id=user_id, error=str(e)
-            )
+            logger.error("Failed to generate health report", user_id=user_id, error=str(e))
             raise
 
-    async def _get_memory_relevance_score(
-        self, user_id: int, memory_id: str
-    ) -> float | None:
+    async def _get_memory_relevance_score(self, user_id: int, memory_id: str) -> float | None:
         """Get relevance score for a memory"""
         try:
             # This would integrate with SPEC-031 relevance engine
@@ -330,14 +302,10 @@ class MemoryHealthEngine:
         except Exception:
             return None
 
-    async def _get_memory_feedback_data(
-        self, user_id: int, memory_id: str
-    ) -> dict | None:
+    async def _get_memory_feedback_data(self, user_id: int, memory_id: str) -> dict | None:
         """Get feedback data for a memory"""
         try:
-            feedback_score = await self.feedback_engine.get_memory_feedback_score(
-                user_id, memory_id
-            )
+            feedback_score = await self.feedback_engine.get_memory_feedback_score(user_id, memory_id)
             if feedback_score:
                 return {
                     "total_score": feedback_score.total_score,
@@ -377,9 +345,7 @@ class MemoryHealthEngine:
 
         # Feedback component (30%)
         if feedback_data and feedback_data.get("total_score") is not None:
-            feedback_score = max(
-                0, min(1, (feedback_data["total_score"] + 1) / 2)
-            )  # Normalize to 0-1
+            feedback_score = max(0, min(1, (feedback_data["total_score"] + 1) / 2))  # Normalize to 0-1
             score_components.append(feedback_score * 0.3)
 
         # Access frequency component (20%)
@@ -396,9 +362,7 @@ class MemoryHealthEngine:
 
         return sum(score_components) if score_components else 0.0
 
-    def _determine_health_status(
-        self, quality_score: float, access_data: dict
-    ) -> HealthStatus:
+    def _determine_health_status(self, quality_score: float, access_data: dict) -> HealthStatus:
         """Determine health status based on quality score and access data"""
 
         # Check for orphaned status first
@@ -434,9 +398,7 @@ class MemoryHealthEngine:
 
         # Check for negative feedback
         if feedback_data:
-            if feedback_data.get("negative_count", 0) > feedback_data.get(
-                "positive_count", 0
-            ):
+            if feedback_data.get("negative_count", 0) > feedback_data.get("positive_count", 0):
                 issues.append("More negative than positive feedback")
 
         # Check for infrequent access
@@ -457,17 +419,13 @@ class MemoryHealthEngine:
 
         return issues
 
-    def _generate_recommendations(
-        self, issues: list[str], health_status: HealthStatus
-    ) -> list[str]:
+    def _generate_recommendations(self, issues: list[str], health_status: HealthStatus) -> list[str]:
         """Generate recommendations based on identified issues"""
 
         recommendations = []
 
         if "Low relevance score" in issues:
-            recommendations.append(
-                "Review and update memory content for better relevance"
-            )
+            recommendations.append("Review and update memory content for better relevance")
 
         if "More negative than positive feedback" in issues:
             recommendations.append("Consider revising or removing this memory")
@@ -482,9 +440,7 @@ class MemoryHealthEngine:
             recommendations.append("Consider cleanup - memory appears orphaned")
 
         if health_status == HealthStatus.CRITICAL:
-            recommendations.append(
-                "Immediate attention required - critical health issues"
-            )
+            recommendations.append("Immediate attention required - critical health issues")
 
         return recommendations
 
@@ -493,9 +449,7 @@ class MemoryHealthEngine:
         # This would query the actual database
         return [f"memory_{user_id}_{i}" for i in range(1, 6)]  # Simulated
 
-    async def _check_if_orphaned(
-        self, user_id: int, memory_id: str
-    ) -> OrphanedToken | None:
+    async def _check_if_orphaned(self, user_id: int, memory_id: str) -> OrphanedToken | None:
         """Check if a memory token is orphaned"""
 
         try:
@@ -510,8 +464,7 @@ class MemoryHealthEngine:
                         user_id=user_id,
                         last_accessed=last_accessed,
                         created_at=access_data.get("created_at", datetime.utcnow()),
-                        orphaned_since=last_accessed
-                        + timedelta(days=self.orphan_criteria["no_access_days"]),
+                        orphaned_since=last_accessed + timedelta(days=self.orphan_criteria["no_access_days"]),
                         orphan_reason=f"No access for {days_since_access} days",
                         cleanup_recommendation="Consider archiving or deletion",
                         estimated_impact="Low - appears unused",
@@ -520,9 +473,7 @@ class MemoryHealthEngine:
             return None
 
         except Exception as e:
-            logger.warning(
-                "Failed to check orphan status", memory_id=memory_id, error=str(e)
-            )
+            logger.warning("Failed to check orphan status", memory_id=memory_id, error=str(e))
             return None
 
     def _determine_system_health(
@@ -538,9 +489,7 @@ class MemoryHealthEngine:
 
         if critical_ratio > 0.3:  # More than 30% critical/orphaned
             return HealthStatus.CRITICAL
-        elif (
-            critical_ratio > 0.1 or warning_ratio > 0.5
-        ):  # More than 10% critical or 50% warning
+        elif critical_ratio > 0.1 or warning_ratio > 0.5:  # More than 10% critical or 50% warning
             return HealthStatus.WARNING
         else:
             return HealthStatus.HEALTHY
@@ -551,9 +500,7 @@ class MemoryHealthEngine:
         for issue in issues:
             issue_counts[issue] = issue_counts.get(issue, 0) + 1
 
-        return sorted(issue_counts.keys(), key=lambda x: issue_counts[x], reverse=True)[
-            :5
-        ]
+        return sorted(issue_counts.keys(), key=lambda x: issue_counts[x], reverse=True)[:5]
 
     def _get_top_recommendations(self, recommendations: list[str]) -> list[str]:
         """Get most common recommendations"""
@@ -571,9 +518,7 @@ class MemoryHealthEngine:
             report_data["generated_at"] = report.generated_at.isoformat()
             report_data["system_health_status"] = report.system_health_status.value
 
-            await self.redis_client.setex(
-                cache_key, self.health_cache_ttl, json.dumps(report_data, default=str)
-            )
+            await self.redis_client.setex(cache_key, self.health_cache_ttl, json.dumps(report_data, default=str))
         except Exception as e:
             logger.warning("Failed to cache health report", error=str(e))
 

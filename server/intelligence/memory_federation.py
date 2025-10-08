@@ -70,9 +70,7 @@ class MemoryFederationEngine:
         try:
             # Get team contexts
             source_context = await self._get_team_context(source_team)
-            target_contexts = {
-                team: await self._get_team_context(team) for team in target_teams
-            }
+            target_contexts = {team: await self._get_team_context(team) for team in target_teams}
 
             # Apply sharing rules and privacy filters
             federated_memories = []
@@ -81,9 +79,7 @@ class MemoryFederationEngine:
 
             for memory in memory_batch:
                 # Check sharing eligibility
-                if not await self._is_shareable(
-                    memory, source_context, target_contexts
-                ):
+                if not await self._is_shareable(memory, source_context, target_contexts):
                     filtered_count += 1
                     continue
 
@@ -97,9 +93,7 @@ class MemoryFederationEngine:
 
                     if sharing_score >= self.config.get("min_sharing_score", 0.6):
                         # Apply privacy filtering
-                        filtered_memory = await self._apply_privacy_filters(
-                            memory, source_context, target_context
-                        )
+                        filtered_memory = await self._apply_privacy_filters(memory, source_context, target_context)
 
                         if filtered_memory:
                             federated_memory = FederatedMemory(
@@ -112,25 +106,19 @@ class MemoryFederationEngine:
                             )
                             federated_memories.append(federated_memory)
                         else:
-                            privacy_violations.append(
-                                f"Memory {memory['id']} blocked for team {target_team}"
-                            )
+                            privacy_violations.append(f"Memory {memory['id']} blocked for team {target_team}")
                     else:
                         filtered_count += 1
 
             # Update metrics
             processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
-            self._update_federation_metrics(
-                len(federated_memories), filtered_count, processing_time
-            )
+            self._update_federation_metrics(len(federated_memories), filtered_count, processing_time)
 
             return FederationResult(
                 success=True,
                 federated_memories=federated_memories,
                 filtered_count=filtered_count,
-                sharing_policies_applied=[
-                    rule.rule_id for rule in self._get_applicable_rules(source_team)
-                ],
+                sharing_policies_applied=[rule.rule_id for rule in self._get_applicable_rules(source_team)],
                 privacy_violations=privacy_violations,
                 processing_time_ms=processing_time,
             )
@@ -164,17 +152,13 @@ class MemoryFederationEngine:
         """
         try:
             # Get potential source teams based on collaboration history and specializations
-            source_teams = await self._identify_relevant_teams(
-                team_context, query_context
-            )
+            source_teams = await self._identify_relevant_teams(team_context, query_context)
 
             discovered_memories = []
 
             for source_team in source_teams:
                 # Check if federation is allowed
-                if not await self._can_access_team_knowledge(
-                    team_context.team_id, source_team
-                ):
+                if not await self._can_access_team_knowledge(team_context.team_id, source_team):
                     continue
 
                 # Get cached federated memories or fetch new ones
@@ -182,16 +166,12 @@ class MemoryFederationEngine:
                 if cache_key in self.federation_cache:
                     team_memories = self.federation_cache[cache_key]
                 else:
-                    team_memories = await self._fetch_team_memories(
-                        source_team, team_context
-                    )
+                    team_memories = await self._fetch_team_memories(source_team, team_context)
                     self.federation_cache[cache_key] = team_memories
 
                 # Score and filter memories based on query context
                 for memory in team_memories:
-                    relevance_score = await self._calculate_query_relevance(
-                        memory, team_context, query_context
-                    )
+                    relevance_score = await self._calculate_query_relevance(memory, team_context, query_context)
 
                     if relevance_score >= self.config.get("min_discovery_score", 0.5):
                         memory.sharing_score = relevance_score
@@ -217,29 +197,21 @@ class MemoryFederationEngine:
         score_components = {}
 
         # 1. Content relevance to target team specializations
-        content_relevance = await self._calculate_content_relevance(
-            memory, target_context.specializations
-        )
+        content_relevance = await self._calculate_content_relevance(memory, target_context.specializations)
         score_components["content_relevance"] = content_relevance * 0.3
 
         # 2. Historical collaboration strength
-        collaboration_score = source_context.collaboration_history.get(
-            target_context.team_id, 0.0
-        )
+        collaboration_score = source_context.collaboration_history.get(target_context.team_id, 0.0)
         score_components["collaboration"] = collaboration_score * 0.2
 
         # 3. Organizational proximity (department, access level)
-        org_proximity = self._calculate_organizational_proximity(
-            source_context, target_context
-        )
+        org_proximity = self._calculate_organizational_proximity(source_context, target_context)
         score_components["org_proximity"] = org_proximity * 0.2
 
         # 4. Memory freshness and quality
         freshness_score = self._calculate_memory_freshness(memory)
         quality_score = memory.get("quality_score", 0.5)
-        score_components["quality"] = (
-            freshness_score * 0.5 + quality_score * 0.5
-        ) * 0.15
+        score_components["quality"] = (freshness_score * 0.5 + quality_score * 0.5) * 0.15
 
         # 5. Sharing context boost (if specific need/query provided)
         if sharing_context:
@@ -292,13 +264,9 @@ class MemoryFederationEngine:
                 filtered_memory.pop(field, None)
 
         # Apply team-specific filtering rules
-        team_rules = self._get_team_sharing_rules(
-            source_context.team_id, target_context.team_id
-        )
+        team_rules = self._get_team_sharing_rules(source_context.team_id, target_context.team_id)
         for rule in team_rules:
-            filtered_memory = self._apply_content_filters(
-                filtered_memory, rule.content_filters
-            )
+            filtered_memory = self._apply_content_filters(filtered_memory, rule.content_filters)
 
         return filtered_memory
 
@@ -322,9 +290,7 @@ class MemoryFederationEngine:
         self.team_contexts[team_id] = context
         return context
 
-    def _update_federation_metrics(
-        self, successful: int, filtered: int, processing_time: float
-    ):
+    def _update_federation_metrics(self, successful: int, filtered: int, processing_time: float):
         """Update federation performance metrics"""
         self.metrics.total_federations += successful + filtered
         self.metrics.successful_shares += successful
@@ -332,23 +298,17 @@ class MemoryFederationEngine:
 
         # Update average processing time (exponential moving average)
         alpha = 0.1
-        self.metrics.federation_latency_ms = (
-            alpha * processing_time + (1 - alpha) * self.metrics.federation_latency_ms
-        )
+        self.metrics.federation_latency_ms = alpha * processing_time + (1 - alpha) * self.metrics.federation_latency_ms
 
         # Update average sharing score
         if self.metrics.total_federations > 0:
-            self.metrics.average_sharing_score = (
-                self.metrics.successful_shares / self.metrics.total_federations
-            )
+            self.metrics.average_sharing_score = self.metrics.successful_shares / self.metrics.total_federations
 
     async def get_federation_metrics(self) -> FederationMetrics:
         """Get current federation performance metrics"""
         return self.metrics
 
-    async def _calculate_content_relevance(
-        self, memory: Dict, specializations: List[str]
-    ) -> float:
+    async def _calculate_content_relevance(self, memory: Dict, specializations: List[str]) -> float:
         """Calculate how relevant memory content is to team specializations"""
         if not specializations:
             return 0.5  # Default relevance if no specializations defined
@@ -364,17 +324,13 @@ class MemoryFederationEngine:
             relevance_score += (tag_matches / len(memory_tags)) * 0.6
 
         # Content-based relevance (simple keyword matching - could be enhanced with NLP)
-        content_matches = sum(
-            1 for spec in specializations if spec.lower() in memory_content.lower()
-        )
+        content_matches = sum(1 for spec in specializations if spec.lower() in memory_content.lower())
         if specializations:
             relevance_score += (content_matches / len(specializations)) * 0.4
 
         return min(relevance_score, 1.0)
 
-    def _calculate_organizational_proximity(
-        self, source: TeamContext, target: TeamContext
-    ) -> float:
+    def _calculate_organizational_proximity(self, source: TeamContext, target: TeamContext) -> float:
         """Calculate organizational proximity between teams"""
         proximity_score = 0.0
 

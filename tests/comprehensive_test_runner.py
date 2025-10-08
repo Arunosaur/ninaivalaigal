@@ -98,22 +98,16 @@ class ComprehensiveTestSuite:
         if self.config["concurrent_testing"]["enabled"]:
             print("\n🚀 PHASE 4: CONCURRENT & LOAD TESTING")
             print("-" * 40)
-            concurrent_runner = ConcurrentTestRunner(
-                max_workers=self.config["concurrent_testing"]["max_workers"]
-            )
+            concurrent_runner = ConcurrentTestRunner(max_workers=self.config["concurrent_testing"]["max_workers"])
             concurrent_results = concurrent_runner.run_all_tests()
-            self.test_results["test_frameworks"][
-                "concurrent_testing"
-            ] = concurrent_results
+            self.test_results["test_frameworks"]["concurrent_testing"] = concurrent_results
 
         # Run Analytics Dashboard Testing
         if self.config["analytics_testing"]["enabled"]:
             print("\n📊 PHASE 5: ANALYTICS DASHBOARD TESTING")
             print("-" * 40)
             analytics_results = self._run_analytics_testing()
-            self.test_results["test_frameworks"][
-                "analytics_testing"
-            ] = analytics_results
+            self.test_results["test_frameworks"]["analytics_testing"] = analytics_results
 
         # Calculate overall metrics
         suite_duration = time.time() - suite_start_time
@@ -132,9 +126,7 @@ class ComprehensiveTestSuite:
 
         print(f"\n✅ COMPREHENSIVE TEST SUITE COMPLETE")
         print(f"📊 Total Duration: {suite_duration:.2f} seconds")
-        print(
-            f"🎯 Overall Pass Rate: {self.overall_metrics.get('overall_pass_rate', 0):.1f}%"
-        )
+        print(f"🎯 Overall Pass Rate: {self.overall_metrics.get('overall_pass_rate', 0):.1f}%")
 
         return self.test_results
 
@@ -217,9 +209,7 @@ class ComprehensiveTestSuite:
         error_tests = 0
 
         # Aggregate results from all frameworks
-        for framework_name, framework_results in self.test_results[
-            "test_frameworks"
-        ].items():
+        for framework_name, framework_results in self.test_results["test_frameworks"].items():
             if "summary" in framework_results:
                 summary = framework_results["summary"]
                 total_tests += summary.get("total_tests", 0)
@@ -250,16 +240,11 @@ class ComprehensiveTestSuite:
             "suite_duration": suite_duration,
             "frameworks_tested": len(self.test_results["test_frameworks"]),
             "test_coverage": {
-                "authentication": "auth_testing"
-                in self.test_results["test_frameworks"],
-                "billing_flows": "billing_testing"
-                in self.test_results["test_frameworks"],
-                "failure_scenarios": "failure_testing"
-                in self.test_results["test_frameworks"],
-                "concurrent_load": "concurrent_testing"
-                in self.test_results["test_frameworks"],
-                "analytics_dashboards": "analytics_testing"
-                in self.test_results["test_frameworks"],
+                "authentication": "auth_testing" in self.test_results["test_frameworks"],
+                "billing_flows": "billing_testing" in self.test_results["test_frameworks"],
+                "failure_scenarios": "failure_testing" in self.test_results["test_frameworks"],
+                "concurrent_load": "concurrent_testing" in self.test_results["test_frameworks"],
+                "analytics_dashboards": "analytics_testing" in self.test_results["test_frameworks"],
             },
         }
 
@@ -324,17 +309,12 @@ class ComprehensiveTestSuite:
 
         # Check concurrent performance
         if "concurrent_testing" in self.test_results["test_frameworks"]:
-            concurrent_results = self.test_results["test_frameworks"][
-                "concurrent_testing"
-            ]
+            concurrent_results = self.test_results["test_frameworks"]["concurrent_testing"]
             if "performance_summary" in concurrent_results:
                 perf = concurrent_results["performance_summary"]
 
                 # Check load test performance
-                if (
-                    "load_tests" in perf
-                    and perf["load_tests"]["avg_response_time"] > 1.0
-                ):
+                if "load_tests" in perf and perf["load_tests"]["avg_response_time"] > 1.0:
                     recommendations.append(
                         {
                             "priority": "MEDIUM",
@@ -378,11 +358,7 @@ class ComprehensiveTestSuite:
     def _create_html_report_content(self) -> str:
         """Create HTML content for test report"""
         pass_rate = self.overall_metrics.get("overall_pass_rate", 0)
-        status_color = (
-            "#10b981"
-            if pass_rate >= 95
-            else "#f59e0b" if pass_rate >= 90 else "#ef4444"
-        )
+        status_color = "#10b981" if pass_rate >= 95 else "#f59e0b" if pass_rate >= 90 else "#ef4444"
 
         html = f"""
 <!DOCTYPE html>
@@ -481,9 +457,7 @@ class ComprehensiveTestSuite:
             framework_display = framework_name.replace("_", " ").title()
             framework_pass_rate = results.get("summary", {}).get("pass_rate", 0)
             framework_color = (
-                "#10b981"
-                if framework_pass_rate >= 95
-                else "#f59e0b" if framework_pass_rate >= 90 else "#ef4444"
+                "#10b981" if framework_pass_rate >= 95 else "#f59e0b" if framework_pass_rate >= 90 else "#ef4444"
             )
 
             html += f"""

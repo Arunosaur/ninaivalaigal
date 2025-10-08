@@ -61,9 +61,7 @@ def test_organization_signup():
     }
 
     try:
-        response = requests.post(
-            f"{BASE_URL}/auth/signup/organization", json=signup_data
-        )
+        response = requests.post(f"{BASE_URL}/auth/signup/organization", json=signup_data)
         print(f"Status Code: {response.status_code}")
 
         if response.status_code == 200:

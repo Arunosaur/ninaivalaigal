@@ -41,8 +41,7 @@ class ConcurrentTestFramework:
                 "id": f"org-{i:03d}",
                 "name": f"Organization {i}",
                 "plan": random.choice(["free", "pro", "enterprise"]),
-                "created_at": datetime.utcnow()
-                - timedelta(days=random.randint(1, 365)),
+                "created_at": datetime.utcnow() - timedelta(days=random.randint(1, 365)),
             }
             for i in range(1, 6)  # 5 organizations
         }
@@ -59,8 +58,7 @@ class ConcurrentTestFramework:
                     "org_id": org_data["id"],
                     "plan": org_data["plan"],
                     "member_count": random.randint(3, 15),
-                    "created_at": datetime.utcnow()
-                    - timedelta(days=random.randint(1, 180)),
+                    "created_at": datetime.utcnow() - timedelta(days=random.randint(1, 180)),
                 }
 
         # Create multiple users across teams
@@ -75,14 +73,9 @@ class ConcurrentTestFramework:
                     "name": f"User {user_counter}",
                     "team_id": team_id,
                     "org_id": team_data["org_id"],
-                    "role": (
-                        "owner"
-                        if k == 0
-                        else random.choice(["admin", "member", "guest"])
-                    ),
+                    "role": ("owner" if k == 0 else random.choice(["admin", "member", "guest"])),
                     "is_active": random.choice([True, True, True, False]),  # 75% active
-                    "created_at": datetime.utcnow()
-                    - timedelta(days=random.randint(1, 90)),
+                    "created_at": datetime.utcnow() - timedelta(days=random.randint(1, 90)),
                 }
                 user_counter += 1
 
@@ -139,9 +132,7 @@ class ConcurrentUserScenarios:
                         response = self.framework.client.get(endpoint, headers=headers)
                     elif method == "POST":
                         test_data = {"test": True, "user_id": user_data["id"]}
-                        response = self.framework.client.post(
-                            endpoint, json=test_data, headers=headers
-                        )
+                        response = self.framework.client.post(endpoint, json=test_data, headers=headers)
 
                     action_duration = time.time() - action_start
 
@@ -178,38 +169,25 @@ class ConcurrentUserScenarios:
             )
 
         session_results["total_duration"] = time.time() - session_start
-        successful_actions = sum(
-            1 for action in session_results["actions"] if action["success"]
-        )
+        successful_actions = sum(1 for action in session_results["actions"] if action["success"])
         total_actions = len(session_results["actions"])
-        session_results["success_rate"] = (
-            (successful_actions / total_actions) if total_actions > 0 else 0
-        )
+        session_results["success_rate"] = (successful_actions / total_actions) if total_actions > 0 else 0
 
         return session_results
 
-    def test_concurrent_user_sessions(
-        self, num_concurrent_users: int = 20
-    ) -> List[Dict[str, Any]]:
+    def test_concurrent_user_sessions(self, num_concurrent_users: int = 20) -> List[Dict[str, Any]]:
         """Test multiple concurrent user sessions"""
         print(f"  👥 Running {num_concurrent_users} concurrent user sessions...")
 
         # Select random users for concurrent testing
-        active_users = [
-            user for user in self.framework.test_users.values() if user["is_active"]
-        ]
-        test_users = random.sample(
-            active_users, min(num_concurrent_users, len(active_users))
-        )
+        active_users = [user for user in self.framework.test_users.values() if user["is_active"]]
+        test_users = random.sample(active_users, min(num_concurrent_users, len(active_users)))
 
         concurrent_results = []
 
         with ThreadPoolExecutor(max_workers=self.framework.max_workers) as executor:
             # Submit all user sessions
-            future_to_user = {
-                executor.submit(self.simulate_user_session, user): user
-                for user in test_users
-            }
+            future_to_user = {executor.submit(self.simulate_user_session, user): user for user in test_users}
 
             # Collect results as they complete
             for future in as_completed(future_to_user):
@@ -218,9 +196,7 @@ class ConcurrentUserScenarios:
                     result = future.result()
                     concurrent_results.append(result)
                 except Exception as e:
-                    concurrent_results.append(
-                        {"user_id": user["id"], "error": str(e), "success_rate": 0}
-                    )
+                    concurrent_results.append({"user_id": user["id"], "error": str(e), "success_rate": 0})
 
         return concurrent_results
 
@@ -231,9 +207,7 @@ class ConcurrentBillingScenarios:
     def __init__(self, framework: ConcurrentTestFramework):
         self.framework = framework
 
-    def simulate_billing_operation(
-        self, team_data: Dict[str, Any], operation: str
-    ) -> Dict[str, Any]:
+    def simulate_billing_operation(self, team_data: Dict[str, Any], operation: str) -> Dict[str, Any]:
         """Simulate billing operations for a team"""
         operation_start = time.time()
         result = {
@@ -265,19 +239,13 @@ class ConcurrentBillingScenarios:
                 data = {
                     "team_id": team_data["id"],
                     "billing_period_start": datetime.utcnow().strftime("%Y-%m-%d"),
-                    "billing_period_end": (
-                        datetime.utcnow() + timedelta(days=30)
-                    ).strftime("%Y-%m-%d"),
+                    "billing_period_end": (datetime.utcnow() + timedelta(days=30)).strftime("%Y-%m-%d"),
                 }
-                response = self.framework.client.post(
-                    "/invoicing/generate", json=data, headers=headers
-                )
+                response = self.framework.client.post("/invoicing/generate", json=data, headers=headers)
 
             elif operation == "process_payment":
                 data = {"team_id": team_data["id"], "amount": 2900, "currency": "usd"}
-                response = self.framework.client.post(
-                    "/billing-console/process-payment", json=data, headers=headers
-                )
+                response = self.framework.client.post("/billing-console/process-payment", json=data, headers=headers)
 
             else:
                 raise ValueError(f"Unknown operation: {operation}")
@@ -291,9 +259,7 @@ class ConcurrentBillingScenarios:
         result["duration"] = time.time() - operation_start
         return result
 
-    def test_concurrent_billing_operations(
-        self, num_operations: int = 15
-    ) -> List[Dict[str, Any]]:
+    def test_concurrent_billing_operations(self, num_operations: int = 15) -> List[Dict[str, Any]]:
         """Test concurrent billing operations across multiple teams"""
         print(f"  💳 Running {num_operations} concurrent billing operations...")
 
@@ -309,9 +275,7 @@ class ConcurrentBillingScenarios:
 
             for i, team in enumerate(test_teams):
                 operation = operations[i % len(operations)]
-                future = executor.submit(
-                    self.simulate_billing_operation, team, operation
-                )
+                future = executor.submit(self.simulate_billing_operation, team, operation)
                 future_to_operation[future] = (team, operation)
 
             # Collect results
@@ -339,9 +303,7 @@ class ConcurrentAnalyticsScenarios:
     def __init__(self, framework: ConcurrentTestFramework):
         self.framework = framework
 
-    def simulate_analytics_query(
-        self, query_type: str, user_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def simulate_analytics_query(self, query_type: str, user_data: Dict[str, Any]) -> Dict[str, Any]:
         """Simulate analytics queries"""
         query_start = time.time()
         result = {
@@ -369,9 +331,7 @@ class ConcurrentAnalyticsScenarios:
             }
 
             if query_type in endpoints:
-                response = self.framework.client.get(
-                    endpoints[query_type], headers=headers
-                )
+                response = self.framework.client.get(endpoints[query_type], headers=headers)
                 result["success"] = response.status_code < 400
                 result["status_code"] = response.status_code
 
@@ -384,9 +344,7 @@ class ConcurrentAnalyticsScenarios:
         result["duration"] = time.time() - query_start
         return result
 
-    def test_concurrent_analytics_queries(
-        self, num_queries: int = 25
-    ) -> List[Dict[str, Any]]:
+    def test_concurrent_analytics_queries(self, num_queries: int = 25) -> List[Dict[str, Any]]:
         """Test concurrent analytics queries"""
         print(f"  📊 Running {num_queries} concurrent analytics queries...")
 
@@ -397,9 +355,7 @@ class ConcurrentAnalyticsScenarios:
             "memory_analytics",
             "team_analytics",
         ]
-        active_users = [
-            user for user in self.framework.test_users.values() if user["is_active"]
-        ]
+        active_users = [user for user in self.framework.test_users.values() if user["is_active"]]
 
         concurrent_results = []
 
@@ -410,9 +366,7 @@ class ConcurrentAnalyticsScenarios:
             for i in range(num_queries):
                 query_type = random.choice(query_types)
                 user = random.choice(active_users)
-                future = executor.submit(
-                    self.simulate_analytics_query, query_type, user
-                )
+                future = executor.submit(self.simulate_analytics_query, query_type, user)
                 future_to_query[future] = (query_type, user)
 
             # Collect results
@@ -448,9 +402,7 @@ class LoadTestingScenarios:
         requests_per_second: int = 10,
     ) -> Dict[str, Any]:
         """Run load test against specific endpoint"""
-        print(
-            f"  🔥 Load testing {endpoint} for {duration_seconds}s at {requests_per_second} RPS..."
-        )
+        print(f"  🔥 Load testing {endpoint} for {duration_seconds}s at {requests_per_second} RPS...")
 
         results = {
             "endpoint": endpoint,
@@ -477,9 +429,7 @@ class LoadTestingScenarios:
                 if method == "GET":
                     response = self.framework.client.get(endpoint, headers=headers)
                 elif method == "POST":
-                    response = self.framework.client.post(
-                        endpoint, json={"test": True}, headers=headers
-                    )
+                    response = self.framework.client.post(endpoint, json={"test": True}, headers=headers)
 
                 request_duration = time.time() - request_start
 
@@ -527,20 +477,14 @@ class LoadTestingScenarios:
         results["actual_duration"] = actual_duration
         results["throughput"] = results["total_requests"] / actual_duration
         results["success_rate"] = (
-            (results["successful_requests"] / results["total_requests"])
-            if results["total_requests"] > 0
-            else 0
+            (results["successful_requests"] / results["total_requests"]) if results["total_requests"] > 0 else 0
         )
 
         if results["response_times"]:
-            results["avg_response_time"] = sum(results["response_times"]) / len(
-                results["response_times"]
-            )
+            results["avg_response_time"] = sum(results["response_times"]) / len(results["response_times"])
             results["min_response_time"] = min(results["response_times"])
             results["max_response_time"] = max(results["response_times"])
-            results["p95_response_time"] = sorted(results["response_times"])[
-                int(len(results["response_times"]) * 0.95)
-            ]
+            results["p95_response_time"] = sorted(results["response_times"])[int(len(results["response_times"]) * 0.95)]
 
         return results
 
@@ -576,21 +520,15 @@ class ConcurrentTestRunner:
 
         # Concurrent user sessions
         print("👥 Running concurrent user session tests...")
-        results["test_results"]["user_sessions"] = (
-            self.user_scenarios.test_concurrent_user_sessions(20)
-        )
+        results["test_results"]["user_sessions"] = self.user_scenarios.test_concurrent_user_sessions(20)
 
         # Concurrent billing operations
         print("💳 Running concurrent billing tests...")
-        results["test_results"]["billing_operations"] = (
-            self.billing_scenarios.test_concurrent_billing_operations(15)
-        )
+        results["test_results"]["billing_operations"] = self.billing_scenarios.test_concurrent_billing_operations(15)
 
         # Concurrent analytics queries
         print("📊 Running concurrent analytics tests...")
-        results["test_results"]["analytics_queries"] = (
-            self.analytics_scenarios.test_concurrent_analytics_queries(25)
-        )
+        results["test_results"]["analytics_queries"] = self.analytics_scenarios.test_concurrent_analytics_queries(25)
 
         # Load testing
         print("🔥 Running load tests...")
@@ -643,44 +581,38 @@ class ConcurrentTestRunner:
         # User sessions summary
         if results["test_results"]["user_sessions"]:
             sessions = results["test_results"]["user_sessions"]
-            summary["user_sessions"]["avg_success_rate"] = sum(
-                s.get("success_rate", 0) for s in sessions
-            ) / len(sessions)
-            summary["user_sessions"]["avg_session_duration"] = sum(
-                s.get("total_duration", 0) for s in sessions
-            ) / len(sessions)
+            summary["user_sessions"]["avg_success_rate"] = sum(s.get("success_rate", 0) for s in sessions) / len(
+                sessions
+            )
+            summary["user_sessions"]["avg_session_duration"] = sum(s.get("total_duration", 0) for s in sessions) / len(
+                sessions
+            )
 
         # Billing operations summary
         if results["test_results"]["billing_operations"]:
             operations = results["test_results"]["billing_operations"]
             successful_ops = sum(1 for op in operations if op.get("success", False))
-            summary["billing_operations"]["success_rate"] = successful_ops / len(
+            summary["billing_operations"]["success_rate"] = successful_ops / len(operations)
+            summary["billing_operations"]["avg_duration"] = sum(op.get("duration", 0) for op in operations) / len(
                 operations
             )
-            summary["billing_operations"]["avg_duration"] = sum(
-                op.get("duration", 0) for op in operations
-            ) / len(operations)
 
         # Analytics queries summary
         if results["test_results"]["analytics_queries"]:
             queries = results["test_results"]["analytics_queries"]
             successful_queries = sum(1 for q in queries if q.get("success", False))
-            summary["analytics_queries"]["success_rate"] = successful_queries / len(
-                queries
-            )
-            summary["analytics_queries"]["avg_duration"] = sum(
-                q.get("duration", 0) for q in queries
-            ) / len(queries)
+            summary["analytics_queries"]["success_rate"] = successful_queries / len(queries)
+            summary["analytics_queries"]["avg_duration"] = sum(q.get("duration", 0) for q in queries) / len(queries)
 
         # Load tests summary
         if results["test_results"]["load_tests"]:
             load_tests = results["test_results"]["load_tests"]
-            summary["load_tests"]["avg_throughput"] = sum(
-                lt.get("throughput", 0) for lt in load_tests
-            ) / len(load_tests)
-            summary["load_tests"]["avg_response_time"] = sum(
-                lt.get("avg_response_time", 0) for lt in load_tests
-            ) / len(load_tests)
+            summary["load_tests"]["avg_throughput"] = sum(lt.get("throughput", 0) for lt in load_tests) / len(
+                load_tests
+            )
+            summary["load_tests"]["avg_response_time"] = sum(lt.get("avg_response_time", 0) for lt in load_tests) / len(
+                load_tests
+            )
 
         results["performance_summary"] = summary
 

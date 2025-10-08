@@ -56,9 +56,7 @@ class TestMemoryACLSystem:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/acl/check", json=check_data, headers=HEADERS, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/acl/check", json=check_data, headers=HEADERS, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("ACL check endpoint not implemented")
@@ -84,9 +82,7 @@ class TestMemoryACLSystem:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/acl/roles", json=role_data, headers=HEADERS, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/acl/roles", json=role_data, headers=HEADERS, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("ACL roles endpoint not implemented")
@@ -145,9 +141,7 @@ class TestACLPerformance:
                     "action": "read",
                 }
 
-                response = requests.post(
-                    f"{BASE_URL}/acl/check", json=check_data, headers=HEADERS, timeout=1
-                )
+                response = requests.post(f"{BASE_URL}/acl/check", json=check_data, headers=HEADERS, timeout=1)
 
                 if response.status_code == 404:
                     pytest.skip("ACL check endpoint not implemented")

@@ -89,9 +89,7 @@ class GraphIntelligenceDeployment:
                 duration_seconds=deployment_duration,
                 components=self.deployment_metrics["components_deployed"],
                 health_checks=self.deployment_metrics["health_checks_passed"],
-                operations_tested=self.deployment_metrics[
-                    "intelligence_operations_tested"
-                ],
+                operations_tested=self.deployment_metrics["intelligence_operations_tested"],
             )
 
             return {
@@ -165,15 +163,9 @@ class GraphIntelligenceDeployment:
 
         except ImportError:
             # If SPEC-061 implementation doesn't exist, create a basic one
-            logger.warning(
-                "SPEC-061 GraphReasoner not found, creating basic implementation"
-            )
-            self.graph_reasoner = BasicGraphReasoner(
-                self.redis_client, self.graph_db_client
-            )
-            self.deployment_metrics["components_deployed"].append(
-                "basic_graph_reasoner"
-            )
+            logger.warning("SPEC-061 GraphReasoner not found, creating basic implementation")
+            self.graph_reasoner = BasicGraphReasoner(self.redis_client, self.graph_db_client)
+            self.deployment_metrics["components_deployed"].append("basic_graph_reasoner")
 
     async def _deploy_optimized_intelligence(self):
         """Deploy the performance-optimized graph intelligence wrapper."""
@@ -181,9 +173,7 @@ class GraphIntelligenceDeployment:
             raise RuntimeError("Graph reasoner must be deployed first")
 
         # Use our existing performance optimization wrapper
-        self.optimized_intelligence = await create_optimized_graph_intelligence(
-            self.graph_reasoner, self.redis_client
-        )
+        self.optimized_intelligence = await create_optimized_graph_intelligence(self.graph_reasoner, self.redis_client)
 
         self.deployment_metrics["components_deployed"].append("optimized_intelligence")
         logger.info("Performance-optimized graph intelligence deployed")
@@ -220,9 +210,7 @@ class GraphIntelligenceDeployment:
         # Optimized intelligence health check
         try:
             if hasattr(self.optimized_intelligence, "health_check"):
-                stats = (
-                    await self.optimized_intelligence.get_graph_intelligence_performance_stats()
-                )
+                stats = await self.optimized_intelligence.get_graph_intelligence_performance_stats()
                 if stats:
                     health_checks.append("optimized_intelligence_operational")
         except Exception as e:
@@ -260,11 +248,9 @@ class GraphIntelligenceDeployment:
 
         # Test memory network analysis
         try:
-            network_analysis = (
-                await self.optimized_intelligence.optimized_analyze_memory_network(
-                    user_id="test_user_123",
-                    context_id="test_context_789",
-                )
+            network_analysis = await self.optimized_intelligence.optimized_analyze_memory_network(
+                user_id="test_user_123",
+                context_id="test_context_789",
             )
 
             if network_analysis:

@@ -32,9 +32,7 @@ class Mem0HttpMemoryProvider:
         if auth_secret:
             headers["Authorization"] = f"Bearer {auth_secret}"
 
-        self.client = httpx.AsyncClient(
-            base_url=self.base_url, headers=headers, timeout=self.timeout
-        )
+        self.client = httpx.AsyncClient(base_url=self.base_url, headers=headers, timeout=self.timeout)
 
     async def remember(
         self,

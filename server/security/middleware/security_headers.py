@@ -53,8 +53,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "Referrer-Policy": "strict-origin-when-cross-origin",
             # Permissions Policy (formerly Feature Policy)
             "Permissions-Policy": (
-                "geolocation=(), microphone=(), camera=(), "
-                "payment=(), usb=(), magnetometer=(), gyroscope=()"
+                "geolocation=(), microphone=(), camera=(), " "payment=(), usb=(), magnetometer=(), gyroscope=()"
             ),
             # Cross-Origin policies
             "Cross-Origin-Embedder-Policy": "require-corp",
@@ -117,9 +116,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # API endpoints should not be cached
         if path.startswith("/api/") or path.startswith("/rbac/"):
-            response.headers["Cache-Control"] = (
-                "no-store, no-cache, must-revalidate, private, max-age=0"
-            )
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private, max-age=0"
 
         # Admin endpoints get extra protection
         if path.startswith("/admin/"):
@@ -128,9 +125,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Memory endpoints (sensitive data)
         if path.startswith("/memory") or path.startswith("/contexts"):
-            response.headers["Cache-Control"] = (
-                "no-store, no-cache, must-revalidate, private, max-age=0"
-            )
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private, max-age=0"
             response.headers["X-Robots-Tag"] = "noindex, nofollow"
 
 
@@ -173,10 +168,7 @@ def get_security_headers_middleware(development_mode: bool = False):
     Returns:
         SecurityHeadersMiddleware instance
     """
-    if (
-        development_mode
-        or os.getenv("ENVIRONMENT", "production").lower() == "development"
-    ):
+    if development_mode or os.getenv("ENVIRONMENT", "production").lower() == "development":
         return DevelopmentSecurityHeaders
     else:
         return SecurityHeadersMiddleware

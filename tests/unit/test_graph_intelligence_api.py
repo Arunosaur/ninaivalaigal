@@ -116,9 +116,7 @@ class TestExplainContext:
     def test_explain_context_success(self, client, sample_explanation):
         """Test successful context explanation"""
         # Mock the graph reasoner response
-        with patch(
-            "server.graph_intelligence_api.get_graph_reasoner"
-        ) as mock_get_reasoner:
+        with patch("server.graph_intelligence_api.get_graph_reasoner") as mock_get_reasoner:
             mock_reasoner = AsyncMock()
             mock_reasoner.explain_context.return_value = sample_explanation
             mock_get_reasoner.return_value = mock_reasoner
@@ -240,9 +238,7 @@ class TestInferRelevance:
 
     @patch("server.graph_intelligence_api.get_current_user")
     @patch("server.graph_intelligence_api.get_graph_reasoner")
-    def test_infer_relevance_validation(
-        self, mock_get_reasoner, mock_get_user, client, mock_current_user
-    ):
+    def test_infer_relevance_validation(self, mock_get_reasoner, mock_get_user, client, mock_current_user):
         """Test relevance inference request validation"""
         mock_get_user.return_value = mock_current_user
 
@@ -302,9 +298,7 @@ class TestFeedbackLoop:
 
     @patch("server.graph_intelligence_api.get_current_user")
     @patch("server.graph_intelligence_api.get_graph_reasoner")
-    def test_feedback_loop_validation(
-        self, mock_get_reasoner, mock_get_user, client, mock_current_user
-    ):
+    def test_feedback_loop_validation(self, mock_get_reasoner, mock_get_user, client, mock_current_user):
         """Test feedback loop request validation"""
         mock_get_user.return_value = mock_current_user
 

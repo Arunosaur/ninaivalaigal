@@ -45,18 +45,11 @@ def load_security_config() -> SecurityConfig:
         redis_url=os.getenv("REDIS_URL"),
         fail_closed_tier_threshold=int(os.getenv("FAIL_CLOSED_TIER_THRESHOLD", "3")),
         guard_profile=os.getenv("SECURITY_GUARD_PROFILE", "edge-decompress"),
-        max_body_bytes=int(
-            os.getenv("MAX_BODY_BYTES", str(10 * 1024 * 1024))
-        ),  # 10MB default
-        enable_compression_guard=os.getenv("ENABLE_COMPRESSION_GUARD", "true").lower()
-        == "true",
-        enable_multipart_adapter=os.getenv("ENABLE_MULTIPART_ADAPTER", "true").lower()
-        == "true",
-        enable_global_scrubbing=os.getenv("ENABLE_GLOBAL_SCRUBBING", "true").lower()
-        == "true",
-        idempotency_ttl_seconds=int(
-            os.getenv("IDEMPOTENCY_TTL_SECONDS", "3600")
-        ),  # 1 hour default
+        max_body_bytes=int(os.getenv("MAX_BODY_BYTES", str(10 * 1024 * 1024))),  # 10MB default
+        enable_compression_guard=os.getenv("ENABLE_COMPRESSION_GUARD", "true").lower() == "true",
+        enable_multipart_adapter=os.getenv("ENABLE_MULTIPART_ADAPTER", "true").lower() == "true",
+        enable_global_scrubbing=os.getenv("ENABLE_GLOBAL_SCRUBBING", "true").lower() == "true",
+        idempotency_ttl_seconds=int(os.getenv("IDEMPOTENCY_TTL_SECONDS", "3600")),  # 1 hour default
     )
 
 
@@ -89,9 +82,7 @@ def validate_or_raise(cfg: SecurityConfig) -> None:
             errors.append("NINAIVALAIGAL_JWT_ISSUER required in production")
 
         if not cfg.redis_url:
-            errors.append(
-                "REDIS_URL required for distributed idempotency in production"
-            )
+            errors.append("REDIS_URL required for distributed idempotency in production")
         elif not _is_valid_redis_url(cfg.redis_url):
             errors.append("REDIS_URL must be valid redis:// or rediss:// URL")
 
@@ -107,9 +98,7 @@ def validate_or_raise(cfg: SecurityConfig) -> None:
 
         # Security guards
         if not cfg.enable_compression_guard:
-            warnings.append(
-                "ENABLE_COMPRESSION_GUARD=false reduces security in production"
-            )
+            warnings.append("ENABLE_COMPRESSION_GUARD=false reduces security in production")
 
         if not cfg.enable_global_scrubbing:
             warnings.append("ENABLE_GLOBAL_SCRUBBING=false may leak secrets in logs")
@@ -148,17 +137,13 @@ def validate_or_raise(cfg: SecurityConfig) -> None:
 
 def _is_valid_url(url: str) -> bool:
     """Validate URL format for JWKS endpoints."""
-    url_pattern = re.compile(
-        r"^https://[a-zA-Z0-9.-]+(?:\.[a-zA-Z]{2,})?(?::\d+)?(?:/[^\s]*)?$"
-    )
+    url_pattern = re.compile(r"^https://[a-zA-Z0-9.-]+(?:\.[a-zA-Z]{2,})?(?::\d+)?(?:/[^\s]*)?$")
     return bool(url_pattern.match(url))
 
 
 def _is_valid_redis_url(url: str) -> bool:
     """Validate Redis URL format."""
-    redis_pattern = re.compile(
-        r"^rediss?://(?:[^:@]+:[^@]+@)?[a-zA-Z0-9.-]+(?::\d+)?(?:/\d+)?$"
-    )
+    redis_pattern = re.compile(r"^rediss?://(?:[^:@]+:[^@]+@)?[a-zA-Z0-9.-]+(?::\d+)?(?:/\d+)?$")
     return bool(redis_pattern.match(url))
 
 
@@ -178,15 +163,11 @@ def make_health_router(cfg: SecurityConfig) -> APIRouter:
             "env": cfg.env,
             "security_config": {
                 "jwks_url_configured": bool(cfg.jwks_url),
-                "jwks_url_domain": (
-                    _extract_domain(cfg.jwks_url) if cfg.jwks_url else None
-                ),
+                "jwks_url_domain": (_extract_domain(cfg.jwks_url) if cfg.jwks_url else None),
                 "jwt_aud_configured": bool(cfg.jwt_aud),
                 "jwt_iss_configured": bool(cfg.jwt_iss),
                 "redis_configured": bool(cfg.redis_url),
-                "redis_scheme": (
-                    _extract_scheme(cfg.redis_url) if cfg.redis_url else None
-                ),
+                "redis_scheme": (_extract_scheme(cfg.redis_url) if cfg.redis_url else None),
                 "fail_closed_tier_threshold": cfg.fail_closed_tier_threshold,
                 "guard_profile": cfg.guard_profile,
                 "max_body_mb": round(cfg.max_body_bytes / (1024 * 1024), 2),
@@ -313,9 +294,7 @@ def test_config_validator():
         "production_validation_passed": production_test_passed,
         "error_detection_passed": validation_test_passed,
         "development_validation_passed": development_test_passed,
-        "all_tests_passed": all(
-            [production_test_passed, validation_test_passed, development_test_passed]
-        ),
+        "all_tests_passed": all([production_test_passed, validation_test_passed, development_test_passed]),
     }
 
 

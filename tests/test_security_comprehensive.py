@@ -35,16 +35,12 @@ class TestSecuritySystemIntegration:
         # Test high entropy detection
         for secret in high_entropy_samples:
             entropy = calculate_entropy(secret)
-            assert (
-                entropy > 3.5
-            ), f"Secret '{secret}' should have high entropy, got {entropy}"
+            assert entropy > 3.5, f"Secret '{secret}' should have high entropy, got {entropy}"
 
         # Test low entropy detection
         for text in low_entropy_samples:
             entropy = calculate_entropy(text)
-            assert (
-                entropy < 4.5
-            ), f"Text '{text}' should have low entropy, got {entropy}"
+            assert entropy < 4.5, f"Text '{text}' should have low entropy, got {entropy}"
 
         print("✅ Entropy detection working correctly with real secrets")
 
@@ -75,9 +71,7 @@ class TestSecuritySystemIntegration:
 
             # Check if expected type is found
             found_types = [match.secret_type.value for match in matches]
-            assert (
-                expected_type in found_types
-            ), f"Expected {expected_type} in {found_types} for text: {text}"
+            assert expected_type in found_types, f"Expected {expected_type} in {found_types} for text: {text}"
 
         print("✅ Pattern-based detection working correctly")
 
@@ -101,15 +95,11 @@ class TestSecuritySystemIntegration:
 
         matches = detector.detect_all_secrets(complex_text)
 
-        assert (
-            len(matches) >= 5
-        ), f"Should detect multiple secrets, found {len(matches)}"
+        assert len(matches) >= 5, f"Should detect multiple secrets, found {len(matches)}"
 
         # Verify deduplication works
         unique_positions = set((match.start_pos, match.end_pos) for match in matches)
-        assert len(unique_positions) == len(
-            matches
-        ), "Should not have duplicate matches"
+        assert len(unique_positions) == len(matches), "Should not have duplicate matches"
 
         print(f"✅ Combined detection system found {len(matches)} secrets")
 
@@ -120,9 +110,7 @@ class TestSecuritySystemIntegration:
 
         redactor = ContextualRedactor()
 
-        test_text = (
-            "API key: sk-abc123, Email: user@company.com, Phone: +1-555-123-4567"
-        )
+        test_text = "API key: sk-abc123, Email: user@company.com, Phone: +1-555-123-4567"
 
         # Test different tiers
         tiers = [
@@ -143,9 +131,7 @@ class TestSecuritySystemIntegration:
                 ContextSensitivity.RESTRICTED,
                 ContextSensitivity.SECRETS,
             ]:
-                assert (
-                    result.total_secrets_found > 0
-                ), f"Should find secrets in tier {tier.value}"
+                assert result.total_secrets_found > 0, f"Should find secrets in tier {tier.value}"
 
         # Verify that higher tiers find more or equal secrets
         for i in range(len(results) - 1):
@@ -212,12 +198,8 @@ class TestSecuritySystemIntegration:
         for tier in ContextSensitivity:
             rules = redaction_config.get_tier_rules(tier)
             assert rules is not None, f"Tier {tier} should have rules"
-            assert hasattr(
-                rules, "allowed_patterns"
-            ), f"Tier {tier} should have allowed_patterns"
-            assert hasattr(
-                rules, "redaction_patterns"
-            ), f"Tier {tier} should have redaction_patterns"
+            assert hasattr(rules, "allowed_patterns"), f"Tier {tier} should have allowed_patterns"
+            assert hasattr(rules, "redaction_patterns"), f"Tier {tier} should have redaction_patterns"
 
         print("✅ Configuration management working correctly")
 
@@ -231,13 +213,9 @@ class TestSecuritySystemIntegration:
         # Create large text with embedded secrets
         large_text_parts = []
         for i in range(500):
-            large_text_parts.append(
-                f"Line {i}: This is normal content for line number {i}."
-            )
+            large_text_parts.append(f"Line {i}: This is normal content for line number {i}.")
             if i % 50 == 0:  # Add secrets every 50 lines
-                large_text_parts.append(
-                    f"SECRET_{i}=sk-{i:04d}567890abcdef1234567890abcdef12345678"
-                )
+                large_text_parts.append(f"SECRET_{i}=sk-{i:04d}567890abcdef1234567890abcdef12345678")
 
         large_text = "\n".join(large_text_parts)
 
@@ -250,16 +228,12 @@ class TestSecuritySystemIntegration:
         processing_time = (end_time - start_time) * 1000  # milliseconds
 
         assert result.total_secrets_found >= 5, "Should find embedded secrets"
-        assert (
-            processing_time < 3000
-        ), f"Should process in <3s, took {processing_time:.2f}ms"
+        assert processing_time < 3000, f"Should process in <3s, took {processing_time:.2f}ms"
 
         # Verify secrets were redacted
         assert "sk-0000567890abcdef" not in result.redacted_text
 
-        print(
-            f"✅ Performance test passed - processed {len(large_text)} chars in {processing_time:.2f}ms"
-        )
+        print(f"✅ Performance test passed - processed {len(large_text)} chars in {processing_time:.2f}ms")
 
     def test_unicode_and_special_characters(self):
         """Test handling of unicode and special characters"""
@@ -303,9 +277,7 @@ class TestSecuritySystemIntegration:
         assert result.total_secrets_found == 0
 
         # Test very long single line
-        long_line = (
-            "a" * 10000 + "sk-1234567890abcdef1234567890abcdef12345678" + "b" * 10000
-        )
+        long_line = "a" * 10000 + "sk-1234567890abcdef1234567890abcdef12345678" + "b" * 10000
         result = engine.redact(long_line, ContextSensitivity.CONFIDENTIAL)
         assert result.total_secrets_found > 0
 

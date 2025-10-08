@@ -120,9 +120,7 @@ def get_team_manager(db: Session = Depends(get_db)) -> StandaloneTeamManager:
     return StandaloneTeamManager(db)
 
 
-def send_team_invitation_email(
-    email: str, team_name: str, invitation_token: str, invited_by_name: str
-):
+def send_team_invitation_email(email: str, team_name: str, invitation_token: str, invited_by_name: str):
     """Send team invitation email"""
     try:
         # Email configuration (should be in environment variables)
@@ -193,11 +191,7 @@ async def create_standalone_team(
     """
     try:
         # Check if user already has a standalone team
-        existing_team = (
-            db.query(Team)
-            .filter_by(created_by_user_id=current_user.id, is_standalone=True)
-            .first()
-        )
+        existing_team = db.query(Team).filter_by(created_by_user_id=current_user.id, is_standalone=True).first()
 
         if existing_team:
             raise HTTPException(
@@ -249,11 +243,7 @@ async def get_my_team(
     team = None
 
     # Check if user created a standalone team
-    created_team = (
-        db.query(Team)
-        .filter_by(created_by_user_id=current_user.id, is_standalone=True)
-        .first()
-    )
+    created_team = db.query(Team).filter_by(created_by_user_id=current_user.id, is_standalone=True).first()
 
     if created_team:
         team = created_team
@@ -307,9 +297,7 @@ async def invite_user_to_team(
     try:
         # Check if user is a member of the team with permission to invite
         membership = (
-            db.query(TeamMembership)
-            .filter_by(team_id=team_id, user_id=current_user.id, status="active")
-            .first()
+            db.query(TeamMembership).filter_by(team_id=team_id, user_id=current_user.id, status="active").first()
         )
 
         if not membership or not membership.can_invite_members():
@@ -327,9 +315,7 @@ async def invite_user_to_team(
 
         # Check if user is already invited or a member
         existing_invitation = (
-            db.query(TeamInvitation)
-            .filter_by(team_id=team_id, email=invite_data.email, status="pending")
-            .first()
+            db.query(TeamInvitation).filter_by(team_id=team_id, email=invite_data.email, status="pending").first()
         )
 
         if existing_invitation:
@@ -342,9 +328,7 @@ async def invite_user_to_team(
         existing_user = db.query(User).filter_by(email=invite_data.email).first()
         if existing_user:
             existing_membership = (
-                db.query(TeamMembership)
-                .filter_by(team_id=team_id, user_id=existing_user.id, status="active")
-                .first()
+                db.query(TeamMembership).filter_by(team_id=team_id, user_id=existing_user.id, status="active").first()
             )
 
             if existing_membership:
@@ -451,11 +435,7 @@ async def get_team_members(
     Only team members can view the member list.
     """
     # Check if user is a member of the team
-    membership = (
-        db.query(TeamMembership)
-        .filter_by(team_id=team_id, user_id=current_user.id, status="active")
-        .first()
-    )
+    membership = db.query(TeamMembership).filter_by(team_id=team_id, user_id=current_user.id, status="active").first()
 
     if not membership:
         raise HTTPException(
@@ -499,9 +479,7 @@ async def upgrade_team_to_organization(
     try:
         # Check if user is team admin
         membership = (
-            db.query(TeamMembership)
-            .filter_by(team_id=team_id, user_id=current_user.id, status="active")
-            .first()
+            db.query(TeamMembership).filter_by(team_id=team_id, user_id=current_user.id, status="active").first()
         )
 
         if not membership or not membership.is_admin():
@@ -563,11 +541,7 @@ async def get_team_invitations(
     Only team admins can view invitations.
     """
     # Check if user is team admin
-    membership = (
-        db.query(TeamMembership)
-        .filter_by(team_id=team_id, user_id=current_user.id, status="active")
-        .first()
-    )
+    membership = db.query(TeamMembership).filter_by(team_id=team_id, user_id=current_user.id, status="active").first()
 
     if not membership or not membership.is_admin():
         raise HTTPException(

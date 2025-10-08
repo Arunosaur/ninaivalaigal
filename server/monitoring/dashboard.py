@@ -37,9 +37,7 @@ class DashboardManager:
         """Accept new WebSocket connection."""
         await websocket.accept()
         self.active_connections.append(websocket)
-        logger.info(
-            "Dashboard client connected", total_connections=len(self.active_connections)
-        )
+        logger.info("Dashboard client connected", total_connections=len(self.active_connections))
 
         # Start background task if not running
         if not self.is_running:
@@ -62,9 +60,7 @@ class DashboardManager:
         """Start background task for metrics collection."""
         if self.background_task is None or self.background_task.done():
             self.is_running = True
-            self.background_task = asyncio.create_task(
-                self._background_metrics_collector()
-            )
+            self.background_task = asyncio.create_task(self._background_metrics_collector())
             logger.info("Dashboard background updates started")
 
     def stop_background_updates(self):
@@ -117,42 +113,24 @@ class DashboardManager:
                 },
                 "api": {
                     "total_requests": stats.get("overall", {}).get("total_requests", 0),
-                    "avg_response_time_ms": stats.get("overall", {}).get(
-                        "avg_response_time_ms", 0
-                    ),
-                    "requests_per_second": stats.get("overall", {}).get(
-                        "requests_per_second", 0
-                    ),
+                    "avg_response_time_ms": stats.get("overall", {}).get("avg_response_time_ms", 0),
+                    "requests_per_second": stats.get("overall", {}).get("requests_per_second", 0),
                 },
                 "database": {
                     "pool_size": stats.get("database", {}).get("pool_size", 0),
-                    "checked_out_connections": stats.get("database", {}).get(
-                        "checked_out_connections", 0
-                    ),
-                    "connections_per_second": stats.get("database", {}).get(
-                        "connections_per_second", 0
-                    ),
+                    "checked_out_connections": stats.get("database", {}).get("checked_out_connections", 0),
+                    "connections_per_second": stats.get("database", {}).get("connections_per_second", 0),
                     "error_rate": stats.get("database", {}).get("error_rate", 0),
                 },
                 "redis": {
-                    "connected_clients": stats.get("redis", {}).get(
-                        "connected_clients", 0
-                    ),
-                    "used_memory_human": stats.get("redis", {}).get(
-                        "used_memory_human", "0B"
-                    ),
+                    "connected_clients": stats.get("redis", {}).get("connected_clients", 0),
+                    "used_memory_human": stats.get("redis", {}).get("used_memory_human", "0B"),
                     "cache_hit_rate": stats.get("redis", {}).get("cache_hit_rate", 0),
-                    "ops_per_second": stats.get("redis", {}).get(
-                        "instantaneous_ops_per_sec", 0
-                    ),
+                    "ops_per_second": stats.get("redis", {}).get("instantaneous_ops_per_sec", 0),
                 },
                 "cache": {
-                    "query_cache_keys": stats.get("query_cache", {}).get(
-                        "total_keys", 0
-                    ),
-                    "response_cache_keys": stats.get("response_cache", {}).get(
-                        "total_keys", 0
-                    ),
+                    "query_cache_keys": stats.get("query_cache", {}).get("total_keys", 0),
+                    "response_cache_keys": stats.get("response_cache", {}).get("total_keys", 0),
                 },
                 "graph": {
                     "queries_executed": stats.get("graph_optimizer", {})
@@ -161,9 +139,7 @@ class DashboardManager:
                     "avg_query_time_ms": stats.get("graph_optimizer", {})
                     .get("query_metrics", {})
                     .get("avg_query_time_ms", 0),
-                    "cache_hit_rate": stats.get("graph_optimizer", {})
-                    .get("cache_performance", {})
-                    .get("hit_rate", 0),
+                    "cache_hit_rate": stats.get("graph_optimizer", {}).get("cache_performance", {}).get("hit_rate", 0),
                 },
                 "health": await self._get_health_status(),
             }
@@ -182,12 +158,8 @@ class DashboardManager:
 
             return {
                 "overall": health.get("overall_status", "unknown"),
-                "database": health.get("components", {})
-                .get("database", {})
-                .get("status", "unknown"),
-                "redis": health.get("components", {})
-                .get("redis", {})
-                .get("status", "unknown"),
+                "database": health.get("components", {}).get("database", {}).get("status", "unknown"),
+                "redis": health.get("components", {}).get("redis", {}).get("status", "unknown"),
                 "issues": len(health.get("issues", [])),
             }
         except Exception:
@@ -257,11 +229,7 @@ class DashboardManager:
         """Get metrics history for specified time period."""
         cutoff_time = datetime.now() - timedelta(minutes=minutes)
 
-        return [
-            metric
-            for metric in self.metrics_history
-            if datetime.fromisoformat(metric["timestamp"]) > cutoff_time
-        ]
+        return [metric for metric in self.metrics_history if datetime.fromisoformat(metric["timestamp"]) > cutoff_time]
 
 
 # Global dashboard manager
@@ -375,9 +343,7 @@ async def websocket_endpoint(websocket: WebSocket):
             if data.get("type") == "get_history":
                 minutes = data.get("minutes", 60)
                 history = dashboard_manager.get_metrics_history(minutes)
-                await websocket.send_text(
-                    json.dumps({"type": "history_data", "data": history})
-                )
+                await websocket.send_text(json.dumps({"type": "history_data", "data": history}))
 
     except WebSocketDisconnect:
         dashboard_manager.disconnect(websocket)

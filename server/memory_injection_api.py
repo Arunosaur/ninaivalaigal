@@ -87,9 +87,7 @@ def get_injection_engine(
 ) -> MemoryInjectionEngine:
     """Get memory injection engine instance."""
     # In production, this would include Redis, feedback system, and suggestions system
-    return MemoryInjectionEngine(
-        db_manager=db, redis_client=None, feedback_system=None, suggestions_system=None
-    )
+    return MemoryInjectionEngine(db_manager=db, redis_client=None, feedback_system=None, suggestions_system=None)
 
 
 @router.post("/analyze", response_model=InjectionAnalysisResponse)
@@ -146,9 +144,7 @@ async def analyze_injection_opportunities(
             error=str(e),
             user_id=current_user.get("user_id"),
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to analyze injection opportunities"
-        )
+        raise HTTPException(status_code=500, detail="Failed to analyze injection opportunities")
 
 
 @router.post("/execute", response_model=InjectionExecutionResponse)
@@ -200,9 +196,7 @@ async def execute_memory_injection(
             error=str(e),
             user_id=current_user.get("user_id"),
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to execute memory injection"
-        )
+        raise HTTPException(status_code=500, detail="Failed to execute memory injection")
 
 
 @router.post("/rules", response_model=InjectionRule)
@@ -227,9 +221,7 @@ async def create_injection_rule(
             "actions": request.actions,
         }
 
-        rule = await injection_engine.create_injection_rule(
-            user_id=user_id, rule_data=rule_data
-        )
+        rule = await injection_engine.create_injection_rule(user_id=user_id, rule_data=rule_data)
 
         return rule
 
@@ -263,9 +255,7 @@ async def get_injection_rules(
             error=str(e),
             user_id=current_user.get("user_id"),
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve injection rules"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve injection rules")
 
 
 @router.get("/analytics", response_model=InjectionAnalyticsResponse)
@@ -280,9 +270,7 @@ async def get_injection_analytics(
     try:
         user_id = current_user["user_id"]
 
-        analytics = await injection_engine.get_injection_analytics(
-            user_id=user_id, days_back=days_back
-        )
+        analytics = await injection_engine.get_injection_analytics(user_id=user_id, days_back=days_back)
 
         return InjectionAnalyticsResponse(**analytics)
 
@@ -292,9 +280,7 @@ async def get_injection_analytics(
             error=str(e),
             user_id=current_user.get("user_id"),
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve injection analytics"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve injection analytics")
 
 
 @router.post("/context/{context_type}/inject")
@@ -341,12 +327,8 @@ async def inject_for_context_type(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to inject for context type", context_type=context_type, error=str(e)
-        )
-        raise HTTPException(
-            status_code=500, detail="Failed to execute context-specific injection"
-        )
+        logger.error("Failed to inject for context type", context_type=context_type, error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to execute context-specific injection")
 
 
 @router.get("/triggers")
@@ -426,6 +408,4 @@ async def get_available_triggers(
 
     except Exception as e:
         logger.error("Failed to get available triggers", error=str(e))
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve trigger information"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve trigger information")

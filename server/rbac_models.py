@@ -234,12 +234,16 @@ def assign_role(
 ):
     """Assign a role to a user in a specific scope"""
     # Check if role assignment already exists
-    existing = (db.session.query(RoleAssignment).filter(
-        RoleAssignment.user_id == user_id,
-        RoleAssignment.scope_type == scope_type,
-        RoleAssignment.scope_id == scope_id,
-        RoleAssignment.is_active is True,
-    ).first())
+    existing = (
+        db.session.query(RoleAssignment)
+        .filter(
+            RoleAssignment.user_id == user_id,
+            RoleAssignment.scope_type == scope_type,
+            RoleAssignment.scope_id == scope_id,
+            RoleAssignment.is_active is True,
+        )
+        .first()
+    )
 
     if existing:
         # Update existing assignment
@@ -265,12 +269,16 @@ def assign_role(
 
 def revoke_role(db, user_id: int, scope_type: str, scope_id: str = None):
     """Revoke a role assignment"""
-    assignment = (db.session.query(RoleAssignment).filter(
-        RoleAssignment.user_id == user_id,
-        RoleAssignment.scope_type == scope_type,
-        RoleAssignment.scope_id == scope_id,
-        RoleAssignment.is_active is True,
-    ).first())
+    assignment = (
+        db.session.query(RoleAssignment)
+        .filter(
+            RoleAssignment.user_id == user_id,
+            RoleAssignment.scope_type == scope_type,
+            RoleAssignment.scope_id == scope_id,
+            RoleAssignment.is_active is True,
+        )
+        .first()
+    )
 
     if assignment:
         assignment.is_active = False

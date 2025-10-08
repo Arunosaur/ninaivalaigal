@@ -75,12 +75,8 @@ class StandaloneTeamCreateRequest(BaseModel):
     """Request model for creating standalone team"""
 
     name: str = Field(..., min_length=1, max_length=100, description="Team name")
-    description: Optional[str] = Field(
-        None, max_length=500, description="Team description"
-    )
-    max_members: int = Field(
-        default=10, ge=1, le=100, description="Maximum team members"
-    )
+    description: Optional[str] = Field(None, max_length=500, description="Team description")
+    max_members: int = Field(default=10, ge=1, le=100, description="Maximum team members")
     billing_plan: str = Field(default="free", description="Initial billing plan")
 
 
@@ -89,9 +85,7 @@ class TeamInviteRequest(BaseModel):
 
     email: EmailStr = Field(..., description="Email address to invite")
     role: str = Field(default="contributor", description="Role for invited user")
-    message: Optional[str] = Field(
-        None, max_length=500, description="Optional invitation message"
-    )
+    message: Optional[str] = Field(None, max_length=500, description="Optional invitation message")
 
 
 class TeamMemberResponse(BaseModel):
@@ -127,12 +121,8 @@ class DiscountCodeCreateRequest(BaseModel):
     """Request model for creating discount code"""
 
     code: str = Field(..., min_length=3, max_length=50, description="Discount code")
-    percent_off: Optional[int] = Field(
-        None, ge=1, le=100, description="Percentage discount"
-    )
-    amount_off: Optional[int] = Field(
-        None, ge=1, description="Fixed amount discount in cents"
-    )
+    percent_off: Optional[int] = Field(None, ge=1, le=100, description="Percentage discount")
+    amount_off: Optional[int] = Field(None, ge=1, description="Fixed amount discount in cents")
     expires_at: Optional[datetime] = Field(None, description="Expiration date")
     usage_limit: Optional[int] = Field(None, ge=1, description="Maximum usage count")
 
@@ -177,17 +167,11 @@ class TeamCreditsResponse(BaseModel):
 class NonProfitApplicationRequest(BaseModel):
     """Request model for non-profit application"""
 
-    organization_name: str = Field(
-        ..., max_length=255, description="Non-profit organization name"
-    )
+    organization_name: str = Field(..., max_length=255, description="Non-profit organization name")
     tax_id: str = Field(..., max_length=50, description="Tax ID or EIN")
-    description: str = Field(
-        ..., max_length=1000, description="Organization description"
-    )
+    description: str = Field(..., max_length=1000, description="Organization description")
     website_url: Optional[str] = Field(None, description="Organization website")
-    documentation_urls: List[str] = Field(
-        default=[], description="Supporting documentation URLs"
-    )
+    documentation_urls: List[str] = Field(default=[], description="Supporting documentation URLs")
 
 
 class NonProfitApplicationResponse(BaseModel):
@@ -326,11 +310,7 @@ async def create_standalone_team(
 
     # Check if user can create teams (rate limiting, etc.)
     existing_teams = (
-        db.query(Team)
-        .filter(
-            Team.created_by_user_id == current_user.id, Team.is_standalone.is_(True)
-        )
-        .count()
+        db.query(Team).filter(Team.created_by_user_id == current_user.id, Team.is_standalone.is_(True)).count()
     )
 
     if existing_teams >= 5:  # Limit teams per user
@@ -374,9 +354,7 @@ async def get_standalone_team(
     """Get standalone team details"""
 
     # Check team access
-    team = (
-        db.query(Team).filter(Team.id == team_id, Team.is_standalone.is_(True)).first()
-    )
+    team = db.query(Team).filter(Team.id == team_id, Team.is_standalone.is_(True)).first()
     if not team:
         raise HTTPException(status_code=404, detail="Team not found")
 
@@ -396,9 +374,7 @@ async def get_standalone_team(
 
     # Get current member count
     current_members = (
-        db.query(TeamMembership)
-        .filter(TeamMembership.team_id == team_id, TeamMembership.status == "active")
-        .count()
+        db.query(TeamMembership).filter(TeamMembership.team_id == team_id, TeamMembership.status == "active").count()
     )
 
     return StandaloneTeamResponse(
@@ -445,9 +421,7 @@ async def invite_user_to_team(
     db.commit()
 
     # In production, send invitation email
-    invitation_url = (
-        f"https://ninaivalaigal.com/teams/join?token={invitation.invitation_token}"
-    )
+    invitation_url = f"https://ninaivalaigal.com/teams/join?token={invitation.invitation_token}"
 
     return {
         "message": "Invitation sent successfully",
@@ -481,9 +455,7 @@ async def get_team_members(
 
     # Get all team members
     members = (
-        db.query(TeamMembership)
-        .filter(TeamMembership.team_id == team_id, TeamMembership.status == "active")
-        .all()
+        db.query(TeamMembership).filter(TeamMembership.team_id == team_id, TeamMembership.status == "active").all()
     )
 
     member_responses = []
@@ -520,9 +492,7 @@ async def get_team_billing_dashboard(
         raise HTTPException(status_code=403, detail="Admin access required")
 
     # Get team details
-    team = (
-        db.query(Team).filter(Team.id == team_id, Team.is_standalone.is_(True)).first()
-    )
+    team = db.query(Team).filter(Team.id == team_id, Team.is_standalone.is_(True)).first()
     if not team:
         raise HTTPException(status_code=404, detail="Team not found")
 
@@ -539,8 +509,7 @@ async def get_team_billing_dashboard(
         current_period=usage,
         limits=plan_limits,
         usage_percentage={
-            key: round((usage.get(key, 0) / plan_limits.get(key, 1)) * 100, 1)
-            for key in plan_limits.keys()
+            key: round((usage.get(key, 0) / plan_limits.get(key, 1)) * 100, 1) for key in plan_limits.keys()
         },
         overage_charges={},
         billing_cycle_start=datetime.utcnow().replace(day=1),
@@ -549,17 +518,11 @@ async def get_team_billing_dashboard(
 
     # Get team credits
     credits = team_credits_store.get(team_id, [])
-    credit_responses = [
-        TeamCreditsResponse(**credit)
-        for credit in credits
-        if credit.get("remaining_amount", 0) > 0
-    ]
+    credit_responses = [TeamCreditsResponse(**credit) for credit in credits if credit.get("remaining_amount", 0) > 0]
 
     # Get team details for response
     current_members = (
-        db.query(TeamMembership)
-        .filter(TeamMembership.team_id == team_id, TeamMembership.status == "active")
-        .count()
+        db.query(TeamMembership).filter(TeamMembership.team_id == team_id, TeamMembership.status == "active").count()
     )
 
     team_response = StandaloneTeamResponse(
@@ -606,9 +569,7 @@ async def upgrade_team_billing_plan(
         raise HTTPException(status_code=400, detail="Invalid billing plan")
 
     # Get team
-    team = (
-        db.query(Team).filter(Team.id == team_id, Team.is_standalone.is_(True)).first()
-    )
+    team = db.query(Team).filter(Team.id == team_id, Team.is_standalone.is_(True)).first()
     if not team:
         raise HTTPException(status_code=404, detail="Team not found")
 
@@ -693,9 +654,7 @@ async def create_discount_code(
         raise HTTPException(status_code=400, detail="Discount code already exists")
 
     if not request.percent_off and not request.amount_off:
-        raise HTTPException(
-            status_code=400, detail="Either percent_off or amount_off must be specified"
-        )
+        raise HTTPException(status_code=400, detail="Either percent_off or amount_off must be specified")
 
     # Create discount code
     discount_id = str(uuid4())
@@ -771,9 +730,7 @@ async def apply_for_nonprofit_status(
 
     # Check if application already exists
     if team_id in nonprofit_applications_store:
-        raise HTTPException(
-            status_code=400, detail="Non-profit application already submitted"
-        )
+        raise HTTPException(status_code=400, detail="Non-profit application already submitted")
 
     # Create application
     application_id = str(uuid4())
@@ -797,9 +754,7 @@ async def apply_for_nonprofit_status(
     return NonProfitApplicationResponse(**application_data)
 
 
-@router.get(
-    "/admin/nonprofit-applications", response_model=List[NonProfitApplicationResponse]
-)
+@router.get("/admin/nonprofit-applications", response_model=List[NonProfitApplicationResponse])
 async def list_nonprofit_applications(
     status: Optional[str] = Query(None, description="Filter by status"),
     current_user: User = Depends(get_current_user),
@@ -832,9 +787,7 @@ async def review_nonprofit_application(
         raise HTTPException(status_code=403, detail="Admin access required")
 
     if status not in ["approved", "rejected"]:
-        raise HTTPException(
-            status_code=400, detail="Status must be 'approved' or 'rejected'"
-        )
+        raise HTTPException(status_code=400, detail="Status must be 'approved' or 'rejected'")
 
     # Find application
     application = None

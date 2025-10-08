@@ -111,9 +111,7 @@ def validate_multipart_boot_config() -> dict[str, Any]:
     except ImportError as e:
         result["valid"] = False
         result["errors"].append(f"Failed to import multipart modules: {e}")
-        result["actionable_messages"].append(
-            "Check that all multipart security modules are installed and accessible"
-        )
+        result["actionable_messages"].append("Check that all multipart security modules are installed and accessible")
         return result
 
     # Validate configuration values
@@ -122,24 +120,18 @@ def validate_multipart_boot_config() -> dict[str, Any]:
     if config_health["status"] == "degraded":
         result["valid"] = False
         result["errors"].extend(config_health.get("issues", []))
-        result["actionable_messages"].append(
-            "Fix multipart configuration limits in strict_limits_hardened.py"
-        )
+        result["actionable_messages"].append("Fix multipart configuration limits in strict_limits_hardened.py")
 
     elif config_health["status"] == "warning":
         result["warnings"].extend(config_health.get("issues", []))
-        result["actionable_messages"].append(
-            "Review multipart configuration limits for production suitability"
-        )
+        result["actionable_messages"].append("Review multipart configuration limits for production suitability")
 
     # Test basic functionality
     try:
         # Test magic byte detection
         test_result = detect_enhanced_magic_bytes(b"MZ\x90\x00")
         if not test_result.get("detected"):
-            result["warnings"].append(
-                "Magic byte detection may not be working correctly"
-            )
+            result["warnings"].append("Magic byte detection may not be working correctly")
 
         # Test UTF-8 validation
         utf8_result = require_utf8_text(b"hello world")
@@ -148,8 +140,6 @@ def validate_multipart_boot_config() -> dict[str, Any]:
 
     except Exception as e:
         result["warnings"].append(f"Multipart function test failed: {e}")
-        result["actionable_messages"].append(
-            "Run multipart security tests to verify functionality"
-        )
+        result["actionable_messages"].append("Run multipart security tests to verify functionality")
 
     return result

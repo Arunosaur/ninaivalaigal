@@ -132,13 +132,9 @@ def calculate_platform_health_score(metrics: Dict[str, Any]) -> float:
     # Mock calculation - in production, use real metrics
     user_growth_score = min(100, (metrics.get("new_signups_30d", 0) / 100) * 100)
     team_growth_score = min(100, (metrics.get("new_teams_30d", 0) / 50) * 100)
-    engagement_score = min(
-        100, (metrics.get("active_users_30d", 0) / metrics.get("total_users", 1)) * 100
-    )
+    engagement_score = min(100, (metrics.get("active_users_30d", 0) / metrics.get("total_users", 1)) * 100)
     revenue_growth_score = min(100, (metrics.get("total_revenue_30d", 0) / 10000) * 100)
-    churn_score = max(
-        0, 100 - (metrics.get("churn_rate", 0.05) * 2000)
-    )  # Lower churn = higher score
+    churn_score = max(0, 100 - (metrics.get("churn_rate", 0.05) * 2000))  # Lower churn = higher score
 
     health_score = (
         user_growth_score * weights["user_growth"]
@@ -231,9 +227,7 @@ def generate_mock_churn_analysis() -> ChurnAnalysis:
         "technical_issues": 2,
     }
 
-    at_risk_revenue: float = sum(
-        float(team["revenue_at_risk"]) for team in churn_risk_teams  # type: ignore
-    )
+    at_risk_revenue: float = sum(float(team["revenue_at_risk"]) for team in churn_risk_teams)  # type: ignore
 
     return ChurnAnalysis(
         monthly_churn_rate=0.035,
@@ -359,14 +353,10 @@ async def get_platform_overview(
         new_teams_30d = int(total_teams * 0.11)  # Mock 11% team growth
 
         # Calculate revenue (mock data)
-        total_revenue_30d = float(
-            active_teams_30d * 45.50
-        )  # Mock average revenue per team
+        total_revenue_30d = float(active_teams_30d * 45.50)  # Mock average revenue per team
 
         # Calculate average team size
-        team_memberships = (
-            db.query(TeamMembership).filter(TeamMembership.status == "active").count()
-        )
+        team_memberships = db.query(TeamMembership).filter(TeamMembership.status == "active").count()
         avg_team_size = round(team_memberships / max(total_teams, 1), 1)
 
         metrics_data = {
@@ -382,9 +372,7 @@ async def get_platform_overview(
 
         health_score = calculate_platform_health_score(metrics_data)
 
-        platform_metrics = PlatformMetrics(
-            **metrics_data, platform_health_score=health_score
-        )
+        platform_metrics = PlatformMetrics(**metrics_data, platform_health_score=health_score)
 
         # Cache the results
         platform_metrics_cache[cache_key] = {
@@ -479,8 +467,7 @@ async def get_business_intelligence(
 
     # Product metrics
     product_metrics = {
-        "feature_adoption_rate": sum(user_engagement.feature_adoption.values())
-        / len(user_engagement.feature_adoption),
+        "feature_adoption_rate": sum(user_engagement.feature_adoption.values()) / len(user_engagement.feature_adoption),
         "daily_active_users": user_engagement.daily_active_users[-1]["active_users"],
         "session_duration": user_engagement.session_duration_avg,
         "user_satisfaction": 4.2,  # Out of 5
@@ -576,9 +563,7 @@ async def get_active_alerts(
 
 
 @router.post("/alerts/acknowledge/{alert_id}")
-async def acknowledge_alert(
-    alert_id: str, current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def acknowledge_alert(alert_id: str, current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
     """Acknowledge an alert"""
 
     if not check_admin_permissions(current_user):

@@ -70,9 +70,7 @@ class QuickTester:
             response = requests.get(f"{self.fastapi_url}/contexts", timeout=10)
             if response.status_code == 200:
                 contexts = response.json()
-                print(
-                    f"✅ FastAPI: Contexts endpoint working ({len(contexts.get('contexts', []))} contexts)"
-                )
+                print(f"✅ FastAPI: Contexts endpoint working ({len(contexts.get('contexts', []))} contexts)")
 
                 # Test memory endpoint
                 response = requests.get(f"{self.fastapi_url}/memory/all", timeout=10)
@@ -80,9 +78,7 @@ class QuickTester:
                     print("✅ FastAPI: Memory endpoint working")
                     return True
                 else:
-                    print(
-                        f"❌ FastAPI: Memory endpoint failed ({response.status_code})"
-                    )
+                    print(f"❌ FastAPI: Memory endpoint failed ({response.status_code})")
                     return False
             else:
                 print(f"❌ FastAPI: Server not responding ({response.status_code})")
@@ -118,9 +114,7 @@ class QuickTester:
             return False
 
         # Test memory storage
-        result = self.run_cmd(
-            f'./client/mem0 remember "Quick test memory" --context {test_context}'
-        )
+        result = self.run_cmd(f'./client/mem0 remember "Quick test memory" --context {test_context}')
         if not result["success"]:
             print(f"❌ CLI: Memory storage failed - {result['stderr']}")
             return False
@@ -139,9 +133,7 @@ class QuickTester:
         print("🔍 Testing Shell Integration...")
 
         # Check if shell integration file exists and is sourceable
-        result = self.run_cmd(
-            "bash -c 'source client/mem0.zsh && echo \"Shell integration loaded\"'"
-        )
+        result = self.run_cmd("bash -c 'source client/mem0.zsh && echo \"Shell integration loaded\"'")
 
         if result["success"] and "loaded" in result["stdout"]:
             print("✅ Shell: Integration file working")
@@ -194,9 +186,7 @@ class EnvironmentTester:
             print("✅ Docker: PostgreSQL container running")
 
             # Test database connectivity through Docker
-            db_test = self.tester.run_cmd(
-                "docker exec mem0-postgres pg_isready -U mem0user -d mem0db"
-            )
+            db_test = self.tester.run_cmd("docker exec mem0-postgres pg_isready -U mem0user -d mem0db")
             if db_test["success"]:
                 print("✅ Docker: Database accessible")
                 return {"Docker": True}
@@ -222,9 +212,7 @@ class EnvironmentTester:
                 cwd="/Users/asrajag/Workspace/mem0",
             )
             checks["Ansible Syntax"] = ansible_syntax["success"]
-            print(
-                f"{'✅' if ansible_syntax['success'] else '❌'} Ansible: Playbook syntax"
-            )
+            print(f"{'✅' if ansible_syntax['success'] else '❌'} Ansible: Playbook syntax")
         else:
             checks["Ansible Syntax"] = True  # Skip test if not installed
             print("⏭️  Ansible: Not installed - skipping syntax check")
@@ -250,9 +238,7 @@ class EnvironmentTester:
                 }
 
         checks["Docker Compose"] = compose_config["success"]
-        print(
-            f"{'✅' if compose_config['success'] else '❌'} Docker: Compose configuration"
-        )
+        print(f"{'✅' if compose_config['success'] else '❌'} Docker: Compose configuration")
 
         # Check required files exist
         required_files = [
@@ -265,9 +251,7 @@ class EnvironmentTester:
 
         files_exist = True
         for file_path in required_files:
-            if not os.path.exists(
-                os.path.join("/Users/asrajag/Workspace/mem0", file_path)
-            ):
+            if not os.path.exists(os.path.join("/Users/asrajag/Workspace/mem0", file_path)):
                 files_exist = False
                 print(f"❌ Missing: {file_path}")
 

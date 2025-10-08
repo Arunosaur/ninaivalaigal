@@ -18,9 +18,7 @@ class RedactionEngine:
         self.detector = CombinedSecretDetector()
         self.processor = ContextualRedactor()
 
-    def redact(
-        self, text: str, sensitivity_tier: ContextSensitivity
-    ) -> RedactionResult:
+    def redact(self, text: str, sensitivity_tier: ContextSensitivity) -> RedactionResult:
         """Redact sensitive data from text"""
         # Process redaction using the contextual processor (which handles detection internally)
         return self.processor.redact(text, sensitivity_tier)

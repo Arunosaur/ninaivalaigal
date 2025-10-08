@@ -38,12 +38,7 @@ def _mask_value(v: Any) -> Any:
 def _scrub(obj: Any) -> Any:
     if isinstance(obj, dict):
         return {
-            k: (
-                "<BLOCKED>"
-                if k.lower().replace("-", "_") in BLOCKLIST_FIELDS
-                else _scrub(v)
-            )
-            for k, v in obj.items()
+            k: ("<BLOCKED>" if k.lower().replace("-", "_") in BLOCKLIST_FIELDS else _scrub(v)) for k, v in obj.items()
         }
     if isinstance(obj, list):
         return [_scrub(x) for x in obj]

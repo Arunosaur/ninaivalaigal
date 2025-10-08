@@ -76,9 +76,7 @@ class AsyncBatchProcessor:
 
         except Exception as e:
             self.stats["errors"] += 1
-            logger.error(
-                "Batch processing failed", error=str(e), batch_size=len(operations)
-            )
+            logger.error("Batch processing failed", error=str(e), batch_size=len(operations))
             raise
 
     def get_stats(self) -> Dict[str, Any]:
@@ -87,9 +85,7 @@ class AsyncBatchProcessor:
 
         if stats["batches_processed"] > 0:
             stats["avg_batch_time"] = stats["total_time"] / stats["batches_processed"]
-            stats["avg_operations_per_batch"] = (
-                stats["operations_processed"] / stats["batches_processed"]
-            )
+            stats["avg_operations_per_batch"] = stats["operations_processed"] / stats["batches_processed"]
 
         return stats
 
@@ -115,11 +111,7 @@ class AsyncCache:
         while True:
             try:
                 current_time = time.time()
-                expired_keys = [
-                    key
-                    for key, (_, expiry) in self.cache.items()
-                    if current_time > expiry
-                ]
+                expired_keys = [key for key, (_, expiry) in self.cache.items() if current_time > expiry]
 
                 for key in expired_keys:
                     del self.cache[key]
@@ -292,9 +284,7 @@ class AsyncOperationOptimizer:
             params = rate_limit_params or {}
 
             async def rate_limited_op():
-                return await self.rate_limited_operation(
-                    rate_limiter, operation, **params
-                )
+                return await self.rate_limited_operation(rate_limiter, operation, **params)
 
             operation = rate_limited_op
 
@@ -312,8 +302,7 @@ class AsyncOperationOptimizer:
             "cache_stats": {
                 "total_entries": len(self.cache.cache),
                 "cache_hit_rate": (
-                    self.metrics["cache_hits"]
-                    / max(1, self.metrics["cache_hits"] + self.metrics["cache_misses"])
+                    self.metrics["cache_hits"] / max(1, self.metrics["cache_hits"] + self.metrics["cache_misses"])
                 ),
             },
             "rate_limiters": {

@@ -89,9 +89,7 @@ def get_filtered_openapi(
                 if isinstance(operation, dict) and "tags" in operation:
                     used_tags.update(operation["tags"])
 
-        schema["tags"] = [
-            tag_info for tag_info in schema["tags"] if tag_info.get("name") in used_tags
-        ]
+        schema["tags"] = [tag_info for tag_info in schema["tags"] if tag_info.get("name") in used_tags]
 
     # Update title and version if provided
     if title:

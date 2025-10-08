@@ -25,9 +25,7 @@ class TestUserSignup:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Individual signup endpoint not implemented")
@@ -39,9 +37,7 @@ class TestUserSignup:
 
             if response.status_code in [200, 201]:
                 result = response.json()
-                assert (
-                    "access_token" in result or "token" in result
-                ), "Signup response missing access token"
+                assert "access_token" in result or "token" in result, "Signup response missing access token"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -56,9 +52,7 @@ class TestUserSignup:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/signup/organization", json=signup_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/signup/organization", json=signup_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Organization signup endpoint not implemented")
@@ -70,9 +64,7 @@ class TestUserSignup:
 
             if response.status_code in [200, 201]:
                 result = response.json()
-                assert (
-                    "access_token" in result or "token" in result
-                ), "Signup response missing access token"
+                assert "access_token" in result or "token" in result, "Signup response missing access token"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -87,17 +79,13 @@ class TestUserSignup:
 
         try:
             # First signup
-            response1 = requests.post(
-                f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5
-            )
+            response1 = requests.post(f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5)
 
             if response1.status_code == 404:
                 pytest.skip("Signup endpoint not implemented")
 
             # Second signup with same email
-            response2 = requests.post(
-                f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5
-            )
+            response2 = requests.post(f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5)
 
             # Should reject duplicate email
             assert response2.status_code in [
@@ -117,17 +105,13 @@ class TestUserSignup:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Signup endpoint not implemented")
 
             # Should reject weak password
-            assert (
-                response.status_code == 400
-            ), f"Weak password not rejected: {response.status_code}"
+            assert response.status_code == 400, f"Weak password not rejected: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -141,17 +125,13 @@ class TestUserSignup:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Signup endpoint not implemented")
 
             # Should reject invalid email
-            assert (
-                response.status_code == 400
-            ), f"Invalid email not rejected: {response.status_code}"
+            assert response.status_code == 400, f"Invalid email not rejected: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")

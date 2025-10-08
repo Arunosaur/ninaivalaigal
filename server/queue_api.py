@@ -91,26 +91,20 @@ async def enqueue_task(
             data = params.get("data", {})
 
             if not notification_type:
-                raise HTTPException(
-                    status_code=400, detail="notification_type is required"
-                )
+                raise HTTPException(status_code=400, detail="notification_type is required")
 
             job_id = enqueue_notification(user_id, notification_type, data)
 
         elif task_type == "cleanup":
             # Only allow admins to run cleanup tasks
             if not current_user.is_admin:
-                raise HTTPException(
-                    status_code=403, detail="Admin access required for cleanup tasks"
-                )
+                raise HTTPException(status_code=403, detail="Admin access required for cleanup tasks")
 
             days_old = params.get("days_old", 90)
             job_id = enqueue_cleanup_task(days_old)
 
         else:
-            raise HTTPException(
-                status_code=400, detail=f"Unknown task type: {task_type}"
-            )
+            raise HTTPException(status_code=400, detail=f"Unknown task type: {task_type}")
 
         if not job_id:
             raise HTTPException(status_code=500, detail="Failed to enqueue task")
@@ -131,9 +125,7 @@ async def enqueue_task(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Failed to enqueue task", task_type=task_request.task_type, error=str(e)
-        )
+        logger.error("Failed to enqueue task", task_type=task_request.task_type, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -189,9 +181,7 @@ async def get_queue_stats(
             for queue_stats in stats.values()
         )
 
-        return QueueStatsResponse(
-            queues=stats, total_jobs=total_jobs, healthy=queue_manager.is_connected
-        )
+        return QueueStatsResponse(queues=stats, total_jobs=total_jobs, healthy=queue_manager.is_connected)
 
     except HTTPException:
         raise
@@ -212,9 +202,7 @@ async def process_memory_async(
         job_id = enqueue_memory_processing(memory_id, text, metadata or {})
 
         if not job_id:
-            raise HTTPException(
-                status_code=500, detail="Failed to enqueue memory processing"
-            )
+            raise HTTPException(status_code=500, detail="Failed to enqueue memory processing")
 
         return {
             "job_id": job_id,
@@ -229,17 +217,13 @@ async def process_memory_async(
 
 
 @router.post("/relevance/calculate")
-async def calculate_relevance_async(
-    context_id: str | None = None, current_user: User = Depends(get_current_user)
-):
+async def calculate_relevance_async(context_id: str | None = None, current_user: User = Depends(get_current_user)):
     """Enqueue relevance calculation task (convenience endpoint)"""
     try:
         job_id = enqueue_relevance_calculation(current_user.user_id, context_id)
 
         if not job_id:
-            raise HTTPException(
-                status_code=500, detail="Failed to enqueue relevance calculation"
-            )
+            raise HTTPException(status_code=500, detail="Failed to enqueue relevance calculation")
 
         return {
             "job_id": job_id,
@@ -250,9 +234,7 @@ async def calculate_relevance_async(
         }
 
     except Exception as e:
-        logger.error(
-            "Failed to calculate relevance", user_id=current_user.user_id, error=str(e)
-        )
+        logger.error("Failed to calculate relevance", user_id=current_user.user_id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -266,14 +248,10 @@ async def queue_health(queue_manager: RedisQueueManager = Depends(get_queue_mana
             return {"status": "unhealthy", "error": stats["error"], "connected": False}
 
         # Check for any failed jobs
-        total_failed = sum(
-            queue_stats["failed_job_count"] for queue_stats in stats.values()
-        )
+        total_failed = sum(queue_stats["failed_job_count"] for queue_stats in stats.values())
 
         # Check for stuck jobs (high started count might indicate issues)
-        total_started = sum(
-            queue_stats["started_job_count"] for queue_stats in stats.values()
-        )
+        total_started = sum(queue_stats["started_job_count"] for queue_stats in stats.values())
 
         status = "healthy"
         if total_failed > 10:  # Threshold for concern

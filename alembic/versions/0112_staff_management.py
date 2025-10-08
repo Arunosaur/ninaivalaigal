@@ -42,9 +42,7 @@ def upgrade() -> None:
         sa.Column("deactivated_at", sa.TIMESTAMP),
         sa.Column("deactivated_by", postgresql.UUID(as_uuid=True)),
         sa.Column("notes", sa.Text),
-        sa.CheckConstraint(
-            "role IN ('support', 'ops', 'analyst', 'admin')", name="staff_role_check"
-        ),
+        sa.CheckConstraint("role IN ('support', 'ops', 'analyst', 'admin')", name="staff_role_check"),
     )
 
     # Create indexes for staff table
@@ -53,12 +51,8 @@ def upgrade() -> None:
     op.create_index("idx_staff_active", "staff", ["is_active"])
 
     # Create foreign key constraints
-    op.create_foreign_key(
-        "fk_staff_created_by", "staff", "staff", ["created_by"], ["id"]
-    )
-    op.create_foreign_key(
-        "fk_staff_deactivated_by", "staff", "staff", ["deactivated_by"], ["id"]
-    )
+    op.create_foreign_key("fk_staff_created_by", "staff", "staff", ["created_by"], ["id"])
+    op.create_foreign_key("fk_staff_deactivated_by", "staff", "staff", ["deactivated_by"], ["id"])
 
     # Create staff_activity_log table
     op.create_table(
@@ -85,9 +79,7 @@ def upgrade() -> None:
     op.create_index("idx_staff_activity_action", "staff_activity_log", ["action"])
 
     # Create foreign key for staff_activity_log
-    op.create_foreign_key(
-        "fk_staff_activity_staff", "staff_activity_log", "staff", ["staff_id"], ["id"]
-    )
+    op.create_foreign_key("fk_staff_activity_staff", "staff_activity_log", "staff", ["staff_id"], ["id"])
 
     # Create staff_permissions table
     op.create_table(
@@ -110,9 +102,7 @@ def upgrade() -> None:
     op.create_index("idx_staff_permissions_staff", "staff_permissions", ["staff_id"])
 
     # Create foreign keys for staff_permissions
-    op.create_foreign_key(
-        "fk_staff_permissions_staff", "staff_permissions", "staff", ["staff_id"], ["id"]
-    )
+    op.create_foreign_key("fk_staff_permissions_staff", "staff_permissions", "staff", ["staff_id"], ["id"])
     op.create_foreign_key(
         "fk_staff_permissions_granted_by",
         "staff_permissions",

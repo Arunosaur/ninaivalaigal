@@ -65,9 +65,7 @@ class RedactionMiddleware(BaseHTTPMiddleware):
         processing_time = (time.time() - start_time) * 1000
 
         # Process response body redaction if needed
-        await self._redact_response_body(
-            request, response, sensitivity_tier, processing_time
-        )
+        await self._redact_response_body(request, response, sensitivity_tier, processing_time)
 
         return response
 
@@ -75,9 +73,7 @@ class RedactionMiddleware(BaseHTTPMiddleware):
         """Check if redaction should be skipped for this path"""
         return any(skip_path in path for skip_path in self.skip_redaction)
 
-    def _get_sensitivity_tier(
-        self, path: str, rbac_context: RBACContext | None
-    ) -> ContextSensitivity:
+    def _get_sensitivity_tier(self, path: str, rbac_context: RBACContext | None) -> ContextSensitivity:
         """Determine sensitivity tier for the endpoint"""
         # Check specific endpoint mappings
         for endpoint_prefix, tier in self.redaction_endpoints.items():
@@ -98,9 +94,7 @@ class RedactionMiddleware(BaseHTTPMiddleware):
         # Default tier
         return ContextSensitivity.INTERNAL
 
-    async def _redact_request_body(
-        self, request: Request, sensitivity_tier: ContextSensitivity
-    ):
+    async def _redact_request_body(self, request: Request, sensitivity_tier: ContextSensitivity):
         """Redact sensitive data in request body"""
         # Only redact POST/PUT/PATCH requests with JSON bodies
         if request.method not in ["POST", "PUT", "PATCH"]:
@@ -145,14 +139,10 @@ class RedactionMiddleware(BaseHTTPMiddleware):
             # Log redaction failure but don't block the request
             await redaction_audit_logger.log_redaction_failure(
                 error_message=str(e),
-                user_id=getattr(
-                    getattr(request.state, "rbac_context", None), "user_id", None
-                ),
+                user_id=getattr(getattr(request.state, "rbac_context", None), "user_id", None),
                 context_data={
                     "text_length": len(body) if "body" in locals() else 0,
-                    "sensitivity_tier": (
-                        sensitivity_tier.value if sensitivity_tier else None
-                    ),
+                    "sensitivity_tier": (sensitivity_tier.value if sensitivity_tier else None),
                 },
                 request_id=getattr(request.state, "request_id", None),
             )
@@ -211,24 +201,16 @@ class RedactionMiddleware(BaseHTTPMiddleware):
 
                 # Add redaction headers for transparency
                 response.headers["X-Redaction-Applied"] = "true"
-                response.headers["X-Redaction-Count"] = str(
-                    redaction_result.total_secrets_found
-                )
+                response.headers["X-Redaction-Count"] = str(redaction_result.total_secrets_found)
 
         except Exception as e:
             # Log redaction failure but don't block the response
             await redaction_audit_logger.log_redaction_failure(
                 error_message=str(e),
-                user_id=getattr(
-                    getattr(request.state, "rbac_context", None), "user_id", None
-                ),
+                user_id=getattr(getattr(request.state, "rbac_context", None), "user_id", None),
                 context_data={
-                    "text_length": (
-                        len(response_body) if "response_body" in locals() else 0
-                    ),
-                    "sensitivity_tier": (
-                        sensitivity_tier.value if sensitivity_tier else None
-                    ),
+                    "text_length": (len(response_body) if "response_body" in locals() else 0),
+                    "sensitivity_tier": (sensitivity_tier.value if sensitivity_tier else None),
                 },
                 request_id=getattr(request.state, "request_id", None),
             )

@@ -79,9 +79,7 @@ class TestInfrastructureSmoke:
 
         try:
             response = requests.get("http://localhost:13370/health", timeout=5)
-            assert (
-                response.status_code == 200
-            ), f"Health check failed: {response.status_code}"
+            assert response.status_code == 200, f"Health check failed: {response.status_code}"
         except requests.exceptions.ConnectionError:
             pytest.skip("API server not running (expected in some contexts)")
 
@@ -110,18 +108,13 @@ class TestDatabaseSchema:
                 return
 
         # All ports failed
-        raise AssertionError(
-            f"Alembic failed to connect on all ports {ports}: "
-            f"{result.stderr.decode()}"
-        )
+        raise AssertionError(f"Alembic failed to connect on all ports {ports}: " f"{result.stderr.decode()}")
 
 
 class TestCriticalPaths:
     """Test critical application paths."""
 
-    @pytest.mark.skip(
-        reason="Requires running API server - implement when API is stable"
-    )
+    @pytest.mark.skip(reason="Requires running API server - implement when API is stable")
     def test_user_signup_endpoint_exists(self):
         """User signup endpoint must exist."""
         import requests
@@ -137,9 +130,7 @@ class TestCriticalPaths:
         # Should not be 404 (endpoint exists)
         assert response.status_code != 404
 
-    @pytest.mark.skip(
-        reason="Requires running API server - implement when API is stable"
-    )
+    @pytest.mark.skip(reason="Requires running API server - implement when API is stable")
     def test_memory_crud_endpoint_exists(self):
         """Memory CRUD endpoints must exist."""
         import requests

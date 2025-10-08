@@ -108,9 +108,7 @@ class ApacheAGEClient:
 
             except asyncpg.exceptions.DuplicateObjectError:
                 # Graph already exists
-                logger.debug(
-                    "Property graph already exists", graph_name=self.graph_name
-                )
+                logger.debug("Property graph already exists", graph_name=self.graph_name)
             except Exception as e:
                 logger.error("Failed to create graph", error=str(e))
                 raise
@@ -137,9 +135,7 @@ class ApacheAGEClient:
         # Check Redis cache first if cache_key provided
         if cache_key and self.relevance_cache:
             try:
-                cached_result = await self.relevance_cache.redis.redis.get(
-                    f"cypher:{cache_key}"
-                )
+                cached_result = await self.relevance_cache.redis.redis.get(f"cypher:{cache_key}")
                 if cached_result:
                     logger.debug("Cypher query cache hit", cache_key=cache_key)
                     return json.loads(cached_result)
@@ -188,14 +184,10 @@ class ApacheAGEClient:
                 return results
 
             except Exception as e:
-                logger.error(
-                    "Cypher query execution failed", query=cypher_query, error=str(e)
-                )
+                logger.error("Cypher query execution failed", query=cypher_query, error=str(e))
                 raise
 
-    async def create_node(
-        self, label: str, properties: dict[str, Any], node_id: str | None = None
-    ) -> GraphNode:
+    async def create_node(self, label: str, properties: dict[str, Any], node_id: str | None = None) -> GraphNode:
         """Create a new node in the property graph"""
         if not node_id:
             node_id = f"{label.lower()}_{datetime.utcnow().timestamp()}"
@@ -222,9 +214,7 @@ class ApacheAGEClient:
             properties_count=len(properties),
         )
 
-        return GraphNode(
-            id=node_id, label=label, properties=properties, created_at=datetime.utcnow()
-        )
+        return GraphNode(id=node_id, label=label, properties=properties, created_at=datetime.utcnow())
 
     async def create_edge(
         self,
@@ -239,9 +229,7 @@ class ApacheAGEClient:
             properties = {}
 
         # Add metadata
-        properties.update(
-            {"weight": weight, "created_at": datetime.utcnow().isoformat()}
-        )
+        properties.update({"weight": weight, "created_at": datetime.utcnow().isoformat()})
 
         # Build Cypher MATCH and CREATE query
         props_str = json.dumps(properties).replace('"', "'")
@@ -304,9 +292,7 @@ class ApacheAGEClient:
             cache_ttl=600,  # 10 minutes cache for connected memories
         )
 
-    async def calculate_graph_relevance(
-        self, user_id: str, memory_id: str, context_id: str | None = None
-    ) -> float:
+    async def calculate_graph_relevance(self, user_id: str, memory_id: str, context_id: str | None = None) -> float:
         """
         Calculate relevance score using graph traversal and edge weights
         Integrates with SPEC-031 relevance scoring and Redis caching
@@ -315,9 +301,7 @@ class ApacheAGEClient:
 
         # Check if we have cached relevance score
         if self.relevance_cache:
-            cached_score = await self.relevance_cache.get_score(
-                user_id, context_id or "graph", memory_id
-            )
+            cached_score = await self.relevance_cache.get_score(user_id, context_id or "graph", memory_id)
             if cached_score is not None:
                 return cached_score
 
@@ -346,9 +330,7 @@ class ApacheAGEClient:
 
         # Cache the computed score using SPEC-033 Redis integration
         if self.relevance_cache:
-            await self.relevance_cache.set_score(
-                user_id, context_id or "graph", memory_id, relevance_score, ttl=900
-            )
+            await self.relevance_cache.set_score(user_id, context_id or "graph", memory_id, relevance_score, ttl=900)
 
         logger.debug(
             "Graph relevance calculated",
@@ -386,13 +368,9 @@ class ApacheAGEClient:
         """
 
         # Execute both queries with caching
-        nodes_results = await self.execute_cypher(
-            nodes_query, cache_key=f"{cache_key}_nodes", cache_ttl=300
-        )
+        nodes_results = await self.execute_cypher(nodes_query, cache_key=f"{cache_key}_nodes", cache_ttl=300)
 
-        edges_results = await self.execute_cypher(
-            edges_query, cache_key=f"{cache_key}_edges", cache_ttl=300
-        )
+        edges_results = await self.execute_cypher(edges_query, cache_key=f"{cache_key}_edges", cache_ttl=300)
 
         return {
             "nodes": nodes_results,
@@ -466,9 +444,7 @@ async def link_memories(
     """Link two memories in the property graph"""
     client = await get_age_client()
 
-    return await client.create_edge(
-        source_memory_id, target_memory_id, relationship, weight=weight
-    )
+    return await client.create_edge(source_memory_id, target_memory_id, relationship, weight=weight)
 
 
 async def get_user_memory_graph(user_id: str) -> dict[str, Any]:

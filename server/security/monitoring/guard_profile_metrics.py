@@ -70,21 +70,15 @@ class GuardProfileCollector:
         lines = []
 
         # Counter metrics
-        lines.append(
-            "# HELP security_guard_profile_total Total security guard operations by mode and action"
-        )
+        lines.append("# HELP security_guard_profile_total Total security guard operations by mode and action")
         lines.append("# TYPE security_guard_profile_total counter")
 
         for key, count in self.counters.items():
             mode, action = key.split(":", 1)
-            lines.append(
-                f'security_guard_profile_total{{mode="{mode}",action="{action}"}} {count}'
-            )
+            lines.append(f'security_guard_profile_total{{mode="{mode}",action="{action}"}} {count}')
 
         # Duration metrics
-        lines.append(
-            "# HELP security_guard_profile_duration_ms Security guard operation duration in milliseconds"
-        )
+        lines.append("# HELP security_guard_profile_duration_ms Security guard operation duration in milliseconds")
         lines.append("# TYPE security_guard_profile_duration_ms histogram")
 
         for key, durations in self.durations.items():
@@ -132,9 +126,7 @@ class GuardProfileCollector:
                     mode_durations.extend(self.durations[key])
 
             if mode_durations:
-                mode_stats["avg_duration_ms"] = sum(mode_durations) / len(
-                    mode_durations
-                )
+                mode_stats["avg_duration_ms"] = sum(mode_durations) / len(mode_durations)
                 mode_stats["max_duration_ms"] = max(mode_durations)
 
             if mode_stats["total_events"] > 0:
@@ -149,9 +141,7 @@ _guard_profile_collector = GuardProfileCollector()
 
 def record_guard_profile(mode: GuardMode, action: str, duration_ms: float, **metadata):
     """Record a guard profile event."""
-    event = GuardProfileEvent(
-        mode=mode, action=action, duration_ms=duration_ms, metadata=metadata
-    )
+    event = GuardProfileEvent(mode=mode, action=action, duration_ms=duration_ms, metadata=metadata)
     _guard_profile_collector.record_event(event)
 
 
@@ -264,6 +254,4 @@ if __name__ == "__main__":
 
     print("\nSummary Stats:")
     for mode, stats in results["summary_stats"].items():
-        print(
-            f"{mode}: {stats['total_events']} events, {stats['avg_duration_ms']:.2f}ms avg"
-        )
+        print(f"{mode}: {stats['total_events']} events, {stats['avg_duration_ms']:.2f}ms avg")

@@ -148,23 +148,17 @@ def proxy_mcp_connection(host: str, port: int) -> None:
     finally:
         try:
             sock.close()
-        except:
+        except Exception:
             pass
 
 
 def main():
     parser = argparse.ArgumentParser(description="Universal MCP client for mem0")
     parser.add_argument("--host", help="mem0 server host (overrides discovery)")
-    parser.add_argument(
-        "--port", type=int, help="mem0 server port (overrides discovery)"
-    )
+    parser.add_argument("--port", type=int, help="mem0 server port (overrides discovery)")
     parser.add_argument("--test", action="store_true", help="Test connection and exit")
-    parser.add_argument(
-        "--config", action="store_true", help="Show current configuration"
-    )
-    parser.add_argument(
-        "--save-config", action="store_true", help="Save discovered config to file"
-    )
+    parser.add_argument("--config", action="store_true", help="Show current configuration")
+    parser.add_argument("--save-config", action="store_true", help="Save discovered config to file")
 
     args = parser.parse_args()
 
@@ -199,9 +193,7 @@ def main():
 
     # Test connection before proxying
     if not test_connection(host, port):
-        print(
-            f"Warning: mem0 server at {host}:{port} is not reachable", file=sys.stderr
-        )
+        print(f"Warning: mem0 server at {host}:{port} is not reachable", file=sys.stderr)
         print("Attempting connection anyway...", file=sys.stderr)
 
     # Proxy MCP communication

@@ -12,9 +12,7 @@ import requests
 from fastapi.testclient import TestClient
 
 # Add project root to Python path for imports
-project_root = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
@@ -153,9 +151,7 @@ def api_client():
             )
 
         def delete(self, endpoint, headers=None):
-            return requests.delete(
-                f"{self.base_url}{endpoint}", headers=headers, timeout=self.timeout
-            )
+            return requests.delete(f"{self.base_url}{endpoint}", headers=headers, timeout=self.timeout)
 
     return APIClient()
 
@@ -214,12 +210,10 @@ def extract_error_message(response):
     try:
         if response.headers.get("content-type", "").startswith("application/json"):
             data = response.json()
-            return data.get(
-                "detail", data.get("message", data.get("error", "Unknown error"))
-            )
+            return data.get("detail", data.get("message", data.get("error", "Unknown error")))
         else:
             return response.text
-    except:
+    except Exception:
         return f"HTTP {response.status_code}"
 
 
@@ -240,9 +234,7 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.security)
         if "test_rate_limiting" in item.nodeid:
             item.add_marker(pytest.mark.slow)
-        if any(
-            word in item.nodeid for word in ["test_signup", "test_login", "test_token"]
-        ):
+        if any(word in item.nodeid for word in ["test_signup", "test_login", "test_token"]):
             item.add_marker(pytest.mark.auth)
 
 

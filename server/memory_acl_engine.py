@@ -145,9 +145,7 @@ class MemoryACLEngine:
             await self.redis_client.ping()
             logger.info("Memory ACL engine initialized successfully")
         except Exception as e:
-            logger.warning(
-                "Failed to initialize memory ACL engine Redis connection", error=str(e)
-            )
+            logger.warning("Failed to initialize memory ACL engine Redis connection", error=str(e))
             # Don't raise - allow degraded operation
             self.redis_client = None
 
@@ -190,22 +188,16 @@ class MemoryACLEngine:
                     return token_access
 
             # Evaluate visibility-based access
-            visibility_access = await self._evaluate_visibility_access(
-                request, memory_acl
-            )
+            visibility_access = await self._evaluate_visibility_access(request, memory_acl)
 
             # Evaluate explicit sharing rules
             sharing_access = await self._evaluate_sharing_access(request, memory_acl)
 
             # Combine access decisions (take highest level granted)
-            final_decision = self._combine_access_decisions(
-                [visibility_access, sharing_access]
-            )
+            final_decision = self._combine_access_decisions([visibility_access, sharing_access])
 
             # Check if requested permission is satisfied
-            required_level = self.permission_requirements.get(
-                request.requested_permission, AccessLevel.ADMIN
-            )
+            required_level = self.permission_requirements.get(request.requested_permission, AccessLevel.ADMIN)
 
             if self._has_access_level(final_decision.access_level, required_level):
                 final_decision.granted = True
@@ -286,9 +278,7 @@ class MemoryACLEngine:
             )
             raise
 
-    async def update_memory_visibility(
-        self, memory_id: str, user_id: int, new_visibility: VisibilityScope
-    ) -> bool:
+    async def update_memory_visibility(self, memory_id: str, user_id: int, new_visibility: VisibilityScope) -> bool:
         """Update memory visibility (requires admin access)"""
 
         try:
@@ -356,9 +346,7 @@ class MemoryACLEngine:
             }
 
             # Remove existing share for this user
-            acl.shared_with = [
-                s for s in acl.shared_with if s.get("user_id") != share_with_user_id
-            ]
+            acl.shared_with = [s for s in acl.shared_with if s.get("user_id") != share_with_user_id]
 
             # Add new share
             acl.shared_with.append(share_config)
@@ -385,9 +373,7 @@ class MemoryACLEngine:
             )
             return False
 
-    async def revoke_memory_access(
-        self, memory_id: str, owner_id: int, revoke_user_id: int
-    ) -> bool:
+    async def revoke_memory_access(self, memory_id: str, owner_id: int, revoke_user_id: int) -> bool:
         """Revoke memory access from a user"""
 
         try:
@@ -397,9 +383,7 @@ class MemoryACLEngine:
 
             # Remove sharing rule
             original_count = len(acl.shared_with)
-            acl.shared_with = [
-                s for s in acl.shared_with if s.get("user_id") != revoke_user_id
-            ]
+            acl.shared_with = [s for s in acl.shared_with if s.get("user_id") != revoke_user_id]
 
             if len(acl.shared_with) < original_count:
                 acl.updated_at = datetime.utcnow()
@@ -438,9 +422,7 @@ class MemoryACLEngine:
             # 4. Token has appropriate permissions
 
             # For now, return simulated accessible memories
-            accessible_memories = [
-                f"memory_{user_id}_{i}" for i in range(1, min(limit + 1, 6))
-            ]
+            accessible_memories = [f"memory_{user_id}_{i}" for i in range(1, min(limit + 1, 6))]
 
             logger.debug(
                 "Retrieved accessible memories",
@@ -452,9 +434,7 @@ class MemoryACLEngine:
             return accessible_memories
 
         except Exception as e:
-            logger.error(
-                "Failed to get accessible memories", user_id=user_id, error=str(e)
-            )
+            logger.error("Failed to get accessible memories", user_id=user_id, error=str(e))
             return []
 
     async def _get_memory_acl(self, memory_id: str) -> MemoryACL | None:
@@ -515,9 +495,7 @@ class MemoryACLEngine:
                         "updated_at": acl.updated_at.isoformat(),
                     }
 
-                    await self.redis_client.setex(
-                        cache_key, self.acl_cache_ttl, json.dumps(acl_data)
-                    )
+                    await self.redis_client.setex(cache_key, self.acl_cache_ttl, json.dumps(acl_data))
                 except Exception as redis_error:
                     logger.warning("Redis cache store failed", error=str(redis_error))
 
@@ -526,13 +504,9 @@ class MemoryACLEngine:
             logger.debug("Memory ACL stored", memory_id=acl.memory_id)
 
         except Exception as e:
-            logger.error(
-                "Failed to store memory ACL", memory_id=acl.memory_id, error=str(e)
-            )
+            logger.error("Failed to store memory ACL", memory_id=acl.memory_id, error=str(e))
 
-    async def _evaluate_token_access(
-        self, request: AccessRequest, memory_acl: MemoryACL
-    ) -> AccessDecision:
+    async def _evaluate_token_access(self, request: AccessRequest, memory_acl: MemoryACL) -> AccessDecision:
         """Evaluate token-based access"""
 
         # This would check token permissions and scopes
@@ -546,9 +520,7 @@ class MemoryACLEngine:
             audit_data={"method": "token"},
         )
 
-    async def _evaluate_visibility_access(
-        self, request: AccessRequest, memory_acl: MemoryACL
-    ) -> AccessDecision:
+    async def _evaluate_visibility_access(self, request: AccessRequest, memory_acl: MemoryACL) -> AccessDecision:
         """Evaluate visibility-based access"""
 
         if memory_acl.visibility == VisibilityScope.PUBLIC:
@@ -571,9 +543,7 @@ class MemoryACLEngine:
             audit_data={"method": "visibility", "scope": memory_acl.visibility.value},
         )
 
-    async def _evaluate_sharing_access(
-        self, request: AccessRequest, memory_acl: MemoryACL
-    ) -> AccessDecision:
+    async def _evaluate_sharing_access(self, request: AccessRequest, memory_acl: MemoryACL) -> AccessDecision:
         """Evaluate explicit sharing rules"""
 
         for share in memory_acl.shared_with:
@@ -604,9 +574,7 @@ class MemoryACLEngine:
             audit_data={"method": "sharing"},
         )
 
-    def _combine_access_decisions(
-        self, decisions: list[AccessDecision]
-    ) -> AccessDecision:
+    def _combine_access_decisions(self, decisions: list[AccessDecision]) -> AccessDecision:
         """Combine multiple access decisions, taking the highest access level"""
 
         granted_decisions = [d for d in decisions if d.granted]
@@ -622,9 +590,7 @@ class MemoryACLEngine:
             )
 
         # Find highest access level
-        highest_decision = max(
-            granted_decisions, key=lambda d: list(AccessLevel).index(d.access_level)
-        )
+        highest_decision = max(granted_decisions, key=lambda d: list(AccessLevel).index(d.access_level))
 
         return AccessDecision(
             granted=True,
@@ -639,9 +605,7 @@ class MemoryACLEngine:
             },
         )
 
-    def _has_access_level(
-        self, user_level: AccessLevel, required_level: AccessLevel
-    ) -> bool:
+    def _has_access_level(self, user_level: AccessLevel, required_level: AccessLevel) -> bool:
         """Check if user access level satisfies required level"""
 
         if user_level == required_level:
@@ -650,9 +614,7 @@ class MemoryACLEngine:
         user_permissions = self.access_hierarchy.get(user_level, [])
         return required_level in user_permissions
 
-    async def _log_access_decision(
-        self, request: AccessRequest, decision: AccessDecision
-    ):
+    async def _log_access_decision(self, request: AccessRequest, decision: AccessDecision):
         """Log access decision for audit trail"""
 
         try:

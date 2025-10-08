@@ -169,9 +169,7 @@ class RedactionAuditLogger:
             redaction_applied=True,
             redaction_type="contextual_redaction",
             sensitivity_tier=(
-                ContextSensitivity(sensitivity_tier)
-                if isinstance(sensitivity_tier, str)
-                else sensitivity_tier
+                ContextSensitivity(sensitivity_tier) if isinstance(sensitivity_tier, str) else sensitivity_tier
             ),
             patterns_matched=[],
             entropy_score=None,
@@ -181,11 +179,7 @@ class RedactionAuditLogger:
             confidence_scores={},
             metadata={
                 "secrets_found": secrets_found,
-                "redaction_ratio": (
-                    len(redacted_text) / len(original_text)
-                    if len(original_text) > 0
-                    else 0
-                ),
+                "redaction_ratio": (len(redacted_text) / len(original_text) if len(original_text) > 0 else 0),
             },
         )
 
@@ -384,9 +378,7 @@ class RedactionAuditLogger:
 
         return filtered_events[:limit]
 
-    def get_redaction_statistics(
-        self, user_id: int | None = None, time_period_hours: int = 24
-    ) -> dict[str, Any]:
+    def get_redaction_statistics(self, user_id: int | None = None, time_period_hours: int = 24) -> dict[str, Any]:
         """
         Get redaction statistics for monitoring and alerting.
 
@@ -397,9 +389,7 @@ class RedactionAuditLogger:
         Returns:
             Dictionary with redaction statistics
         """
-        cutoff_time = datetime.utcnow().replace(microsecond=0) - timedelta(
-            hours=time_period_hours
-        )
+        cutoff_time = datetime.utcnow().replace(microsecond=0) - timedelta(hours=time_period_hours)
 
         events = self.get_audit_events(user_id=user_id, start_time=cutoff_time)
 
@@ -407,15 +397,9 @@ class RedactionAuditLogger:
             "total_events": len(events),
             "redactions_applied": len([e for e in events if e.redaction_applied]),
             "redactions_skipped": len([e for e in events if not e.redaction_applied]),
-            "policy_violations": len(
-                [e for e in events if e.event_type == AuditEventType.POLICY_VIOLATION]
-            ),
-            "failures": len(
-                [e for e in events if e.event_type == AuditEventType.REDACTION_FAILED]
-            ),
-            "avg_processing_time_ms": (
-                sum(e.processing_time_ms for e in events) / len(events) if events else 0
-            ),
+            "policy_violations": len([e for e in events if e.event_type == AuditEventType.POLICY_VIOLATION]),
+            "failures": len([e for e in events if e.event_type == AuditEventType.REDACTION_FAILED]),
+            "avg_processing_time_ms": (sum(e.processing_time_ms for e in events) / len(events) if events else 0),
             "patterns_detected": {},
             "sensitivity_tiers": {},
             "time_period_hours": time_period_hours,

@@ -158,9 +158,7 @@ async def detect_memory_drift(
 @router.get("/history/{memory_id}", response_model=DriftHistoryResponse)
 async def get_drift_history(
     memory_id: str,
-    limit: int = Query(
-        50, ge=1, le=1000, description="Maximum number of drift records"
-    ),
+    limit: int = Query(50, ge=1, le=1000, description="Maximum number of drift records"),
     current_user: User = Depends(get_current_user),
     drift_engine: MemoryDriftEngine = Depends(get_drift_engine_dep),
 ):
@@ -212,17 +210,13 @@ async def get_drift_history(
             user_id=current_user.id,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve drift history: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve drift history: {str(e)}")
 
 
 @router.get("/report/{memory_id}", response_model=DriftReportResponse)
 async def generate_drift_report(
     memory_id: str,
-    days_back: int = Query(
-        30, ge=1, le=365, description="Number of days to include in report"
-    ),
+    days_back: int = Query(30, ge=1, le=365, description="Number of days to include in report"),
     current_user: User = Depends(get_current_user),
     drift_engine: MemoryDriftEngine = Depends(get_drift_engine_dep),
 ):
@@ -263,9 +257,7 @@ async def generate_drift_report(
             user_id=current_user.id,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to generate drift report: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to generate drift report: {str(e)}")
 
 
 @router.post("/snapshot", response_model=SnapshotResponse)
@@ -315,9 +307,7 @@ async def create_memory_snapshot(
             user_id=current_user.id,
             error=str(e),
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create snapshot: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create snapshot: {str(e)}")
 
 
 @router.get("/stats", response_model=DriftStatsResponse)
@@ -350,12 +340,8 @@ async def get_drift_statistics(
         return stats
 
     except Exception as e:
-        logger.error(
-            "Failed to retrieve drift statistics", user_id=current_user.id, error=str(e)
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve statistics: {str(e)}"
-        )
+        logger.error("Failed to retrieve drift statistics", user_id=current_user.id, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve statistics: {str(e)}")
 
 
 @router.get("/system-status")

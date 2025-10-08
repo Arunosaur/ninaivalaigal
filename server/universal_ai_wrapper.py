@@ -184,11 +184,11 @@ class UniversalAIWrapper:
                         content=memory.get("data", ""),
                         context_name=memory.get("context", "unknown"),
                         relevance_score=0.7,  # Will be calculated by ranking
-                        timestamp=datetime.fromisoformat(memory.get("created_at",
-                                                                    datetime.now().isoformat())),
+                        timestamp=datetime.fromisoformat(memory.get("created_at", datetime.now().isoformat())),
                         memory_type=level,
                         source=memory.get("source", "database"),
-                    ))
+                    )
+                )
 
             return memories
 
@@ -214,10 +214,7 @@ class UniversalAIWrapper:
                 "jsonrpc": "2.0",
                 "id": 1,
                 "method": "tools/call",
-                "params": {
-                    "name": tool,
-                    "arguments": params
-                },
+                "params": {"name": tool, "arguments": params},
             }
 
             # Execute MCP server query via subprocess
@@ -403,8 +400,7 @@ class UniversalAIWrapper:
             await self._query_mcp_server(
                 "remember",
                 {
-                    "text":
-                    f"AI interaction enhanced with {len(memories)} memories for {context.language} in {context.ai_model.value}",  # noqa: E501
+                    "text": f"AI interaction enhanced with {len(memories)} memories for {context.language} in {context.ai_model.value}",  # noqa: E501
                     "context": f"ai_interactions_{context.project_context or 'default'}",
                     "metadata": interaction_data,
                 },
@@ -531,7 +527,9 @@ class MCPAIEnhancer:
             result = await self.wrapper.enhance_ai_prompt(context, original_prompt)
 
             if result["enhancement_applied"]:
-                return f"✅ Enhanced prompt with {len(result['memories_used'])} memories:\n\n{result['enhanced_prompt']}"
+                return (
+                    f"✅ Enhanced prompt with {len(result['memories_used'])} memories:\n\n{result['enhanced_prompt']}"
+                )
             else:
                 return f"ℹ️ No relevant memories found. Original prompt:\n\n{result['enhanced_prompt']}"
 

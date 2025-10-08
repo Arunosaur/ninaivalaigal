@@ -63,9 +63,7 @@ class TestScopeHierarchy:
         assert user_memories[0]["scope_id"] == "user_1"
 
         # Test team scope can access team and user memories
-        accessible_by_team = [
-            m for m in sample_memories if m["scope"] in ["team", "user"]
-        ]
+        accessible_by_team = [m for m in sample_memories if m["scope"] in ["team", "user"]]
         assert len(accessible_by_team) == 2
 
         # Test organization scope can access all memories
@@ -84,21 +82,15 @@ class TestScopeHierarchy:
 
         for token in context_tokens:
             parts = token.split("/")
-            assert (
-                len(parts) >= 2
-            ), f"Context token {token} should have at least 2 parts"
-            assert parts[0].startswith(
-                "org_"
-            ), f"First part should be organization: {parts[0]}"
+            assert len(parts) >= 2, f"Context token {token} should have at least 2 parts"
+            assert parts[0].startswith("org_"), f"First part should be organization: {parts[0]}"
 
     async def test_in_memory_scope_isolation(self, mock_scope_manager, sample_memories):
         """Test SPEC-007: In-memory scope isolation"""
 
         # Test that user scope cannot access higher-level memories directly
         user_scope_memories = [m for m in sample_memories if m["scope"] == "user"]
-        org_scope_memories = [
-            m for m in sample_memories if m["scope"] == "organization"
-        ]
+        org_scope_memories = [m for m in sample_memories if m["scope"] == "organization"]
 
         # User should only see user-scoped memories without explicit sharing
         assert len(user_scope_memories) == 1
@@ -134,10 +126,7 @@ class TestScopeHierarchy:
 
         for scenario in sharing_scenarios:
             # Simulate sharing validation
-            if (
-                scenario["from_scope"] == "user"
-                and scenario["to_scope"] == "organization"
-            ):
+            if scenario["from_scope"] == "user" and scenario["to_scope"] == "organization":
                 # Direct user-to-org sharing should be restricted
                 assert scenario["expected"] == "restricted"
             else:
@@ -187,11 +176,7 @@ class TestScopeHierarchy:
             if valid_permissions:
                 highest_permission = max(
                     valid_permissions,
-                    key=lambda x: (
-                        permission_hierarchy.index(x)
-                        if x in permission_hierarchy
-                        else -1
-                    ),
+                    key=lambda x: (permission_hierarchy.index(x) if x in permission_hierarchy else -1),
                 )
                 assert highest_permission in permission_hierarchy
 
@@ -218,9 +203,7 @@ class TestScopeHierarchy:
         for i in range(1, len(memory_states)):
             current_count = memory_states[i]["memory_count"]
             previous_count = memory_states[i - 1]["memory_count"]
-            assert (
-                current_count >= previous_count
-            ), "Memory count should not decrease unexpectedly"
+            assert current_count >= previous_count, "Memory count should not decrease unexpectedly"
 
     async def test_scope_permission_inheritance(self, mock_scope_manager):
         """Test SPEC-007: Scope permission inheritance"""
@@ -233,19 +216,13 @@ class TestScopeHierarchy:
         }
 
         for scope, permissions in hierarchy_permissions.items():
-            assert (
-                "view" in permissions
-            ), f"All scopes should have view permission: {scope}"
+            assert "view" in permissions, f"All scopes should have view permission: {scope}"
 
             if scope == "organization":
-                assert (
-                    "admin" in permissions
-                ), "Organization should have admin permissions"
+                assert "admin" in permissions, "Organization should have admin permissions"
             elif scope == "team":
                 assert "edit" in permissions, "Team should have edit permissions"
-                assert (
-                    "admin" not in permissions
-                ), "Team should not inherit admin from org"
+                assert "admin" not in permissions, "Team should not inherit admin from org"
 
     @pytest.mark.asyncio
     async def test_scope_validation_edge_cases(self, mock_scope_manager):

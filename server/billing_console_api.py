@@ -180,15 +180,11 @@ def calculate_usage_metrics(team_id: UUID, db: Session) -> UsageMetrics:
     # Get current period (this month)
     now = datetime.utcnow()
     period_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    period_end = (period_start + timedelta(days=32)).replace(day=1) - timedelta(
-        seconds=1
-    )
+    period_end = (period_start + timedelta(days=32)).replace(day=1) - timedelta(seconds=1)
 
     # Get team member count
     members_count = (
-        db.query(TeamMembership)
-        .filter(TeamMembership.team_id == team_id, TeamMembership.status == "active")
-        .count()
+        db.query(TeamMembership).filter(TeamMembership.team_id == team_id, TeamMembership.status == "active").count()
     )
 
     # Mock usage data (in production, this would come from actual usage tracking)
@@ -213,9 +209,7 @@ def calculate_usage_metrics(team_id: UUID, db: Session) -> UsageMetrics:
     )
 
 
-def get_upgrade_recommendations(
-    current_plan: str, usage: UsageMetrics
-) -> List[Dict[str, str]]:
+def get_upgrade_recommendations(current_plan: str, usage: UsageMetrics) -> List[Dict[str, str]]:
     """Generate upgrade recommendations based on usage"""
     recommendations = []
 
@@ -226,8 +220,7 @@ def get_upgrade_recommendations(
                     "type": "member_limit",
                     "title": "Team Growing Fast!",
                     "message": (
-                        f"You have {usage.members_count}/5 members. "
-                        "Upgrade to Team Pro for up to 20 members."
+                        f"You have {usage.members_count}/5 members. " "Upgrade to Team Pro for up to 20 members."
                     ),
                     "cta": "Upgrade to Team Pro",
                 }
@@ -239,8 +232,7 @@ def get_upgrade_recommendations(
                     "type": "usage_limit",
                     "title": "High AI Usage",
                     "message": (
-                        f"You've used {usage.ai_queries_count}/100 AI queries. "
-                        "Upgrade for unlimited queries."
+                        f"You've used {usage.ai_queries_count}/100 AI queries. " "Upgrade for unlimited queries."
                     ),
                     "cta": "Get Unlimited AI",
                 }
@@ -253,8 +245,7 @@ def get_upgrade_recommendations(
                     "type": "member_limit",
                     "title": "Scaling Beyond Team Pro",
                     "message": (
-                        f"You have {usage.members_count}/20 members. "
-                        "Consider Team Enterprise for 50 members."
+                        f"You have {usage.members_count}/20 members. " "Consider Team Enterprise for 50 members."
                     ),
                     "cta": "Upgrade to Enterprise",
                 }
@@ -280,8 +271,7 @@ def get_upgrade_recommendations(
                     "type": "organization_ready",
                     "title": "Ready for Organization Plan",
                     "message": (
-                        f"With {usage.members_count} members, "
-                        "you might benefit from Organization features."
+                        f"With {usage.members_count} members, " "you might benefit from Organization features."
                     ),
                     "cta": "Explore Organization Plan",
                 }
@@ -311,9 +301,7 @@ async def get_billing_dashboard(
     # Determine current plan (simplified - in production, this would be stored)
     member_count = (
         db.query(TeamMembership)
-        .filter(
-            TeamMembership.team_id == user_team.id, TeamMembership.status == "active"
-        )
+        .filter(TeamMembership.team_id == user_team.id, TeamMembership.status == "active")
         .count()
     )
 
@@ -330,9 +318,7 @@ async def get_billing_dashboard(
     usage_metrics = calculate_usage_metrics(user_team.id, db)
 
     # Get upgrade recommendations
-    upgrade_recommendations = get_upgrade_recommendations(
-        current_plan.id, usage_metrics
-    )
+    upgrade_recommendations = get_upgrade_recommendations(current_plan.id, usage_metrics)
 
     # Mock billing data (in production, this would come from Stripe)
     next_billing_date = datetime.utcnow() + timedelta(days=30)
@@ -364,9 +350,7 @@ async def create_subscription(
     # Verify user is admin
     membership = team_manager.get_team_membership(user_team.id, current_user.id, db)
     if not membership or membership.role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Only team admins can manage billing"
-        )
+        raise HTTPException(status_code=403, detail="Only team admins can manage billing")
 
     # Get the selected plan
     plan = BILLING_PLANS.get(subscription_data.plan_id)
@@ -382,23 +366,17 @@ async def create_subscription(
         )
 
         # Attach payment method
-        stripe.PaymentMethod.attach(
-            subscription_data.payment_method_id, customer=customer.id
-        )
+        stripe.PaymentMethod.attach(subscription_data.payment_method_id, customer=customer.id)
 
         # Set as default payment method
         stripe.Customer.modify(
             customer.id,
-            invoice_settings={
-                "default_payment_method": subscription_data.payment_method_id
-            },
+            invoice_settings={"default_payment_method": subscription_data.payment_method_id},
         )
 
         # Get the appropriate price ID
         price_id = (
-            plan.stripe_price_id_yearly
-            if subscription_data.billing_cycle == "yearly"
-            else plan.stripe_price_id_monthly
+            plan.stripe_price_id_yearly if subscription_data.billing_cycle == "yearly" else plan.stripe_price_id_monthly
         )
 
         # Create subscription
@@ -423,9 +401,7 @@ async def create_subscription(
         }
 
     except stripe.error.StripeError as e:
-        raise HTTPException(
-            status_code=400, detail=f"Payment processing failed: {str(e)}"
-        )
+        raise HTTPException(status_code=400, detail=f"Payment processing failed: {str(e)}")
 
 
 @router.put("/subscription")
@@ -444,9 +420,7 @@ async def update_subscription(
     # Verify user is admin
     membership = team_manager.get_team_membership(user_team.id, current_user.id, db)
     if not membership or membership.role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Only team admins can manage billing"
-        )
+        raise HTTPException(status_code=403, detail="Only team admins can manage billing")
 
     # In production, you would:
     # 1. Get the current Stripe subscription ID from database
@@ -471,9 +445,7 @@ async def cancel_subscription(
     # Verify user is admin
     membership = team_manager.get_team_membership(user_team.id, current_user.id, db)
     if not membership or membership.role != "admin":
-        raise HTTPException(
-            status_code=403, detail="Only team admins can manage billing"
-        )
+        raise HTTPException(status_code=403, detail="Only team admins can manage billing")
 
     try:
         # In production, you would:
@@ -484,8 +456,7 @@ async def cancel_subscription(
         return {
             "success": True,
             "message": "Subscription cancelled successfully",
-            "effective_date": datetime.utcnow()
-            + timedelta(days=30),  # End of current period
+            "effective_date": datetime.utcnow() + timedelta(days=30),  # End of current period
         }
 
     except stripe.error.StripeError as e:
@@ -535,9 +506,7 @@ async def get_billing_history(
 
 
 @router.post("/webhook")
-async def stripe_webhook(
-    request: Dict[str, Any], db: Session = Depends(get_db)
-) -> Dict[str, str]:
+async def stripe_webhook(request: Dict[str, Any], db: Session = Depends(get_db)) -> Dict[str, str]:
     """Handle Stripe webhooks for billing events"""
     # In production, you would:
     # 1. Verify the webhook signature
@@ -581,10 +550,7 @@ def get_billing_upgrade_prompt(team_id: UUID, db: Session) -> Optional[Dict[str,
         return {
             "show_upgrade": True,
             "primary_recommendation": recommendations[0],
-            "usage_percentage": (
-                usage.members_count / BILLING_PLANS[current_plan].max_members
-            )
-            * 100,
+            "usage_percentage": (usage.members_count / BILLING_PLANS[current_plan].max_members) * 100,
             "current_plan": current_plan,
         }
 

@@ -73,9 +73,7 @@ def check_bidi(label: str, check_ltr: bool = False) -> bool:
         direction = unicodedata.bidirectional(cp)
         if direction == "":
             # String likely comes from a newer version of Unicode
-            raise IDNABidiError(
-                f"Unknown directionality in label {repr(label)} at position {idx}"
-            )
+            raise IDNABidiError(f"Unknown directionality in label {repr(label)} at position {idx}")
         if direction in ["R", "AL", "AN"]:
             bidi_label = True
     if not bidi_label and not check_ltr:
@@ -88,9 +86,7 @@ def check_bidi(label: str, check_ltr: bool = False) -> bool:
     elif direction == "L":
         rtl = False
     else:
-        raise IDNABidiError(
-            f"First codepoint in label {repr(label)} must be directionality L, R or AL"
-        )
+        raise IDNABidiError(f"First codepoint in label {repr(label)} must be directionality L, R or AL")
 
     valid_ending = False
     number_type: str | None = None
@@ -111,9 +107,7 @@ def check_bidi(label: str, check_ltr: bool = False) -> bool:
                 "BN",
                 "NSM",
             ]:
-                raise IDNABidiError(
-                    f"Invalid direction for codepoint at position {idx} in a right-to-left label"
-                )
+                raise IDNABidiError(f"Invalid direction for codepoint at position {idx} in a right-to-left label")
             # Bidi rule 3
             if direction in ["R", "AL", "EN", "AN"]:
                 valid_ending = True
@@ -125,15 +119,11 @@ def check_bidi(label: str, check_ltr: bool = False) -> bool:
                     number_type = direction
                 else:
                     if number_type != direction:
-                        raise IDNABidiError(
-                            "Can not mix numeral types in a right-to-left label"
-                        )
+                        raise IDNABidiError("Can not mix numeral types in a right-to-left label")
         else:
             # Bidi rule 5
             if direction not in ["L", "EN", "ES", "CS", "ET", "ON", "BN", "NSM"]:
-                raise IDNABidiError(
-                    f"Invalid direction for codepoint at position {idx} in a left-to-right label"
-                )
+                raise IDNABidiError(f"Invalid direction for codepoint at position {idx} in a left-to-right label")
             # Bidi rule 6
             if direction in ["L", "EN"]:
                 valid_ending = True
@@ -232,11 +222,7 @@ def valid_contexto(label: str, pos: int, exception: bool = False) -> bool:
         for cp in label:
             if cp == "\u30fb":
                 continue
-            if (
-                _is_script(cp, "Hiragana")
-                or _is_script(cp, "Katakana")
-                or _is_script(cp, "Han")
-            ):
+            if _is_script(cp, "Hiragana") or _is_script(cp, "Katakana") or _is_script(cp, "Han"):
                 return True
         return False
 
@@ -285,9 +271,7 @@ def check_label(label: str | bytes | bytearray) -> None:
                     f"Codepoint {_unot(cp_value)} not allowed at position {pos + 1} in {repr(label)}"
                 )
         else:
-            raise InvalidCodepoint(
-                f"Codepoint {_unot(cp_value)} at position {pos + 1} of {repr(label)} not allowed"
-            )
+            raise InvalidCodepoint(f"Codepoint {_unot(cp_value)} at position {pos + 1} of {repr(label)} not allowed")
 
     check_bidi(label)
 
@@ -340,9 +324,7 @@ def ulabel(label: str | bytes | bytearray) -> str:
     return label
 
 
-def uts46_remap(
-    domain: str, std3_rules: bool = True, transitional: bool = False
-) -> str:
+def uts46_remap(domain: str, std3_rules: bool = True, transitional: bool = False) -> str:
     """Re-map the characters in the string according to UTS46 processing."""
     from .uts46data import uts46data
 
@@ -352,11 +334,7 @@ def uts46_remap(
         code_point = ord(char)
         try:
             uts46row = uts46data[
-                (
-                    code_point
-                    if code_point < 256
-                    else bisect.bisect_left(uts46data, (code_point, "Z")) - 1
-                )
+                (code_point if code_point < 256 else bisect.bisect_left(uts46data, (code_point, "Z")) - 1)
             ]
             status = uts46row[1]
             replacement: str | None = None
@@ -369,17 +347,13 @@ def uts46_remap(
             ):
                 output += char
             elif replacement is not None and (
-                status == "M"
-                or (status == "3" and not std3_rules)
-                or (status == "D" and transitional)
+                status == "M" or (status == "3" and not std3_rules) or (status == "D" and transitional)
             ):
                 output += replacement
             elif status != "I":
                 raise IndexError()
         except IndexError:
-            raise InvalidCodepoint(
-                f"Codepoint {_unot(code_point)} not allowed at position {pos + 1} in {repr(domain)}"
-            )
+            raise InvalidCodepoint(f"Codepoint {_unot(code_point)} not allowed at position {pos + 1} in {repr(domain)}")
 
     return unicodedata.normalize("NFC", output)
 
@@ -395,9 +369,7 @@ def encode(
         try:
             s = str(s, "ascii")
         except UnicodeDecodeError:
-            raise IDNAError(
-                "should pass a unicode string to the function rather than a byte string."
-            )
+            raise IDNAError("should pass a unicode string to the function rather than a byte string.")
     if uts46:
         s = uts46_remap(s, std3_rules, transitional)
     trailing_dot = False

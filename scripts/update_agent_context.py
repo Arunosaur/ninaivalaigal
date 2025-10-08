@@ -38,15 +38,11 @@ def update_context_file(
 
         if new_additions:
             updated_tech = existing_tech + "\n" + "\n".join(new_additions)
-            content = content.replace(
-                tech_section.group(0), f"## Active Technologies\n{updated_tech}\n\n"
-            )
+            content = content.replace(tech_section.group(0), f"## Active Technologies\n{updated_tech}\n\n")
 
     # Update project structure if needed
     if new_project_type == "web" and "frontend/" not in content:
-        struct_section = re.search(
-            r"## Project Structure\n```\n(.*?)\n```", content, re.DOTALL
-        )
+        struct_section = re.search(r"## Project Structure\n```\n(.*?)\n```", content, re.DOTALL)
         if struct_section:
             updated_struct = struct_section.group(1) + "\nfrontend/src/      # Web UI"
             content = re.sub(
@@ -58,9 +54,7 @@ def update_context_file(
 
     # Add new commands if language is new
     if new_lang and f"# {new_lang}" not in content:
-        commands_section = re.search(
-            r"## Commands\n```bash\n(.*?)\n```", content, re.DOTALL
-        )
+        commands_section = re.search(r"## Commands\n```bash\n(.*?)\n```", content, re.DOTALL)
         if not commands_section:
             commands_section = re.search(r"## Commands\n(.*?)\n\n", content, re.DOTALL)
 

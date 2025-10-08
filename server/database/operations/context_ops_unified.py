@@ -50,9 +50,7 @@ class UnifiedContextOps:
 
         async with self.pool.acquire() as conn:
             # Check for duplicate context names within scope
-            existing = await self._check_context_exists(
-                conn, name, scope, owner_id, team_id, organization_id
-            )
+            existing = await self._check_context_exists(conn, name, scope, owner_id, team_id, organization_id)
             if existing:
                 raise ValueError(f"Context '{name}' already exists in {scope} scope")
 
@@ -94,15 +92,11 @@ class UnifiedContextOps:
             logger.info(f"Created {scope} context '{name}' with ID {result['id']}")
             return dict(result)
 
-    async def get_context(
-        self, context_id: int, user_id: Optional[int] = None
-    ) -> Optional[Dict[str, Any]]:
+    async def get_context(self, context_id: int, user_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
         """Get context by ID with access validation"""
         async with self.pool.acquire() as conn:
             # Check user access to context
-            if user_id and not await self._check_context_access(
-                conn, context_id, user_id
-            ):
+            if user_id and not await self._check_context_access(conn, context_id, user_id):
                 return None
 
             query = """
@@ -172,9 +166,7 @@ class UnifiedContextOps:
         """Update context with permission validation"""
         async with self.pool.acquire() as conn:
             # Check write permission
-            if not await self._check_context_access(
-                conn, context_id, user_id, min_level="write"
-            ):
+            if not await self._check_context_access(conn, context_id, user_id, min_level="write"):
                 raise PermissionError("Insufficient permissions to update context")
 
             updates = []
@@ -226,9 +218,7 @@ class UnifiedContextOps:
         """Soft delete context with permission validation"""
         async with self.pool.acquire() as conn:
             # Check admin/owner permission
-            if not await self._check_context_access(
-                conn, context_id, user_id, min_level="admin"
-            ):
+            if not await self._check_context_access(conn, context_id, user_id, min_level="admin"):
                 raise PermissionError("Insufficient permissions to delete context")
 
             query = """
@@ -258,9 +248,7 @@ class UnifiedContextOps:
         """Grant permission to user, team, or organization"""
         async with self.pool.acquire() as conn:
             # Check granter has admin permission
-            if not await self._check_context_access(
-                conn, context_id, granted_by, min_level="admin"
-            ):
+            if not await self._check_context_access(conn, context_id, granted_by, min_level="admin"):
                 raise PermissionError("Insufficient permissions to grant access")
 
             return await self._grant_permission(
@@ -285,9 +273,7 @@ class UnifiedContextOps:
         """Revoke permission from user, team, or organization"""
         async with self.pool.acquire() as conn:
             # Check revoker has admin permission
-            if not await self._check_context_access(
-                conn, context_id, revoked_by, min_level="admin"
-            ):
+            if not await self._check_context_access(conn, context_id, revoked_by, min_level="admin"):
                 raise PermissionError("Insufficient permissions to revoke access")
 
             conditions = ["context_id = $1"]
@@ -318,9 +304,7 @@ class UnifiedContextOps:
             success = int(result.split()[-1]) > 0
 
             if success:
-                logger.info(
-                    f"Revoked permission on context {context_id} by user {revoked_by}"
-                )
+                logger.info(f"Revoked permission on context {context_id} by user {revoked_by}")
 
             return success
 
@@ -338,9 +322,7 @@ class UnifiedContextOps:
         """Share context with user, team, or organization"""
         async with self.pool.acquire() as conn:
             # Check sharer has write permission
-            if not await self._check_context_access(
-                conn, context_id, shared_by, min_level="write"
-            ):
+            if not await self._check_context_access(conn, context_id, shared_by, min_level="write"):
                 raise PermissionError("Insufficient permissions to share context")
 
             query = """
@@ -393,9 +375,7 @@ class UnifiedContextOps:
             )
         """
 
-        result = await conn.fetchval(
-            query, name, scope, owner_id, team_id, organization_id
-        )
+        result = await conn.fetchval(query, name, scope, owner_id, team_id, organization_id)
         return result is not None
 
     async def _check_context_access(
@@ -457,17 +437,11 @@ class UnifiedContextOps:
 
         return True
 
-    async def get_context_permissions(
-        self, context_id: int, user_id: int
-    ) -> List[Dict[str, Any]]:
+    async def get_context_permissions(self, context_id: int, user_id: int) -> List[Dict[str, Any]]:
         """Get all permissions for a context (admin only)"""
         async with self.pool.acquire() as conn:
-            if not await self._check_context_access(
-                conn, context_id, user_id, min_level="admin"
-            ):
-                raise PermissionError(
-                    "Insufficient permissions to view context permissions"
-                )
+            if not await self._check_context_access(conn, context_id, user_id, min_level="admin"):
+                raise PermissionError("Insufficient permissions to view context permissions")
 
             query = """
                 SELECT cp.*, u.username, t.name as team_name, o.name as org_name

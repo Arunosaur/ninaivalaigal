@@ -67,11 +67,7 @@ class TestRedisBenchmarks:
 
                 # Benchmark relevance score caching
                 def score_cache_operation():
-                    return asyncio.run(
-                        relevance_cache.set_score(
-                            "user_123", "context_456", "token_789", 0.85, ttl=900
-                        )
-                    )
+                    return asyncio.run(relevance_cache.set_score("user_123", "context_456", "token_789", 0.85, ttl=900))
 
                 result = benchmark(score_cache_operation)
                 assert result is not None
@@ -134,11 +130,7 @@ class TestRedisBenchmarks:
 
                 # Benchmark rate limiting check
                 def rate_limit_operation():
-                    return asyncio.run(
-                        rate_limiter.is_allowed(
-                            "user_123", "/api/memories", limit=100, window=60
-                        )
-                    )
+                    return asyncio.run(rate_limiter.is_allowed("user_123", "/api/memories", limit=100, window=60))
 
                 result = benchmark(rate_limit_operation)
                 assert result is not None
@@ -229,9 +221,7 @@ class TestRedisPerformanceMetrics:
 
             # Validate SLO: operations should complete in < 10ms
             stats = benchmark.stats
-            assert (
-                stats.mean < 0.01
-            ), f"Cache operation too slow: {stats.mean:.3f}s > 10ms SLO"
+            assert stats.mean < 0.01, f"Cache operation too slow: {stats.mean:.3f}s > 10ms SLO"
 
         except Exception as e:
             pytest.skip(f"SLO benchmark failed: {e}")
@@ -250,9 +240,7 @@ class TestRedisPerformanceMetrics:
 
             # Validate performance: cached scores should be very fast
             stats = benchmark.stats
-            assert (
-                stats.mean < 0.005
-            ), f"Relevance computation too slow: {stats.mean:.3f}s"
+            assert stats.mean < 0.005, f"Relevance computation too slow: {stats.mean:.3f}s"
             assert result == 0.85
 
         except Exception as e:

@@ -33,12 +33,8 @@ class StrictJWTConfig:
             raise ValueError(f"leeway_seconds must be 0-300, got {self.leeway_seconds}")
 
         # Validate token age limit
-        if (
-            self.max_token_age_seconds < 300 or self.max_token_age_seconds > 86400
-        ):  # 5min - 24hrs
-            raise ValueError(
-                f"max_token_age_seconds must be 300-86400, got {self.max_token_age_seconds}"
-            )
+        if self.max_token_age_seconds < 300 or self.max_token_age_seconds > 86400:  # 5min - 24hrs
+            raise ValueError(f"max_token_age_seconds must be 300-86400, got {self.max_token_age_seconds}")
 
 
 def verify_jwt_strict(
@@ -119,9 +115,7 @@ def verify_jwt_strict(
         audiences_to_check = aud if isinstance(aud, list) else [aud]
 
         # At least one audience must be in allowlist
-        valid_audiences = [
-            a for a in audiences_to_check if a in config.audience_allowlist
-        ]
+        valid_audiences = [a for a in audiences_to_check if a in config.audience_allowlist]
         if not valid_audiences:
             raise JWTValidationError(
                 f"No valid audience found. Token audiences: {audiences_to_check}, "
@@ -137,9 +131,7 @@ def verify_jwt_strict(
             raise JWTValidationError("Token missing required 'iss' claim")
 
         if iss not in config.issuer_allowlist:
-            raise JWTValidationError(
-                f"Invalid issuer '{iss}'. Allowed: {sorted(config.issuer_allowlist)}"
-            )
+            raise JWTValidationError(f"Invalid issuer '{iss}'. Allowed: {sorted(config.issuer_allowlist)}")
 
         logger.debug(f"Issuer validation passed: {iss}")
 
@@ -151,9 +143,7 @@ def verify_jwt_strict(
     if iat:
         token_age = now - int(iat)
         if token_age > config.max_token_age_seconds:
-            raise JWTValidationError(
-                f"Token too old: {token_age}s > {config.max_token_age_seconds}s max"
-            )
+            raise JWTValidationError(f"Token too old: {token_age}s > {config.max_token_age_seconds}s max")
         if token_age < -config.leeway_seconds:  # Token from future
             raise JWTValidationError(f"Token issued in future: iat={iat}, now={now}")
 
@@ -161,9 +151,7 @@ def verify_jwt_strict(
     nbf = claims.get("nbf")
     if nbf is not None:
         if now + config.leeway_seconds < int(nbf):
-            raise JWTValidationError(
-                f"Token not yet valid: nbf={nbf}, now={now}, leeway={config.leeway_seconds}"
-            )
+            raise JWTValidationError(f"Token not yet valid: nbf={nbf}, now={now}, leeway={config.leeway_seconds}")
     elif config.require_nbf:
         raise JWTValidationError("Token missing required 'nbf' claim")
 
@@ -175,9 +163,7 @@ def verify_jwt_strict(
         raise JWTValidationError("Token missing or invalid 'sub' claim")
 
     # Check for suspicious subject patterns
-    if any(
-        pattern in sub.lower() for pattern in ["admin", "root", "system", "service"]
-    ):
+    if any(pattern in sub.lower() for pattern in ["admin", "root", "system", "service"]):
         logger.warning(f"Privileged subject detected: {sub}")
 
     # Validate JWT ID if required
@@ -191,10 +177,7 @@ def verify_jwt_strict(
     # Step 6: Validate claim structure
     _validate_claim_security(claims)
 
-    logger.info(
-        f"Strict JWT validation completed successfully for sub={sub} "
-        f"in {time.time() - start_time:.3f}s"
-    )
+    logger.info(f"Strict JWT validation completed successfully for sub={sub} " f"in {time.time() - start_time:.3f}s")
 
     return claims
 
@@ -214,9 +197,7 @@ def _validate_claim_security(claims: dict[str, Any]) -> None:
     roles = claims.get("roles", [])
     if isinstance(roles, list):
         privileged_roles = ["admin", "root", "superuser", "system"]
-        found_privileged = [
-            r for r in roles if isinstance(r, str) and r.lower() in privileged_roles
-        ]
+        found_privileged = [r for r in roles if isinstance(r, str) and r.lower() in privileged_roles]
         if found_privileged:
             logger.warning(f"Privileged roles detected: {found_privileged}")
 

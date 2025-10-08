@@ -91,9 +91,7 @@ class GraphMLEngine:
                 collaboration_score = graph_features.get("collaboration_strength", 0.0)
 
                 # Get historical feedback score
-                feedback_score = await self._get_feedback_score(
-                    memory["id"], context.user_id
-                )
+                feedback_score = await self._get_feedback_score(memory["id"], context.user_id)
 
                 # Combine scores using learned weights
                 relevance_score = (
@@ -101,8 +99,7 @@ class GraphMLEngine:
                     + self.feature_weights["graph_centrality"] * centrality_score
                     + self.feature_weights["temporal_relevance"] * temporal_score
                     + self.feature_weights["user_context"] * context_score
-                    + self.feature_weights["collaboration_strength"]
-                    * collaboration_score
+                    + self.feature_weights["collaboration_strength"] * collaboration_score
                     + self.feature_weights["feedback_score"] * feedback_score
                 )
 
@@ -182,12 +179,8 @@ class GraphMLEngine:
 
             # Validate model if validation data provided
             if validation_data:
-                val_features, val_labels = await self._prepare_training_data(
-                    validation_data
-                )
-                validation_results = await self._validate_model(
-                    val_features, val_labels
-                )
+                val_features, val_labels = await self._prepare_training_data(validation_data)
+                validation_results = await self._validate_model(val_features, val_labels)
                 model_results.update(validation_results)
 
             # Update model cache and metrics
@@ -196,9 +189,7 @@ class GraphMLEngine:
             self.metrics.last_training = datetime.utcnow()
             self.metrics.model_version = f"1.0.{int(datetime.utcnow().timestamp())}"
 
-            logger.info(
-                f"Training completed. Accuracy: {self.metrics.model_accuracy:.3f}"
-            )
+            logger.info(f"Training completed. Accuracy: {self.metrics.model_accuracy:.3f}")
 
             return model_results
 
@@ -235,18 +226,14 @@ class GraphMLEngine:
 
             for candidate_id in candidate_memories:
                 # Extract features for memory pair
-                pair_features = await self._extract_pair_features(
-                    memory_id, candidate_id, context
-                )
+                pair_features = await self._extract_pair_features(memory_id, candidate_id, context)
 
                 # Predict relationship using trained model
                 prediction_result = await self._predict_with_model(model, pair_features)
 
                 if prediction_result["confidence"] >= threshold:
                     # Generate supporting evidence
-                    evidence = await self._generate_relationship_evidence(
-                        memory_id, candidate_id, pair_features
-                    )
+                    evidence = await self._generate_relationship_evidence(memory_id, candidate_id, pair_features)
 
                     # Find graph path between memories
                     graph_path = await self._find_graph_path(memory_id, candidate_id)
@@ -298,9 +285,7 @@ class GraphMLEngine:
                     continue
 
                 # Extract graph features for this memory
-                graph_features = await self._extract_memory_graph_features(
-                    memory, graph_data
-                )
+                graph_features = await self._extract_memory_graph_features(memory, graph_data)
 
                 # Optimize embedding using graph-enhanced approach
                 enhanced_embedding = await self._enhance_embedding_with_graph(
@@ -348,15 +333,11 @@ class GraphMLEngine:
             feedback_analysis = await self._analyze_feedback_patterns(feedback_batch)
 
             # Calculate weight gradients based on feedback
-            weight_gradients = await self._calculate_weight_gradients(
-                feedback_batch, feedback_analysis
-            )
+            weight_gradients = await self._calculate_weight_gradients(feedback_batch, feedback_analysis)
 
             # Update weights using gradient descent
             old_weights = self.feature_weights.copy()
-            performance_before = await self._evaluate_current_performance(
-                feedback_batch
-            )
+            performance_before = await self._evaluate_current_performance(feedback_batch)
 
             for feature, gradient in weight_gradients.items():
                 if feature in self.feature_weights:
@@ -365,9 +346,7 @@ class GraphMLEngine:
             # Normalize weights to sum to 1.0
             total_weight = sum(self.feature_weights.values())
             if total_weight > 0:
-                self.feature_weights = {
-                    k: v / total_weight for k, v in self.feature_weights.items()
-                }
+                self.feature_weights = {k: v / total_weight for k, v in self.feature_weights.items()}
 
             # Evaluate performance improvement
             performance_after = await self._evaluate_updated_performance(feedback_batch)
@@ -379,23 +358,17 @@ class GraphMLEngine:
                 performance_improvement = 0.0
                 update_reason = "Reverted due to performance decrease"
             else:
-                update_reason = (
-                    f"Improved based on {len(feedback_batch)} feedback samples"
-                )
+                update_reason = f"Improved based on {len(feedback_batch)} feedback samples"
 
             weight_update = WeightUpdate(
                 feature_weights=self.feature_weights.copy(),
-                confidence_threshold=self._calculate_confidence_threshold(
-                    feedback_analysis
-                ),
+                confidence_threshold=self._calculate_confidence_threshold(feedback_analysis),
                 learning_rate=learning_rate,
                 update_reason=update_reason,
                 performance_improvement=performance_improvement,
             )
 
-            logger.info(
-                f"Weight update: {update_reason}, improvement: {performance_improvement:.3f}"
-            )
+            logger.info(f"Weight update: {update_reason}, improvement: {performance_improvement:.3f}")
 
             return weight_update
 
@@ -409,32 +382,22 @@ class GraphMLEngine:
                 performance_improvement=0.0,
             )
 
-    async def _extract_graph_features(
-        self, memory: Dict, context: GraphContext
-    ) -> Dict[str, float]:
+    async def _extract_graph_features(self, memory: Dict, context: GraphContext) -> Dict[str, float]:
         """Extract graph-based features for a memory"""
         features = {}
 
         # Calculate centrality measures
         features["centrality"] = await self._calculate_memory_centrality(memory["id"])
-        features["clustering_coefficient"] = (
-            await self._calculate_clustering_coefficient(memory["id"])
-        )
+        features["clustering_coefficient"] = await self._calculate_clustering_coefficient(memory["id"])
 
         # Calculate collaboration strength with user's team
-        features["collaboration_strength"] = (
-            await self._calculate_collaboration_strength(memory, context.team_context)
-        )
+        features["collaboration_strength"] = await self._calculate_collaboration_strength(memory, context.team_context)
 
         # Calculate graph-based similarity to recent memories
-        features["graph_similarity"] = await self._calculate_graph_similarity(
-            memory["id"], context.recent_memories
-        )
+        features["graph_similarity"] = await self._calculate_graph_similarity(memory["id"], context.recent_memories)
 
         # Calculate expertise alignment
-        features["expertise_alignment"] = await self._calculate_expertise_alignment(
-            memory, context.expertise_areas
-        )
+        features["expertise_alignment"] = await self._calculate_expertise_alignment(memory, context.expertise_areas)
 
         return features
 
@@ -454,9 +417,7 @@ class GraphMLEngine:
 
         return intersection / union if union > 0 else 0.0
 
-    def _calculate_temporal_relevance(
-        self, memory: Dict, context: GraphContext
-    ) -> float:
+    def _calculate_temporal_relevance(self, memory: Dict, context: GraphContext) -> float:
         """Calculate temporal relevance based on memory age and access patterns"""
         created_at = memory.get("created_at")
         if not created_at:
@@ -474,9 +435,7 @@ class GraphMLEngine:
         access_score = 0.5  # Default
         if last_accessed:
             if isinstance(last_accessed, str):
-                last_accessed = datetime.fromisoformat(
-                    last_accessed.replace("Z", "+00:00")
-                )
+                last_accessed = datetime.fromisoformat(last_accessed.replace("Z", "+00:00"))
             days_since_access = (datetime.utcnow() - last_accessed).days
             access_score = max(0, 1 - (days_since_access / 30))  # Decay over 30 days
 
@@ -489,9 +448,7 @@ class GraphMLEngine:
 
         # Calculate variance - lower variance means higher confidence
         mean_score = sum(feature_scores) / len(feature_scores)
-        variance = sum((score - mean_score) ** 2 for score in feature_scores) / len(
-            feature_scores
-        )
+        variance = sum((score - mean_score) ** 2 for score in feature_scores) / len(feature_scores)
 
         # Convert variance to confidence (inverse relationship)
         confidence = max(0, 1 - (variance * 2))  # Scale variance to 0-1 range
@@ -541,18 +498,12 @@ class GraphMLEngine:
         """Update ML performance metrics"""
         # Update processing latency (exponential moving average)
         alpha = 0.1
-        self.metrics.processing_latency_ms = (
-            alpha * processing_time + (1 - alpha) * self.metrics.processing_latency_ms
-        )
+        self.metrics.processing_latency_ms = alpha * processing_time + (1 - alpha) * self.metrics.processing_latency_ms
 
         # Update throughput (queries per second)
         if processing_time > 0:
-            current_qps = (
-                processed_count / processing_time
-            ) * 1000  # Convert ms to seconds
-            self.metrics.throughput_qps = (
-                alpha * current_qps + (1 - alpha) * self.metrics.throughput_qps
-            )
+            current_qps = (processed_count / processing_time) * 1000  # Convert ms to seconds
+            self.metrics.throughput_qps = alpha * current_qps + (1 - alpha) * self.metrics.throughput_qps
 
     async def get_ml_metrics(self) -> GraphMLMetrics:
         """Get current ML performance metrics"""

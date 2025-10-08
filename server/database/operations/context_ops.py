@@ -27,9 +27,7 @@ class ContextOps:
     def __init__(self, pool: asyncpg.Pool):
         self.pool = pool
 
-    def set_active_context(
-        self, context_name: str, user_id: int = None, scope: str = None
-    ):
+    def set_active_context(self, context_name: str, user_id: int = None, scope: str = None):
         """Set a context as active"""
         session = self.get_session()
         try:
@@ -103,16 +101,10 @@ class ContextOps:
 
         session = self.get_session()
         try:
-            context = (
-                session.query(Context)
-                .filter(Context.name == context_name, Context.owner_id == user_id)
-                .first()
-            )
+            context = session.query(Context).filter(Context.name == context_name, Context.owner_id == user_id).first()
 
             if not context:
-                raise ValueError(
-                    f"Context '{context_name}' not found or not owned by user"
-                )
+                raise ValueError(f"Context '{context_name}' not found or not owned by user")
 
             session.delete(context)
             session.commit()
@@ -145,15 +137,9 @@ class ContextOps:
         session = self.get_session()
         try:
             if user_id:
-                context = (
-                    session.query(Context)
-                    .filter(Context.owner_id == user_id, Context.is_active is True)
-                    .first()
-                )
+                context = session.query(Context).filter(Context.owner_id == user_id, Context.is_active is True).first()
             else:
-                context = (
-                    session.query(Context).filter(Context.is_active is True).first()
-                )
+                context = session.query(Context).filter(Context.is_active is True).first()
 
             return context
         except Exception as e:
@@ -167,9 +153,7 @@ class ContextOps:
         try:
             if user_id:
                 # Get contexts owned by user or shared with user
-                owned_contexts = session.query(Context).filter(
-                    Context.owner_id == user_id
-                )
+                owned_contexts = session.query(Context).filter(Context.owner_id == user_id)
 
                 # TODO: Add shared contexts logic when permissions are implemented
                 contexts = owned_contexts.all()
@@ -183,9 +167,7 @@ class ContextOps:
                     "description": ctx.description,
                     "scope": ctx.scope,
                     "is_active": ctx.is_active,
-                    "created_at": (
-                        ctx.created_at.isoformat() if ctx.created_at else None
-                    ),
+                    "created_at": (ctx.created_at.isoformat() if ctx.created_at else None),
                     "owner_id": ctx.owner_id,
                 }
                 for ctx in contexts
@@ -195,9 +177,7 @@ class ContextOps:
         finally:
             session.close()
 
-    def resolve_context(
-        self, context_name: str, user_id: int = None, scope: str = None, session=None
-    ):
+    def resolve_context(self, context_name: str, user_id: int = None, scope: str = None, session=None):
         """Resolve context based on name, user access, and scope priority"""
         should_close_session = session is None
         if session is None:
@@ -209,9 +189,7 @@ class ContextOps:
 
             if user_id:
                 # First try personal context
-                personal_context = query.filter(
-                    Context.owner_id == user_id, Context.scope == "personal"
-                ).first()
+                personal_context = query.filter(Context.owner_id == user_id, Context.scope == "personal").first()
                 if personal_context:
                     return personal_context
 
@@ -238,9 +216,7 @@ class ContextOps:
         session = self.get_session()
         try:
             if user_id:
-                contexts = (
-                    session.query(Context).filter(Context.owner_id == user_id).all()
-                )
+                contexts = session.query(Context).filter(Context.owner_id == user_id).all()
             else:
                 contexts = session.query(Context).all()
 
@@ -260,16 +236,12 @@ class ContextOps:
         try:
             if context_name:
                 # Stop specific context
-                context = (
-                    session.query(Context).filter(Context.name == context_name).first()
-                )
+                context = session.query(Context).filter(Context.name == context_name).first()
                 if context:
                     context.is_active = False
             else:
                 # Stop all active contexts
-                session.query(Context).filter(Context.is_active is True).update(
-                    {"is_active": False}
-                )
+                session.query(Context).filter(Context.is_active is True).update({"is_active": False})
 
             session.commit()
         except Exception as e:

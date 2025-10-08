@@ -15,12 +15,7 @@ def compute_policy_fingerprint() -> str:
     except Exception as e:
         print(f"error importing policy: {e}", file=sys.stderr)
         return ""
-    items = sorted(
-        [
-            (r.name, res.name, sorted(a.name for a in acts))
-            for (r, res), acts in POLICY.items()
-        ]
-    )
+    items = sorted([(r.name, res.name, sorted(a.name for a in acts)) for (r, res), acts in POLICY.items()])
     blob = json.dumps(items, sort_keys=True).encode()
     return hashlib.sha256(blob).hexdigest()
 

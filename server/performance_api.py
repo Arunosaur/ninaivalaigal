@@ -37,9 +37,7 @@ async def get_performance_stats() -> Dict:
 
     except Exception as e:
         logger.error("Failed to get performance stats", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get performance stats: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get performance stats: {str(e)}")
 
 
 @router.get("/health")
@@ -66,9 +64,7 @@ async def get_performance_health() -> Dict:
 
     except Exception as e:
         logger.error("Failed to get performance health", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get performance health: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get performance health: {str(e)}")
 
 
 @router.post("/optimize/database-pools")
@@ -89,9 +85,7 @@ async def optimize_database_pools() -> Dict:
 
     except Exception as e:
         logger.error("Failed to optimize database pools", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to optimize database pools: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to optimize database pools: {str(e)}")
 
 
 @router.post("/cache/clear")
@@ -186,9 +180,7 @@ async def get_performance_summary() -> Dict:
 
     except Exception as e:
         logger.error("Failed to get performance summary", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get performance summary: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get performance summary: {str(e)}")
 
 
 @router.get("/benchmarks")
@@ -222,38 +214,26 @@ async def get_performance_benchmarks() -> Dict:
         # Extract current values
         if "overall" in stats:
             overall = stats["overall"]
-            benchmarks["current"]["avg_response_time_ms"] = overall.get(
-                "avg_response_time_ms", 0
-            )
-            benchmarks["current"]["requests_per_second"] = overall.get(
-                "requests_per_second", 0
-            )
+            benchmarks["current"]["avg_response_time_ms"] = overall.get("avg_response_time_ms", 0)
+            benchmarks["current"]["requests_per_second"] = overall.get("requests_per_second", 0)
 
         if "redis" in stats:
             redis_stats = stats["redis"]
-            benchmarks["current"]["cache_hit_rate"] = redis_stats.get(
-                "cache_hit_rate", 0
-            )
+            benchmarks["current"]["cache_hit_rate"] = redis_stats.get("cache_hit_rate", 0)
 
         # Calculate status against targets
         current = benchmarks["current"]
 
         benchmarks["status"]["api_latency"] = (
-            "good"
-            if current.get("avg_response_time_ms", 0) <= targets["api_latency_p95_ms"]
-            else "needs_improvement"
+            "good" if current.get("avg_response_time_ms", 0) <= targets["api_latency_p95_ms"] else "needs_improvement"
         )
 
         benchmarks["status"]["cache_performance"] = (
-            "good"
-            if current.get("cache_hit_rate", 0) >= targets["cache_hit_rate_min"]
-            else "needs_improvement"
+            "good" if current.get("cache_hit_rate", 0) >= targets["cache_hit_rate_min"] else "needs_improvement"
         )
 
         benchmarks["status"]["throughput"] = (
-            "good"
-            if current.get("requests_per_second", 0) >= targets["throughput_target_rps"]
-            else "needs_improvement"
+            "good" if current.get("requests_per_second", 0) >= targets["throughput_target_rps"] else "needs_improvement"
         )
 
         return {
@@ -263,9 +243,7 @@ async def get_performance_benchmarks() -> Dict:
 
     except Exception as e:
         logger.error("Failed to get performance benchmarks", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get performance benchmarks: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get performance benchmarks: {str(e)}")
 
 
 @router.get("/recommendations")
@@ -385,9 +363,7 @@ async def get_graph_performance_stats() -> Dict:
 
     except Exception as e:
         logger.error("Failed to get graph performance stats", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get graph performance stats: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get graph performance stats: {str(e)}")
 
 
 @router.get("/graph/intelligence/summary")
@@ -411,9 +387,7 @@ async def get_graph_intelligence_summary() -> Dict:
                 "data": {},
             }
 
-        stats = (
-            await manager.graph_intelligence.get_graph_intelligence_performance_stats()
-        )
+        stats = await manager.graph_intelligence.get_graph_intelligence_performance_stats()
 
         # Extract key metrics for summary
         summary = {
@@ -474,9 +448,7 @@ async def clear_graph_caches() -> Dict:
 
     except Exception as e:
         logger.error("Failed to clear graph caches", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to clear graph caches: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to clear graph caches: {str(e)}")
 
 
 @router.get("/graph/benchmarks")
@@ -512,12 +484,8 @@ async def get_graph_performance_benchmarks() -> Dict:
             intelligence_stats = stats["graph_intelligence"]
             performance_summary = intelligence_stats.get("performance_summary", {})
 
-            current_graph["avg_explanation_time_ms"] = performance_summary.get(
-                "avg_explanation_time_ms", 0
-            )
-            current_graph["avg_inference_time_ms"] = performance_summary.get(
-                "avg_inference_time_ms", 0
-            )
+            current_graph["avg_explanation_time_ms"] = performance_summary.get("avg_explanation_time_ms", 0)
+            current_graph["avg_inference_time_ms"] = performance_summary.get("avg_inference_time_ms", 0)
 
         # Extract graph optimizer metrics if available
         if "graph_optimizer" in stats:
@@ -525,29 +493,24 @@ async def get_graph_performance_benchmarks() -> Dict:
             cache_performance = optimizer_stats.get("cache_performance", {})
 
             current_graph["graph_cache_hit_rate"] = cache_performance.get("hit_rate", 0)
-            current_graph["avg_query_time_ms"] = optimizer_stats.get(
-                "query_metrics", {}
-            ).get("avg_query_time_ms", 0)
+            current_graph["avg_query_time_ms"] = optimizer_stats.get("query_metrics", {}).get("avg_query_time_ms", 0)
 
         # Calculate status against targets
         benchmarks["status"]["context_explanation"] = (
             "good"
-            if current_graph.get("avg_explanation_time_ms", 0)
-            <= graph_targets["context_explanation_ms"]
+            if current_graph.get("avg_explanation_time_ms", 0) <= graph_targets["context_explanation_ms"]
             else "needs_improvement"
         )
 
         benchmarks["status"]["relevance_inference"] = (
             "good"
-            if current_graph.get("avg_inference_time_ms", 0)
-            <= graph_targets["relevance_inference_ms"]
+            if current_graph.get("avg_inference_time_ms", 0) <= graph_targets["relevance_inference_ms"]
             else "needs_improvement"
         )
 
         benchmarks["status"]["graph_cache_performance"] = (
             "good"
-            if current_graph.get("graph_cache_hit_rate", 0)
-            >= graph_targets["graph_cache_hit_rate_min"]
+            if current_graph.get("graph_cache_hit_rate", 0) >= graph_targets["graph_cache_hit_rate_min"]
             else "needs_improvement"
         )
 

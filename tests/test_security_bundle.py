@@ -152,9 +152,7 @@ class TestSecurityBundleMiddleware:
 
     def test_single_middleware_content_type_guard(self, client_single):
         """Test content-type guard in single middleware"""
-        response = client_single.post(
-            "/test", data=b"binary data", headers={"Content-Type": "image/jpeg"}
-        )
+        response = client_single.post("/test", data=b"binary data", headers={"Content-Type": "image/jpeg"})
 
         assert response.status_code == 415
 
@@ -204,9 +202,7 @@ class TestAdvancedSecurityFeatures:
         assert form_response.status_code == 200
 
         # Binary request (should be rejected)
-        binary_response = client_bundle.post(
-            "/test", data=b"binary", headers={"Content-Type": "application/pdf"}
-        )
+        binary_response = client_bundle.post("/test", data=b"binary", headers={"Content-Type": "application/pdf"})
         assert binary_response.status_code == 415
 
     def test_empty_and_malformed_requests(self, client_bundle):

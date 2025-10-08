@@ -154,9 +154,7 @@ class MonitoringIntegration:
             dashboard_status = {
                 "enabled": self.dashboard_enabled,
                 "endpoint": "/dashboard" if self.dashboard_enabled else None,
-                "websocket_endpoint": (
-                    "/dashboard/ws" if self.dashboard_enabled else None
-                ),
+                "websocket_endpoint": ("/dashboard/ws" if self.dashboard_enabled else None),
             }
 
             return {

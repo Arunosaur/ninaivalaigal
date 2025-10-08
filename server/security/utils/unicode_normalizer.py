@@ -227,11 +227,7 @@ def detect_evasion_attempt(text: str) -> bool:
     scripts = set()
     for char in text:
         if char.isalpha():
-            script = (
-                unicodedata.name(char, "").split()[0]
-                if unicodedata.name(char, "")
-                else "UNKNOWN"
-            )
+            script = unicodedata.name(char, "").split()[0] if unicodedata.name(char, "") else "UNKNOWN"
             scripts.add(script)
 
     # More than 2 different scripts might indicate evasion

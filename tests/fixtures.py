@@ -56,9 +56,7 @@ class TestDataFactory:
         }
 
     @staticmethod
-    def create_team(
-        id: int = 1, name: str = "Test Team", organization_id: int = 1, **kwargs
-    ) -> Dict[str, Any]:
+    def create_team(id: int = 1, name: str = "Test Team", organization_id: int = 1, **kwargs) -> Dict[str, Any]:
         """Create a test team object"""
         return {
             "id": id,
@@ -90,9 +88,7 @@ class MockDatabaseManager:
     async def create_user(self, email: str, username: str, **kwargs) -> Dict[str, Any]:
         """Mock user creation"""
         user_id = self._get_next_id()
-        user = TestDataFactory.create_user(
-            id=user_id, email=email, username=username, **kwargs
-        )
+        user = TestDataFactory.create_user(id=user_id, email=email, username=username, **kwargs)
         self.users[user_id] = user
         return user
 
@@ -103,14 +99,10 @@ class MockDatabaseManager:
                 return user
         return None
 
-    async def create_memory(
-        self, user_id: int, content: str, **kwargs
-    ) -> Dict[str, Any]:
+    async def create_memory(self, user_id: int, content: str, **kwargs) -> Dict[str, Any]:
         """Mock memory creation"""
         memory_id = self._get_next_id()
-        memory = TestDataFactory.create_memory(
-            id=memory_id, user_id=user_id, content=content, **kwargs
-        )
+        memory = TestDataFactory.create_memory(id=memory_id, user_id=user_id, content=content, **kwargs)
         self.memories[memory_id] = memory
         return memory
 

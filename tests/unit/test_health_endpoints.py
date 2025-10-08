@@ -19,45 +19,35 @@ class TestServerModules:
         from server import auth
 
         # Test that key functions exist
-        assert hasattr(auth, "create_access_token") or hasattr(
-            auth, "authenticate_user"
-        )
+        assert hasattr(auth, "create_access_token") or hasattr(auth, "authenticate_user")
 
     def test_memory_api_import(self):
         """Test that we can import memory API."""
         from server import memory_api
 
         # Should have some API functions
-        assert hasattr(memory_api, "router") or callable(
-            getattr(memory_api, "create_memory", None)
-        )
+        assert hasattr(memory_api, "router") or callable(getattr(memory_api, "create_memory", None))
 
     def test_rbac_middleware_import(self):
         """Test that we can import RBAC middleware."""
         from server import rbac_middleware
 
         # Should have middleware class or function
-        assert hasattr(rbac_middleware, "RBACMiddleware") or hasattr(
-            rbac_middleware, "rbac_middleware"
-        )
+        assert hasattr(rbac_middleware, "RBACMiddleware") or hasattr(rbac_middleware, "rbac_middleware")
 
     def test_redis_client_import(self):
         """Test that we can import Redis client."""
         from server import redis_client
 
         # Should have Redis client functionality
-        assert hasattr(redis_client, "get_redis_client") or hasattr(
-            redis_client, "RedisClient"
-        )
+        assert hasattr(redis_client, "get_redis_client") or hasattr(redis_client, "RedisClient")
 
     def test_relevance_engine_import(self):
         """Test that we can import relevance engine."""
         from server import relevance_engine
 
         # Should have relevance engine class
-        assert hasattr(relevance_engine, "RelevanceEngine") or hasattr(
-            relevance_engine, "calculate_relevance"
-        )
+        assert hasattr(relevance_engine, "RelevanceEngine") or hasattr(relevance_engine, "calculate_relevance")
 
     def test_memory_providers_import(self):
         """Test that we can import memory providers."""

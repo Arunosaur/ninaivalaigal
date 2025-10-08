@@ -4,15 +4,13 @@ CI Self-Heal and Recovery Hooks
 Automated recovery system for CI/CD pipeline failures
 """
 
-import json
 import logging
 import os
 import subprocess
 import sys
 import time
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import requests
 
@@ -47,9 +45,7 @@ class CIRecoverySystem:
                 "port": 5432,
                 "database": "foundation_test",
                 "user": "postgres",
-                "password": os.getenv(
-                    "POSTGRES_PASSWORD", "foundation_test_password_123"
-                ),
+                "password": os.getenv("POSTGRES_PASSWORD", "foundation_test_password_123"),
             },
             "redis_main": {"host": "localhost", "port": 6379, "db": 15},
             "api_server": {
@@ -177,9 +173,7 @@ class CIRecoverySystem:
         for cmd in commands:
             self.logger.info(f"Executing: {cmd}")
             try:
-                result = subprocess.run(
-                    cmd, shell=True, capture_output=True, text=True, timeout=120
-                )
+                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
 
                 if result.returncode != 0:
                     self.logger.error(f"Command failed: {cmd}")
@@ -208,9 +202,7 @@ class CIRecoverySystem:
             self.logger.info(f"Starting recovery for {service}")
 
             for attempt in range(1, self.max_attempts + 1):
-                self.logger.info(
-                    f"Recovery attempt {attempt}/{self.max_attempts} for {service}"
-                )
+                self.logger.info(f"Recovery attempt {attempt}/{self.max_attempts} for {service}")
 
                 # Restart the service
                 restart_success = self.restart_service(service)
@@ -222,9 +214,7 @@ class CIRecoverySystem:
                         recovery_results[service] = True
                         break
                     else:
-                        self.logger.warning(
-                            f"Service {service} restarted but still unhealthy"
-                        )
+                        self.logger.warning(f"Service {service} restarted but still unhealthy")
 
                 if attempt < self.max_attempts:
                     backoff_time = int(30 * (self.backoff_multiplier ** (attempt - 1)))
@@ -232,9 +222,7 @@ class CIRecoverySystem:
                     time.sleep(backoff_time)
 
             if service not in recovery_results:
-                self.logger.error(
-                    f"Recovery failed for {service} after {self.max_attempts} attempts"
-                )
+                self.logger.error(f"Recovery failed for {service} after {self.max_attempts} attempts")
                 recovery_results[service] = False
 
         return recovery_results
@@ -305,9 +293,7 @@ class CIRecoverySystem:
                 if response.status_code == 200:
                     self.logger.info("Slack notification sent successfully")
                 else:
-                    self.logger.error(
-                        f"Failed to send Slack notification: {response.status_code}"
-                    )
+                    self.logger.error(f"Failed to send Slack notification: {response.status_code}")
 
             except Exception as e:
                 self.logger.error(f"Failed to send Slack notification: {e}")
@@ -326,16 +312,12 @@ class CIRecoverySystem:
                 if response.status_code == 200:
                     self.logger.info("HealthChecks.io ping sent successfully")
                 else:
-                    self.logger.error(
-                        f"Failed to send HealthChecks.io ping: {response.status_code}"
-                    )
+                    self.logger.error(f"Failed to send HealthChecks.io ping: {response.status_code}")
 
             except Exception as e:
                 self.logger.error(f"Failed to send HealthChecks.io ping: {e}")
 
-    def generate_recovery_report(
-        self, recovery_results: Dict[str, bool], foundation_tests_passed: bool
-    ) -> str:
+    def generate_recovery_report(self, recovery_results: Dict[str, bool], foundation_tests_passed: bool) -> str:
         """Generate recovery report"""
         timestamp = datetime.now(timezone.utc).isoformat()
 
@@ -400,24 +382,18 @@ def main():
 
     if not failed_services:
         recovery_system.logger.info("All services are healthy - no recovery needed")
-        recovery_system.send_notification(
-            "All services healthy - no recovery needed", True
-        )
+        recovery_system.send_notification("All services healthy - no recovery needed", True)
         return 0
 
     # Perform recovery
-    recovery_system.logger.info(
-        f"Starting recovery for {len(failed_services)} services: {failed_services}"
-    )
+    recovery_system.logger.info(f"Starting recovery for {len(failed_services)} services: {failed_services}")
     recovery_results = recovery_system.perform_recovery(failed_services)
 
     # Run Foundation tests to validate recovery
     foundation_tests_passed = recovery_system.run_foundation_tests()
 
     # Generate report
-    report = recovery_system.generate_recovery_report(
-        recovery_results, foundation_tests_passed
-    )
+    report = recovery_system.generate_recovery_report(recovery_results, foundation_tests_passed)
 
     # Save report
     with open("ci_recovery_report.md", "w") as f:

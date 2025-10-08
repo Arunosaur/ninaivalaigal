@@ -76,9 +76,7 @@ class ContentTypeGuardMiddleware:
 
         # Check content type allowlist
         if self.reject_disallowed and content_type:
-            allowed = any(
-                content_type.startswith(prefix) for prefix in self.allowed_prefixes
-            )
+            allowed = any(content_type.startswith(prefix) for prefix in self.allowed_prefixes)
             if not allowed:
                 from starlette.responses import Response
 
@@ -223,9 +221,7 @@ class SecurityBundle:
             app.add_middleware(IdempotencyMiddleware, store=MemoryIdempotencyStore())
 
         # 4) Request redaction
-        detector_with_policy = _wrap_detector_with_policy(
-            _create_detector_fn(), fail_closed_tier_threshold
-        )
+        detector_with_policy = _wrap_detector_with_policy(_create_detector_fn(), fail_closed_tier_threshold)
 
         app.add_middleware(
             RedactionASGIMiddleware,
@@ -249,9 +245,7 @@ class SecurityBundle:
 
             @app.middleware("http")
             async def _multipart_adapter(request: Request, call_next):
-                if request.headers.get("content-type", "").startswith(
-                    "multipart/form-data"
-                ):
+                if request.headers.get("content-type", "").startswith("multipart/form-data"):
                     # Route text parts through detector (normalization+redaction should live inside detector_fn)
                     try:
                         processed_data = await process_multipart_securely(
@@ -308,9 +302,7 @@ def _create_detector_fn() -> Callable[[str], str]:
         normalized_text = aws_pattern.sub("[REDACTED_AWS_KEY]", normalized_text)
 
         # JWT Tokens
-        jwt_pattern = re.compile(
-            r"eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*"
-        )
+        jwt_pattern = re.compile(r"eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*")
         normalized_text = jwt_pattern.sub("[REDACTED_JWT]", normalized_text)
 
         # Generic high-entropy strings (potential API keys)
@@ -322,9 +314,7 @@ def _create_detector_fn() -> Callable[[str], str]:
     return detector_fn
 
 
-def _wrap_detector_with_policy(
-    detector: Callable[[str], str], fail_closed_tier_threshold: int
-):
+def _wrap_detector_with_policy(detector: Callable[[str], str], fail_closed_tier_threshold: int):
     """Wraps detector so that Tier >= threshold fails closed on errors."""
 
     def fn(text: str, tier: int | None = None) -> str:

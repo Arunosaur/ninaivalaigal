@@ -129,9 +129,7 @@ async def get_learning_patterns(
             error=str(e),
             user_id=current_user.get("user_id"),
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve learning patterns"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve learning patterns")
 
 
 @router.get("/improvements", response_model=List[ContextImprovement])
@@ -146,9 +144,7 @@ async def get_context_improvements(
         user_id = current_user["user_id"]
 
         # Get recent patterns
-        patterns = await feedback_system.analyze_feedback_patterns(
-            user_id=user_id, days_back=30
-        )
+        patterns = await feedback_system.analyze_feedback_patterns(user_id=user_id, days_back=30)
 
         # Generate improvements
         improvements = await feedback_system.generate_context_improvements(patterns)
@@ -161,9 +157,7 @@ async def get_context_improvements(
             error=str(e),
             user_id=current_user.get("user_id"),
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve context improvements"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve context improvements")
 
 
 @router.post("/optimize-context", response_model=ContextOptimizationResponse)
@@ -190,10 +184,7 @@ async def optimize_context(
         adjustments_applied = []
         if optimized_context != original_context:
             for key in optimized_context:
-                if (
-                    key not in original_context
-                    or optimized_context[key] != original_context[key]
-                ):
+                if key not in original_context or optimized_context[key] != original_context[key]:
                     adjustments_applied.append(f"Modified {key}")
 
         # Calculate confidence score based on available patterns
@@ -227,9 +218,7 @@ async def get_learning_insights(
     try:
         user_id = current_user["user_id"]
 
-        insights = await feedback_system.get_feedback_insights(
-            user_id=user_id, days_back=days_back
-        )
+        insights = await feedback_system.get_feedback_insights(user_id=user_id, days_back=days_back)
 
         return LearningInsights(**insights)
 
@@ -239,9 +228,7 @@ async def get_learning_insights(
             error=str(e),
             user_id=current_user.get("user_id"),
         )
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve learning insights"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve learning insights")
 
 
 @router.post("/memory/{memory_id}/relevance")
@@ -291,9 +278,7 @@ async def rate_memory_relevance(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to rate memory relevance", error=str(e), memory_id=memory_id
-        )
+        logger.error("Failed to rate memory relevance", error=str(e), memory_id=memory_id)
         raise HTTPException(status_code=500, detail="Failed to rate memory relevance")
 
 
@@ -402,6 +387,4 @@ async def get_feedback_statistics(
 
     except Exception as e:
         logger.error("Failed to get feedback statistics", error=str(e))
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve feedback statistics"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve feedback statistics")

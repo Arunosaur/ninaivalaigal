@@ -107,9 +107,7 @@ async def assign_user_role(
         try:
             role_enum = Role[role_request.role.upper()]
         except KeyError:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid role: {role_request.role}"
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid role: {role_request.role}")
 
         # Check if current user can assign this role
         rbac_context = get_rbac_context(request)
@@ -118,9 +116,7 @@ async def assign_user_role(
         from rbac.permissions import has_role_precedence
 
         if not has_role_precedence(current_role, role_enum):
-            raise HTTPException(
-                status_code=403, detail="Cannot assign a role higher than your own"
-            )
+            raise HTTPException(status_code=403, detail="Cannot assign a role higher than your own")
 
         # Assign the role
         assignment = assign_role(
@@ -186,12 +182,8 @@ async def get_user_role_assignments(
     try:
         # Check if current user can view this user's roles
         rbac_context = get_rbac_context(request)
-        if user_id != current_user.id and not rbac_context.has_permission(
-            Resource.USER, Action.ADMINISTER
-        ):
-            raise HTTPException(
-                status_code=403, detail="Cannot view other users' roles"
-            )
+        if user_id != current_user.id and not rbac_context.has_permission(Resource.USER, Action.ADMINISTER):
+            raise HTTPException(status_code=403, detail="Cannot view other users' roles")
 
         roles = get_user_roles(db, user_id)
 
@@ -205,9 +197,7 @@ async def get_user_role_assignments(
                     "scope_id": role.scope_id,
                     "granted_by": role.granted_by,
                     "granted_at": role.granted_at.isoformat(),
-                    "expires_at": (
-                        role.expires_at.isoformat() if role.expires_at else None
-                    ),
+                    "expires_at": (role.expires_at.isoformat() if role.expires_at else None),
                     "is_active": role.is_active,
                 }
                 for role in roles
@@ -217,9 +207,7 @@ async def get_user_role_assignments(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get user roles: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user roles: {str(e)}")
 
 
 @rbac_router.get("/permissions/user/{user_id}")
@@ -236,12 +224,8 @@ async def get_user_effective_permissions(
     try:
         # Check if current user can view this user's permissions
         rbac_context = get_rbac_context(request)
-        if user_id != current_user.id and not rbac_context.has_permission(
-            Resource.USER, Action.ADMINISTER
-        ):
-            raise HTTPException(
-                status_code=403, detail="Cannot view other users' permissions"
-            )
+        if user_id != current_user.id and not rbac_context.has_permission(Resource.USER, Action.ADMINISTER):
+            raise HTTPException(status_code=403, detail="Cannot view other users' permissions")
 
         permissions = get_effective_permissions(db, user_id, scope_type, scope_id)
 
@@ -255,9 +239,7 @@ async def get_user_effective_permissions(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get user permissions: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user permissions: {str(e)}")
 
 
 # --- Permission Delegation Endpoints ---
@@ -276,13 +258,9 @@ async def delegate_permission(
         # Validate resource and actions
         try:
             resource_enum = Resource[delegation_request.resource.upper()]
-            action_enums = [
-                Action[action.upper()] for action in delegation_request.actions
-            ]
+            action_enums = [Action[action.upper()] for action in delegation_request.actions]
         except KeyError as e:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid resource or action: {str(e)}"
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid resource or action: {str(e)}")
 
         # Check if current user can delegate these permissions
         rbac_context = get_rbac_context(request)
@@ -326,18 +304,14 @@ async def delegate_permission(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to delegate permission: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to delegate permission: {str(e)}")
 
 
 # --- Access Request Endpoints ---
 
 
 @rbac_router.post("/access-request")
-@require_permission(
-    Resource.USER, Action.READ
-)  # Any authenticated user can request access
+@require_permission(Resource.USER, Action.READ)  # Any authenticated user can request access
 async def request_access(
     request: Request,
     access_request: AccessRequestRequest,
@@ -351,9 +325,7 @@ async def request_access(
             resource_enum = Resource[access_request.resource.upper()]
             action_enum = Action[access_request.action.upper()]
         except KeyError as e:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid resource or action: {str(e)}"
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid resource or action: {str(e)}")
 
         # Create access request
         access_req = AccessRequest(
@@ -382,9 +354,7 @@ async def request_access(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create access request: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create access request: {str(e)}")
 
 
 @rbac_router.get("/access-requests/pending")
@@ -425,9 +395,7 @@ async def get_pending_access_requests(
             session.close()
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get pending requests: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get pending requests: {str(e)}")
 
 
 @rbac_router.post("/access-requests/{request_id}/approve")
@@ -470,9 +438,7 @@ async def approve_access_request(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to process access request: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to process access request: {str(e)}")
 
 
 # --- Audit Endpoints ---
@@ -504,26 +470,17 @@ async def get_permission_audit_log(
                     resource_enum = Resource[resource.upper()]
                     query = query.filter(PermissionAudit.resource == resource_enum)
                 except KeyError:
-                    raise HTTPException(
-                        status_code=400, detail=f"Invalid resource: {resource}"
-                    )
+                    raise HTTPException(status_code=400, detail=f"Invalid resource: {resource}")
             if action:
                 try:
                     action_enum = Action[action.upper()]
                     query = query.filter(PermissionAudit.action == action_enum)
                 except KeyError:
-                    raise HTTPException(
-                        status_code=400, detail=f"Invalid action: {action}"
-                    )
+                    raise HTTPException(status_code=400, detail=f"Invalid action: {action}")
             if allowed is not None:
                 query = query.filter(PermissionAudit.allowed == allowed)
 
-            audit_entries = (
-                query.order_by(PermissionAudit.timestamp.desc())
-                .offset(offset)
-                .limit(limit)
-                .all()
-            )
+            audit_entries = query.order_by(PermissionAudit.timestamp.desc()).offset(offset).limit(limit).all()
 
             return {
                 "audit_entries": [
@@ -535,9 +492,7 @@ async def get_permission_audit_log(
                         "resource_id": entry.resource_id,
                         "allowed": entry.allowed,
                         "timestamp": entry.timestamp.isoformat(),
-                        "request_ip": (
-                            str(entry.request_ip) if entry.request_ip else None
-                        ),
+                        "request_ip": (str(entry.request_ip) if entry.request_ip else None),
                         "endpoint": entry.endpoint,
                         "method": entry.method,
                     }
@@ -553,9 +508,7 @@ async def get_permission_audit_log(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get audit log: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get audit log: {str(e)}")
 
 
 # --- System Status Endpoints ---
@@ -573,25 +526,15 @@ async def get_rbac_system_status(
         session = db.get_session()
         try:
             # Get statistics
-            total_role_assignments = (
-                session.query(RoleAssignment).filter_by(is_active=True).count()
-            )
+            total_role_assignments = session.query(RoleAssignment).filter_by(is_active=True).count()
             total_audit_entries = session.query(PermissionAudit).count()
-            pending_access_requests = (
-                session.query(AccessRequest).filter_by(status="pending").count()
-            )
-            active_delegations = (
-                session.query(PermissionDelegation).filter_by(is_active=True).count()
-            )
+            pending_access_requests = session.query(AccessRequest).filter_by(status="pending").count()
+            active_delegations = session.query(PermissionDelegation).filter_by(is_active=True).count()
 
             # Get role distribution
             role_distribution = {}
             for role in Role:
-                count = (
-                    session.query(RoleAssignment)
-                    .filter_by(role=role, is_active=True)
-                    .count()
-                )
+                count = session.query(RoleAssignment).filter_by(role=role, is_active=True).count()
                 role_distribution[role.name] = count
 
             return {
@@ -611,6 +554,4 @@ async def get_rbac_system_status(
             session.close()
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get RBAC status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get RBAC status: {str(e)}")

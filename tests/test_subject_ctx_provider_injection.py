@@ -201,9 +201,7 @@ def test_multiple_apps_isolation():
     async def provider1(request) -> SubjectContext:
         from server.security.rbac.context import Role
 
-        ctx = SubjectContext(
-            user_id="app1_user", organization_id="org1", role=Role.USER
-        )
+        ctx = SubjectContext(user_id="app1_user", organization_id="org1", role=Role.USER)
         ctx.raw_claims = {"app": "app1"}
         return ctx
 
@@ -211,9 +209,7 @@ def test_multiple_apps_isolation():
     async def provider2(request) -> SubjectContext:
         from server.security.rbac.context import Role
 
-        ctx = SubjectContext(
-            user_id="app2_user", organization_id="org2", role=Role.ADMIN
-        )
+        ctx = SubjectContext(user_id="app2_user", organization_id="org2", role=Role.ADMIN)
         ctx.raw_claims = {"app": "app2"}
         return ctx
 

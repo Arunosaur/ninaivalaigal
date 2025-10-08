@@ -38,9 +38,7 @@ class TierAwareDetectorWrapper:
         self.fallback_tier = fallback_tier
         self.logger = logging.getLogger("tier.detector")
 
-    def __call__(
-        self, text: str, tier: int | None = None, context: dict[str, Any] | None = None
-    ) -> str:
+    def __call__(self, text: str, tier: int | None = None, context: dict[str, Any] | None = None) -> str:
         """
         Call detector with tier awareness.
 
@@ -285,23 +283,17 @@ class TierMetrics:
 
     def record_request(self, tier: int):
         """Record request for tier."""
-        self.counters["requests_by_tier"][tier] = (
-            self.counters["requests_by_tier"].get(tier, 0) + 1
-        )
+        self.counters["requests_by_tier"][tier] = self.counters["requests_by_tier"].get(tier, 0) + 1
 
     def record_failure(self, tier: int, error_type: str):
         """Record failure for tier."""
         key = f"{tier}_{error_type}"
-        self.counters["failures_by_tier"][key] = (
-            self.counters["failures_by_tier"].get(key, 0) + 1
-        )
+        self.counters["failures_by_tier"][key] = self.counters["failures_by_tier"].get(key, 0) + 1
 
     def record_policy_violation(self, tier: int, threshold: int):
         """Record policy violation."""
         key = f"tier_{tier}_threshold_{threshold}"
-        self.counters["policy_violations"][key] = (
-            self.counters["policy_violations"].get(key, 0) + 1
-        )
+        self.counters["policy_violations"][key] = self.counters["policy_violations"].get(key, 0) + 1
 
     def get_metrics(self) -> dict[str, Any]:
         """Get all metrics."""

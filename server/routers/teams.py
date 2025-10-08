@@ -33,9 +33,7 @@ async def create_team(
 ):
     """Create a new team"""
     try:
-        team = await db.create_team(
-            team_data.name, team_data.organization_id, team_data.description
-        )
+        team = await db.create_team(team_data.name, team_data.organization_id, team_data.description)
         # Automatically add creator as team admin
         db.add_team_member(team.id, current_user.id, "admin")
         return {
@@ -66,9 +64,7 @@ def add_team_member(
             "message": f"User {member_data.user_id} added to team {team_id} with role {member_data.role}",
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to add team member: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to add team member: {str(e)}")
 
 
 @router.delete("/{team_id}/members/{user_id}")
@@ -88,9 +84,7 @@ def remove_team_member(
             "message": f"User {user_id} removed from team {team_id}",
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to remove team member: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to remove team member: {str(e)}")
 
 
 @router.get("/{team_id}/members")
@@ -115,9 +109,7 @@ def get_team_members(
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get team members: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get team members: {str(e)}")
 
 
 @router.get("")

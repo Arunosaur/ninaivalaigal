@@ -166,9 +166,7 @@ def list_contexts(token):
             print(f"✅ Found {len(contexts)} contexts:")
             for i, context in enumerate(contexts, 1):
                 print(f"   {i}. {context.get('name')} (ID: {context.get('id')})")
-                print(
-                    f"      Description: {context.get('description', 'No description')}"
-                )
+                print(f"      Description: {context.get('description', 'No description')}")
                 print(f"      Created: {context.get('created_at', 'Unknown')}")
 
             return contexts
@@ -188,9 +186,7 @@ def main():
     print("=" * 50)
 
     # Test user credentials (update these with your registered user)
-    test_email = input(
-        "Enter your test user email (or press Enter for john.developer@example.com): "
-    ).strip()
+    test_email = input("Enter your test user email (or press Enter for john.developer@example.com): ").strip()
     if not test_email:
         test_email = "john.developer@example.com"
 

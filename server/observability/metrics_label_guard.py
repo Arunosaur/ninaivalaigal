@@ -87,9 +87,7 @@ ERROR_REASON_BUCKETS = {
     "unknown_error",
 }
 
-ALL_REASON_BUCKETS = (
-    SECURITY_REASON_BUCKETS | PERFORMANCE_REASON_BUCKETS | ERROR_REASON_BUCKETS
-)
+ALL_REASON_BUCKETS = SECURITY_REASON_BUCKETS | PERFORMANCE_REASON_BUCKETS | ERROR_REASON_BUCKETS
 
 
 @dataclass
@@ -128,12 +126,8 @@ class MetricsLabelGuardConfig:
     max_user_buckets: int = DEFAULT_MAX_USER_BUCKETS
     max_label_length: int = DEFAULT_MAX_LABEL_LENGTH
     cardinality_window_seconds: int = DEFAULT_CARDINALITY_WINDOW_SECONDS
-    allowed_route_templates: set[str] = field(
-        default_factory=lambda: CORE_ROUTE_TEMPLATES.copy()
-    )
-    allowed_reason_buckets: set[str] = field(
-        default_factory=lambda: ALL_REASON_BUCKETS.copy()
-    )
+    allowed_route_templates: set[str] = field(default_factory=lambda: CORE_ROUTE_TEMPLATES.copy())
+    allowed_reason_buckets: set[str] = field(default_factory=lambda: ALL_REASON_BUCKETS.copy())
     strict_mode: bool = True  # Fail-closed for production safety
     enable_cardinality_tracking: bool = True
 
@@ -144,13 +138,9 @@ class MetricsLabelGuard:
     def __init__(self, config: MetricsLabelGuardConfig | None = None):
         self.config = config or MetricsLabelGuardConfig()
         self.tracker = CardinalityTracker()
-        self._route_template_pattern = re.compile(
-            r"^/[a-zA-Z0-9_/-]*(\{[a-zA-Z0-9_]+\}[a-zA-Z0-9_/-]*)*$"
-        )
+        self._route_template_pattern = re.compile(r"^/[a-zA-Z0-9_/-]*(\{[a-zA-Z0-9_]+\}[a-zA-Z0-9_/-]*)*$")
 
-    def validate_labels(
-        self, labels: dict[str, str], metric_name: str = ""
-    ) -> dict[str, Any]:
+    def validate_labels(self, labels: dict[str, str], metric_name: str = "") -> dict[str, Any]:
         """
         Validate metrics labels with cardinality bounds.
 
@@ -172,9 +162,8 @@ class MetricsLabelGuard:
         }
 
         # Reset tracking window if needed
-        if (
-            self.config.enable_cardinality_tracking
-            and self.tracker.should_reset_window(self.config.cardinality_window_seconds)
+        if self.config.enable_cardinality_tracking and self.tracker.should_reset_window(
+            self.config.cardinality_window_seconds
         ):
             self.tracker.reset_window()
 
@@ -200,9 +189,7 @@ class MetricsLabelGuard:
 
         # Check cardinality bounds
         if self.config.enable_cardinality_tracking:
-            cardinality_result = self._check_cardinality_bounds(
-                result["sanitized_labels"]
-            )
+            cardinality_result = self._check_cardinality_bounds(result["sanitized_labels"])
             result["cardinality_stats"] = cardinality_result
 
             if not cardinality_result["within_bounds"]:
@@ -210,9 +197,7 @@ class MetricsLabelGuard:
                 result["violations"].extend(cardinality_result["violations"])
 
                 if self.config.strict_mode:
-                    raise ValueError(
-                        f"Cardinality bounds exceeded: {cardinality_result['violations']}"
-                    )
+                    raise ValueError(f"Cardinality bounds exceeded: {cardinality_result['violations']}")
 
         # Log violations for monitoring
         if result["violations"]:
@@ -231,9 +216,7 @@ class MetricsLabelGuard:
         """Validate individual label key-value pair."""
         # Length validation
         if len(value) > self.config.max_label_length:
-            raise ValueError(
-                f"Label '{key}' value exceeds maximum length {self.config.max_label_length}"
-            )
+            raise ValueError(f"Label '{key}' value exceeds maximum length {self.config.max_label_length}")
 
         # Key-specific validation
         if key == "route":
@@ -423,9 +406,7 @@ def get_metrics_label_guard(
     return _default_guard
 
 
-def validate_metric_labels(
-    labels: dict[str, str], metric_name: str = ""
-) -> dict[str, str]:
+def validate_metric_labels(labels: dict[str, str], metric_name: str = "") -> dict[str, str]:
     """
     Convenience function for validating metrics labels.
 
@@ -457,9 +438,7 @@ def validate_metric_labels_legacy(labels: dict[str, str]) -> None:
     except ValueError as e:
         # Convert to legacy exception format
         if "route" in str(e):
-            raise ValueError(
-                "route label must be a known template, not a concrete path"
-            )
+            raise ValueError("route label must be a known template, not a concrete path")
         elif "reason" in str(e):
             raise ValueError("invalid reason label")
         else:

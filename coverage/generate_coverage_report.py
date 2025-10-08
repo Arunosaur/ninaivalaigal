@@ -169,17 +169,11 @@ def generate_html_dashboard(summary):
 """
 
     # Sort modules by coverage percentage
-    sorted_modules = sorted(
-        summary["modules"].items(), key=lambda x: x[1]["coverage"], reverse=True
-    )
+    sorted_modules = sorted(summary["modules"].items(), key=lambda x: x[1]["coverage"], reverse=True)
 
     for module_name, module_data in sorted_modules:
         coverage_pct = module_data["coverage"]
-        color = (
-            "#28a745"
-            if coverage_pct >= 80
-            else "#ffc107" if coverage_pct >= 60 else "#dc3545"
-        )
+        color = "#28a745" if coverage_pct >= 80 else "#ffc107" if coverage_pct >= 60 else "#dc3545"
 
         html_template += f"""
             <tr>

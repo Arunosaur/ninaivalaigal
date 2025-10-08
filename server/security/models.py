@@ -103,9 +103,7 @@ class SecurityMixin:
     sensitivity_tier = Column(String(50), default="internal")
     redaction_applied = Column(Boolean, default=False)
     original_entropy_score = Column(Float, nullable=True)
-    redaction_audit_id = Column(
-        UUID(as_uuid=True), ForeignKey("redaction_audits.id"), nullable=True
-    )
+    redaction_audit_id = Column(UUID(as_uuid=True), ForeignKey("redaction_audits.id"), nullable=True)
 
 
 class ContextSecurityMixin:

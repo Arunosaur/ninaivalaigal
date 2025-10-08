@@ -13,9 +13,7 @@ import time
 def run_command(cmd, cwd=None):
     """Run command and return result"""
     try:
-        result = subprocess.run(
-            cmd, shell=True, capture_output=True, text=True, cwd=cwd
-        )
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=cwd)
         return {
             "success": result.returncode == 0,
             "stdout": result.stdout.strip(),
@@ -38,9 +36,7 @@ def test_cli_functionality():
     print("✅ Context creation successful")
 
     # Test memory storage
-    result = run_command(
-        './client/mem0 remember "Cross-platform test memory" --context cross-platform-test'
-    )
+    result = run_command('./client/mem0 remember "Cross-platform test memory" --context cross-platform-test')
     if not result["success"]:
         print(f"❌ Memory storage failed: {result['stderr']}")
         return False
@@ -87,9 +83,7 @@ def test_fastapi_server():
         return False
 
     # Test memory endpoint
-    result = run_command(
-        'curl -s -X GET "http://127.0.0.1:13370/memory?context=cross-platform-test"'
-    )
+    result = run_command('curl -s -X GET "http://127.0.0.1:13370/memory?context=cross-platform-test"')
     if not result["success"]:
         print(f"❌ FastAPI memory endpoint failed: {result['stderr']}")
         return False

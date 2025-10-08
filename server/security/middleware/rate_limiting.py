@@ -110,33 +110,21 @@ class EnhancedRateLimiter:
         self.endpoint_limits = {
             # Authentication endpoints (stricter limits)
             "/auth/login": {
-                Role.VIEWER: RateLimitConfig(
-                    5, 300, RateLimitType.REQUESTS_PER_MINUTE
-                ),  # 5 per 5 min
+                Role.VIEWER: RateLimitConfig(5, 300, RateLimitType.REQUESTS_PER_MINUTE),  # 5 per 5 min
                 Role.MEMBER: RateLimitConfig(5, 300, RateLimitType.REQUESTS_PER_MINUTE),
                 Role.ADMIN: RateLimitConfig(10, 300, RateLimitType.REQUESTS_PER_MINUTE),
                 Role.OWNER: RateLimitConfig(15, 300, RateLimitType.REQUESTS_PER_MINUTE),
-                Role.SYSTEM: RateLimitConfig(
-                    50, 300, RateLimitType.REQUESTS_PER_MINUTE
-                ),
+                Role.SYSTEM: RateLimitConfig(50, 300, RateLimitType.REQUESTS_PER_MINUTE),
                 "anonymous": RateLimitConfig(3, 300, RateLimitType.REQUESTS_PER_MINUTE),
             },
-            "/auth/signup": {
-                "anonymous": RateLimitConfig(
-                    3, 600, RateLimitType.REQUESTS_PER_MINUTE
-                )  # 3 per 10 min
-            },
+            "/auth/signup": {"anonymous": RateLimitConfig(3, 600, RateLimitType.REQUESTS_PER_MINUTE)},  # 3 per 10 min
             # Memory operations
             "/memory": {
                 Role.VIEWER: RateLimitConfig(50, 60, RateLimitType.REQUESTS_PER_MINUTE),
-                Role.MEMBER: RateLimitConfig(
-                    100, 60, RateLimitType.REQUESTS_PER_MINUTE
-                ),
+                Role.MEMBER: RateLimitConfig(100, 60, RateLimitType.REQUESTS_PER_MINUTE),
                 Role.ADMIN: RateLimitConfig(200, 60, RateLimitType.REQUESTS_PER_MINUTE),
                 Role.OWNER: RateLimitConfig(300, 60, RateLimitType.REQUESTS_PER_MINUTE),
-                Role.SYSTEM: RateLimitConfig(
-                    1000, 60, RateLimitType.REQUESTS_PER_MINUTE
-                ),
+                Role.SYSTEM: RateLimitConfig(1000, 60, RateLimitType.REQUESTS_PER_MINUTE),
             },
             # Context operations
             "/contexts": {
@@ -144,33 +132,21 @@ class EnhancedRateLimiter:
                 Role.MEMBER: RateLimitConfig(50, 60, RateLimitType.REQUESTS_PER_MINUTE),
                 Role.ADMIN: RateLimitConfig(100, 60, RateLimitType.REQUESTS_PER_MINUTE),
                 Role.OWNER: RateLimitConfig(150, 60, RateLimitType.REQUESTS_PER_MINUTE),
-                Role.SYSTEM: RateLimitConfig(
-                    500, 60, RateLimitType.REQUESTS_PER_MINUTE
-                ),
+                Role.SYSTEM: RateLimitConfig(500, 60, RateLimitType.REQUESTS_PER_MINUTE),
             },
             # RBAC operations (more restrictive)
             "/rbac/": {
-                Role.VIEWER: RateLimitConfig(
-                    10, 300, RateLimitType.REQUESTS_PER_MINUTE
-                ),
-                Role.MEMBER: RateLimitConfig(
-                    15, 300, RateLimitType.REQUESTS_PER_MINUTE
-                ),
+                Role.VIEWER: RateLimitConfig(10, 300, RateLimitType.REQUESTS_PER_MINUTE),
+                Role.MEMBER: RateLimitConfig(15, 300, RateLimitType.REQUESTS_PER_MINUTE),
                 Role.ADMIN: RateLimitConfig(30, 300, RateLimitType.REQUESTS_PER_MINUTE),
                 Role.OWNER: RateLimitConfig(50, 300, RateLimitType.REQUESTS_PER_MINUTE),
-                Role.SYSTEM: RateLimitConfig(
-                    100, 300, RateLimitType.REQUESTS_PER_MINUTE
-                ),
+                Role.SYSTEM: RateLimitConfig(100, 300, RateLimitType.REQUESTS_PER_MINUTE),
             },
             # Admin operations (very restrictive)
             "/admin/": {
-                Role.ADMIN: RateLimitConfig(
-                    20, 3600, RateLimitType.REQUESTS_PER_HOUR
-                ),  # 20 per hour
+                Role.ADMIN: RateLimitConfig(20, 3600, RateLimitType.REQUESTS_PER_HOUR),  # 20 per hour
                 Role.OWNER: RateLimitConfig(50, 3600, RateLimitType.REQUESTS_PER_HOUR),
-                Role.SYSTEM: RateLimitConfig(
-                    200, 3600, RateLimitType.REQUESTS_PER_HOUR
-                ),
+                Role.SYSTEM: RateLimitConfig(200, 3600, RateLimitType.REQUESTS_PER_HOUR),
             },
         }
 
@@ -249,9 +225,7 @@ class EnhancedRateLimiter:
         rate_limit_info = {
             "limit": rate_config.limit,
             "window_seconds": rate_config.window_seconds,
-            "remaining": self._get_remaining_requests(
-                user_id, endpoint_pattern, rate_config
-            ),
+            "remaining": self._get_remaining_requests(user_id, endpoint_pattern, rate_config),
             "reset_time": self._get_reset_time(user_id, endpoint_pattern, rate_config),
         }
 
@@ -266,9 +240,7 @@ class EnhancedRateLimiter:
             user_role = rbac_context.user_role
         else:
             # Anonymous user - use IP address
-            user_id = (
-                f"anon_{request.client.host}" if request.client else "anon_unknown"
-            )
+            user_id = f"anon_{request.client.host}" if request.client else "anon_unknown"
             user_role = "anonymous"
 
         return user_id, user_role
@@ -280,9 +252,7 @@ class EnhancedRateLimiter:
                 return pattern
         return "default"
 
-    def _get_rate_config(
-        self, endpoint_pattern: str, user_role
-    ) -> RateLimitConfig | None:
+    def _get_rate_config(self, endpoint_pattern: str, user_role) -> RateLimitConfig | None:
         """Get rate limit configuration for endpoint and role"""
         endpoint_config = self.endpoint_limits.get(endpoint_pattern, {})
 
@@ -298,9 +268,7 @@ class EnhancedRateLimiter:
 
         return config
 
-    async def is_rate_limited(
-        self, user_id: str, endpoint: str
-    ) -> tuple[bool, dict[str, Any]]:
+    async def is_rate_limited(self, user_id: str, endpoint: str) -> tuple[bool, dict[str, Any]]:
         """Check if a user is rate limited for an endpoint."""
         # Start cleanup task if not already started
         if not self._cleanup_started:
@@ -320,17 +288,13 @@ class EnhancedRateLimiter:
         rate_limit_info = {
             "limit": rate_config.limit,
             "window_seconds": rate_config.window_seconds,
-            "remaining": self._get_remaining_requests(
-                user_id, endpoint_pattern, rate_config
-            ),
+            "remaining": self._get_remaining_requests(user_id, endpoint_pattern, rate_config),
             "reset_time": self._get_reset_time(user_id, endpoint_pattern, rate_config),
         }
 
         return not is_allowed, rate_limit_info
 
-    async def _check_limit(
-        self, user_id: str, endpoint: str, config: RateLimitConfig
-    ) -> bool:
+    async def _check_limit(self, user_id: str, endpoint: str, config: RateLimitConfig) -> bool:
         """Check if request is within limits"""
         if config.limit_type == RateLimitType.REQUESTS_PER_MINUTE:
             return self._check_sliding_window(user_id, endpoint, config)
@@ -343,32 +307,24 @@ class EnhancedRateLimiter:
 
         return True
 
-    def _check_sliding_window(
-        self, user_id: str, endpoint: str, config: RateLimitConfig
-    ) -> bool:
+    def _check_sliding_window(self, user_id: str, endpoint: str, config: RateLimitConfig) -> bool:
         """Check sliding window rate limit"""
         key = f"{user_id}:{endpoint}"
 
         if key not in self.counters[user_id]:
-            self.counters[user_id][key] = SlidingWindowCounter(
-                config.window_seconds, config.limit
-            )
+            self.counters[user_id][key] = SlidingWindowCounter(config.window_seconds, config.limit)
 
         counter = self.counters[user_id][key]
         return counter.is_allowed()
 
-    def _check_concurrent_limit(
-        self, user_id: str, endpoint: str, config: RateLimitConfig
-    ) -> bool:
+    def _check_concurrent_limit(self, user_id: str, endpoint: str, config: RateLimitConfig) -> bool:
         """Check concurrent request limit"""
         key = f"{user_id}:{endpoint}"
         current_concurrent = self.concurrent_requests[key]
 
         return current_concurrent < config.limit
 
-    def _get_remaining_requests(
-        self, user_id: str, endpoint: str, config: RateLimitConfig
-    ) -> int:
+    def _get_remaining_requests(self, user_id: str, endpoint: str, config: RateLimitConfig) -> int:
         """Get remaining requests in current window"""
         key = f"{user_id}:{endpoint}"
 
@@ -379,9 +335,7 @@ class EnhancedRateLimiter:
 
         return config.limit
 
-    def _get_reset_time(
-        self, user_id: str, endpoint: str, config: RateLimitConfig
-    ) -> float:
+    def _get_reset_time(self, user_id: str, endpoint: str, config: RateLimitConfig) -> float:
         """Get time when rate limit resets"""
         key = f"{user_id}:{endpoint}"
 
@@ -444,9 +398,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             if rate_info:
                 response.headers["X-RateLimit-Limit"] = str(rate_info["limit"])
                 response.headers["X-RateLimit-Remaining"] = str(rate_info["remaining"])
-                response.headers["X-RateLimit-Reset"] = str(
-                    int(rate_info["reset_time"])
-                )
+                response.headers["X-RateLimit-Reset"] = str(int(rate_info["reset_time"]))
 
             return response
 

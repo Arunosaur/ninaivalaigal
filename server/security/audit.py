@@ -97,9 +97,7 @@ class SecurityAlertManager:
 
         # Keep only recent events (last 24 hours)
         cutoff_time = datetime.utcnow() - timedelta(hours=24)
-        self.recent_events = [
-            e for e in self.recent_events if e["timestamp"] > cutoff_time
-        ]
+        self.recent_events = [e for e in self.recent_events if e["timestamp"] > cutoff_time]
 
         # Check for immediate alerts
         await self._check_immediate_alerts(event)
@@ -134,9 +132,7 @@ class SecurityAlertManager:
     async def check_security_thresholds(self):
         """Check security metrics against thresholds"""
         # Check failed login attempts (last minute)
-        failed_logins = self._count_events_in_window(
-            SecurityEventType.FAILED_LOGIN, minutes=1
-        )
+        failed_logins = self._count_events_in_window(SecurityEventType.FAILED_LOGIN, minutes=1)
 
         if failed_logins > self.alert_thresholds["failed_logins_per_minute"]:
             await self._send_alert(
@@ -148,9 +144,7 @@ class SecurityAlertManager:
             )
 
         # Check permission denials (last minute)
-        permission_denials = self._count_events_in_window(
-            SecurityEventType.PERMISSION_DENIED, minutes=1
-        )
+        permission_denials = self._count_events_in_window(SecurityEventType.PERMISSION_DENIED, minutes=1)
 
         if permission_denials > self.alert_thresholds["permission_denials_per_minute"]:
             await self._send_alert(
@@ -162,9 +156,7 @@ class SecurityAlertManager:
             )
 
         # Check cross-org access attempts (last hour)
-        cross_org_attempts = self._count_events_in_window(
-            SecurityEventType.CROSS_ORG_ATTEMPT, hours=1
-        )
+        cross_org_attempts = self._count_events_in_window(SecurityEventType.CROSS_ORG_ATTEMPT, hours=1)
 
         if cross_org_attempts > self.alert_thresholds["cross_org_attempts_per_hour"]:
             await self._send_alert(
@@ -176,14 +168,9 @@ class SecurityAlertManager:
             )
 
         # Check high entropy detections (last hour)
-        entropy_detections = self._count_events_in_window(
-            SecurityEventType.HIGH_ENTROPY_DETECTION, hours=1
-        )
+        entropy_detections = self._count_events_in_window(SecurityEventType.HIGH_ENTROPY_DETECTION, hours=1)
 
-        if (
-            entropy_detections
-            > self.alert_thresholds["high_entropy_detections_per_hour"]
-        ):
+        if entropy_detections > self.alert_thresholds["high_entropy_detections_per_hour"]:
             await self._send_alert(
                 severity=AlertSeverity.MEDIUM,
                 event_type=SecurityEventType.HIGH_ENTROPY_DETECTION,
@@ -192,9 +179,7 @@ class SecurityAlertManager:
                 metadata={"entropy_detections": entropy_detections},
             )
 
-    def _count_events_in_window(
-        self, event_type: SecurityEventType, minutes: int = 0, hours: int = 0
-    ) -> int:
+    def _count_events_in_window(self, event_type: SecurityEventType, minutes: int = 0, hours: int = 0) -> int:
         """Count events of a specific type within a time window"""
         cutoff_time = datetime.utcnow() - timedelta(minutes=minutes, hours=hours)
 
@@ -202,10 +187,7 @@ class SecurityAlertManager:
             [
                 event
                 for event in self.recent_events
-                if (
-                    event["event_type"] == event_type
-                    and event["timestamp"] > cutoff_time
-                )
+                if (event["event_type"] == event_type and event["timestamp"] > cutoff_time)
             ]
         )
 
@@ -266,9 +248,7 @@ class SecurityAlertManager:
 
         # Would insert into alert_events table
 
-    def get_active_alerts(
-        self, severity: AlertSeverity | None = None
-    ) -> list[SecurityAlert]:
+    def get_active_alerts(self, severity: AlertSeverity | None = None) -> list[SecurityAlert]:
         """Get active (unresolved) alerts"""
         alerts = [alert for alert in self.active_alerts if not alert.resolved]
 
@@ -292,9 +272,7 @@ class SecurityAlertManager:
         """Get security statistics for the specified time period"""
         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
 
-        recent_events = [
-            event for event in self.recent_events if event["timestamp"] > cutoff_time
-        ]
+        recent_events = [event for event in self.recent_events if event["timestamp"] > cutoff_time]
 
         from typing import Any
 
@@ -302,13 +280,7 @@ class SecurityAlertManager:
             "total_events": len(recent_events),
             "events_by_type": {},
             "events_by_hour": {},
-            "unique_users_involved": len(
-                set(
-                    event.get("user_id")
-                    for event in recent_events
-                    if event.get("user_id")
-                )
-            ),
+            "unique_users_involved": len(set(event.get("user_id") for event in recent_events if event.get("user_id"))),
             "active_alerts": len(self.get_active_alerts()),
             "critical_alerts": len(self.get_active_alerts(AlertSeverity.CRITICAL)),
             "time_period_hours": hours,

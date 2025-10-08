@@ -115,16 +115,9 @@ async def recall(
 ):
     """Recall memories by similarity search"""
     try:
-        memories = await provider.recall(
-            query=query, k=k, user_id=current_user.id, context_id=context_id
-        )
+        memories = await provider.recall(query=query, k=k, user_id=current_user.id, context_id=context_id)
 
-        items = [
-            MemoryItemResponse(
-                id=memory["id"], text=memory["text"], meta=memory["meta"]
-            )
-            for memory in memories
-        ]
+        items = [MemoryItemResponse(id=memory["id"], text=memory["text"], meta=memory["meta"]) for memory in memories]
 
         return RecallResponse(items=items, total=len(items), query=query)
     except MemoryProviderError as e:
@@ -146,16 +139,9 @@ async def list_memories(
             user_id=current_user.id, context_id=context_id, limit=limit, offset=offset
         )
 
-        items = [
-            MemoryItemResponse(
-                id=memory["id"], text=memory["text"], meta=memory["meta"]
-            )
-            for memory in memories
-        ]
+        items = [MemoryItemResponse(id=memory["id"], text=memory["text"], meta=memory["meta"]) for memory in memories]
 
-        return MemoryListResponse(
-            items=items, total=len(items), limit=limit, offset=offset
-        )
+        return MemoryListResponse(items=items, total=len(items), limit=limit, offset=offset)
     except MemoryProviderError as e:
         logger.error("Memory listing failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e))

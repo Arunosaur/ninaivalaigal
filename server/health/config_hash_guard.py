@@ -14,9 +14,7 @@ SECURITY_CONFIG = {
 
 
 def compute_hash():
-    return hashlib.sha256(
-        json.dumps(SECURITY_CONFIG, sort_keys=True).encode()
-    ).hexdigest()
+    return hashlib.sha256(json.dumps(SECURITY_CONFIG, sort_keys=True).encode()).hexdigest()
 
 
 @router.get("/healthz/config")

@@ -83,9 +83,7 @@ def apply_security_bundle_with_ctx(
                 raise  # Fail closed for sensitive tiers
             return text  # Return original text for lower tiers
 
-    app.add_middleware(
-        RedactionASGIMiddleware, detector_fn=tier_aware_detector, overlap=redact_overlap
-    )
+    app.add_middleware(RedactionASGIMiddleware, detector_fn=tier_aware_detector, overlap=redact_overlap)
 
     # 5) Install subject context provider (explicit injection point)
     install_subject_ctx_provider(app, subject_ctx_provider)

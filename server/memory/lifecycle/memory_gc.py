@@ -73,9 +73,7 @@ class MemoryGarbageCollector:
 
     async def initialize(self):
         """Initialize database connection pool"""
-        self.pool = await asyncpg.create_pool(
-            self.database_url, min_size=1, max_size=5, command_timeout=60
-        )
+        self.pool = await asyncpg.create_pool(self.database_url, min_size=1, max_size=5, command_timeout=60)
         logger.info("Memory GC service initialized")
 
     async def close(self):
@@ -167,15 +165,11 @@ class MemoryGarbageCollector:
                         policy.team_id,
                         policy.org_id,
                     )
-                    logger.info(
-                        f"[DRY RUN] Would archive {count} memories for policy {policy.id}"
-                    )
+                    logger.info(f"[DRY RUN] Would archive {count} memories for policy {policy.id}")
                     archived_count += count
             else:
                 async with self.pool.acquire() as conn:
-                    count = await conn.fetchval(
-                        "SELECT archive_old_memories($1)", days_threshold
-                    )
+                    count = await conn.fetchval("SELECT archive_old_memories($1)", days_threshold)
                     archived_count += count
 
         if not self.dry_run:
@@ -249,9 +243,7 @@ class MemoryGarbageCollector:
 
         for memory in expiring_memories:
             if self.dry_run:
-                logger.info(
-                    f"[DRY RUN] Would notify about expiring memory {memory['id']}"
-                )
+                logger.info(f"[DRY RUN] Would notify about expiring memory {memory['id']}")
                 notifications_sent += 1
             else:
                 # In a real implementation, this would send email/push notifications
@@ -266,9 +258,7 @@ class MemoryGarbageCollector:
                         json.dumps(
                             {
                                 "expires_at": memory["expires_at"].isoformat(),
-                                "days_until_expiry": (
-                                    memory["expires_at"] - datetime.now()
-                                ).days,
+                                "days_until_expiry": (memory["expires_at"] - datetime.now()).days,
                                 "notification_sent_at": datetime.now().isoformat(),
                             }
                         ),
@@ -298,11 +288,7 @@ class MemoryGarbageCollector:
                     team_id=row["team_id"],
                     org_id=row["org_id"],
                     policy_type=row["policy_type"],
-                    policy_config=(
-                        row["policy_config"]
-                        if isinstance(row["policy_config"], dict)
-                        else {}
-                    ),
+                    policy_config=(row["policy_config"] if isinstance(row["policy_config"], dict) else {}),
                     enabled=row["enabled"],
                 )
                 for row in rows
@@ -370,9 +356,7 @@ async def main():
     try:
         await gc.initialize()
 
-        logger.info(
-            f"Starting memory GC service (dry_run={dry_run}, interval={interval_minutes}min)"
-        )
+        logger.info(f"Starting memory GC service (dry_run={dry_run}, interval={interval_minutes}min)")
 
         while True:
             try:

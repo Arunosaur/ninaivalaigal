@@ -69,9 +69,7 @@ class VisibilityProfile:
     owner_scope: ScopeIdentifier
     visibility_flags: Set[VisibilityFlag]
     restrictions: Dict[str, Any] = field(default_factory=dict)
-    exceptions: Dict[str, Set[VisibilityFlag]] = field(
-        default_factory=dict
-    )  # scope -> flags
+    exceptions: Dict[str, Set[VisibilityFlag]] = field(default_factory=dict)  # scope -> flags
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -114,16 +112,10 @@ class MemoryConsentManager:
     """
 
     def __init__(self):
-        self.consent_preferences: Dict[str, List[ConsentPreference]] = (
-            {}
-        )  # user_id -> preferences
-        self.visibility_profiles: Dict[str, VisibilityProfile] = (
-            {}
-        )  # profile_id -> profile
+        self.consent_preferences: Dict[str, List[ConsentPreference]] = {}  # user_id -> preferences
+        self.visibility_profiles: Dict[str, VisibilityProfile] = {}  # profile_id -> profile
         self.consent_requests: Dict[str, ConsentRequest] = {}  # request_id -> request
-        self.consent_decisions: Dict[str, ConsentDecision] = (
-            {}
-        )  # request_id -> decision
+        self.consent_decisions: Dict[str, ConsentDecision] = {}  # request_id -> decision
 
         # Default visibility profiles
         self.default_profiles = self._initialize_default_profiles()
@@ -166,9 +158,7 @@ class MemoryConsentManager:
             # Add new preference
             self.consent_preferences[user_key].append(preference)
 
-            logger.info(
-                f"Set consent preference for user {user_id} in scope {scope.scope_type.value}:{scope.scope_id}"
-            )
+            logger.info(f"Set consent preference for user {user_id} in scope {scope.scope_type.value}:{scope.scope_id}")
             return preference
 
         except Exception as e:
@@ -184,9 +174,7 @@ class MemoryConsentManager:
     ) -> VisibilityProfile:
         """Create a visibility profile for a scope"""
         try:
-            profile_id = (
-                f"profile_{owner_scope.scope_type.value}_{owner_scope.scope_id}"
-            )
+            profile_id = f"profile_{owner_scope.scope_type.value}_{owner_scope.scope_id}"
 
             profile = VisibilityProfile(
                 profile_id=profile_id,
@@ -263,8 +251,7 @@ class MemoryConsentManager:
                 requested_permissions=requested_permissions,
                 justification=justification,
                 urgency_level=urgency_level,
-                expires_at=datetime.now(timezone.utc)
-                + timedelta(days=7),  # Default 7-day expiry
+                expires_at=datetime.now(timezone.utc) + timedelta(days=7),  # Default 7-day expiry
             )
 
             self.consent_requests[request_id] = request
@@ -295,12 +282,8 @@ class MemoryConsentManager:
                 raise ValueError(f"Consent request {request_id} not found")
 
             # Verify user can make decision for target scope
-            if not await self._can_user_decide_consent(
-                deciding_user_id, request.target_scope
-            ):
-                raise PermissionError(
-                    "User cannot make consent decisions for target scope"
-                )
+            if not await self._can_user_decide_consent(deciding_user_id, request.target_scope):
+                raise PermissionError("User cannot make consent decisions for target scope")
 
             decision_obj = ConsentDecision(
                 request_id=request_id,
@@ -317,9 +300,7 @@ class MemoryConsentManager:
             # Send notification to requesting scope
             await self._send_decision_notification(request, decision_obj)
 
-            logger.info(
-                f"Processed consent decision for request {request_id}: {'granted' if decision else 'denied'}"
-            )
+            logger.info(f"Processed consent decision for request {request_id}: {'granted' if decision else 'denied'}")
             return decision_obj
 
         except Exception as e:
@@ -339,9 +320,7 @@ class MemoryConsentManager:
             if not owner_scope:
                 return False
 
-            profile_id = (
-                f"profile_{owner_scope.scope_type.value}_{owner_scope.scope_id}"
-            )
+            profile_id = f"profile_{owner_scope.scope_type.value}_{owner_scope.scope_id}"
             profile = self.visibility_profiles.get(profile_id)
 
             if not profile:
@@ -363,16 +342,12 @@ class MemoryConsentManager:
             logger.error(f"Failed to check visibility permission: {e}")
             return False
 
-    async def get_pending_consent_requests(
-        self, target_scope: ScopeIdentifier, user_id: int
-    ) -> List[Dict[str, Any]]:
+    async def get_pending_consent_requests(self, target_scope: ScopeIdentifier, user_id: int) -> List[Dict[str, Any]]:
         """Get pending consent requests for a scope"""
         try:
             # Verify user can view requests for target scope
             if not await self._can_user_decide_consent(user_id, target_scope):
-                raise PermissionError(
-                    "User cannot view consent requests for target scope"
-                )
+                raise PermissionError("User cannot view consent requests for target scope")
 
             pending_requests = []
 
@@ -382,10 +357,7 @@ class MemoryConsentManager:
                     continue
 
                 # Check if request has expired
-                if (
-                    request.expires_at
-                    and datetime.now(timezone.utc) > request.expires_at
-                ):
+                if request.expires_at and datetime.now(timezone.utc) > request.expires_at:
                     continue
 
                 request_info = {
@@ -400,9 +372,7 @@ class MemoryConsentManager:
                     "justification": request.justification,
                     "urgency_level": request.urgency_level,
                     "created_at": request.created_at.isoformat(),
-                    "expires_at": (
-                        request.expires_at.isoformat() if request.expires_at else None
-                    ),
+                    "expires_at": (request.expires_at.isoformat() if request.expires_at else None),
                 }
 
                 pending_requests.append(request_info)
@@ -413,9 +383,7 @@ class MemoryConsentManager:
             logger.error(f"Failed to get pending consent requests: {e}")
             return []
 
-    async def get_consent_statistics(
-        self, scope: ScopeIdentifier, user_id: int
-    ) -> Dict[str, Any]:
+    async def get_consent_statistics(self, scope: ScopeIdentifier, user_id: int) -> Dict[str, Any]:
         """Get consent statistics for a scope"""
         try:
             # Verify user can access scope statistics
@@ -484,9 +452,7 @@ class MemoryConsentManager:
         # Check conditions
         if "allowed_scopes" in preference.conditions:
             allowed_scopes = preference.conditions["allowed_scopes"]
-            scope_key = (
-                f"{requesting_scope.scope_type.value}:{requesting_scope.scope_id}"
-            )
+            scope_key = f"{requesting_scope.scope_type.value}:{requesting_scope.scope_id}"
             if scope_key not in allowed_scopes:
                 return False
 
@@ -499,10 +465,7 @@ class MemoryConsentManager:
 
     def _scope_matches(self, scope1: ScopeIdentifier, scope2: ScopeIdentifier) -> bool:
         """Check if two scopes match"""
-        return (
-            scope1.scope_type == scope2.scope_type
-            and scope1.scope_id == scope2.scope_id
-        )
+        return scope1.scope_type == scope2.scope_type and scope1.scope_id == scope2.scope_id
 
     async def _get_scope_users(self, scope: ScopeIdentifier) -> Set[int]:
         """Get all users in a scope"""
@@ -514,9 +477,7 @@ class MemoryConsentManager:
             # Mock: return some users for team/org scopes
             return {1, 2, 3}  # Replace with actual implementation
 
-    async def _can_user_decide_consent(
-        self, user_id: int, scope: ScopeIdentifier
-    ) -> bool:
+    async def _can_user_decide_consent(self, user_id: int, scope: ScopeIdentifier) -> bool:
         """Check if user can make consent decisions for a scope"""
         if scope.scope_type == ScopeType.USER:
             return scope.scope_id == str(user_id)
@@ -525,24 +486,18 @@ class MemoryConsentManager:
         scope_users = await self._get_scope_users(scope)
         return user_id in scope_users  # Simplified - would check admin role
 
-    async def _get_memory_owner_scope(
-        self, memory_id: str
-    ) -> Optional[ScopeIdentifier]:
+    async def _get_memory_owner_scope(self, memory_id: str) -> Optional[ScopeIdentifier]:
         """Get the owner scope for a memory"""
         # This would integrate with your memory management system
         # For now, return mock data
-        return ScopeIdentifier(
-            scope_type=ScopeType.USER, scope_id="1", display_name="Mock User"
-        )
+        return ScopeIdentifier(scope_type=ScopeType.USER, scope_id="1", display_name="Mock User")
 
     async def _send_consent_notifications(self, request: ConsentRequest) -> None:
         """Send notifications about consent request"""
         # This would integrate with your notification system
         logger.info(f"Sending consent notification for request {request.request_id}")
 
-    async def _send_decision_notification(
-        self, request: ConsentRequest, decision: ConsentDecision
-    ) -> None:
+    async def _send_decision_notification(self, request: ConsentRequest, decision: ConsentDecision) -> None:
         """Send notification about consent decision"""
         # This would integrate with your notification system
         logger.info(f"Sending decision notification for request {request.request_id}")

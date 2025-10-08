@@ -73,17 +73,9 @@ def share_context(
             # Create permission entry
             permission = ContextPermission(
                 context_id=context_id,
-                user_id=(
-                    share_data.target_id if share_data.target_type == "user" else None
-                ),
-                team_id=(
-                    share_data.target_id if share_data.target_type == "team" else None
-                ),
-                organization_id=(
-                    share_data.target_id
-                    if share_data.target_type == "organization"
-                    else None
-                ),
+                user_id=(share_data.target_id if share_data.target_type == "user" else None),
+                team_id=(share_data.target_id if share_data.target_type == "team" else None),
+                organization_id=(share_data.target_id if share_data.target_type == "organization" else None),
                 permission_level=share_data.permission_level,
                 granted_by=current_user.id,
             )
@@ -147,9 +139,7 @@ def list_contexts(
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to list contexts: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to list contexts: {str(e)}")
 
 
 @router.delete("/{context_name}")

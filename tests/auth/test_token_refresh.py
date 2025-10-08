@@ -22,24 +22,18 @@ class TestTokenRefresh:
         refresh_data = {"refresh_token": "valid_refresh_token_placeholder"}
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Token refresh endpoint not implemented")
 
             if response.status_code == 500:
-                pytest.skip(
-                    "Token refresh endpoint has internal server error - needs fixing"
-                )
+                pytest.skip("Token refresh endpoint has internal server error - needs fixing")
 
             # Should return new access token
             if response.status_code == 200:
                 result = response.json()
-                assert (
-                    "access_token" in result or "token" in result
-                ), "Refresh response missing new access token"
+                assert "access_token" in result or "token" in result, "Refresh response missing new access token"
             else:
                 # Expected to fail with placeholder token
                 assert response.status_code in [
@@ -55,17 +49,13 @@ class TestTokenRefresh:
         refresh_data = {"refresh_token": "invalid_refresh_token_12345"}
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Token refresh endpoint not implemented")
 
             if response.status_code == 500:
-                pytest.skip(
-                    "Token refresh endpoint has internal server error - needs fixing"
-                )
+                pytest.skip("Token refresh endpoint has internal server error - needs fixing")
 
             # Should reject invalid refresh token
             assert response.status_code in [
@@ -81,17 +71,13 @@ class TestTokenRefresh:
         refresh_data = {"refresh_token": "expired_refresh_token_placeholder"}
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Token refresh endpoint not implemented")
 
             if response.status_code == 500:
-                pytest.skip(
-                    "Token refresh endpoint has internal server error - needs fixing"
-                )
+                pytest.skip("Token refresh endpoint has internal server error - needs fixing")
 
             # Should reject expired refresh token
             assert response.status_code in [
@@ -111,14 +97,10 @@ class TestTokenRefresh:
                 pytest.skip("Token refresh endpoint not implemented")
 
             if response.status_code == 500:
-                pytest.skip(
-                    "Token refresh endpoint has internal server error - needs fixing"
-                )
+                pytest.skip("Token refresh endpoint has internal server error - needs fixing")
 
             # Should require refresh token
-            assert (
-                response.status_code == 400
-            ), f"Missing refresh token not rejected: {response.status_code}"
+            assert response.status_code == 400, f"Missing refresh token not rejected: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -137,9 +119,7 @@ class TestTokenRefresh:
                 pytest.skip("Token refresh endpoint not implemented")
 
             # Should reject malformed request
-            assert (
-                response.status_code == 400
-            ), f"Malformed refresh request not rejected: {response.status_code}"
+            assert response.status_code == 400, f"Malformed refresh request not rejected: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -153,30 +133,22 @@ class TestTokenRotation:
         refresh_data = {"refresh_token": "rotation_test_token_placeholder"}
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Token refresh endpoint not implemented")
 
             if response.status_code == 500:
-                pytest.skip(
-                    "Token refresh endpoint has internal server error - needs fixing"
-                )
+                pytest.skip("Token refresh endpoint has internal server error - needs fixing")
 
             if response.status_code == 200:
                 result = response.json()
                 # Should return both new access token and new refresh token
-                assert (
-                    "access_token" in result or "token" in result
-                ), "New access token missing"
+                assert "access_token" in result or "token" in result, "New access token missing"
 
                 # Optionally check for new refresh token (depends on implementation)
                 if "refresh_token" in result:
-                    assert (
-                        result["refresh_token"] != refresh_data["refresh_token"]
-                    ), "Refresh token not rotated"
+                    assert result["refresh_token"] != refresh_data["refresh_token"], "Refresh token not rotated"
             else:
                 # Expected to fail with placeholder token
                 assert response.status_code in [
@@ -194,22 +166,16 @@ class TestTokenRotation:
         try:
             # First refresh attempt
             refresh_data = {"refresh_token": old_refresh_token}
-            response1 = requests.post(
-                f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5
-            )
+            response1 = requests.post(f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5)
 
             if response1.status_code == 404:
                 pytest.skip("Token refresh endpoint not implemented")
 
             if response1.status_code == 500:
-                pytest.skip(
-                    "Token refresh endpoint has internal server error - needs fixing"
-                )
+                pytest.skip("Token refresh endpoint has internal server error - needs fixing")
 
             # Second refresh attempt with same token
-            response2 = requests.post(
-                f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5
-            )
+            response2 = requests.post(f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5)
 
             # Second attempt should fail (token should be invalidated)
             assert response2.status_code in [
@@ -247,9 +213,7 @@ class TestTokenLifecycle:
 
         try:
             # Logout request
-            response = requests.post(
-                f"{BASE_URL}/auth/logout", json=logout_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/logout", json=logout_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Logout endpoint not implemented")
@@ -278,17 +242,13 @@ class TestTokenLifecycle:
         suspicious_refresh_data = {"refresh_token": "suspicious_token_placeholder"}
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/refresh", json=suspicious_refresh_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/refresh", json=suspicious_refresh_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Token refresh endpoint not implemented")
 
             if response.status_code == 500:
-                pytest.skip(
-                    "Token refresh endpoint has internal server error - needs fixing"
-                )
+                pytest.skip("Token refresh endpoint has internal server error - needs fixing")
 
             # Should handle suspicious token appropriately
             assert response.status_code in [
@@ -310,22 +270,16 @@ class TestTokenSecurity:
 
         try:
             # First use
-            response1 = requests.post(
-                f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5
-            )
+            response1 = requests.post(f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5)
 
             if response1.status_code == 404:
                 pytest.skip("Token refresh endpoint not implemented")
 
             if response1.status_code == 500:
-                pytest.skip(
-                    "Token refresh endpoint has internal server error - needs fixing"
-                )
+                pytest.skip("Token refresh endpoint has internal server error - needs fixing")
 
             # Second use of same token
-            response2 = requests.post(
-                f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5
-            )
+            response2 = requests.post(f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5)
 
             # Second use should fail
             assert response2.status_code in [
@@ -344,17 +298,13 @@ class TestTokenSecurity:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/refresh", json=refresh_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Token refresh endpoint not implemented")
 
             if response.status_code == 500:
-                pytest.skip(
-                    "Token refresh endpoint has internal server error - needs fixing"
-                )
+                pytest.skip("Token refresh endpoint has internal server error - needs fixing")
 
             # Should reject token from different client
             assert response.status_code in [

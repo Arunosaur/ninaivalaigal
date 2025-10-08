@@ -45,9 +45,7 @@ class DataOperationsTool:
             "summary",
         ]
 
-    async def analyze_search_results(
-        self, search_results: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    async def analyze_search_results(self, search_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Analyze search results to provide insights and patterns.
 
@@ -66,14 +64,10 @@ class DataOperationsTool:
             # Perform analysis
             analytics = {
                 "total_results": len(search_results),
-                "relevance_distribution": self._analyze_relevance_distribution(
-                    search_results
-                ),
+                "relevance_distribution": self._analyze_relevance_distribution(search_results),
                 "content_patterns": self._identify_content_patterns(search_results),
                 "temporal_analysis": self._analyze_temporal_patterns(search_results),
-                "similarity_clusters": self._identify_similarity_clusters(
-                    search_results
-                ),
+                "similarity_clusters": self._identify_similarity_clusters(search_results),
                 "key_insights": self._generate_key_insights(search_results),
             }
 
@@ -232,9 +226,7 @@ class DataOperationsTool:
         return {
             "temporal_analysis": temporal_analysis,
             "insights": insights,
-            "time_based_recommendations": self._generate_temporal_recommendations(
-                temporal_analysis
-            ),
+            "time_based_recommendations": self._generate_temporal_recommendations(temporal_analysis),
         }
 
     async def _perform_categorical_analysis(
@@ -248,9 +240,7 @@ class DataOperationsTool:
 
         categorical_analysis = {
             "category_distribution": context_distribution,
-            "dominant_categories": self._identify_dominant_categories(
-                context_distribution
-            ),
+            "dominant_categories": self._identify_dominant_categories(context_distribution),
             "category_balance": self._analyze_category_balance(context_distribution),
             "emerging_categories": self._identify_emerging_categories(categories),
         }
@@ -263,9 +253,7 @@ class DataOperationsTool:
         return {
             "categorical_analysis": categorical_analysis,
             "insights": insights,
-            "category_recommendations": self._generate_category_recommendations(
-                categorical_analysis
-            ),
+            "category_recommendations": self._generate_category_recommendations(categorical_analysis),
         }
 
     async def _perform_correlation_analysis(
@@ -277,32 +265,20 @@ class DataOperationsTool:
         memories = data.get("memories", [])
 
         correlation_analysis = {
-            "importance_recency_correlation": self._calculate_importance_recency_correlation(
-                memories
-            ),
-            "content_length_importance_correlation": self._calculate_content_importance_correlation(
-                memories
-            ),
-            "temporal_importance_correlation": self._calculate_temporal_importance_correlation(
-                memories
-            ),
-            "category_importance_patterns": self._analyze_category_importance_patterns(
-                memories
-            ),
+            "importance_recency_correlation": self._calculate_importance_recency_correlation(memories),
+            "content_length_importance_correlation": self._calculate_content_importance_correlation(memories),
+            "temporal_importance_correlation": self._calculate_temporal_importance_correlation(memories),
+            "category_importance_patterns": self._analyze_category_importance_patterns(memories),
         }
 
         insights = []
         if abs(correlation_analysis["importance_recency_correlation"]) > 0.5:
-            insights.append(
-                "Strong correlation between importance and recency detected"
-            )
+            insights.append("Strong correlation between importance and recency detected")
 
         return {
             "correlation_analysis": correlation_analysis,
             "insights": insights,
-            "correlation_insights": self._generate_correlation_insights(
-                correlation_analysis
-            ),
+            "correlation_insights": self._generate_correlation_insights(correlation_analysis),
         }
 
     async def _perform_trend_analysis(
@@ -349,16 +325,12 @@ class DataOperationsTool:
 
         insights = []
         if pattern_analysis["recurring_patterns"]:
-            insights.append(
-                f"Detected {len(pattern_analysis['recurring_patterns'])} recurring patterns"
-            )
+            insights.append(f"Detected {len(pattern_analysis['recurring_patterns'])} recurring patterns")
 
         return {
             "pattern_analysis": pattern_analysis,
             "insights": insights,
-            "pattern_recommendations": self._generate_pattern_recommendations(
-                pattern_analysis
-            ),
+            "pattern_recommendations": self._generate_pattern_recommendations(pattern_analysis),
         }
 
     async def _perform_summary_analysis(
@@ -472,14 +444,8 @@ class DataOperationsTool:
 
         # Update average operation time
         if self.metrics["total_operations"] > 0:
-            total_time = (
-                self.metrics["avg_operation_time"]
-                * (self.metrics["total_operations"] - 1)
-                + operation_time
-            )
-            self.metrics["avg_operation_time"] = (
-                total_time / self.metrics["total_operations"]
-            )
+            total_time = self.metrics["avg_operation_time"] * (self.metrics["total_operations"] - 1) + operation_time
+            self.metrics["avg_operation_time"] = total_time / self.metrics["total_operations"]
 
     # Mock implementations for various analysis methods
     def _calculate_recency_distribution(self, memories: List[Dict]) -> Dict[str, int]:
@@ -582,13 +548,9 @@ class DataOperationsTool:
         """Get data operations metrics."""
         return {
             "metrics": self.metrics,
-            "success_rate": (
-                self.metrics["successful_operations"]
-                / max(1, self.metrics["total_operations"])
-            ),
+            "success_rate": (self.metrics["successful_operations"] / max(1, self.metrics["total_operations"])),
             "avg_data_points_per_operation": (
-                self.metrics["data_points_processed"]
-                / max(1, self.metrics["total_operations"])
+                self.metrics["data_points_processed"] / max(1, self.metrics["total_operations"])
             ),
             "supported_analysis_types": self.analysis_types,
         }

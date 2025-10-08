@@ -167,9 +167,7 @@ class ProviderHealthMonitor:
         """Get health summaries for all providers"""
         return self.provider_summaries.copy()
 
-    async def get_provider_metrics(
-        self, provider_name: str, hours: int = 24
-    ) -> List[HealthMetric]:
+    async def get_provider_metrics(self, provider_name: str, hours: int = 24) -> List[HealthMetric]:
         """Get historical metrics for a provider"""
         if provider_name not in self.provider_metrics:
             return []
@@ -217,9 +215,7 @@ class ProviderHealthMonitor:
             logger.error(f"Failed to resolve alert: {e}")
             return False
 
-    async def get_health_trends(
-        self, provider_name: str, hours: int = 24
-    ) -> Dict[str, Any]:
+    async def get_health_trends(self, provider_name: str, hours: int = 24) -> Dict[str, Any]:
         """Get health trends and analysis for a provider"""
         try:
             metrics = await self.get_provider_metrics(provider_name, hours)
@@ -242,11 +238,8 @@ class ProviderHealthMonitor:
             hourly_stats = {}
             for hour, hour_metrics in hourly_buckets.items():
                 hourly_stats[hour.isoformat()] = {
-                    "avg_response_time": statistics.mean(
-                        [m.response_time_ms for m in hour_metrics]
-                    ),
-                    "success_rate": sum(1 for m in hour_metrics if m.success)
-                    / len(hour_metrics),
+                    "avg_response_time": statistics.mean([m.response_time_ms for m in hour_metrics]),
+                    "success_rate": sum(1 for m in hour_metrics if m.success) / len(hour_metrics),
                     "total_checks": len(hour_metrics),
                 }
 
@@ -259,9 +252,7 @@ class ProviderHealthMonitor:
                 "min_response_time_ms": min(response_times),
                 "max_response_time_ms": max(response_times),
                 "median_response_time_ms": statistics.median(response_times),
-                "response_time_std_dev": (
-                    statistics.stdev(response_times) if len(response_times) > 1 else 0
-                ),
+                "response_time_std_dev": (statistics.stdev(response_times) if len(response_times) > 1 else 0),
                 "hourly_breakdown": hourly_stats,
             }
 
@@ -269,9 +260,7 @@ class ProviderHealthMonitor:
             logger.error(f"Failed to calculate health trends for {provider_name}: {e}")
             return {"error": str(e)}
 
-    async def export_health_data(
-        self, provider_name: Optional[str] = None, hours: int = 24
-    ) -> Dict[str, Any]:
+    async def export_health_data(self, provider_name: Optional[str] = None, hours: int = 24) -> Dict[str, Any]:
         """Export health data for analysis or backup"""
         try:
             export_data = {
@@ -280,9 +269,7 @@ class ProviderHealthMonitor:
                 "providers": {},
             }
 
-            providers_to_export = (
-                [provider_name] if provider_name else list(self.provider_metrics.keys())
-            )
+            providers_to_export = [provider_name] if provider_name else list(self.provider_metrics.keys())
 
             for prov_name in providers_to_export:
                 metrics = await self.get_provider_metrics(prov_name, hours)
@@ -292,12 +279,8 @@ class ProviderHealthMonitor:
                 export_data["providers"][prov_name] = {
                     "summary": {
                         "status": summary.status.value if summary else "unknown",
-                        "uptime_percentage": (
-                            summary.uptime_percentage if summary else 0
-                        ),
-                        "avg_response_time_ms": (
-                            summary.avg_response_time_ms if summary else 0
-                        ),
+                        "uptime_percentage": (summary.uptime_percentage if summary else 0),
+                        "avg_response_time_ms": (summary.avg_response_time_ms if summary else 0),
                         "error_rate": summary.error_rate if summary else 0,
                         "total_checks": summary.total_checks if summary else 0,
                     },
@@ -355,18 +338,12 @@ class ProviderHealthMonitor:
             # Calculate summary statistics
             total_checks = len(recent_metrics)
             successful_checks = sum(1 for m in recent_metrics if m.success)
-            uptime_percentage = (
-                (successful_checks / total_checks) * 100 if total_checks > 0 else 0
-            )
+            uptime_percentage = (successful_checks / total_checks) * 100 if total_checks > 0 else 0
 
             response_times = [m.response_time_ms for m in recent_metrics if m.success]
             avg_response_time = statistics.mean(response_times) if response_times else 0
 
-            error_rate = (
-                ((total_checks - successful_checks) / total_checks) * 100
-                if total_checks > 0
-                else 0
-            )
+            error_rate = ((total_checks - successful_checks) / total_checks) * 100 if total_checks > 0 else 0
 
             # Count consecutive failures
             consecutive_failures = 0
@@ -446,10 +423,7 @@ class ProviderHealthMonitor:
             alerts_to_generate = []
 
             # Check for consecutive failures
-            if (
-                summary.consecutive_failures
-                >= self.thresholds["consecutive_failures_critical"]
-            ):
+            if summary.consecutive_failures >= self.thresholds["consecutive_failures_critical"]:
                 alerts_to_generate.append(
                     HealthAlert(
                         provider_name=provider_name,
@@ -459,10 +433,7 @@ class ProviderHealthMonitor:
                         metadata={"consecutive_failures": summary.consecutive_failures},
                     )
                 )
-            elif (
-                summary.consecutive_failures
-                >= self.thresholds["consecutive_failures_warning"]
-            ):
+            elif summary.consecutive_failures >= self.thresholds["consecutive_failures_warning"]:
                 alerts_to_generate.append(
                     HealthAlert(
                         provider_name=provider_name,
@@ -521,10 +492,7 @@ class ProviderHealthMonitor:
             for alert in alerts_to_generate:
                 # Check if similar alert already exists
                 existing_alerts = self.active_alerts[provider_name]
-                similar_alert_exists = any(
-                    a.message == alert.message and not a.resolved
-                    for a in existing_alerts
-                )
+                similar_alert_exists = any(a.message == alert.message and not a.resolved for a in existing_alerts)
 
                 if not similar_alert_exists:
                     self.active_alerts[provider_name].append(alert)
@@ -555,9 +523,7 @@ class ProviderHealthMonitor:
     async def _cleanup_old_metrics(self) -> None:
         """Remove metrics older than retention period"""
         try:
-            cutoff_time = datetime.now(timezone.utc) - timedelta(
-                hours=self.metrics_retention_hours
-            )
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=self.metrics_retention_hours)
 
             for provider_name in list(self.provider_metrics.keys()):
                 metrics = self.provider_metrics[provider_name]
@@ -569,9 +535,7 @@ class ProviderHealthMonitor:
                 # Clean up resolved alerts older than 24 hours
                 alert_cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
                 alerts = self.active_alerts.get(provider_name, [])
-                active_alerts = [
-                    a for a in alerts if not a.resolved or a.timestamp >= alert_cutoff
-                ]
+                active_alerts = [a for a in alerts if not a.resolved or a.timestamp >= alert_cutoff]
                 self.active_alerts[provider_name] = active_alerts
 
             logger.debug("Completed metrics cleanup")

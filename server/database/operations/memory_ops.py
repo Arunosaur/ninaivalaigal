@@ -25,9 +25,7 @@ class MemoryOperations(DatabaseManager):
             context_obj = self.resolve_context(context, user_id, session=session)
             if not context_obj:
                 # Create context if it doesn't exist
-                context_obj = Context(
-                    name=context, owner_id=user_id, scope="personal", is_active=True
-                )
+                context_obj = Context(name=context, owner_id=user_id, scope="personal", is_active=True)
                 session.add(context_obj)
                 session.flush()  # Get the ID
 
@@ -66,9 +64,7 @@ class MemoryOperations(DatabaseManager):
                 )
             else:
                 # Admin access - get all memories from context
-                context_obj = (
-                    session.query(Context).filter(Context.name == context).first()
-                )
+                context_obj = session.query(Context).filter(Context.name == context).first()
                 if not context_obj:
                     return []
 
@@ -85,9 +81,7 @@ class MemoryOperations(DatabaseManager):
                     "content": mem.content,
                     "memory_type": mem.memory_type,
                     "metadata": mem.metadata,
-                    "created_at": (
-                        mem.created_at.isoformat() if mem.created_at else None
-                    ),
+                    "created_at": (mem.created_at.isoformat() if mem.created_at else None),
                     "context": context,
                 }
                 for mem in memories
@@ -112,9 +106,7 @@ class MemoryOperations(DatabaseManager):
                 )
             else:
                 # Admin access - get all memories
-                memories = (
-                    session.query(Memory).order_by(Memory.created_at.desc()).all()
-                )
+                memories = session.query(Memory).order_by(Memory.created_at.desc()).all()
 
             return [
                 {
@@ -122,9 +114,7 @@ class MemoryOperations(DatabaseManager):
                     "content": mem.content,
                     "memory_type": mem.memory_type,
                     "metadata": mem.metadata,
-                    "created_at": (
-                        mem.created_at.isoformat() if mem.created_at else None
-                    ),
+                    "created_at": (mem.created_at.isoformat() if mem.created_at else None),
                     "context": mem.context.name if mem.context else None,
                 }
                 for mem in memories
@@ -150,12 +140,7 @@ class MemoryOperations(DatabaseManager):
                 )
             else:
                 # Admin access - get all recent memories
-                memories = (
-                    session.query(Memory)
-                    .order_by(Memory.created_at.desc())
-                    .limit(limit)
-                    .all()
-                )
+                memories = session.query(Memory).order_by(Memory.created_at.desc()).limit(limit).all()
 
             return [
                 {
@@ -163,9 +148,7 @@ class MemoryOperations(DatabaseManager):
                     "content": mem.content,
                     "memory_type": mem.memory_type,
                     "metadata": mem.metadata,
-                    "created_at": (
-                        mem.created_at.isoformat() if mem.created_at else None
-                    ),
+                    "created_at": (mem.created_at.isoformat() if mem.created_at else None),
                     "context": mem.context.name if mem.context else None,
                 }
                 for mem in memories
@@ -218,9 +201,7 @@ class MemoryOperations(DatabaseManager):
                     "content": mem.content,
                     "memory_type": mem.memory_type,
                     "metadata": mem.metadata,
-                    "created_at": (
-                        mem.created_at.isoformat() if mem.created_at else None
-                    ),
+                    "created_at": (mem.created_at.isoformat() if mem.created_at else None),
                     "context": mem.context.name if mem.context else None,
                     "relevance_score": 1.0,  # TODO: Implement proper relevance scoring
                 }
@@ -307,9 +288,7 @@ class MemoryOperations(DatabaseManager):
                 "content": memory.content,
                 "memory_type": memory.memory_type,
                 "metadata": memory.metadata,
-                "created_at": (
-                    memory.created_at.isoformat() if memory.created_at else None
-                ),
+                "created_at": (memory.created_at.isoformat() if memory.created_at else None),
                 "context": memory.context.name if memory.context else None,
             }
         except Exception as e:

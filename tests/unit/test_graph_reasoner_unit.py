@@ -63,9 +63,7 @@ class TestGraphReasonerCreation:
         assert reasoner.redis_client == mock_redis_client
         assert reasoner.cache_ttl == 300
 
-    def test_graph_reasoner_initialization(
-        self, graph_reasoner, mock_age_client, mock_redis_client
-    ):
+    def test_graph_reasoner_initialization(self, graph_reasoner, mock_age_client, mock_redis_client):
         """Test GraphReasoner initializes with correct dependencies"""
         assert graph_reasoner.age_client == mock_age_client
         assert graph_reasoner.redis_client == mock_redis_client
@@ -110,9 +108,7 @@ class TestContextExplanation:
 
     def test_context_explanation_creation(self):
         """Test ContextExplanation creation with default values"""
-        explanation = ContextExplanation(
-            memory_id="mem_001", retrieval_reason="Test reason"
-        )
+        explanation = ContextExplanation(memory_id="mem_001", retrieval_reason="Test reason")
 
         assert explanation.memory_id == "mem_001"
         assert explanation.retrieval_reason == "Test reason"
@@ -123,9 +119,7 @@ class TestContextExplanation:
 
     def test_context_explanation_with_paths(self):
         """Test ContextExplanation with reasoning paths"""
-        path = ReasoningPath(
-            nodes=["user1", "memory1"], edges=["CREATED"], confidence=0.8
-        )
+        path = ReasoningPath(nodes=["user1", "memory1"], edges=["CREATED"], confidence=0.8)
 
         explanation = ContextExplanation(
             memory_id="mem_001",
@@ -202,9 +196,7 @@ class TestExplainContext:
         mock_redis_client.get.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_explain_context_cache_miss(
-        self, graph_reasoner, mock_age_client, mock_redis_client
-    ):
+    async def test_explain_context_cache_miss(self, graph_reasoner, mock_age_client, mock_redis_client):
         """Test explain_context computes result when cache miss"""
         # Setup cache miss
         mock_redis_client.get.return_value = None
@@ -244,9 +236,7 @@ class TestExplainContext:
         mock_redis_client.setex.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_explain_context_with_max_depth(
-        self, graph_reasoner, mock_age_client, mock_redis_client
-    ):
+    async def test_explain_context_with_max_depth(self, graph_reasoner, mock_age_client, mock_redis_client):
         """Test explain_context respects max_depth parameter"""
         mock_redis_client.get.return_value = None
         mock_age_client.execute_cypher.return_value = []
@@ -258,9 +248,7 @@ class TestExplainContext:
         assert "*1..5" in call_args
 
     @pytest.mark.asyncio
-    async def test_explain_context_different_context_types(
-        self, graph_reasoner, mock_redis_client
-    ):
+    async def test_explain_context_different_context_types(self, graph_reasoner, mock_redis_client):
         """Test explain_context handles different context types"""
         mock_redis_client.get.return_value = None
 
@@ -268,9 +256,7 @@ class TestExplainContext:
         context_types = ["retrieval", "suggestion", "inference"]
 
         for context_type in context_types:
-            await graph_reasoner.explain_context(
-                "mem_001", "user_001", context_type=context_type
-            )
+            await graph_reasoner.explain_context("mem_001", "user_001", context_type=context_type)
 
             # Verify cache key includes context type
             cache_key = mock_redis_client.get.call_args[0][0]
@@ -301,9 +287,7 @@ class TestInferRelevance:
         assert result.confidence == 0.75
 
     @pytest.mark.asyncio
-    async def test_infer_relevance_cache_miss(
-        self, graph_reasoner, mock_age_client, mock_redis_client
-    ):
+    async def test_infer_relevance_cache_miss(self, graph_reasoner, mock_age_client, mock_redis_client):
         """Test infer_relevance computes result when cache miss"""
         mock_redis_client.get.return_value = None
 
@@ -322,12 +306,8 @@ class TestInferRelevance:
             [{"distance": 1}],  # agent_001
             [{"distance": 3}],  # agent_002
             # Memory scoring queries
-            [
-                {"base_score": 0.8, "connection_count": 5, "created_at": "2024-09-21"}
-            ],  # mem_002
-            [
-                {"base_score": 0.7, "connection_count": 3, "created_at": "2024-09-20"}
-            ],  # mem_003
+            [{"base_score": 0.8, "connection_count": 5, "created_at": "2024-09-21"}],  # mem_002
+            [{"base_score": 0.7, "connection_count": 3, "created_at": "2024-09-20"}],  # mem_003
             # Agent scoring queries
             [{"activity_count": 10, "capabilities": "memory_management"}],  # agent_001
             [{"activity_count": 5, "capabilities": "automation"}],  # agent_002
@@ -344,9 +324,7 @@ class TestInferRelevance:
         mock_redis_client.setex.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_infer_relevance_suggestion_count(
-        self, graph_reasoner, mock_redis_client
-    ):
+    async def test_infer_relevance_suggestion_count(self, graph_reasoner, mock_redis_client):
         """Test infer_relevance respects suggestion_count parameter"""
         mock_redis_client.get.return_value = None
 
@@ -361,9 +339,7 @@ class TestFeedbackLoop:
     """Test feedback_loop functionality"""
 
     @pytest.mark.asyncio
-    async def test_feedback_loop_stores_feedback(
-        self, graph_reasoner, mock_age_client, mock_redis_client
-    ):
+    async def test_feedback_loop_stores_feedback(self, graph_reasoner, mock_age_client, mock_redis_client):
         """Test feedback_loop stores feedback in graph"""
         mock_age_client.execute_cypher.side_effect = [
             # Store feedback edge
@@ -372,9 +348,7 @@ class TestFeedbackLoop:
             [{"updated_edges": 3}],
         ]
 
-        result = await graph_reasoner.feedback_loop(
-            "user_001", "mem_001", "relevance", 0.8, {"context": "test"}
-        )
+        result = await graph_reasoner.feedback_loop("user_001", "mem_001", "relevance", 0.8, {"context": "test"})
 
         assert result["feedback_stored"] is True
         assert result["weight_updates"]["updated_edges"] == 3
@@ -388,9 +362,7 @@ class TestFeedbackLoop:
         assert "0.8" in store_call
 
     @pytest.mark.asyncio
-    async def test_feedback_loop_updates_traversal_preferences(
-        self, graph_reasoner, mock_redis_client
-    ):
+    async def test_feedback_loop_updates_traversal_preferences(self, graph_reasoner, mock_redis_client):
         """Test feedback_loop updates user traversal preferences"""
         # Mock existing preferences
         existing_prefs = {
@@ -403,11 +375,7 @@ class TestFeedbackLoop:
         await graph_reasoner.feedback_loop("user_001", "mem_001", "relevance", 0.9)
 
         # Verify preferences were updated and stored
-        setex_calls = [
-            call
-            for call in mock_redis_client.setex.call_args_list
-            if "traversal_prefs" in call[0][0]
-        ]
+        setex_calls = [call for call in mock_redis_client.setex.call_args_list if "traversal_prefs" in call[0][0]]
         assert len(setex_calls) > 0
 
         # Check that relevance_boost was increased for high score
@@ -415,9 +383,7 @@ class TestFeedbackLoop:
         assert stored_prefs["relevance_boost"] > 1.0
 
     @pytest.mark.asyncio
-    async def test_feedback_loop_invalidates_caches(
-        self, graph_reasoner, mock_redis_client
-    ):
+    async def test_feedback_loop_invalidates_caches(self, graph_reasoner, mock_redis_client):
         """Test feedback_loop invalidates related caches"""
         mock_redis_client.keys.side_effect = [
             ["context_explanation:mem_001:user_001:retrieval:3"],
@@ -438,9 +404,7 @@ class TestAnalyzeMemoryNetwork:
     """Test analyze_memory_network functionality"""
 
     @pytest.mark.asyncio
-    async def test_analyze_memory_network_cache_hit(
-        self, graph_reasoner, mock_redis_client
-    ):
+    async def test_analyze_memory_network_cache_hit(self, graph_reasoner, mock_redis_client):
         """Test analyze_memory_network returns cached result when available"""
         cached_data = {
             "user_id": "user_001",
@@ -460,9 +424,7 @@ class TestAnalyzeMemoryNetwork:
         assert "Test insight" in result["insights"]
 
     @pytest.mark.asyncio
-    async def test_analyze_memory_network_cache_miss(
-        self, graph_reasoner, mock_age_client, mock_redis_client
-    ):
+    async def test_analyze_memory_network_cache_miss(self, graph_reasoner, mock_age_client, mock_redis_client):
         """Test analyze_memory_network computes result when cache miss"""
         mock_redis_client.get.return_value = None
 
@@ -539,9 +501,7 @@ class TestHelperMethods:
 
     def test_generate_retrieval_reason_two_hop(self, graph_reasoner):
         """Test _generate_retrieval_reason with two-hop connection"""
-        path = ReasoningPath(
-            nodes=["user1", "macro1", "mem1"], edges=["CREATED", "LINKED_TO"]
-        )
+        path = ReasoningPath(nodes=["user1", "macro1", "mem1"], edges=["CREATED", "LINKED_TO"])
         result = graph_reasoner._generate_retrieval_reason(path, "retrieval")
         assert result == "Connected via CREATED → LINKED_TO"
 
@@ -565,9 +525,7 @@ class TestHelperMethods:
         result = graph_reasoner._calculate_explanation_confidence([path])
         assert result == 0.8
 
-    def test_calculate_explanation_confidence_multiple_strong_paths(
-        self, graph_reasoner
-    ):
+    def test_calculate_explanation_confidence_multiple_strong_paths(self, graph_reasoner):
         """Test _calculate_explanation_confidence with multiple strong paths"""
         paths = [
             ReasoningPath(confidence=0.8),
@@ -604,9 +562,7 @@ class TestHelperMethods:
         memory_scores = {"mem1": 0.8, "mem2": 0.7, "mem3": 0.6}
         agent_scores = {"agent1": 0.9}
 
-        result = graph_reasoner._calculate_inference_confidence(
-            memory_scores, agent_scores
-        )
+        result = graph_reasoner._calculate_inference_confidence(memory_scores, agent_scores)
 
         # Should have high confidence due to good scores and multiple suggestions
         assert result > 0.7
@@ -619,16 +575,12 @@ class TestHelperMethods:
 
     def test_generate_path_reasoning_direct_connection(self, graph_reasoner):
         """Test _generate_path_reasoning with two nodes"""
-        result = graph_reasoner._generate_path_reasoning(
-            ["node1", "node2"], ["CREATED"]
-        )
+        result = graph_reasoner._generate_path_reasoning(["node1", "node2"], ["CREATED"])
         assert result == "Direct CREATED connection"
 
     def test_generate_path_reasoning_multi_hop(self, graph_reasoner):
         """Test _generate_path_reasoning with multiple hops"""
-        result = graph_reasoner._generate_path_reasoning(
-            ["node1", "node2", "node3"], ["CREATED", "LINKED_TO"]
-        )
+        result = graph_reasoner._generate_path_reasoning(["node1", "node2", "node3"], ["CREATED", "LINKED_TO"])
         assert result == "Path through CREATED → LINKED_TO"
 
 
@@ -636,9 +588,7 @@ class TestPerformanceAndCaching:
     """Test performance and caching behavior"""
 
     @pytest.mark.asyncio
-    async def test_cache_key_generation_consistency(
-        self, graph_reasoner, mock_redis_client
-    ):
+    async def test_cache_key_generation_consistency(self, graph_reasoner, mock_redis_client):
         """Test that cache keys are generated consistently"""
         mock_redis_client.get.return_value = None
 

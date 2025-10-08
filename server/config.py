@@ -62,9 +62,7 @@ def get_dynamic_database_url() -> str:
     try:
         import subprocess
 
-        script_path = os.path.join(
-            os.path.dirname(__file__), "..", "scripts", "get-port.sh"
-        )
+        script_path = os.path.join(os.path.dirname(__file__), "..", "scripts", "get-port.sh")
         postgres_port = subprocess.run(
             [script_path, "postgres", nina_env, nina_runtime],
             capture_output=True,
@@ -118,14 +116,8 @@ def get_dynamic_database_url() -> str:
                     pgb_data = json.loads(pgb_result.stdout)
                     if pgb_data and len(pgb_data) > 0:
                         pgb_ip = pgb_data[0]["networks"][0]["address"].split("/")[0]
-                        db_url = (
-                            f"postgresql://{db_user}:{db_password}@"
-                            f"{pgb_ip}:{pgbouncer_port}/{db_name}"
-                        )
-                        print(
-                            f"🔗 Using PgBouncer at {pgb_ip}:{pgbouncer_port} "
-                            f"for {db_name}"
-                        )
+                        db_url = f"postgresql://{db_user}:{db_password}@" f"{pgb_ip}:{pgbouncer_port}/{db_name}"
+                        print(f"🔗 Using PgBouncer at {pgb_ip}:{pgbouncer_port} " f"for {db_name}")
                         return db_url
             except (
                 subprocess.TimeoutExpired,
@@ -148,14 +140,8 @@ def get_dynamic_database_url() -> str:
                     pg_data = json.loads(pg_result.stdout)
                     if pg_data and len(pg_data) > 0:
                         pg_ip = pg_data[0]["networks"][0]["address"].split("/")[0]
-                        db_url = (
-                            f"postgresql://{db_user}:{db_password}@"
-                            f"{pg_ip}:{postgres_port}/{db_name}"
-                        )
-                        print(
-                            f"🔗 Using PostgreSQL at {pg_ip}:{postgres_port} "
-                            f"for {db_name}"
-                        )
+                        db_url = f"postgresql://{db_user}:{db_password}@" f"{pg_ip}:{postgres_port}/{db_name}"
+                        print(f"🔗 Using PostgreSQL at {pg_ip}:{postgres_port} " f"for {db_name}")
                         return db_url
             except (
                 subprocess.TimeoutExpired,
@@ -169,9 +155,7 @@ def get_dynamic_database_url() -> str:
         pass
 
     # Fallback to localhost with calculated ports and proper naming
-    fallback_url = (
-        f"postgresql://{db_user}:{db_password}@localhost:{postgres_port}/{db_name}"
-    )
+    fallback_url = f"postgresql://{db_user}:{db_password}@localhost:{postgres_port}/{db_name}"
     print(f"⚠️ Using fallback connection: localhost:{postgres_port}/{db_name}")
     return fallback_url
 

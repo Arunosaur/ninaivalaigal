@@ -71,9 +71,7 @@ def test_individual_signup(client, test_user_data):
             assert "user" in result or "user_id" in result
             print("✅ Individual signup successful")
         else:
-            print(
-                f"ℹ️ Individual signup returned {response.status_code} (expected for existing user)"
-            )
+            print(f"ℹ️ Individual signup returned {response.status_code} (expected for existing user)")
 
     except Exception as e:
         pytest.skip(f"Individual signup test skipped: {e}")
@@ -97,9 +95,7 @@ def test_organization_signup(client, test_org_data):
             assert "user_id" in result or "organization_id" in result
             print("✅ Organization signup successful")
         else:
-            print(
-                f"ℹ️ Organization signup returned {response.status_code} (expected for existing org)"
-            )
+            print(f"ℹ️ Organization signup returned {response.status_code} (expected for existing org)")
 
     except Exception as e:
         pytest.skip(f"Organization signup test skipped: {e}")
@@ -123,14 +119,10 @@ def test_login_functionality(client):
 
         if response.status_code == 200:
             result = response.json()
-            assert (
-                "token" in result or "jwt_token" in result or "access_token" in result
-            )
+            assert "token" in result or "jwt_token" in result or "access_token" in result
             print("✅ Login successful")
         else:
-            print(
-                f"ℹ️ Login returned {response.status_code} (expected for test credentials)"
-            )
+            print(f"ℹ️ Login returned {response.status_code} (expected for test credentials)")
 
     except Exception as e:
         pytest.skip(f"Login test skipped: {e}")

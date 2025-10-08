@@ -125,10 +125,7 @@ def _validate_tag_hierarchy():
         # Each level should be a subset of the next
         if not current.issubset(next_level):
             extra = current - next_level
-            raise ValueError(
-                f"Tag hierarchy violation: {levels[i]} has tags not in "
-                f"{levels[i + 1]}: {extra}"
-            )
+            raise ValueError(f"Tag hierarchy violation: {levels[i]} has tags not in " f"{levels[i + 1]}: {extra}")
 
 
 # Run validation on import

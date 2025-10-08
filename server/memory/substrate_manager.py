@@ -93,9 +93,7 @@ class MemorySubstrateManager:
             # Start health monitoring
             await self._start_health_monitoring()
 
-            logger.info(
-                f"Memory substrate initialized with {len(self.providers)} providers"
-            )
+            logger.info(f"Memory substrate initialized with {len(self.providers)} providers")
 
         except Exception as e:
             logger.error(f"Failed to initialize memory substrate: {e}")
@@ -124,14 +122,10 @@ class MemorySubstrateManager:
 
             try:
                 start_time = datetime.now(timezone.utc)
-                result = await provider.remember(
-                    text=text, meta=meta, user_id=user_id, context_id=context_id
-                )
+                result = await provider.remember(text=text, meta=meta, user_id=user_id, context_id=context_id)
 
                 # Update health metrics
-                response_time = (
-                    datetime.now(timezone.utc) - start_time
-                ).total_seconds() * 1000
+                response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
                 await self._update_provider_health(provider_name, True, response_time)
 
                 # Add substrate metadata
@@ -147,15 +141,11 @@ class MemorySubstrateManager:
             except Exception as e:
                 last_error = e
                 await self._update_provider_health(provider_name, False, error=str(e))
-                logger.warning(
-                    f"Provider {provider_name} failed for remember operation: {e}"
-                )
+                logger.warning(f"Provider {provider_name} failed for remember operation: {e}")
                 continue
 
         # All providers failed
-        raise MemoryProviderError(
-            f"All memory providers failed. Last error: {last_error}"
-        )
+        raise MemoryProviderError(f"All memory providers failed. Last error: {last_error}")
 
     async def recall(
         self,
@@ -180,14 +170,10 @@ class MemorySubstrateManager:
 
             try:
                 start_time = datetime.now(timezone.utc)
-                results = await provider.recall(
-                    query=query, k=k, user_id=user_id, context_id=context_id
-                )
+                results = await provider.recall(query=query, k=k, user_id=user_id, context_id=context_id)
 
                 # Update health metrics
-                response_time = (
-                    datetime.now(timezone.utc) - start_time
-                ).total_seconds() * 1000
+                response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
                 await self._update_provider_health(provider_name, True, response_time)
 
                 # Add substrate metadata to each result
@@ -206,15 +192,11 @@ class MemorySubstrateManager:
             except Exception as e:
                 last_error = e
                 await self._update_provider_health(provider_name, False, error=str(e))
-                logger.warning(
-                    f"Provider {provider_name} failed for recall operation: {e}"
-                )
+                logger.warning(f"Provider {provider_name} failed for recall operation: {e}")
                 continue
 
         # All providers failed
-        raise MemoryProviderError(
-            f"All memory providers failed. Last error: {last_error}"
-        )
+        raise MemoryProviderError(f"All memory providers failed. Last error: {last_error}")
 
     async def delete(
         self,
@@ -241,9 +223,7 @@ class MemorySubstrateManager:
                 success = await provider.delete(id=memory_id, user_id=user_id)
 
                 # Update health metrics
-                response_time = (
-                    datetime.now(timezone.utc) - start_time
-                ).total_seconds() * 1000
+                response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
                 await self._update_provider_health(provider_name, True, response_time)
 
                 if success:
@@ -252,15 +232,11 @@ class MemorySubstrateManager:
             except Exception as e:
                 last_error = e
                 await self._update_provider_health(provider_name, False, error=str(e))
-                logger.warning(
-                    f"Provider {provider_name} failed for delete operation: {e}"
-                )
+                logger.warning(f"Provider {provider_name} failed for delete operation: {e}")
                 continue
 
         if success_count == 0 and last_error:
-            raise MemoryProviderError(
-                f"All delete operations failed. Last error: {last_error}"
-            )
+            raise MemoryProviderError(f"All delete operations failed. Last error: {last_error}")
 
         return success_count > 0
 
@@ -292,9 +268,7 @@ class MemorySubstrateManager:
                 )
 
                 # Update health metrics
-                response_time = (
-                    datetime.now(timezone.utc) - start_time
-                ).total_seconds() * 1000
+                response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
                 await self._update_provider_health(provider_name, True, response_time)
 
                 # Add substrate metadata
@@ -313,15 +287,11 @@ class MemorySubstrateManager:
             except Exception as e:
                 last_error = e
                 await self._update_provider_health(provider_name, False, error=str(e))
-                logger.warning(
-                    f"Provider {provider_name} failed for list operation: {e}"
-                )
+                logger.warning(f"Provider {provider_name} failed for list operation: {e}")
                 continue
 
         # All providers failed
-        raise MemoryProviderError(
-            f"All memory providers failed. Last error: {last_error}"
-        )
+        raise MemoryProviderError(f"All memory providers failed. Last error: {last_error}")
 
     async def get_health_status(self) -> Dict[str, ProviderHealth]:
         """Get health status of all providers"""
@@ -341,9 +311,7 @@ class MemorySubstrateManager:
             "primary_provider": self.primary_provider,
             "fallback_providers": self.fallback_providers,
             "total_providers": len(self.providers),
-            "health_status": {
-                name: status.status.value for name, status in self.health_status.items()
-            },
+            "health_status": {name: status.status.value for name, status in self.health_status.items()},
         }
 
     async def switch_primary_provider(self, provider_name: str) -> bool:
@@ -429,9 +397,7 @@ class MemorySubstrateManager:
                 await provider.list_memories(limit=1)
                 is_healthy = True
 
-            response_time = (
-                datetime.now(timezone.utc) - start_time
-            ).total_seconds() * 1000
+            response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             status = ProviderStatus.HEALTHY if is_healthy else ProviderStatus.DEGRADED
             self.health_status[provider_name] = ProviderHealth(
@@ -441,9 +407,7 @@ class MemorySubstrateManager:
             )
 
         except Exception as e:
-            response_time = (
-                datetime.now(timezone.utc) - start_time
-            ).total_seconds() * 1000
+            response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             self.health_status[provider_name] = ProviderHealth(
                 status=ProviderStatus.UNHEALTHY,
                 response_time_ms=response_time,
@@ -475,33 +439,25 @@ class MemorySubstrateManager:
         """Calculate substrate performance metrics"""
         try:
             healthy_providers = sum(
-                1
-                for health in self.health_status.values()
-                if health.status == ProviderStatus.HEALTHY
+                1 for health in self.health_status.values() if health.status == ProviderStatus.HEALTHY
             )
 
             total_providers = len(self.providers)
 
             avg_response_time = 0.0
             if self.health_status:
-                avg_response_time = sum(
-                    health.response_time_ms for health in self.health_status.values()
-                ) / len(self.health_status)
+                avg_response_time = sum(health.response_time_ms for health in self.health_status.values()) / len(
+                    self.health_status
+                )
 
             error_rate = 0.0
             if total_providers > 0:
                 unhealthy_providers = sum(
-                    1
-                    for health in self.health_status.values()
-                    if health.status == ProviderStatus.UNHEALTHY
+                    1 for health in self.health_status.values() if health.status == ProviderStatus.UNHEALTHY
                 )
                 error_rate = (unhealthy_providers / total_providers) * 100
 
-            uptime_percentage = (
-                (healthy_providers / total_providers * 100)
-                if total_providers > 0
-                else 0.0
-            )
+            uptime_percentage = (healthy_providers / total_providers * 100) if total_providers > 0 else 0.0
 
             self._metrics = SubstrateMetrics(
                 total_memories=0,  # TODO: Implement total memory count

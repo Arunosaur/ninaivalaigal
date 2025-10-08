@@ -59,17 +59,13 @@ class TeamMergerManager:
             "merger_date": datetime.now(),
             "initiated_by": merger_config["initiated_by"],
             "status": MergerStatus.PENDING.value,
-            "memory_migration_policy": json.dumps(
-                merger_config.get("memory_policy", {})
-            ),
+            "memory_migration_policy": json.dumps(merger_config.get("memory_policy", {})),
         }
 
         merger_id = self.db.create_team_merger(merger)
 
         # Log merger initiation
-        self._log_merger_action(
-            merger_id, "merger_initiated", merger_config["initiated_by"]
-        )
+        self._log_merger_action(merger_id, "merger_initiated", merger_config["initiated_by"])
 
         # Validate merger prerequisites
         self._validate_merger_prerequisites(merger_id, merger_config)
@@ -103,14 +99,10 @@ class TeamMergerManager:
             target_team = self._create_or_get_target_team(merger, target_teams[0])
 
             # Step 2: Migrate team members
-            migrated_members = self._migrate_team_members(
-                merger_id, source_teams, target_team["id"]
-            )
+            migrated_members = self._migrate_team_members(merger_id, source_teams, target_team["id"])
 
             # Step 3: Migrate memories and contexts
-            migrated_contexts = self._migrate_team_memories(
-                merger_id, source_teams, target_team["id"]
-            )
+            migrated_contexts = self._migrate_team_memories(merger_id, source_teams, target_team["id"])
 
             # Step 4: Update access permissions
             self._update_access_permissions(merger_id, target_team["id"])
@@ -130,9 +122,7 @@ class TeamMergerManager:
                 "completion_date": datetime.now().isoformat(),
             }
 
-            self._log_merger_action(
-                merger_id, "consolidation_completed", merger["initiated_by"], result
-            )
+            self._log_merger_action(merger_id, "consolidation_completed", merger["initiated_by"], result)
             logger.info(f"Team consolidation {merger_id} completed successfully")
 
             return result
@@ -168,19 +158,13 @@ class TeamMergerManager:
             created_teams = self._create_target_teams(merger, target_teams)
 
             # Step 2: Distribute members based on specialization
-            member_distribution = self._distribute_team_members(
-                merger_id, source_teams[0], created_teams
-            )
+            member_distribution = self._distribute_team_members(merger_id, source_teams[0], created_teams)
 
             # Step 3: Distribute memories based on relevance
-            memory_distribution = self._distribute_team_memories(
-                merger_id, source_teams[0], created_teams
-            )
+            memory_distribution = self._distribute_team_memories(merger_id, source_teams[0], created_teams)
 
             # Step 4: Set up cross-team collaboration
-            collaboration_setup = self._setup_cross_team_collaboration(
-                merger_id, created_teams
-            )
+            collaboration_setup = self._setup_cross_team_collaboration(merger_id, created_teams)
 
             # Step 5: Archive source team
             self._archive_source_teams(merger_id, source_teams)
@@ -197,9 +181,7 @@ class TeamMergerManager:
                 "completion_date": datetime.now().isoformat(),
             }
 
-            self._log_merger_action(
-                merger_id, "split_completed", merger["initiated_by"], result
-            )
+            self._log_merger_action(merger_id, "split_completed", merger["initiated_by"], result)
             logger.info(f"Team split {merger_id} completed successfully")
 
             return result
@@ -235,9 +217,7 @@ class TeamMergerManager:
             archived_contexts = self._archive_team_memories(merger_id, source_teams)
 
             # Step 2: Redistribute members to target teams
-            redistributed_members = self._redistribute_team_members(
-                merger_id, source_teams, target_teams
-            )
+            redistributed_members = self._redistribute_team_members(merger_id, source_teams, target_teams)
 
             # Step 3: Set up historical access
             historical_access = self._setup_historical_access(merger_id, source_teams)
@@ -257,9 +237,7 @@ class TeamMergerManager:
                 "completion_date": datetime.now().isoformat(),
             }
 
-            self._log_merger_action(
-                merger_id, "dissolution_completed", merger["initiated_by"], result
-            )
+            self._log_merger_action(merger_id, "dissolution_completed", merger["initiated_by"], result)
             logger.info(f"Team dissolution {merger_id} completed successfully")
 
             return result
@@ -291,9 +269,7 @@ class TeamMergerManager:
             audit_trail = self.db.get_merger_audit_trail(merger_id)
 
             # Restore team memberships
-            restored_memberships = self._restore_team_memberships(
-                merger_id, audit_trail
-            )
+            restored_memberships = self._restore_team_memberships(merger_id, audit_trail)
 
             # Restore memory locations
             restored_memories = self._restore_memory_locations(merger_id, audit_trail)
@@ -345,9 +321,7 @@ class TeamMergerManager:
             if not self.db.team_exists(team_id):
                 raise ValueError(f"Source team does not exist: {team_id}")
 
-    def _migrate_team_memories(
-        self, merger_id: int, source_teams: list[str], target_team_id: str
-    ) -> list[dict]:
+    def _migrate_team_memories(self, merger_id: int, source_teams: list[str], target_team_id: str) -> list[dict]:
         """Migrate memories from source teams to target team"""
         migrated_contexts = []
 
@@ -369,9 +343,7 @@ class TeamMergerManager:
                 )
 
                 # Log migration
-                self.db.log_memory_migration(
-                    merger_id, context["id"], target_team_id, MigrationType.MOVE.value
-                )
+                self.db.log_memory_migration(merger_id, context["id"], target_team_id, MigrationType.MOVE.value)
 
                 migrated_contexts.append(
                     {
@@ -384,9 +356,7 @@ class TeamMergerManager:
 
         return migrated_contexts
 
-    def _distribute_team_memories(
-        self, merger_id: int, source_team_id: str, target_teams: list[dict]
-    ) -> dict:
+    def _distribute_team_memories(self, merger_id: int, source_team_id: str, target_teams: list[dict]) -> dict:
         """Distribute memories among target teams based on relevance"""
         contexts = self.db.get_team_contexts(source_team_id)
         distribution = {team["id"]: [] for team in target_teams}
@@ -402,25 +372,19 @@ class TeamMergerManager:
             related_teams = self._find_related_teams(context, target_teams)
             for related_team in related_teams:
                 if related_team["id"] != target_team["id"]:
-                    self.db.grant_cross_team_access(
-                        context["id"], related_team["id"], "read"
-                    )
+                    self.db.grant_cross_team_access(context["id"], related_team["id"], "read")
 
             distribution[target_team["id"]].append(
                 {
                     "context_id": context["id"],
                     "context_name": context["name"],
-                    "relevance_score": self._calculate_relevance_score(
-                        context, target_team
-                    ),
+                    "relevance_score": self._calculate_relevance_score(context, target_team),
                 }
             )
 
         return distribution
 
-    def _determine_context_relevance(
-        self, context: dict, target_teams: list[dict]
-    ) -> dict:
+    def _determine_context_relevance(self, context: dict, target_teams: list[dict]) -> dict:
         """Determine which target team is most relevant for a context"""
         best_team = target_teams[0]
         best_score = 0
@@ -436,12 +400,8 @@ class TeamMergerManager:
     def _calculate_relevance_score(self, context: dict, team: dict) -> float:
         """Calculate relevance score between context and team"""
         # Simple keyword-based relevance scoring
-        context_keywords = self._extract_keywords(
-            context["name"] + " " + context.get("description", "")
-        )
-        team_keywords = self._extract_keywords(
-            team["name"] + " " + team.get("description", "")
-        )
+        context_keywords = self._extract_keywords(context["name"] + " " + context.get("description", ""))
+        team_keywords = self._extract_keywords(team["name"] + " " + team.get("description", ""))
 
         common_keywords = set(context_keywords) & set(team_keywords)
 
@@ -473,9 +433,7 @@ class TeamMergerManager:
         }
         return [word for word in words if word not in stop_words and len(word) > 2]
 
-    def _log_merger_action(
-        self, merger_id: int, action: str, user_id: str, details: dict = None
-    ):
+    def _log_merger_action(self, merger_id: int, action: str, user_id: str, details: dict = None):
         """Log merger action to audit trail"""
         audit_entry = {
             "merger_id": merger_id,
@@ -489,9 +447,7 @@ class TeamMergerManager:
 
     def _log_merger_error(self, merger_id: int, error_message: str):
         """Log merger error"""
-        self._log_merger_action(
-            merger_id, "error_occurred", "system", {"error": error_message}
-        )
+        self._log_merger_action(merger_id, "error_occurred", "system", {"error": error_message})
 
     def _has_merger_permission(self, user_id: str) -> bool:
         """Check if user has permission to perform team mergers"""
@@ -503,9 +459,7 @@ class TeamMergerManager:
         """Create or get target team"""
         # Implementation for team creation/retrieval
 
-    def _migrate_team_members(
-        self, merger_id: int, source_teams: list[str], target_team_id: str
-    ) -> list[dict]:
+    def _migrate_team_members(self, merger_id: int, source_teams: list[str], target_team_id: str) -> list[dict]:
         """Migrate team members"""
         # Implementation for member migration
 

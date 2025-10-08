@@ -88,9 +88,7 @@ async def validate_token(token: str) -> Dict[str, Any]:
 
 
 @router.get("/signup")
-async def signup_get(
-    email: str, password: str, name: str, account_type: str = "individual"
-) -> Dict[str, Any]:
+async def signup_get(email: str, password: str, name: str, account_type: str = "individual") -> Dict[str, Any]:
     """GET-based signup endpoint"""
     try:
         from auth_async import create_user_sync

@@ -86,9 +86,7 @@ class TestMemoryGraphUnified:
             if integrated_stack_config["graph_capabilities"]["enabled"]:
                 cursor = conn.cursor()
                 try:
-                    cursor.execute(
-                        "SELECT extname FROM pg_extension WHERE extname = 'age';"
-                    )
+                    cursor.execute("SELECT extname FROM pg_extension WHERE extname = 'age';")
                     if cursor.fetchone():
                         testbed["graph_capabilities_enabled"] = True
                 except Exception:
@@ -118,9 +116,7 @@ class TestMemoryGraphUnified:
         testbed["unified_integration_active"] = True
         return testbed
 
-    def test_memory_ingest_to_graph_creation_flow(
-        self, unified_testbed, integrated_stack_config
-    ):
+    def test_memory_ingest_to_graph_creation_flow(self, unified_testbed, integrated_stack_config):
         """Test SPEC-040 + SPEC-062: Memory ingest → tokenization → embedding → graph node creation"""
 
         # Test memory ingest workflow
@@ -192,9 +188,7 @@ class TestMemoryGraphUnified:
         total_processing_time = 0
         for step in memory_ingest_flow:
             assert step["input"] is not None, f"Step {step['step']} should have input"
-            assert (
-                step["expected_output"] is not None
-            ), f"Step {step['step']} should have expected output"
+            assert step["expected_output"] is not None, f"Step {step['step']} should have expected output"
 
             # Accumulate processing time
             if "processing_time_ms" in step["expected_output"]:
@@ -205,9 +199,7 @@ class TestMemoryGraphUnified:
             total_processing_time <= 500
         ), f"Total memory ingest flow should complete within 500ms, got {total_processing_time}ms"
 
-    def test_graph_traversal_to_memory_recall_flow(
-        self, unified_testbed, integrated_stack_config
-    ):
+    def test_graph_traversal_to_memory_recall_flow(self, unified_testbed, integrated_stack_config):
         """Test SPEC-040 + SPEC-062: Graph traversal → memory recall → context injection"""
 
         # Test memory recall workflow
@@ -277,9 +269,7 @@ class TestMemoryGraphUnified:
             {
                 "step": "context_injection",
                 "input": {
-                    "recalled_memories": [
-                        {"memory_id": "mem_test_123", "content": "..."}
-                    ],
+                    "recalled_memories": [{"memory_id": "mem_test_123", "content": "..."}],
                     "target_context": "work/project_alpha/current_session",
                     "injection_strategy": "relevance_ranked",
                 },
@@ -298,9 +288,7 @@ class TestMemoryGraphUnified:
         total_recall_time = 0
         for step in memory_recall_flow:
             assert step["input"] is not None, f"Step {step['step']} should have input"
-            assert (
-                step["expected_output"] is not None
-            ), f"Step {step['step']} should have expected output"
+            assert step["expected_output"] is not None, f"Step {step['step']} should have expected output"
 
             # Accumulate processing time
             if "query_time_ms" in step["expected_output"]:
@@ -369,23 +357,15 @@ class TestMemoryGraphUnified:
         ]
 
         for scenario in sync_scenarios:
+            assert scenario["trigger"] is not None, f"Sync scenario {scenario['scenario']} should have trigger"
             assert (
-                scenario["trigger"] is not None
-            ), f"Sync scenario {scenario['scenario']} should have trigger"
-            assert (
-                len(
-                    scenario["expected_graph_updates"]
-                    + scenario.get("expected_memory_updates", [])
-                )
-                > 0
+                len(scenario["expected_graph_updates"] + scenario.get("expected_memory_updates", [])) > 0
             ), f"Sync scenario {scenario['scenario']} should have expected updates"
             assert (
                 scenario.get("sync_time_target_ms", 0) > 0
             ), f"Sync scenario {scenario['scenario']} should have time target"
 
-    def test_feedback_loop_learning_integration(
-        self, unified_testbed, memory_feedback_config
-    ):
+    def test_feedback_loop_learning_integration(self, unified_testbed, memory_feedback_config):
         """Test SPEC-040: Feedback loop learning with graph-enhanced signals"""
 
         # Test feedback learning scenarios
@@ -587,9 +567,7 @@ class TestMemoryGraphUnified:
             ), f"Error scenario {scenario['error_type']} should have recovery strategy"
 
             # Validate recovery time targets
-            recovery_time = scenario["expected_recovery"].get(
-                "recovery_time_target_seconds", 0
-            )
+            recovery_time = scenario["expected_recovery"].get("recovery_time_target_seconds", 0)
             assert (
                 recovery_time > 0
             ), f"Error scenario {scenario['error_type']} should have positive recovery time target"
@@ -598,9 +576,7 @@ class TestMemoryGraphUnified:
             ), f"Error scenario {scenario['error_type']} recovery time should be reasonable (≤10 minutes)"
 
     @pytest.mark.integration
-    def test_full_unified_workflow_validation(
-        self, unified_testbed, integrated_stack_config, memory_feedback_config
-    ):
+    def test_full_unified_workflow_validation(self, unified_testbed, integrated_stack_config, memory_feedback_config):
         """Test SPEC-040 + SPEC-062: Complete end-to-end unified workflow validation"""
 
         # Complete workflow test
@@ -657,18 +633,12 @@ class TestMemoryGraphUnified:
         ]
 
         total_workflow_time = sum(step["timeout_seconds"] for step in workflow_steps)
-        assert (
-            total_workflow_time <= 300
-        ), "Complete unified workflow should finish within 5 minutes"
+        assert total_workflow_time <= 300, "Complete unified workflow should finish within 5 minutes"
 
         # Validate each workflow step
         for step in workflow_steps:
-            assert (
-                len(step["operations"]) > 0
-            ), f"Workflow step {step['step']} should have operations"
-            assert (
-                step["timeout_seconds"] > 0
-            ), f"Workflow step {step['step']} should have positive timeout"
+            assert len(step["operations"]) > 0, f"Workflow step {step['step']} should have operations"
+            assert step["timeout_seconds"] > 0, f"Workflow step {step['step']} should have positive timeout"
 
     def test_scalability_limits_unified_system(self, unified_testbed):
         """Test SPEC-040 + SPEC-062: Scalability limits for unified memory-graph system"""
@@ -741,16 +711,10 @@ class TestMemoryGraphUnified:
             for test_case in test_group["test_cases"]:
                 # Validate scalability parameters are reasonable
                 if "target_ingest_time_seconds" in test_case:
-                    assert (
-                        test_case["target_ingest_time_seconds"] > 0
-                    ), f"Ingest time should be positive"
+                    assert test_case["target_ingest_time_seconds"] > 0, f"Ingest time should be positive"
 
                 if "target_search_time_ms" in test_case:
-                    assert (
-                        test_case["target_search_time_ms"] > 0
-                    ), f"Search time should be positive"
+                    assert test_case["target_search_time_ms"] > 0, f"Search time should be positive"
 
                 if "target_total_time_seconds" in test_case:
-                    assert (
-                        test_case["target_total_time_seconds"] > 0
-                    ), f"Total time should be positive"
+                    assert test_case["target_total_time_seconds"] > 0, f"Total time should be positive"

@@ -27,9 +27,7 @@ class TestMemoryModule:
         try:
             from server.memory import factory
 
-            assert hasattr(factory, "create_memory_provider") or hasattr(
-                factory, "MemoryProviderFactory"
-            )
+            assert hasattr(factory, "create_memory_provider") or hasattr(factory, "MemoryProviderFactory")
 
         except ImportError as e:
             pytest.skip(f"Memory factory import failed: {e}")
@@ -50,9 +48,7 @@ class TestMemoryModule:
 
             # Test basic methods exist
             assert hasattr(provider, "create_memory") or hasattr(provider, "add_memory")
-            assert hasattr(provider, "get_memory") or hasattr(
-                provider, "retrieve_memory"
-            )
+            assert hasattr(provider, "get_memory") or hasattr(provider, "retrieve_memory")
 
         except ImportError:
             pytest.skip("PostgreSQL memory provider not available")
@@ -80,9 +76,7 @@ class TestMemoryModule:
 
             # Test basic methods exist
             assert hasattr(provider, "create_memory") or hasattr(provider, "add_memory")
-            assert hasattr(provider, "get_memory") or hasattr(
-                provider, "retrieve_memory"
-            )
+            assert hasattr(provider, "get_memory") or hasattr(provider, "retrieve_memory")
 
         except ImportError:
             pytest.skip("Mem0 HTTP provider not available")

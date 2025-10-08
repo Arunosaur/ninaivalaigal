@@ -106,9 +106,9 @@ def get_memory_intelligence_insights(team_id: int = None) -> Dict[str, Any]:
 
 
 @router.get("/team/{team_id}/dashboard")
-async def get_team_dashboard(team_id: int,
-                             days_back: int = 30,
-                             user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+async def get_team_dashboard(
+    team_id: int, days_back: int = 30, user: Dict[str, Any] = Depends(get_current_user)
+) -> Dict[str, Any]:
     """Get comprehensive team dashboard insights"""
 
     # Check team access (simplified)
@@ -169,9 +169,9 @@ async def get_team_dashboard(team_id: int,
 
 @router.get("/memory-trends")
 async def get_memory_trends(
-        days_back: int = 30,
-        team_filter: Optional[int] = None,
-        user: Dict[str, Any] = Depends(get_current_user),
+    days_back: int = 30,
+    team_filter: Optional[int] = None,
+    user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get memory creation and engagement trends over time"""
 
@@ -186,15 +186,17 @@ async def get_memory_trends(
         base_memories = 2 if i % 7 < 5 else 1  # Weekday vs weekend pattern
         variation = (i % 3) - 1  # Add some variation
 
-        trend_data.append({
-            "date": date.strftime("%Y-%m-%d"),
-            "memories_created": max(0, base_memories + variation),
-            "memories_approved": max(0, base_memories + variation - 1),
-            "comments_added": max(0, (base_memories + variation) * 2),
-            "contexts_linked": max(0, base_memories + variation // 2),
-            "avg_sentiment": 0.7 + (i % 5) * 0.05,  # Vary between 0.7-0.9
-            "pagerank_activity": 0.5 + (i % 4) * 0.1,  # Vary between 0.5-0.8
-        })
+        trend_data.append(
+            {
+                "date": date.strftime("%Y-%m-%d"),
+                "memories_created": max(0, base_memories + variation),
+                "memories_approved": max(0, base_memories + variation - 1),
+                "comments_added": max(0, (base_memories + variation) * 2),
+                "contexts_linked": max(0, base_memories + variation // 2),
+                "avg_sentiment": 0.7 + (i % 5) * 0.05,  # Vary between 0.7-0.9
+                "pagerank_activity": 0.5 + (i % 4) * 0.1,  # Vary between 0.5-0.8
+            }
+        )
 
     # Calculate trend indicators
     recent_week = trend_data[-7:]
@@ -203,8 +205,11 @@ async def get_memory_trends(
     recent_avg_memories = sum(d["memories_created"] for d in recent_week) / len(recent_week)
     previous_avg_memories = sum(d["memories_created"] for d in previous_week) / len(previous_week)
 
-    memory_trend = ("up" if recent_avg_memories > previous_avg_memories else
-                    "down" if recent_avg_memories < previous_avg_memories else "stable")
+    memory_trend = (
+        "up"
+        if recent_avg_memories > previous_avg_memories
+        else "down" if recent_avg_memories < previous_avg_memories else "stable"
+    )
 
     return {
         "success": True,
@@ -229,18 +234,15 @@ async def get_memory_trends(
                 "comments_added": "#FF9800",
             },
         },
-        "filters": {
-            "days_back": days_back,
-            "team_filter": team_filter
-        },
+        "filters": {"days_back": days_back, "team_filter": team_filter},
     }
 
 
 @router.get("/sentiment-analysis")
 async def get_sentiment_analysis(
-        days_back: int = 30,
-        team_filter: Optional[int] = None,
-        user: Dict[str, Any] = Depends(get_current_user),
+    days_back: int = 30,
+    team_filter: Optional[int] = None,
+    user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get sentiment analysis across discussions and memories"""
 
@@ -257,31 +259,11 @@ async def get_sentiment_analysis(
             },
         },
         "sentiment_by_topic": {
-            "authentication": {
-                "score": 0.82,
-                "volume": 23,
-                "trend": "stable"
-            },
-            "performance": {
-                "score": 0.78,
-                "volume": 18,
-                "trend": "up"
-            },
-            "architecture": {
-                "score": 0.71,
-                "volume": 15,
-                "trend": "up"
-            },
-            "code-review": {
-                "score": 0.85,
-                "volume": 12,
-                "trend": "stable"
-            },
-            "planning": {
-                "score": 0.69,
-                "volume": 8,
-                "trend": "down"
-            },
+            "authentication": {"score": 0.82, "volume": 23, "trend": "stable"},
+            "performance": {"score": 0.78, "volume": 18, "trend": "up"},
+            "architecture": {"score": 0.71, "volume": 15, "trend": "up"},
+            "code-review": {"score": 0.85, "volume": 12, "trend": "stable"},
+            "planning": {"score": 0.69, "volume": 8, "trend": "down"},
         },
         "sentiment_timeline": [
             {
@@ -360,12 +342,9 @@ async def get_sentiment_analysis(
         insights.append(f"📈 Trending topics with improving sentiment: {', '.join(trending_up)}")
 
     return {
-        "success":
-        True,
-        "sentiment_analysis":
-        sentiment_data,
-        "insights":
-        insights,
+        "success": True,
+        "sentiment_analysis": sentiment_data,
+        "insights": insights,
         "recommendations": [
             "Continue fostering positive discussions around high-performing topics",
             "Monitor topics with declining sentiment for potential issues",
@@ -380,25 +359,20 @@ async def get_sentiment_analysis(
 
 
 @router.get("/knowledge-hotspots")
-async def get_knowledge_hotspots(team_filter: Optional[int] = None,
-                                 user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+async def get_knowledge_hotspots(
+    team_filter: Optional[int] = None, user: Dict[str, Any] = Depends(get_current_user)
+) -> Dict[str, Any]:
     """Get knowledge hotspots - most discussed and linked topics per context"""
 
     # Mock hotspot data combining context, memory, and discussion data
     hotspots = [
         {
-            "context_id":
-            "context_1",
-            "context_title":
-            "Auth System Development",
-            "hotspot_score":
-            0.89,
-            "memory_count":
-            8,
-            "discussion_count":
-            23,
-            "avg_sentiment":
-            0.82,
+            "context_id": "context_1",
+            "context_title": "Auth System Development",
+            "hotspot_score": 0.89,
+            "memory_count": 8,
+            "discussion_count": 23,
+            "avg_sentiment": 0.82,
             "top_memories": [
                 {
                     "id": "memory_2",
@@ -414,35 +388,27 @@ async def get_knowledge_hotspots(team_filter: Optional[int] = None,
                 },
             ],
             "trending_tags": ["authentication", "performance", "endpoints"],
-            "activity_trend":
-            "up",
-            "knowledge_density":
-            0.75,
+            "activity_trend": "up",
+            "knowledge_density": 0.75,
         },
         {
-            "context_id":
-            "context_2",
-            "context_title":
-            "Performance Optimization",
-            "hotspot_score":
-            0.72,
-            "memory_count":
-            5,
-            "discussion_count":
-            15,
-            "avg_sentiment":
-            0.78,
-            "top_memories": [{
-                "id": "memory_5",
-                "title": "Database Query Optimization",
-                "discussion_count": 4,
-                "pagerank_score": 0.68,
-            }],
+            "context_id": "context_2",
+            "context_title": "Performance Optimization",
+            "hotspot_score": 0.72,
+            "memory_count": 5,
+            "discussion_count": 15,
+            "avg_sentiment": 0.78,
+            "top_memories": [
+                {
+                    "id": "memory_5",
+                    "title": "Database Query Optimization",
+                    "discussion_count": 4,
+                    "pagerank_score": 0.68,
+                }
+            ],
             "trending_tags": ["performance", "database", "optimization"],
-            "activity_trend":
-            "stable",
-            "knowledge_density":
-            0.68,
+            "activity_trend": "stable",
+            "knowledge_density": 0.68,
         },
     ]
 
@@ -463,34 +429,41 @@ async def get_knowledge_hotspots(team_filter: Optional[int] = None,
             "cross_pollination_score": 0.65,  # How much knowledge flows between contexts
         },
         "visualization_data": {
-            "heatmap_data": [{
-                "context": h["context_title"],
-                "activity": h["hotspot_score"],
-                "sentiment": h["avg_sentiment"],
-            } for h in hotspots],
+            "heatmap_data": [
+                {
+                    "context": h["context_title"],
+                    "activity": h["hotspot_score"],
+                    "sentiment": h["avg_sentiment"],
+                }
+                for h in hotspots
+            ],
             "network_data": {
-                "nodes": [{
-                    "id": h["context_id"],
-                    "label": h["context_title"],
-                    "size": h["memory_count"],
-                } for h in hotspots],
-                "edges": [{
-                    "source": "context_1",
-                    "target": "context_2",
-                    "weight": 0.4,
-                    "type": "knowledge_flow",
-                }],
+                "nodes": [
+                    {
+                        "id": h["context_id"],
+                        "label": h["context_title"],
+                        "size": h["memory_count"],
+                    }
+                    for h in hotspots
+                ],
+                "edges": [
+                    {
+                        "source": "context_1",
+                        "target": "context_2",
+                        "weight": 0.4,
+                        "type": "knowledge_flow",
+                    }
+                ],
             },
         },
-        "filters": {
-            "team_filter": team_filter
-        },
+        "filters": {"team_filter": team_filter},
     }
 
 
 @router.get("/ai-performance")
-async def get_ai_performance_metrics(days_back: int = 30,
-                                     user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+async def get_ai_performance_metrics(
+    days_back: int = 30, user: Dict[str, Any] = Depends(get_current_user)
+) -> Dict[str, Any]:
     """Get AI system performance metrics for PageRank and tag suggestions"""
 
     # Mock AI performance data
@@ -567,14 +540,10 @@ async def get_ai_performance_metrics(days_back: int = 30,
         ai_insights.append("🎯 Recommendation engine is driving good engagement with 34% CTR")
 
     return {
-        "success":
-        True,
-        "ai_performance":
-        ai_metrics,
-        "insights":
-        ai_insights,
-        "recommendations":
-        ai_recommendations,
+        "success": True,
+        "ai_performance": ai_metrics,
+        "insights": ai_insights,
+        "recommendations": ai_recommendations,
         "optimization_opportunities": [
             "Increase tag suggestion confidence threshold to improve acceptance rate",
             "A/B test different PageRank damping factors for better ranking",

@@ -44,10 +44,9 @@ class BinaryMasqueradeDetector:
     def __init__(self, max_check_bytes: int = 1024):
         self.max_check_bytes = max_check_bytes
 
-    def detect_masquerade(self,
-                          content: bytes,
-                          declared_content_type: str,
-                          filename: str | None = None) -> dict[str, Any]:
+    def detect_masquerade(
+        self, content: bytes, declared_content_type: str, filename: str | None = None
+    ) -> dict[str, Any]:
         """
         Detect if binary content is masquerading as text.
 
@@ -66,26 +65,26 @@ class BinaryMasqueradeDetector:
             return result
 
         # Check first bytes for binary signatures
-        signature_result = self._check_binary_signatures(content[:self.max_check_bytes])
+        signature_result = self._check_binary_signatures(content[: self.max_check_bytes])
         if signature_result["detected"]:
             result["evidence"].append("binary_signature")
             result["detected_type"] = signature_result["type"]
             result["confidence"] += 0.8
 
         # Check for null bytes (strong binary indicator)
-        null_byte_result = self._check_null_bytes(content[:self.max_check_bytes])
+        null_byte_result = self._check_null_bytes(content[: self.max_check_bytes])
         if null_byte_result["detected"]:
             result["evidence"].append("null_bytes")
             result["confidence"] += 0.7
 
         # Check entropy (high entropy suggests binary)
-        entropy_result = self._check_entropy(content[:self.max_check_bytes])
+        entropy_result = self._check_entropy(content[: self.max_check_bytes])
         if entropy_result["high_entropy"]:
             result["evidence"].append("high_entropy")
             result["confidence"] += 0.3
 
         # Check non-printable character ratio
-        printable_result = self._check_printable_ratio(content[:self.max_check_bytes])
+        printable_result = self._check_printable_ratio(content[: self.max_check_bytes])
         if printable_result["low_printable"]:
             result["evidence"].append("low_printable_ratio")
             result["confidence"] += 0.4
@@ -169,9 +168,9 @@ class BinaryMasqueradeDetector:
         for byte in content:
             # Printable ASCII range (32-126) plus common whitespace
             if 32 <= byte <= 126 or byte in [
-                    9,
-                    10,
-                    13,
+                9,
+                10,
+                13,
             ]:  # tab, newline, carriage return
                 printable_count += 1
 
@@ -194,18 +193,18 @@ class BinaryMasqueradeDetector:
 
         # Text types should not be detected as binary types
         if declared_main == "text" and detected_main in [
-                "image",
-                "audio",
-                "video",
-                "application",
+            "image",
+            "audio",
+            "video",
+            "application",
         ]:
             return False
 
         # Application/json should not be detected as binary
         if declared_type.lower() == "application/json" and detected_main in [
-                "image",
-                "audio",
-                "video",
+            "image",
+            "audio",
+            "video",
         ]:
             return False
 
@@ -324,14 +323,16 @@ def test_binary_masquerade_detection():
 
         test_passed = result["is_masquerade"] == case["should_detect"]
 
-        results.append({
-            "test_case": i + 1,
-            "expected_detection": case["should_detect"],
-            "actual_detection": result["is_masquerade"],
-            "confidence": result["confidence"],
-            "evidence": result["evidence"],
-            "test_passed": test_passed,
-        })
+        results.append(
+            {
+                "test_case": i + 1,
+                "expected_detection": case["should_detect"],
+                "actual_detection": result["is_masquerade"],
+                "confidence": result["confidence"],
+                "evidence": result["evidence"],
+                "test_passed": test_passed,
+            }
+        )
 
     return {
         "total_tests": len(test_cases),

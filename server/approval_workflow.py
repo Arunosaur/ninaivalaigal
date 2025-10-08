@@ -33,12 +33,8 @@ class CrossTeamApprovalRequest(Base):
     __tablename__ = "cross_team_approval_requests"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    context_id = Column(
-        UUID(as_uuid=True), nullable=False
-    )  # Will add FK when contexts table exists
-    requesting_team_id = Column(
-        UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False
-    )
+    context_id = Column(UUID(as_uuid=True), nullable=False)  # Will add FK when contexts table exists
+    requesting_team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
     target_team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
     requested_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     permission_level = Column(String(50), nullable=False)  # read, write, admin
@@ -150,9 +146,7 @@ class ApprovalWorkflowManager:
         """Approve a cross-team access request"""
         session = self.db.get_session()
         try:
-            request = (
-                session.query(CrossTeamApprovalRequest).filter_by(id=request_id).first()
-            )
+            request = session.query(CrossTeamApprovalRequest).filter_by(id=request_id).first()
             if not request:
                 return {"success": False, "error": "Request not found"}
 
@@ -202,15 +196,11 @@ class ApprovalWorkflowManager:
         finally:
             session.close()
 
-    def reject_request(
-        self, request_id: int, rejected_by: int, reason: str = None
-    ) -> dict[str, Any]:
+    def reject_request(self, request_id: int, rejected_by: int, reason: str = None) -> dict[str, Any]:
         """Reject a cross-team access request"""
         session = self.db.get_session()
         try:
-            request = (
-                session.query(CrossTeamApprovalRequest).filter_by(id=request_id).first()
-            )
+            request = session.query(CrossTeamApprovalRequest).filter_by(id=request_id).first()
             if not request:
                 return {"success": False, "error": "Request not found"}
 
@@ -282,9 +272,7 @@ class ApprovalWorkflowManager:
         """Get status of a specific request"""
         session = self.db.get_session()
         try:
-            request = (
-                session.query(CrossTeamApprovalRequest).filter_by(id=request_id).first()
-            )
+            request = session.query(CrossTeamApprovalRequest).filter_by(id=request_id).first()
             if not request:
                 return {"success": False, "error": "Request not found"}
 
@@ -336,11 +324,7 @@ class ApprovalWorkflowManager:
         """Check if user is a member of the team"""
         session = self.db.get_session()
         try:
-            member = (
-                session.query(self.db.TeamMember)
-                .filter_by(team_id=team_id, user_id=user_id)
-                .first()
-            )
+            member = session.query(self.db.TeamMember).filter_by(team_id=team_id, user_id=user_id).first()
             return member is not None
         finally:
             session.close()
@@ -349,11 +333,7 @@ class ApprovalWorkflowManager:
         """Check if user can approve requests for the team (admin or owner role)"""
         session = self.db.get_session()
         try:
-            member = (
-                session.query(self.db.TeamMember)
-                .filter_by(team_id=team_id, user_id=user_id)
-                .first()
-            )
+            member = session.query(self.db.TeamMember).filter_by(team_id=team_id, user_id=user_id).first()
 
             if not member:
                 return False

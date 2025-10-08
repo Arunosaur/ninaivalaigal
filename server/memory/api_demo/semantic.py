@@ -29,11 +29,7 @@ class DemoSemanticQuery(BaseModel):
 
 def store() -> PostgresStore:
     return PostgresStore(
-        PGConfig(
-            dsn=os.getenv(
-                "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
-            )
-        )
+        PGConfig(dsn=os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"))
     )
 
 

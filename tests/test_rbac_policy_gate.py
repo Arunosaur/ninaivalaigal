@@ -27,9 +27,7 @@ class TestPolicyGateConfig:
 
     def test_custom_config(self):
         """Test custom configuration values."""
-        config = PolicyGateConfig(
-            max_acceptable_additions=10, allow_removals=True, ci_mode=True
-        )
+        config = PolicyGateConfig(max_acceptable_additions=10, allow_removals=True, ci_mode=True)
 
         assert config.max_acceptable_additions == 10
         assert config.allow_removals is True
@@ -65,16 +63,12 @@ class TestRBACPolicyGate:
 
     def test_create_baseline(self):
         """Test baseline creation."""
-        with patch(
-            "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir
-        ):
+        with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir):
             gate = RBACPolicyGate(self.config)
 
             # Mock snapshot generation
             with patch.object(gate, "generate_current_snapshot") as mock_gen:
-                mock_snapshot = (
-                    '{"test": "snapshot", "rules_count": 5, "policy_hash": "test_hash"}'
-                )
+                mock_snapshot = '{"test": "snapshot", "rules_count": 5, "policy_hash": "test_hash"}'
                 mock_gen.return_value = mock_snapshot
 
                 result = gate.create_baseline()
@@ -86,9 +80,7 @@ class TestRBACPolicyGate:
 
     def test_no_baseline_scenario(self):
         """Test behavior when no baseline exists."""
-        with patch(
-            "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir
-        ):
+        with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir):
             gate = RBACPolicyGate(self.config)
 
             with patch.object(gate, "generate_current_snapshot") as mock_gen:
@@ -102,9 +94,7 @@ class TestRBACPolicyGate:
 
     def test_no_changes_scenario(self):
         """Test behavior when no policy changes exist."""
-        with patch(
-            "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir
-        ):
+        with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir):
             gate = RBACPolicyGate(self.config)
 
             # Create baseline
@@ -115,9 +105,7 @@ class TestRBACPolicyGate:
             with patch.object(gate, "generate_current_snapshot") as mock_gen:
                 mock_gen.return_value = baseline_snapshot
 
-                with patch(
-                    "scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot"
-                ) as mock_validate:
+                with patch("scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot") as mock_validate:
                     mock_validate.return_value = {
                         "comparison": {"identical": True, "changes": []},
                         "completeness": {"complete": True},
@@ -131,9 +119,7 @@ class TestRBACPolicyGate:
 
     def test_acceptable_changes_scenario(self):
         """Test behavior with acceptable policy changes."""
-        with patch(
-            "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir
-        ):
+        with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir):
             gate = RBACPolicyGate(self.config)
 
             # Create baseline
@@ -155,9 +141,7 @@ class TestRBACPolicyGate:
                     }
                 ]
 
-                with patch(
-                    "scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot"
-                ) as mock_validate:
+                with patch("scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot") as mock_validate:
                     mock_validate.return_value = {
                         "comparison": {"identical": False, "changes": mock_changes},
                         "completeness": {"complete": True},
@@ -166,16 +150,12 @@ class TestRBACPolicyGate:
                     result = gate.check_policy_changes()
 
                     assert result["status"] == "changes_detected"
-                    assert (
-                        result["gate_passed"] is True
-                    )  # Should pass with small changes
+                    assert result["gate_passed"] is True  # Should pass with small changes
                     assert result["changes"]["additions"] == 1
 
     def test_concerning_changes_scenario(self):
         """Test behavior with concerning policy changes."""
-        with patch(
-            "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir
-        ):
+        with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir):
             gate = RBACPolicyGate(self.config)
 
             # Create baseline
@@ -198,9 +178,7 @@ class TestRBACPolicyGate:
                     for i in range(10)  # Exceeds max_acceptable_additions (5)
                 ]
 
-                with patch(
-                    "scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot"
-                ) as mock_validate:
+                with patch("scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot") as mock_validate:
                     mock_validate.return_value = {
                         "comparison": {"identical": False, "changes": mock_changes},
                         "completeness": {"complete": True},
@@ -212,16 +190,11 @@ class TestRBACPolicyGate:
                     assert result["gate_passed"] is False
                     assert result["requires_approval"] is True
                     assert result["changes"]["additions"] == 10
-                    assert any(
-                        "Too many permission additions" in issue
-                        for issue in result["issues"]
-                    )
+                    assert any("Too many permission additions" in issue for issue in result["issues"])
 
     def test_privilege_escalation_detection(self):
         """Test detection of privilege escalation."""
-        with patch(
-            "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir
-        ):
+        with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir):
             gate = RBACPolicyGate(self.config)
 
             # Test escalation detection
@@ -257,9 +230,7 @@ class TestRBACPolicyGate:
 
     def test_approval_file_bypass(self):
         """Test that approval file allows concerning changes."""
-        with patch(
-            "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir
-        ):
+        with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir):
             gate = RBACPolicyGate(self.config)
 
             # Create approval file
@@ -285,9 +256,7 @@ class TestRBACPolicyGate:
                     }
                 ]
 
-                with patch(
-                    "scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot"
-                ) as mock_validate:
+                with patch("scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot") as mock_validate:
                     mock_validate.return_value = {
                         "comparison": {"identical": False, "changes": mock_changes},
                         "completeness": {"complete": True},
@@ -295,17 +264,13 @@ class TestRBACPolicyGate:
 
                     result = gate.check_policy_changes()
 
-                    assert (
-                        result["gate_passed"] is True
-                    )  # Should pass with approval file
+                    assert result["gate_passed"] is True  # Should pass with approval file
                     assert result["requires_approval"] is False
                     assert any("approved via" in issue for issue in result["issues"])
 
     def test_generate_approval_template(self):
         """Test approval template generation."""
-        with patch(
-            "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir
-        ):
+        with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir):
             gate = RBACPolicyGate(self.config)
 
             gate_result = {
@@ -330,9 +295,7 @@ class TestRBACPolicyGate:
 
     def test_change_logging(self):
         """Test policy change logging."""
-        with patch(
-            "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir
-        ):
+        with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=self.temp_dir):
             gate = RBACPolicyGate(self.config)
 
             gate_result = {
@@ -372,29 +335,21 @@ class TestIntegration:
                 git_integration=False,
             )
 
-            with patch(
-                "scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=temp_dir
-            ):
+            with patch("scripts.rbac_policy_snapshot_gate.Path.cwd", return_value=temp_dir):
                 gate = RBACPolicyGate(config)
 
                 # Step 1: Create baseline
                 with patch.object(gate, "generate_current_snapshot") as mock_gen:
-                    mock_gen.return_value = (
-                        '{"rules": [], "policy_hash": "baseline", "rules_count": 0}'
-                    )
+                    mock_gen.return_value = '{"rules": [], "policy_hash": "baseline", "rules_count": 0}'
 
                     baseline_result = gate.create_baseline()
                     assert baseline_result["status"] == "baseline_created"
 
                 # Step 2: Check with no changes
                 with patch.object(gate, "generate_current_snapshot") as mock_gen:
-                    mock_gen.return_value = (
-                        '{"rules": [], "policy_hash": "baseline", "rules_count": 0}'
-                    )
+                    mock_gen.return_value = '{"rules": [], "policy_hash": "baseline", "rules_count": 0}'
 
-                    with patch(
-                        "scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot"
-                    ) as mock_validate:
+                    with patch("scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot") as mock_validate:
                         mock_validate.return_value = {
                             "comparison": {"identical": True, "changes": []},
                             "completeness": {"complete": True},
@@ -406,14 +361,10 @@ class TestIntegration:
 
                 # Step 3: Check with changes
                 with patch.object(gate, "generate_current_snapshot") as mock_gen:
-                    mock_gen.return_value = (
-                        '{"rules": [], "policy_hash": "changed", "rules_count": 1}'
-                    )
+                    mock_gen.return_value = '{"rules": [], "policy_hash": "changed", "rules_count": 1}'
 
                     mock_changes = [{"type": "added", "rule": {"role": "user"}}]
-                    with patch(
-                        "scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot"
-                    ) as mock_validate:
+                    with patch("scripts.rbac_policy_snapshot_gate.validate_policy_against_snapshot") as mock_validate:
                         mock_validate.return_value = {
                             "comparison": {"identical": False, "changes": mock_changes},
                             "completeness": {"complete": True},

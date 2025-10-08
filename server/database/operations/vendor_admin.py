@@ -225,9 +225,7 @@ class VendorAdminOperations:
             return None
 
         except Exception as e:
-            logger.error(
-                "Failed to get tenant by ID", tenant_id=tenant_id, error=str(e)
-            )
+            logger.error("Failed to get tenant by ID", tenant_id=tenant_id, error=str(e))
             raise
 
     async def get_tenant_usage_metrics(
@@ -277,9 +275,7 @@ class VendorAdminOperations:
             return metrics
 
         except Exception as e:
-            logger.error(
-                "Failed to get tenant usage metrics", tenant_id=tenant_id, error=str(e)
-            )
+            logger.error("Failed to get tenant usage metrics", tenant_id=tenant_id, error=str(e))
             raise
 
     async def get_tenant_rate_limits(self, tenant_id: str) -> Dict[str, Any]:
@@ -314,9 +310,7 @@ class VendorAdminOperations:
                 }
 
         except Exception as e:
-            logger.error(
-                "Failed to get tenant rate limits", tenant_id=tenant_id, error=str(e)
-            )
+            logger.error("Failed to get tenant rate limits", tenant_id=tenant_id, error=str(e))
             # Return defaults on error
             return {
                 "api_calls_per_minute": 100,
@@ -360,9 +354,7 @@ class VendorAdminOperations:
             )
 
         except Exception as e:
-            logger.error(
-                "Failed to update tenant rate limits", tenant_id=tenant_id, error=str(e)
-            )
+            logger.error("Failed to update tenant rate limits", tenant_id=tenant_id, error=str(e))
             raise
 
     async def update_tenant_status(self, tenant_id: str, status: str) -> None:

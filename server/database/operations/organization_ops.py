@@ -37,11 +37,7 @@ class OrganizationOperations(DatabaseManager):
         """Get organization by ID"""
         session = self.get_session()
         try:
-            return (
-                session.query(Organization)
-                .filter(Organization.id == organization_id)
-                .first()
-            )
+            return session.query(Organization).filter(Organization.id == organization_id).first()
         finally:
             session.close()
 
@@ -53,17 +49,11 @@ class OrganizationOperations(DatabaseManager):
         finally:
             session.close()
 
-    def update_organization(
-        self, organization_id: int, name: str = None, description: str = None
-    ):
+    def update_organization(self, organization_id: int, name: str = None, description: str = None):
         """Update organization information"""
         session = self.get_session()
         try:
-            org = (
-                session.query(Organization)
-                .filter(Organization.id == organization_id)
-                .first()
-            )
+            org = session.query(Organization).filter(Organization.id == organization_id).first()
             if not org:
                 raise ValueError(f"Organization with ID {organization_id} not found")
 
@@ -71,9 +61,7 @@ class OrganizationOperations(DatabaseManager):
                 # Check for name conflicts
                 existing = (
                     session.query(Organization)
-                    .filter(
-                        Organization.name == name, Organization.id != organization_id
-                    )
+                    .filter(Organization.name == name, Organization.id != organization_id)
                     .first()
                 )
                 if existing:
@@ -95,11 +83,7 @@ class OrganizationOperations(DatabaseManager):
         """Delete an organization"""
         session = self.get_session()
         try:
-            org = (
-                session.query(Organization)
-                .filter(Organization.id == organization_id)
-                .first()
-            )
+            org = session.query(Organization).filter(Organization.id == organization_id).first()
             if not org:
                 raise ValueError(f"Organization with ID {organization_id} not found")
 
@@ -117,11 +101,7 @@ class OrganizationOperations(DatabaseManager):
         """Get all teams in an organization"""
         session = self.get_session()
         try:
-            return (
-                session.query(Team)
-                .filter(Team.organization_id == organization_id)
-                .all()
-            )
+            return session.query(Team).filter(Team.organization_id == organization_id).all()
         finally:
             session.close()
 
@@ -144,15 +124,11 @@ class OrganizationOperations(DatabaseManager):
             session.close()
 
     # Team Operations
-    def create_team(
-        self, name: str, organization_id: int = None, description: str = None
-    ):
+    def create_team(self, name: str, organization_id: int = None, description: str = None):
         """Create a new team"""
         session = self.get_session()
         try:
-            team = Team(
-                name=name, organization_id=organization_id, description=description
-            )
+            team = Team(name=name, organization_id=organization_id, description=description)
             session.add(team)
             session.commit()
             return team
@@ -234,9 +210,7 @@ class OrganizationOperations(DatabaseManager):
         try:
             # Check if membership already exists
             existing = (
-                session.query(TeamMember)
-                .filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id)
-                .first()
+                session.query(TeamMember).filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id).first()
             )
 
             if existing:
@@ -260,9 +234,7 @@ class OrganizationOperations(DatabaseManager):
         session = self.get_session()
         try:
             member = (
-                session.query(TeamMember)
-                .filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id)
-                .first()
+                session.query(TeamMember).filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id).first()
             )
 
             if not member:
@@ -281,12 +253,7 @@ class OrganizationOperations(DatabaseManager):
         """Get all teams a user belongs to"""
         session = self.get_session()
         try:
-            teams = (
-                session.query(Team)
-                .join(TeamMember)
-                .filter(TeamMember.user_id == user_id)
-                .all()
-            )
+            teams = session.query(Team).join(TeamMember).filter(TeamMember.user_id == user_id).all()
             return teams
         except Exception as e:
             raise e
@@ -299,12 +266,7 @@ class OrganizationOperations(DatabaseManager):
         try:
             from ..models import User
 
-            members = (
-                session.query(TeamMember, User)
-                .join(User)
-                .filter(TeamMember.team_id == team_id)
-                .all()
-            )
+            members = session.query(TeamMember, User).join(User).filter(TeamMember.team_id == team_id).all()
 
             return [
                 {
@@ -313,9 +275,7 @@ class OrganizationOperations(DatabaseManager):
                     "email": user.email,
                     "full_name": user.full_name,
                     "role": member.role,
-                    "joined_at": (
-                        member.created_at.isoformat() if member.created_at else None
-                    ),
+                    "joined_at": (member.created_at.isoformat() if member.created_at else None),
                 }
                 for member, user in members
             ]
@@ -329,9 +289,7 @@ class OrganizationOperations(DatabaseManager):
         session = self.get_session()
         try:
             member = (
-                session.query(TeamMember)
-                .filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id)
-                .first()
+                session.query(TeamMember).filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id).first()
             )
 
             if not member:
@@ -354,17 +312,11 @@ class OrganizationOperations(DatabaseManager):
             if not team:
                 return None
 
-            member_count = (
-                session.query(TeamMember).filter(TeamMember.team_id == team_id).count()
-            )
+            member_count = session.query(TeamMember).filter(TeamMember.team_id == team_id).count()
 
             # Count roles
             role_counts = {}
-            roles = (
-                session.query(TeamMember.role)
-                .filter(TeamMember.team_id == team_id)
-                .all()
-            )
+            roles = session.query(TeamMember.role).filter(TeamMember.team_id == team_id).all()
             for (role,) in roles:
                 role_counts[role] = role_counts.get(role, 0) + 1
 
@@ -385,9 +337,7 @@ class OrganizationOperations(DatabaseManager):
         session = self.get_session()
         try:
             member = (
-                session.query(TeamMember)
-                .filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id)
-                .first()
+                session.query(TeamMember).filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id).first()
             )
             return member is not None
         finally:
@@ -398,9 +348,7 @@ class OrganizationOperations(DatabaseManager):
         session = self.get_session()
         try:
             member = (
-                session.query(TeamMember)
-                .filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id)
-                .first()
+                session.query(TeamMember).filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id).first()
             )
             return member.role if member else None
         finally:

@@ -57,14 +57,10 @@ class SecurityBundle:
         # Add middlewares in reverse order (they wrap around each other)
 
         # 3. Response redaction (outermost)
-        app.add_middleware(
-            ResponseRedactionASGIMiddleware, detector_fn=detector_fn, overlap=overlap
-        )
+        app.add_middleware(ResponseRedactionASGIMiddleware, detector_fn=detector_fn, overlap=overlap)
 
         # 2. Request redaction (middle)
-        app.add_middleware(
-            RedactionASGIMiddleware, detector_fn=detector_fn, overlap=overlap
-        )
+        app.add_middleware(RedactionASGIMiddleware, detector_fn=detector_fn, overlap=overlap)
 
         # 1. Content-type guard (innermost - runs first)
         app.add_middleware(
@@ -150,11 +146,7 @@ class SecurityBundleMiddleware:
                     more_body = message.get("more_body", False)
                     if len(text) >= self.overlap and more_body:
                         request_tail = text[-self.overlap :]
-                        emit_text = (
-                            redacted[: -len(request_tail)]
-                            if len(redacted) > len(request_tail)
-                            else ""
-                        )
+                        emit_text = redacted[: -len(request_tail)] if len(redacted) > len(request_tail) else ""
                     else:
                         emit_text = redacted
                         request_tail = ""
@@ -177,11 +169,7 @@ class SecurityBundleMiddleware:
 
                     if len(text) >= self.overlap and more_body:
                         response_tail = text[-self.overlap :]
-                        emit_text = (
-                            redacted[: -len(response_tail)]
-                            if len(redacted) > len(response_tail)
-                            else ""
-                        )
+                        emit_text = redacted[: -len(response_tail)] if len(redacted) > len(response_tail) else ""
                     else:
                         emit_text = redacted
                         response_tail = ""
@@ -201,9 +189,7 @@ class SecurityBundleMiddleware:
                         await send(
                             {
                                 "type": "http.response.body",
-                                "body": final_redacted.encode(
-                                    "utf-8", errors="replace"
-                                ),
+                                "body": final_redacted.encode("utf-8", errors="replace"),
                                 "more_body": False,
                             }
                         )

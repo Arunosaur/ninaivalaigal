@@ -143,9 +143,7 @@ class MemoryTokenCache:
             logger.error("Memory cache get error", memory_id=memory_id, error=str(e))
             return None
 
-    async def set(
-        self, memory_id: str, memory_data: dict[str, Any], ttl: int | None = None
-    ) -> bool:
+    async def set(self, memory_id: str, memory_data: dict[str, Any], ttl: int | None = None) -> bool:
         """Set memory token in cache"""
         if not self.redis.is_connected:
             return False
@@ -177,9 +175,7 @@ class MemoryTokenCache:
         try:
             key = self._get_key(memory_id)
             result = await self.redis.redis.delete(key)
-            logger.debug(
-                "Memory cache deleted", memory_id=memory_id, deleted=bool(result)
-            )
+            logger.debug("Memory cache deleted", memory_id=memory_id, deleted=bool(result))
             return bool(result)
 
         except Exception as e:
@@ -236,9 +232,7 @@ class SessionStore:
             logger.error("Session get error", user_id=user_id, error=str(e))
             return None
 
-    async def set_session(
-        self, user_id: str, session_data: dict[str, Any], ttl: int | None = None
-    ) -> bool:
+    async def set_session(self, user_id: str, session_data: dict[str, Any], ttl: int | None = None) -> bool:
         """Set user session in Redis"""
         if not self.redis.is_connected:
             return False
@@ -350,9 +344,7 @@ class RelevanceScoreCache:
         """Generate Redis key for relevance score"""
         return f"{self.key_prefix}{user_id}:{context_id}:{token_id}"
 
-    async def get_score(
-        self, user_id: str, context_id: str, token_id: str
-    ) -> float | None:
+    async def get_score(self, user_id: str, context_id: str, token_id: str) -> float | None:
         """Get cached relevance score"""
         if not self.redis.is_connected:
             return None
@@ -464,9 +456,7 @@ class RelevanceScoreCache:
                 if score_data:
                     score_info = json.loads(score_data)
                     # Extract context_id:token_id from key
-                    key_suffix = key.decode().replace(
-                        f"{self.key_prefix}{user_id}:", ""
-                    )
+                    key_suffix = key.decode().replace(f"{self.key_prefix}{user_id}:", "")
                     scores[key_suffix] = score_info["score"]
 
             return scores

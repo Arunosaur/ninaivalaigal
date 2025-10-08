@@ -98,9 +98,7 @@ async def scan_with_starlette(
             )
 
             # P0: Enforce size WHILE streaming & take a small head sample
-            head, rest_iter = await enforce_part_limits_stream(
-                field_value.stream(), max_part_bytes=cap
-            )
+            head, rest_iter = await enforce_part_limits_stream(field_value.stream(), max_part_bytes=cap)
 
             # P0: Binary / masquerade classification
             if disallow_archives_for_text(head, field_value.content_type or ""):
@@ -112,9 +110,7 @@ async def scan_with_starlette(
                     field_value.content_type.startswith("text/")
                     or field_value.content_type.startswith("application/json")
                 ):
-                    raise ValueError(
-                        "content-type mismatch: binary payload detected in text part"
-                    )
+                    raise ValueError("content-type mismatch: binary payload detected in text part")
 
                 # Otherwise forward to binary handler if provided
                 if binary_handler is not None:
@@ -175,9 +171,7 @@ def validate_hardened_integration():
         # 256+ parts → first over the limit triggers a rejection
         (
             "part_count_limit",
-            lambda: enforce_max_parts_per_request(
-                300, HardenedPartLimitConfig(max_parts_per_request=256)
-            ),
+            lambda: enforce_max_parts_per_request(300, HardenedPartLimitConfig(max_parts_per_request=256)),
         ),
         # .txt containing MZ / Mach-O / Java class magics → rejected
         ("executable_detection", lambda: looks_binary(b"MZ\x90\x00")),

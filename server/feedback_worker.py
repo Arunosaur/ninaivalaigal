@@ -54,9 +54,7 @@ async def process_feedback_event(event_data: dict[str, Any]):
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to process feedback event", event_data=event_data, error=str(e)
-        )
+        logger.error("Failed to process feedback event", event_data=event_data, error=str(e))
         raise
 
 
@@ -164,9 +162,7 @@ async def recalculate_memory_scores(user_id: int, memory_ids: list = None):
         # 4. Log recalculation statistics
 
     except Exception as e:
-        logger.error(
-            "Failed to recalculate memory scores", user_id=user_id, error=str(e)
-        )
+        logger.error("Failed to recalculate memory scores", user_id=user_id, error=str(e))
         raise
 
 

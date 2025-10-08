@@ -17,8 +17,7 @@ MOCK_GPT_RESPONSES = {
     "Remember to implement async authentication for better performance": {
         "suggested_tags": ["authentication", "performance", "async"],
         "confidence_scores": [0.95, 0.88, 0.82],
-        "reasoning":
-        "Content discusses authentication implementation with focus on performance optimization using async patterns",
+        "reasoning": "Content discusses authentication implementation with focus on performance optimization using async patterns",
     },
     "Team decision: Use GET-based endpoints for MVP to bypass POST issues": {
         "suggested_tags": ["architecture", "mvp", "endpoints"],
@@ -191,11 +190,11 @@ def mock_gpt_tag_suggestion(content: str, existing_tags: List[str] = None) -> Di
 
 @router.get("/suggest")
 async def suggest_tags(
-        content: str,
-        existing_tags: Optional[str] = None,
-        max_suggestions: int = 3,
-        min_confidence: float = 0.5,
-        user: Dict[str, Any] = Depends(get_current_user),
+    content: str,
+    existing_tags: Optional[str] = None,
+    max_suggestions: int = 3,
+    min_confidence: float = 0.5,
+    user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Suggest tags for memory content using AI analysis"""
 
@@ -218,12 +217,14 @@ async def suggest_tags(
         filtered_suggestions = []
         for i, (tag, confidence) in enumerate(zip(gpt_response["suggested_tags"], gpt_response["confidence_scores"])):
             if confidence >= min_confidence:
-                filtered_suggestions.append({
-                    "tag": tag,
-                    "confidence": confidence,
-                    "rank": i + 1,
-                    "already_exists": tag in existing_tag_list,
-                })
+                filtered_suggestions.append(
+                    {
+                        "tag": tag,
+                        "confidence": confidence,
+                        "rank": i + 1,
+                        "already_exists": tag in existing_tag_list,
+                    }
+                )
 
         # Limit to max suggestions
         filtered_suggestions = filtered_suggestions[:max_suggestions]
@@ -265,8 +266,8 @@ async def suggest_tags(
 
 @router.get("/batch-suggest")
 async def batch_suggest_tags(
-        memory_ids: str,  # Comma-separated memory IDs
-        user: Dict[str, Any] = Depends(get_current_user),
+    memory_ids: str,  # Comma-separated memory IDs
+    user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Suggest tags for multiple memories in batch"""
 
@@ -311,22 +312,27 @@ async def batch_suggest_tags(
             gpt_response = mock_gpt_tag_suggestion(memory["content"], memory["existing_tags"])
 
             suggestions = []
-            for i, (tag, confidence) in enumerate(zip(gpt_response["suggested_tags"],
-                                                      gpt_response["confidence_scores"])):
-                suggestions.append({
-                    "tag": tag,
-                    "confidence": confidence,
-                    "rank": i + 1,
-                    "already_exists": tag in memory["existing_tags"],
-                })
+            for i, (tag, confidence) in enumerate(
+                zip(gpt_response["suggested_tags"], gpt_response["confidence_scores"])
+            ):
+                suggestions.append(
+                    {
+                        "tag": tag,
+                        "confidence": confidence,
+                        "rank": i + 1,
+                        "already_exists": tag in memory["existing_tags"],
+                    }
+                )
 
-            batch_results.append({
-                "memory_id": memory_id,
-                "success": True,
-                "content_preview": memory["content"][:50] + "...",
-                "suggestions": suggestions,
-                "existing_tags": memory["existing_tags"],
-            })
+            batch_results.append(
+                {
+                    "memory_id": memory_id,
+                    "success": True,
+                    "content_preview": memory["content"][:50] + "...",
+                    "suggestions": suggestions,
+                    "existing_tags": memory["existing_tags"],
+                }
+            )
 
         except Exception as e:
             batch_results.append({"memory_id": memory_id, "success": False, "error": str(e)})
@@ -342,9 +348,9 @@ async def batch_suggest_tags(
 
 @router.get("/tag-analytics")
 async def get_tag_analytics(
-        team_filter: Optional[int] = None,
-        days_back: int = 30,
-        user: Dict[str, Any] = Depends(get_current_user),
+    team_filter: Optional[int] = None,
+    days_back: int = 30,
+    user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get analytics on tag usage and AI suggestion performance"""
 
@@ -352,31 +358,11 @@ async def get_tag_analytics(
     analytics = {
         "tag_usage_stats": {
             "most_used_tags": [
-                {
-                    "tag": "authentication",
-                    "count": 15,
-                    "trend": "up"
-                },
-                {
-                    "tag": "performance",
-                    "count": 12,
-                    "trend": "stable"
-                },
-                {
-                    "tag": "team-decision",
-                    "count": 8,
-                    "trend": "up"
-                },
-                {
-                    "tag": "code-review",
-                    "count": 6,
-                    "trend": "down"
-                },
-                {
-                    "tag": "mvp",
-                    "count": 5,
-                    "trend": "up"
-                },
+                {"tag": "authentication", "count": 15, "trend": "up"},
+                {"tag": "performance", "count": 12, "trend": "stable"},
+                {"tag": "team-decision", "count": 8, "trend": "up"},
+                {"tag": "code-review", "count": 6, "trend": "down"},
+                {"tag": "mvp", "count": 5, "trend": "up"},
             ],
             "tag_categories": {
                 "technical": 45,
@@ -385,36 +371,18 @@ async def get_tag_analytics(
                 "project": 15,
                 "quality": 12,
             },
-            "total_unique_tags":
-            67,
-            "avg_tags_per_memory":
-            2.3,
+            "total_unique_tags": 67,
+            "avg_tags_per_memory": 2.3,
         },
         "ai_suggestion_stats": {
-            "suggestions_generated":
-            156,
-            "suggestions_accepted":
-            89,
-            "acceptance_rate":
-            0.57,
-            "avg_confidence_score":
-            0.78,
+            "suggestions_generated": 156,
+            "suggestions_accepted": 89,
+            "acceptance_rate": 0.57,
+            "avg_confidence_score": 0.78,
             "top_suggested_tags": [
-                {
-                    "tag": "performance",
-                    "suggested_count": 23,
-                    "accepted_count": 18
-                },
-                {
-                    "tag": "authentication",
-                    "suggested_count": 19,
-                    "accepted_count": 15
-                },
-                {
-                    "tag": "optimization",
-                    "suggested_count": 14,
-                    "accepted_count": 8
-                },
+                {"tag": "performance", "suggested_count": 23, "accepted_count": 18},
+                {"tag": "authentication", "suggested_count": 19, "accepted_count": 15},
+                {"tag": "optimization", "suggested_count": 14, "accepted_count": 8},
             ],
         },
         "tag_quality_metrics": {
@@ -439,21 +407,22 @@ async def get_tag_analytics(
         "success": True,
         "analytics": analytics,
         "time_period": {
-            "days_back":
-            days_back,
-            "start_date": (datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0) -
-                           datetime.timedelta(days=days_back)).isoformat() + "Z",
-            "end_date":
-            datetime.utcnow().isoformat() + "Z",
+            "days_back": days_back,
+            "start_date": (
+                datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+                - datetime.timedelta(days=days_back)
+            ).isoformat()
+            + "Z",
+            "end_date": datetime.utcnow().isoformat() + "Z",
         },
-        "filters": {
-            "team_filter": team_filter
-        },
+        "filters": {"team_filter": team_filter},
     }
 
 
 @router.get("/tag-clusters")
-async def get_tag_clusters(user: Dict[str, Any] = Depends(get_current_user), ) -> Dict[str, Any]:
+async def get_tag_clusters(
+    user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
     """Get tag clusters and relationships for visualization"""
 
     # Mock tag clustering data
@@ -481,58 +450,17 @@ async def get_tag_clusters(user: Dict[str, Any] = Depends(get_current_user), ) -
     # Tag relationship network for visualization
     tag_network = {
         "nodes": [
-            {
-                "id": "authentication",
-                "type": "tag",
-                "cluster": "technical",
-                "size": 23
-            },
-            {
-                "id": "performance",
-                "type": "tag",
-                "cluster": "technical",
-                "size": 18
-            },
-            {
-                "id": "code-review",
-                "type": "tag",
-                "cluster": "process",
-                "size": 15
-            },
-            {
-                "id": "planning",
-                "type": "tag",
-                "cluster": "planning",
-                "size": 12
-            },
-            {
-                "id": "mvp",
-                "type": "tag",
-                "cluster": "project",
-                "size": 10
-            },
+            {"id": "authentication", "type": "tag", "cluster": "technical", "size": 23},
+            {"id": "performance", "type": "tag", "cluster": "technical", "size": 18},
+            {"id": "code-review", "type": "tag", "cluster": "process", "size": 15},
+            {"id": "planning", "type": "tag", "cluster": "planning", "size": 12},
+            {"id": "mvp", "type": "tag", "cluster": "project", "size": 10},
         ],
         "edges": [
-            {
-                "source": "authentication",
-                "target": "performance",
-                "weight": 0.7
-            },
-            {
-                "source": "authentication",
-                "target": "code-review",
-                "weight": 0.5
-            },
-            {
-                "source": "code-review",
-                "target": "planning",
-                "weight": 0.6
-            },
-            {
-                "source": "planning",
-                "target": "mvp",
-                "weight": 0.8
-            },
+            {"source": "authentication", "target": "performance", "weight": 0.7},
+            {"source": "authentication", "target": "code-review", "weight": 0.5},
+            {"source": "code-review", "target": "planning", "weight": 0.6},
+            {"source": "planning", "target": "mvp", "weight": 0.8},
         ],
     }
 

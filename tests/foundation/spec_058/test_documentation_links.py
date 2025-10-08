@@ -75,9 +75,7 @@ def test_function():
             "docs/SPEC_REFERENCE_MAPPING.md",
         ]
 
-        assert (
-            len(required_docs) == 6
-        ), "Should have exactly 6 required documentation files"
+        assert len(required_docs) == 6, "Should have exactly 6 required documentation files"
 
         # Check if files exist (simulated)
         existing_files = []
@@ -87,18 +85,12 @@ def test_function():
             if doc_file in documentation_files:
                 existing_files.append(doc_file)
 
-        assert len(existing_files) == len(
-            required_docs
-        ), f"All {len(required_docs)} documentation files should exist"
+        assert len(existing_files) == len(required_docs), f"All {len(required_docs)} documentation files should exist"
 
         # Test file naming convention
         for doc_file in required_docs:
-            assert doc_file.startswith(
-                "docs/"
-            ), f"Documentation files should be in docs/ directory: {doc_file}"
-            assert doc_file.endswith(
-                ".md"
-            ), f"Documentation files should be Markdown: {doc_file}"
+            assert doc_file.startswith("docs/"), f"Documentation files should be in docs/ directory: {doc_file}"
+            assert doc_file.endswith(".md"), f"Documentation files should be Markdown: {doc_file}"
             # Check for valid naming convention (UPPER_CASE or snake_case)
             filename = doc_file.split("/")[-1].replace(".md", "")
             assert (
@@ -142,15 +134,9 @@ def test_function():
         # Validate mapping completeness
         for spec_id, spec_data in spec_mapping.items():
             assert spec_data["title"] is not None, f"SPEC {spec_id} should have a title"
-            assert (
-                len(spec_data["implementation_files"]) > 0
-            ), f"SPEC {spec_id} should have implementation files"
-            assert (
-                len(spec_data["test_files"]) > 0
-            ), f"SPEC {spec_id} should have test files"
-            assert (
-                len(spec_data["documentation"]) > 0
-            ), f"SPEC {spec_id} should have documentation references"
+            assert len(spec_data["implementation_files"]) > 0, f"SPEC {spec_id} should have implementation files"
+            assert len(spec_data["test_files"]) > 0, f"SPEC {spec_id} should have test files"
+            assert len(spec_data["documentation"]) > 0, f"SPEC {spec_id} should have documentation references"
 
         # Test bidirectional mapping
         all_implementation_files = []
@@ -160,13 +146,9 @@ def test_function():
         # Each implementation file should map back to a SPEC
         for impl_file in all_implementation_files:
             mapped_specs = [
-                spec_id
-                for spec_id, spec_data in spec_mapping.items()
-                if impl_file in spec_data["implementation_files"]
+                spec_id for spec_id, spec_data in spec_mapping.items() if impl_file in spec_data["implementation_files"]
             ]
-            assert (
-                len(mapped_specs) > 0
-            ), f"Implementation file {impl_file} should map to at least one SPEC"
+            assert len(mapped_specs) > 0, f"Implementation file {impl_file} should map to at least one SPEC"
 
     def test_full_contributor_onboarding_validated(self):
         """Test SPEC-058: Full contributor onboarding validated"""
@@ -209,15 +191,11 @@ def test_function():
         required_steps = [step for step in onboarding_steps if step["required"]]
         optional_steps = [step for step in onboarding_steps if not step["required"]]
 
-        assert (
-            len(required_steps) >= 3
-        ), "Should have at least 3 required onboarding steps"
+        assert len(required_steps) >= 3, "Should have at least 3 required onboarding steps"
         assert len(optional_steps) >= 1, "Should have optional onboarding steps"
 
         # Test documentation coverage for onboarding
-        onboarding_docs = set(
-            step["documentation"].split("#")[0] for step in onboarding_steps
-        )
+        onboarding_docs = set(step["documentation"].split("#")[0] for step in onboarding_steps)
         expected_docs = {
             "docs/CONTRIBUTING.md",
             "docs/ARCHITECTURE_OVERVIEW.md",
@@ -230,9 +208,7 @@ def test_function():
             onboarding_docs.intersection(expected_docs) == expected_docs
         ), "Onboarding should cover all key documentation"
 
-    def test_link_check_code_sample_validation_openapi_syntax(
-        self, sample_markdown_content
-    ):
+    def test_link_check_code_sample_validation_openapi_syntax(self, sample_markdown_content):
         """Test SPEC-058: Link check, code sample validation, OpenAPI syntax"""
 
         # Test markdown link extraction
@@ -270,9 +246,7 @@ def test_function():
             if language == "python":
                 # Basic Python syntax validation
                 assert (
-                    "def " in code_content
-                    or "import " in code_content
-                    or "=" in code_content
+                    "def " in code_content or "import " in code_content or "=" in code_content
                 ), "Python code should have valid syntax elements"
             elif language == "json":
                 # Basic JSON syntax validation
@@ -282,9 +256,7 @@ def test_function():
                     json.loads(clean_json)
                 except json.JSONDecodeError:
                     # For test purposes, we'll check basic JSON structure
-                    assert (
-                        "{" in code_content and "}" in code_content
-                    ), "JSON code should have basic structure"
+                    assert "{" in code_content and "}" in code_content, "JSON code should have basic structure"
 
         # Test OpenAPI syntax validation (simulated)
         openapi_sample = {
@@ -301,9 +273,7 @@ def test_function():
                                     "application/json": {
                                         "schema": {
                                             "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Memory"
-                                            },
+                                            "items": {"$ref": "#/components/schemas/Memory"},
                                         }
                                     }
                                 },
@@ -410,9 +380,7 @@ def test_function():
 
         for scenario in ci_failure_scenarios:
             if scenario["severity"] == "high":
-                assert scenario[
-                    "should_fail_ci"
-                ], f"High severity issues should fail CI: {scenario['scenario']}"
+                assert scenario["should_fail_ci"], f"High severity issues should fail CI: {scenario['scenario']}"
 
     def test_semantic_doc_completeness_via_prompt_based_review(self):
         """Test SPEC-058: Semantic doc completeness via prompt-based review (e.g., GPT-based check)"""
@@ -473,17 +441,11 @@ def test_function():
 
             # Validate completeness thresholds
             if check["check"] == "concept_coverage":
-                assert (
-                    avg_coverage >= 0.8
-                ), f"Concept coverage should be >= 80%, got {avg_coverage:.1%}"
+                assert avg_coverage >= 0.8, f"Concept coverage should be >= 80%, got {avg_coverage:.1%}"
             elif check["check"] == "user_journey_completeness":
-                assert (
-                    avg_coverage >= 0.85
-                ), f"User journey completeness should be >= 85%, got {avg_coverage:.1%}"
+                assert avg_coverage >= 0.85, f"User journey completeness should be >= 85%, got {avg_coverage:.1%}"
             elif check["check"] == "technical_depth":
-                assert (
-                    avg_coverage >= 0.75
-                ), f"Technical depth should be >= 75%, got {avg_coverage:.1%}"
+                assert avg_coverage >= 0.75, f"Technical depth should be >= 75%, got {avg_coverage:.1%}"
 
     def test_automated_markdown_link_checker(self, sample_markdown_content):
         """Test SPEC-058: Automated markdown link checker"""
@@ -516,9 +478,7 @@ def test_function():
                 # Simulate link validation
                 if result["type"] == "external":
                     # For external links, we'd normally make HTTP requests
-                    result["status"] = (
-                        "valid" if "example.com" in link_url else "unknown"
-                    )
+                    result["status"] = "valid" if "example.com" in link_url else "unknown"
                 elif result["type"] == "anchor":
                     # Check if anchor exists in document
                     anchor = link_url[1:]  # Remove #
@@ -552,9 +512,7 @@ def test_function():
 
         # Test error reporting for invalid links
         for invalid_link in invalid_links:
-            assert (
-                invalid_link["error"] is not None
-            ), f"Invalid link should have error message: {invalid_link['url']}"
+            assert invalid_link["error"] is not None, f"Invalid link should have error message: {invalid_link['url']}"
 
     @pytest.mark.asyncio
     def test_swagger_linter_integration(self):

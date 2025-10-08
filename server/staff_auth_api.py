@@ -38,9 +38,7 @@ def get_staff_db():
 router = APIRouter(prefix="/auth/staff", tags=["Staff Authentication"])
 
 # JWT Configuration (should match your existing auth config)
-SECRET_KEY = os.getenv(
-    "JWT_SECRET_KEY", "your-secret-key-here"
-)  # Read from environment
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-here")  # Read from environment
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 hours
 
@@ -83,9 +81,7 @@ class PasswordResetRequest(BaseModel):
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify password against hash"""
-    return bcrypt.checkpw(
-        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-    )
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -142,9 +138,7 @@ def get_role_permissions(role: str) -> list[str]:
 
 
 @router.post("/login", response_model=StaffLoginResponse)
-async def staff_login(
-    login_data: StaffLoginRequest, request: Request, db: Session = Depends(get_staff_db)
-):
+async def staff_login(login_data: StaffLoginRequest, request: Request, db: Session = Depends(get_staff_db)):
     """
     Staff login endpoint
 

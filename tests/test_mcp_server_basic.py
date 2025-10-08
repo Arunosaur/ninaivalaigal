@@ -47,9 +47,7 @@ def test_mcp_server_initialization():
 
             if "result" in response:
                 print("✅ MCP server initialization successful")
-                print(
-                    f"Server capabilities: {response['result'].get('capabilities', {})}"
-                )
+                print(f"Server capabilities: {response['result'].get('capabilities', {})}")
                 return True
             else:
                 print(f"❌ Initialization failed: {response}")
@@ -127,9 +125,7 @@ def test_mcp_tools_list():
                 tools = tools_response["result"]["tools"]
                 print(f"✅ Found {len(tools)} MCP tools:")
                 for tool in tools:
-                    print(
-                        f"  - {tool['name']}: {tool.get('description', 'No description')}"
-                    )
+                    print(f"  - {tool['name']}: {tool.get('description', 'No description')}")
 
                 # Check for expected tools
                 tool_names = [tool["name"] for tool in tools]
@@ -141,9 +137,7 @@ def test_mcp_tools_list():
                     "enhance_ai_prompt_tool",
                 ]
 
-                missing_tools = [
-                    tool for tool in expected_tools if tool not in tool_names
-                ]
+                missing_tools = [tool for tool in expected_tools if tool not in tool_names]
                 if missing_tools:
                     print(f"⚠️  Missing expected tools: {missing_tools}")
                 else:

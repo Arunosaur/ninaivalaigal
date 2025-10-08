@@ -27,9 +27,7 @@ app = FastAPI(
 )
 
 # Authentication configuration
-EM_SHARED_SECRET = os.getenv("EM_SHARED_SECRET") or os.getenv(
-    "MEMORY_SHARED_SECRET"
-)  # Backward compatibility
+EM_SHARED_SECRET = os.getenv("EM_SHARED_SECRET") or os.getenv("MEMORY_SHARED_SECRET")  # Backward compatibility
 if not EM_SHARED_SECRET:
     logger.warning("EM_SHARED_SECRET not set - authentication disabled")
 
@@ -70,9 +68,7 @@ def verify_shared_secret(
                 raise HTTPException(status_code=401, detail="Token expired")
 
             # Verify HMAC signature
-            expected_signature = hmac.new(
-                EM_SHARED_SECRET.encode(), timestamp_str.encode(), hashlib.sha256
-            ).hexdigest()
+            expected_signature = hmac.new(EM_SHARED_SECRET.encode(), timestamp_str.encode(), hashlib.sha256).hexdigest()
 
             if hmac.compare_digest(signature, expected_signature):
                 return True
@@ -176,9 +172,7 @@ def delete(
     context: dict[str, Any] = Depends(get_user_context),
 ):
     """Delete memory with authentication and ownership verification"""
-    logger.info(
-        f"Delete request from user_id={context.get('user_id')}, memory_id={mid}"
-    )
+    logger.info(f"Delete request from user_id={context.get('user_id')}, memory_id={mid}")
 
     # TODO: Verify ownership before deletion in actual implementation
     # memory = client.get(id=mid)

@@ -136,9 +136,7 @@ class IntentionRouter:
 
         # Add context-based scoring
         if execution_context:
-            context_scores = self._analyze_context_clues(
-                prompt_lower, execution_context
-            )
+            context_scores = self._analyze_context_clues(prompt_lower, execution_context)
             for mode, context_score in context_scores.items():
                 mode_scores[mode] = mode_scores.get(mode, 0) + context_score
 
@@ -171,40 +169,28 @@ class IntentionRouter:
         context_scores = {}
 
         # Check for data-related context
-        if any(
-            keyword in prompt_lower for keyword in self.context_clues["data_keywords"]
-        ):
+        if any(keyword in prompt_lower for keyword in self.context_clues["data_keywords"]):
             context_scores[ExecutionMode.ANALYTICS] = 3
             context_scores[ExecutionMode.SEARCH] = 2
 
         # Check for memory-related context
-        if any(
-            keyword in prompt_lower for keyword in self.context_clues["memory_keywords"]
-        ):
+        if any(keyword in prompt_lower for keyword in self.context_clues["memory_keywords"]):
             context_scores[ExecutionMode.MEMORY_ANALYSIS] = 4
             context_scores[ExecutionMode.GRAPH_REASONING] = 3
             context_scores[ExecutionMode.SEARCH] = 2
 
         # Check for analysis context
-        if any(
-            keyword in prompt_lower
-            for keyword in self.context_clues["analysis_keywords"]
-        ):
+        if any(keyword in prompt_lower for keyword in self.context_clues["analysis_keywords"]):
             context_scores[ExecutionMode.ANALYTICS] = 4
             context_scores[ExecutionMode.MEMORY_ANALYSIS] = 2
 
         # Check for creative context
-        if any(
-            keyword in prompt_lower
-            for keyword in self.context_clues["creative_keywords"]
-        ):
+        if any(keyword in prompt_lower for keyword in self.context_clues["creative_keywords"]):
             context_scores[ExecutionMode.GENERATION] = 4
             context_scores[ExecutionMode.INFERENCE] = 2
 
         # Check for search context
-        if any(
-            keyword in prompt_lower for keyword in self.context_clues["search_keywords"]
-        ):
+        if any(keyword in prompt_lower for keyword in self.context_clues["search_keywords"]):
             context_scores[ExecutionMode.SEARCH] = 4
             context_scores[ExecutionMode.MEMORY_ANALYSIS] = 2
 
@@ -214,21 +200,15 @@ class IntentionRouter:
 
             # If specific memory or context IDs are provided, boost graph reasoning
             if context_data.get("memory_id") or context_data.get("context_id"):
-                context_scores[ExecutionMode.GRAPH_REASONING] = (
-                    context_scores.get(ExecutionMode.GRAPH_REASONING, 0) + 5
-                )
+                context_scores[ExecutionMode.GRAPH_REASONING] = context_scores.get(ExecutionMode.GRAPH_REASONING, 0) + 5
 
             # If analysis type is specified, boost analytics
             if context_data.get("analysis_type"):
-                context_scores[ExecutionMode.ANALYTICS] = (
-                    context_scores.get(ExecutionMode.ANALYTICS, 0) + 5
-                )
+                context_scores[ExecutionMode.ANALYTICS] = context_scores.get(ExecutionMode.ANALYTICS, 0) + 5
 
             # If generation type is specified, boost generation
             if context_data.get("generation_type"):
-                context_scores[ExecutionMode.GENERATION] = (
-                    context_scores.get(ExecutionMode.GENERATION, 0) + 5
-                )
+                context_scores[ExecutionMode.GENERATION] = context_scores.get(ExecutionMode.GENERATION, 0) + 5
 
         return context_scores
 
@@ -238,10 +218,7 @@ class IntentionRouter:
 
         # Question vs statement analysis
         if "?" in prompt_lower:
-            if any(
-                word in prompt_lower
-                for word in ["what", "how", "why", "when", "where", "who"]
-            ):
+            if any(word in prompt_lower for word in ["what", "how", "why", "when", "where", "who"]):
                 if "why" in prompt_lower or "how" in prompt_lower:
                     semantic_scores[ExecutionMode.GRAPH_REASONING] = 2
                     semantic_scores[ExecutionMode.INFERENCE] = 2
@@ -330,9 +307,7 @@ class IntentionRouter:
         return {
             "selected_mode": selected_mode.value,
             "mode_scores": {mode.value: score for mode, score in mode_scores.items()},
-            "matched_patterns": {
-                mode.value: patterns for mode, patterns in matched_patterns.items()
-            },
+            "matched_patterns": {mode.value: patterns for mode, patterns in matched_patterns.items()},
             "prompt_analysis": {
                 "length": len(user_prompt),
                 "word_count": len(user_prompt.split()),

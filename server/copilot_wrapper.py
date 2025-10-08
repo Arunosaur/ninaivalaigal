@@ -43,9 +43,7 @@ class Mem0CopilotWrapper:
         self.db = DatabaseManager(load_config())
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
-    async def enhance_copilot_prompt(
-        self, context: CopilotContext, original_prompt: str
-    ) -> str:
+    async def enhance_copilot_prompt(self, context: CopilotContext, original_prompt: str) -> str:
         """Enhance Copilot prompt with relevant mem0 memories"""
         try:
             # Get relevant memories from mem0
@@ -55,9 +53,7 @@ class Mem0CopilotWrapper:
                 return original_prompt
 
             # Build enhanced prompt
-            enhanced_prompt = self._build_enhanced_prompt(
-                original_prompt, relevant_memories, context
-            )
+            enhanced_prompt = self._build_enhanced_prompt(original_prompt, relevant_memories, context)
 
             logger.info(f"Enhanced prompt with {len(relevant_memories)} memories")
             return enhanced_prompt
@@ -66,9 +62,7 @@ class Mem0CopilotWrapper:
             logger.error(f"Error enhancing prompt: {e}")
             return original_prompt
 
-    async def _get_relevant_memories(
-        self, context: CopilotContext
-    ) -> list[dict[str, Any]]:
+    async def _get_relevant_memories(self, context: CopilotContext) -> list[dict[str, Any]]:
         """Get relevant memories based on context"""
         memories = []
 
@@ -115,9 +109,7 @@ class Mem0CopilotWrapper:
             logger.error(f"Error getting relevant memories: {e}")
             return []
 
-    async def _query_mcp_server(
-        self, tool: str, params: dict[str, Any]
-    ) -> list[dict[str, Any]]:
+    async def _query_mcp_server(self, tool: str, params: dict[str, Any]) -> list[dict[str, Any]]:
         """Query mem0 MCP server for memories"""
         try:
             # Build MCP request
@@ -137,9 +129,7 @@ class Mem0CopilotWrapper:
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            stdout, stderr = await process.communicate(
-                input=json.dumps(mcp_request).encode()
-            )
+            stdout, stderr = await process.communicate(input=json.dumps(mcp_request).encode())
 
             if process.returncode == 0:
                 response = json.loads(stdout.decode())
@@ -292,9 +282,7 @@ class Mem0CopilotWrapper:
 
         return keywords
 
-    async def store_copilot_interaction(
-        self, context: CopilotContext, prompt: str, suggestion: str, accepted: bool
-    ):
+    async def store_copilot_interaction(self, context: CopilotContext, prompt: str, suggestion: str, accepted: bool):
         """Store Copilot interaction in mem0 for future reference"""
         try:
             interaction_data = {
@@ -317,9 +305,7 @@ class Mem0CopilotWrapper:
                 },
             )
 
-            logger.info(
-                f"Stored Copilot interaction: {'accepted' if accepted else 'rejected'}"
-            )
+            logger.info(f"Stored Copilot interaction: {'accepted' if accepted else 'rejected'}")
 
         except Exception as e:
             logger.error(f"Error storing Copilot interaction: {e}")
@@ -331,9 +317,7 @@ class VSCodeCopilotBridge:
     def __init__(self):
         self.wrapper = Mem0CopilotWrapper()
 
-    async def handle_copilot_request(
-        self, request_data: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def handle_copilot_request(self, request_data: dict[str, Any]) -> dict[str, Any]:
         """Handle Copilot completion request with mem0 enhancement"""
         try:
             # Extract context from VS Code request
@@ -352,9 +336,7 @@ class VSCodeCopilotBridge:
             original_prompt = request_data.get("prompt", "Generate code completion")
 
             # Enhance prompt with mem0 memories
-            enhanced_prompt = await self.wrapper.enhance_copilot_prompt(
-                context, original_prompt
-            )
+            enhanced_prompt = await self.wrapper.enhance_copilot_prompt(context, original_prompt)
 
             return {
                 "success": True,
@@ -393,9 +375,7 @@ if __name__ == "__main__":
         )
 
         wrapper = Mem0CopilotWrapper()
-        enhanced = await wrapper.enhance_copilot_prompt(
-            context, "Complete the user authentication function"
-        )
+        enhanced = await wrapper.enhance_copilot_prompt(context, "Complete the user authentication function")
 
         print("Enhanced prompt:")
         print(enhanced)

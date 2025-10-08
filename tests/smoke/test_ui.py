@@ -51,9 +51,7 @@ class TestUISmoke:
 
             response_time = (end_time - start_time) * 1000  # Convert to ms
             assert response.status_code == 200
-            assert (
-                response_time < 2000
-            ), f"UI response time {response_time:.2f}ms exceeds 2000ms threshold"
+            assert response_time < 2000, f"UI response time {response_time:.2f}ms exceeds 2000ms threshold"
 
         except Exception as e:
             pytest.fail(f"UI response time test failed: {e}")
@@ -136,9 +134,7 @@ class TestUIIntegration:
                 "Access-Control-Request-Headers": "Content-Type",
             }
 
-            response = requests.options(
-                f"{self.API_URL}/health", headers=headers, timeout=self.TIMEOUT
-            )
+            response = requests.options(f"{self.API_URL}/health", headers=headers, timeout=self.TIMEOUT)
 
             # Should not fail completely (may return 405 if OPTIONS not implemented)
             assert response.status_code in [200, 204, 405]

@@ -53,9 +53,7 @@ async def scan_with_starlette(
         parser = MultiPartParser(headers=request.headers, stream=request.stream())
     except Exception as e:
         _emit_multipart_reject(REASON_ENGINE_ERROR)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=f"invalid multipart: {e}"
-        ) from e
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"invalid multipart: {e}") from e
 
     part_count = 0
 

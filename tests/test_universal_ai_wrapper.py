@@ -84,17 +84,11 @@ class TestUniversalAIWrapper:
         ]
 
     @pytest.mark.asyncio
-    async def test_enhance_ai_prompt_success(
-        self, wrapper, sample_context, sample_memories
-    ):
+    async def test_enhance_ai_prompt_success(self, wrapper, sample_context, sample_memories):
         """Test successful AI prompt enhancement"""
-        with patch.object(
-            wrapper, "_get_hierarchical_memories", return_value=sample_memories
-        ):
+        with patch.object(wrapper, "_get_hierarchical_memories", return_value=sample_memories):
             with patch.object(wrapper, "_store_ai_interaction", return_value=None):
-                result = await wrapper.enhance_ai_prompt(
-                    sample_context, "Complete the user authentication function"
-                )
+                result = await wrapper.enhance_ai_prompt(sample_context, "Complete the user authentication function")
 
                 assert result["enhancement_applied"] is True
                 assert len(result["memories_used"]) == 3
@@ -106,9 +100,7 @@ class TestUniversalAIWrapper:
     async def test_enhance_ai_prompt_no_memories(self, wrapper, sample_context):
         """Test AI prompt enhancement with no memories"""
         with patch.object(wrapper, "_get_hierarchical_memories", return_value=[]):
-            result = await wrapper.enhance_ai_prompt(
-                sample_context, "Complete the function"
-            )
+            result = await wrapper.enhance_ai_prompt(sample_context, "Complete the function")
 
             assert result["enhancement_applied"] is False
             assert len(result["memories_used"]) == 0
@@ -117,16 +109,8 @@ class TestUniversalAIWrapper:
     @pytest.mark.asyncio
     async def test_get_hierarchical_memories(self, wrapper, sample_context):
         """Test hierarchical memory retrieval"""
-        mock_personal = [
-            MemoryContext(
-                "Personal memory", "personal", "memory", 3.0, datetime.now().isoformat()
-            )
-        ]
-        mock_team = [
-            MemoryContext(
-                "Team memory", "team", "memory", 2.0, datetime.now().isoformat()
-            )
-        ]
+        mock_personal = [MemoryContext("Personal memory", "personal", "memory", 3.0, datetime.now().isoformat())]
+        mock_team = [MemoryContext("Team memory", "team", "memory", 2.0, datetime.now().isoformat())]
 
         with patch.object(wrapper, "_get_memories_by_level") as mock_get_memories:
             mock_get_memories.side_effect = [mock_personal, mock_team, [], []]
@@ -139,14 +123,10 @@ class TestUniversalAIWrapper:
 
     def test_rank_memories_by_relevance(self, wrapper, sample_context, sample_memories):
         """Test memory ranking algorithm"""
-        ranked_memories = wrapper._rank_memories_by_relevance(
-            sample_memories, sample_context
-        )
+        ranked_memories = wrapper._rank_memories_by_relevance(sample_memories, sample_context)
 
         # Personal memories should rank highest
-        personal_memory = next(
-            (m for m in ranked_memories if m.context_name == "personal"), None
-        )
+        personal_memory = next((m for m in ranked_memories if m.context_name == "personal"), None)
         assert personal_memory is not None
         assert personal_memory.relevance_score >= 3.0
 
@@ -208,9 +188,7 @@ class TestMCPAIEnhancer:
             "enhancement_applied": True,
         }
 
-        with patch.object(
-            enhancer.wrapper, "enhance_ai_prompt", return_value=mock_result
-        ):
+        with patch.object(enhancer.wrapper, "enhance_ai_prompt", return_value=mock_result):
             result = await enhancer.enhance_prompt(
                 file_path="test.ts",
                 language="typescript",
@@ -231,12 +209,8 @@ class TestMCPAIEnhancer:
             "enhancement_applied": False,
         }
 
-        with patch.object(
-            enhancer.wrapper, "enhance_ai_prompt", return_value=mock_result
-        ):
-            result = await enhancer.enhance_prompt(
-                file_path="test.ts", language="typescript", prompt="Original prompt"
-            )
+        with patch.object(enhancer.wrapper, "enhance_ai_prompt", return_value=mock_result):
+            result = await enhancer.enhance_prompt(file_path="test.ts", language="typescript", prompt="Original prompt")
 
             assert "ℹ️ No relevant memories found" in result
             assert "Original prompt" in result
@@ -244,12 +218,8 @@ class TestMCPAIEnhancer:
     @pytest.mark.asyncio
     async def test_enhance_prompt_error_handling(self, enhancer):
         """Test MCP tool error handling"""
-        with patch.object(
-            enhancer.wrapper, "enhance_ai_prompt", side_effect=Exception("Test error")
-        ):
-            result = await enhancer.enhance_prompt(
-                file_path="test.ts", language="typescript", prompt="Test prompt"
-            )
+        with patch.object(enhancer.wrapper, "enhance_ai_prompt", side_effect=Exception("Test error")):
+            result = await enhancer.enhance_prompt(file_path="test.ts", language="typescript", prompt="Test prompt")
 
             assert "❌ Error enhancing prompt: Test error" in result
 
@@ -343,9 +313,7 @@ class TestIntegration:
                     ide_name="vscode",
                 )
 
-                result = await wrapper.enhance_ai_prompt(
-                    context, "Complete the UserProps interface"
-                )
+                result = await wrapper.enhance_ai_prompt(context, "Complete the UserProps interface")
 
                 assert result["enhancement_applied"] is True
                 assert len(result["memories_used"]) > 0
@@ -382,9 +350,7 @@ class TestPerformance:
                 latency = (end_time - start_time) * 1000  # Convert to milliseconds
 
                 # Should complete within 200ms target
-                assert (
-                    latency < 200
-                ), f"Enhancement took {latency}ms, exceeds 200ms target"
+                assert latency < 200, f"Enhancement took {latency}ms, exceeds 200ms target"
 
 
 if __name__ == "__main__":

@@ -33,9 +33,7 @@ def check_auth_protection():
         with open(main_file, "r") as f:
             content = f.read()
 
-        if "configure_security(app)" in content and not content.count(
-            "# configure_security(app)"
-        ):
+        if "configure_security(app)" in content and not content.count("# configure_security(app)"):
             print("🚨 CRITICAL: configure_security is ENABLED!")
             print("❌ main.py has configure_security(app) uncommented")
             print("💥 Auth routes WILL HANG if you start the server!")

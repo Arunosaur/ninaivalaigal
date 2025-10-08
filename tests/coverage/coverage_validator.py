@@ -92,14 +92,10 @@ class CoverageValidator:
                         "gap": max(0, target - actual),
                     }
 
-                    logger.info(
-                        f"✅ {test_type.title()} coverage: {actual:.1f}% (target: {target:.1f}%)"
-                    )
+                    logger.info(f"✅ {test_type.title()} coverage: {actual:.1f}% (target: {target:.1f}%)")
 
                 except Exception as e:
-                    logger.error(
-                        f"❌ {test_type.title()} coverage validation failed: {e}"
-                    )
+                    logger.error(f"❌ {test_type.title()} coverage validation failed: {e}")
                     validation_results["test_results"][test_type] = {
                         "error": str(e),
                         "coverage_percentage": 0.0,
@@ -119,14 +115,10 @@ class CoverageValidator:
                     }
 
             # Generate overall assessment
-            validation_results["overall_assessment"] = (
-                await self._generate_overall_assessment(validation_results)
-            )
+            validation_results["overall_assessment"] = await self._generate_overall_assessment(validation_results)
 
             # Generate recommendations
-            validation_results["recommendations"] = (
-                await self._generate_recommendations(validation_results)
-            )
+            validation_results["recommendations"] = await self._generate_recommendations(validation_results)
 
             validation_results["end_time"] = datetime.now(timezone.utc)
             validation_results["duration_seconds"] = (
@@ -159,9 +151,7 @@ class CoverageValidator:
             test_files = list(self.project_root.glob(test_pattern))
 
             if not test_files:
-                logger.warning(
-                    f"⚠️  No {test_type} test files found matching {test_pattern}"
-                )
+                logger.warning(f"⚠️  No {test_type} test files found matching {test_pattern}")
                 return {
                     "test_type": test_type,
                     "coverage_percentage": 0.0,
@@ -208,9 +198,7 @@ class CoverageValidator:
             logger.error(f"Test coverage execution failed for {test_type}: {e}")
             raise
 
-    async def _simulate_test_execution(
-        self, test_type: str, test_files: List[Path]
-    ) -> None:
+    async def _simulate_test_execution(self, test_type: str, test_files: List[Path]) -> None:
         """Simulate test execution for coverage analysis"""
         try:
             # This simulates importing and running test modules
@@ -239,9 +227,7 @@ class CoverageValidator:
                     logger.debug(f"Simulating coverage for {module_name}")
 
                 except ImportError as e:
-                    logger.debug(
-                        f"Module {module_name} not available for coverage: {e}"
-                    )
+                    logger.debug(f"Module {module_name} not available for coverage: {e}")
                 except Exception as e:
                     logger.debug(f"Coverage simulation error for {module_name}: {e}")
 
@@ -252,9 +238,7 @@ class CoverageValidator:
             logger.error(f"Test execution simulation failed: {e}")
             raise
 
-    def _analyze_coverage_data(
-        self, cov: coverage.Coverage, test_type: str
-    ) -> Dict[str, Any]:
+    def _analyze_coverage_data(self, cov: coverage.Coverage, test_type: str) -> Dict[str, Any]:
         """Analyze coverage data and generate metrics"""
         try:
             # Get coverage statistics
@@ -278,17 +262,13 @@ class CoverageValidator:
                         files_analyzed += 1
 
                         if missing:
-                            missing_lines.extend(
-                                [f"{filename}:{line}" for line in missing[:5]]
-                            )  # Limit to 5 per file
+                            missing_lines.extend([f"{filename}:{line}" for line in missing[:5]])  # Limit to 5 per file
 
                 except Exception as e:
                     logger.debug(f"Analysis failed for {filename}: {e}")
 
             # Calculate coverage percentage
-            coverage_percentage = (
-                (covered_lines / total_lines * 100) if total_lines > 0 else 0.0
-            )
+            coverage_percentage = (covered_lines / total_lines * 100) if total_lines > 0 else 0.0
 
             return {
                 "test_type": test_type,
@@ -374,9 +354,7 @@ class CoverageValidator:
             logger.error(f"SPEC coverage validation failed for {spec}: {e}")
             return {"spec": spec, "coverage_percentage": 0.0, "error": str(e)}
 
-    async def _generate_overall_assessment(
-        self, validation_results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _generate_overall_assessment(self, validation_results: Dict[str, Any]) -> Dict[str, Any]:
         """Generate overall coverage assessment"""
         try:
             test_results = validation_results.get("test_results", {})
@@ -398,9 +376,7 @@ class CoverageValidator:
                 if gate_result.get("passed", False):
                     gates_passed += 1
 
-            overall_coverage = (
-                total_coverage / coverage_count if coverage_count > 0 else 0.0
-            )
+            overall_coverage = total_coverage / coverage_count if coverage_count > 0 else 0.0
 
             # Calculate SPEC coverage average
             spec_coverages = [
@@ -408,32 +384,23 @@ class CoverageValidator:
                 for result in spec_coverage.values()
                 if "coverage_percentage" in result
             ]
-            avg_spec_coverage = (
-                sum(spec_coverages) / len(spec_coverages) if spec_coverages else 0.0
-            )
+            avg_spec_coverage = sum(spec_coverages) / len(spec_coverages) if spec_coverages else 0.0
 
             # Determine readiness status
             overall_target = self.coverage_targets["overall"]
             ready_for_production = (
-                overall_coverage >= overall_target
-                and gates_passed >= gates_total * 0.8  # 80% of gates must pass
+                overall_coverage >= overall_target and gates_passed >= gates_total * 0.8  # 80% of gates must pass
             )
 
             return {
                 "overall_coverage_percentage": round(overall_coverage, 2),
                 "quality_gates_passed": f"{gates_passed}/{gates_total}",
-                "quality_gates_pass_rate": (
-                    round(gates_passed / gates_total * 100, 1)
-                    if gates_total > 0
-                    else 0.0
-                ),
+                "quality_gates_pass_rate": (round(gates_passed / gates_total * 100, 1) if gates_total > 0 else 0.0),
                 "average_spec_coverage": round(avg_spec_coverage, 2),
                 "ready_for_production": ready_for_production,
                 "coverage_target_met": overall_coverage >= overall_target,
                 "assessment": (
-                    "READY FOR EXTERNAL ONBOARDING"
-                    if ready_for_production
-                    else "REQUIRES COVERAGE IMPROVEMENTS"
+                    "READY FOR EXTERNAL ONBOARDING" if ready_for_production else "REQUIRES COVERAGE IMPROVEMENTS"
                 ),
             }
 
@@ -441,9 +408,7 @@ class CoverageValidator:
             logger.error(f"Overall assessment generation failed: {e}")
             return {"error": str(e), "ready_for_production": False}
 
-    async def _generate_recommendations(
-        self, validation_results: Dict[str, Any]
-    ) -> List[str]:
+    async def _generate_recommendations(self, validation_results: Dict[str, Any]) -> List[str]:
         """Generate coverage improvement recommendations"""
         try:
             recommendations = []
@@ -463,21 +428,15 @@ class CoverageValidator:
             # Check for missing test files
             for test_type, result in test_results.items():
                 if result.get("test_files_found", 0) == 0:
-                    recommendations.append(
-                        f"Create {test_type} test files - none found for validation"
-                    )
+                    recommendations.append(f"Create {test_type} test files - none found for validation")
 
             # Check SPEC coverage
             low_spec_coverage = [
-                spec
-                for spec, result in spec_coverage.items()
-                if result.get("coverage_percentage", 0) < 70.0
+                spec for spec, result in spec_coverage.items() if result.get("coverage_percentage", 0) < 70.0
             ]
 
             if low_spec_coverage:
-                recommendations.append(
-                    f"Improve test coverage for SPECs: {', '.join(low_spec_coverage)}"
-                )
+                recommendations.append(f"Improve test coverage for SPECs: {', '.join(low_spec_coverage)}")
 
             # General recommendations
             overall_assessment = validation_results.get("overall_assessment", {})
@@ -498,9 +457,7 @@ class CoverageValidator:
             logger.error(f"Recommendations generation failed: {e}")
             return ["Error generating recommendations"]
 
-    async def _generate_coverage_report(
-        self, validation_results: Dict[str, Any]
-    ) -> None:
+    async def _generate_coverage_report(self, validation_results: Dict[str, Any]) -> None:
         """Generate comprehensive coverage report"""
         try:
             overall_assessment = validation_results.get("overall_assessment", {})
@@ -554,9 +511,7 @@ class CoverageValidator:
             # Quality gates
             report += "\n## 🚪 Quality Gates\n\n"
 
-            for test_type, gate_result in validation_results.get(
-                "quality_gates", {}
-            ).items():
+            for test_type, gate_result in validation_results.get("quality_gates", {}).items():
                 status = "✅ PASS" if gate_result.get("passed", False) else "❌ FAIL"
                 report += f"- **{test_type.title()} Coverage Gate**: {status}\n"
                 report += f"  - Target: {gate_result.get('target', 0):.1f}%\n"
@@ -629,9 +584,7 @@ async def main():
         print(f"\n🎯 SPEC-052 Coverage Validation Summary")
         print(f"Overall Coverage: {overall.get('overall_coverage_percentage', 0):.1f}%")
         print(f"Quality Gates: {overall.get('quality_gates_passed', '0/0')}")
-        print(
-            f"Production Ready: {'✅ YES' if overall.get('ready_for_production', False) else '❌ NO'}"
-        )
+        print(f"Production Ready: {'✅ YES' if overall.get('ready_for_production', False) else '❌ NO'}")
 
         return 0 if overall.get("ready_for_production", False) else 1
 
@@ -641,7 +594,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    import sys
-
     exit_code = asyncio.run(main())
     sys.exit(exit_code)

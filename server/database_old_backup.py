@@ -27,27 +27,17 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    username = Column(
-        String(255), unique=True, nullable=True, index=True
-    )  # Made nullable for email-only signup
-    email = Column(
-        String(255), unique=True, nullable=False, index=True
-    )  # Made required
+    username = Column(String(255), unique=True, nullable=True, index=True)  # Made nullable for email-only signup
+    email = Column(String(255), unique=True, nullable=False, index=True)  # Made required
     name = Column(String(255), nullable=False)  # Full name
     password_hash = Column(String(255), nullable=False)
     account_type = Column(
         String(50), nullable=False, default="individual"
     )  # individual, team_member, organization_admin
-    subscription_tier = Column(
-        String(50), nullable=False, default="free"
-    )  # free, team, enterprise
+    subscription_tier = Column(String(50), nullable=False, default="free")  # free, team, enterprise
     personal_contexts_limit = Column(Integer, default=10)
-    role = Column(
-        String(50), nullable=False, default="user"
-    )  # user, admin, super_admin
-    created_via = Column(
-        String(50), nullable=False, default="signup"
-    )  # signup, invite, admin
+    role = Column(String(50), nullable=False, default="user")  # user, admin, super_admin
+    created_via = Column(String(50), nullable=False, default="signup")  # signup, invite, admin
     email_verified = Column(Boolean, default=False)
     verification_token = Column(String(255), nullable=True)
     last_login = Column(DateTime, nullable=True)
@@ -60,27 +50,21 @@ class User(Base):
     is_system_admin = Column(Boolean, default=False)
 
     # Relationships for sharing system
-    owned_contexts = relationship(
-        "Context", foreign_keys="[Context.owner_id]", back_populates="owner"
-    )
+    owned_contexts = relationship("Context", foreign_keys="[Context.owner_id]", back_populates="owner")
     team_memberships = relationship("TeamMember", back_populates="user")
     granted_permissions = relationship(
         "ContextPermission",
         foreign_keys="[ContextPermission.granted_by]",
         back_populates="granted_by_user",
     )
-    user_permissions = relationship(
-        "ContextPermission", foreign_keys="[ContextPermission.user_id]"
-    )
+    user_permissions = relationship("ContextPermission", foreign_keys="[ContextPermission.user_id]")
 
 
 class Memory(Base):
     __tablename__ = "memories"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
-    )  # NULL for backward compatibility
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # NULL for backward compatibility
     context = Column(String(255), index=True, nullable=False)
     type = Column(String(100), nullable=False)
     source = Column(String(255), nullable=False)
@@ -132,9 +116,7 @@ class TeamMember(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    role = Column(
-        String(50), nullable=False, default="member"
-    )  # owner, admin, member, viewer
+    role = Column(String(50), nullable=False, default="member")  # owner, admin, member, viewer
     joined_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -147,12 +129,8 @@ class ContextPermission(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     context_id = Column(UUID(as_uuid=True), ForeignKey("contexts.id"), nullable=False)
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
-    )  # NULL for team/org permissions
-    team_id = Column(
-        UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True
-    )  # NULL for user/org permissions
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # NULL for team/org permissions
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)  # NULL for user/org permissions
     organization_id = Column(
         UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )  # NULL for user/team permissions
@@ -173,14 +151,10 @@ class OrganizationRegistration(Base):
     __tablename__ = "organization_registrations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    organization_id = Column(
-        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False
-    )
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
     creator_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     registration_data = Column(JSON, nullable=True)  # Additional signup data
-    status = Column(
-        String(50), nullable=False, default="active"
-    )  # active, suspended, cancelled
+    status = Column(String(50), nullable=False, default="active")  # active, suspended, cancelled
     billing_email = Column(String(255), nullable=False)
     company_size = Column(String(50), nullable=True)
     industry = Column(String(100), nullable=True)
@@ -197,16 +171,12 @@ class UserInvitation(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     email = Column(String(255), nullable=False, index=True)
-    organization_id = Column(
-        UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
-    )
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)
     invited_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     invitation_token = Column(String(255), unique=True, nullable=False)
     role = Column(String(50), nullable=False, default="user")
-    status = Column(
-        String(50), nullable=False, default="pending"
-    )  # pending, accepted, expired, cancelled
+    status = Column(String(50), nullable=False, default="pending")  # pending, accepted, expired, cancelled
     expires_at = Column(DateTime, nullable=False)
     accepted_at = Column(DateTime, nullable=True)
     invitation_message = Column(Text, nullable=True)
@@ -226,18 +196,12 @@ class Context(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
-    owner_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
-    )  # NULL for team/org owned contexts
-    team_id = Column(
-        UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True
-    )  # NULL for user/org owned contexts
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # NULL for team/org owned contexts
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)  # NULL for user/org owned contexts
     organization_id = Column(
         UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )  # NULL for user/team owned contexts
-    visibility = Column(
-        String(50), nullable=False, default="private"
-    )  # private, team, organization, public
+    visibility = Column(String(50), nullable=False, default="private")  # private, team, organization, public
     is_active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -254,9 +218,7 @@ class DatabaseManager:
     def __init__(self, config="postgresql://mem0user:mem0pass@localhost:5432/mem0db"):
         # Handle both string URL and config dict
         if isinstance(config, dict):
-            database_url = config.get(
-                "database_url", "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
-            )
+            database_url = config.get("database_url", "postgresql://mem0user:mem0pass@localhost:5432/mem0db")
         else:
             database_url = config
 
@@ -267,9 +229,7 @@ class DatabaseManager:
 
         # PostgreSQL connection with pool settings
         self.engine = create_engine(database_url, pool_pre_ping=True)
-        self.SessionLocal = sessionmaker(
-            autocommit=False, autoflush=False, bind=self.engine
-        )
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         self.create_tables()
 
     def create_tables(self):
@@ -306,9 +266,7 @@ class DatabaseManager:
                     session.query(Context).update({"is_active": False})
 
                     # Set or create the active context
-                    context = (
-                        session.query(Context).filter_by(name=active_context).first()
-                    )
+                    context = session.query(Context).filter_by(name=active_context).first()
                     if context:
                         context.is_active = True
                     else:
@@ -332,9 +290,7 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error migrating from JSON: {e}")
 
-    def set_active_context(
-        self, context_name: str, user_id: int = None, scope: str = None
-    ):
+    def set_active_context(self, context_name: str, user_id: int = None, scope: str = None):
         session = self.get_session()
         try:
             context = self.resolve_context(context_name, user_id, scope, session)
@@ -384,17 +340,11 @@ class DatabaseManager:
             # Check if context already exists in same scope
             existing_query = session.query(Context).filter_by(name=name)
             if scope == "personal" and user_id:
-                existing = existing_query.filter_by(
-                    owner_id=user_id, scope=scope
-                ).first()
+                existing = existing_query.filter_by(owner_id=user_id, scope=scope).first()
             elif scope == "team" and team_id:
-                existing = existing_query.filter_by(
-                    team_id=team_id, scope=scope
-                ).first()
+                existing = existing_query.filter_by(team_id=team_id, scope=scope).first()
             elif scope == "organization" and organization_id:
-                existing = existing_query.filter_by(
-                    organization_id=organization_id, scope=scope
-                ).first()
+                existing = existing_query.filter_by(organization_id=organization_id, scope=scope).first()
             else:
                 existing = None
 
@@ -432,23 +382,15 @@ class DatabaseManager:
         session = self.get_session()
         try:
             # Only allow deletion of contexts owned by the authenticated user
-            context = (
-                session.query(RecordingContext)
-                .filter_by(name=context_name, owner_id=user_id)
-                .first()
-            )
+            context = session.query(Context).filter_by(name=context_name, owner_id=user_id).first()
 
             if context:
                 # Check if context is active
                 if context.is_active:
-                    raise ValueError(
-                        f"Cannot delete active context '{context_name}'. Stop it first."
-                    )
+                    raise ValueError(f"Cannot delete active context '{context_name}'. Stop it first.")
 
                 # Delete associated memories first (only for this user's context)
-                session.query(Memory).filter_by(
-                    context=context_name, user_id=user_id
-                ).delete()
+                session.query(Memory).filter_by(context=context_name, user_id=user_id).delete()
                 # Delete the context
                 session.delete(context)
                 session.commit()
@@ -461,9 +403,7 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                session.query(Context).filter_by(owner_id=user_id).update(
-                    {"is_active": False}
-                )
+                session.query(Context).filter_by(owner_id=user_id).update({"is_active": False})
             else:
                 session.query(Context).update({"is_active": False})
             session.commit()
@@ -477,17 +417,9 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                contexts = (
-                    session.query(Context)
-                    .filter_by(is_active=True, owner_id=user_id)
-                    .all()
-                )
+                contexts = session.query(Context).filter_by(is_active=True, owner_id=user_id).all()
             else:
-                contexts = (
-                    session.query(Context)
-                    .filter_by(is_active=True, owner_id=None)
-                    .all()
-                )
+                contexts = session.query(Context).filter_by(is_active=True, owner_id=None).all()
 
             # Return the most recently created active context
             if contexts:
@@ -503,19 +435,11 @@ class DatabaseManager:
         try:
             if user_id:
                 # Get personal contexts
-                personal_contexts = (
-                    session.query(Context).filter_by(owner_id=user_id).all()
-                )
+                personal_contexts = session.query(Context).filter_by(owner_id=user_id).all()
 
                 # Get team contexts for user's teams
-                user_teams = (
-                    session.query(TeamMember.team_id)
-                    .filter_by(user_id=user_id)
-                    .subquery()
-                )
-                team_contexts = (
-                    session.query(Context).filter(Context.team_id.in_(user_teams)).all()
-                )
+                user_teams = session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
+                team_contexts = session.query(Context).filter(Context.team_id.in_(user_teams)).all()
 
                 # Get org contexts for user's organizations
                 user_orgs = (
@@ -525,21 +449,12 @@ class DatabaseManager:
                     .distinct()
                     .subquery()
                 )
-                org_contexts = (
-                    session.query(Context)
-                    .filter(Context.organization_id.in_(user_orgs))
-                    .all()
-                )
+                org_contexts = session.query(Context).filter(Context.organization_id.in_(user_orgs)).all()
 
                 # Combine all contexts
                 all_contexts = personal_contexts + team_contexts + org_contexts
             else:
-                all_contexts = (
-                    session.query(Context)
-                    .filter_by(owner_id=None)
-                    .order_by(Context.created_at)
-                    .all()
-                )
+                all_contexts = session.query(Context).filter_by(owner_id=None).order_by(Context.created_at).all()
 
             return [
                 {
@@ -548,18 +463,14 @@ class DatabaseManager:
                     "is_active": context.is_active,
                     "created_at": context.created_at.isoformat(),
                     "team_name": context.team.name if context.team else None,
-                    "org_name": (
-                        context.organization.name if context.organization else None
-                    ),
+                    "org_name": (context.organization.name if context.organization else None),
                 }
                 for context in all_contexts
             ]
         finally:
             session.close()
 
-    def resolve_context(
-        self, context_name: str, user_id: int = None, scope: str = None, session=None
-    ):
+    def resolve_context(self, context_name: str, user_id: int = None, scope: str = None, session=None):
         """Resolve context based on name, user access, and scope priority"""
         if not session:
             session = self.get_session()
@@ -571,25 +482,13 @@ class DatabaseManager:
             contexts = []
 
             if scope == "personal":
-                context = (
-                    session.query(Context)
-                    .filter_by(name=context_name, owner_id=user_id)
-                    .first()
-                )
+                context = session.query(Context).filter_by(name=context_name, owner_id=user_id).first()
                 return context
             elif scope == "team":
                 # Get user's teams and find team contexts
-                user_teams = (
-                    session.query(TeamMember.team_id)
-                    .filter_by(user_id=user_id)
-                    .subquery()
-                )
+                user_teams = session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
                 context = (
-                    session.query(Context)
-                    .filter(
-                        Context.name == context_name, Context.team_id.in_(user_teams)
-                    )
-                    .first()
+                    session.query(Context).filter(Context.name == context_name, Context.team_id.in_(user_teams)).first()
                 )
                 return context
             elif scope == "organization":
@@ -614,26 +513,14 @@ class DatabaseManager:
                 # Auto-resolve with priority: personal > team > org > shared
 
                 # 1. Personal contexts (highest priority)
-                personal = (
-                    session.query(Context)
-                    .filter_by(name=context_name, owner_id=user_id)
-                    .first()
-                )
+                personal = session.query(Context).filter_by(name=context_name, owner_id=user_id).first()
                 if personal:
                     contexts.append(("personal", personal))
 
                 # 2. Team contexts
-                user_teams = (
-                    session.query(TeamMember.team_id)
-                    .filter_by(user_id=user_id)
-                    .subquery()
-                )
+                user_teams = session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
                 team_contexts = (
-                    session.query(Context)
-                    .filter(
-                        Context.name == context_name, Context.team_id.in_(user_teams)
-                    )
-                    .all()
+                    session.query(Context).filter(Context.name == context_name, Context.team_id.in_(user_teams)).all()
                 )
                 for ctx in team_contexts:
                     contexts.append(("team", ctx))
@@ -741,19 +628,9 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                memories = (
-                    session.query(Memory)
-                    .filter_by(user_id=user_id)
-                    .order_by(Memory.created_at.desc())
-                    .all()
-                )
+                memories = session.query(Memory).filter_by(user_id=user_id).order_by(Memory.created_at.desc()).all()
             else:
-                memories = (
-                    session.query(Memory)
-                    .filter_by(user_id=None)
-                    .order_by(Memory.created_at.desc())
-                    .all()
-                )
+                memories = session.query(Memory).filter_by(user_id=None).order_by(Memory.created_at.desc()).all()
 
             return [
                 {
@@ -781,11 +658,7 @@ class DatabaseManager:
                 )
             else:
                 memories = (
-                    session.query(Memory)
-                    .filter_by(user_id=None)
-                    .order_by(Memory.created_at.desc())
-                    .limit(limit)
-                    .all()
+                    session.query(Memory).filter_by(user_id=None).order_by(Memory.created_at.desc()).limit(limit).all()
                 )
 
             return [
@@ -805,19 +678,9 @@ class DatabaseManager:
         session = self.get_session()
         try:
             if user_id:
-                contexts = (
-                    session.query(Memory.context)
-                    .filter_by(user_id=user_id)
-                    .distinct()
-                    .all()
-                )
+                contexts = session.query(Memory.context).filter_by(user_id=user_id).distinct().all()
             else:
-                contexts = (
-                    session.query(Memory.context)
-                    .filter_by(user_id=None)
-                    .distinct()
-                    .all()
-                )
+                contexts = session.query(Memory.context).filter_by(user_id=None).distinct().all()
 
             return [context[0] for context in contexts if context[0]]
         finally:
@@ -879,15 +742,11 @@ class DatabaseManager:
         finally:
             session.close()
 
-    def create_team(
-        self, name: str, organization_id: int = None, description: str = None
-    ):
+    def create_team(self, name: str, organization_id: int = None, description: str = None):
         """Create a new team"""
         session = self.get_session()
         try:
-            team = Team(
-                name=name, organization_id=organization_id, description=description
-            )
+            team = Team(name=name, organization_id=organization_id, description=description)
             session.add(team)
             session.commit()
             session.refresh(team)
@@ -903,11 +762,7 @@ class DatabaseManager:
         session = self.get_session()
         try:
             # Check if user is already a member
-            existing = (
-                session.query(TeamMember)
-                .filter_by(team_id=team_id, user_id=user_id)
-                .first()
-            )
+            existing = session.query(TeamMember).filter_by(team_id=team_id, user_id=user_id).first()
             if existing:
                 existing.role = role
             else:
@@ -924,12 +779,7 @@ class DatabaseManager:
         """Get all teams a user belongs to"""
         session = self.get_session()
         try:
-            return (
-                session.query(Team)
-                .join(TeamMember)
-                .filter(TeamMember.user_id == user_id)
-                .all()
-            )
+            return session.query(Team).join(TeamMember).filter(TeamMember.user_id == user_id).all()
         finally:
             session.close()
 
@@ -954,13 +804,7 @@ class DatabaseManager:
         session = self.get_session()
         try:
             # Simple approach: get organizations through team memberships
-            orgs = (
-                session.query(Organization)
-                .join(Team)
-                .join(TeamMember)
-                .filter(TeamMember.user_id == user_id)
-                .all()
-            )
+            orgs = session.query(Organization).join(Team).join(TeamMember).filter(TeamMember.user_id == user_id).all()
             # Remove duplicates manually to avoid DISTINCT on JSON columns
             seen_ids = set()
             unique_orgs = []
@@ -976,16 +820,8 @@ class DatabaseManager:
         """Get all members of a team with their roles"""
         session = self.get_session()
         try:
-            members = (
-                session.query(TeamMember, User)
-                .join(User)
-                .filter(TeamMember.team_id == team_id)
-                .all()
-            )
-            return [
-                {"user": user, "role": member.role, "joined_at": member.joined_at}
-                for member, user in members
-            ]
+            members = session.query(TeamMember, User).join(User).filter(TeamMember.team_id == team_id).all()
+            return [{"user": user, "role": member.role, "joined_at": member.joined_at} for member, user in members]
         finally:
             session.close()
 
@@ -993,11 +829,7 @@ class DatabaseManager:
         """Remove a member from a team"""
         session = self.get_session()
         try:
-            member = (
-                session.query(TeamMember)
-                .filter_by(team_id=team_id, user_id=user_id)
-                .first()
-            )
+            member = session.query(TeamMember).filter_by(team_id=team_id, user_id=user_id).first()
             if member:
                 session.delete(member)
                 session.commit()
@@ -1009,9 +841,7 @@ class DatabaseManager:
         finally:
             session.close()
 
-    def share_context_with_user(
-        self, context_id: int, user_id: int, permission_level: str, granted_by: int
-    ):
+    def share_context_with_user(self, context_id: int, user_id: int, permission_level: str, granted_by: int):
         """Share a context with a specific user"""
         session = self.get_session()
         try:
@@ -1029,9 +859,7 @@ class DatabaseManager:
         finally:
             session.close()
 
-    def share_context_with_team(
-        self, context_id: int, team_id: int, permission_level: str, granted_by: int
-    ):
+    def share_context_with_team(self, context_id: int, team_id: int, permission_level: str, granted_by: int):
         """Share a context with a team"""
         session = self.get_session()
         try:
@@ -1073,9 +901,7 @@ class DatabaseManager:
         finally:
             session.close()
 
-    def check_context_permission(
-        self, context_id: int, user_id: int, required_permission: str = "read"
-    ):
+    def check_context_permission(self, context_id: int, user_id: int, required_permission: str = "read"):
         """Check if a user has permission to access a context"""
         session = self.get_session()
         try:
@@ -1088,21 +914,13 @@ class DatabaseManager:
                 return True
 
             # Check direct user permissions
-            user_perm = (
-                session.query(ContextPermission)
-                .filter_by(context_id=context_id, user_id=user_id)
-                .first()
-            )
+            user_perm = session.query(ContextPermission).filter_by(context_id=context_id, user_id=user_id).first()
 
             if user_perm:
-                return self._has_permission_level(
-                    user_perm.permission_level, required_permission
-                )
+                return self._has_permission_level(user_perm.permission_level, required_permission)
 
             # Check team permissions
-            user_teams = (
-                session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
-            )
+            user_teams = session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
             team_perm = (
                 session.query(ContextPermission)
                 .filter(
@@ -1113,9 +931,7 @@ class DatabaseManager:
             )
 
             if team_perm:
-                return self._has_permission_level(
-                    team_perm.permission_level, required_permission
-                )
+                return self._has_permission_level(team_perm.permission_level, required_permission)
 
             # Check organization permissions
             user_orgs = (
@@ -1136,9 +952,7 @@ class DatabaseManager:
             )
 
             if org_perm:
-                return self._has_permission_level(
-                    org_perm.permission_level, required_permission
-                )
+                return self._has_permission_level(org_perm.permission_level, required_permission)
 
             # Check context visibility
             if context.visibility == "public":
@@ -1182,21 +996,13 @@ class DatabaseManager:
 
             # Get contexts shared with user directly
             user_shared = (
-                session.query(Context)
-                .join(ContextPermission)
-                .filter(ContextPermission.user_id == user_id)
-                .all()
+                session.query(Context).join(ContextPermission).filter(ContextPermission.user_id == user_id).all()
             )
 
             # Get contexts shared with user's teams
-            user_teams = (
-                session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
-            )
+            user_teams = session.query(TeamMember.team_id).filter_by(user_id=user_id).subquery()
             team_shared = (
-                session.query(Context)
-                .join(ContextPermission)
-                .filter(ContextPermission.team_id.in_(user_teams))
-                .all()
+                session.query(Context).join(ContextPermission).filter(ContextPermission.team_id.in_(user_teams)).all()
             )
 
             # Get contexts shared with user's organizations
@@ -1216,9 +1022,7 @@ class DatabaseManager:
             )
 
             # Combine and deduplicate
-            all_contexts = list(
-                set(own_contexts + user_shared + team_shared + org_shared)
-            )
+            all_contexts = list(set(own_contexts + user_shared + team_shared + org_shared))
 
             return [
                 {
@@ -1256,9 +1060,7 @@ class DatabaseManager:
         """Get user by username"""
         session = self.get_session()
         try:
-            return (
-                session.query(User).filter_by(username=username, is_active=True).first()
-            )
+            return session.query(User).filter_by(username=username, is_active=True).first()
         finally:
             session.close()
 
@@ -1268,39 +1070,13 @@ class DatabaseManager:
 
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
-    def get_user_by_id(self, user_id):
-        """Get user by ID"""
-        session = self.get_session()
-        try:
-            return session.query(User).filter(User.id == user_id).first()
-        finally:
-            session.close()
-
-    def get_user_by_email(self, email):
-        """Get user by email"""
-        session = self.get_session()
-        try:
-            return session.query(User).filter(User.email == email).first()
-        finally:
-            session.close()
-
-    def get_user_by_username(self, username: str):
-        """Get user by username"""
-        session = self.get_session()
-        try:
-            return session.query(User).filter(User.username == username).first()
-        finally:
-            session.close()
-
     def get_user_by_id_fixed(self, user_id):
         """Get user by ID - fixed version"""
         session = self.get_session()
         try:
             from sqlalchemy import text
 
-            result = session.execute(
-                text("SELECT * FROM users WHERE id = :user_id"), {"user_id": user_id}
-            )
+            result = session.execute(text("SELECT * FROM users WHERE id = :user_id"), {"user_id": user_id})
             row = result.fetchone()
             if row:
                 # Convert row to user-like object

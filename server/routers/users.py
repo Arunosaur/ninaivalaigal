@@ -39,9 +39,7 @@ def get_user_organizations(
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get user organizations: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user organizations: {str(e)}")
 
 
 @router.get("/me/teams")
@@ -65,9 +63,7 @@ def get_user_teams(
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get user teams: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user teams: {str(e)}")
 
 
 @router.get("/me/contexts")

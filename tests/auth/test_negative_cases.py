@@ -24,9 +24,7 @@ class TestAuthenticationNegativeCases:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/login", json=malicious_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", json=malicious_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Login endpoint not implemented")
@@ -54,9 +52,7 @@ class TestAuthenticationNegativeCases:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/signup/organization", json=xss_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/signup/organization", json=xss_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Signup endpoint not implemented")
@@ -90,9 +86,7 @@ class TestAuthenticationNegativeCases:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/signup/individual", json=oversized_data, timeout=10
-            )
+            response = requests.post(f"{BASE_URL}/auth/signup/individual", json=oversized_data, timeout=10)
 
             if response.status_code == 404:
                 pytest.skip("Signup endpoint not implemented")
@@ -114,9 +108,7 @@ class TestAuthenticationNegativeCases:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/login", json=null_byte_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", json=null_byte_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Login endpoint not implemented")
@@ -142,9 +134,7 @@ class TestAuthenticationNegativeCases:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/signup/individual", json=unicode_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/signup/individual", json=unicode_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Signup endpoint not implemented")
@@ -184,7 +174,7 @@ class TestAuthenticationNegativeCases:
                         timeout=5,
                     )
                     responses.append(resp.status_code)
-                except:
+                except Exception:
                     responses.append(None)
 
             # Start multiple concurrent requests
@@ -209,9 +199,7 @@ class TestAuthenticationNegativeCases:
                 pytest.skip("Signup endpoint has internal server error - needs fixing")
 
             # Should handle race condition properly
-            assert (
-                success_count <= 1
-            ), f"Multiple concurrent signups succeeded: {responses}"
+            assert success_count <= 1, f"Multiple concurrent signups succeeded: {responses}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -246,9 +234,7 @@ class TestTokenSecurityVulnerabilities:
         headers = {"Authorization": f"Bearer {malicious_token}"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/admin/users", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/admin/users", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Admin endpoints not implemented")
@@ -321,9 +307,7 @@ class TestInputValidationEdgeCases:
                 pytest.skip("Login endpoint not implemented")
 
             # Should reject empty payload with appropriate error
-            assert (
-                response.status_code == 400
-            ), f"Empty payload not rejected: {response.status_code}"
+            assert response.status_code == 400, f"Empty payload not rejected: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -342,9 +326,7 @@ class TestInputValidationEdgeCases:
                 pytest.skip("Login endpoint not implemented")
 
             # Should reject malformed JSON
-            assert (
-                response.status_code == 400
-            ), f"Malformed JSON not rejected: {response.status_code}"
+            assert response.status_code == 400, f"Malformed JSON not rejected: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")

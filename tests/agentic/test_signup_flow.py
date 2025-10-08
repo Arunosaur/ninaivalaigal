@@ -124,8 +124,7 @@ async def test_signup_flow_agentic():
     result = await tester.run_test(
         url="http://localhost:13390/signup",
         goal=(
-            "Sign up as a new user with email test@example.com "
-            "and confirm that a success or welcome message appears"
+            "Sign up as a new user with email test@example.com " "and confirm that a success or welcome message appears"
         ),
     )
 

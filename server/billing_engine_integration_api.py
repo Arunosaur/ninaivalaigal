@@ -102,13 +102,9 @@ class PaymentRetryRequest(BaseModel):
     """Request model for payment retry"""
 
     invoice_id: str
-    retry_strategy: str = Field(
-        default="exponential", description="immediate, exponential, scheduled"
-    )
+    retry_strategy: str = Field(default="exponential", description="immediate, exponential, scheduled")
     max_retries: int = Field(default=3, description="Maximum retry attempts")
-    notify_customer: bool = Field(
-        default=True, description="Send notification to customer"
-    )
+    notify_customer: bool = Field(default=True, description="Send notification to customer")
 
 
 class DunningCampaignRequest(BaseModel):
@@ -116,12 +112,8 @@ class DunningCampaignRequest(BaseModel):
 
     team_id: str
     invoice_id: str
-    campaign_type: str = Field(
-        default="standard", description="standard, aggressive, gentle"
-    )
-    escalation_days: List[int] = Field(
-        default=[1, 3, 7, 14], description="Days for escalation"
-    )
+    campaign_type: str = Field(default="standard", description="standard, aggressive, gentle")
+    escalation_days: List[int] = Field(default=[1, 3, 7, 14], description="Days for escalation")
 
 
 class UsageTrackingRequest(BaseModel):
@@ -151,9 +143,7 @@ def get_stripe_customer_id(team_id: str) -> Optional[str]:
     return stripe_customers_store.get(team_id, {}).get("stripe_customer_id")
 
 
-def calculate_tax_amount(
-    amount: float, tax_rate: float, billing_address: Dict[str, str]
-) -> float:
+def calculate_tax_amount(amount: float, tax_rate: float, billing_address: Dict[str, str]) -> float:
     """Calculate tax amount based on billing address and rate"""
     # Simplified tax calculation - in production, use tax service like TaxJar
     if billing_address.get("country") == "US":
@@ -186,12 +176,8 @@ def generate_invoice_pdf(invoice_data: Dict[str, Any]) -> bytes:
     p.drawString(50, height - 120, f"Invoice #{invoice_data['invoice_number']}")
 
     p.setFont("Helvetica", 10)
-    p.drawString(
-        50, height - 140, f"Date: {invoice_data['created_at'].strftime('%B %d, %Y')}"
-    )
-    p.drawString(
-        50, height - 155, f"Due Date: {invoice_data['due_date'].strftime('%B %d, %Y')}"
-    )
+    p.drawString(50, height - 140, f"Date: {invoice_data['created_at'].strftime('%B %d, %Y')}")
+    p.drawString(50, height - 155, f"Due Date: {invoice_data['due_date'].strftime('%B %d, %Y')}")
 
     # Customer info
     p.drawString(50, height - 185, "Bill To:")
@@ -236,9 +222,7 @@ def generate_invoice_pdf(invoice_data: Dict[str, Any]) -> bytes:
 def send_invoice_email(invoice_data: Dict[str, Any], pdf_content: bytes):
     """Send invoice email to customer"""
     # In production, integrate with email service like SendGrid
-    print(
-        f"Sending invoice {invoice_data['invoice_number']} to {invoice_data['billing_email']}"
-    )
+    print(f"Sending invoice {invoice_data['invoice_number']} to {invoice_data['billing_email']}")
     # Mock email sending
     return True
 
@@ -274,9 +258,7 @@ def process_payment_webhook(event_data: Dict[str, Any]) -> Dict[str, Any]:
                 if invoice_id in billing_invoices_store:
                     billing_invoices_store[invoice_id]["status"] = "paid"
                     billing_invoices_store[invoice_id]["paid_at"] = datetime.utcnow()
-                    billing_invoices_store[invoice_id]["amount_paid"] = (
-                        invoice["amount_paid"] / 100
-                    )
+                    billing_invoices_store[invoice_id]["amount_paid"] = invoice["amount_paid"] / 100
 
                 processing_result.update(
                     {
@@ -303,9 +285,7 @@ def process_payment_webhook(event_data: Dict[str, Any]) -> Dict[str, Any]:
                 failure_data = {
                     "team_id": team_id,
                     "invoice_id": invoice.get("id"),
-                    "failure_reason": invoice.get("last_payment_error", {}).get(
-                        "message", "Unknown"
-                    ),
+                    "failure_reason": invoice.get("last_payment_error", {}).get("message", "Unknown"),
                     "failed_at": datetime.utcnow(),
                     "retry_count": 0,
                 }
@@ -332,12 +312,8 @@ def process_payment_webhook(event_data: Dict[str, Any]) -> Dict[str, Any]:
             for team_id, sub_data in stripe_subscriptions_store.items():
                 if sub_data.get("stripe_subscription_id") == subscription_id:
                     sub_data["status"] = subscription.get("status")
-                    sub_data["current_period_start"] = datetime.fromtimestamp(
-                        subscription["current_period_start"]
-                    )
-                    sub_data["current_period_end"] = datetime.fromtimestamp(
-                        subscription["current_period_end"]
-                    )
+                    sub_data["current_period_start"] = datetime.fromtimestamp(subscription["current_period_start"])
+                    sub_data["current_period_end"] = datetime.fromtimestamp(subscription["current_period_end"])
 
                     processing_result.update(
                         {
@@ -456,12 +432,8 @@ async def create_stripe_subscription(
             "team_id": request.team_id,
             "plan_id": plan_id,
             "status": stripe_subscription.status,
-            "current_period_start": datetime.fromtimestamp(
-                stripe_subscription.current_period_start
-            ),
-            "current_period_end": datetime.fromtimestamp(
-                stripe_subscription.current_period_end
-            ),
+            "current_period_start": datetime.fromtimestamp(stripe_subscription.current_period_start),
+            "current_period_end": datetime.fromtimestamp(stripe_subscription.current_period_end),
             "created_at": datetime.utcnow(),
         }
 
@@ -488,9 +460,7 @@ async def handle_stripe_webhook(request: Request, background_tasks: BackgroundTa
 
     try:
         # Verify webhook signature
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
-        )
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
     except stripe.error.SignatureVerificationError:
@@ -542,18 +512,12 @@ async def generate_invoice(
             discount_amount += subtotal - apply_discount_to_amount(subtotal, code)
 
     # Calculate tax
-    billing_address = stripe_customers_store.get(request.team_id, {}).get(
-        "billing_address", {}
-    )
-    tax_amount = calculate_tax_amount(
-        subtotal - discount_amount, request.tax_rate or 0, billing_address
-    )
+    billing_address = stripe_customers_store.get(request.team_id, {}).get("billing_address", {})
+    tax_amount = calculate_tax_amount(subtotal - discount_amount, request.tax_rate or 0, billing_address)
 
     # Apply credits
     total_before_credits = subtotal - discount_amount + tax_amount
-    credits_used = total_before_credits - deduct_team_credits(
-        request.team_id, total_before_credits
-    )
+    credits_used = total_before_credits - deduct_team_credits(request.team_id, total_before_credits)
     final_amount = total_before_credits - credits_used
 
     # Generate invoice
@@ -567,9 +531,7 @@ async def generate_invoice(
         "invoice_number": invoice_number,
         "team_id": request.team_id,
         "team_name": team.name,
-        "billing_email": stripe_customers_store.get(request.team_id, {}).get(
-            "email", ""
-        ),
+        "billing_email": stripe_customers_store.get(request.team_id, {}).get("email", ""),
         "amount_due": final_amount,
         "amount_paid": 0.0,
         "currency": "usd",
@@ -657,9 +619,7 @@ async def retry_payment(
 
     # Update retry count
     payment_attempt["retry_count"] = retry_count + 1
-    payment_attempt["next_retry_at"] = datetime.utcnow() + timedelta(
-        seconds=delay_seconds
-    )
+    payment_attempt["next_retry_at"] = datetime.utcnow() + timedelta(seconds=delay_seconds)
     payment_attempts_store[request.invoice_id] = payment_attempt
 
     # Schedule retry
@@ -679,9 +639,7 @@ async def retry_payment(
     }
 
 
-async def schedule_payment_retry(
-    invoice_id: str, delay_seconds: int, notify_customer: bool
-):
+async def schedule_payment_retry(invoice_id: str, delay_seconds: int, notify_customer: bool):
     """Schedule payment retry"""
     import asyncio
 
@@ -763,27 +721,19 @@ async def get_billing_analytics(
 
     # Calculate revenue metrics
     revenue_metrics = {
-        "mrr": billing_plans.get(subscription_data.get("plan_id", "free"), {}).get(
-            "price", 0
-        ),
+        "mrr": billing_plans.get(subscription_data.get("plan_id", "free"), {}).get("price", 0),
         "total_revenue": 0,  # Calculate from invoices
         "credits_used": 0,  # Calculate from credits
         "discount_savings": 0,  # Calculate from discounts
     }
 
     # Calculate payment metrics
-    team_invoices = [
-        inv for inv in billing_invoices_store.values() if inv["team_id"] == team_id
-    ]
+    team_invoices = [inv for inv in billing_invoices_store.values() if inv["team_id"] == team_id]
     payment_metrics = {
         "total_invoices": len(team_invoices),
         "paid_invoices": len([inv for inv in team_invoices if inv["status"] == "paid"]),
         "overdue_invoices": len(
-            [
-                inv
-                for inv in team_invoices
-                if inv["status"] == "open" and inv["due_date"] < datetime.utcnow()
-            ]
+            [inv for inv in team_invoices if inv["status"] == "open" and inv["due_date"] < datetime.utcnow()]
         ),
         "payment_success_rate": 0.95,  # Mock data
     }

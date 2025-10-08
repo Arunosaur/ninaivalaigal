@@ -75,9 +75,7 @@ async def create_team(
 
     # Check if user can create teams
     if user["role"] not in ["admin", "team_admin", "org_admin"]:
-        raise HTTPException(
-            status_code=403, detail="Only admins and team admins can create teams"
-        )
+        raise HTTPException(status_code=403, detail="Only admins and team admins can create teams")
 
     # Generate new team ID
     new_team_id = max(TEAMS_DB.keys()) + 1 if TEAMS_DB else 1
@@ -111,9 +109,7 @@ async def create_team(
 
 
 @router.get("/{team_id}/members")
-async def get_team_members(
-    team_id: int, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_team_members(team_id: int, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Show team members"""
 
     # Check if team exists
@@ -123,11 +119,7 @@ async def get_team_members(
 
     # Check if user is a member of this team
     user_membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == user["user_id"]
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == user["user_id"]),
         None,
     )
 
@@ -174,11 +166,7 @@ async def add_team_member(
 
     # Check permissions
     user_membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == user["user_id"]
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == user["user_id"]),
         None,
     )
 
@@ -187,9 +175,7 @@ async def add_team_member(
     is_global_admin = user["role"] in ["admin", "org_admin"]
 
     if not (is_team_admin or is_team_owner or is_global_admin):
-        raise HTTPException(
-            status_code=403, detail="Access denied - only team admins can add members"
-        )
+        raise HTTPException(status_code=403, detail="Access denied - only team admins can add members")
 
     # Find user by email (mock lookup)
     target_user = next((u for u in USERS_DB.values() if u["email"] == email), None)
@@ -198,11 +184,7 @@ async def add_team_member(
 
     # Check if already a member
     existing_membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == target_user["id"]
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == target_user["id"]),
         None,
     )
 
@@ -239,11 +221,7 @@ async def remove_team_member(
 
     # Check permissions (same as add_member)
     user_membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == user["user_id"]
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == user["user_id"]),
         None,
     )
 
@@ -264,11 +242,7 @@ async def remove_team_member(
 
     # Find and remove membership
     membership_to_remove = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == target_user["id"]
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == target_user["id"]),
         None,
     )
 
@@ -290,9 +264,7 @@ async def remove_team_member(
 
 
 @router.get("/{team_id}/promote")
-async def promote_member(
-    team_id: int, email: str, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def promote_member(team_id: int, email: str, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Promote a user to admin"""
 
     # Check if team exists
@@ -316,11 +288,7 @@ async def promote_member(
         return {"success": False, "error": f"User '{email}' not found"}
 
     membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == target_user["id"]
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == target_user["id"]),
         None,
     )
 
@@ -342,9 +310,7 @@ async def promote_member(
 
 
 @router.get("/{team_id}/demote")
-async def demote_member(
-    team_id: int, email: str, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def demote_member(team_id: int, email: str, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Demote a team admin to regular member"""
 
     # Check if team exists
@@ -357,9 +323,7 @@ async def demote_member(
     is_global_admin = user["role"] in ["admin", "org_admin"]
 
     if not (is_team_owner or is_global_admin):
-        raise HTTPException(
-            status_code=403, detail="Access denied - only team owner can demote members"
-        )
+        raise HTTPException(status_code=403, detail="Access denied - only team owner can demote members")
 
     # Find target user and membership
     target_user = next((u for u in USERS_DB.values() if u["email"] == email), None)
@@ -367,11 +331,7 @@ async def demote_member(
         return {"success": False, "error": f"User '{email}' not found"}
 
     membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == target_user["id"]
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == target_user["id"]),
         None,
     )
 

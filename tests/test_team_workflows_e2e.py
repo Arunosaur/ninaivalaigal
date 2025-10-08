@@ -36,9 +36,7 @@ class TestTeamWorkflowsE2E:
         # Create in-memory SQLite database for testing
         engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(bind=engine)
-        TestingSessionLocal = sessionmaker(
-            autocommit=False, autoflush=False, bind=engine
-        )
+        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
         def override_get_db():
             try:
@@ -53,9 +51,7 @@ class TestTeamWorkflowsE2E:
     @pytest.fixture
     def mock_email_service(self):
         """Mock email service for testing"""
-        with patch(
-            "server.enhanced_signup_api.send_team_invitation_email"
-        ) as mock_email:
+        with patch("server.enhanced_signup_api.send_team_invitation_email") as mock_email:
             mock_email.return_value = None
             yield mock_email
 
@@ -71,9 +67,7 @@ class TestTeamWorkflowsE2E:
             mock_subscription.return_value = Mock(
                 id="sub_test123",
                 status="active",
-                current_period_end=int(
-                    (datetime.now() + timedelta(days=30)).timestamp()
-                ),
+                current_period_end=int((datetime.now() + timedelta(days=30)).timestamp()),
             )
             yield {"customer": mock_customer, "subscription": mock_subscription}
 
@@ -124,9 +118,7 @@ class TestViralGrowthJourney(TestTeamWorkflowsE2E):
         mock_email_service.assert_called_once()
 
         # Step 3: Invited user signs up and joins team
-        invitation_token = invitation_result[
-            "id"
-        ]  # In real scenario, this comes from email
+        invitation_token = invitation_result["id"]  # In real scenario, this comes from email
 
         join_signup_data = {
             "email": "developer@startup.com",
@@ -313,15 +305,11 @@ class TestConversionFunnelJourney(TestTeamWorkflowsE2E):
             )
 
         # Get team status (should show upgrade eligibility)
-        response = client.get(
-            "/teams/my", headers={"Authorization": f"Bearer {jwt_token}"}
-        )
+        response = client.get("/teams/my", headers={"Authorization": f"Bearer {jwt_token}"})
         assert response.status_code == 200
 
         team_status = response.json()
-        usage_percentage = (
-            team_status["current_members"] / team_status["max_members"]
-        ) * 100
+        usage_percentage = (team_status["current_members"] / team_status["max_members"]) * 100
         assert usage_percentage >= 80  # Should trigger upgrade messaging
 
 
@@ -331,9 +319,7 @@ class TestBillingIntegration(TestTeamWorkflowsE2E):
     @patch("stripe.Customer.create")
     @patch("stripe.Subscription.create")
     @patch("stripe.PaymentMethod.attach")
-    def test_subscription_lifecycle(
-        self, mock_attach, mock_subscription, mock_customer, client
-    ):
+    def test_subscription_lifecycle(self, mock_attach, mock_subscription, mock_customer, client):
         """Test complete subscription lifecycle"""
 
         # Mock Stripe responses

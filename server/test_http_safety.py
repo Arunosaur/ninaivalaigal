@@ -41,9 +41,7 @@ class TestHTTPSafetyCompliance:
 
     def test_auth_endpoint_content_length(self):
         """Test that auth endpoints have correct Content-Length"""
-        response = client.post(
-            "/auth/login", json={"email": "test@ninaivalaigal.com", "password": "test"}
-        )
+        response = client.post("/auth/login", json={"email": "test@ninaivalaigal.com", "password": "test"})
 
         # Should not hang and should have correct Content-Length
         if "content-length" in response.headers:
@@ -51,8 +49,7 @@ class TestHTTPSafetyCompliance:
             actual_length = len(response.content)
 
             assert declared_length == actual_length, (
-                f"Auth endpoint Content-Length mismatch! "
-                f"Declared: {declared_length}, Actual: {actual_length}"
+                f"Auth endpoint Content-Length mismatch! " f"Declared: {declared_length}, Actual: {actual_length}"
             )
 
     def test_no_truncated_responses(self):
@@ -83,8 +80,7 @@ class TestHTTPSafetyCompliance:
         declared_length = int(response.headers["content-length"])
 
         assert body_length == declared_length, (
-            f"Safe response Content-Length mismatch! "
-            f"Body: {body_length}, Header: {declared_length}"
+            f"Safe response Content-Length mismatch! " f"Body: {body_length}, Header: {declared_length}"
         )
 
     def test_diagnostics_endpoint(self):
@@ -115,8 +111,7 @@ class TestHTTPSafetyCompliance:
                 actual_length = len(response.content)
 
                 assert declared_length == actual_length, (
-                    f"Content-Length mismatch in {endpoint}! "
-                    f"Declared: {declared_length}, Actual: {actual_length}"
+                    f"Content-Length mismatch in {endpoint}! " f"Declared: {declared_length}, Actual: {actual_length}"
                 )
 
 
@@ -147,9 +142,7 @@ if __name__ == "__main__":
             if declared == actual:
                 print(f"✅ Content-Length matches: {actual} bytes")
             else:
-                print(
-                    f"❌ Content-Length mismatch: declared={declared}, actual={actual}"
-                )
+                print(f"❌ Content-Length mismatch: declared={declared}, actual={actual}")
 
         # Test diagnostics
         response = client.get("/diagnostics/http-safety")

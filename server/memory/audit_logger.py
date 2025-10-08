@@ -124,9 +124,7 @@ class TransferRecord:
     completed_at: Optional[datetime] = None
 
     # Status
-    status: str = (
-        "pending"  # "pending", "approved", "completed", "rejected", "cancelled"
-    )
+    status: str = "pending"  # "pending", "approved", "completed", "rejected", "cancelled"
 
     # Audit trail
     approval_chain: List[Dict[str, Any]] = field(default_factory=list)
@@ -318,9 +316,7 @@ class MemorySharingAuditLogger:
     ) -> TransferRecord:
         """Create a memory transfer record"""
         try:
-            transfer_id = (
-                f"transfer_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{memory_id}"
-            )
+            transfer_id = f"transfer_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{memory_id}"
 
             transfer = TransferRecord(
                 transfer_id=transfer_id,
@@ -405,10 +401,7 @@ class MemorySharingAuditLogger:
                 if query.event_types and event.event_type not in query.event_types:
                     continue
 
-                if (
-                    query.severity_levels
-                    and event.severity not in query.severity_levels
-                ):
+                if query.severity_levels and event.severity not in query.severity_levels:
                     continue
 
                 if query.memory_ids and event.memory_id not in query.memory_ids:
@@ -426,12 +419,8 @@ class MemorySharingAuditLogger:
                 if query.scopes:
                     scope_match = False
                     for scope in query.scopes:
-                        if (
-                            event.source_scope
-                            and self._scope_matches(event.source_scope, scope)
-                        ) or (
-                            event.target_scope
-                            and self._scope_matches(event.target_scope, scope)
+                        if (event.source_scope and self._scope_matches(event.source_scope, scope)) or (
+                            event.target_scope and self._scope_matches(event.target_scope, scope)
                         ):
                             scope_match = True
                             break
@@ -462,9 +451,7 @@ class MemorySharingAuditLogger:
     ) -> Dict[str, Any]:
         """Generate compliance report for a scope"""
         try:
-            query = AuditQuery(
-                scopes={scope}, start_time=start_date, end_time=end_date, limit=10000
-            )
+            query = AuditQuery(scopes={scope}, start_time=start_date, end_time=end_date, limit=10000)
 
             events = await self.query_audit_log(query)
 
@@ -495,9 +482,7 @@ class MemorySharingAuditLogger:
             for event in events:
                 # Count event types
                 event_type = event.event_type.value
-                report["summary"]["event_types"][event_type] = (
-                    report["summary"]["event_types"].get(event_type, 0) + 1
-                )
+                report["summary"]["event_types"][event_type] = report["summary"]["event_types"].get(event_type, 0) + 1
 
                 # Count severity levels
                 severity = event.severity.value
@@ -543,9 +528,7 @@ class MemorySharingAuditLogger:
                     )
 
             # Convert sets to counts
-            report["summary"]["unique_memories"] = len(
-                report["summary"]["unique_memories"]
-            )
+            report["summary"]["unique_memories"] = len(report["summary"]["unique_memories"])
             report["summary"]["unique_users"] = len(report["summary"]["unique_users"])
 
             # Determine compliance status
@@ -667,10 +650,7 @@ class MemorySharingAuditLogger:
 
     def _scope_matches(self, scope1: ScopeIdentifier, scope2: ScopeIdentifier) -> bool:
         """Check if two scopes match"""
-        return (
-            scope1.scope_type == scope2.scope_type
-            and scope1.scope_id == scope2.scope_id
-        )
+        return scope1.scope_type == scope2.scope_type and scope1.scope_id == scope2.scope_id
 
     async def _cleanup_loop(self) -> None:
         """Background cleanup loop"""
@@ -701,22 +681,14 @@ class MemorySharingAuditLogger:
     async def _cleanup_old_events(self) -> None:
         """Clean up old audit events"""
         try:
-            cutoff_date = datetime.now(timezone.utc) - timedelta(
-                days=self.retention_days
-            )
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
 
             # Count events to remove
-            old_events = sum(
-                1 for event in self.audit_events if event.timestamp < cutoff_date
-            )
+            old_events = sum(1 for event in self.audit_events if event.timestamp < cutoff_date)
 
             if old_events > 0:
                 # Keep only recent events
-                self.audit_events = [
-                    event
-                    for event in self.audit_events
-                    if event.timestamp >= cutoff_date
-                ]
+                self.audit_events = [event for event in self.audit_events if event.timestamp >= cutoff_date]
 
                 # Rebuild indices
                 self.memory_index.clear()

@@ -75,11 +75,7 @@ TEAM_MEMBERSHIPS_DB = [
 def get_user_team_role(user_id: int, team_id: int) -> Optional[str]:
     """Get user's role in a specific team"""
     membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == user_id
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == user_id),
         None,
     )
     return membership["role"] if membership else None
@@ -127,20 +123,14 @@ async def submit_for_approval(
 
     # Verify user owns the memory
     if mock_memory["user_id"] != user_id:
-        raise HTTPException(
-            status_code=403, detail="Can only submit your own memories for approval"
-        )
+        raise HTTPException(status_code=403, detail="Can only submit your own memories for approval")
 
     # Verify memory is team-scoped
     if mock_memory["team_id"] is None:
-        raise HTTPException(
-            status_code=400, detail="Only team memories can be submitted for approval"
-        )
+        raise HTTPException(status_code=400, detail="Only team memories can be submitted for approval")
 
     # Check if already submitted
-    existing_approval = next(
-        (a for a in APPROVALS_DB if a["memory_id"] == memory_id), None
-    )
+    existing_approval = next((a for a in APPROVALS_DB if a["memory_id"] == memory_id), None)
 
     if existing_approval:
         return {
@@ -310,9 +300,7 @@ async def reject_memory(
 
 
 @router.get("/{approval_id}/status")
-async def get_approval_status(
-    approval_id: int, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_approval_status(approval_id: int, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get current status of an approval"""
     user_id = user["user_id"]
     user_role = user["role"]
@@ -325,12 +313,8 @@ async def get_approval_status(
     # Check access permissions
     can_view = (
         approval["submitted_by"] == user_id  # Submitter can see
-        or can_approve_for_team(
-            user_id, approval["team_id"], user_role
-        )  # Approvers can see
-        or can_view_team_approvals(
-            user_id, approval["team_id"], user_role
-        )  # Team members can see
+        or can_approve_for_team(user_id, approval["team_id"], user_role)  # Approvers can see
+        or can_view_team_approvals(user_id, approval["team_id"], user_role)  # Team members can see
     )
 
     if not can_view:
@@ -340,13 +324,9 @@ async def get_approval_status(
         "success": True,
         "approval": approval,
         "permissions": {
-            "can_approve": can_approve_for_team(
-                user_id, approval["team_id"], user_role
-            ),
+            "can_approve": can_approve_for_team(user_id, approval["team_id"], user_role),
             "is_submitter": approval["submitted_by"] == user_id,
-            "can_view_team": can_view_team_approvals(
-                user_id, approval["team_id"], user_role
-            ),
+            "can_view_team": can_view_team_approvals(user_id, approval["team_id"], user_role),
         },
     }
 
@@ -450,15 +430,9 @@ async def get_approval_stats(
         "stats": {
             "submissions": {
                 "total": len(user_submissions),
-                "pending": len(
-                    [a for a in user_submissions if a["status"] == "pending"]
-                ),
-                "approved": len(
-                    [a for a in user_submissions if a["status"] == "approved"]
-                ),
-                "rejected": len(
-                    [a for a in user_submissions if a["status"] == "rejected"]
-                ),
+                "pending": len([a for a in user_submissions if a["status"] == "pending"]),
+                "approved": len([a for a in user_submissions if a["status"] == "approved"]),
+                "rejected": len([a for a in user_submissions if a["status"] == "rejected"]),
             },
             "reviews": {
                 "total": len(user_reviews),

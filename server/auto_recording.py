@@ -20,9 +20,7 @@ class AutoRecorder:
         self.recording_buffer = {}  # context_name -> [messages]
         self.auto_save_interval = 30  # seconds
 
-    async def start_recording(
-        self, context_name: str, user_id: int = None, token: str = None
-    ) -> dict:
+    async def start_recording(self, context_name: str, user_id: int = None, token: str = None) -> dict:
         """Start automatic recording for a context (CCTV ON)"""
         try:
             # Create or activate context with correct parameters
@@ -140,9 +138,7 @@ class AutoRecorder:
 
             # Auto-save every 10 messages or when AI responds
             AUTO_SAVE_THRESHOLD = 10
-            if self.active_contexts[context_name][
-                "message_count"
-            ] % AUTO_SAVE_THRESHOLD == 0 or interaction_type in [
+            if self.active_contexts[context_name]["message_count"] % AUTO_SAVE_THRESHOLD == 0 or interaction_type in [
                 "ai_response",
                 "system_event",
             ]:
@@ -168,9 +164,7 @@ class AutoRecorder:
             },
         }
 
-    async def recall_hierarchical(
-        self, query: str, user_id: int, context_name: str = None
-    ) -> dict:
+    async def recall_hierarchical(self, query: str, user_id: int, context_name: str = None) -> dict:
         """
         Recall memories with hierarchical context search
         Personal -> Team -> Organization contexts
@@ -181,9 +175,7 @@ class AutoRecorder:
             # 1. Personal context memories
             if context_name:
                 personal_memories = self.db.get_memories(context_name, user_id)
-                results["personal"] = self._format_memories(
-                    personal_memories, "Personal"
-                )
+                results["personal"] = self._format_memories(personal_memories, "Personal")
 
             # 2. Team context memories
             user_teams = self.db.get_user_teams(user_id)
@@ -192,9 +184,7 @@ class AutoRecorder:
                 for context in team_contexts:
                     if self._matches_query(context.name, query):
                         team_memories = self.db.get_memories(context.name)
-                        results["team"].extend(
-                            self._format_memories(team_memories, f"Team: {team.name}")
-                        )
+                        results["team"].extend(self._format_memories(team_memories, f"Team: {team.name}"))
 
             # 3. Organization context memories
             user_orgs = self.db.get_user_organizations(user_id)
@@ -203,9 +193,7 @@ class AutoRecorder:
                 for context in org_contexts:
                     if self._matches_query(context.name, query):
                         org_memories = self.db.get_memories(context.name)
-                        results["organization"].extend(
-                            self._format_memories(org_memories, f"Org: {org.name}")
-                        )
+                        results["organization"].extend(self._format_memories(org_memories, f"Org: {org.name}"))
 
             return results
 
@@ -275,9 +263,7 @@ class AutoRecorder:
 
                 if not valid_token:
                     # Token expired/invalid - use emergency save
-                    print(
-                        f"Token expired during recording for user {user_id}, using emergency save"
-                    )
+                    print(f"Token expired during recording for user {user_id}, using emergency save")
                     token_manager.flush_memory_buffer(user_id, self.db)
                     return
 

@@ -59,17 +59,13 @@ class MemoryDriftSystemTester:
                 data = response.json()
                 if data.get("status") == "healthy":
                     capabilities = data.get("drift_capabilities", [])
-                    self.log(
-                        f"✅ Memory drift system healthy with {len(capabilities)} capabilities"
-                    )
+                    self.log(f"✅ Memory drift system healthy with {len(capabilities)} capabilities")
                     return True
                 else:
                     self.log(f"❌ Memory drift system unhealthy: {data}")
                     return False
             else:
-                self.log(
-                    f"❌ Drift status check failed with status {response.status_code}"
-                )
+                self.log(f"❌ Drift status check failed with status {response.status_code}")
                 return False
 
         except Exception as e:
@@ -93,14 +89,10 @@ class MemoryDriftSystemTester:
             }
 
             start_time = time.time()
-            response = self.session.post(
-                f"{API_BASE_URL}/drift/snapshot", json=snapshot_data
-            )
+            response = self.session.post(f"{API_BASE_URL}/drift/snapshot", json=snapshot_data)
             response_time = (time.time() - start_time) * 1000
 
-            self.results["performance_metrics"][
-                "snapshot_creation_response_time"
-            ] = response_time
+            self.results["performance_metrics"]["snapshot_creation_response_time"] = response_time
 
             if response.status_code == 401:
                 self.log("✅ Snapshot creation endpoint accessible (auth required)")
@@ -110,9 +102,7 @@ class MemoryDriftSystemTester:
                 self.log(f"✅ Memory snapshot created: version {data.get('version')}")
                 return True
             else:
-                self.log(
-                    f"❌ Snapshot creation failed with status {response.status_code}"
-                )
+                self.log(f"❌ Snapshot creation failed with status {response.status_code}")
                 return False
 
         except Exception as e:
@@ -136,14 +126,10 @@ class MemoryDriftSystemTester:
             }
 
             start_time = time.time()
-            response = self.session.post(
-                f"{API_BASE_URL}/drift/detect", json=drift_data
-            )
+            response = self.session.post(f"{API_BASE_URL}/drift/detect", json=drift_data)
             response_time = (time.time() - start_time) * 1000
 
-            self.results["performance_metrics"][
-                "drift_detection_response_time"
-            ] = response_time
+            self.results["performance_metrics"]["drift_detection_response_time"] = response_time
 
             if response.status_code == 401:
                 self.log("✅ Drift detection endpoint accessible (auth required)")
@@ -154,9 +140,7 @@ class MemoryDriftSystemTester:
                 self.log(f"✅ Drift detection completed: {drift_count} drifts detected")
                 return True
             else:
-                self.log(
-                    f"❌ Drift detection failed with status {response.status_code}"
-                )
+                self.log(f"❌ Drift detection failed with status {response.status_code}")
                 return False
 
         except Exception as e:
@@ -169,14 +153,10 @@ class MemoryDriftSystemTester:
             self.log("Testing drift history retrieval...")
 
             start_time = time.time()
-            response = self.session.get(
-                f"{API_BASE_URL}/drift/history/test_memory_001?limit=10"
-            )
+            response = self.session.get(f"{API_BASE_URL}/drift/history/test_memory_001?limit=10")
             response_time = (time.time() - start_time) * 1000
 
-            self.results["performance_metrics"][
-                "drift_history_response_time"
-            ] = response_time
+            self.results["performance_metrics"]["drift_history_response_time"] = response_time
 
             if response.status_code == 401:
                 self.log("✅ Drift history endpoint accessible (auth required)")
@@ -184,14 +164,10 @@ class MemoryDriftSystemTester:
             elif response.status_code == 200:
                 data = response.json()
                 total_drifts = data.get("total_drifts", 0)
-                self.log(
-                    f"✅ Drift history retrieved: {total_drifts} historical drifts"
-                )
+                self.log(f"✅ Drift history retrieved: {total_drifts} historical drifts")
                 return True
             else:
-                self.log(
-                    f"❌ Drift history retrieval failed with status {response.status_code}"
-                )
+                self.log(f"❌ Drift history retrieval failed with status {response.status_code}")
                 return False
 
         except Exception as e:
@@ -204,14 +180,10 @@ class MemoryDriftSystemTester:
             self.log("Testing drift report generation...")
 
             start_time = time.time()
-            response = self.session.get(
-                f"{API_BASE_URL}/drift/report/test_memory_001?days_back=7"
-            )
+            response = self.session.get(f"{API_BASE_URL}/drift/report/test_memory_001?days_back=7")
             response_time = (time.time() - start_time) * 1000
 
-            self.results["performance_metrics"][
-                "drift_report_response_time"
-            ] = response_time
+            self.results["performance_metrics"]["drift_report_response_time"] = response_time
 
             if response.status_code == 401:
                 self.log("✅ Drift report endpoint accessible (auth required)")
@@ -222,9 +194,7 @@ class MemoryDriftSystemTester:
                 self.log(f"✅ Drift report generated: {total_drifts} drifts in report")
                 return True
             else:
-                self.log(
-                    f"❌ Drift report generation failed with status {response.status_code}"
-                )
+                self.log(f"❌ Drift report generation failed with status {response.status_code}")
                 return False
 
         except Exception as e:
@@ -240,9 +210,7 @@ class MemoryDriftSystemTester:
             response = self.session.get(f"{API_BASE_URL}/drift/stats")
             response_time = (time.time() - start_time) * 1000
 
-            self.results["performance_metrics"][
-                "drift_stats_response_time"
-            ] = response_time
+            self.results["performance_metrics"]["drift_stats_response_time"] = response_time
 
             if response.status_code == 401:
                 self.log("✅ Drift statistics endpoint accessible (auth required)")
@@ -250,14 +218,10 @@ class MemoryDriftSystemTester:
             elif response.status_code == 200:
                 data = response.json()
                 total_memories = data.get("total_memories_tracked", 0)
-                self.log(
-                    f"✅ Drift statistics retrieved: {total_memories} memories tracked"
-                )
+                self.log(f"✅ Drift statistics retrieved: {total_memories} memories tracked")
                 return True
             else:
-                self.log(
-                    f"❌ Drift statistics failed with status {response.status_code}"
-                )
+                self.log(f"❌ Drift statistics failed with status {response.status_code}")
                 return False
 
         except Exception as e:
@@ -285,9 +249,7 @@ class MemoryDriftSystemTester:
                 try:
                     if endpoint == "/drift/detect" or endpoint == "/drift/snapshot":
                         # POST endpoints
-                        response = self.session.post(
-                            f"{API_BASE_URL}{endpoint}", json={}
-                        )
+                        response = self.session.post(f"{API_BASE_URL}{endpoint}", json={})
                     else:
                         # GET endpoints
                         response = self.session.get(f"{API_BASE_URL}{endpoint}")
@@ -300,17 +262,13 @@ class MemoryDriftSystemTester:
                         self.log(f"✅ Endpoint accessible: {endpoint}")
                         accessible_endpoints += 1
                     else:
-                        self.log(
-                            f"❌ Endpoint error: {endpoint} - Status {response.status_code}"
-                        )
+                        self.log(f"❌ Endpoint error: {endpoint} - Status {response.status_code}")
 
                 except Exception as e:
                     self.log(f"❌ Endpoint error: {endpoint} - {str(e)}")
 
             coverage_percentage = (accessible_endpoints / len(endpoints)) * 100
-            self.results["performance_metrics"][
-                "endpoint_coverage"
-            ] = coverage_percentage
+            self.results["performance_metrics"]["endpoint_coverage"] = coverage_percentage
 
             self.log(f"✅ API endpoint coverage: {coverage_percentage:.1f}%")
             return coverage_percentage >= 85.0  # 85% threshold
@@ -336,12 +294,8 @@ class MemoryDriftSystemTester:
             avg_response_time = sum(request_times) / len(request_times)
             max_response_time = max(request_times)
 
-            self.results["performance_metrics"][
-                "avg_drift_status_response_time"
-            ] = avg_response_time
-            self.results["performance_metrics"][
-                "max_drift_status_response_time"
-            ] = max_response_time
+            self.results["performance_metrics"]["avg_drift_status_response_time"] = avg_response_time
+            self.results["performance_metrics"]["max_drift_status_response_time"] = max_response_time
 
             # Performance targets for drift system (analysis can be slower)
             if avg_response_time < 50.0:  # 50ms average
@@ -413,13 +367,9 @@ class MemoryDriftSystemTester:
 
         # Final status
         if success_rate >= 80.0:
-            self.log(
-                "\n🎉 SPEC-044 MEMORY DRIFT & DIFF DETECTION SYSTEM: OPERATIONAL ✅"
-            )
+            self.log("\n🎉 SPEC-044 MEMORY DRIFT & DIFF DETECTION SYSTEM: OPERATIONAL ✅")
         else:
-            self.log(
-                "\n⚠️ SPEC-044 MEMORY DRIFT & DIFF DETECTION SYSTEM: NEEDS ATTENTION"
-            )
+            self.log("\n⚠️ SPEC-044 MEMORY DRIFT & DIFF DETECTION SYSTEM: NEEDS ATTENTION")
 
         # Feature summary
         self.log("\n🔍 DRIFT DETECTION FEATURES TESTED:")

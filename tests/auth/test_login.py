@@ -24,9 +24,7 @@ class TestUserLogin:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/login", json=login_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Login endpoint not implemented")
@@ -39,9 +37,7 @@ class TestUserLogin:
 
             if response.status_code == 200:
                 result = response.json()
-                assert (
-                    "access_token" in result or "token" in result
-                ), "Login response missing access token"
+                assert "access_token" in result or "token" in result, "Login response missing access token"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -54,9 +50,7 @@ class TestUserLogin:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/login", data=login_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", data=login_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Login endpoint not implemented")
@@ -64,9 +58,7 @@ class TestUserLogin:
             if response.status_code == 500:
                 pytest.skip("Login endpoint has internal server error - needs fixing")
 
-            assert (
-                response.status_code == 200
-            ), f"Form login failed: {response.status_code}"
+            assert response.status_code == 200, f"Form login failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -79,9 +71,7 @@ class TestUserLogin:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/login", json=login_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Login endpoint not implemented")
@@ -106,9 +96,7 @@ class TestUserLogin:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/login", json=login_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Login endpoint not implemented")
@@ -117,9 +105,7 @@ class TestUserLogin:
                 pytest.skip("Login endpoint has internal server error - needs fixing")
 
             # Should reject missing password
-            assert (
-                response.status_code == 400
-            ), f"Missing password not rejected: {response.status_code}"
+            assert response.status_code == 400, f"Missing password not rejected: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -129,9 +115,7 @@ class TestUserLogin:
         login_data = {"username": "", "password": ""}  # pragma: allowlist secret
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/login", json=login_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Login endpoint not implemented")
@@ -140,9 +124,7 @@ class TestUserLogin:
                 pytest.skip("Login endpoint has internal server error - needs fixing")
 
             # Should reject empty credentials
-            assert (
-                response.status_code == 400
-            ), f"Empty credentials not rejected: {response.status_code}"
+            assert response.status_code == 400, f"Empty credentials not rejected: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")

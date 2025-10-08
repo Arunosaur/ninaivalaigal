@@ -44,9 +44,7 @@ class DatabaseManager:
 
         # PostgreSQL connection with pool settings
         self.engine = create_engine(database_url, pool_pre_ping=True)
-        self.SessionLocal = sessionmaker(
-            autocommit=False, autoflush=False, bind=self.engine
-        )
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         self.create_tables()
 
     def create_tables(self):
@@ -85,9 +83,7 @@ class DatabaseManager:
                     session.query(Context).update({"is_active": False})
 
                     # Set or create the active context
-                    context = (
-                        session.query(Context).filter_by(name=active_context).first()
-                    )
+                    context = session.query(Context).filter_by(name=active_context).first()
                     if context:
                         context.is_active = True
                     else:

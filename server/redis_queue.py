@@ -62,17 +62,13 @@ class RedisQueueManager:
             # Initialize default queues
             self.queues = {
                 "default": Queue("default", connection=self.redis_conn),
-                "memory_processing": Queue(
-                    "memory_processing", connection=self.redis_conn
-                ),
+                "memory_processing": Queue("memory_processing", connection=self.redis_conn),
                 "embeddings": Queue("embeddings", connection=self.redis_conn),
                 "notifications": Queue("notifications", connection=self.redis_conn),
                 "analytics": Queue("analytics", connection=self.redis_conn),
             }
 
-            logger.info(
-                "Redis Queue connected successfully", queues=list(self.queues.keys())
-            )
+            logger.info("Redis Queue connected successfully", queues=list(self.queues.keys()))
 
         except Exception as e:
             logger.error("Failed to connect to Redis Queue", error=str(e))
@@ -107,9 +103,7 @@ class RedisQueueManager:
 
         try:
             queue = self.queues.get(queue_name, self.queues["default"])
-            job = queue.enqueue(
-                func, *args, job_timeout=job_timeout, result_ttl=result_ttl, **kwargs
-            )
+            job = queue.enqueue(func, *args, job_timeout=job_timeout, result_ttl=result_ttl, **kwargs)
 
             logger.info(
                 "Task enqueued",
@@ -172,9 +166,7 @@ class RedisQueueManager:
 
 
 # Background task functions for common operations
-def process_memory_embedding(
-    memory_id: str, text: str, metadata: dict[str, Any] = None
-):
+def process_memory_embedding(memory_id: str, text: str, metadata: dict[str, Any] = None):
     """Background task: Process memory embedding"""
     logger.info("Processing memory embedding", memory_id=memory_id)
 
@@ -206,17 +198,13 @@ def process_memory_embedding(
         return result
 
     except Exception as e:
-        logger.error(
-            "Failed to process memory embedding", memory_id=memory_id, error=str(e)
-        )
+        logger.error("Failed to process memory embedding", memory_id=memory_id, error=str(e))
         raise
 
 
 def calculate_memory_relevance_scores(user_id: str, context_id: str = None):
     """Background task: Calculate relevance scores for memories"""
-    logger.info(
-        "Calculating memory relevance scores", user_id=user_id, context_id=context_id
-    )
+    logger.info("Calculating memory relevance scores", user_id=user_id, context_id=context_id)
 
     try:
         # Simulate relevance calculation
@@ -240,16 +228,12 @@ def calculate_memory_relevance_scores(user_id: str, context_id: str = None):
             "processed_at": datetime.utcnow().isoformat(),
         }
 
-        logger.info(
-            "Memory relevance scores calculated", user_id=user_id, result=result
-        )
+        logger.info("Memory relevance scores calculated", user_id=user_id, result=result)
 
         return result
 
     except Exception as e:
-        logger.error(
-            "Failed to calculate relevance scores", user_id=user_id, error=str(e)
-        )
+        logger.error("Failed to calculate relevance scores", user_id=user_id, error=str(e))
         raise
 
 
@@ -332,9 +316,7 @@ def get_queue_manager() -> RedisQueueManager:
 
 
 # Convenience functions for common tasks
-def enqueue_memory_processing(
-    memory_id: str, text: str, metadata: dict[str, Any] = None
-) -> str | None:
+def enqueue_memory_processing(memory_id: str, text: str, metadata: dict[str, Any] = None) -> str | None:
     """Enqueue memory processing task"""
     return queue_manager.enqueue_task(
         "memory_processing",
@@ -357,9 +339,7 @@ def enqueue_relevance_calculation(user_id: str, context_id: str = None) -> str |
     )
 
 
-def enqueue_notification(
-    user_id: str, notification_type: str, data: dict[str, Any]
-) -> str | None:
+def enqueue_notification(user_id: str, notification_type: str, data: dict[str, Any]) -> str | None:
     """Enqueue notification sending"""
     return queue_manager.enqueue_task(
         "notifications",

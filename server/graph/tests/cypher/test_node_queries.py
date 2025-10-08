@@ -141,9 +141,7 @@ class TestNodeQueries:
 
             # Mock successful query execution
             mock_conn.execute.return_value = None
-            mock_conn.fetch.return_value = [
-                {"result": '{"id": "test_user_1", "name": "Test User"}'}
-            ]
+            mock_conn.fetch.return_value = [{"result": '{"id": "test_user_1", "name": "Test User"}'}]
 
             # Create AGE client
             client = ApacheAGEClient("postgresql://test:test@localhost/test")
@@ -184,20 +182,14 @@ class TestNodeQueries:
                 mock_get_cache.return_value = mock_cache
 
                 # Mock database operations
-                with patch(
-                    "server.graph.age_client.asyncpg.create_pool"
-                ) as mock_create_pool:
+                with patch("server.graph.age_client.asyncpg.create_pool") as mock_create_pool:
                     mock_pool = AsyncMock()
                     mock_conn = AsyncMock()
                     mock_create_pool.return_value = mock_pool
                     mock_pool.acquire.return_value.__aenter__.return_value = mock_conn
 
                     mock_conn.execute.return_value = None
-                    mock_conn.fetch.return_value = [
-                        {
-                            "result": '{"nodes": [{"id": "test_user_1", "label": "User"}]}'
-                        }
-                    ]
+                    mock_conn.fetch.return_value = [{"result": '{"nodes": [{"id": "test_user_1", "label": "User"}]}'}]
 
                     # Create client and execute cached query
                     client = ApacheAGEClient("postgresql://test:test@localhost/test")
@@ -220,9 +212,7 @@ class TestNodeQueries:
         """Test complex node traversal with multiple node types"""
         try:
             # Mock database with complex query results
-            with patch(
-                "server.graph.age_client.asyncpg.create_pool"
-            ) as mock_create_pool:
+            with patch("server.graph.age_client.asyncpg.create_pool") as mock_create_pool:
                 mock_pool = AsyncMock()
                 mock_conn = AsyncMock()
                 mock_create_pool.return_value = mock_pool
@@ -231,12 +221,8 @@ class TestNodeQueries:
                 # Mock complex traversal results
                 mock_conn.execute.return_value = None
                 mock_conn.fetch.return_value = [
-                    {
-                        "result": '{"memory_id": "mem_001", "title": "Redis Setup", "depth": 1}'
-                    },
-                    {
-                        "result": '{"memory_id": "mem_002", "title": "Graph Model", "depth": 2}'
-                    },
+                    {"result": '{"memory_id": "mem_001", "title": "Redis Setup", "depth": 1}'},
+                    {"result": '{"memory_id": "mem_002", "title": "Graph Model", "depth": 2}'},
                 ]
 
                 # Mock Redis cache

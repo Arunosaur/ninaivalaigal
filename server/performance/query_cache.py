@@ -53,9 +53,7 @@ class QueryCache:
             "organization": ["organization_data", "user_list"],
         }
 
-    def generate_cache_key(
-        self, query_type: str, params: Dict[str, Any], user_id: Optional[str] = None
-    ) -> str:
+    def generate_cache_key(self, query_type: str, params: Dict[str, Any], user_id: Optional[str] = None) -> str:
         """Generate a unique cache key for the query."""
         key_components = [query_type]
 
@@ -263,9 +261,7 @@ class QueryCache:
                 parts = key.split(":")
                 if len(parts) >= 3:
                     query_type = parts[2]
-                    query_type_counts[query_type] = (
-                        query_type_counts.get(query_type, 0) + 1
-                    )
+                    query_type_counts[query_type] = query_type_counts.get(query_type, 0) + 1
 
             stats = {
                 "total_keys": len(keys),

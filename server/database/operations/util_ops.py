@@ -24,9 +24,7 @@ class DatabaseUtilities(DatabaseManager):
             raise ValueError("Database session is required")
         return True
 
-    def safe_commit(
-        self, session: Session, operation_name: str = "database operation"
-    ) -> bool:
+    def safe_commit(self, session: Session, operation_name: str = "database operation") -> bool:
         """Safely commit database transaction with error handling."""
         try:
             session.commit()
@@ -49,9 +47,7 @@ class DatabaseUtilities(DatabaseManager):
         except Exception:
             pass  # Session close failures are typically not critical
 
-    def execute_with_session(
-        self, operation_func: Callable, *args: Any, **kwargs: Any
-    ) -> Any:
+    def execute_with_session(self, operation_func: Callable, *args: Any, **kwargs: Any) -> Any:
         """Execute database operation with automatic session management."""
         session = self.get_session()
         try:
@@ -64,9 +60,7 @@ class DatabaseUtilities(DatabaseManager):
         finally:
             session.close()
 
-    def batch_execute(
-        self, operations: List[Tuple[Callable, Tuple[Any, ...], Dict[str, Any]]]
-    ) -> List[Any]:
+    def batch_execute(self, operations: List[Tuple[Callable, Tuple[Any, ...], Dict[str, Any]]]) -> List[Any]:
         """Execute multiple database operations in a single transaction."""
         session = self.get_session()
         results: List[Any] = []

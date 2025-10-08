@@ -53,9 +53,7 @@ class EntropyCalculator:
             return 0.0
 
         # Base64 character set
-        base64_chars = set(
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-        )
+        base64_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")
 
         # Filter to only base64 characters
         filtered_text = "".join(c for c in text if c in base64_chars)

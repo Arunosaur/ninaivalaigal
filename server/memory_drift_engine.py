@@ -161,9 +161,7 @@ class MemoryDriftEngine:
             return snapshot
 
         except Exception as e:
-            logger.error(
-                "Failed to create memory snapshot", memory_id=memory_id, error=str(e)
-            )
+            logger.error("Failed to create memory snapshot", memory_id=memory_id, error=str(e))
             raise
 
     async def detect_drift(
@@ -186,31 +184,23 @@ class MemoryDriftEngine:
                 return []
 
             # Create new snapshot
-            new_snapshot = await self.create_memory_snapshot(
-                memory_id, new_content, new_metadata, new_embedding
-            )
+            new_snapshot = await self.create_memory_snapshot(memory_id, new_content, new_metadata, new_embedding)
 
             detections = []
 
             # Content drift detection
-            content_drift = await self._detect_content_drift(
-                latest_snapshot, new_snapshot
-            )
+            content_drift = await self._detect_content_drift(latest_snapshot, new_snapshot)
             if content_drift:
                 detections.append(content_drift)
 
             # Semantic drift detection
             if latest_snapshot.embedding and new_embedding:
-                semantic_drift = await self._detect_semantic_drift(
-                    latest_snapshot, new_snapshot
-                )
+                semantic_drift = await self._detect_semantic_drift(latest_snapshot, new_snapshot)
                 if semantic_drift:
                     detections.append(semantic_drift)
 
             # Metadata drift detection
-            metadata_drift = await self._detect_metadata_drift(
-                latest_snapshot, new_snapshot
-            )
+            metadata_drift = await self._detect_metadata_drift(latest_snapshot, new_snapshot)
             if metadata_drift:
                 detections.append(metadata_drift)
 
@@ -232,9 +222,7 @@ class MemoryDriftEngine:
             logger.error("Failed to detect drift", memory_id=memory_id, error=str(e))
             return []
 
-    async def get_drift_history(
-        self, memory_id: str, limit: int = 50
-    ) -> list[DriftDetection]:
+    async def get_drift_history(self, memory_id: str, limit: int = 50) -> list[DriftDetection]:
         """Get drift detection history for a memory"""
 
         try:
@@ -254,21 +242,15 @@ class MemoryDriftEngine:
                         detection = self._deserialize_drift_detection(detection_data)
                         detections.append(detection)
                 except Exception as e:
-                    logger.warning(
-                        "Failed to deserialize drift detection", key=key, error=str(e)
-                    )
+                    logger.warning("Failed to deserialize drift detection", key=key, error=str(e))
 
             return detections
 
         except Exception as e:
-            logger.error(
-                "Failed to get drift history", memory_id=memory_id, error=str(e)
-            )
+            logger.error("Failed to get drift history", memory_id=memory_id, error=str(e))
             return []
 
-    async def generate_drift_report(
-        self, memory_id: str, days_back: int = 30
-    ) -> DriftReport:
+    async def generate_drift_report(self, memory_id: str, days_back: int = 30) -> DriftReport:
         """Generate comprehensive drift report"""
 
         try:
@@ -277,9 +259,7 @@ class MemoryDriftEngine:
 
             # Filter by time range
             cutoff_date = datetime.utcnow() - timedelta(days=days_back)
-            recent_drifts = [
-                d for d in drift_detections if d.detected_at >= cutoff_date
-            ]
+            recent_drifts = [d for d in drift_detections if d.detected_at >= cutoff_date]
 
             # Generate timeline
             timeline = []
@@ -307,9 +287,7 @@ class MemoryDriftEngine:
                 # Drift type distribution
                 for drift in recent_drifts:
                     drift_type = drift.drift_type.value
-                    summary_stats["drift_types"][drift_type] = (
-                        summary_stats["drift_types"].get(drift_type, 0) + 1
-                    )
+                    summary_stats["drift_types"][drift_type] = summary_stats["drift_types"].get(drift_type, 0) + 1
 
                 # Severity distribution
                 for drift in recent_drifts:
@@ -319,14 +297,10 @@ class MemoryDriftEngine:
                     )
 
                 # Average confidence
-                summary_stats["average_confidence"] = sum(
-                    d.confidence for d in recent_drifts
-                ) / len(recent_drifts)
+                summary_stats["average_confidence"] = sum(d.confidence for d in recent_drifts) / len(recent_drifts)
 
                 # Most recent drift
-                summary_stats["most_recent_drift"] = recent_drifts[
-                    0
-                ].detected_at.isoformat()
+                summary_stats["most_recent_drift"] = recent_drifts[0].detected_at.isoformat()
 
                 # Drift frequency (drifts per day)
                 summary_stats["drift_frequency"] = len(recent_drifts) / days_back
@@ -350,9 +324,7 @@ class MemoryDriftEngine:
             return report
 
         except Exception as e:
-            logger.error(
-                "Failed to generate drift report", memory_id=memory_id, error=str(e)
-            )
+            logger.error("Failed to generate drift report", memory_id=memory_id, error=str(e))
             raise
 
     async def _detect_content_drift(
@@ -366,9 +338,7 @@ class MemoryDriftEngine:
                 return None
 
             # Calculate text similarity
-            similarity = self._calculate_text_similarity(
-                old_snapshot.content, new_snapshot.content
-            )
+            similarity = self._calculate_text_similarity(old_snapshot.content, new_snapshot.content)
 
             # Calculate drift confidence (inverse of similarity)
             confidence = 1.0 - similarity
@@ -389,13 +359,8 @@ class MemoryDriftEngine:
             changes = {
                 "similarity_score": similarity,
                 "content_diff": diff[:100],  # Limit diff size
-                "char_changes": abs(
-                    len(new_snapshot.content) - len(old_snapshot.content)
-                ),
-                "line_changes": abs(
-                    len(new_snapshot.content.splitlines())
-                    - len(old_snapshot.content.splitlines())
-                ),
+                "char_changes": abs(len(new_snapshot.content) - len(old_snapshot.content)),
+                "line_changes": abs(len(new_snapshot.content.splitlines()) - len(old_snapshot.content.splitlines())),
             }
 
             return DriftDetection(
@@ -423,9 +388,7 @@ class MemoryDriftEngine:
                 return None
 
             # Calculate basic dot product similarity (simplified cosine similarity)
-            similarity = self._calculate_embedding_similarity(
-                old_snapshot.embedding, new_snapshot.embedding
-            )
+            similarity = self._calculate_embedding_similarity(old_snapshot.embedding, new_snapshot.embedding)
             confidence = 1.0 - similarity
 
             # Only report if significant semantic drift
@@ -437,11 +400,7 @@ class MemoryDriftEngine:
             changes = {
                 "semantic_similarity": float(similarity),
                 "embedding_distance": float(confidence),
-                "drift_magnitude": (
-                    "high"
-                    if confidence > 0.7
-                    else "medium" if confidence > 0.4 else "low"
-                ),
+                "drift_magnitude": ("high" if confidence > 0.7 else "medium" if confidence > 0.4 else "low"),
             }
 
             return DriftDetection(
@@ -514,18 +473,14 @@ class MemoryDriftEngine:
         """Calculate text similarity using difflib"""
         return difflib.SequenceMatcher(None, text1, text2).ratio()
 
-    def _calculate_embedding_similarity(
-        self, embedding1: list[float], embedding2: list[float]
-    ) -> float:
+    def _calculate_embedding_similarity(self, embedding1: list[float], embedding2: list[float]) -> float:
         """Calculate embedding similarity using basic dot product (simplified cosine similarity)"""
         try:
             if len(embedding1) != len(embedding2):
                 return 0.0
 
             # Calculate dot product
-            dot_product = sum(
-                a * b for a, b in zip(embedding1, embedding2, strict=False)
-            )
+            dot_product = sum(a * b for a, b in zip(embedding1, embedding2, strict=False))
 
             # Calculate magnitudes
             magnitude1 = sum(a * a for a in embedding1) ** 0.5
@@ -588,15 +543,11 @@ class MemoryDriftEngine:
                 "version": snapshot.version,
             }
 
-            await self.redis_client.setex(
-                snapshot_key, self.snapshot_ttl, json.dumps(snapshot_data)
-            )
+            await self.redis_client.setex(snapshot_key, self.snapshot_ttl, json.dumps(snapshot_data))
 
             # Update latest snapshot pointer
             latest_key = f"drift:latest:{snapshot.memory_id}"
-            await self.redis_client.setex(
-                latest_key, self.snapshot_ttl, json.dumps(snapshot_data)
-            )
+            await self.redis_client.setex(latest_key, self.snapshot_ttl, json.dumps(snapshot_data))
 
         except Exception as e:
             logger.error("Failed to store snapshot", error=str(e))
@@ -646,9 +597,7 @@ class MemoryDriftEngine:
                 "new_version": detection.new_snapshot.version,
             }
 
-            await self.redis_client.setex(
-                detection_key, self.snapshot_ttl, json.dumps(detection_data)
-            )
+            await self.redis_client.setex(detection_key, self.snapshot_ttl, json.dumps(detection_data))
 
         except Exception as e:
             logger.error("Failed to store drift detection", error=str(e))

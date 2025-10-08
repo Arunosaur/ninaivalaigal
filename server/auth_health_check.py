@@ -51,9 +51,7 @@ class AuthHealthChecker:
         results["tests"]["performance"] = perf_result
 
         # Determine overall status
-        all_passed = all(
-            test.get("status") == "pass" for test in results["tests"].values()
-        )
+        all_passed = all(test.get("status") == "pass" for test in results["tests"].values())
         results["overall_status"] = "healthy" if all_passed else "issues_detected"
 
         print(f"\n🎯 Overall Status: {results['overall_status']}")
@@ -101,9 +99,7 @@ class AuthHealthChecker:
             start_time = time.time()
 
             # Test with timeout
-            result = await asyncio.wait_for(
-                authenticate_user_async("test@ninaivalaigal.com", "test"), timeout=10.0
-            )
+            result = await asyncio.wait_for(authenticate_user_async("test@ninaivalaigal.com", "test"), timeout=10.0)
 
             duration = time.time() - start_time
 
@@ -267,9 +263,7 @@ class AuthHealthChecker:
                     "result": "Performance acceptable",
                 }
             else:
-                print(
-                    f"❌ Performance test failed (avg: {avg_time:.3f}s, successes: {successes}/5)"
-                )
+                print(f"❌ Performance test failed (avg: {avg_time:.3f}s, successes: {successes}/5)")
                 return {
                     "status": "fail",
                     "avg_duration": avg_time,

@@ -62,9 +62,7 @@ async def get_current_session_analytics(
     """Get analytics for current session - SPEC-045"""
     try:
         # Extract session ID from request (would normally come from JWT or session cookie)
-        session_id = getattr(
-            request.state, "session_id", f"session_{current_user.user_id}"
-        )
+        session_id = getattr(request.state, "session_id", f"session_{current_user.user_id}")
 
         analytics = await get_session_analytics(session_id)
 
@@ -92,9 +90,7 @@ async def get_renewal_recommendations(
 ):
     """Get intelligent renewal recommendations - SPEC-045"""
     try:
-        session_id = getattr(
-            request.state, "session_id", f"session_{current_user.user_id}"
-        )
+        session_id = getattr(request.state, "session_id", f"session_{current_user.user_id}")
 
         recommendation = await session_manager.get_renewal_recommendation(session_id)
 
@@ -122,9 +118,7 @@ async def renew_session_intelligently(
 ):
     """Intelligently renew current session - SPEC-045"""
     try:
-        session_id = getattr(
-            request.state, "session_id", f"session_{current_user.user_id}"
-        )
+        session_id = getattr(request.state, "session_id", f"session_{current_user.user_id}")
 
         result = await session_manager.renew_session_intelligently(session_id)
 
@@ -138,9 +132,7 @@ async def renew_session_intelligently(
         return result
 
     except Exception as e:
-        logger.error(
-            "Error renewing session", user_id=current_user.user_id, error=str(e)
-        )
+        logger.error("Error renewing session", user_id=current_user.user_id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -154,9 +146,7 @@ async def track_session_activity(
 ):
     """Track session activity for intelligence - SPEC-045"""
     try:
-        session_id = getattr(
-            request.state, "session_id", f"session_{current_user.user_id}"
-        )
+        session_id = getattr(request.state, "session_id", f"session_{current_user.user_id}")
 
         await track_activity(session_id, activity_type, metadata or {})
 
@@ -232,9 +222,7 @@ async def get_session_status(
 ):
     """Get current session status and health - SPEC-045"""
     try:
-        session_id = getattr(
-            request.state, "session_id", f"session_{current_user.user_id}"
-        )
+        session_id = getattr(request.state, "session_id", f"session_{current_user.user_id}")
 
         analytics = await get_session_analytics(session_id)
 
@@ -259,9 +247,7 @@ async def get_session_status(
         }
 
     except Exception as e:
-        logger.error(
-            "Error getting session status", user_id=current_user.user_id, error=str(e)
-        )
+        logger.error("Error getting session status", user_id=current_user.user_id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -301,9 +287,7 @@ async def get_session_history(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Error getting session history", user_id=current_user.user_id, error=str(e)
-        )
+        logger.error("Error getting session history", user_id=current_user.user_id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -316,9 +300,7 @@ async def cleanup_expired_sessions(
     try:
         # Only allow admins to cleanup sessions
         if not current_user.is_admin:
-            raise HTTPException(
-                status_code=403, detail="Admin access required for session cleanup"
-            )
+            raise HTTPException(status_code=403, detail="Admin access required for session cleanup")
 
         if not session_manager.redis.is_connected:
             raise HTTPException(status_code=500, detail="Redis not connected")
@@ -362,9 +344,7 @@ async def cleanup_expired_sessions(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Error cleaning up sessions", user_id=current_user.user_id, error=str(e)
-        )
+        logger.error("Error cleaning up sessions", user_id=current_user.user_id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 

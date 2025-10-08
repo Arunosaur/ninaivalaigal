@@ -89,9 +89,7 @@ def decompress_gzip(data: bytes, max_size: int = 10 * 1024 * 1024) -> bytes:
     try:
         decompressed = gzip.decompress(data)
         if len(decompressed) > max_size:
-            raise ValueError(
-                f"Decompressed size {len(decompressed)} exceeds limit {max_size}"
-            )
+            raise ValueError(f"Decompressed size {len(decompressed)} exceeds limit {max_size}")
         return decompressed
     except Exception as e:
         raise ValueError(f"Failed to decompress gzip data: {e}")
@@ -102,9 +100,7 @@ def decompress_deflate(data: bytes, max_size: int = 10 * 1024 * 1024) -> bytes:
     try:
         decompressed = zlib.decompress(data)
         if len(decompressed) > max_size:
-            raise ValueError(
-                f"Decompressed size {len(decompressed)} exceeds limit {max_size}"
-            )
+            raise ValueError(f"Decompressed size {len(decompressed)} exceeds limit {max_size}")
         return decompressed
     except Exception as e:
         raise ValueError(f"Failed to decompress deflate data: {e}")
@@ -133,10 +129,6 @@ def strict_compression_guard(app: ASGIApp) -> CompressionGuardMiddleware:
     return CompressionGuardMiddleware(app, strict_mode=True)
 
 
-def permissive_compression_guard(
-    app: ASGIApp, allowed_encodings: set[str] | None = None
-) -> CompressionGuardMiddleware:
+def permissive_compression_guard(app: ASGIApp, allowed_encodings: set[str] | None = None) -> CompressionGuardMiddleware:
     """Permissive compression guard that allows specific encodings."""
-    return CompressionGuardMiddleware(
-        app, strict_mode=False, allowed_encodings=allowed_encodings or {"gzip"}
-    )
+    return CompressionGuardMiddleware(app, strict_mode=False, allowed_encodings=allowed_encodings or {"gzip"})

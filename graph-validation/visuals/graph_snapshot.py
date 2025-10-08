@@ -19,9 +19,7 @@ def draw_graph_from_memories(file="test_data/memories.json"):
 
     pos = nx.spring_layout(G)
     labels = {n: n.split(":")[1] for n in G.nodes()}
-    nx.draw(
-        G, pos, labels=labels, with_labels=True, node_color="lightblue", node_size=1500
-    )
+    nx.draw(G, pos, labels=labels, with_labels=True, node_color="lightblue", node_size=1500)
     plt.title("Memory-Token Relationship Graph")
     plt.savefig("visuals/memory_token_graph.png")
     plt.show()

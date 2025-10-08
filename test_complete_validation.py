@@ -157,9 +157,7 @@ def test_dashboard_access(token):
     print("\n🎛️  Testing Dashboard Access...")
 
     # Test contexts endpoint used by dashboard
-    response = requests.get(
-        f"{BASE_URL}/contexts", headers={"Authorization": f"Bearer {token}"}
-    )
+    response = requests.get(f"{BASE_URL}/contexts", headers={"Authorization": f"Bearer {token}"})
 
     if response.status_code == 200:
         result = response.json()

@@ -74,9 +74,7 @@ class TestMetricsLabelGuardConfig:
 
     def test_custom_config(self):
         """Test custom configuration values."""
-        config = MetricsLabelGuardConfig(
-            max_route_templates=50, max_reason_buckets=25, strict_mode=False
-        )
+        config = MetricsLabelGuardConfig(max_route_templates=50, max_reason_buckets=25, strict_mode=False)
 
         assert config.max_route_templates == 50
         assert config.max_reason_buckets == 25
@@ -114,9 +112,7 @@ class TestMetricsLabelGuard:
 
     def test_invalid_route_template_fails(self):
         """Test invalid route template fails validation."""
-        config = MetricsLabelGuardConfig(
-            strict_mode=False
-        )  # Use permissive mode for testing
+        config = MetricsLabelGuardConfig(strict_mode=False)  # Use permissive mode for testing
         guard = MetricsLabelGuard(config)
 
         labels = {"route": "/invalid/concrete/path/123", "reason": "jwt_invalid"}
@@ -129,9 +125,7 @@ class TestMetricsLabelGuard:
 
     def test_invalid_reason_bucket_fails(self):
         """Test invalid reason bucket fails validation."""
-        config = MetricsLabelGuardConfig(
-            strict_mode=False
-        )  # Use permissive mode for testing
+        config = MetricsLabelGuardConfig(strict_mode=False)  # Use permissive mode for testing
         guard = MetricsLabelGuard(config)
 
         labels = {"route": "/memories/{id}", "reason": "invalid_reason_bucket"}
@@ -156,9 +150,7 @@ class TestMetricsLabelGuard:
         result = guard.validate_labels(labels, "test_metric")
 
         assert result["valid"] is False
-        assert any(
-            "exceeds maximum length" in v["message"] for v in result["violations"]
-        )
+        assert any("exceeds maximum length" in v["message"] for v in result["violations"])
 
     def test_user_id_anonymization(self):
         """Test user ID gets anonymized for metrics."""
@@ -206,9 +198,7 @@ class TestMetricsLabelGuard:
         # Add third route template - should exceed bounds
         result3 = guard.validate_labels({"route": "/users/{id}/contexts"}, "metric3")
         assert result3["valid"] is False
-        assert any(
-            v["type"] == "route_cardinality_exceeded" for v in result3["violations"]
-        )
+        assert any(v["type"] == "route_cardinality_exceeded" for v in result3["violations"])
 
     def test_strict_mode_raises_exceptions(self):
         """Test strict mode raises exceptions on violations."""
@@ -238,12 +228,8 @@ class TestMetricsLabelGuard:
         guard = MetricsLabelGuard()
 
         # Add some labels
-        guard.validate_labels(
-            {"route": "/memories/{id}", "reason": "jwt_invalid"}, "metric1"
-        )
-        guard.validate_labels(
-            {"route": "/contexts/{id}/memories", "reason": "rbac_denied"}, "metric2"
-        )
+        guard.validate_labels({"route": "/memories/{id}", "reason": "jwt_invalid"}, "metric1")
+        guard.validate_labels({"route": "/contexts/{id}/memories", "reason": "rbac_denied"}, "metric2")
 
         stats = guard.get_cardinality_stats()
 
@@ -328,9 +314,7 @@ class TestAllowedTemplatesAndBuckets:
         ]
 
         for pattern in valid_patterns:
-            assert guard._route_template_pattern.match(
-                pattern
-            ), f"Pattern {pattern} should be valid"
+            assert guard._route_template_pattern.match(pattern), f"Pattern {pattern} should be valid"
 
         invalid_patterns = [
             "memories/{id}",  # Missing leading slash
@@ -340,9 +324,7 @@ class TestAllowedTemplatesAndBuckets:
         ]
 
         for pattern in invalid_patterns:
-            assert not guard._route_template_pattern.match(
-                pattern
-            ), f"Pattern {pattern} should be invalid"
+            assert not guard._route_template_pattern.match(pattern), f"Pattern {pattern} should be invalid"
 
 
 class TestThreadSafety:
@@ -367,9 +349,7 @@ class TestThreadSafety:
         # Run concurrent validations
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(validate_labels_worker, i) for i in range(50)]
-            results = [
-                future.result() for future in concurrent.futures.as_completed(futures)
-            ]
+            results = [future.result() for future in concurrent.futures.as_completed(futures)]
 
         # All validations should succeed
         assert all(results)

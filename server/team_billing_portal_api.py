@@ -181,9 +181,7 @@ def calculate_usage_meters(team_id: str) -> List[UsageMeter]:
             current_usage=usage_data.get("storage_mb", 2048),
             limit=10240,  # 10GB in MB
             unit="MB",
-            percentage_used=round(
-                (usage_data.get("storage_mb", 2048) / 10240) * 100, 1
-            ),
+            percentage_used=round((usage_data.get("storage_mb", 2048) / 10240) * 100, 1),
             reset_date=datetime.utcnow().replace(day=1) + timedelta(days=32),
         ),
         UsageMeter(
@@ -191,9 +189,7 @@ def calculate_usage_meters(team_id: str) -> List[UsageMeter]:
             current_usage=usage_data.get("api_calls", 15420),
             limit=50000,
             unit="calls",
-            percentage_used=round(
-                (usage_data.get("api_calls", 15420) / 50000) * 100, 1
-            ),
+            percentage_used=round((usage_data.get("api_calls", 15420) / 50000) * 100, 1),
             reset_date=datetime.utcnow().replace(day=1) + timedelta(days=32),
             overage_cost_per_unit=0.001,
         ),
@@ -202,9 +198,7 @@ def calculate_usage_meters(team_id: str) -> List[UsageMeter]:
             current_usage=usage_data.get("memory_tokens", 8750),
             limit=100000,
             unit="tokens",
-            percentage_used=round(
-                (usage_data.get("memory_tokens", 8750) / 100000) * 100, 1
-            ),
+            percentage_used=round((usage_data.get("memory_tokens", 8750) / 100000) * 100, 1),
             reset_date=datetime.utcnow().replace(day=1) + timedelta(days=32),
         ),
     ]
@@ -228,9 +222,7 @@ def get_team_invoices(team_id: str, limit: int = 10) -> List[Invoice]:
                 due_date=datetime.utcnow() - timedelta(days=10),
                 paid_at=datetime.utcnow() - timedelta(days=10),
                 description="Pro Plan - Monthly Subscription",
-                line_items=[
-                    {"description": "Pro Plan", "amount": 29.00, "quantity": 1}
-                ],
+                line_items=[{"description": "Pro Plan", "amount": 29.00, "quantity": 1}],
                 pdf_url="/invoices/in_001.pdf",
             ),
             Invoice(
@@ -244,9 +236,7 @@ def get_team_invoices(team_id: str, limit: int = 10) -> List[Invoice]:
                 due_date=datetime.utcnow() + timedelta(days=10),
                 paid_at=None,
                 description="Pro Plan - Monthly Subscription",
-                line_items=[
-                    {"description": "Pro Plan", "amount": 29.00, "quantity": 1}
-                ],
+                line_items=[{"description": "Pro Plan", "amount": 29.00, "quantity": 1}],
                 pdf_url="/invoices/in_002.pdf",
             ),
         ]
@@ -269,10 +259,7 @@ def get_billing_alerts(team_id: str) -> List[Dict[str, Any]]:
                     "type": "usage_warning",
                     "severity": "high",
                     "title": f"{meter.metric_name} Usage Alert",
-                    "message": (
-                        f"You've used {meter.percentage_used}% of your "
-                        f"{meter.metric_name} limit"
-                    ),
+                    "message": (f"You've used {meter.percentage_used}% of your " f"{meter.metric_name} limit"),
                     "action_required": True,
                     "created_at": datetime.utcnow(),
                 }
@@ -283,10 +270,7 @@ def get_billing_alerts(team_id: str) -> List[Dict[str, Any]]:
                     "type": "usage_warning",
                     "severity": "medium",
                     "title": f"{meter.metric_name} Usage Warning",
-                    "message": (
-                        f"You've used {meter.percentage_used}% of your "
-                        f"{meter.metric_name} limit"
-                    ),
+                    "message": (f"You've used {meter.percentage_used}% of your " f"{meter.metric_name} limit"),
                     "action_required": False,
                     "created_at": datetime.utcnow(),
                 }
@@ -295,9 +279,7 @@ def get_billing_alerts(team_id: str) -> List[Dict[str, Any]]:
     # Check for failed payments
     recent_invoices = get_team_invoices(team_id, 5)
     overdue_invoices = [
-        inv
-        for inv in recent_invoices
-        if inv.status == "open" and inv.due_date and inv.due_date < datetime.utcnow()
+        inv for inv in recent_invoices if inv.status == "open" and inv.due_date and inv.due_date < datetime.utcnow()
     ]
 
     if overdue_invoices:
@@ -372,9 +354,7 @@ async def get_team_billing_dashboard(
 
     # Calculate costs
     total_spent_this_month = sum(
-        inv.amount_paid
-        for inv in recent_invoices
-        if inv.paid_at and inv.paid_at.month == datetime.utcnow().month
+        inv.amount_paid for inv in recent_invoices if inv.paid_at and inv.paid_at.month == datetime.utcnow().month
     )
     projected_monthly_cost = current_plan.price
 
@@ -382,19 +362,13 @@ async def get_team_billing_dashboard(
         team_id=team_id,
         team_name=team.name,
         current_plan=current_plan,
-        subscription_status=(
-            subscription.get("status", "active") if subscription else "inactive"
-        ),
-        next_billing_date=(
-            subscription.get("next_billing_date") if subscription else None
-        ),
+        subscription_status=(subscription.get("status", "active") if subscription else "inactive"),
+        next_billing_date=(subscription.get("next_billing_date") if subscription else None),
         usage_meters=usage_meters,
         recent_invoices=recent_invoices,
         payment_methods=payment_methods,
         billing_alerts=billing_alerts,
-        auto_renewal_enabled=(
-            subscription.get("auto_renewal", True) if subscription else False
-        ),
+        auto_renewal_enabled=(subscription.get("auto_renewal", True) if subscription else False),
         total_spent_this_month=total_spent_this_month,
         projected_monthly_cost=projected_monthly_cost,
     )
@@ -443,17 +417,13 @@ async def upgrade_team_plan(
 
     # Validate new plan
     available_plans = get_available_plans()
-    new_plan = next(
-        (plan for plan in available_plans if plan.id == request.new_plan_id), None
-    )
+    new_plan = next((plan for plan in available_plans if plan.id == request.new_plan_id), None)
     if not new_plan:
         raise HTTPException(status_code=400, detail="Invalid plan ID")
 
     # Get current subscription
     current_subscription = get_team_subscription(team_id)
-    current_plan_id = (
-        current_subscription.get("plan_id", "free") if current_subscription else "free"
-    )
+    current_plan_id = current_subscription.get("plan_id", "free") if current_subscription else "free"
 
     if current_plan_id == request.new_plan_id:
         raise HTTPException(status_code=400, detail="Already on this plan")
@@ -530,9 +500,7 @@ async def download_invoice_pdf(
         raise HTTPException(status_code=403, detail="Access denied")
 
     # Find invoice
-    invoices = get_team_invoices(
-        team_id, 100
-    )  # Get more invoices to find the specific one
+    invoices = get_team_invoices(team_id, 100)  # Get more invoices to find the specific one
     invoice = next((inv for inv in invoices if inv.id == invoice_id), None)
 
     if not invoice:

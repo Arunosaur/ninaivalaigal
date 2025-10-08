@@ -188,12 +188,8 @@ def pytest_configure(config):
 # Skip tests based on environment
 def pytest_collection_modifyitems(config, items):
     """Modify test collection based on environment."""
-    skip_integration = pytest.mark.skip(
-        reason="Integration tests require running services"
-    )
-    skip_performance = pytest.mark.skip(
-        reason="Performance tests require specific setup"
-    )
+    skip_integration = pytest.mark.skip(reason="Integration tests require running services")
+    skip_performance = pytest.mark.skip(reason="Performance tests require specific setup")
 
     for item in items:
         if "integration" in item.keywords:

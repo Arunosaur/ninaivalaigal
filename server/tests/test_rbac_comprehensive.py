@@ -174,9 +174,7 @@ class TestRBACComprehensive:
             "action": "ADMINISTER",
             "justification": "Need to manage team settings for project",
         }
-        response = client.post(
-            "/rbac/access-request", json=access_request, headers=headers
-        )
+        response = client.post("/rbac/access-request", json=access_request, headers=headers)
         # Should create access request
         assert response.status_code in [200, 201]
 
@@ -224,9 +222,7 @@ async def test_async_rbac_operations():
         headers = {"Authorization": f"Bearer {token}"}
 
         # Test async context operations
-        context_response = await ac.post(
-            "/contexts", json={"name": "async-test-context"}, headers=headers
-        )
+        context_response = await ac.post("/contexts", json={"name": "async-test-context"}, headers=headers)
         assert context_response.status_code == 200
 
 

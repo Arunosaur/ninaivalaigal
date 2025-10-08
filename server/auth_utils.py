@@ -59,9 +59,7 @@ def require_role(required_role: str):
         user: Dict[str, Any] = Depends(get_current_user),
     ) -> Dict[str, Any]:
         if user["role"] != required_role:
-            raise HTTPException(
-                status_code=403, detail=f"Access denied. Required role: {required_role}"
-            )
+            raise HTTPException(status_code=403, detail=f"Access denied. Required role: {required_role}")
         return user
 
     return role_checker

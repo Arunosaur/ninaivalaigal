@@ -83,9 +83,7 @@ async def trigger_preloading(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Error triggering preloading", user_id=current_user.user_id, error=str(e)
-        )
+        logger.error("Error triggering preloading", user_id=current_user.user_id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -125,17 +123,13 @@ async def get_preloading_status(
 
 
 @router.get("/memory/{memory_id}")
-async def get_preloaded_memory_endpoint(
-    memory_id: str, current_user: User = Depends(get_current_user)
-):
+async def get_preloaded_memory_endpoint(memory_id: str, current_user: User = Depends(get_current_user)):
     """Get a specific preloaded memory - SPEC-038"""
     try:
         memory = await get_preloaded_memory(current_user.user_id, memory_id)
 
         if not memory:
-            raise HTTPException(
-                status_code=404, detail=f"Preloaded memory {memory_id} not found"
-            )
+            raise HTTPException(status_code=404, detail=f"Preloaded memory {memory_id} not found")
 
         logger.debug(
             "Preloaded memory retrieved",
@@ -172,9 +166,7 @@ async def trigger_background_warming(
     try:
         # Only allow admins to trigger background warming
         if not current_user.is_admin:
-            raise HTTPException(
-                status_code=403, detail="Admin access required for background warming"
-            )
+            raise HTTPException(status_code=403, detail="Admin access required for background warming")
 
         # Add background task for cache warming
         background_tasks.add_task(
@@ -182,9 +174,7 @@ async def trigger_background_warming(
             user_ids=None,  # Will warm for all active users
         )
 
-        logger.info(
-            "Background cache warming triggered", triggered_by=current_user.user_id
-        )
+        logger.info("Background cache warming triggered", triggered_by=current_user.user_id)
 
         return {
             "status": "triggered",
@@ -242,9 +232,7 @@ async def update_preloading_config(
     try:
         # Only allow admins to update configuration
         if not current_user.is_admin:
-            raise HTTPException(
-                status_code=403, detail="Admin access required to update configuration"
-            )
+            raise HTTPException(status_code=403, detail="Admin access required to update configuration")
 
         # Update configuration
         config = preloading_engine.config
@@ -316,9 +304,7 @@ async def get_preloading_stats(
         return stats
 
     except Exception as e:
-        logger.error(
-            "Error getting preloading stats", user_id=current_user.user_id, error=str(e)
-        )
+        logger.error("Error getting preloading stats", user_id=current_user.user_id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -364,9 +350,7 @@ async def clear_preloaded_cache(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Error clearing preloaded cache", user_id=current_user.user_id, error=str(e)
-        )
+        logger.error("Error clearing preloaded cache", user_id=current_user.user_id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 

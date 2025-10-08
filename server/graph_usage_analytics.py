@@ -52,9 +52,7 @@ class GraphUsageAnalytics:
         self.db = db_session
         self.analytics_ttl = 86400  # 24 hours
 
-    async def track_node_access(
-        self, node_id: str, node_type: str, user_id: str, access_type: str = "view"
-    ) -> None:
+    async def track_node_access(self, node_id: str, node_type: str, user_id: str, access_type: str = "view") -> None:
         """Track when a node is accessed"""
 
         # Update usage count
@@ -67,9 +65,7 @@ class GraphUsageAnalytics:
         # Track user-specific access
         user_access_key = f"graph:user_access:{user_id}:{node_id}"
         await self.redis.hincrby(user_access_key, "count", 1)
-        await self.redis.hset(
-            user_access_key, "last_access", datetime.utcnow().isoformat()
-        )
+        await self.redis.hset(user_access_key, "last_access", datetime.utcnow().isoformat())
         await self.redis.hset(user_access_key, "access_type", access_type)
         await self.redis.expire(user_access_key, self.analytics_ttl)
 
@@ -78,9 +74,7 @@ class GraphUsageAnalytics:
         await self.redis.hincrby(hour_key, node_id, 1)
         await self.redis.expire(hour_key, 86400 * 7)  # Keep for 7 days
 
-    async def track_ai_suggestion(
-        self, node_id: str, suggestion_type: str, confidence: float, user_id: str
-    ) -> None:
+    async def track_ai_suggestion(self, node_id: str, suggestion_type: str, confidence: float, user_id: str) -> None:
         """Track when a node is suggested by AI"""
 
         # Update AI suggestion count
@@ -109,9 +103,7 @@ class GraphUsageAnalytics:
 
         await self.redis.expire(confidence_key, self.analytics_ttl)
 
-    async def track_user_feedback(
-        self, node_id: str, user_id: str, feedback_score: float, feedback_type: str
-    ) -> None:
+    async def track_user_feedback(self, node_id: str, user_id: str, feedback_score: float, feedback_type: str) -> None:
         """Track user feedback on nodes"""
 
         # Update feedback metrics
@@ -131,18 +123,14 @@ class GraphUsageAnalytics:
             await self.redis.hset(feedback_key, "avg_feedback", feedback_score)
             await self.redis.hset(feedback_key, "feedback_count", 1)
 
-        await self.redis.hset(
-            feedback_key, "last_feedback", datetime.utcnow().isoformat()
-        )
+        await self.redis.hset(feedback_key, "last_feedback", datetime.utcnow().isoformat())
         await self.redis.expire(feedback_key, self.analytics_ttl)
 
         # Track user-specific feedback
         user_feedback_key = f"graph:user_feedback:{user_id}:{node_id}"
         await self.redis.hset(user_feedback_key, "score", feedback_score)
         await self.redis.hset(user_feedback_key, "type", feedback_type)
-        await self.redis.hset(
-            user_feedback_key, "timestamp", datetime.utcnow().isoformat()
-        )
+        await self.redis.hset(user_feedback_key, "timestamp", datetime.utcnow().isoformat())
         await self.redis.expire(user_feedback_key, self.analytics_ttl)
 
     async def calculate_relevance_score(self, node_id: str) -> float:
@@ -178,9 +166,7 @@ class GraphUsageAnalytics:
         if last_accessed:
             last_access_time = datetime.fromisoformat(last_accessed)
             days_since_access = (datetime.utcnow() - last_access_time).days
-            recency_factor = max(
-                0.1, 1.0 - (days_since_access * 0.1)
-            )  # Decay over time
+            recency_factor = max(0.1, 1.0 - (days_since_access * 0.1))  # Decay over time
 
         # Calculate composite relevance score
         usage_score = min(usage_count / 100.0, 1.0)  # Normalize to 0-1
@@ -229,11 +215,7 @@ class GraphUsageAnalytics:
             node_id=node_id,
             node_type=usage_data.get("node_type", "Unknown"),
             usage_count=usage_count,
-            last_accessed=(
-                datetime.fromisoformat(last_accessed_str)
-                if last_accessed_str
-                else datetime.utcnow()
-            ),
+            last_accessed=(datetime.fromisoformat(last_accessed_str) if last_accessed_str else datetime.utcnow()),
             relevance_score=relevance_score,
             access_frequency=access_frequency,
             user_interactions=usage_count,  # Simplified for now
@@ -241,9 +223,7 @@ class GraphUsageAnalytics:
             feedback_score=float(feedback_data.get("avg_feedback", 0.5)),
         )
 
-    async def analyze_usage_patterns(
-        self, user_id: Optional[str] = None
-    ) -> List[GraphUsageInsight]:
+    async def analyze_usage_patterns(self, user_id: Optional[str] = None) -> List[GraphUsageInsight]:
         """Analyze usage patterns and generate insights"""
 
         insights = []
@@ -279,9 +259,7 @@ class GraphUsageAnalytics:
             )
 
         # Insight 2: Underutilized nodes
-        underutilized = [
-            m for m in node_metrics if m.usage_count > 0 and m.relevance_score < 0.3
-        ]
+        underutilized = [m for m in node_metrics if m.usage_count > 0 and m.relevance_score < 0.3]
         if underutilized:
             insights.append(
                 GraphUsageInsight(
@@ -295,9 +273,7 @@ class GraphUsageAnalytics:
             )
 
         # Insight 3: High AI confidence but low user feedback
-        ai_mismatch = [
-            m for m in node_metrics if m.ai_suggestions > 5 and m.feedback_score < 0.4
-        ]
+        ai_mismatch = [m for m in node_metrics if m.ai_suggestions > 5 and m.feedback_score < 0.4]
         if ai_mismatch:
             insights.append(
                 GraphUsageInsight(
@@ -312,11 +288,7 @@ class GraphUsageAnalytics:
 
         # Insight 4: Trending nodes (high recent activity)
         recent_threshold = datetime.utcnow() - timedelta(days=7)
-        trending = [
-            m
-            for m in node_metrics
-            if m.last_accessed > recent_threshold and m.access_frequency > 2.0
-        ]
+        trending = [m for m in node_metrics if m.last_accessed > recent_threshold and m.access_frequency > 2.0]
         if trending:
             insights.append(
                 GraphUsageInsight(
@@ -553,9 +525,7 @@ async def get_usage_analytics(
         )
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Analytics retrieval failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Analytics retrieval failed: {str(e)}")
 
 
 @router.get("/node/{node_id}/metrics")

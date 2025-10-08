@@ -123,9 +123,7 @@ class TestMemoryProviderMatrix:
             backup_provider = await registry.failover_to_backup(primary_provider)
 
             if backup_provider:
-                logger.info(
-                    f"✅ Failover successful: {primary_provider} → {backup_provider}"
-                )
+                logger.info(f"✅ Failover successful: {primary_provider} → {backup_provider}")
             else:
                 logger.warning("⚠️  No backup provider available")
 
@@ -134,9 +132,7 @@ class TestMemoryProviderMatrix:
                 provider_name = provider_info["name"]
                 health_check = await registry.health_check_provider(provider_name)
 
-                logger.info(
-                    f"Provider {provider_name} health: {'✅' if health_check else '❌'}"
-                )
+                logger.info(f"Provider {provider_name} health: {'✅' if health_check else '❌'}")
 
             # Test 3: Auto-discovery validation
             discovered_providers = await registry.list_providers()
@@ -175,9 +171,7 @@ class TestMemoryProviderMatrix:
                 source_ip="127.0.0.1",
             )
 
-            assert result[
-                "registration_successful"
-            ], "Secure provider registration failed"
+            assert result["registration_successful"], "Secure provider registration failed"
             logger.info("✅ Secure provider registration working")
 
             # Test API key generation
@@ -232,9 +226,7 @@ class TestMemorySharingMatrix:
                 visibility_level=VisibilityLevel.SHARED,
             )
 
-            user_contract = await contract_manager.create_sharing_contract(
-                user_share_request, alice_scope, 1
-            )
+            user_contract = await contract_manager.create_sharing_contract(user_share_request, alice_scope, 1)
 
             assert user_contract.status.value in [
                 "pending",
@@ -250,9 +242,7 @@ class TestMemorySharingMatrix:
                 visibility_level=VisibilityLevel.TEAM,
             )
 
-            team_contract = await contract_manager.create_sharing_contract(
-                team_share_request, alice_scope, 1
-            )
+            team_contract = await contract_manager.create_sharing_contract(team_share_request, alice_scope, 1)
 
             assert team_contract.status.value in [
                 "pending",
@@ -268,9 +258,7 @@ class TestMemorySharingMatrix:
                 visibility_level=VisibilityLevel.ORG,
             )
 
-            org_contract = await contract_manager.create_sharing_contract(
-                org_share_request, team_scope, 1
-            )
+            org_contract = await contract_manager.create_sharing_contract(org_share_request, team_scope, 1)
 
             assert org_contract.status.value in [
                 "pending",
@@ -283,9 +271,7 @@ class TestMemorySharingMatrix:
                 "test_memory_user_123", 2, bob_scope, SharePermission.VIEW
             )
 
-            logger.info(
-                f"✅ Access permission check: {'granted' if has_access else 'denied'}"
-            )
+            logger.info(f"✅ Access permission check: {'granted' if has_access else 'denied'}")
 
         except Exception as e:
             logger.error(f"❌ Cross-scope sharing test failed: {e}")
@@ -310,15 +296,11 @@ class TestMemorySharingMatrix:
                 duration_minutes=5,  # 5 minute access
             )
 
-            assert (
-                time_grant.status.value == "active"
-            ), "Time-limited access not activated"
+            assert time_grant.status.value == "active", "Time-limited access not activated"
             logger.info("✅ Time-limited access grant created")
 
             # Test 2: Session-based access
-            session = await temporal_manager.create_access_session(
-                user_id=2, scope=bob_scope, duration_minutes=10
-            )
+            session = await temporal_manager.create_access_session(user_id=2, scope=bob_scope, duration_minutes=10)
 
             session_grant = await temporal_manager.create_temporal_access(
                 memory_id="test_memory_session_456",
@@ -329,9 +311,7 @@ class TestMemorySharingMatrix:
                 session_duration_minutes=10,
             )
 
-            assert (
-                session_grant.status.value == "active"
-            ), "Session-based access not activated"
+            assert session_grant.status.value == "active", "Session-based access not activated"
             logger.info("✅ Session-based access grant created")
 
             # Test 3: Access permission with session
@@ -345,14 +325,10 @@ class TestMemorySharingMatrix:
             # Test 4: Access revocation
             from memory.temporal_access import RevocationReason
 
-            revoked = await temporal_manager.revoke_access(
-                time_grant.grant_id, 1, RevocationReason.USER_REQUEST
-            )
+            revoked = await temporal_manager.revoke_access(time_grant.grant_id, 1, RevocationReason.USER_REQUEST)
 
             assert revoked, "Access revocation failed"
-            assert (
-                time_grant.status.value == "revoked"
-            ), "Grant status not updated to revoked"
+            assert time_grant.status.value == "revoked", "Grant status not updated to revoked"
             logger.info("✅ Access revocation working")
 
             await temporal_manager.stop_cleanup_service()
@@ -405,9 +381,7 @@ class TestAuditTrailMatrix:
                 ip_address="192.168.1.100",
             )
 
-            assert (
-                access_event.event_type == AuditEventType.MEMORY_ACCESSED
-            ), "Access event type incorrect"
+            assert access_event.event_type == AuditEventType.MEMORY_ACCESSED, "Access event type incorrect"
             logger.info("✅ Memory access audit logged")
 
             # Test 3: Transfer record creation
@@ -420,9 +394,7 @@ class TestAuditTrailMatrix:
                 transfer_reason="Test ownership transfer",
             )
 
-            assert (
-                transfer.status == "pending"
-            ), "Transfer record not created with pending status"
+            assert transfer.status == "pending", "Transfer record not created with pending status"
             logger.info("✅ Transfer record created")
 
             # Test 4: Audit query functionality
@@ -445,14 +417,10 @@ class TestAuditTrailMatrix:
             start_date = datetime.now(timezone.utc) - timedelta(hours=1)
             end_date = datetime.now(timezone.utc)
 
-            report = await audit_logger.generate_compliance_report(
-                alice_scope, start_date, end_date
-            )
+            report = await audit_logger.generate_compliance_report(alice_scope, start_date, end_date)
 
             assert "summary" in report, "Compliance report missing summary"
-            assert (
-                report["summary"]["total_events"] > 0
-            ), "Compliance report shows no events"
+            assert report["summary"]["total_events"] > 0, "Compliance report shows no events"
             logger.info("✅ Compliance report generated")
 
             await audit_logger.stop_services()
@@ -539,26 +507,18 @@ class TestAPIEndpointMatrix:
 
             if response.status_code == 200:
                 health_data = response.json()
-                logger.info(
-                    f"✅ Provider health API: {health_data.get('status', 'unknown')} status"
-                )
+                logger.info(f"✅ Provider health API: {health_data.get('status', 'unknown')} status")
             else:
-                logger.warning(
-                    f"⚠️  Provider health API returned {response.status_code}"
-                )
+                logger.warning(f"⚠️  Provider health API returned {response.status_code}")
 
             # Test 3: Failover statistics
-            response = await self.matrix.api_client.get(
-                "/providers/failover/statistics"
-            )
+            response = await self.matrix.api_client.get("/providers/failover/statistics")
 
             if response.status_code == 200:
                 stats = response.json()
                 logger.info("✅ Failover statistics API working")
             else:
-                logger.warning(
-                    f"⚠️  Failover statistics API returned {response.status_code}"
-                )
+                logger.warning(f"⚠️  Failover statistics API returned {response.status_code}")
 
         except Exception as e:
             logger.error(f"❌ Provider management API test failed: {e}")
@@ -584,9 +544,7 @@ class TestAPIEndpointMatrix:
                     if response.status_code == 200:
                         logger.info(f"✅ Health endpoint {endpoint}: OK")
                     else:
-                        logger.warning(
-                            f"⚠️  Health endpoint {endpoint}: {response.status_code}"
-                        )
+                        logger.warning(f"⚠️  Health endpoint {endpoint}: {response.status_code}")
 
                 except Exception as e:
                     logger.warning(f"⚠️  Health endpoint {endpoint}: {e}")
@@ -646,9 +604,7 @@ class TestFailureSimulationMatrix:
             async def create_test_contract(user_id: int, memory_id: str):
                 contract_manager = MemorySharingContractManager()
 
-                alice_scope = ScopeIdentifier(
-                    ScopeType.USER, str(user_id), f"User{user_id}"
-                )
+                alice_scope = ScopeIdentifier(ScopeType.USER, str(user_id), f"User{user_id}")
                 bob_scope = ScopeIdentifier(ScopeType.USER, "999", "SharedUser")
 
                 from memory.sharing_contracts import (
@@ -664,9 +620,7 @@ class TestFailureSimulationMatrix:
                     visibility_level=VisibilityLevel.SHARED,
                 )
 
-                return await contract_manager.create_sharing_contract(
-                    share_request, alice_scope, user_id
-                )
+                return await contract_manager.create_sharing_contract(share_request, alice_scope, user_id)
 
             # Create multiple contracts concurrently
             tasks = []
@@ -676,12 +630,8 @@ class TestFailureSimulationMatrix:
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            successful_contracts = sum(
-                1 for r in results if not isinstance(r, Exception)
-            )
-            logger.info(
-                f"✅ Concurrent contract creation: {successful_contracts}/5 successful"
-            )
+            successful_contracts = sum(1 for r in results if not isinstance(r, Exception))
+            logger.info(f"✅ Concurrent contract creation: {successful_contracts}/5 successful")
 
         except Exception as e:
             logger.error(f"❌ Concurrent access test failed: {e}")
@@ -748,9 +698,7 @@ async def run_comprehensive_test_matrix():
                 logger.error(f"❌ {category_name} failed: {e}")
 
         test_results["end_time"] = datetime.now(timezone.utc)
-        test_results["duration_seconds"] = (
-            test_results["end_time"] - test_results["start_time"]
-        ).total_seconds()
+        test_results["duration_seconds"] = (test_results["end_time"] - test_results["start_time"]).total_seconds()
 
         # Generate test report
         await _generate_test_report(test_results)

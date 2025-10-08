@@ -28,6 +28,4 @@ def run(config):
     avg_quality = total_quality / len(expected_paths)
     print(f"✅ Path Quality: {avg_quality:.2f}")
 
-    assert (
-        avg_quality >= config["thresholds"]["path_quality"]
-    ), "❌ Path quality below threshold!"
+    assert avg_quality >= config["thresholds"]["path_quality"], "❌ Path quality below threshold!"

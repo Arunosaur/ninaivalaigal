@@ -228,9 +228,7 @@ class TestRedisSmoke:
 
             # Check Redis version (expecting 7.x)
             redis_version = info["redis_version"]
-            assert redis_version.startswith(
-                "7."
-            ), f"Expected Redis 7.x, got {redis_version}"
+            assert redis_version.startswith("7."), f"Expected Redis 7.x, got {redis_version}"
 
         except Exception as e:
             pytest.fail(f"Redis info test failed: {e}")

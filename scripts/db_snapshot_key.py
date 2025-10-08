@@ -3,10 +3,7 @@ import hashlib
 
 
 def hash_migrations():
-    paths = sorted(
-        glob.glob("alembic/versions/*.py")
-        + glob.glob("server/memory/db/migrations/*.sql")
-    )
+    paths = sorted(glob.glob("alembic/versions/*.py") + glob.glob("server/memory/db/migrations/*.sql"))
     h = hashlib.sha256()
     if not paths:
         return "no-migrations"

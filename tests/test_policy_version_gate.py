@@ -17,9 +17,7 @@ class PolicyVersionGate:
     """Policy version gate requiring explicit approval for changes."""
 
     # Expected policy hash - update this when policy changes are approved
-    EXPECTED_POLICY_HASH = (
-        "b974dd1d500e937930c1ad6333d8b5d72611f153d765f4e63606a1cc736ec162"
-    )
+    EXPECTED_POLICY_HASH = "b974dd1d500e937930c1ad6333d8b5d72611f153d765f4e63606a1cc736ec162"
 
     @classmethod
     def get_current_policy_hash(cls) -> str:
@@ -75,8 +73,7 @@ class PolicyVersionGate:
 
         if not result["gate_passed"]:
             result["error"] = (
-                "Policy hash mismatch detected. "
-                "Set ALLOW_POLICY_HASH_CHANGE=true to allow policy changes."
+                "Policy hash mismatch detected. " "Set ALLOW_POLICY_HASH_CHANGE=true to allow policy changes."
             )
 
         return result
@@ -173,9 +170,7 @@ def simulate_policy_change_workflow():
 
         # Step 4: Re-check gate
         gate_result_after = PolicyVersionGate.check_policy_version_gate()
-        workflow_steps.append(
-            {"step": "recheck_after_env_var", "result": gate_result_after}
-        )
+        workflow_steps.append({"step": "recheck_after_env_var", "result": gate_result_after})
 
         # Step 5: Update expected hash (in real workflow, this would be a code change)
         workflow_steps.append(
@@ -218,6 +213,4 @@ if __name__ == "__main__":
     print("\nPolicy Change Workflow Simulation:")
     workflow = simulate_policy_change_workflow()
     for i, step in enumerate(workflow["steps"], 1):
-        print(
-            f"{i}. {step['step']}: {step.get('result', step.get('action', step.get('note', 'completed')))}"
-        )
+        print(f"{i}. {step['step']}: {step.get('result', step.get('action', step.get('note', 'completed')))}")

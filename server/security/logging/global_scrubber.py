@@ -130,11 +130,7 @@ class GlobalLogScrubber:
 
         try:
             data = json.loads(json_str)
-            scrubbed_data = (
-                self.scrub_dict(data)
-                if isinstance(data, dict)
-                else self.scrub_list(data)
-            )
+            scrubbed_data = self.scrub_dict(data) if isinstance(data, dict) else self.scrub_list(data)
             return json.dumps(scrubbed_data)
         except (json.JSONDecodeError, TypeError):
             # Fallback to text scrubbing if JSON parsing fails
@@ -170,9 +166,7 @@ def scrub_json(json_str: str) -> str:
     return _global_scrubber.scrub_json(json_str)
 
 
-def add_scrub_pattern(
-    name: str, pattern: Pattern[str], replacement: str, confidence: float = 1.0
-):
+def add_scrub_pattern(name: str, pattern: Pattern[str], replacement: str, confidence: float = 1.0):
     """Add a pattern to the global scrubber."""
     _global_scrubber.add_pattern(name, pattern, replacement, confidence)
 

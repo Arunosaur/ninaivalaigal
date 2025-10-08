@@ -181,20 +181,14 @@ class TemporalAccessManager:
                 grant.duration_minutes = kwargs.get("duration_minutes", 60)
                 grant.expires_at = kwargs.get("expires_at")
                 if not grant.expires_at and grant.duration_minutes:
-                    grant.expires_at = datetime.now(timezone.utc) + timedelta(
-                        minutes=grant.duration_minutes
-                    )
+                    grant.expires_at = datetime.now(timezone.utc) + timedelta(minutes=grant.duration_minutes)
 
             elif access_type == AccessType.USAGE_LIMITED:
                 grant.usage_limit = kwargs.get("usage_limit", 1)
 
             elif access_type == AccessType.SESSION_BASED:
-                session_duration = kwargs.get(
-                    "session_duration_minutes", 480
-                )  # 8 hours default
-                grant.session_expires_at = datetime.now(timezone.utc) + timedelta(
-                    minutes=session_duration
-                )
+                session_duration = kwargs.get("session_duration_minutes", 480)  # 8 hours default
+                grant.session_expires_at = datetime.now(timezone.utc) + timedelta(minutes=session_duration)
 
             elif access_type == AccessType.CONDITIONAL:
                 grant.conditions = kwargs.get("conditions", {})
@@ -214,9 +208,7 @@ class TemporalAccessManager:
             # Store grant
             self.access_grants[grant_id] = grant
 
-            logger.info(
-                f"Created temporal access grant {grant_id} for memory {memory_id}"
-            )
+            logger.info(f"Created temporal access grant {grant_id} for memory {memory_id}")
             return grant
 
         except Exception as e:
@@ -238,10 +230,7 @@ class TemporalAccessManager:
             matching_grants = [
                 grant
                 for grant in self.access_grants.values()
-                if (
-                    grant.memory_id == memory_id
-                    and self._scope_matches(grant.grantee_scope, accessing_scope)
-                )
+                if (grant.memory_id == memory_id and self._scope_matches(grant.grantee_scope, accessing_scope))
             ]
 
             for grant in matching_grants:
@@ -279,16 +268,12 @@ class TemporalAccessManager:
 
                 # Check recurring access windows
                 if grant.access_type == AccessType.RECURRING:
-                    if not await self._is_in_access_window(
-                        grant.grant_id, current_time
-                    ):
+                    if not await self._is_in_access_window(grant.grant_id, current_time):
                         continue
 
                 # Check conditional access
                 if grant.access_type == AccessType.CONDITIONAL:
-                    if not await self._check_access_conditions(
-                        grant, accessing_user_id
-                    ):
+                    if not await self._check_access_conditions(grant, accessing_user_id):
                         continue
 
                 # Access granted - update tracking
@@ -351,8 +336,7 @@ class TemporalAccessManager:
                 user_id=user_id,
                 scope=scope,
                 created_at=datetime.now(timezone.utc),
-                expires_at=datetime.now(timezone.utc)
-                + timedelta(minutes=duration_minutes),
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=duration_minutes),
                 last_activity_at=datetime.now(timezone.utc),
                 metadata=metadata or {},
             )
@@ -438,19 +422,11 @@ class TemporalAccessManager:
                     "access_type": grant.access_type.value,
                     "status": grant.status.value,
                     "created_at": grant.created_at.isoformat(),
-                    "starts_at": (
-                        grant.starts_at.isoformat() if grant.starts_at else None
-                    ),
-                    "expires_at": (
-                        grant.expires_at.isoformat() if grant.expires_at else None
-                    ),
+                    "starts_at": (grant.starts_at.isoformat() if grant.starts_at else None),
+                    "expires_at": (grant.expires_at.isoformat() if grant.expires_at else None),
                     "usage_count": grant.usage_count,
                     "usage_limit": grant.usage_limit,
-                    "last_accessed_at": (
-                        grant.last_accessed_at.isoformat()
-                        if grant.last_accessed_at
-                        else None
-                    ),
+                    "last_accessed_at": (grant.last_accessed_at.isoformat() if grant.last_accessed_at else None),
                 }
 
                 grants.append(grant_info)
@@ -466,9 +442,7 @@ class TemporalAccessManager:
     ) -> Dict[str, Any]:
         """Get temporal access statistics"""
         try:
-            cutoff_time = datetime.now(timezone.utc) - timedelta(
-                hours=time_window_hours
-            )
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=time_window_hours)
 
             stats = {
                 "total_grants": 0,
@@ -504,16 +478,12 @@ class TemporalAccessManager:
 
                 # Count by access type
                 access_type = grant.access_type.value
-                stats["access_types"][access_type] = (
-                    stats["access_types"].get(access_type, 0) + 1
-                )
+                stats["access_types"][access_type] = stats["access_types"].get(access_type, 0) + 1
 
                 # Count revocation reasons
                 if grant.revocation_reason:
                     reason = grant.revocation_reason.value
-                    stats["revocation_reasons"][reason] = (
-                        stats["revocation_reasons"].get(reason, 0) + 1
-                    )
+                    stats["revocation_reasons"][reason] = stats["revocation_reasons"].get(reason, 0) + 1
 
             stats["unique_memories"] = len(stats["unique_memories"])
             return stats
@@ -559,9 +529,7 @@ class TemporalAccessManager:
         except Exception as e:
             logger.error(f"Failed to track access: {e}")
 
-    async def _create_access_windows(
-        self, grant_id: str, windows_config: List[Dict[str, Any]]
-    ) -> None:
+    async def _create_access_windows(self, grant_id: str, windows_config: List[Dict[str, Any]]) -> None:
         """Create recurring access windows"""
         try:
             windows = []
@@ -607,9 +575,7 @@ class TemporalAccessManager:
             logger.error(f"Failed to check access window: {e}")
             return False
 
-    async def _check_access_conditions(
-        self, grant: TemporalAccessGrant, user_id: int
-    ) -> bool:
+    async def _check_access_conditions(self, grant: TemporalAccessGrant, user_id: int) -> bool:
         """Check conditional access requirements"""
         try:
             conditions = grant.conditions
@@ -639,10 +605,7 @@ class TemporalAccessManager:
 
     def _scope_matches(self, scope1: ScopeIdentifier, scope2: ScopeIdentifier) -> bool:
         """Check if two scopes match"""
-        return (
-            scope1.scope_type == scope2.scope_type
-            and scope1.scope_id == scope2.scope_id
-        )
+        return scope1.scope_type == scope2.scope_type and scope1.scope_id == scope2.scope_id
 
     async def _cleanup_loop(self) -> None:
         """Background cleanup loop for expired access"""
@@ -672,9 +635,7 @@ class TemporalAccessManager:
 
             # Clean up expired sessions
             expired_sessions = [
-                session_id
-                for session_id, session in self.active_sessions.items()
-                if current_time > session.expires_at
+                session_id for session_id, session in self.active_sessions.items() if current_time > session.expires_at
             ]
 
             for session_id in expired_sessions:

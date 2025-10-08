@@ -12,9 +12,7 @@ import pytest
 
 # Set up test environment
 os.environ["MEMORY_PROVIDER"] = "native"
-os.environ["NINAIVALAIGAL_DATABASE_URL"] = (
-    "postgresql://nina:change_me_securely@localhost:5433/nina"
-)
+os.environ["NINAIVALAIGAL_DATABASE_URL"] = "postgresql://nina:change_me_securely@localhost:5433/nina"
 
 from server.memory import get_memory_provider
 from server.memory.factory import reset_memory_provider
@@ -80,9 +78,7 @@ class TestPostgresMemoryProvider:
         assert "id" in memory
 
         # Recall the memory
-        results = await provider.recall(
-            query="SPEC-012", k=5, user_id=1, context_id="test-context"
-        )
+        results = await provider.recall(query="SPEC-012", k=5, user_id=1, context_id="test-context")
 
         assert len(results) > 0
         found = any(r["id"] == memory["id"] for r in results)
@@ -101,9 +97,7 @@ class TestPostgresMemoryProvider:
             )
 
         # List memories
-        memories = await provider.list_memories(
-            user_id=2, context_id="list-test", limit=10, offset=0
-        )
+        memories = await provider.list_memories(user_id=2, context_id="list-test", limit=10, offset=0)
 
         assert len(memories) >= 3
         # Should be ordered by created_at DESC
@@ -136,9 +130,7 @@ class TestMem0HttpMemoryProvider:
     @pytest.fixture
     def provider(self):
         """Create an HTTP provider for testing"""
-        return Mem0HttpMemoryProvider(
-            base_url="http://localhost:7070", auth_secret="test-secret"
-        )
+        return Mem0HttpMemoryProvider(base_url="http://localhost:7070", auth_secret="test-secret")
 
     @pytest.mark.asyncio
     async def test_remember_mock(self, provider):
@@ -148,9 +140,7 @@ class TestMem0HttpMemoryProvider:
         mock_response.raise_for_status = AsyncMock()
 
         with patch.object(provider.client, "post", return_value=mock_response):
-            memory = await provider.remember(
-                text="Test HTTP memory", meta={"source": "http"}, user_id=1
-            )
+            memory = await provider.remember(text="Test HTTP memory", meta={"source": "http"}, user_id=1)
 
             assert memory["text"] == "Test HTTP memory"
             assert memory["meta"]["source"] == "http"

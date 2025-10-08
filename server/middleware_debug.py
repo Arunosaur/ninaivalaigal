@@ -66,9 +66,7 @@ class MiddlewareDebugger:
 
         except Exception as e:
             duration = time.time() - start_time
-            print(
-                f"❌ [{request_id}] ERROR: {method} {path} ({duration:.3f}s) - {str(e)}"
-            )
+            print(f"❌ [{request_id}] ERROR: {method} {path} ({duration:.3f}s) - {str(e)}")
             return JSONResponse(
                 status_code=500,
                 content={
@@ -180,17 +178,11 @@ class RedisCallTracker:
                         print(f"🔴 REDIS GET called from {path}")
                         start = time.time()
                         try:
-                            result = await asyncio.wait_for(
-                                original_redis_get(self, *args, **kwargs), timeout=2.0
-                            )
-                            print(
-                                f"✅ REDIS GET completed ({time.time() - start:.3f}s)"
-                            )
+                            result = await asyncio.wait_for(original_redis_get(self, *args, **kwargs), timeout=2.0)
+                            print(f"✅ REDIS GET completed ({time.time() - start:.3f}s)")
                             return result
                         except asyncio.TimeoutError:
-                            print(
-                                f"⏰ REDIS GET timeout after {time.time() - start:.3f}s"
-                            )
+                            print(f"⏰ REDIS GET timeout after {time.time() - start:.3f}s")
                             raise
                         except Exception as e:
                             print(f"❌ REDIS GET error: {e}")
@@ -258,9 +250,7 @@ def create_emergency_auth_bypass(app):
         email = data.get("email", "")
         password = data.get("password", "")  # pragma: allowlist secret
 
-        if (
-            email == "test@ninaivalaigal.com" and password == "test"
-        ):  # pragma: allowlist secret
+        if email == "test@ninaivalaigal.com" and password == "test":  # pragma: allowlist secret
             return {
                 "success": True,
                 "message": "Emergency login successful!",
@@ -288,8 +278,6 @@ def create_emergency_auth_bypass(app):
 if __name__ == "__main__":
     print("Middleware Debug Tool")
     print("Usage:")
-    print(
-        "  from middleware_debug import add_all_debugging, create_emergency_auth_bypass"
-    )
+    print("  from middleware_debug import add_all_debugging, create_emergency_auth_bypass")
     print("  add_all_debugging(app)")
     print("  create_emergency_auth_bypass(app)")

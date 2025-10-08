@@ -15,9 +15,7 @@ class TestAPIEndpoints:
     def test_memory_crud_flow(self, client, test_memory_data, auth_headers):
         """Test complete memory CRUD flow."""
         # Create memory
-        response = client.post(
-            "/api/memories", json=test_memory_data, headers=auth_headers
-        )
+        response = client.post("/api/memories", json=test_memory_data, headers=auth_headers)
         assert response.status_code in [200, 201]
 
         # Get memories

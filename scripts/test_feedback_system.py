@@ -75,28 +75,20 @@ class FeedbackSystemTester:
             }
 
             start_time = time.time()
-            response = self.session.post(
-                f"{API_BASE_URL}/feedback/dwell", json=dwell_payload
-            )
+            response = self.session.post(f"{API_BASE_URL}/feedback/dwell", json=dwell_payload)
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Implicit feedback endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "dwell_feedback_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["dwell_feedback_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Implicit feedback recorded: {data['event_id']}")
-                self.results["performance_metrics"][
-                    "dwell_feedback_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["dwell_feedback_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Implicit feedback failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Implicit feedback failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -117,28 +109,20 @@ class FeedbackSystemTester:
             }
 
             start_time = time.time()
-            response = self.session.post(
-                f"{API_BASE_URL}/feedback/rate", json=rating_payload
-            )
+            response = self.session.post(f"{API_BASE_URL}/feedback/rate", json=rating_payload)
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Explicit feedback endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "rating_feedback_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["rating_feedback_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Explicit feedback recorded: {data['event_id']}")
-                self.results["performance_metrics"][
-                    "rating_feedback_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["rating_feedback_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Explicit feedback failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Explicit feedback failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -151,34 +135,24 @@ class FeedbackSystemTester:
             self.log("Testing feedback score retrieval...")
 
             start_time = time.time()
-            response = self.session.get(
-                f"{API_BASE_URL}/feedback/memory/{TEST_MEMORY_ID}/score"
-            )
+            response = self.session.get(f"{API_BASE_URL}/feedback/memory/{TEST_MEMORY_ID}/score")
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Feedback score endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "score_retrieval_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["score_retrieval_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Feedback score retrieved: {data}")
-                self.results["performance_metrics"][
-                    "score_retrieval_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["score_retrieval_response_time"] = response_time
                 return True
             elif response.status_code == 404:
                 self.log("✅ No feedback score found (expected for new memory)")
-                self.results["performance_metrics"][
-                    "score_retrieval_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["score_retrieval_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Score retrieval failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Score retrieval failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -196,21 +170,15 @@ class FeedbackSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Feedback stats endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "stats_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["stats_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Feedback stats retrieved: {data}")
-                self.results["performance_metrics"][
-                    "stats_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["stats_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Stats retrieval failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Stats retrieval failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -240,9 +208,7 @@ class FeedbackSystemTester:
                         accessible_count += 1
                         self.log(f"✅ Endpoint accessible: {endpoint}")
                     else:
-                        self.log(
-                            f"❌ Endpoint issue: {endpoint} - {response.status_code}"
-                        )
+                        self.log(f"❌ Endpoint issue: {endpoint} - {response.status_code}")
                 except Exception as e:
                     self.log(f"❌ Endpoint error: {endpoint} - {str(e)}")
 
@@ -277,12 +243,8 @@ class FeedbackSystemTester:
             avg_response_time = sum(request_times) / len(request_times)
             max_response_time = max(request_times)
 
-            self.results["performance_metrics"][
-                "avg_health_response_time"
-            ] = avg_response_time
-            self.results["performance_metrics"][
-                "max_health_response_time"
-            ] = max_response_time
+            self.results["performance_metrics"]["avg_health_response_time"] = avg_response_time
+            self.results["performance_metrics"]["max_health_response_time"] = max_response_time
 
             # Performance targets
             if avg_response_time < 50:  # 50ms target

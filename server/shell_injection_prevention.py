@@ -105,9 +105,7 @@ class ShellInjectionPrevention:
 
         return True
 
-    def safe_subprocess_run(
-        self, command: str | list[str], **kwargs
-    ) -> subprocess.CompletedProcess:
+    def safe_subprocess_run(self, command: str | list[str], **kwargs) -> subprocess.CompletedProcess:
         """Safely execute subprocess with injection prevention"""
 
         # Convert string command to list if needed
@@ -225,9 +223,7 @@ class GitCommandSanitizer(ShellInjectionPrevention):
             "stash",
         }
 
-    def safe_git_command(
-        self, git_args: list[str], **kwargs
-    ) -> subprocess.CompletedProcess:
+    def safe_git_command(self, git_args: list[str], **kwargs) -> subprocess.CompletedProcess:
         """Execute git command safely"""
         if not git_args:
             raise ValueError("No git command specified")

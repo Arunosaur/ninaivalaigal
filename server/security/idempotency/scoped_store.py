@@ -25,9 +25,7 @@ class IdempotencyScope:
 class ScopedIdempotencyStore(Protocol):
     """Protocol for scoped idempotency key storage."""
 
-    async def get_scoped(
-        self, key: str, scope: IdempotencyScope
-    ) -> dict[str, Any] | None:
+    async def get_scoped(self, key: str, scope: IdempotencyScope) -> dict[str, Any] | None:
         """Get stored response for scoped idempotency key."""
         ...
 
@@ -80,9 +78,7 @@ class IdempotencyKeyGenerator:
         return hashlib.sha256(scoped_key.encode()).hexdigest()
 
     @staticmethod
-    def extract_path_template(
-        path: str, route_patterns: dict[str, str] | None = None
-    ) -> str:
+    def extract_path_template(path: str, route_patterns: dict[str, str] | None = None) -> str:
         """
         Extract path template from actual path for consistent scoping.
 
@@ -104,9 +100,7 @@ class IdempotencyKeyGenerator:
 
         # Replace UUID patterns
         uuid_pattern = r"/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-        path_template = re.sub(
-            uuid_pattern, "/{uuid}", path_template, flags=re.IGNORECASE
-        )
+        path_template = re.sub(uuid_pattern, "/{uuid}", path_template, flags=re.IGNORECASE)
 
         # Replace common ID patterns
         path_template = re.sub(r"/[a-zA-Z0-9_-]{20,}", "/{long_id}", path_template)
@@ -123,9 +117,7 @@ class IdempotencyKeyGenerator:
         additional_context: dict[str, str] | None = None,
     ) -> IdempotencyScope:
         """Create idempotency scope from request context."""
-        path_template = IdempotencyKeyGenerator.extract_path_template(
-            path, route_patterns
-        )
+        path_template = IdempotencyKeyGenerator.extract_path_template(path, route_patterns)
 
         return IdempotencyScope(
             method=method,
@@ -142,9 +134,7 @@ class ScopedMemoryStore:
     def __init__(self):
         self._store: dict[str, dict[str, Any]] = {}
 
-    async def get_scoped(
-        self, key: str, scope: IdempotencyScope
-    ) -> dict[str, Any] | None:
+    async def get_scoped(self, key: str, scope: IdempotencyScope) -> dict[str, Any] | None:
         scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
         return self._store.get(scoped_key)
 
@@ -171,10 +161,7 @@ class ScopedMemoryStore:
         return {
             "total_keys": len(self._store),
             "scopes": list(
-                set(
-                    data.get("_scope", {}).get("path_template", "unknown")
-                    for data in self._store.values()
-                )
+                set(data.get("_scope", {}).get("path_template", "unknown") for data in self._store.values())
             ),
         }
 
@@ -186,9 +173,7 @@ class ScopedRedisStore:
         self.redis = redis_client
         self.key_prefix = key_prefix
 
-    async def get_scoped(
-        self, key: str, scope: IdempotencyScope
-    ) -> dict[str, Any] | None:
+    async def get_scoped(self, key: str, scope: IdempotencyScope) -> dict[str, Any] | None:
         try:
             scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
             full_key = f"{self.key_prefix}{scoped_key}"

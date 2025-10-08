@@ -72,9 +72,7 @@ def _has_high_entropy(text: str, threshold: float = 4.0) -> bool:
     # Calculate Shannon entropy
     counts = Counter(text)
     length = len(text)
-    entropy = -sum(
-        (count / length) * math.log2(count / length) for count in counts.values()
-    )
+    entropy = -sum((count / length) * math.log2(count / length) for count in counts.values())
 
     return entropy > threshold
 

@@ -123,9 +123,7 @@ class WebhookFailureScenarios:
 
             # Simulate webhook timeout by adding delay
             with patch("time.sleep") as mock_sleep:
-                mock_sleep.side_effect = lambda x: time.sleep(
-                    0.1
-                )  # Reduce actual sleep time
+                mock_sleep.side_effect = lambda x: time.sleep(0.1)  # Reduce actual sleep time
 
                 response = self.framework.client.post(
                     "/billing-console/stripe-webhook",
@@ -283,9 +281,7 @@ class WebhookFailureScenarios:
             )
 
         except Exception as e:
-            test_results.append(
-                {"test": "webhook_retry_mechanism", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "webhook_retry_mechanism", "status": "ERROR", "error": str(e)})
 
         return test_results
 
@@ -317,9 +313,7 @@ class PaymentRetryScenarios:
                 "is_retryable": True,
             }
 
-            response = self.framework.client.post(
-                "/invoicing/payment-failures", json=failure_data, headers=headers
-            )
+            response = self.framework.client.post("/invoicing/payment-failures", json=failure_data, headers=headers)
 
             if response.status_code == 200:
                 failure_id = response.json().get("failure_id")
@@ -334,18 +328,14 @@ class PaymentRetryScenarios:
                 test_results.append(
                     {
                         "test": "immediate_payment_retry",
-                        "status": (
-                            "PASS" if retry_response.status_code == 200 else "FAIL"
-                        ),
+                        "status": ("PASS" if retry_response.status_code == 200 else "FAIL"),
                         "status_code": retry_response.status_code,
                         "description": "Immediate retry for transient failures",
                     }
                 )
 
         except Exception as e:
-            test_results.append(
-                {"test": "immediate_payment_retry", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "immediate_payment_retry", "status": "ERROR", "error": str(e)})
 
         # Test exponential backoff retry
         try:
@@ -361,9 +351,7 @@ class PaymentRetryScenarios:
                 "is_retryable": True,
             }
 
-            response = self.framework.client.post(
-                "/invoicing/payment-failures", json=failure_data, headers=headers
-            )
+            response = self.framework.client.post("/invoicing/payment-failures", json=failure_data, headers=headers)
 
             if response.status_code == 200:
                 failure_id = response.json().get("failure_id")
@@ -378,9 +366,7 @@ class PaymentRetryScenarios:
                 test_results.append(
                     {
                         "test": "exponential_backoff_retry",
-                        "status": (
-                            "PASS" if retry_response.status_code == 200 else "FAIL"
-                        ),
+                        "status": ("PASS" if retry_response.status_code == 200 else "FAIL"),
                         "status_code": retry_response.status_code,
                         "description": "Exponential backoff for repeated failures",
                     }
@@ -409,9 +395,7 @@ class PaymentRetryScenarios:
                 "is_retryable": True,
             }
 
-            response = self.framework.client.post(
-                "/invoicing/payment-failures", json=failure_data, headers=headers
-            )
+            response = self.framework.client.post("/invoicing/payment-failures", json=failure_data, headers=headers)
 
             if response.status_code == 200:
                 failure_id = response.json().get("failure_id")
@@ -426,9 +410,7 @@ class PaymentRetryScenarios:
                 test_results.append(
                     {
                         "test": "max_retry_limit_enforcement",
-                        "status": (
-                            "PASS" if retry_response.status_code == 400 else "FAIL"
-                        ),
+                        "status": ("PASS" if retry_response.status_code == 400 else "FAIL"),
                         "status_code": retry_response.status_code,
                         "description": "Max retry limit properly enforced",
                     }
@@ -462,9 +444,7 @@ class PaymentRetryScenarios:
                 "dunning_stage": "reminder_1",
             }
 
-            response = self.framework.client.post(
-                "/invoicing/dunning/initiate", json=dunning_data, headers=headers
-            )
+            response = self.framework.client.post("/invoicing/dunning/initiate", json=dunning_data, headers=headers)
 
             test_results.append(
                 {
@@ -488,18 +468,14 @@ class PaymentRetryScenarios:
                 test_results.append(
                     {
                         "test": "dunning_escalation",
-                        "status": (
-                            "PASS" if escalation_response.status_code == 200 else "FAIL"
-                        ),
+                        "status": ("PASS" if escalation_response.status_code == 200 else "FAIL"),
                         "status_code": escalation_response.status_code,
                         "description": "Dunning escalation process",
                     }
                 )
 
         except Exception as e:
-            test_results.append(
-                {"test": "dunning_management", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "dunning_management", "status": "ERROR", "error": str(e)})
 
         return test_results
 
@@ -564,9 +540,7 @@ class SystemFailureScenarios:
             )
 
         except Exception as e:
-            test_results.append(
-                {"test": "transaction_rollback", "status": "ERROR", "error": str(e)}
-            )
+            test_results.append({"test": "transaction_rollback", "status": "ERROR", "error": str(e)})
 
         return test_results
 
@@ -576,9 +550,7 @@ class SystemFailureScenarios:
 
         # Simulate Stripe API rate limiting
         with patch("stripe.Customer.create") as mock_customer_create:
-            mock_customer_create.side_effect = stripe.error.RateLimitError(
-                "Rate limit exceeded"
-            )
+            mock_customer_create.side_effect = stripe.error.RateLimitError("Rate limit exceeded")
 
             try:
                 headers = self.framework.auth_framework.get_auth_headers("team_owner")
@@ -642,30 +614,18 @@ class FailureTestRunner:
 
         # Webhook failure tests
         print("  🔗 Running webhook failure tests...")
-        results["test_categories"][
-            "webhook_failures"
-        ] = self.webhook_scenarios.test_webhook_delivery_failures()
-        results["test_categories"][
-            "webhook_retries"
-        ] = self.webhook_scenarios.test_webhook_retry_logic()
+        results["test_categories"]["webhook_failures"] = self.webhook_scenarios.test_webhook_delivery_failures()
+        results["test_categories"]["webhook_retries"] = self.webhook_scenarios.test_webhook_retry_logic()
 
         # Payment retry tests
         print("  💳 Running payment retry tests...")
-        results["test_categories"][
-            "payment_retries"
-        ] = self.payment_scenarios.test_payment_retry_strategies()
-        results["test_categories"][
-            "dunning_management"
-        ] = self.payment_scenarios.test_dunning_management()
+        results["test_categories"]["payment_retries"] = self.payment_scenarios.test_payment_retry_strategies()
+        results["test_categories"]["dunning_management"] = self.payment_scenarios.test_dunning_management()
 
         # System failure tests
         print("  🖥️ Running system failure tests...")
-        results["test_categories"][
-            "database_failures"
-        ] = self.system_scenarios.test_database_failure_scenarios()
-        results["test_categories"][
-            "api_rate_limiting"
-        ] = self.system_scenarios.test_api_rate_limiting()
+        results["test_categories"]["database_failures"] = self.system_scenarios.test_database_failure_scenarios()
+        results["test_categories"]["api_rate_limiting"] = self.system_scenarios.test_api_rate_limiting()
 
         # Calculate summary statistics
         total_tests = 0
@@ -688,9 +648,7 @@ class FailureTestRunner:
             "passed": passed_tests,
             "failed": failed_tests,
             "errors": error_tests,
-            "pass_rate": (
-                round((passed_tests / total_tests) * 100, 2) if total_tests > 0 else 0
-            ),
+            "pass_rate": (round((passed_tests / total_tests) * 100, 2) if total_tests > 0 else 0),
         }
 
         print(

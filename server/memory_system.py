@@ -91,11 +91,7 @@ TEAM_MEMBERSHIPS_DB = [
 def check_team_access(user_id: int, team_id: int) -> Optional[str]:
     """Check if user has access to team and return their role"""
     membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == user_id
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == user_id),
         None,
     )
     return membership["role"] if membership else None
@@ -169,9 +165,7 @@ async def create_memory(
     if team_id is not None:
         team_role = check_team_access(user_id, team_id)
         if not team_role and user["role"] not in ["admin", "org_admin"]:
-            raise HTTPException(
-                status_code=403, detail="Access denied - not a team member"
-            )
+            raise HTTPException(status_code=403, detail="Access denied - not a team member")
 
     # Parse tags
     tag_list = []
@@ -204,9 +198,7 @@ async def create_memory(
 
 
 @router.get("/team/{team_id}")
-async def get_team_memories(
-    team_id: int, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_team_memories(team_id: int, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """List memories for a specific team"""
     user_id = user["user_id"]
     user_role = user["role"]

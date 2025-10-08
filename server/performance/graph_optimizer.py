@@ -122,9 +122,7 @@ class GraphQueryCache:
             return None
 
         except Exception as e:
-            logger.warning(
-                "Graph cache retrieval failed", cache_key=cache_key, error=str(e)
-            )
+            logger.warning("Graph cache retrieval failed", cache_key=cache_key, error=str(e))
             return None
 
     async def cache_graph_result(
@@ -154,9 +152,7 @@ class GraphQueryCache:
             )
 
         except Exception as e:
-            logger.warning(
-                "Graph cache storage failed", cache_key=cache_key, error=str(e)
-            )
+            logger.warning("Graph cache storage failed", cache_key=cache_key, error=str(e))
 
     async def execute_cached_graph_query(
         self,
@@ -170,9 +166,7 @@ class GraphQueryCache:
     ) -> Any:
         """Execute graph query with caching."""
         params = params or {}
-        cache_key = self.generate_graph_cache_key(
-            query_type, cypher_query, params, user_id
-        )
+        cache_key = self.generate_graph_cache_key(query_type, cypher_query, params, user_id)
         ttl = ttl or self.graph_ttls.get(query_type, self.default_ttl)
 
         # Check cache first (unless force refresh)
@@ -191,11 +185,7 @@ class GraphQueryCache:
             query_metadata = {
                 "query_type": query_type,
                 "execution_time_ms": round(execution_time * 1000, 2),
-                "cypher_query": (
-                    cypher_query[:200] + "..."
-                    if len(cypher_query) > 200
-                    else cypher_query
-                ),
+                "cypher_query": (cypher_query[:200] + "..." if len(cypher_query) > 200 else cypher_query),
                 "params_count": len(params),
             }
 
@@ -407,9 +397,7 @@ class GraphPerformanceOptimizer:
             # Process results into network analysis format
             analysis = {
                 "total_memories": len(raw_result),
-                "highly_connected_memories": [
-                    item for item in raw_result if item.get("connection_count", 0) > 3
-                ],
+                "highly_connected_memories": [item for item in raw_result if item.get("connection_count", 0) > 3],
                 "network_density": self._calculate_network_density(raw_result),
                 "context_distribution": self._analyze_context_distribution(raw_result),
                 "connection_patterns": self._analyze_connection_patterns(raw_result),
@@ -448,9 +436,7 @@ class GraphPerformanceOptimizer:
             },
             "redis_memory": {
                 "used_memory_human": cache_stats.get("used_memory_human", "0B"),
-                "used_memory_peak_human": cache_stats.get(
-                    "used_memory_peak_human", "0B"
-                ),
+                "used_memory_peak_human": cache_stats.get("used_memory_peak_human", "0B"),
             },
             "optimization_recommendations": self._get_optimization_recommendations(),
         }
@@ -482,9 +468,7 @@ class GraphPerformanceOptimizer:
             # Update average query time
             if self.metrics["graph_queries_executed"] > 0:
                 self.metrics["avg_query_time_ms"] = (
-                    self.metrics["total_query_time"]
-                    / self.metrics["graph_queries_executed"]
-                    * 1000
+                    self.metrics["total_query_time"] / self.metrics["graph_queries_executed"] * 1000
                 )
 
             return result
@@ -498,9 +482,7 @@ class GraphPerformanceOptimizer:
         if not network_data:
             return 0.0
 
-        total_connections = sum(
-            item.get("connection_count", 0) for item in network_data
-        )
+        total_connections = sum(item.get("connection_count", 0) for item in network_data)
         max_possible_connections = len(network_data) * (len(network_data) - 1)
 
         return total_connections / max(1, max_possible_connections)

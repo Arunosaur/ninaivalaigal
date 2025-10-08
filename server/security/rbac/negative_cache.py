@@ -67,15 +67,11 @@ class JWKSNegativeCache:
 
             # If still full after eviction, remove oldest entry
             if len(self._cache) >= self.max_entries:
-                oldest_kid = min(
-                    self._cache.keys(), key=lambda k: self._cache[k].cached_at
-                )
+                oldest_kid = min(self._cache.keys(), key=lambda k: self._cache[k].cached_at)
                 del self._cache[oldest_kid]
 
             # Add new entry
-            entry = NegativeCacheEntry(
-                kid=kid, cached_at=time.time(), ttl_seconds=ttl or self.default_ttl
-            )
+            entry = NegativeCacheEntry(kid=kid, cached_at=time.time(), ttl_seconds=ttl or self.default_ttl)
             self._cache[kid] = entry
 
     async def remove_kid(self, kid: str):
@@ -96,9 +92,7 @@ class JWKSNegativeCache:
         """Internal method to evict expired entries."""
         current_time = time.time()
         expired_kids = [
-            kid
-            for kid, entry in self._cache.items()
-            if current_time > (entry.cached_at + entry.ttl_seconds)
+            kid for kid, entry in self._cache.items() if current_time > (entry.cached_at + entry.ttl_seconds)
         ]
 
         for kid in expired_kids:
@@ -135,9 +129,7 @@ class JWKSVerifierWithNegativeCache:
         self.negative_cache = JWKSNegativeCache(default_ttl=negative_cache_ttl)
         self._refresh_lock = asyncio.Lock()
 
-    async def verify_jwt_with_negative_cache(
-        self, token: str, kid: str
-    ) -> dict[str, any]:
+    async def verify_jwt_with_negative_cache(self, token: str, kid: str) -> dict[str, any]:
         """
         Verify JWT with negative caching for unknown kids.
 
@@ -185,9 +177,7 @@ class JWKSVerifierWithNegativeCache:
                     # Still unknown after refresh, cache it
                     await self.negative_cache.cache_unknown_kid(kid)
                     result["cache_action"] = "cached_unknown"
-                    result["error"] = (
-                        f"Kid {kid} unknown after refresh: {refresh_error}"
-                    )
+                    result["error"] = f"Kid {kid} unknown after refresh: {refresh_error}"
 
         return result
 

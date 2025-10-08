@@ -87,25 +87,17 @@ class SecurityTestSuite:
             if test_case["should_redact"]:
                 if original != redacted and "[REDACTED" in redacted:
                     print(f"✅ {test_case['name']}: Successfully redacted")
-                    self.test_results.append(
-                        ("secret_redaction", test_case["name"], True)
-                    )
+                    self.test_results.append(("secret_redaction", test_case["name"], True))
                 else:
                     print(f"❌ {test_case['name']}: Failed to redact secret")
-                    self.test_results.append(
-                        ("secret_redaction", test_case["name"], False)
-                    )
+                    self.test_results.append(("secret_redaction", test_case["name"], False))
             else:
                 if original == redacted:
                     print(f"✅ {test_case['name']}: Correctly preserved safe text")
-                    self.test_results.append(
-                        ("secret_redaction", test_case["name"], True)
-                    )
+                    self.test_results.append(("secret_redaction", test_case["name"], True))
                 else:
                     print(f"❌ {test_case['name']}: Incorrectly modified safe text")
-                    self.test_results.append(
-                        ("secret_redaction", test_case["name"], False)
-                    )
+                    self.test_results.append(("secret_redaction", test_case["name"], False))
 
         # Test memory data redaction
         memory_data = {
@@ -219,14 +211,10 @@ class SecurityTestSuite:
                 else:
                     validator.validate_string(value, field_type)
                 print(f"✅ Input Validation: Valid {field_type} accepted")
-                self.test_results.append(
-                    ("input_validation", f"valid_{field_type}", True)
-                )
+                self.test_results.append(("input_validation", f"valid_{field_type}", True))
             except Exception:
                 print(f"❌ Input Validation: Valid {field_type} rejected")
-                self.test_results.append(
-                    ("input_validation", f"valid_{field_type}", False)
-                )
+                self.test_results.append(("input_validation", f"valid_{field_type}", False))
 
         # Test API validation
         try:
@@ -337,9 +325,7 @@ class SecurityTestSuite:
         for category, stats in categories.items():
             success_rate = (stats["passed"] / stats["total"]) * 100
             status = "✅" if success_rate >= 80 else "⚠️" if success_rate >= 60 else "❌"
-            print(
-                f"  {status} {category}: {stats['passed']}/{stats['total']} ({success_rate:.1f}%)"
-            )
+            print(f"  {status} {category}: {stats['passed']}/{stats['total']} ({success_rate:.1f}%)")
 
 
 def main():

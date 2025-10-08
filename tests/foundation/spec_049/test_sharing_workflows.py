@@ -66,26 +66,20 @@ class TestSharingWorkflows:
             },
         ]
 
-    async def test_tokenized_sharing_and_temporal_access(
-        self, mock_sharing_manager, sample_sharing_contracts
-    ):
+    async def test_tokenized_sharing_and_temporal_access(self, mock_sharing_manager, sample_sharing_contracts):
         """Test SPEC-049: Tokenized sharing and temporal access"""
 
         current_time = datetime.now(timezone.utc)
 
         # Test active contracts
-        active_contracts = [
-            c for c in sample_sharing_contracts if c["status"] == "active"
-        ]
+        active_contracts = [c for c in sample_sharing_contracts if c["status"] == "active"]
         assert len(active_contracts) == 2, "Should have 2 active contracts"
 
         # Test temporal access validation
         for contract in active_contracts:
             if contract["expires_at"]:
                 if contract["expires_at"] > current_time:
-                    assert (
-                        contract["status"] == "active"
-                    ), f"Contract {contract['contract_id']} should be active"
+                    assert contract["status"] == "active", f"Contract {contract['contract_id']} should be active"
                 else:
                     # Contract should be expired
                     assert contract["status"] in [
@@ -94,20 +88,14 @@ class TestSharingWorkflows:
                     ], "Expired contracts should be handled"
             else:
                 # Permanent contracts should remain active
-                assert (
-                    contract["status"] == "active"
-                ), "Permanent contracts should stay active"
+                assert contract["status"] == "active", "Permanent contracts should stay active"
 
         # Test permission levels
         permission_hierarchy = ["view", "comment", "edit", "share", "admin"]
         for contract in sample_sharing_contracts:
-            assert (
-                contract["permission"] in permission_hierarchy
-            ), f"Invalid permission: {contract['permission']}"
+            assert contract["permission"] in permission_hierarchy, f"Invalid permission: {contract['permission']}"
 
-    async def test_memory_lifecycle_logging(
-        self, mock_sharing_manager, sample_sharing_contracts
-    ):
+    async def test_memory_lifecycle_logging(self, mock_sharing_manager, sample_sharing_contracts):
         """Test SPEC-049: Memory lifecycle logging"""
 
         # Test audit trail generation
@@ -120,9 +108,7 @@ class TestSharingWorkflows:
                 "contract_id": contract["contract_id"],
                 "memory_id": contract["memory_id"],
                 "from_user": contract.get("from_user", contract.get("from_team")),
-                "to_user": contract.get(
-                    "to_user", contract.get("to_team", contract.get("to_org"))
-                ),
+                "to_user": contract.get("to_user", contract.get("to_team", contract.get("to_org"))),
                 "permission": contract["permission"],
                 "timestamp": contract["created_at"],
             }
@@ -139,20 +125,12 @@ class TestSharingWorkflows:
                 audit_events.append(revoke_event)
 
         # Validate audit trail
-        assert len(audit_events) >= len(
-            sample_sharing_contracts
-        ), "Should have at least one event per contract"
+        assert len(audit_events) >= len(sample_sharing_contracts), "Should have at least one event per contract"
 
-        create_events = [
-            e for e in audit_events if e["event_type"] == "sharing_created"
-        ]
-        revoke_events = [
-            e for e in audit_events if e["event_type"] == "sharing_revoked"
-        ]
+        create_events = [e for e in audit_events if e["event_type"] == "sharing_created"]
+        revoke_events = [e for e in audit_events if e["event_type"] == "sharing_revoked"]
 
-        assert len(create_events) == len(
-            sample_sharing_contracts
-        ), "Should have create event for each contract"
+        assert len(create_events) == len(sample_sharing_contracts), "Should have create event for each contract"
         assert len(revoke_events) == 1, "Should have one revoke event"
 
     async def test_audit_trail_of_shared_memories(self, mock_sharing_manager):
@@ -223,9 +201,7 @@ class TestSharingWorkflows:
             "sharing_revoked",
         ]
         actual_events = [e["event_type"] for e in audit_trail]
-        assert (
-            actual_events == expected_events
-        ), "Should have expected sequence of events"
+        assert actual_events == expected_events, "Should have expected sequence of events"
 
     async def test_revocation_propagation_delay_under_load(self, mock_sharing_manager):
         """Test SPEC-049: Revocation propagation delay under load"""
@@ -257,9 +233,7 @@ class TestSharingWorkflows:
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
             futures = [executor.submit(simulate_revocation, i) for i in range(100)]
-            revocation_tests = [
-                f.result() for f in concurrent.futures.as_completed(futures)
-            ]
+            revocation_tests = [f.result() for f in concurrent.futures.as_completed(futures)]
 
         # Validate revocation performance
         assert len(revocation_tests) == 100, "All revocations should complete"
@@ -267,17 +241,13 @@ class TestSharingWorkflows:
         assert len(successful_revocations) == 100, "All revocations should succeed"
 
         # Check propagation delays
-        avg_processing_time = sum(r["processing_time"] for r in revocation_tests) / len(
-            revocation_tests
-        )
+        avg_processing_time = sum(r["processing_time"] for r in revocation_tests) / len(revocation_tests)
         max_processing_time = max(r["processing_time"] for r in revocation_tests)
 
         assert (
             avg_processing_time < 0.1
         ), f"Average revocation time should be under 100ms, got {avg_processing_time:.3f}s"
-        assert (
-            max_processing_time < 0.2
-        ), f"Max revocation time should be under 200ms, got {max_processing_time:.3f}s"
+        assert max_processing_time < 0.2, f"Max revocation time should be under 200ms, got {max_processing_time:.3f}s"
 
     async def test_sharing_loop_detection(self, mock_sharing_manager):
         """Test SPEC-049: Sharing loop detection (A → B → A scenarios)"""
@@ -326,10 +296,7 @@ class TestSharingWorkflows:
                 if share["to"] in participants and share["from"] != share["to"]:
                     # Potential loop - check if 'to' user was in the sharing chain
                     for prev_share in chain["shares"]:
-                        if (
-                            prev_share["from"] == share["to"]
-                            and prev_share["memory"] == share["memory"]
-                        ):
+                        if prev_share["from"] == share["to"] and prev_share["memory"] == share["memory"]:
                             loop_detected = True
                             break
 
@@ -341,12 +308,8 @@ class TestSharingWorkflows:
             else:
                 # For non-loop chains, we might still detect false positives, so we test the logic differently
                 # Check that the chain doesn't have obvious direct loops
-                direct_loop = any(
-                    share["from"] == share["to"] for share in chain["shares"]
-                )
-                assert (
-                    not direct_loop
-                ), f"Chain {chain['chain_id']} should not have direct loops"
+                direct_loop = any(share["from"] == share["to"] for share in chain["shares"])
+                assert not direct_loop, f"Chain {chain['chain_id']} should not have direct loops"
 
     async def test_sharing_inside_nested_contexts(self, mock_sharing_manager):
         """Test SPEC-049: Sharing inside nested contexts (e.g., Shared Team + Org)"""
@@ -396,9 +359,7 @@ class TestSharingWorkflows:
         # Test nested context validation
         for scenario in nested_sharing_scenarios:
             context_parts = scenario["context"].split("/")
-            assert (
-                len(context_parts) >= 2
-            ), f"Context should have at least 2 levels: {scenario['context']}"
+            assert len(context_parts) >= 2, f"Context should have at least 2 levels: {scenario['context']}"
 
             for share in scenario["shares"]:
                 from_parts = share["from_context"].split("/")
@@ -409,17 +370,13 @@ class TestSharingWorkflows:
                     # Valid shares should have compatible contexts
                     if len(from_parts) >= 2 and len(to_parts) >= 2:
                         # Check if they share at least the organization level
-                        assert (
-                            from_parts[0] == to_parts[0]
-                        ), f"Valid shares should share org context"
+                        assert from_parts[0] == to_parts[0], f"Valid shares should share org context"
                 else:
                     # Invalid shares should have incompatible contexts
                     if len(from_parts) >= 2 and len(to_parts) >= 2:
                         # Different orgs should be invalid
                         if from_parts[0] != to_parts[0]:
-                            assert not share[
-                                "expected_valid"
-                            ], "Cross-org shares should be invalid"
+                            assert not share["expected_valid"], "Cross-org shares should be invalid"
 
     async def test_chain_of_share_invalidation_timing(self, mock_sharing_manager):
         """Test SPEC-049: Chain-of-share invalidation timing"""
@@ -472,16 +429,12 @@ class TestSharingWorkflows:
         # Validate cascade invalidation
         assert "contract_A_B" in invalidated, "Root contract should be invalidated"
         assert "contract_B_C" in invalidated, "Dependent contract should be invalidated"
-        assert (
-            "contract_C_D" in invalidated
-        ), "Chain-dependent contract should be invalidated"
+        assert "contract_C_D" in invalidated, "Chain-dependent contract should be invalidated"
 
         # Check final status
         for contract in sharing_chain:
             if contract["contract_id"] in invalidated:
-                assert (
-                    contract["status"] == "invalidated"
-                ), f"Contract {contract['contract_id']} should be invalidated"
+                assert contract["status"] == "invalidated", f"Contract {contract['contract_id']} should be invalidated"
 
     @pytest.mark.asyncio
     async def test_temporal_access_expiration_edge_cases(self, mock_sharing_manager):
@@ -529,9 +482,7 @@ class TestSharingWorkflows:
 
             # Validate final status
             if contract["expires_at"] and contract["expires_at"] <= current_time:
-                assert (
-                    contract["status"] == "expired"
-                ), f"Contract {contract['contract_id']} should be expired"
+                assert contract["status"] == "expired", f"Contract {contract['contract_id']} should be expired"
 
         # Test grace period handling
         grace_period = timedelta(minutes=5)
@@ -540,6 +491,4 @@ class TestSharingWorkflows:
                 time_until_expiry = contract["expires_at"] - current_time
                 if timedelta(0) < time_until_expiry < grace_period:
                     # Contract is in grace period
-                    assert (
-                        contract["status"] == "active"
-                    ), "Contracts in grace period should remain active"
+                    assert contract["status"] == "active", "Contracts in grace period should remain active"

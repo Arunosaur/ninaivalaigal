@@ -23,12 +23,8 @@ router = APIRouter(prefix="/graph", tags=["Graph Intelligence"])
 # Request/Response Models
 class ExplainContextRequest(BaseModel):
     memory_id: str = Field(..., description="Memory ID to explain")
-    context_type: str = Field(
-        default="retrieval", description="Type of context explanation"
-    )
-    max_depth: int = Field(
-        default=3, ge=1, le=10, description="Maximum graph traversal depth"
-    )
+    context_type: str = Field(default="retrieval", description="Type of context explanation")
+    max_depth: int = Field(default=3, ge=1, le=10, description="Maximum graph traversal depth")
 
 
 class ExplainContextResponse(BaseModel):
@@ -42,12 +38,8 @@ class ExplainContextResponse(BaseModel):
 
 class InferRelevanceRequest(BaseModel):
     current_memory_id: str = Field(..., description="Current memory context")
-    suggestion_count: int = Field(
-        default=5, ge=1, le=20, description="Number of suggestions"
-    )
-    context_memories: Optional[list[str]] = Field(
-        default=None, description="Additional context memories"
-    )
+    suggestion_count: int = Field(default=5, ge=1, le=20, description="Number of suggestions")
+    context_memories: Optional[list[str]] = Field(default=None, description="Additional context memories")
 
 
 class InferRelevanceResponse(BaseModel):
@@ -60,15 +52,9 @@ class InferRelevanceResponse(BaseModel):
 
 class FeedbackLoopRequest(BaseModel):
     memory_id: str = Field(..., description="Memory being rated")
-    feedback_type: str = Field(
-        ..., description="Type of feedback (relevance, accuracy, usefulness)"
-    )
-    feedback_score: float = Field(
-        ..., ge=0.0, le=1.0, description="Feedback score (0.0 to 1.0)"
-    )
-    context_data: Optional[dict[str, Any]] = Field(
-        default=None, description="Additional context"
-    )
+    feedback_type: str = Field(..., description="Type of feedback (relevance, accuracy, usefulness)")
+    feedback_score: float = Field(..., ge=0.0, le=1.0, description="Feedback score (0.0 to 1.0)")
+    context_data: Optional[dict[str, Any]] = Field(default=None, description="Additional context")
 
 
 class FeedbackLoopResponse(BaseModel):
@@ -79,9 +65,7 @@ class FeedbackLoopResponse(BaseModel):
 
 class AnalyzeNetworkRequest(BaseModel):
     analysis_type: str = Field(default="comprehensive", description="Type of analysis")
-    time_window: Optional[str] = Field(
-        default=None, description="Time window for analysis"
-    )
+    time_window: Optional[str] = Field(default=None, description="Time window for analysis")
 
 
 class AnalyzeNetworkResponse(BaseModel):
@@ -139,12 +123,8 @@ async def explain_context(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to explain context", error=str(e), memory_id=request.memory_id
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Context explanation failed: {str(e)}"
-        ) from e
+        logger.error("Failed to explain context", error=str(e), memory_id=request.memory_id)
+        raise HTTPException(status_code=500, detail=f"Context explanation failed: {str(e)}") from e
 
 
 @router.post("/infer-relevance", response_model=InferRelevanceResponse)
@@ -189,9 +169,7 @@ async def infer_relevance(
             error=str(e),
             memory_id=request.current_memory_id,
         )
-        raise HTTPException(
-            status_code=500, detail=f"Relevance inference failed: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=500, detail=f"Relevance inference failed: {str(e)}") from e
 
 
 @router.post("/feedback-loop", response_model=FeedbackLoopResponse)
@@ -231,12 +209,8 @@ async def feedback_loop(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to process feedback", error=str(e), memory_id=request.memory_id
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Feedback processing failed: {str(e)}"
-        ) from e
+        logger.error("Failed to process feedback", error=str(e), memory_id=request.memory_id)
+        raise HTTPException(status_code=500, detail=f"Feedback processing failed: {str(e)}") from e
 
 
 @router.post("/analyze-network", response_model=AnalyzeNetworkResponse)
@@ -275,12 +249,8 @@ async def analyze_network(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to analyze network", error=str(e), user_id=current_user["user_id"]
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Network analysis failed: {str(e)}"
-        ) from e
+        logger.error("Failed to analyze network", error=str(e), user_id=current_user["user_id"])
+        raise HTTPException(status_code=500, detail=f"Network analysis failed: {str(e)}") from e
 
 
 @router.get("/health")
@@ -326,9 +296,5 @@ async def graph_intelligence_stats(
             "cache_ttl_seconds": graph_reasoner.cache_ttl,
         }
     except Exception as e:
-        logger.error(
-            "Failed to get stats", error=str(e), user_id=current_user["user_id"]
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Stats retrieval failed: {str(e)}"
-        ) from e
+        logger.error("Failed to get stats", error=str(e), user_id=current_user["user_id"])
+        raise HTTPException(status_code=500, detail=f"Stats retrieval failed: {str(e)}") from e

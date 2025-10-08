@@ -22,9 +22,7 @@ def main():
     )
 
     print("🔧 Initializing database...")
-    print(
-        f"   URL: {database_url.replace(':dev_password_change_in_production', ':****')}"
-    )
+    print(f"   URL: {database_url.replace(':dev_password_change_in_production', ':****')}")
 
     try:
         # Create database manager (this calls create_tables automatically)

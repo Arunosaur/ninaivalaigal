@@ -68,9 +68,7 @@ class PerformanceMonitor:
             return
 
         self.is_monitoring = True
-        self.monitor_thread = threading.Thread(
-            target=self._monitoring_loop, args=(interval_seconds,), daemon=True
-        )
+        self.monitor_thread = threading.Thread(target=self._monitoring_loop, args=(interval_seconds,), daemon=True)
         self.monitor_thread.start()
         self.logger.info("Performance monitoring started")
 
@@ -107,9 +105,7 @@ class PerformanceMonitor:
             cutoff_time = datetime.now() - timedelta(hours=self.retention_hours)
             self.metrics = [m for m in self.metrics if m.timestamp > cutoff_time]
 
-    def record_request(
-        self, endpoint: str, method: str, response_time: float, status_code: int
-    ):
+    def record_request(self, endpoint: str, method: str, response_time: float, status_code: int):
         """Record an API request"""
         self.record_metric(
             "http_request_duration",
@@ -122,9 +118,7 @@ class PerformanceMonitor:
         if status_code >= 400:
             self.error_count += 1
 
-    def record_db_query(
-        self, query_type: str, execution_time: float, table: str = None
-    ):
+    def record_db_query(self, query_type: str, execution_time: float, table: str = None):
         """Record a database query"""
         tags = {"query_type": query_type}
         if table:
@@ -154,9 +148,7 @@ class PerformanceMonitor:
 
                     # Keep only recent snapshots
                     cutoff_time = datetime.now() - timedelta(hours=self.retention_hours)
-                    self.snapshots = [
-                        s for s in self.snapshots if s.timestamp > cutoff_time
-                    ]
+                    self.snapshots = [s for s in self.snapshots if s.timestamp > cutoff_time]
 
                 # Record system metrics
                 self.record_metric("cpu_percent", snapshot.cpu_percent)
@@ -224,17 +216,12 @@ class PerformanceMonitor:
 
             summary = {
                 "timestamp": now.isoformat(),
-                "uptime_seconds": (
-                    (now - self.snapshots[0].timestamp).total_seconds()
-                    if self.snapshots
-                    else 0
-                ),
+                "uptime_seconds": ((now - self.snapshots[0].timestamp).total_seconds() if self.snapshots else 0),
                 "total_requests": self.request_count,
                 "total_errors": self.error_count,
                 "error_rate": self.error_count / max(self.request_count, 1),
                 "db_queries_total": self.db_query_count,
-                "db_avg_query_time": self.db_query_time_total
-                / max(self.db_query_count, 1),
+                "db_avg_query_time": self.db_query_time_total / max(self.db_query_count, 1),
                 "memory_cache_hit_rate": self.memory_cache_hits
                 / max(self.memory_cache_hits + self.memory_cache_misses, 1),
                 "system_metrics": {},
@@ -242,37 +229,24 @@ class PerformanceMonitor:
 
             if recent_snapshots:
                 summary["system_metrics"] = {
-                    "avg_cpu_percent": sum(s.cpu_percent for s in recent_snapshots)
-                    / len(recent_snapshots),
-                    "avg_memory_percent": sum(
-                        s.memory_percent for s in recent_snapshots
-                    )
-                    / len(recent_snapshots),
-                    "max_memory_used_mb": max(
-                        s.memory_used_mb for s in recent_snapshots
-                    ),
-                    "avg_threads": sum(s.active_threads for s in recent_snapshots)
-                    / len(recent_snapshots),
-                    "avg_network_connections": sum(
-                        s.network_connections for s in recent_snapshots
-                    )
+                    "avg_cpu_percent": sum(s.cpu_percent for s in recent_snapshots) / len(recent_snapshots),
+                    "avg_memory_percent": sum(s.memory_percent for s in recent_snapshots) / len(recent_snapshots),
+                    "max_memory_used_mb": max(s.memory_used_mb for s in recent_snapshots),
+                    "avg_threads": sum(s.active_threads for s in recent_snapshots) / len(recent_snapshots),
+                    "avg_network_connections": sum(s.network_connections for s in recent_snapshots)
                     / len(recent_snapshots),
                 }
 
             return summary
 
-    def get_detailed_metrics(
-        self, metric_name: str = None, hours: int = 1
-    ) -> list[dict[str, Any]]:
+    def get_detailed_metrics(self, metric_name: str = None, hours: int = 1) -> list[dict[str, Any]]:
         """Get detailed metrics for analysis"""
         with self._lock:
             cutoff_time = datetime.now() - timedelta(hours=hours)
             filtered_metrics = [m for m in self.metrics if m.timestamp > cutoff_time]
 
             if metric_name:
-                filtered_metrics = [
-                    m for m in filtered_metrics if m.name == metric_name
-                ]
+                filtered_metrics = [m for m in filtered_metrics if m.name == metric_name]
 
             return [asdict(m) for m in filtered_metrics]
 
@@ -281,9 +255,7 @@ class PerformanceMonitor:
         data = {
             "summary": self.get_metrics_summary(),
             "detailed_metrics": self.get_detailed_metrics(),
-            "snapshots": [
-                asdict(s) for s in self.snapshots[-100:]
-            ],  # Last 100 snapshots
+            "snapshots": [asdict(s) for s in self.snapshots[-100:]],  # Last 100 snapshots
         }
 
         with open(filepath, "w") as f:
@@ -298,39 +270,29 @@ class PerformanceMonitor:
         # Check error rate
         if summary.get("error_rate", 0) > 0.05:  # More than 5% errors
             health_status["issues"].append("High error rate detected")
-            health_status["recommendations"].append(
-                "Check server logs for error patterns"
-            )
+            health_status["recommendations"].append("Check server logs for error patterns")
 
         # Check memory usage
         memory_percent = summary.get("system_metrics", {}).get("avg_memory_percent", 0)
         if memory_percent > 85:
             health_status["issues"].append("High memory usage")
-            health_status["recommendations"].append(
-                "Consider increasing server memory or optimizing memory usage"
-            )
+            health_status["recommendations"].append("Consider increasing server memory or optimizing memory usage")
 
         # Check CPU usage
         cpu_percent = summary.get("system_metrics", {}).get("avg_cpu_percent", 0)
         if cpu_percent > 90:
             health_status["issues"].append("High CPU usage")
-            health_status["recommendations"].append(
-                "Check for performance bottlenecks or consider scaling"
-            )
+            health_status["recommendations"].append("Check for performance bottlenecks or consider scaling")
 
         # Check database performance
         db_avg_time = summary.get("db_avg_query_time", 0)
         if db_avg_time > 1.0:  # More than 1 second average
             health_status["issues"].append("Slow database queries")
-            health_status["recommendations"].append(
-                "Consider database optimization or indexing"
-            )
+            health_status["recommendations"].append("Consider database optimization or indexing")
 
         # Set overall status
         if health_status["issues"]:
-            health_status["status"] = (
-                "warning" if len(health_status["issues"]) == 1 else "critical"
-            )
+            health_status["status"] = "warning" if len(health_status["issues"]) == 1 else "critical"
 
         return health_status
 

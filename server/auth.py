@@ -30,10 +30,7 @@ def load_config():
         if os.path.exists(config_path):
             with open(config_path) as f:
                 user_config = json.load(f)
-                if (
-                    "storage" in user_config
-                    and "database_url" in user_config["storage"]
-                ):
+                if "storage" in user_config and "database_url" in user_config["storage"]:
                     return user_config["storage"]["database_url"]
     except Exception:
         pass
@@ -80,13 +77,9 @@ def get_user_by_uuid(db, user_id):
 # JWT Secret from environment (REQUIRED - no fallback for security)
 JWT_SECRET = os.getenv("NINAIVALAIGAL_JWT_SECRET")
 if not JWT_SECRET:
-    raise ValueError(
-        "NINAIVALAIGAL_JWT_SECRET environment variable is required for security"
-    )
+    raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required for security")
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRATION_HOURS = int(
-    os.getenv("NINAIVALAIGAL_JWT_EXPIRATION_HOURS", "168")
-)  # Default 7 days
+JWT_EXPIRATION_HOURS = int(os.getenv("NINAIVALAIGAL_JWT_EXPIRATION_HOURS", "168"))  # Default 7 days
 
 
 # Password validation
@@ -236,9 +229,7 @@ def get_user_roles_for_token(db, user_id: int) -> dict:
 
         for assignment in role_assignments:
             scope_key = (
-                f"{assignment.scope_type}:{assignment.scope_id}"
-                if assignment.scope_id
-                else assignment.scope_type
+                f"{assignment.scope_type}:{assignment.scope_id}" if assignment.scope_id else assignment.scope_type
             )
             roles[scope_key] = assignment.role.name
 
@@ -276,9 +267,7 @@ async def get_current_user(
     """Get current authenticated user"""
     token_data = verify_token(credentials.credentials)
     if token_data is None:
-        raise HTTPException(
-            status_code=401, detail="Invalid authentication credentials"
-        )
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
     # Get user from database
     db = get_db()
@@ -445,9 +434,7 @@ def authenticate_user(email: str, password: str):
 def send_verification_email(email: str, verification_token: str):
     """Send email verification (placeholder - implement with actual email service)"""
     # In production, integrate with SendGrid, AWS SES, etc.
-    verification_url = (
-        f"http://localhost:8000/auth/verify-email?token={verification_token}"
-    )
+    verification_url = f"http://localhost:8000/auth/verify-email?token={verification_token}"
     print(f"Email verification URL for {email}: {verification_url}")
     # TODO: Implement actual email sending
 
@@ -459,9 +446,7 @@ def verify_email_token(verification_token: str) -> bool:
     try:
         from database import User
 
-        user = (
-            session.query(User).filter_by(verification_token=verification_token).first()
-        )
+        user = session.query(User).filter_by(verification_token=verification_token).first()
 
         if not user:
             return False
@@ -497,10 +482,7 @@ def require_admin_role(current_user: dict, required_role: str = "admin") -> None
         return
 
     # Check legacy role field
-    if (
-        current_user.get("role") == required_role
-        or current_user.get("role") == "vendor_admin"
-    ):
+    if current_user.get("role") == required_role or current_user.get("role") == "vendor_admin":
         return
 
     raise HTTPException(

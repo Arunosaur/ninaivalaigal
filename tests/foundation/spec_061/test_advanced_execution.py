@@ -72,58 +72,34 @@ class TestAdvancedExecution:
             },
         ]
 
-    def test_parallel_query_execution(
-        self, mock_execution_engine, sample_execution_plans
-    ):
+    def test_parallel_query_execution(self, mock_execution_engine, sample_execution_plans):
         """Test SPEC-061: Parallel query execution optimization"""
 
-        parallel_plan = next(
-            plan
-            for plan in sample_execution_plans
-            if plan["type"] == "parallel_memory_retrieval"
-        )
+        parallel_plan = next(plan for plan in sample_execution_plans if plan["type"] == "parallel_memory_retrieval")
 
         # Test parallel execution capabilities
-        assert (
-            parallel_plan["parallelization"] == "independent"
-        ), "Parallel plan should have independent queries"
-        assert (
-            len(parallel_plan["queries"]) >= 2
-        ), "Parallel plan should have multiple queries"
-        assert (
-            parallel_plan["expected_speedup"] > 1.0
-        ), "Parallel execution should provide speedup"
+        assert parallel_plan["parallelization"] == "independent", "Parallel plan should have independent queries"
+        assert len(parallel_plan["queries"]) >= 2, "Parallel plan should have multiple queries"
+        assert parallel_plan["expected_speedup"] > 1.0, "Parallel execution should provide speedup"
 
         # Test query independence
         for query in parallel_plan["queries"]:
-            assert (
-                "depends_on" not in query
-            ), "Parallel queries should not have dependencies"
+            assert "depends_on" not in query, "Parallel queries should not have dependencies"
 
-    def test_dependency_chain_execution(
-        self, mock_execution_engine, sample_execution_plans
-    ):
+    def test_dependency_chain_execution(self, mock_execution_engine, sample_execution_plans):
         """Test SPEC-061: Dependency chain execution"""
 
-        sequential_plan = next(
-            plan
-            for plan in sample_execution_plans
-            if plan["type"] == "sequential_dependency_chain"
-        )
+        sequential_plan = next(plan for plan in sample_execution_plans if plan["type"] == "sequential_dependency_chain")
 
         # Test dependency chain structure
         dependent_queries = [q for q in sequential_plan["queries"] if "depends_on" in q]
-        assert (
-            len(dependent_queries) >= 1
-        ), "Sequential plan should have dependent queries"
+        assert len(dependent_queries) >= 1, "Sequential plan should have dependent queries"
 
         # Validate dependency references
         all_query_ids = {q["id"] for q in sequential_plan["queries"]}
         for query in dependent_queries:
             for dep in query["depends_on"]:
-                assert (
-                    dep in all_query_ids
-                ), f"Dependency {dep} should reference existing query"
+                assert dep in all_query_ids, f"Dependency {dep} should reference existing query"
 
     def test_execution_optimization_strategies(self, mock_execution_engine):
         """Test SPEC-061: Execution optimization strategies"""
@@ -193,13 +169,8 @@ class TestAdvancedExecution:
         for concurrency in concurrency_levels:
             start_time = time.time()
 
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=concurrency
-            ) as executor:
-                futures = [
-                    executor.submit(simulate_concurrent_query, i)
-                    for i in range(concurrency)
-                ]
+            with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:
+                futures = [executor.submit(simulate_concurrent_query, i) for i in range(concurrency)]
                 results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
             end_time = time.time()
@@ -210,8 +181,7 @@ class TestAdvancedExecution:
                     "concurrency_level": concurrency,
                     "total_duration_ms": total_duration,
                     "successful_queries": len([r for r in results if r["success"]]),
-                    "avg_query_duration_ms": sum(r["duration_ms"] for r in results)
-                    / len(results),
+                    "avg_query_duration_ms": sum(r["duration_ms"] for r in results) / len(results),
                 }
             )
 
@@ -257,11 +227,7 @@ class TestAdvancedExecution:
 
         for plan in execution_plans:
             # Validate optimization effectiveness
-            expected_improvement = (
-                (plan["estimated_cost"] - plan["actual_cost"])
-                / plan["estimated_cost"]
-                * 100
-            )
+            expected_improvement = (plan["estimated_cost"] - plan["actual_cost"]) / plan["estimated_cost"] * 100
             assert (
                 abs(expected_improvement - plan["improvement_percent"]) < 5
             ), f"Plan {plan['plan_type']} improvement calculation should be accurate"
@@ -426,9 +392,7 @@ class TestAdvancedExecution:
             for test_case in test_group["test_cases"]:
                 # Simulate execution for scalability validation
                 start_time = time.time()
-                time.sleep(
-                    test_case.get("target_time_ms", 10) / 1000
-                )  # Convert to seconds
+                time.sleep(test_case.get("target_time_ms", 10) / 1000)  # Convert to seconds
                 end_time = time.time()
 
                 actual_time_ms = (end_time - start_time) * 1000

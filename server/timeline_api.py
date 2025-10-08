@@ -158,11 +158,7 @@ TEAM_MEMBERSHIPS_DB = [
 def get_user_team_role(user_id: int, team_id: int) -> Optional[str]:
     """Get user's role in a specific team"""
     membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == user_id
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == user_id),
         None,
     )
     return membership["role"] if membership else None
@@ -179,9 +175,7 @@ def can_view_team_timeline(user_id: int, team_id: int, user_role: str) -> bool:
     return team_role is not None
 
 
-def filter_events_by_access(
-    events: List[Dict], user_id: int, user_role: str
-) -> List[Dict]:
+def filter_events_by_access(events: List[Dict], user_id: int, user_role: str) -> List[Dict]:
     """Filter timeline events based on user access permissions"""
     accessible_events = []
 
@@ -238,19 +232,13 @@ async def get_my_timeline(
     # Apply additional filters
     if event_types:
         type_list = [t.strip() for t in event_types.split(",")]
-        accessible_events = [
-            e for e in accessible_events if e["event_type"] in type_list
-        ]
+        accessible_events = [e for e in accessible_events if e["event_type"] in type_list]
 
     if team_filter is not None:
-        accessible_events = [
-            e for e in accessible_events if e.get("team_id") == team_filter
-        ]
+        accessible_events = [e for e in accessible_events if e.get("team_id") == team_filter]
 
     if context_filter is not None:
-        accessible_events = [
-            e for e in accessible_events if e.get("context_id") == context_filter
-        ]
+        accessible_events = [e for e in accessible_events if e.get("context_id") == context_filter]
 
     # Sort by timestamp (newest first)
     accessible_events.sort(key=lambda e: e["timestamp"], reverse=True)
@@ -297,9 +285,7 @@ async def get_team_timeline(
     team_events = []
     for event in TIMELINE_EVENTS:
         if event.get("team_id") == team_id:
-            event_time = datetime.fromisoformat(
-                event["timestamp"].replace("Z", "+00:00")
-            )
+            event_time = datetime.fromisoformat(event["timestamp"].replace("Z", "+00:00"))
             if start_time <= event_time <= end_time:
                 team_events.append(event)
 
@@ -354,9 +340,7 @@ async def get_context_timeline(
     context_events = []
     for event in TIMELINE_EVENTS:
         if event.get("context_id") == context_id:
-            event_time = datetime.fromisoformat(
-                event["timestamp"].replace("Z", "+00:00")
-            )
+            event_time = datetime.fromisoformat(event["timestamp"].replace("Z", "+00:00"))
             if start_time <= event_time <= end_time:
                 context_events.append(event)
 
@@ -366,9 +350,7 @@ async def get_context_timeline(
     # Apply additional filters
     if event_types:
         type_list = [t.strip() for t in event_types.split(",")]
-        accessible_events = [
-            e for e in accessible_events if e["event_type"] in type_list
-        ]
+        accessible_events = [e for e in accessible_events if e["event_type"] in type_list]
 
     # Sort by timestamp (newest first)
     accessible_events.sort(key=lambda e: e["timestamp"], reverse=True)
@@ -412,9 +394,7 @@ async def get_timeline_visualization(
 
     # Apply team filter
     if team_filter is not None:
-        accessible_events = [
-            e for e in accessible_events if e.get("team_id") == team_filter
-        ]
+        accessible_events = [e for e in accessible_events if e.get("team_id") == team_filter]
 
     # Group events by time granularity
     time_buckets = {}
@@ -563,9 +543,7 @@ async def get_timeline_visualization(
 
 
 @router.get("/stats")
-async def get_timeline_stats(
-    days_back: int = 30, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_timeline_stats(days_back: int = 30, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get timeline statistics and activity patterns"""
     user_id = user["user_id"]
     user_role = user["role"]

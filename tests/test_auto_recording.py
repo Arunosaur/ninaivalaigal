@@ -87,9 +87,7 @@ class TestAutoRecording:
     @pytest.mark.asyncio
     async def test_record_interaction_inactive_context(self, auto_recorder):
         """Test recording to inactive context returns False"""
-        success = await auto_recorder.record_interaction(
-            "inactive-project", "ai_prompt", "This should not be recorded"
-        )
+        success = await auto_recorder.record_interaction("inactive-project", "ai_prompt", "This should not be recorded")
 
         assert success is False
 
@@ -100,9 +98,7 @@ class TestAutoRecording:
 
         # Record multiple interactions to trigger auto-save
         for i in range(12):  # Exceeds AUTO_SAVE_THRESHOLD of 10
-            await auto_recorder.record_interaction(
-                "test-project", "ai_prompt", f"Test message {i}"
-            )
+            await auto_recorder.record_interaction("test-project", "ai_prompt", f"Test message {i}")
 
         # Verify messages were recorded (auto-save happens in background)
         status = await auto_recorder.get_recording_status()

@@ -128,9 +128,7 @@ class RBACIntegrationTester:
             headers = {"Authorization": f"Bearer {self.auth_token}"}
 
             # Test memory read endpoint (should work with MEMBER role)
-            response = self.session.get(
-                f"{BASE_URL}/memory?context=test", headers=headers
-            )
+            response = self.session.get(f"{BASE_URL}/memory?context=test", headers=headers)
 
             if response.status_code in [200, 404]:  # 404 is ok if no memories exist
                 self.log_test(
@@ -224,9 +222,7 @@ class RBACIntegrationTester:
                 status_test = False
 
             # Test user roles endpoint
-            response = self.session.get(
-                f"{BASE_URL}/rbac/roles/user/{self.user_id}", headers=headers
-            )
+            response = self.session.get(f"{BASE_URL}/rbac/roles/user/{self.user_id}", headers=headers)
 
             if response.status_code == 200:
                 data = response.json()
@@ -238,14 +234,10 @@ class RBACIntegrationTester:
                     )
                     roles_test = True
                 else:
-                    self.log_test(
-                        "RBAC API - User Roles", False, "No roles in response"
-                    )
+                    self.log_test("RBAC API - User Roles", False, "No roles in response")
                     roles_test = False
             elif response.status_code == 403:
-                self.log_test(
-                    "RBAC API - User Roles", True, "User roles correctly denied (403)"
-                )
+                self.log_test("RBAC API - User Roles", True, "User roles correctly denied (403)")
                 roles_test = True
             else:
                 self.log_test(
@@ -272,9 +264,7 @@ class RBACIntegrationTester:
             headers = {"Authorization": f"Bearer {self.auth_token}"}
 
             # Test audit log endpoint (if accessible)
-            response = self.session.get(
-                f"{BASE_URL}/rbac/audit/permissions?limit=1", headers=headers
-            )
+            response = self.session.get(f"{BASE_URL}/rbac/audit/permissions?limit=1", headers=headers)
 
             if response.status_code in [200, 403]:
                 self.log_test(

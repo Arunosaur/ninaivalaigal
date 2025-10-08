@@ -29,9 +29,7 @@ def setup_environment():
         "exp": int((datetime.utcnow() + timedelta(hours=24)).timestamp()),
     }
 
-    token = jwt.encode(
-        test_payload, "dev-secret-key-change-in-production", algorithm="HS256"
-    )
+    token = jwt.encode(test_payload, "dev-secret-key-change-in-production", algorithm="HS256")
     os.environ["NINAIVALAIGAL_USER_TOKEN"] = token
 
     print("✅ Environment configured with JWT token")
@@ -119,12 +117,8 @@ def test_jwt_authentication():
 
     # Test 3: Store memory
     print("\n3. Testing remember command...")
-    memory_data = json.dumps(
-        {"type": "test", "data": {"message": "JWT auth test successful"}}
-    )
-    success, stdout, stderr = run_cli_command(
-        f"eM remember '{memory_data}' --context jwt-test"
-    )
+    memory_data = json.dumps({"type": "test", "data": {"message": "JWT auth test successful"}})
+    success, stdout, stderr = run_cli_command(f"eM remember '{memory_data}' --context jwt-test")
     if success and "Memory entry recorded" in stdout:
         print("✅ Remember command successful")
     else:

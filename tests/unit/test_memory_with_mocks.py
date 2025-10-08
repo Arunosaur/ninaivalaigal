@@ -17,9 +17,7 @@ class TestMemoryWithMocks:
         """Setup test data using mock context"""
         with mock_context:
             # Create test user
-            user = await mock_context.mock_db.create_user(
-                email="test@example.com", username="testuser"
-            )
+            user = await mock_context.mock_db.create_user(email="test@example.com", username="testuser")
 
             # Create test memories
             memory1 = await mock_context.mock_db.create_memory(
@@ -118,9 +116,7 @@ class TestMemoryWithMocks:
     def test_user_validation_with_factory(self, test_data_factory):
         """Test user validation using data factory"""
         # Create test user using factory
-        user = test_data_factory.create_user(
-            email="factory@example.com", username="factoryuser"
-        )
+        user = test_data_factory.create_user(email="factory@example.com", username="factoryuser")
 
         # Validate user structure
         assert_user_valid(user)
@@ -131,9 +127,7 @@ class TestMemoryWithMocks:
     def test_memory_validation_with_factory(self, test_data_factory):
         """Test memory validation using data factory"""
         # Create test memory using factory
-        memory = test_data_factory.create_memory(
-            content="Factory memory content", context="factory_test"
-        )
+        memory = test_data_factory.create_memory(content="Factory memory content", context="factory_test")
 
         # Validate memory structure
         assert_memory_valid(memory)
@@ -145,20 +139,14 @@ class TestMemoryWithMocks:
         """Test comprehensive scenario with all mocks"""
         with mock_context:
             # Create user
-            user = await mock_context.mock_db.create_user(
-                email="comprehensive@example.com", username="compuser"
-            )
+            user = await mock_context.mock_db.create_user(email="comprehensive@example.com", username="compuser")
 
             # Create memory
-            memory = await mock_context.mock_db.create_memory(
-                user_id=user["id"], content="Comprehensive test memory"
-            )
+            memory = await mock_context.mock_db.create_memory(user_id=user["id"], content="Comprehensive test memory")
 
             # Cache memory in Redis
             cache_key = f"memory:{memory['id']}"
-            await mock_context.mock_redis.set(
-                cache_key, f"cached_content_{memory['id']}", ex=3600
-            )
+            await mock_context.mock_redis.set(cache_key, f"cached_content_{memory['id']}", ex=3600)
 
             # Setup HTTP mock for external API
             mock_context.mock_http.set_response(
@@ -190,9 +178,7 @@ class TestPerformanceWithMocks:
         """Test bulk operations performance"""
         with mock_context:
             # Create user
-            user = await mock_context.mock_db.create_user(
-                email="bulk@example.com", username="bulkuser"
-            )
+            user = await mock_context.mock_db.create_user(email="bulk@example.com", username="bulkuser")
 
             # Create multiple memories
             memories = []

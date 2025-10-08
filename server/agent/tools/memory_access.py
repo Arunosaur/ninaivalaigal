@@ -79,9 +79,7 @@ class MemoryAccessTool:
 
             # Cache the result
             if self.redis_client and memories:
-                await self.redis_client.setex(
-                    cache_key, 300, memories
-                )  # 5-minute cache
+                await self.redis_client.setex(cache_key, 300, memories)  # 5-minute cache
 
             self.metrics["memories_retrieved"] += len(memories)
             self._update_query_metrics(time.time() - start_time, False)
@@ -137,9 +135,7 @@ class MemoryAccessTool:
 
             # Filter by similarity threshold
             filtered_results = [
-                result
-                for result in search_results
-                if result.get("similarity_score", 0) >= similarity_threshold
+                result for result in search_results if result.get("similarity_score", 0) >= similarity_threshold
             ]
 
             self.metrics["memories_retrieved"] += len(filtered_results)
@@ -192,9 +188,7 @@ class MemoryAccessTool:
             # Sort by importance and recency
             sorted_memories = sorted(
                 memories,
-                key=lambda m: (
-                    m.get("importance_score", 0) * 0.7 + m.get("recency_score", 0) * 0.3
-                ),
+                key=lambda m: (m.get("importance_score", 0) * 0.7 + m.get("recency_score", 0) * 0.3),
                 reverse=True,
             )
 
@@ -398,9 +392,7 @@ class MemoryAccessTool:
                 "id": f"memory_{i}",
                 "content": f"Memory with relationships {i}",
                 "timestamp": "2024-09-22T10:00:00Z",
-                "relationships": [
-                    f"memory_{j}" for j in range(max(0, i - 2), min(i + 3, 20))
-                ],
+                "relationships": [f"memory_{j}" for j in range(max(0, i - 2), min(i + 3, 20))],
                 "themes": [f"theme_{i % 3}", f"theme_{(i+1) % 3}"],
                 "context": context_filter or {},
             }
@@ -498,21 +490,13 @@ class MemoryAccessTool:
 
         # Update average query time
         if self.metrics["total_queries"] > 0:
-            total_time = (
-                self.metrics["avg_query_time"] * (self.metrics["total_queries"] - 1)
-                + query_time
-            )
+            total_time = self.metrics["avg_query_time"] * (self.metrics["total_queries"] - 1) + query_time
             self.metrics["avg_query_time"] = total_time / self.metrics["total_queries"]
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get memory access tool metrics."""
         return {
             "metrics": self.metrics,
-            "cache_hit_rate": (
-                self.metrics["cache_hits"] / max(1, self.metrics["total_queries"])
-            ),
-            "avg_memories_per_query": (
-                self.metrics["memories_retrieved"]
-                / max(1, self.metrics["total_queries"])
-            ),
+            "cache_hit_rate": (self.metrics["cache_hits"] / max(1, self.metrics["total_queries"])),
+            "avg_memories_per_query": (self.metrics["memories_retrieved"] / max(1, self.metrics["total_queries"])),
         }

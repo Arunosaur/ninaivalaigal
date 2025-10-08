@@ -50,9 +50,7 @@ async def start_recording(
             raise HTTPException(status_code=500, detail=result["error"])
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to start recording: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to start recording: {str(e)}")
 
 
 @router.post("/stop")
@@ -107,19 +105,13 @@ async def get_recording_status(
 
         status = await auto_recorder.get_recording_status()
         return {
-            "recording_status": (
-                "🎥 CCTV Active"
-                if status["active_contexts"] > 0
-                else "🔴 CCTV Inactive"
-            ),
+            "recording_status": ("🎥 CCTV Active" if status["active_contexts"] > 0 else "🔴 CCTV Inactive"),
             "active_contexts": status["active_contexts"],
             "contexts": status["contexts"],
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get recording status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get recording status: {str(e)}")
 
 
 @router.get("/active")

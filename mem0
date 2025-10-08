@@ -132,9 +132,7 @@ class Mem0Client:
                 print(f"❌ Failed to delete context '{context_name}': {response.text}")
                 failed_count += 1
 
-        print(
-            f"\n📊 Summary: {success_count} deleted, {failed_count} failed, {skipped_active} active contexts skipped"
-        )
+        print(f"\n📊 Summary: {success_count} deleted, {failed_count} failed, {skipped_active} active contexts skipped")
 
     def recall(self, context=None):
         """Retrieve memories"""
@@ -228,15 +226,11 @@ def main():
         print("  mem0 active           (instead of mem0 context active)")
         print("  mem0 start --context <name>    (instead of mem0 context start <name>)")
         print("  mem0 stop --context <name>     (instead of mem0 context stop <name>)")
-        print(
-            "  mem0 delete --context <name>   (instead of mem0 context delete <name>)"
-        )
+        print("  mem0 delete --context <name>   (instead of mem0 context delete <name>)")
 
     else:
         print(f"❌ Unknown command: {command}")
-        print(
-            "Available commands: contexts, active, start, stop, delete, remember, recall"
-        )
+        print("Available commands: contexts, active, start, stop, delete, remember, recall")
 
 
 if __name__ == "__main__":

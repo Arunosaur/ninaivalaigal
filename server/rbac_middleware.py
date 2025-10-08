@@ -42,13 +42,9 @@ class RBACContext:
 
     def to_subject_context(self) -> SubjectContext:
         """Convert to RBAC SubjectContext"""
-        return SubjectContext(
-            org_id=self.org_id, team_ids=self.team_ids, roles=self.roles
-        )
+        return SubjectContext(org_id=self.org_id, team_ids=self.team_ids, roles=self.roles)
 
-    def has_permission(
-        self, resource: Resource, action: Action, team_id: str | None = None
-    ) -> bool:
+    def has_permission(self, resource: Resource, action: Action, team_id: str | None = None) -> bool:
         """Check if user has permission for action on resource"""
         subject_ctx = self.to_subject_context()
         return authorize(subject_ctx, resource, action, team_id)
@@ -81,17 +77,12 @@ class RBACMiddleware:
             auth_header = request.headers.get("Authorization")
             if not auth_header:
                 if debug_mode:
-                    print(
-                        f"[AUTH_DEBUG] No Authorization header for {request.url.path}"
-                    )
+                    print(f"[AUTH_DEBUG] No Authorization header for {request.url.path}")
                 return None
 
             if not auth_header.startswith("Bearer "):
                 if debug_mode:
-                    print(
-                        f"[AUTH_DEBUG] Invalid Authorization header format for "
-                        f"{request.url.path}"
-                    )
+                    print(f"[AUTH_DEBUG] Invalid Authorization header format for " f"{request.url.path}")
                 return None
 
             token = auth_header.replace("Bearer ", "").strip()
@@ -104,19 +95,14 @@ class RBACMiddleware:
             try:
                 payload = jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
                 if debug_mode:
-                    print(
-                        f"[AUTH_DEBUG] Successfully decoded token for "
-                        f"{request.url.path}"
-                    )
+                    print(f"[AUTH_DEBUG] Successfully decoded token for " f"{request.url.path}")
             except jwt.ExpiredSignatureError:
                 if debug_mode:
                     print(f"[AUTH_DEBUG] Token expired for {request.url.path}")
                 return None
             except jwt.InvalidTokenError as e:
                 if debug_mode:
-                    print(
-                        f"[AUTH_DEBUG] Invalid token for {request.url.path}: {str(e)}"
-                    )
+                    print(f"[AUTH_DEBUG] Invalid token for {request.url.path}: {str(e)}")
                 return None
 
             # Extract user information - GRACEFUL FALLBACKS
@@ -126,10 +112,7 @@ class RBACMiddleware:
 
             if not user_id or not email:
                 if debug_mode:
-                    print(
-                        f"[AUTH_DEBUG] Missing user_id or email in token for "
-                        f"{request.url.path}"
-                    )
+                    print(f"[AUTH_DEBUG] Missing user_id or email in token for " f"{request.url.path}")
                 return None
 
             # Extract team and org information
@@ -141,10 +124,7 @@ class RBACMiddleware:
                 team_ids = set(roles["teams"].keys())
 
             if debug_mode:
-                print(
-                    f"[AUTH_DEBUG] Created RBAC context for user {user_id} on "
-                    f"{request.url.path}"
-                )
+                print(f"[AUTH_DEBUG] Created RBAC context for user {user_id} on " f"{request.url.path}")
 
             return RBACContext(
                 user_id=user_id,
@@ -159,10 +139,7 @@ class RBACMiddleware:
             error_msg = redact_log_message(f"RBAC context extraction error: {str(e)}")
             print(f"[AUTH_ERROR] {error_msg}")
             if debug_mode:
-                print(
-                    f"[AUTH_DEBUG] Exception in extract_rbac_context for "
-                    f"{request.url.path}: {str(e)}"
-                )
+                print(f"[AUTH_DEBUG] Exception in extract_rbac_context for " f"{request.url.path}: {str(e)}")
             return None
 
     async def __call__(self, request: Request, call_next: Callable) -> Response:
@@ -186,15 +163,10 @@ class RBACMiddleware:
 
         try:
             # Check if this is a public route
-            is_public_route = any(
-                request.url.path.startswith(route) for route in PUBLIC_ROUTES
-            )
+            is_public_route = any(request.url.path.startswith(route) for route in PUBLIC_ROUTES)
 
             if debug_mode:
-                print(
-                    f"[AUTH_DEBUG] Processing {request.method} {request.url.path} "
-                    f"(public: {is_public_route})"
-                )
+                print(f"[AUTH_DEBUG] Processing {request.method} {request.url.path} " f"(public: {is_public_route})")
 
             # Extract RBAC context and add to request state - NEVER RAISES EXCEPTIONS
             rbac_context = await self.extract_rbac_context(request)
@@ -215,10 +187,7 @@ class RBACMiddleware:
             print(f"[AUTH_ERROR] {error_msg}")
 
             if debug_mode:
-                print(
-                    f"[AUTH_DEBUG] Middleware exception for {request.url.path}: "
-                    f"{str(e)}"
-                )
+                print(f"[AUTH_DEBUG] Middleware exception for {request.url.path}: " f"{str(e)}")
 
             # Set empty context and continue
             request.state.rbac_context = None
@@ -257,9 +226,7 @@ def require_permission(resource: str, action: str) -> Callable:
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
-            request = kwargs.get("request") or (
-                args[0] if args and hasattr(args[0], "headers") else None
-            )
+            request = kwargs.get("request") or (args[0] if args and hasattr(args[0], "headers") else None)
             if not request:
                 raise HTTPException(status_code=500, detail="Request object not found")
 
@@ -272,25 +239,19 @@ def require_permission(resource: str, action: str) -> Callable:
             if isinstance(resource, str):
                 resource_enum = getattr(Resource, resource.upper(), None)
                 if not resource_enum:
-                    raise HTTPException(
-                        status_code=500, detail=f"Invalid resource: {resource}"
-                    )
+                    raise HTTPException(status_code=500, detail=f"Invalid resource: {resource}")
             else:
                 resource_enum = resource
 
             if isinstance(action, str):
                 action_enum = getattr(Action, action.upper(), None)
                 if not action_enum:
-                    raise HTTPException(
-                        status_code=500, detail=f"Invalid action: {action}"
-                    )
+                    raise HTTPException(status_code=500, detail=f"Invalid action: {action}")
             else:
                 action_enum = action
 
             if not rbac_context.has_permission(resource_enum, action_enum):
-                raise HTTPException(
-                    status_code=403, detail=f"Permission denied: {action} on {resource}"
-                )
+                raise HTTPException(status_code=403, detail=f"Permission denied: {action} on {resource}")
 
             return await func(*args, **kwargs)
 
@@ -307,9 +268,7 @@ def require_admin() -> Callable:
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
-            request = kwargs.get("request") or (
-                args[0] if args and hasattr(args[0], "headers") else None
-            )
+            request = kwargs.get("request") or (args[0] if args and hasattr(args[0], "headers") else None)
             if not request:
                 raise HTTPException(status_code=500, detail="Request object not found")
 

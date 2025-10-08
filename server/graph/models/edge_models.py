@@ -111,9 +111,7 @@ class LinkedToEdge(BaseEdge):
 
     def __post_init__(self):
         self.relationship_type = RelationshipType.LINKED_TO.value
-        self.properties.update(
-            {"relevance": self.relevance, "link_type": self.link_type}
-        )
+        self.properties.update({"relevance": self.relevance, "link_type": self.link_type})
         super().__post_init__()
 
 
@@ -268,9 +266,7 @@ class CreatedInEdge(BaseEdge):
 
     def __post_init__(self):
         self.relationship_type = RelationshipType.CREATED_IN.value
-        self.properties.update(
-            {"relevance": self.relevance, "context_phase": self.context_phase}
-        )
+        self.properties.update({"relevance": self.relevance, "context_phase": self.context_phase})
         super().__post_init__()
 
 

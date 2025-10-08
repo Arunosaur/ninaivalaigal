@@ -146,9 +146,7 @@ class TestGraphMLEngine:
         assert engine.metrics.model_version == "1.0.0"
 
     @pytest.mark.asyncio
-    async def test_predict_memory_relevance(
-        self, ml_engine, graph_context, candidate_memories
-    ):
+    async def test_predict_memory_relevance(self, ml_engine, graph_context, candidate_memories):
         """Test memory relevance prediction with graph ML"""
 
         query = "fastapi debugging issues"
@@ -185,12 +183,8 @@ class TestGraphMLEngine:
             assert all(isinstance(m, ScoredMemory) for m in scored_memories)
 
             # Should be sorted by relevance score (highest first)
-            assert (
-                scored_memories[0].relevance_score >= scored_memories[1].relevance_score
-            )
-            assert (
-                scored_memories[1].relevance_score >= scored_memories[2].relevance_score
-            )
+            assert scored_memories[0].relevance_score >= scored_memories[1].relevance_score
+            assert scored_memories[1].relevance_score >= scored_memories[2].relevance_score
 
             # First memory should have highest score (FastAPI debugging)
             assert scored_memories[0].memory_id == "mem_001"
@@ -272,9 +266,7 @@ class TestGraphMLEngine:
         with (
             patch.object(ml_engine, "_extract_memory_graph_features") as mock_features,
             patch.object(ml_engine, "_enhance_embedding_with_graph") as mock_enhance,
-            patch.object(
-                ml_engine, "_calculate_embedding_improvement"
-            ) as mock_improvement,
+            patch.object(ml_engine, "_calculate_embedding_improvement") as mock_improvement,
         ):
 
             mock_features.return_value = {"centrality": 0.7, "clustering": 0.6}
@@ -376,9 +368,7 @@ class TestGraphMLEngine:
             "last_accessed": (datetime.utcnow() - timedelta(days=100)).isoformat(),
         }
 
-        recent_score = ml_engine._calculate_temporal_relevance(
-            recent_memory, graph_context
-        )
+        recent_score = ml_engine._calculate_temporal_relevance(recent_memory, graph_context)
         old_score = ml_engine._calculate_temporal_relevance(old_memory, graph_context)
 
         # Recent memory should score higher
@@ -391,15 +381,11 @@ class TestGraphMLEngine:
 
         # High agreement between features
         high_agreement_scores = [0.8, 0.85, 0.82, 0.78, 0.83, 0.81]
-        high_confidence = ml_engine._calculate_prediction_confidence(
-            high_agreement_scores
-        )
+        high_confidence = ml_engine._calculate_prediction_confidence(high_agreement_scores)
 
         # Low agreement between features
         low_agreement_scores = [0.9, 0.2, 0.8, 0.1, 0.7, 0.3]
-        low_confidence = ml_engine._calculate_prediction_confidence(
-            low_agreement_scores
-        )
+        low_confidence = ml_engine._calculate_prediction_confidence(low_agreement_scores)
 
         # High agreement should have higher confidence
         assert high_confidence > low_confidence
@@ -480,9 +466,7 @@ class TestGraphMLEngine:
         assert confidence >= 0.7  # Target: >70% confidence for consistent features
 
     @pytest.mark.asyncio
-    async def test_weight_adaptation_performance_protection(
-        self, ml_engine, user_feedback_batch
-    ):
+    async def test_weight_adaptation_performance_protection(self, ml_engine, user_feedback_batch):
         """Test weight adaptation reverts if performance decreases"""
 
         initial_weights = ml_engine.feature_weights.copy()
@@ -495,9 +479,7 @@ class TestGraphMLEngine:
         ):
 
             mock_analyze.return_value = {"patterns": "test"}
-            mock_gradients.return_value = {
-                "content_similarity": -0.5
-            }  # Large negative gradient
+            mock_gradients.return_value = {"content_similarity": -0.5}  # Large negative gradient
             mock_current.return_value = 0.80
             mock_updated.return_value = 0.70  # Performance decreased significantly
 

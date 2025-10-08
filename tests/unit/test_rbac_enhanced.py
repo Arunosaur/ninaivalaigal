@@ -13,9 +13,7 @@ class TestRBACModule:
         try:
             from server import rbac_middleware
 
-            assert hasattr(rbac_middleware, "RBACMiddleware") or hasattr(
-                rbac_middleware, "rbac_middleware"
-            )
+            assert hasattr(rbac_middleware, "RBACMiddleware") or hasattr(rbac_middleware, "rbac_middleware")
 
         except ImportError as e:
             pytest.skip(f"RBAC middleware import failed: {e}")

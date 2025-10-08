@@ -46,9 +46,7 @@ def require_permission(*required: str):
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            request: Request = kwargs.get("request") or next(
-                (a for a in args if isinstance(a, Request)), None
-            )
+            request: Request = kwargs.get("request") or next((a for a in args if isinstance(a, Request)), None)
             if request is None:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

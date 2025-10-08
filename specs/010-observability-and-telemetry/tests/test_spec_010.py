@@ -63,9 +63,7 @@ def test_health_latency_slo():
     latency_ms = (end_time - start_time) * 1000
 
     assert response.status_code == 200
-    assert (
-        latency_ms < 250
-    ), f"Health endpoint took {latency_ms:.1f}ms, exceeds 250ms SLO"
+    assert latency_ms < 250, f"Health endpoint took {latency_ms:.1f}ms, exceeds 250ms SLO"
 
 
 def test_metrics_after_requests():
@@ -89,9 +87,7 @@ def test_metrics_after_requests():
 def test_request_id_tracking():
     """Test request ID is tracked in responses"""
     custom_id = "test-request-123"
-    response = httpx.get(
-        f"{API_BASE}/health", headers={"X-Request-ID": custom_id}, timeout=5
-    )
+    response = httpx.get(f"{API_BASE}/health", headers={"X-Request-ID": custom_id}, timeout=5)
 
     assert response.status_code == 200
     # In a full implementation, we might return the request ID in response headers

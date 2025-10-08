@@ -124,9 +124,9 @@ def calculate_usage_metrics(user_id: UUID, db: Session) -> Dict[str, Any]:
 
 @router.post("/apply")
 async def submit_early_adopter_application(
-        application: EarlyAdopterApplication,
-        background_tasks: BackgroundTasks,
-        db: Session = Depends(get_db),
+    application: EarlyAdopterApplication,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """
     Submit application for early adopter program
@@ -176,8 +176,11 @@ async def submit_early_adopter_application(
     )
 
     # Auto-approve based on criteria (in production, manual review process)
-    auto_approve = (application.team_size >= 3 and application.timeline in ["immediate", "1-2_weeks"]
-                    and len(application.use_case) > 50)
+    auto_approve = (
+        application.team_size >= 3
+        and application.timeline in ["immediate", "1-2_weeks"]
+        and len(application.use_case) > 50
+    )
 
     if auto_approve:
         background_tasks.add_task(approve_early_adopter, str(adopter_id))
@@ -214,10 +217,7 @@ async def approve_early_adopter(adopter_id: str):
                     "type": "calendar_link",
                     "url": "https://calendly.com/ninaivalaigal/onboarding",
                 },
-                {
-                    "type": "preparation_guide",
-                    "url": "/docs/onboarding-prep"
-                },
+                {"type": "preparation_guide", "url": "/docs/onboarding-prep"},
             ],
         ),
         OnboardingStep(
@@ -228,14 +228,8 @@ async def approve_early_adopter(adopter_id: str):
             is_completed=False,
             completion_date=None,
             resources=[
-                {
-                    "type": "setup_guide",
-                    "url": "/docs/team-setup"
-                },
-                {
-                    "type": "video_tutorial",
-                    "url": "/videos/account-setup"
-                },
+                {"type": "setup_guide", "url": "/docs/team-setup"},
+                {"type": "video_tutorial", "url": "/videos/account-setup"},
             ],
         ),
         OnboardingStep(
@@ -246,14 +240,8 @@ async def approve_early_adopter(adopter_id: str):
             is_completed=False,
             completion_date=None,
             resources=[
-                {
-                    "type": "quick_start",
-                    "url": "/docs/quick-start"
-                },
-                {
-                    "type": "best_practices",
-                    "url": "/docs/memory-best-practices"
-                },
+                {"type": "quick_start", "url": "/docs/quick-start"},
+                {"type": "best_practices", "url": "/docs/memory-best-practices"},
             ],
         ),
         OnboardingStep(
@@ -264,14 +252,8 @@ async def approve_early_adopter(adopter_id: str):
             is_completed=False,
             completion_date=None,
             resources=[
-                {
-                    "type": "collaboration_guide",
-                    "url": "/docs/team-collaboration"
-                },
-                {
-                    "type": "permission_setup",
-                    "url": "/docs/permissions"
-                },
+                {"type": "collaboration_guide", "url": "/docs/team-collaboration"},
+                {"type": "permission_setup", "url": "/docs/permissions"},
             ],
         ),
         OnboardingStep(
@@ -282,14 +264,8 @@ async def approve_early_adopter(adopter_id: str):
             is_completed=False,
             completion_date=None,
             resources=[
-                {
-                    "type": "feedback_form",
-                    "url": "/early-adopter/feedback"
-                },
-                {
-                    "type": "feature_roadmap",
-                    "url": "/roadmap"
-                },
+                {"type": "feedback_form", "url": "/early-adopter/feedback"},
+                {"type": "feature_roadmap", "url": "/roadmap"},
             ],
         ),
     ]
@@ -332,10 +308,8 @@ async def get_adopter_status(adopter_id: str, current_user: User = Depends(get_c
     onboarding_progress = onboarding_progress_db.get(adopter_id, {})
 
     return {
-        "profile":
-        profile,
-        "onboarding_progress":
-        onboarding_progress,
+        "profile": profile,
+        "onboarding_progress": onboarding_progress,
         "program_benefits": [
             "Priority support and direct access to our team",
             "Early access to new features and beta releases",
@@ -372,8 +346,9 @@ async def get_onboarding_checklist(adopter_id: str, current_user: User = Depends
 
 
 @router.post("/onboarding/{adopter_id}/complete-step")
-async def complete_onboarding_step(adopter_id: str, step_id: str,
-                                   current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+async def complete_onboarding_step(
+    adopter_id: str, step_id: str, current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
     """Mark onboarding step as completed"""
 
     if adopter_id not in onboarding_progress_db:
@@ -426,9 +401,9 @@ async def complete_onboarding_step(adopter_id: str, step_id: str,
 
 @router.post("/feedback")
 async def submit_feedback(
-        feedback: FeedbackSubmission,
-        background_tasks: BackgroundTasks,
-        current_user: User = Depends(get_current_user),
+    feedback: FeedbackSubmission,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Submit feedback from early adopter"""
 
@@ -467,20 +442,22 @@ async def submit_feedback(
 
 
 @router.get("/metrics")
-async def get_program_metrics(current_user: User = Depends(get_current_user),
-                              db: Session = Depends(get_db)) -> ProgramMetrics:
+async def get_program_metrics(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> ProgramMetrics:
     """Get early adopter program metrics (admin only)"""
 
     # In production, check admin permissions
 
     total_applications = len(early_adopters_db)
-    approved_adopters = sum(1 for data in early_adopters_db.values()
-                            if data["profile"]["status"] in ["approved", "onboarded", "active"])
+    approved_adopters = sum(
+        1 for data in early_adopters_db.values() if data["profile"]["status"] in ["approved", "onboarded", "active"]
+    )
     active_adopters = sum(1 for data in early_adopters_db.values() if data["profile"]["status"] == "active")
 
     # Calculate satisfaction score
     feedback_scores = [entry["satisfaction_score"] for entry in feedback_db.values() if entry.get("satisfaction_score")]
-    avg_satisfaction_score = (sum(feedback_scores) / len(feedback_scores) if feedback_scores else 0)
+    avg_satisfaction_score = sum(feedback_scores) / len(feedback_scores) if feedback_scores else 0
 
     # Calculate retention rate (simplified)
     retention_rate = (active_adopters / max(approved_adopters, 1)) * 100
@@ -502,26 +479,27 @@ async def get_program_metrics(current_user: User = Depends(get_current_user),
 
 
 @router.get("/community")
-async def get_community_info(current_user: User = Depends(get_current_user), ) -> Dict[str, Any]:
+async def get_community_info(
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
     """Get early adopter community information"""
 
     return {
         "community_stats": {
-            "total_members":
-            len([data for data in early_adopters_db.values() if data["profile"]["status"] in ["onboarded", "active"]]),
-            "active_this_week":
-            15,
-            "feature_requests_submitted":
-            len([entry for entry in feedback_db.values() if entry["category"] == "feature_request"]),
-            "features_shipped":
-            8,
+            "total_members": len(
+                [data for data in early_adopters_db.values() if data["profile"]["status"] in ["onboarded", "active"]]
+            ),
+            "active_this_week": 15,
+            "feature_requests_submitted": len(
+                [entry for entry in feedback_db.values() if entry["category"] == "feature_request"]
+            ),
+            "features_shipped": 8,
         },
         "recent_updates": [
             {
                 "date": "2024-09-20",
                 "title": "New Team Dashboard Released",
-                "description":
-                "Based on your feedback, we've launched an improved team dashboard with real-time analytics.",
+                "description": "Based on your feedback, we've launched an improved team dashboard with real-time analytics.",
                 "requested_by": "early_adopter_community",
             },
             {
@@ -554,14 +532,8 @@ async def get_community_info(current_user: User = Depends(get_current_user), ) -
                 "title": "Monthly Feedback Sessions",
                 "url": "/calendar/feedback-sessions",
             },
-            {
-                "title": "Product Roadmap",
-                "url": "/roadmap"
-            },
-            {
-                "title": "Feature Request Portal",
-                "url": "/early-adopter/feedback"
-            },
+            {"title": "Product Roadmap", "url": "/roadmap"},
+            {"title": "Feature Request Portal", "url": "/early-adopter/feedback"},
         ],
     }
 
@@ -572,23 +544,20 @@ async def get_success_stories() -> List[Dict[str, Any]]:
 
     return [
         {
-            "company":
-            "TechStartup Inc",
-            "user":
-            "Sarah Chen",
-            "role":
-            "Engineering Manager",
-            "team_size":
-            12,
-            "use_case":
-            "Engineering knowledge management",
+            "company": "TechStartup Inc",
+            "user": "Sarah Chen",
+            "role": "Engineering Manager",
+            "team_size": 12,
+            "use_case": "Engineering knowledge management",
             "results": {
                 "time_saved": "8 hours per week",
                 "knowledge_retention": "85% improvement",
                 "onboarding_speed": "50% faster",
             },
-            "quote": ("Ninaivalaigal transformed how our engineering team shares and retains knowledge. "
-                      "New team members are productive 50% faster."),
+            "quote": (
+                "Ninaivalaigal transformed how our engineering team shares and retains knowledge. "
+                "New team members are productive 50% faster."
+            ),
             "metrics": {
                 "memories_created": 450,
                 "team_adoption": "100%",
@@ -606,8 +575,7 @@ async def get_success_stories() -> List[Dict[str, Any]]:
                 "client_satisfaction": "95% rating",
                 "idea_retention": "90% better",
             },
-            "quote":
-            "We never lose great ideas anymore. Every brainstorm session and client feedback is captured and easily accessible.",  # noqa: E501
+            "quote": "We never lose great ideas anymore. Every brainstorm session and client feedback is captured and easily accessible.",  # noqa: E501
             "metrics": {
                 "memories_created": 320,
                 "team_adoption": "87%",

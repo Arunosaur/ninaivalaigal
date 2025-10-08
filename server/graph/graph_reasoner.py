@@ -90,7 +90,7 @@ class GraphReasoner:
         Returns:
             ContextExplanation with reasoning paths and evidence
         """
-        cache_key = (f"context_explanation:{memory_id}:{user_id}:{context_type}:{max_depth}")
+        cache_key = f"context_explanation:{memory_id}:{user_id}:{context_type}:{max_depth}"
 
         # Check Redis cache first
         cached_result = await self.redis_client.get(cache_key)
@@ -102,9 +102,9 @@ class GraphReasoner:
         logger.info(f"Computing context explanation for memory: {memory_id}")
 
         # Find all paths from user to memory
-        reasoning_paths = await self._find_reasoning_paths(start_node_id=user_id,
-                                                           target_node_id=memory_id,
-                                                           max_depth=max_depth)
+        reasoning_paths = await self._find_reasoning_paths(
+            start_node_id=user_id, target_node_id=memory_id, max_depth=max_depth
+        )
 
         # Analyze path significance
         primary_path = self._select_primary_path(reasoning_paths)
@@ -150,7 +150,7 @@ class GraphReasoner:
         Returns:
             RelevanceInference with suggested memories and agents
         """
-        cache_key = (f"relevance_inference:{current_memory_id}:{user_id}:{suggestion_count}")
+        cache_key = f"relevance_inference:{current_memory_id}:{user_id}:{suggestion_count}"
 
         # Check Redis cache
         cached_result = await self.redis_client.get(cache_key)
@@ -168,8 +168,9 @@ class GraphReasoner:
         relevant_agents = await self._find_relevant_agents(current_memory_id, user_id)
 
         # Calculate proximity metrics
-        proximity_metrics = await self._calculate_proximity_metrics(current_memory_id,
-                                                                    connected_memories + relevant_agents)
+        proximity_metrics = await self._calculate_proximity_metrics(
+            current_memory_id, connected_memories + relevant_agents
+        )
 
         # Score and rank suggestions
         memory_scores = await self._score_memory_suggestions(connected_memories, proximity_metrics)
@@ -188,10 +189,7 @@ class GraphReasoner:
         inference = RelevanceInference(
             suggested_memories=suggested_memories,
             suggested_agents=suggested_agents,
-            reasoning_scores={
-                **memory_scores,
-                **agent_scores
-            },
+            reasoning_scores={**memory_scores, **agent_scores},
             proximity_metrics=proximity_metrics,
             confidence=confidence,
         )
@@ -301,8 +299,9 @@ class GraphReasoner:
 
     # Private helper methods
 
-    async def _find_reasoning_paths(self, start_node_id: str, target_node_id: str,
-                                    max_depth: int) -> list[ReasoningPath]:
+    async def _find_reasoning_paths(
+        self, start_node_id: str, target_node_id: str, max_depth: int
+    ) -> list[ReasoningPath]:
         """Find all reasoning paths between two nodes"""
         cypher_query = f"""
         MATCH path = (start)-[*1..{max_depth}]-(target)
@@ -465,14 +464,15 @@ class GraphReasoner:
             if result:
                 distance = result[0].get("distance", float("inf"))
                 # Convert distance to proximity (closer = higher score)
-                metrics[target_id] = (1.0 / (1.0 + distance) if distance < float("inf") else 0.0)
+                metrics[target_id] = 1.0 / (1.0 + distance) if distance < float("inf") else 0.0
             else:
                 metrics[target_id] = 0.0
 
         return metrics
 
-    async def _score_memory_suggestions(self, memory_ids: list[str],
-                                        proximity_metrics: dict[str, float]) -> dict[str, float]:
+    async def _score_memory_suggestions(
+        self, memory_ids: list[str], proximity_metrics: dict[str, float]
+    ) -> dict[str, float]:
         """Score memory suggestions based on various factors"""
         scores = {}
 
@@ -496,7 +496,7 @@ class GraphReasoner:
 
                 # Combine factors
                 connection_boost = min(connection_count * 0.05, 0.3)
-                final_score = (proximity_score * 0.4 + base_score * 0.4 + connection_boost * 0.2)
+                final_score = proximity_score * 0.4 + base_score * 0.4 + connection_boost * 0.2
 
                 scores[memory_id] = final_score
             else:
@@ -504,8 +504,9 @@ class GraphReasoner:
 
         return scores
 
-    async def _score_agent_suggestions(self, agent_ids: list[str], proximity_metrics: dict[str,
-                                                                                           float]) -> dict[str, float]:
+    async def _score_agent_suggestions(
+        self, agent_ids: list[str], proximity_metrics: dict[str, float]
+    ) -> dict[str, float]:
         """Score agent suggestions based on relevance and activity"""
         scores = {}
 
@@ -598,8 +599,9 @@ class GraphReasoner:
 
         return {"updated_edges": updated_edges}
 
-    async def _adjust_traversal_parameters(self, user_id: str, feedback_type: str,
-                                           feedback_score: float) -> dict[str, Any]:
+    async def _adjust_traversal_parameters(
+        self, user_id: str, feedback_type: str, feedback_score: float
+    ) -> dict[str, Any]:
         """Adjust traversal parameters based on feedback"""
         # Store user-specific traversal preferences
         preferences_key = f"traversal_prefs:{user_id}"
@@ -651,7 +653,7 @@ class GraphReasoner:
         # Basic structural metrics
         node_count = len(nodes)
         edge_count = len(edges)
-        density = ((2 * edge_count) / (node_count * (node_count - 1)) if node_count > 1 else 0)
+        density = (2 * edge_count) / (node_count * (node_count - 1)) if node_count > 1 else 0
 
         # Count node types
         node_types: dict[str, int] = {}
@@ -685,10 +687,7 @@ class GraphReasoner:
         hubs = sorted_nodes[:hub_count]
 
         return {
-            "hubs": [{
-                "node_id": hub[0],
-                "connections": hub[1]
-            } for hub in hubs],
+            "hubs": [{"node_id": hub[0], "connections": hub[1]} for hub in hubs],
             "connection_distribution": dict(sorted_nodes[:10]),  # Top 10
         }
 
@@ -707,8 +706,7 @@ class GraphReasoner:
         hubs = patterns.get("hubs", [])
         if hubs:
             top_hub = hubs[0]
-            insights.append(f"Memory hub '{top_hub['node_id']}' has "
-                            f"{top_hub['connections']} connections")
+            insights.append(f"Memory hub '{top_hub['node_id']}' has " f"{top_hub['connections']} connections")
 
         # Connection insights
         avg_connections = structure.get("avg_connections", 0)

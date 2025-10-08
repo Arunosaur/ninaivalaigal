@@ -77,9 +77,7 @@ class ContextualRedactor:
         detected_secrets = self.secret_detector.detect_all_secrets(text)
 
         # Filter secrets based on tier rules and confidence
-        applicable_secrets = self._filter_secrets_by_tier(
-            detected_secrets, tier_rules, context_tier
-        )
+        applicable_secrets = self._filter_secrets_by_tier(detected_secrets, tier_rules, context_tier)
 
         # Apply redactions
         redacted_text = self._apply_redactions(text, applicable_secrets)
@@ -165,10 +163,7 @@ class ContextualRedactor:
 
         # Check entropy-based rules
         if secret.secret_type == SecretType.HIGH_ENTROPY_STRING:
-            if (
-                "high_entropy_secrets" in tier_rules
-                and secret.entropy_score >= self.config.min_entropy
-            ):
+            if "high_entropy_secrets" in tier_rules and secret.entropy_score >= self.config.min_entropy:
                 return True
             if "low_entropy_secrets" in tier_rules and secret.entropy_score >= 3.5:
                 return True
@@ -207,9 +202,7 @@ class ContextualRedactor:
         for secret in secrets_sorted:
             # Replace the secret with its redaction text
             redacted_text = (
-                redacted_text[: secret.start_pos]
-                + secret.replacement_text
-                + redacted_text[secret.end_pos :]
+                redacted_text[: secret.start_pos] + secret.replacement_text + redacted_text[secret.end_pos :]
             )
 
         return redacted_text

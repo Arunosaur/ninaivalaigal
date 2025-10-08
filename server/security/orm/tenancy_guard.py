@@ -72,17 +72,13 @@ class TenancyGuard:
     def register_model(self, model_class: type, tenant_column: str = "tenant_id"):
         """Register a model for tenant filtering."""
         self._registered_models[model_class.__name__] = tenant_column
-        self.logger.info(
-            f"Registered model {model_class.__name__} with tenant column {tenant_column}"
-        )
+        self.logger.info(f"Registered model {model_class.__name__} with tenant column {tenant_column}")
 
     def install_listeners(self, engine):
         """Install SQLAlchemy event listeners for tenant filtering."""
 
         @event.listens_for(engine, "before_cursor_execute")
-        def before_cursor_execute(
-            conn, cursor, statement, parameters, context, executemany
-        ):
+        def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
             """Intercept SQL execution to add tenant filtering."""
             if not self.enforce_context:
                 return
@@ -110,9 +106,7 @@ class TenancyGuard:
 
         current_tenant = _tenant_context.tenant_id
         if not current_tenant:
-            self.logger.error(
-                f"No tenant context for {operation} operation on {model_name}"
-            )
+            self.logger.error(f"No tenant context for {operation} operation on {model_name}")
             return False
 
         instance_tenant = getattr(model_instance, tenant_column, None)

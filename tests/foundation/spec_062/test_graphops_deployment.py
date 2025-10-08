@@ -72,9 +72,7 @@ class TestGraphOpsDeployment:
                 expected_image = "ninaivalaigal-graph-db:x86_64"
                 container_runtime = "docker"  # Docker
 
-            assert expected_image.endswith(
-                arch
-            ), f"Image should be tagged for {arch} architecture"
+            assert expected_image.endswith(arch), f"Image should be tagged for {arch} architecture"
             assert container_runtime in [
                 "container",
                 "docker",
@@ -106,9 +104,7 @@ class TestGraphOpsDeployment:
         ]
 
         for operation in lifecycle_operations:
-            assert (
-                len(operation["containers"]) > 0
-            ), f"Operation {operation['operation']} should specify containers"
+            assert len(operation["containers"]) > 0, f"Operation {operation['operation']} should specify containers"
 
             if "startup_order" in operation:
                 assert len(operation["startup_order"]) == len(
@@ -128,12 +124,8 @@ class TestGraphOpsDeployment:
         }
 
         # Validate port assignments
-        assert (
-            network_config["graph_db_port"] != 5432
-        ), "Graph DB should use different port from main DB"
-        assert (
-            network_config["graph_redis_port"] != 6379
-        ), "Graph Redis should use different port from main Redis"
+        assert network_config["graph_db_port"] != 5432, "Graph DB should use different port from main DB"
+        assert network_config["graph_redis_port"] != 6379, "Graph Redis should use different port from main Redis"
 
         # Test port conflict detection
         used_ports = [5432, 6379, 13370]  # Main stack ports
@@ -143,9 +135,7 @@ class TestGraphOpsDeployment:
         ]
 
         for port in graph_ports:
-            assert (
-                port not in used_ports
-            ), f"Graph port {port} should not conflict with main stack"
+            assert port not in used_ports, f"Graph port {port} should not conflict with main stack"
 
     def test_volume_management(self, deployment_config):
         """Test SPEC-062: Volume management and data persistence"""
@@ -169,12 +159,8 @@ class TestGraphOpsDeployment:
         ]
 
         for volume in volume_config:
-            assert volume["name"].startswith(
-                "ninaivalaigal_"
-            ), "Volumes should use project prefix"
-            assert volume["mount_point"].startswith(
-                "/"
-            ), "Mount points should be absolute paths"
+            assert volume["name"].startswith("ninaivalaigal_"), "Volumes should use project prefix"
+            assert volume["mount_point"].startswith("/"), "Mount points should be absolute paths"
             assert volume["retention_days"] > 0, "Retention should be positive"
 
     def test_health_monitoring(self, mock_container_client):
@@ -206,12 +192,8 @@ class TestGraphOpsDeployment:
         ]
 
         for check in health_checks:
-            assert (
-                check["timeout_seconds"] > 0
-            ), f"Health check {check['service']} should have positive timeout"
-            assert (
-                check["retry_count"] > 0
-            ), f"Health check {check['service']} should have positive retry count"
+            assert check["timeout_seconds"] > 0, f"Health check {check['service']} should have positive timeout"
+            assert check["retry_count"] > 0, f"Health check {check['service']} should have positive retry count"
 
     def test_makefile_integration(self):
         """Test SPEC-062: Makefile integration and command availability"""
@@ -249,12 +231,8 @@ class TestGraphOpsDeployment:
         ]
 
         for cmd in makefile_commands:
-            assert (
-                cmd["description"] is not None
-            ), f"Command {cmd['command']} should have description"
-            assert isinstance(
-                cmd["dependencies"], list
-            ), f"Command {cmd['command']} should have dependencies list"
+            assert cmd["description"] is not None, f"Command {cmd['command']} should have description"
+            assert isinstance(cmd["dependencies"], list), f"Command {cmd['command']} should have dependencies list"
 
     def test_ci_cd_integration(self):
         """Test SPEC-062: CI/CD integration and automated testing"""
@@ -297,17 +275,11 @@ class TestGraphOpsDeployment:
             ],
         }
 
-        total_timeout = sum(
-            stage["timeout_minutes"] for stage in ci_config["test_stages"]
-        )
-        assert (
-            total_timeout <= 45
-        ), "Total CI pipeline should complete within 45 minutes"
+        total_timeout = sum(stage["timeout_minutes"] for stage in ci_config["test_stages"])
+        assert total_timeout <= 45, "Total CI pipeline should complete within 45 minutes"
 
         for stage in ci_config["test_stages"]:
-            assert (
-                len(stage["actions"]) > 0
-            ), f"Stage {stage['stage']} should have actions"
+            assert len(stage["actions"]) > 0, f"Stage {stage['stage']} should have actions"
 
     def test_security_configuration(self, deployment_config):
         """Test SPEC-062: Security configuration and access controls"""
@@ -380,9 +352,7 @@ class TestGraphOpsDeployment:
                 "daily",
                 "weekly",
             ], f"Backup frequency should be standard interval"
-            assert (
-                strategy["recovery_time_target_minutes"] > 0
-            ), f"Recovery time should be positive"
+            assert strategy["recovery_time_target_minutes"] > 0, f"Recovery time should be positive"
             assert strategy["backup_location"].startswith(
                 "./backups/"
             ), f"Backup location should be in backups directory"
@@ -421,21 +391,13 @@ class TestGraphOpsDeployment:
         for test in performance_tests:
             # Simulate performance measurement
             if "target_seconds" in test:
-                assert (
-                    test["target_seconds"] > 0
-                ), f"Performance test {test['test']} should have positive time target"
+                assert test["target_seconds"] > 0, f"Performance test {test['test']} should have positive time target"
             elif "target_ms" in test:
-                assert (
-                    test["target_ms"] > 0
-                ), f"Performance test {test['test']} should have positive millisecond target"
+                assert test["target_ms"] > 0, f"Performance test {test['test']} should have positive millisecond target"
             elif "target_count" in test:
-                assert (
-                    test["target_count"] > 0
-                ), f"Performance test {test['test']} should have positive count target"
+                assert test["target_count"] > 0, f"Performance test {test['test']} should have positive count target"
             elif "target_mb" in test:
-                assert (
-                    test["target_mb"] > 0
-                ), f"Performance test {test['test']} should have positive memory target"
+                assert test["target_mb"] > 0, f"Performance test {test['test']} should have positive memory target"
 
     @pytest.mark.integration
     def test_end_to_end_deployment(self, deployment_config):
@@ -481,20 +443,12 @@ class TestGraphOpsDeployment:
             },
         ]
 
-        total_deployment_time = sum(
-            step["timeout_minutes"] for step in deployment_workflow
-        )
-        assert (
-            total_deployment_time <= 20
-        ), "Complete deployment should finish within 20 minutes"
+        total_deployment_time = sum(step["timeout_minutes"] for step in deployment_workflow)
+        assert total_deployment_time <= 20, "Complete deployment should finish within 20 minutes"
 
         for step in deployment_workflow:
-            assert (
-                step["success_criteria"] is not None
-            ), f"Step {step['step']} should have success criteria"
-            assert (
-                step["timeout_minutes"] > 0
-            ), f"Step {step['step']} should have positive timeout"
+            assert step["success_criteria"] is not None, f"Step {step['step']} should have success criteria"
+            assert step["timeout_minutes"] > 0, f"Step {step['step']} should have positive timeout"
 
     def test_monitoring_and_alerting(self):
         """Test SPEC-062: Monitoring and alerting integration"""
@@ -527,17 +481,9 @@ class TestGraphOpsDeployment:
         assert (
             len(monitoring_config["metrics_collection"]["postgres_metrics"]) >= 3
         ), "Should monitor key PostgreSQL metrics"
-        assert (
-            len(monitoring_config["metrics_collection"]["redis_metrics"]) >= 3
-        ), "Should monitor key Redis metrics"
+        assert len(monitoring_config["metrics_collection"]["redis_metrics"]) >= 3, "Should monitor key Redis metrics"
 
-        for threshold_name, threshold_value in monitoring_config[
-            "alert_thresholds"
-        ].items():
-            assert (
-                threshold_value > 0
-            ), f"Alert threshold {threshold_name} should be positive"
+        for threshold_name, threshold_value in monitoring_config["alert_thresholds"].items():
+            assert threshold_value > 0, f"Alert threshold {threshold_name} should be positive"
             if "percentage" in threshold_name or threshold_name.endswith("_limit"):
-                assert (
-                    threshold_value <= 100
-                ), f"Percentage threshold {threshold_name} should be <= 100"
+                assert threshold_value <= 100, f"Percentage threshold {threshold_name} should be <= 100"

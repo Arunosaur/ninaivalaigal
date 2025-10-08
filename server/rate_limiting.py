@@ -16,9 +16,7 @@ from fastapi.responses import JSONResponse
 class RateLimiter:
     """Token bucket rate limiter with sliding window"""
 
-    def __init__(
-        self, max_requests: int, window_seconds: int, burst_allowance: int = None
-    ):
+    def __init__(self, max_requests: int, window_seconds: int, burst_allowance: int = None):
         self.max_requests = max_requests
         self.window_seconds = window_seconds
         self.burst_allowance = burst_allowance or max_requests
@@ -84,28 +82,16 @@ class EndpointRateLimiter:
     def __init__(self):
         # Define rate limits per endpoint pattern
         self.endpoint_limits = {
-            "/auth/signup": RateLimiter(
-                max_requests=5, window_seconds=300
-            ),  # 5 per 5 minutes
-            "/auth/login": RateLimiter(
-                max_requests=10, window_seconds=300
-            ),  # 10 per 5 minutes
-            "/auth/": RateLimiter(
-                max_requests=20, window_seconds=300
-            ),  # 20 per 5 minutes for auth
-            "/api/memory": RateLimiter(
-                max_requests=100, window_seconds=60
-            ),  # 100 per minute
-            "/api/": RateLimiter(
-                max_requests=200, window_seconds=60
-            ),  # 200 per minute general API
+            "/auth/signup": RateLimiter(max_requests=5, window_seconds=300),  # 5 per 5 minutes
+            "/auth/login": RateLimiter(max_requests=10, window_seconds=300),  # 10 per 5 minutes
+            "/auth/": RateLimiter(max_requests=20, window_seconds=300),  # 20 per 5 minutes for auth
+            "/api/memory": RateLimiter(max_requests=100, window_seconds=60),  # 100 per minute
+            "/api/": RateLimiter(max_requests=200, window_seconds=60),  # 200 per minute general API
             "default": RateLimiter(max_requests=50, window_seconds=60),  # Default limit
         }
 
         # Global rate limiter for aggressive clients
-        self.global_limiter = RateLimiter(
-            max_requests=1000, window_seconds=3600
-        )  # 1000 per hour
+        self.global_limiter = RateLimiter(max_requests=1000, window_seconds=3600)  # 1000 per hour
 
         # Blocked IPs (temporary blocks)
         self.blocked_ips: dict[str, float] = {}
@@ -220,32 +206,24 @@ class SecurityMiddleware:
     def is_suspicious_request(self, request: Request) -> bool:
         """Check if request contains suspicious patterns"""
         # Check URL path
-        if any(
-            re.search(pattern, request.url.path) for pattern in self.suspicious_patterns
-        ):
+        if any(re.search(pattern, request.url.path) for pattern in self.suspicious_patterns):
             return True
 
         # Check query parameters
         for param_value in request.query_params.values():
-            if any(
-                re.search(pattern, param_value) for pattern in self.suspicious_patterns
-            ):
+            if any(re.search(pattern, param_value) for pattern in self.suspicious_patterns):
                 return True
 
         # Check headers for suspicious content
         suspicious_headers = ["User-Agent", "Referer", "X-Forwarded-For"]
         for header in suspicious_headers:
             header_value = request.headers.get(header, "")
-            if any(
-                re.search(pattern, header_value) for pattern in self.suspicious_patterns
-            ):
+            if any(re.search(pattern, header_value) for pattern in self.suspicious_patterns):
                 return True
 
         return False
 
-    async def process_request(
-        self, request: Request, rate_limiter: EndpointRateLimiter
-    ) -> JSONResponse | None:
+    async def process_request(self, request: Request, rate_limiter: EndpointRateLimiter) -> JSONResponse | None:
         """Process request for security threats"""
         client_id = rate_limiter.get_client_id(request)
 
@@ -255,9 +233,7 @@ class SecurityMiddleware:
 
             if self.suspicious_clients[client_id] >= self.max_suspicious_requests:
                 # Block client temporarily
-                rate_limiter.blocked_ips[client_id] = (
-                    time.time() + rate_limiter.block_duration
-                )
+                rate_limiter.blocked_ips[client_id] = time.time() + rate_limiter.block_duration
 
                 return JSONResponse(
                     status_code=403,
@@ -313,9 +289,7 @@ async def rate_limit_middleware(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = (
-        "max-age=31536000; includeSubDomains"
-    )
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
     return response
 
@@ -330,9 +304,7 @@ def test_rate_limiting():
     # Test normal requests
     for i in range(7):
         allowed, info = limiter.is_allowed("test_client")
-        print(
-            f"Request {i+1}: {'ALLOWED' if allowed else 'BLOCKED'} - Remaining: {info['remaining']}"
-        )
+        print(f"Request {i+1}: {'ALLOWED' if allowed else 'BLOCKED'} - Remaining: {info['remaining']}")
 
         if not allowed:
             print(f"Retry after: {info['retry_after']} seconds")
@@ -342,9 +314,7 @@ def test_rate_limiting():
 
     # Test after partial refill
     allowed, info = limiter.is_allowed("test_client")
-    print(
-        f"After wait: {'ALLOWED' if allowed else 'BLOCKED'} - Remaining: {info['remaining']}"
-    )
+    print(f"After wait: {'ALLOWED' if allowed else 'BLOCKED'} - Remaining: {info['remaining']}")
 
 
 if __name__ == "__main__":

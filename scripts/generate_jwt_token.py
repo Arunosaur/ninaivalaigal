@@ -13,9 +13,7 @@ import jwt
 JWT_SECRET = "ninaivalaigal-super-secret-jwt-signing-key-min-32-chars-2024"
 
 
-def generate_user_token(
-    user_id, organization_id, teams=None, role="member", expires_days=30
-):
+def generate_user_token(user_id, organization_id, teams=None, role="member", expires_days=30):
     """
     Generate JWT token for a user
 
@@ -104,9 +102,7 @@ def main():
     print("Generated JWT Tokens:\n")
 
     for user in test_users:
-        token = generate_user_token(
-            user["user_id"], user["organization_id"], user["teams"], user["role"]
-        )
+        token = generate_user_token(user["user_id"], user["organization_id"], user["teams"], user["role"])
 
         print(f"User: {user['user_id']} ({user['organization_id']})")
         print(f"Teams: {[t['team_id'] for t in user['teams']]}")
@@ -146,9 +142,7 @@ def main():
                     else:
                         teams.append({"team_id": team_pair.strip(), "role": "member"})
 
-            user_role = (
-                input("User role (member/lead/admin) [member]: ").strip() or "member"
-            )
+            user_role = input("User role (member/lead/admin) [member]: ").strip() or "member"
             expires_days = input("Expires in days [30]: ").strip()
             expires_days = int(expires_days) if expires_days.isdigit() else 30
 

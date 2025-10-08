@@ -29,9 +29,7 @@ def test_inmemory_default(monkeypatch):
 
 
 def test_postgres_when_env(monkeypatch):
-    monkeypatch.setenv(
-        "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
-    )
+    monkeypatch.setenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
     app = build()
     c = TestClient(app)
     assert "postgres" in c.get("/healthz/memory").json()["backend"].lower()

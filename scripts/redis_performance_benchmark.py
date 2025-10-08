@@ -74,15 +74,9 @@ class RedisPerformanceBenchmark:
             "del_p95_ms": statistics.quantiles(del_times, n=20)[18],
         }
 
-        print(
-            f"SET - Avg: {results['set_avg_ms']:.2f}ms, P95: {results['set_p95_ms']:.2f}ms"
-        )
-        print(
-            f"GET - Avg: {results['get_avg_ms']:.2f}ms, P95: {results['get_p95_ms']:.2f}ms"
-        )
-        print(
-            f"DEL - Avg: {results['del_avg_ms']:.2f}ms, P95: {results['del_p95_ms']:.2f}ms"
-        )
+        print(f"SET - Avg: {results['set_avg_ms']:.2f}ms, P95: {results['set_p95_ms']:.2f}ms")
+        print(f"GET - Avg: {results['get_avg_ms']:.2f}ms, P95: {results['get_p95_ms']:.2f}ms")
+        print(f"DEL - Avg: {results['del_avg_ms']:.2f}ms, P95: {results['del_p95_ms']:.2f}ms")
 
         return results
 
@@ -135,12 +129,8 @@ class RedisPerformanceBenchmark:
             "memory_count": memory_count,
         }
 
-        print(
-            f"Cache - Avg: {results['cache_avg_ms']:.2f}ms, P95: {results['cache_p95_ms']:.2f}ms"
-        )
-        print(
-            f"Retrieve - Avg: {results['retrieve_avg_ms']:.2f}ms, P95: {results['retrieve_p95_ms']:.2f}ms"
-        )
+        print(f"Cache - Avg: {results['cache_avg_ms']:.2f}ms, P95: {results['cache_p95_ms']:.2f}ms")
+        print(f"Retrieve - Avg: {results['retrieve_avg_ms']:.2f}ms, P95: {results['retrieve_p95_ms']:.2f}ms")
 
         return results
 
@@ -196,25 +186,15 @@ class RedisPerformanceBenchmark:
             "score_count": score_count,
         }
 
-        print(
-            f"Score Cache - Avg: {results['score_cache_avg_ms']:.2f}ms, P95: {results['score_cache_p95_ms']:.2f}ms"
-        )
-        print(
-            f"Ranking Time: {results['ranking_time_ms']:.2f}ms for {len(scores)} memories"
-        )
-        print(
-            f"Top 10 Memories: {[f'{mid}({score:.2f})' for mid, score in top_10[:3]]}..."
-        )
+        print(f"Score Cache - Avg: {results['score_cache_avg_ms']:.2f}ms, P95: {results['score_cache_p95_ms']:.2f}ms")
+        print(f"Ranking Time: {results['ranking_time_ms']:.2f}ms for {len(scores)} memories")
+        print(f"Top 10 Memories: {[f'{mid}({score:.2f})' for mid, score in top_10[:3]]}...")
 
         return results
 
-    def benchmark_preloading_simulation(
-        self, users: int = 10, memories_per_user: int = 50
-    ) -> dict[str, float]:
+    def benchmark_preloading_simulation(self, users: int = 10, memories_per_user: int = 50) -> dict[str, float]:
         """Benchmark memory preloading (SPEC-038)"""
-        print(
-            f"\n🚀 Benchmarking Memory Preloading ({users} users, {memories_per_user} memories each)"
-        )
+        print(f"\n🚀 Benchmarking Memory Preloading ({users} users, {memories_per_user} memories each)")
         print("=" * 80)
 
         preload_times = []
@@ -289,12 +269,8 @@ class RedisPerformanceBenchmark:
             "total_memories_cached": users * memories_per_user,
         }
 
-        print(
-            f"Preload - Avg: {results['preload_avg_ms']:.2f}ms, P95: {results['preload_p95_ms']:.2f}ms per user"
-        )
-        print(
-            f"Retrieval - Avg: {results['retrieval_avg_ms']:.2f}ms, P95: {results['retrieval_p95_ms']:.2f}ms"
-        )
+        print(f"Preload - Avg: {results['preload_avg_ms']:.2f}ms, P95: {results['preload_p95_ms']:.2f}ms per user")
+        print(f"Retrieval - Avg: {results['retrieval_avg_ms']:.2f}ms, P95: {results['retrieval_p95_ms']:.2f}ms")
         print(f"Total Memories Cached: {results['total_memories_cached']}")
 
         return results
@@ -303,9 +279,7 @@ class RedisPerformanceBenchmark:
         self, concurrent_users: int = 20, operations_per_user: int = 50
     ) -> dict[str, float]:
         """Benchmark concurrent Redis operations"""
-        print(
-            f"\n⚡ Benchmarking Concurrent Operations ({concurrent_users} users, {operations_per_user} ops each)"
-        )
+        print(f"\n⚡ Benchmarking Concurrent Operations ({concurrent_users} users, {operations_per_user} ops each)")
         print("=" * 80)
 
         def user_operations(user_id: int) -> list[float]:
@@ -352,13 +326,8 @@ class RedisPerformanceBenchmark:
 
         # Run concurrent operations
         start_time = time.time()
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=concurrent_users
-        ) as executor:
-            futures = [
-                executor.submit(user_operations, user_id)
-                for user_id in range(concurrent_users)
-            ]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=concurrent_users) as executor:
+            futures = [executor.submit(user_operations, user_id) for user_id in range(concurrent_users)]
             all_times = []
 
             for future in concurrent.futures.as_completed(futures):
@@ -377,12 +346,8 @@ class RedisPerformanceBenchmark:
             "concurrent_users": concurrent_users,
         }
 
-        print(
-            f"Concurrent Ops - Avg: {results['concurrent_avg_ms']:.2f}ms, P95: {results['concurrent_p95_ms']:.2f}ms"
-        )
-        print(
-            f"Total Operations: {results['total_operations']} in {results['total_time_ms']:.0f}ms"
-        )
+        print(f"Concurrent Ops - Avg: {results['concurrent_avg_ms']:.2f}ms, P95: {results['concurrent_p95_ms']:.2f}ms")
+        print(f"Total Operations: {results['total_operations']} in {results['total_time_ms']:.0f}ms")
         print(f"Throughput: {results['operations_per_second']:.0f} operations/second")
 
         return results
@@ -431,20 +396,14 @@ class RedisPerformanceBenchmark:
 
         # Get initial Redis info
         initial_info = self.get_redis_info()
-        print(
-            f"\n📊 Redis Info: {initial_info['version']}, Memory: {initial_info['used_memory_human']}"
-        )
+        print(f"\n📊 Redis Info: {initial_info['version']}, Memory: {initial_info['used_memory_human']}")
 
         # Run benchmarks
         self.results["basic_operations"] = self.benchmark_basic_operations(1000)
         self.results["memory_caching"] = self.benchmark_memory_caching(100)
         self.results["relevance_scoring"] = self.benchmark_relevance_scoring(50)
-        self.results["preloading_simulation"] = self.benchmark_preloading_simulation(
-            10, 50
-        )
-        self.results["concurrent_operations"] = self.benchmark_concurrent_operations(
-            20, 50
-        )
+        self.results["preloading_simulation"] = self.benchmark_preloading_simulation(10, 50)
+        self.results["concurrent_operations"] = self.benchmark_concurrent_operations(20, 50)
 
         # Get final Redis info
         final_info = self.get_redis_info()
@@ -452,18 +411,10 @@ class RedisPerformanceBenchmark:
         # Performance summary
         print("\n🎯 PERFORMANCE SUMMARY")
         print("=" * 80)
-        print(
-            f"Memory Retrieval (SPEC-033): {self.results['memory_caching']['retrieve_avg_ms']:.2f}ms avg"
-        )
-        print(
-            f"Relevance Ranking (SPEC-031): {self.results['relevance_scoring']['ranking_time_ms']:.2f}ms for ranking"
-        )
-        print(
-            f"Memory Preloading (SPEC-038): {self.results['preloading_simulation']['preload_avg_ms']:.2f}ms per user"
-        )
-        print(
-            f"Concurrent Throughput: {self.results['concurrent_operations']['operations_per_second']:.0f} ops/sec"
-        )
+        print(f"Memory Retrieval (SPEC-033): {self.results['memory_caching']['retrieve_avg_ms']:.2f}ms avg")
+        print(f"Relevance Ranking (SPEC-031): {self.results['relevance_scoring']['ranking_time_ms']:.2f}ms for ranking")
+        print(f"Memory Preloading (SPEC-038): {self.results['preloading_simulation']['preload_avg_ms']:.2f}ms per user")
+        print(f"Concurrent Throughput: {self.results['concurrent_operations']['operations_per_second']:.0f} ops/sec")
 
         # SPEC compliance check
         print("\n✅ SPEC COMPLIANCE CHECK")
@@ -490,9 +441,7 @@ class RedisPerformanceBenchmark:
             f"SPEC-038 Memory Preloading: {preload_actual:.2f}ms per user (Target: <{preload_target}ms) {'✅' if preload_actual < preload_target else '❌'}"
         )
 
-        print(
-            f"\n📈 Redis Memory Usage: {initial_info['used_memory_human']} → {final_info['used_memory_human']}"
-        )
+        print(f"\n📈 Redis Memory Usage: {initial_info['used_memory_human']} → {final_info['used_memory_human']}")
         print(
             f"📊 Commands Processed: {final_info['total_commands_processed'] - initial_info['total_commands_processed']}"
         )

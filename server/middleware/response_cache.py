@@ -116,14 +116,10 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
             logger.warning("Cache retrieval failed", cache_key=cache_key, error=str(e))
         return None
 
-    async def cache_response(
-        self, cache_key: str, response_data: Dict, ttl: int
-    ) -> None:
+    async def cache_response(self, cache_key: str, response_data: Dict, ttl: int) -> None:
         """Store response in Redis cache."""
         try:
-            await self.redis.setex(
-                cache_key, ttl, json.dumps(response_data, default=str)
-            )
+            await self.redis.setex(cache_key, ttl, json.dumps(response_data, default=str))
             logger.debug("Response cached", cache_key=cache_key, ttl=ttl)
         except Exception as e:
             logger.warning("Cache storage failed", cache_key=cache_key, error=str(e))
@@ -189,11 +185,7 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
         duration = time.time() - start_time
 
         # Cache successful responses
-        if (
-            self.should_cache_request(request)
-            and response.status_code == 200
-            and hasattr(response, "body")
-        ):
+        if self.should_cache_request(request) and response.status_code == 200 and hasattr(response, "body"):
             cache_key = self.generate_cache_key(request)
             ttl = self.get_ttl_for_endpoint(request.url.path)
 

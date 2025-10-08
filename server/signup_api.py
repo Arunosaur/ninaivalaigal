@@ -52,9 +52,7 @@ async def signup_individual_user(
         result = create_individual_user(signup_data)
 
         # Send verification email in background
-        background_tasks.add_task(
-            send_verification_email, result["email"], result["verification_token"]
-        )
+        background_tasks.add_task(send_verification_email, result["email"], result["verification_token"])
 
         # Remove sensitive data from response
         result.pop("verification_token", None)
@@ -73,9 +71,7 @@ async def signup_individual_user(
 
 
 @router.post("/signup/organization")
-async def signup_organization(
-    signup_data: OrganizationSignup, background_tasks: BackgroundTasks
-) -> dict[str, Any]:
+async def signup_organization(signup_data: OrganizationSignup, background_tasks: BackgroundTasks) -> dict[str, Any]:
     """
     Sign up as organization creator
 
@@ -93,13 +89,9 @@ async def signup_organization(
         session = db.get_session()
         try:
             # Check if user already exists
-            existing_user = (
-                session.query(User).filter_by(email=user_data["email"]).first()
-            )
+            existing_user = session.query(User).filter_by(email=user_data["email"]).first()
             if existing_user:
-                raise HTTPException(
-                    status_code=400, detail="User with this email already exists"
-                )
+                raise HTTPException(status_code=400, detail="User with this email already exists")
 
             # Create organization
             new_org = Organization(
@@ -161,9 +153,7 @@ async def signup_organization(
             jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
             # Send verification email in background
-            background_tasks.add_task(
-                send_verification_email, admin_user.email, verification_token
-            )
+            background_tasks.add_task(send_verification_email, admin_user.email, verification_token)
 
             return {
                 "success": True,
@@ -189,9 +179,7 @@ async def signup_organization(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Organization signup failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Organization signup failed: {str(e)}")
 
 
 @router.post("/login")
@@ -226,9 +214,7 @@ async def verify_email(token: str) -> dict[str, Any]:
         success = verify_email_token(token)
 
         if not success:
-            raise HTTPException(
-                status_code=400, detail="Invalid or expired verification token"
-            )
+            raise HTTPException(status_code=400, detail="Invalid or expired verification token")
 
         return {
             "success": True,
@@ -239,9 +225,7 @@ async def verify_email(token: str) -> dict[str, Any]:
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Email verification failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Email verification failed: {str(e)}")
 
 
 @router.post("/organizations/{org_id}/invitations")
@@ -273,9 +257,7 @@ async def create_invitation(
             # Check if user already exists
             existing_user = session.query(User).filter_by(email=email).first()
             if existing_user:
-                raise HTTPException(
-                    status_code=400, detail="User with this email already exists"
-                )
+                raise HTTPException(status_code=400, detail="User with this email already exists")
 
             # Create invitation
             invitation_token = generate_invitation_token()
@@ -295,9 +277,7 @@ async def create_invitation(
             session.commit()
 
             # Send invitation email in background
-            invitation_url = (
-                f"http://localhost:8000/auth/signup/invitation?token={invitation_token}"
-            )
+            invitation_url = f"http://localhost:8000/auth/signup/invitation?token={invitation_token}"
             # TODO: Send actual invitation email
             print(f"Invitation URL for {email}: {invitation_url}")
 
@@ -318,15 +298,11 @@ async def create_invitation(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create invitation: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create invitation: {str(e)}")
 
 
 @router.post("/signup/invitation")
-async def accept_invitation(
-    accept_data: InvitationAccept, background_tasks: BackgroundTasks
-) -> dict[str, Any]:
+async def accept_invitation(accept_data: InvitationAccept, background_tasks: BackgroundTasks) -> dict[str, Any]:
     """
     Accept team invitation and create user account
 
@@ -341,15 +317,11 @@ async def accept_invitation(
         try:
             # Find invitation
             invitation = (
-                session.query(UserInvitation)
-                .filter_by(invitation_token=invitation_token, status="pending")
-                .first()
+                session.query(UserInvitation).filter_by(invitation_token=invitation_token, status="pending").first()
             )
 
             if not invitation:
-                raise HTTPException(
-                    status_code=400, detail="Invalid or expired invitation"
-                )
+                raise HTTPException(status_code=400, detail="Invalid or expired invitation")
 
             # Check if invitation is expired
             if invitation.expires_at < datetime.utcnow():
@@ -406,14 +378,10 @@ async def accept_invitation(
 
             except Exception as e:
                 session.rollback()
-                raise HTTPException(
-                    status_code=500, detail=f"Failed to create user: {str(e)}"
-                )
+                raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
 
             # Send verification email
-            background_tasks.add_task(
-                send_verification_email, user.email, verification_token
-            )
+            background_tasks.add_task(send_verification_email, user.email, verification_token)
 
             return {
                 "success": True,
@@ -424,11 +392,7 @@ async def accept_invitation(
                 "jwt_token": jwt_token,
                 "context_access": {
                     "personal": ["personal-contexts"],
-                    "team": (
-                        [f"team-{invitation.team_id}-contexts"]
-                        if invitation.team_id
-                        else []
-                    ),
+                    "team": ([f"team-{invitation.team_id}-contexts"] if invitation.team_id else []),
                     "organization": ["org-wide-contexts"],
                 },
             }
@@ -442,9 +406,7 @@ async def accept_invitation(
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to accept invitation: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to accept invitation: {str(e)}")
 
 
 @router.get("/me")
@@ -472,6 +434,4 @@ async def get_current_user_info(
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get user info: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user info: {str(e)}")

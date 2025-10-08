@@ -71,12 +71,8 @@ class GraphIntelligencePerformanceWrapper:
                 "context_id": context_id,
                 "reasoning_paths": explanation_paths,
                 "related_memories": related_memories[:10],  # Limit for performance
-                "explanation_strength": self._calculate_explanation_strength(
-                    explanation_paths
-                ),
-                "confidence_score": self._calculate_confidence_score(
-                    explanation_paths, related_memories
-                ),
+                "explanation_strength": self._calculate_explanation_strength(explanation_paths),
+                "confidence_score": self._calculate_confidence_score(explanation_paths, related_memories),
                 "generated_at": time.time(),
             }
 
@@ -86,9 +82,7 @@ class GraphIntelligencePerformanceWrapper:
             self._update_avg_time("explanation", execution_time)
 
             # Invalidate related caches when explanation is generated
-            await self.optimizer.invalidate_cache_on_graph_operation(
-                "context_explanation_generated"
-            )
+            await self.optimizer.invalidate_cache_on_graph_operation("context_explanation_generated")
 
             logger.info(
                 "Context explanation generated",
@@ -145,9 +139,7 @@ class GraphIntelligencePerformanceWrapper:
                     for candidate_id in batch
                 ]
 
-                batch_results = await asyncio.gather(
-                    *batch_tasks, return_exceptions=True
-                )
+                batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
 
                 # Calculate relevance scores for batch
                 for candidate_id, paths in zip(batch, batch_results):
@@ -159,9 +151,7 @@ class GraphIntelligencePerformanceWrapper:
                         )
                         continue
 
-                    relevance_score = self._calculate_relevance_score(
-                        paths, candidate_id
-                    )
+                    relevance_score = self._calculate_relevance_score(paths, candidate_id)
 
                     relevance_scores.append(
                         {
@@ -169,13 +159,9 @@ class GraphIntelligencePerformanceWrapper:
                             "relevance_score": relevance_score,
                             "path_count": len(paths) if paths else 0,
                             "shortest_path_length": (
-                                min([p.get("path_length", float("inf")) for p in paths])
-                                if paths
-                                else float("inf")
+                                min([p.get("path_length", float("inf")) for p in paths]) if paths else float("inf")
                             ),
-                            "reasoning_paths": paths[
-                                :3
-                            ],  # Keep top 3 paths for explanation
+                            "reasoning_paths": paths[:3],  # Keep top 3 paths for explanation
                         }
                     )
 
@@ -193,9 +179,7 @@ class GraphIntelligencePerformanceWrapper:
                 current_memory_id=current_memory_id,
                 candidates_processed=len(candidate_memory_ids),
                 execution_time_ms=round(execution_time * 1000, 2),
-                top_score=(
-                    relevance_scores[0]["relevance_score"] if relevance_scores else 0
-                ),
+                top_score=(relevance_scores[0]["relevance_score"] if relevance_scores else 0),
             )
 
             return relevance_scores
@@ -232,8 +216,8 @@ class GraphIntelligencePerformanceWrapper:
 
             # Add advanced analytics if requested
             if include_analytics:
-                network_analysis["advanced_analytics"] = (
-                    await self._generate_advanced_analytics(user_id, network_analysis)
+                network_analysis["advanced_analytics"] = await self._generate_advanced_analytics(
+                    user_id, network_analysis
                 )
 
             # Update metrics
@@ -282,9 +266,7 @@ class GraphIntelligencePerformanceWrapper:
             )
 
             # Intelligently invalidate related caches
-            await self._invalidate_feedback_related_caches(
-                user_id, memory_id, context_id
-            )
+            await self._invalidate_feedback_related_caches(user_id, memory_id, context_id)
 
             # Update metrics
             execution_time = time.time() - start_time
@@ -327,12 +309,8 @@ class GraphIntelligencePerformanceWrapper:
                         self.intelligence_metrics["network_analyses"],
                     ]
                 ),
-                "avg_explanation_time_ms": self.intelligence_metrics[
-                    "avg_explanation_time_ms"
-                ],
-                "avg_inference_time_ms": self.intelligence_metrics[
-                    "avg_inference_time_ms"
-                ],
+                "avg_explanation_time_ms": self.intelligence_metrics["avg_explanation_time_ms"],
+                "avg_inference_time_ms": self.intelligence_metrics["avg_inference_time_ms"],
             },
             "optimization_impact": {
                 "cache_hit_rate": optimizer_stats["cache_performance"]["hit_rate"],
@@ -359,9 +337,7 @@ class GraphIntelligencePerformanceWrapper:
 
         return min(strength, 1.0)  # Cap at 1.0
 
-    def _calculate_confidence_score(
-        self, paths: List[Dict], related_memories: List[Dict]
-    ) -> float:
+    def _calculate_confidence_score(self, paths: List[Dict], related_memories: List[Dict]) -> float:
         """Calculate confidence score based on paths and related memories."""
         if not paths and not related_memories:
             return 0.0
@@ -386,14 +362,10 @@ class GraphIntelligencePerformanceWrapper:
 
         return (distance_score + diversity_score) / 2.0
 
-    async def _generate_advanced_analytics(
-        self, user_id: str, network_analysis: Dict
-    ) -> Dict:
+    async def _generate_advanced_analytics(self, user_id: str, network_analysis: Dict) -> Dict:
         """Generate advanced analytics for memory network."""
         return {
-            "clustering_coefficient": await self._calculate_clustering_coefficient(
-                user_id
-            ),
+            "clustering_coefficient": await self._calculate_clustering_coefficient(user_id),
             "centrality_measures": await self._calculate_centrality_measures(user_id),
             "community_detection": await self._detect_communities(user_id),
             "temporal_patterns": await self._analyze_temporal_patterns(user_id),
@@ -420,9 +392,7 @@ class GraphIntelligencePerformanceWrapper:
             "timestamp": time.time(),
         }
 
-    async def _invalidate_feedback_related_caches(
-        self, user_id: str, memory_id: str, context_id: Optional[str]
-    ):
+    async def _invalidate_feedback_related_caches(self, user_id: str, memory_id: str, context_id: Optional[str]):
         """Intelligently invalidate caches related to feedback."""
         # Invalidate caches that would be affected by this feedback
         await self.optimizer.invalidate_cache_on_graph_operation("user_feedback")
@@ -436,10 +406,7 @@ class GraphIntelligencePerformanceWrapper:
         time_key = f"avg_{operation_type}_time_ms"
         count_key = f"{operation_type}s"
 
-        if (
-            time_key in self.intelligence_metrics
-            and count_key in self.intelligence_metrics
-        ):
+        if time_key in self.intelligence_metrics and count_key in self.intelligence_metrics:
             current_avg = self.intelligence_metrics[time_key]
             current_count = self.intelligence_metrics[count_key]
 

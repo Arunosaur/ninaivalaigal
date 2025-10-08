@@ -21,9 +21,7 @@ def main():
 
     # Run the Python client with all arguments
     try:
-        result = subprocess.run(
-            [sys.executable, "mem0"] + sys.argv[1:], capture_output=False, text=True
-        )
+        result = subprocess.run([sys.executable, "mem0"] + sys.argv[1:], capture_output=False, text=True)
         sys.exit(result.returncode)
     except FileNotFoundError:
         print("❌ Error: mem0 Python client not found")

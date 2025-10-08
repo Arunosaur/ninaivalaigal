@@ -9,9 +9,7 @@ def compute_path_quality(results, expected):
         return 0.0
 
     best_path = results["results"][0]
-    length_score = (
-        1.0 if best_path.get("length", 999) <= expected["expected_path_length"] else 0.5
-    )
+    length_score = 1.0 if best_path.get("length", 999) <= expected["expected_path_length"] else 0.5
     strength_score = best_path.get("strength", 0.0)
 
     return (length_score + strength_score) / 2
@@ -25,9 +23,7 @@ def compute_recommendation_quality(results, memory):
     count_score = min(rec_count / 3, 1.0)  # Expect at least 3 recommendations
 
     if results.get("confidence_scores"):
-        avg_confidence = sum(results["confidence_scores"].values()) / len(
-            results["confidence_scores"]
-        )
+        avg_confidence = sum(results["confidence_scores"].values()) / len(results["confidence_scores"])
     else:
         avg_confidence = 0.0
 

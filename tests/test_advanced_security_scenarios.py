@@ -93,9 +93,7 @@ class TestGzipDeflateScenarios:
 
         # Test with compression headers
         payload = {"secret": "sk-1234567890abcdef1234567890abcdef12345678"}
-        response = client.post(
-            "/compressed", json=payload, headers={"Content-Encoding": "gzip"}
-        )
+        response = client.post("/compressed", json=payload, headers={"Content-Encoding": "gzip"})
 
         # Should handle gracefully (may reject or process)
         assert response.status_code in [200, 415, 400]
@@ -169,9 +167,7 @@ class TestPerformanceAndMemoryScenarios:
             return {"size": len(str(data))}
 
         # Configure with smaller limits for testing
-        SecurityBundle.apply(
-            app, detector_fn=detector_fn, max_body_bytes=1024 * 1024
-        )  # 1MB limit
+        SecurityBundle.apply(app, detector_fn=detector_fn, max_body_bytes=1024 * 1024)  # 1MB limit
         client = TestClient(app)
 
         # Test with payload near the limit

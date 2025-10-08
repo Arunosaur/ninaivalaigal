@@ -127,9 +127,7 @@ def detect_mp4_iso_bmff(payload: bytes, max_scan_bytes: int = 32) -> bool:
     return False
 
 
-def detect_enhanced_magic_bytes(
-    payload: bytes, max_check_bytes: int = 512
-) -> dict[str, Any]:
+def detect_enhanced_magic_bytes(payload: bytes, max_check_bytes: int = 512) -> dict[str, Any]:
     """
     P0: Enhanced magic byte detection with Mach-O, Java, and MP4 offset detection.
     """
@@ -262,9 +260,7 @@ def reject_content_transfer_encoding(cte_header: str | None) -> dict[str, Any]:
     return result
 
 
-def disallow_archives_for_text(
-    magic_result: dict[str, Any], declared_content_type: str
-) -> dict[str, Any]:
+def disallow_archives_for_text(magic_result: dict[str, Any], declared_content_type: str) -> dict[str, Any]:
     """
     P0: Archive blocking for text-only endpoints.
 
@@ -462,9 +458,7 @@ def _looks_binary_enhanced(payload: bytes, printable_threshold: float = 0.30) ->
     return ratio > printable_threshold
 
 
-def enforce_max_parts_per_request(
-    part_count: int, config: HardenedPartLimitConfig
-) -> dict[str, Any]:
+def enforce_max_parts_per_request(part_count: int, config: HardenedPartLimitConfig) -> dict[str, Any]:
     """
     P0: Part count DoS prevention.
 

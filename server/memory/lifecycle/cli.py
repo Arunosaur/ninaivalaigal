@@ -73,9 +73,7 @@ def stats_command(
             team_id_int = int(team_id) if team_id else None
             org_id_int = int(org_id) if org_id else None
 
-            stats = await gc.get_lifecycle_stats(
-                scope, user_id_int, team_id_int, org_id_int
-            )
+            stats = await gc.get_lifecycle_stats(scope, user_id_int, team_id_int, org_id_int)
 
             if output_format == "json":
                 click.echo(json.dumps(stats.__dict__, indent=2, default=str))
@@ -115,9 +113,7 @@ def stats_command(
 
 
 @lifecycle_cli.command("gc")
-@click.option(
-    "--dry-run", is_flag=True, help="Show what would be done without making changes"
-)
+@click.option("--dry-run", is_flag=True, help="Show what would be done without making changes")
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 def gc_command(dry_run: bool, verbose: bool):
     """Run memory garbage collection cycle"""
@@ -211,9 +207,7 @@ def archive_command(older_than: int, scope: str | None, dry_run: bool):
     help="Purge archived memories older than N days (default: 365)",
 )
 @click.option("--dry-run", is_flag=True, help="Show what would be purged")
-@click.confirmation_option(
-    prompt="Are you sure you want to permanently delete archived memories?"
-)
+@click.confirmation_option(prompt="Are you sure you want to permanently delete archived memories?")
 def purge_command(older_than: int, dry_run: bool):
     """Permanently delete old archived memories"""
 
@@ -225,20 +219,14 @@ def purge_command(older_than: int, dry_run: bool):
             await gc.initialize()
 
             if dry_run:
-                click.echo(
-                    f"🔍 Would purge archived memories older than {older_than} days"
-                )
+                click.echo(f"🔍 Would purge archived memories older than {older_than} days")
             else:
-                click.echo(
-                    f"🗑️  Purging archived memories older than {older_than} days..."
-                )
+                click.echo(f"🗑️  Purging archived memories older than {older_than} days...")
 
             purged_count = await gc.purge_old_archived_memories(older_than)
 
             if dry_run:
-                click.echo(
-                    f"🔍 Would permanently delete {purged_count} archived memories"
-                )
+                click.echo(f"🔍 Would permanently delete {purged_count} archived memories")
             else:
                 click.echo(f"✅ Permanently deleted {purged_count} archived memories")
 

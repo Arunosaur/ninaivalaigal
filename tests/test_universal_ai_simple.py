@@ -70,15 +70,11 @@ class MockUniversalAIWrapper:
 
         return {
             "enhanced_prompt": enhanced_prompt,
-            "memories_used": [
-                {"content": m.content, "type": m.memory_type} for m in memories
-            ],
+            "memories_used": [{"content": m.content, "type": m.memory_type} for m in memories],
             "enhancement_applied": True,
         }
 
-    async def _get_hierarchical_memories(
-        self, context: AIContext
-    ) -> list[MemoryContext]:
+    async def _get_hierarchical_memories(self, context: AIContext) -> list[MemoryContext]:
         """Mock hierarchical memory retrieval"""
         memories = []
 
@@ -96,9 +92,7 @@ class MockUniversalAIWrapper:
 
         return self._rank_memories_by_relevance(memories, context)
 
-    async def _get_memories_by_level(
-        self, level: str, context: AIContext
-    ) -> list[MemoryContext]:
+    async def _get_memories_by_level(self, level: str, context: AIContext) -> list[MemoryContext]:
         """Mock memory retrieval by level"""
         mock_memories = {
             "personal": [
@@ -131,16 +125,12 @@ class MockUniversalAIWrapper:
         }
         return mock_memories.get(level, [])
 
-    def _rank_memories_by_relevance(
-        self, memories: list[MemoryContext], context: AIContext
-    ) -> list[MemoryContext]:
+    def _rank_memories_by_relevance(self, memories: list[MemoryContext], context: AIContext) -> list[MemoryContext]:
         """Mock memory ranking"""
         # Simple ranking by relevance score
         return sorted(memories, key=lambda m: m.relevance_score, reverse=True)
 
-    def _build_enhanced_prompt(
-        self, prompt: str, memories: list[MemoryContext], context: AIContext
-    ) -> str:
+    def _build_enhanced_prompt(self, prompt: str, memories: list[MemoryContext], context: AIContext) -> str:
         """Mock enhanced prompt building"""
         enhanced = f"# Context Enhancement for {context.ai_model.value}\n\n"
 
@@ -204,9 +194,7 @@ class TestUniversalAIWrapper:
     @pytest.mark.asyncio
     async def test_enhance_ai_prompt_success(self, wrapper, sample_context):
         """Test successful AI prompt enhancement"""
-        result = await wrapper.enhance_ai_prompt(
-            sample_context, "Complete the user authentication function"
-        )
+        result = await wrapper.enhance_ai_prompt(sample_context, "Complete the user authentication function")
 
         assert result["enhancement_applied"] is True
         assert len(result["memories_used"]) > 0
@@ -248,15 +236,9 @@ class TestUniversalAIWrapper:
     def test_memory_ranking(self, wrapper, sample_context):
         """Test memory ranking by relevance"""
         memories = [
-            MemoryContext(
-                "Low relevance", "personal", "memory", 1.0, datetime.now().isoformat()
-            ),
-            MemoryContext(
-                "High relevance", "personal", "memory", 3.0, datetime.now().isoformat()
-            ),
-            MemoryContext(
-                "Medium relevance", "team", "memory", 2.0, datetime.now().isoformat()
-            ),
+            MemoryContext("Low relevance", "personal", "memory", 1.0, datetime.now().isoformat()),
+            MemoryContext("High relevance", "personal", "memory", 3.0, datetime.now().isoformat()),
+            MemoryContext("Medium relevance", "team", "memory", 2.0, datetime.now().isoformat()),
         ]
 
         ranked = wrapper._rank_memories_by_relevance(memories, sample_context)
@@ -276,14 +258,10 @@ class TestUniversalAIWrapper:
                 3.0,
                 datetime.now().isoformat(),
             ),
-            MemoryContext(
-                "Team standard", "team", "standard", 2.0, datetime.now().isoformat()
-            ),
+            MemoryContext("Team standard", "team", "standard", 2.0, datetime.now().isoformat()),
         ]
 
-        enhanced = wrapper._build_enhanced_prompt(
-            "Complete authentication function", memories, sample_context
-        )
+        enhanced = wrapper._build_enhanced_prompt("Complete authentication function", memories, sample_context)
 
         # Check structure
         assert "# Personal Coding Preferences:" in enhanced
@@ -385,9 +363,7 @@ class TestPerformance:
         latency = (end_time - start_time) * 1000  # Convert to milliseconds
 
         # Should complete quickly (mock implementation)
-        assert (
-            latency < 100
-        ), f"Enhancement took {latency}ms, should be much faster for mock"
+        assert latency < 100, f"Enhancement took {latency}ms, should be much faster for mock"
 
 
 if __name__ == "__main__":

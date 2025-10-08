@@ -43,9 +43,7 @@ class TestModuleAccessControl:
         headers = {"Authorization": "Bearer admin_user_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/admin/users", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/admin/users", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Admin endpoints not implemented")
@@ -67,9 +65,7 @@ class TestModuleAccessControl:
         headers = {"Authorization": "Bearer analytics_user_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/analytics/usage", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/analytics/usage", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Analytics endpoints not implemented")
@@ -91,9 +87,7 @@ class TestModuleAccessControl:
         headers = {"Authorization": "Bearer org_user_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/organization/settings", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/organization/settings", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Organization endpoints not implemented")
@@ -123,9 +117,7 @@ class TestFeaturePermissions:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/memory", json=memory_data, headers=headers, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/memory", json=memory_data, headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Memory creation endpoint not implemented")
@@ -148,9 +140,7 @@ class TestFeaturePermissions:
         headers = {"Authorization": "Bearer memory_deleter_token_placeholder"}
 
         try:
-            response = requests.delete(
-                f"{BASE_URL}/memory/test_memory_id", headers=headers, timeout=5
-            )
+            response = requests.delete(f"{BASE_URL}/memory/test_memory_id", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Memory deletion endpoint not implemented")
@@ -175,9 +165,7 @@ class TestFeaturePermissions:
         user_data = {"email": "managed_user@example.com", "role": "user"}
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/admin/users", json=user_data, headers=headers, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/admin/users", json=user_data, headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("User management endpoint not implemented")
@@ -232,9 +220,7 @@ class TestCrossModuleAccess:
         headers = {"Authorization": "Bearer memory_only_user_token_placeholder"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/admin/users", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/admin/users", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Admin endpoints not implemented")
@@ -243,9 +229,7 @@ class TestCrossModuleAccess:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Memory-only user should be forbidden from admin access
-            assert (
-                response.status_code == 403
-            ), f"Cross-module access not restricted: {response.status_code}"
+            assert response.status_code == 403, f"Cross-module access not restricted: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -259,9 +243,7 @@ class TestCrossModuleAccess:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/memory", json=memory_data, headers=headers, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/memory", json=memory_data, headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Memory creation endpoint not implemented")
@@ -270,9 +252,7 @@ class TestCrossModuleAccess:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Read-only user should be forbidden from data modification
-            assert (
-                response.status_code == 403
-            ), f"Read-only restriction failed: {response.status_code}"
+            assert response.status_code == 403, f"Read-only restriction failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -286,9 +266,7 @@ class TestCrossModuleAccess:
             response = requests.get(f"{BASE_URL}/health", headers=headers, timeout=5)
 
             # Health endpoint should be accessible to guests
-            assert (
-                response.status_code == 200
-            ), f"Guest access to public endpoint failed: {response.status_code}"
+            assert response.status_code == 200, f"Guest access to public endpoint failed: {response.status_code}"
 
             # Test access to restricted endpoint
             response = requests.get(f"{BASE_URL}/memory", headers=headers, timeout=5)
@@ -300,9 +278,7 @@ class TestCrossModuleAccess:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Memory access should be restricted for guests
-            assert (
-                response.status_code == 403
-            ), f"Guest access restriction failed: {response.status_code}"
+            assert response.status_code == 403, f"Guest access restriction failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -326,9 +302,7 @@ class TestModulePermissionInheritance:
                 pytest.skip("Token validation failing - auth system needs fixing")
 
             # Admin should have access to user functions
-            assert (
-                response.status_code == 200
-            ), f"Admin permission inheritance failed: {response.status_code}"
+            assert response.status_code == 200, f"Admin permission inheritance failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -339,9 +313,7 @@ class TestModulePermissionInheritance:
 
         try:
             # Org admin should access org member functions
-            response = requests.get(
-                f"{BASE_URL}/organization/members", headers=headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/organization/members", headers=headers, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Organization endpoints not implemented")

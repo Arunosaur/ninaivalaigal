@@ -12,9 +12,7 @@ from ..models import Context, ContextPermission, Organization, Team, User
 class RBACOperations(DatabaseManager):
     """Role-Based Access Control database operations"""
 
-    def share_context_with_user(
-        self, context_id: UUID, user_id: UUID, permission_level: str, granted_by: UUID
-    ):
+    def share_context_with_user(self, context_id: UUID, user_id: UUID, permission_level: str, granted_by: UUID):
         """Share a context with a specific user"""
         session = self.get_session()
         try:
@@ -33,9 +31,7 @@ class RBACOperations(DatabaseManager):
         finally:
             session.close()
 
-    def share_context_with_team(
-        self, context_id: UUID, team_id: UUID, permission_level: str, granted_by: UUID
-    ):
+    def share_context_with_team(self, context_id: UUID, team_id: UUID, permission_level: str, granted_by: UUID):
         """Share a context with a team"""
         session = self.get_session()
         try:
@@ -79,9 +75,7 @@ class RBACOperations(DatabaseManager):
         finally:
             session.close()
 
-    def check_context_permission(
-        self, context_id: UUID, user_id: UUID, required_permission: str = "read"
-    ):
+    def check_context_permission(self, context_id: UUID, user_id: UUID, required_permission: str = "read"):
         """Check if a user has permission to access a context"""
         session = self.get_session()
         try:
@@ -155,16 +149,11 @@ class RBACOperations(DatabaseManager):
         session = self.get_session()
         try:
             # Get owned contexts
-            owned_contexts = (
-                session.query(Context).filter(Context.owner_id == user_id).all()
-            )
+            owned_contexts = session.query(Context).filter(Context.owner_id == user_id).all()
 
             # Get directly shared contexts
             shared_contexts = (
-                session.query(Context)
-                .join(ContextPermission)
-                .filter(ContextPermission.user_id == user_id)
-                .all()
+                session.query(Context).join(ContextPermission).filter(ContextPermission.user_id == user_id).all()
             )
 
             # Get team-shared contexts
@@ -207,9 +196,7 @@ class RBACOperations(DatabaseManager):
                     "is_active": ctx.is_active,
                     "owner_id": ctx.owner_id,
                     "is_owner": ctx.owner_id == user_id,
-                    "permission_level": self._get_user_context_permission_level(
-                        ctx.id, user_id, session
-                    ),
+                    "permission_level": self._get_user_context_permission_level(ctx.id, user_id, session),
                 }
                 for ctx in all_contexts
             ]
@@ -218,9 +205,7 @@ class RBACOperations(DatabaseManager):
         finally:
             session.close()
 
-    def _get_user_context_permission_level(
-        self, context_id: UUID, user_id: UUID, session
-    ):
+    def _get_user_context_permission_level(self, context_id: UUID, user_id: UUID, session):
         """Get the highest permission level a user has for a context"""
         # Check if user owns the context
         context = session.query(Context).filter(Context.id == context_id).first()
@@ -286,9 +271,7 @@ class RBACOperations(DatabaseManager):
 
         return max_permission
 
-    def revoke_context_permission(
-        self, context_id: UUID, permission_id: UUID, user_id: UUID
-    ):
+    def revoke_context_permission(self, context_id: UUID, permission_id: UUID, user_id: UUID):
         """Revoke a specific context permission"""
         session = self.get_session()
         try:
@@ -296,11 +279,7 @@ class RBACOperations(DatabaseManager):
             if not self.check_context_permission(context_id, user_id, "admin"):
                 raise ValueError("Insufficient permissions to revoke access")
 
-            permission = (
-                session.query(ContextPermission)
-                .filter(ContextPermission.id == permission_id)
-                .first()
-            )
+            permission = session.query(ContextPermission).filter(ContextPermission.id == permission_id).first()
 
             if not permission or permission.context_id != context_id:
                 raise ValueError("Permission not found")
@@ -322,11 +301,7 @@ class RBACOperations(DatabaseManager):
             if not self.check_context_permission(context_id, user_id, "admin"):
                 raise ValueError("Insufficient permissions to view context permissions")
 
-            permissions = (
-                session.query(ContextPermission)
-                .filter(ContextPermission.context_id == context_id)
-                .all()
-            )
+            permissions = session.query(ContextPermission).filter(ContextPermission.context_id == context_id).all()
 
             result = []
             for perm in permissions:
@@ -334,9 +309,7 @@ class RBACOperations(DatabaseManager):
                     "id": perm.id,
                     "permission_level": perm.permission_level,
                     "granted_by": perm.granted_by,
-                    "created_at": (
-                        perm.created_at.isoformat() if perm.created_at else None
-                    ),
+                    "created_at": (perm.created_at.isoformat() if perm.created_at else None),
                 }
 
                 if perm.user_id:
@@ -365,11 +338,7 @@ class RBACOperations(DatabaseManager):
                     )
 
                 elif perm.organization_id:
-                    org = (
-                        session.query(Organization)
-                        .filter(Organization.id == perm.organization_id)
-                        .first()
-                    )
+                    org = session.query(Organization).filter(Organization.id == perm.organization_id).first()
                     perm_data["type"] = "organization"
                     perm_data["target"] = (
                         {
@@ -388,28 +357,18 @@ class RBACOperations(DatabaseManager):
         finally:
             session.close()
 
-    def update_context_permission(
-        self, permission_id: UUID, new_permission_level: str, user_id: UUID
-    ):
+    def update_context_permission(self, permission_id: UUID, new_permission_level: str, user_id: UUID):
         """Update an existing context permission"""
         session = self.get_session()
         try:
-            permission = (
-                session.query(ContextPermission)
-                .filter(ContextPermission.id == permission_id)
-                .first()
-            )
+            permission = session.query(ContextPermission).filter(ContextPermission.id == permission_id).first()
 
             if not permission:
                 raise ValueError("Permission not found")
 
             # Check if user has admin permission for the context
-            if not self.check_context_permission(
-                permission.context_id, user_id, "admin"
-            ):
-                raise ValueError(
-                    "Insufficient permissions to modify context permissions"
-                )
+            if not self.check_context_permission(permission.context_id, user_id, "admin"):
+                raise ValueError("Insufficient permissions to modify context permissions")
 
             permission.permission_level = new_permission_level
             session.commit()
@@ -438,23 +397,15 @@ class RBACOperations(DatabaseManager):
                 return None
 
             # Count owned contexts
-            owned_contexts = (
-                session.query(Context).filter(Context.owner_id == user_id).count()
-            )
+            owned_contexts = session.query(Context).filter(Context.owner_id == user_id).count()
 
             # Count direct permissions
-            direct_permissions = (
-                session.query(ContextPermission)
-                .filter(ContextPermission.user_id == user_id)
-                .count()
-            )
+            direct_permissions = session.query(ContextPermission).filter(ContextPermission.user_id == user_id).count()
 
             # Count team memberships
             from ..models import TeamMember
 
-            team_memberships = (
-                session.query(TeamMember).filter(TeamMember.user_id == user_id).count()
-            )
+            team_memberships = session.query(TeamMember).filter(TeamMember.user_id == user_id).count()
 
             return {
                 "user_id": user_id,

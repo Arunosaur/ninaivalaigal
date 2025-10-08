@@ -28,9 +28,7 @@ class PostgresMemoryProvider:
 
         self.database_url = database_url
         self.engine = create_engine(database_url, pool_pre_ping=True)
-        self.SessionLocal = sessionmaker(
-            autocommit=False, autoflush=False, bind=self.engine
-        )
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
 
     async def remember(
         self,
@@ -125,9 +123,7 @@ class PostgresMemoryProvider:
                             meta=json.loads(row.metadata) if row.metadata else {},
                             user_id=str(row.user_id) if row.user_id else None,
                             context_id=row.context_id,
-                            created_at=(
-                                row.created_at.isoformat() if row.created_at else None
-                            ),
+                            created_at=(row.created_at.isoformat() if row.created_at else None),
                         )
                     )
 
@@ -196,9 +192,7 @@ class PostgresMemoryProvider:
                             meta=json.loads(row.metadata) if row.metadata else {},
                             user_id=str(row.user_id) if row.user_id else None,
                             context_id=row.context_id,
-                            created_at=(
-                                row.created_at.isoformat() if row.created_at else None
-                            ),
+                            created_at=(row.created_at.isoformat() if row.created_at else None),
                         )
                     )
 

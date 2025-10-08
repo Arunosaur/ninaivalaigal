@@ -31,21 +31,13 @@ class TeamInvitation(Base):
     __tablename__ = "team_invitations"
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
-    team_id = Column(
-        PGUUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False
-    )
-    invited_by_user_id = Column(
-        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
-    )
+    team_id = Column(PGUUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
+    invited_by_user_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     email = Column(String(255), nullable=False)
     invitation_token = Column(String(255), unique=True, nullable=False)
     role = Column(String(50), default="contributor")
-    status = Column(
-        String(50), default="pending"
-    )  # pending, accepted, expired, revoked
-    expires_at = Column(
-        DateTime, nullable=False, default=lambda: datetime.utcnow() + timedelta(days=7)
-    )
+    status = Column(String(50), default="pending")  # pending, accepted, expired, revoked
+    expires_at = Column(DateTime, nullable=False, default=lambda: datetime.utcnow() + timedelta(days=7))
     accepted_at = Column(DateTime)
     accepted_by_user_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id"))
     created_at = Column(DateTime, default=func.now())
@@ -71,15 +63,9 @@ class TeamMembership(Base):
     __tablename__ = "team_memberships"
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
-    team_id = Column(
-        PGUUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False
-    )
-    user_id = Column(
-        PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-    role = Column(
-        String(50), nullable=False, default="contributor"
-    )  # admin, contributor, viewer
+    team_id = Column(PGUUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    role = Column(String(50), nullable=False, default="contributor")  # admin, contributor, viewer
     joined_at = Column(DateTime, default=func.now())
     invited_by_user_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id"))
     status = Column(String(50), default="active")  # active, inactive, removed
@@ -87,9 +73,7 @@ class TeamMembership(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # Unique constraint to prevent duplicate memberships
-    __table_args__ = (
-        UniqueConstraint("team_id", "user_id", name="unique_team_membership"),
-    )
+    __table_args__ = (UniqueConstraint("team_id", "user_id", name="unique_team_membership"),)
 
     # Relationships
     team = relationship("Team", back_populates="memberships")
@@ -113,17 +97,11 @@ class TeamUpgradeHistory(Base):
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     team_id = Column(PGUUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
     organization_id = Column(PGUUID(as_uuid=True), ForeignKey("organizations.id"))
-    upgraded_by_user_id = Column(
-        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
-    )
-    upgrade_type = Column(
-        String(50), nullable=False
-    )  # to_organization, billing_enabled
+    upgraded_by_user_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    upgrade_type = Column(String(50), nullable=False)  # to_organization, billing_enabled
     upgrade_data = Column(JSONB)  # Store upgrade-specific data
     upgraded_at = Column(DateTime, default=func.now())
-    status = Column(
-        String(50), default="completed"
-    )  # pending, completed, failed, reverted
+    status = Column(String(50), default="completed")  # pending, completed, failed, reverted
 
     # Relationships
     team = relationship("Team")
@@ -142,12 +120,8 @@ def extend_team_model():
     Team.max_members = Column(Integer, default=10)
 
     # Relationships
-    Team.invitations = relationship(
-        "TeamInvitation", back_populates="team", cascade="all, delete-orphan"
-    )
-    Team.memberships = relationship(
-        "TeamMembership", back_populates="team", cascade="all, delete-orphan"
-    )
+    Team.invitations = relationship("TeamInvitation", back_populates="team", cascade="all, delete-orphan")
+    Team.memberships = relationship("TeamMembership", back_populates="team", cascade="all, delete-orphan")
     Team.created_by = relationship("User", foreign_keys=[Team.created_by_user_id])
 
 
@@ -167,9 +141,7 @@ class StandaloneTeamManager:
     def __init__(self, db_session):
         self.session = db_session
 
-    def create_standalone_team(
-        self, name: str, created_by_user_id: UUID, max_members: int = 10
-    ) -> "Team":
+    def create_standalone_team(self, name: str, created_by_user_id: UUID, max_members: int = 10) -> "Team":
         """Create a new standalone team"""
         from database import Team  # Import here to avoid circular imports
 
@@ -185,9 +157,7 @@ class StandaloneTeamManager:
         self.session.flush()  # Get the team ID
 
         # Add creator as admin member
-        membership = TeamMembership(
-            team_id=team.id, user_id=created_by_user_id, role="admin", status="active"
-        )
+        membership = TeamMembership(team_id=team.id, user_id=created_by_user_id, role="admin", status="active")
         self.session.add(membership)
 
         return team
@@ -211,15 +181,9 @@ class StandaloneTeamManager:
         self.session.add(invitation)
         return invitation
 
-    def accept_invitation(
-        self, invitation_token: str, user_id: UUID
-    ) -> Optional[TeamMembership]:
+    def accept_invitation(self, invitation_token: str, user_id: UUID) -> Optional[TeamMembership]:
         """Accept team invitation and create membership"""
-        invitation = (
-            self.session.query(TeamInvitation)
-            .filter_by(invitation_token=invitation_token)
-            .first()
-        )
+        invitation = self.session.query(TeamInvitation).filter_by(invitation_token=invitation_token).first()
 
         if not invitation or not invitation.is_valid():
             return None
@@ -253,21 +217,13 @@ class StandaloneTeamManager:
         if not team:
             return False
 
-        current_members = (
-            self.session.query(TeamMembership)
-            .filter_by(team_id=team_id, status="active")
-            .count()
-        )
+        current_members = self.session.query(TeamMembership).filter_by(team_id=team_id, status="active").count()
 
         return current_members < team.max_members
 
     def get_team_members(self, team_id: UUID) -> List[TeamMembership]:
         """Get all active team members"""
-        return (
-            self.session.query(TeamMembership)
-            .filter_by(team_id=team_id, status="active")
-            .all()
-        )
+        return self.session.query(TeamMembership).filter_by(team_id=team_id, status="active").all()
 
     def upgrade_team_to_organization(
         self, team_id: UUID, upgraded_by_user_id: UUID, org_data: dict
@@ -275,9 +231,7 @@ class StandaloneTeamManager:
         """Upgrade standalone team to organization"""
         from database import Organization, Team  # Import here to avoid circular imports
 
-        team = (
-            self.session.query(Team).filter_by(id=team_id, is_standalone=True).first()
-        )
+        team = self.session.query(Team).filter_by(id=team_id, is_standalone=True).first()
         if not team or not team.upgrade_eligible:
             return None
 

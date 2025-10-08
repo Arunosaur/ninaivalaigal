@@ -13,9 +13,7 @@ class TestRedisModule:
         try:
             from server import redis_client
 
-            assert hasattr(redis_client, "get_redis_client") or hasattr(
-                redis_client, "RedisClient"
-            )
+            assert hasattr(redis_client, "get_redis_client") or hasattr(redis_client, "RedisClient")
         except ImportError as e:
             pytest.skip(f"Redis module import failed: {e}")
 

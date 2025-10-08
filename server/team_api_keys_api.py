@@ -34,18 +34,10 @@ revoked_keys_cache = set()
 class APIKeyScope(BaseModel):
     """API key permission scope definition"""
 
-    memory: List[str] = Field(
-        default=["read"], description="Memory permissions: read, write, delete"
-    )
-    billing: List[str] = Field(
-        default=[], description="Billing permissions: read, write"
-    )
-    analytics: List[str] = Field(
-        default=["read"], description="Analytics permissions: read"
-    )
-    team: List[str] = Field(
-        default=["read"], description="Team permissions: read, write"
-    )
+    memory: List[str] = Field(default=["read"], description="Memory permissions: read, write, delete")
+    billing: List[str] = Field(default=[], description="Billing permissions: read, write")
+    analytics: List[str] = Field(default=["read"], description="Analytics permissions: read")
+    team: List[str] = Field(default=["read"], description="Team permissions: read, write")
     admin: List[str] = Field(default=[], description="Admin permissions: read, write")
 
 
@@ -53,12 +45,8 @@ class APIKeyCreateRequest(BaseModel):
     """Request model for creating API key"""
 
     name: str = Field(..., description="Human-readable name for the API key")
-    description: Optional[str] = Field(
-        None, description="Optional description of key usage"
-    )
-    scopes: APIKeyScope = Field(
-        default_factory=APIKeyScope, description="Permission scopes for the key"
-    )
+    description: Optional[str] = Field(None, description="Optional description of key usage")
+    scopes: APIKeyScope = Field(default_factory=APIKeyScope, description="Permission scopes for the key")
     expires_at: Optional[datetime] = Field(None, description="Optional expiration date")
     rate_limit_per_minute: int = Field(default=100, description="Rate limit per minute")
 
@@ -201,9 +189,7 @@ async def create_team_api_key(
 
     # Check team admin permissions
     if not check_team_admin_permissions(current_user, team_id):
-        raise HTTPException(
-            status_code=403, detail="Admin access required for API key management"
-        )
+        raise HTTPException(status_code=403, detail="Admin access required for API key management")
 
     # Check team exists
     team = db.query(Team).filter(Team.id == team_id).first()
@@ -214,11 +200,7 @@ async def create_team_api_key(
     team_plan = getattr(team, "plan", "free")
     quota = get_team_api_key_quota(team_id, team_plan)
 
-    existing_keys = [
-        key
-        for key in api_keys_store.values()
-        if key.get("team_id") == team_id and key.get("is_active")
-    ]
+    existing_keys = [key for key in api_keys_store.values() if key.get("team_id") == team_id and key.get("is_active")]
     if len(existing_keys) >= quota["max_keys"]:
         raise HTTPException(
             status_code=429,
@@ -371,16 +353,8 @@ async def get_api_key_usage_stats(
     last_24h = now - timedelta(hours=24)
     last_7d = now - timedelta(days=7)
 
-    requests_last_24h = sum(
-        1
-        for entry in usage_data
-        if datetime.fromisoformat(entry["timestamp"]) > last_24h
-    )
-    requests_last_7d = sum(
-        1
-        for entry in usage_data
-        if datetime.fromisoformat(entry["timestamp"]) > last_7d
-    )
+    requests_last_24h = sum(1 for entry in usage_data if datetime.fromisoformat(entry["timestamp"]) > last_24h)
+    requests_last_7d = sum(1 for entry in usage_data if datetime.fromisoformat(entry["timestamp"]) > last_7d)
 
     # Top endpoints
     endpoint_counts = {}
@@ -398,9 +372,7 @@ async def get_api_key_usage_stats(
 
     top_endpoints = [
         {"endpoint": endpoint, "count": count}
-        for endpoint, count in sorted(
-            endpoint_counts.items(), key=lambda x: x[1], reverse=True
-        )[:10]
+        for endpoint, count in sorted(endpoint_counts.items(), key=lambda x: x[1], reverse=True)[:10]
     ]
 
     error_rate = (error_count / len(usage_data)) if usage_data else 0
@@ -437,9 +409,7 @@ async def get_team_api_keys_overview(
         raise HTTPException(status_code=404, detail="Team not found")
 
     # Get team keys
-    team_keys = [
-        key for key in api_keys_store.values() if key.get("team_id") == team_id
-    ]
+    team_keys = [key for key in api_keys_store.values() if key.get("team_id") == team_id]
     active_keys = [key for key in team_keys if key.get("is_active", False)]
     expired_keys = []
 
@@ -453,11 +423,7 @@ async def get_team_api_keys_overview(
         key_usage = api_key_usage_store.get(key["id"], [])
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
 
-        recent_requests = [
-            entry
-            for entry in key_usage
-            if datetime.fromisoformat(entry["timestamp"]) > thirty_days_ago
-        ]
+        recent_requests = [entry for entry in key_usage if datetime.fromisoformat(entry["timestamp"]) > thirty_days_ago]
         total_requests_30d += len(recent_requests)
 
     # Get quota information
@@ -520,9 +486,7 @@ async def rotate_api_key(
 
 
 # Middleware function for API key validation (to be used in main.py)
-def validate_api_key(
-    api_key: str, required_scope: str, required_permission: str
-) -> Optional[Dict[str, Any]]:
+def validate_api_key(api_key: str, required_scope: str, required_permission: str) -> Optional[Dict[str, Any]]:
     """Validate API key and check permissions"""
 
     # Check if key is in revoked cache

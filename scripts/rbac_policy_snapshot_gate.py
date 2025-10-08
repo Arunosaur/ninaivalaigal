@@ -54,12 +54,8 @@ class PolicyGateConfig:
     change_log_path: str = POLICY_CHANGE_LOG_PATH
     max_acceptable_additions: int = MAX_ACCEPTABLE_ADDITIONS
     max_acceptable_modifications: int = MAX_ACCEPTABLE_MODIFICATIONS
-    allow_removals: bool = (
-        False  # Strict: no permission removals without explicit approval
-    )
-    require_approval_file: bool = (
-        True  # Require .rbac_changes_approved file for concerning changes
-    )
+    allow_removals: bool = False  # Strict: no permission removals without explicit approval
+    require_approval_file: bool = True  # Require .rbac_changes_approved file for concerning changes
     git_integration: bool = True
     ci_mode: bool = False
 
@@ -118,9 +114,7 @@ class RBACPolicyGate:
 
                         snapshot.add_rule(role, resource, perms, conditions)
                     except ValueError as e:
-                        logger.warning(
-                            f"Skipping unknown role/resource/permission: {e}"
-                        )
+                        logger.warning(f"Skipping unknown role/resource/permission: {e}")
                         continue
 
             return snapshot.to_json()
@@ -177,9 +171,7 @@ class RBACPolicyGate:
             }
 
         # Validate current policy against baseline
-        validation_result = validate_policy_against_snapshot(
-            current_snapshot, baseline_snapshot
-        )
+        validation_result = validate_policy_against_snapshot(current_snapshot, baseline_snapshot)
 
         # Analyze changes for gate decision
         gate_result = self._analyze_changes_for_gate(validation_result)
@@ -189,9 +181,7 @@ class RBACPolicyGate:
 
         return gate_result
 
-    def _analyze_changes_for_gate(
-        self, validation_result: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _analyze_changes_for_gate(self, validation_result: dict[str, Any]) -> dict[str, Any]:
         """Analyze policy changes to determine if gate should pass."""
         comparison = validation_result["comparison"]
 
@@ -218,9 +208,7 @@ class RBACPolicyGate:
         if len(additions) > self.config.max_acceptable_additions:
             gate_passed = False
             requires_approval = True
-            issues.append(
-                f"Too many permission additions: {len(additions)} > {self.config.max_acceptable_additions}"
-            )
+            issues.append(f"Too many permission additions: {len(additions)} > {self.config.max_acceptable_additions}")
 
         # Check modifications
         if len(modifications) > self.config.max_acceptable_modifications:
@@ -234,18 +222,14 @@ class RBACPolicyGate:
         if removals and not self.config.allow_removals:
             gate_passed = False
             requires_approval = True
-            issues.append(
-                f"Permission removals detected: {len(removals)} (not allowed without approval)"
-            )
+            issues.append(f"Permission removals detected: {len(removals)} (not allowed without approval)")
 
         # Check for privilege escalation
         escalation_changes = self._detect_privilege_escalation(changes)
         if escalation_changes:
             gate_passed = False
             requires_approval = True
-            issues.append(
-                f"Potential privilege escalation detected: {len(escalation_changes)} changes"
-            )
+            issues.append(f"Potential privilege escalation detected: {len(escalation_changes)} changes")
 
         # Check if approval file exists for concerning changes
         if requires_approval and self.config.require_approval_file:
@@ -272,9 +256,7 @@ class RBACPolicyGate:
             "validation_result": validation_result,
         }
 
-    def _detect_privilege_escalation(
-        self, changes: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def _detect_privilege_escalation(self, changes: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Detect potential privilege escalation in changes."""
         escalations = []
 
@@ -282,16 +264,10 @@ class RBACPolicyGate:
             if change["type"] == "added":
                 rule = change["rule"]
                 # Check if adding admin permissions to non-admin role
-                if (
-                    "admin" in rule.get("permissions", [])
-                    and rule.get("role") != "admin"
-                ):
+                if "admin" in rule.get("permissions", []) and rule.get("role") != "admin":
                     escalations.append(change)
                 # Check if adding write permissions to viewer role
-                elif (
-                    "write" in rule.get("permissions", [])
-                    and rule.get("role") == "viewer"
-                ):
+                elif "write" in rule.get("permissions", []) and rule.get("role") == "viewer":
                     escalations.append(change)
 
             elif change["type"] == "modified":
@@ -304,9 +280,7 @@ class RBACPolicyGate:
 
                 if new_perms > old_perms:  # New permissions added
                     added_perms = new_perms - old_perms
-                    if "admin" in added_perms or (
-                        "write" in added_perms and old_rule.get("role") == "viewer"
-                    ):
+                    if "admin" in added_perms or ("write" in added_perms and old_rule.get("role") == "viewer"):
                         escalations.append(change)
 
         return escalations
@@ -446,17 +420,13 @@ def main():
         default=True,
         help="Check current policy against baseline (default)",
     )
-    parser.add_argument(
-        "--ci-mode", action="store_true", help="Run in CI mode with stricter validation"
-    )
+    parser.add_argument("--ci-mode", action="store_true", help="Run in CI mode with stricter validation")
     parser.add_argument(
         "--generate-approval",
         action="store_true",
         help="Generate approval template for changes",
     )
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
 
     args = parser.parse_args()
 

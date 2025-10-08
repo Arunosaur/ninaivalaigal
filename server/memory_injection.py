@@ -140,14 +140,10 @@ class MemoryInjectionEngine:
                 candidates.extend(rule_candidates)
 
             # Score and rank candidates
-            scored_candidates = await self._score_injection_candidates(
-                candidates, context
-            )
+            scored_candidates = await self._score_injection_candidates(candidates, context)
 
             # Filter by relevance threshold and limit
-            filtered_candidates = [
-                c for c in scored_candidates if c.relevance_score >= 0.3
-            ][:max_candidates]
+            filtered_candidates = [c for c in scored_candidates if c.relevance_score >= 0.3][:max_candidates]
 
             # Cache results for performance
             if self.redis:
@@ -180,9 +176,7 @@ class MemoryInjectionEngine:
         """
         try:
             # Get injection candidates
-            candidates = await self.analyze_injection_opportunities(
-                context, max_candidates=max_injections * 2
-            )
+            candidates = await self.analyze_injection_opportunities(context, max_candidates=max_injections * 2)
 
             # Filter by strategy
             strategy_candidates = await self._filter_by_strategy(candidates, strategy)
@@ -210,9 +204,7 @@ class MemoryInjectionEngine:
             logger.error("Failed to inject memories", error=str(e))
             raise
 
-    async def create_injection_rule(
-        self, user_id: str, rule_data: Dict[str, Any]
-    ) -> InjectionRule:
+    async def create_injection_rule(self, user_id: str, rule_data: Dict[str, Any]) -> InjectionRule:
         """
         Create a new memory injection rule.
         """
@@ -253,9 +245,7 @@ class MemoryInjectionEngine:
             logger.error("Failed to create injection rule", error=str(e))
             raise
 
-    async def get_injection_analytics(
-        self, user_id: str, days_back: int = 30
-    ) -> Dict[str, Any]:
+    async def get_injection_analytics(self, user_id: str, days_back: int = 30) -> Dict[str, Any]:
         """
         Get analytics about memory injection performance.
         """
@@ -269,15 +259,11 @@ class MemoryInjectionEngine:
             rule_performance = await self._get_rule_performance(user_id, cutoff_date)
 
             # Get user feedback on injections
-            injection_feedback = await self._get_injection_feedback(
-                user_id, cutoff_date
-            )
+            injection_feedback = await self._get_injection_feedback(user_id, cutoff_date)
 
             analytics = {
                 "total_injections": injection_stats.get("total_injections", 0),
-                "successful_injections": injection_stats.get(
-                    "successful_injections", 0
-                ),
+                "successful_injections": injection_stats.get("successful_injections", 0),
                 "success_rate": injection_stats.get("success_rate", 0.0),
                 "average_relevance_score": injection_stats.get("avg_relevance", 0.0),
                 "rule_performance": rule_performance,
@@ -337,9 +323,7 @@ class MemoryInjectionEngine:
             logger.error("Failed to get active rules", error=str(e))
             return []
 
-    async def _evaluate_rule(
-        self, rule: InjectionRule, context: InjectionContext
-    ) -> List[InjectionCandidate]:
+    async def _evaluate_rule(self, rule: InjectionRule, context: InjectionContext) -> List[InjectionCandidate]:
         """Evaluate a rule against current context."""
         try:
             candidates = []
@@ -454,9 +438,7 @@ class MemoryInjectionEngine:
             )
             return None
 
-    async def _check_rule_conditions(
-        self, rule: InjectionRule, context: InjectionContext
-    ) -> bool:
+    async def _check_rule_conditions(self, rule: InjectionRule, context: InjectionContext) -> bool:
         """Check if rule conditions are satisfied."""
         try:
             conditions = rule.conditions
@@ -476,9 +458,7 @@ class MemoryInjectionEngine:
             # Check location conditions
             if "location_context" in conditions:
                 required_location = conditions["location_context"]
-                if not self._match_location_context(
-                    context.location_context, required_location
-                ):
+                if not self._match_location_context(context.location_context, required_location):
                     return False
 
             # Check user state conditions
@@ -493,9 +473,7 @@ class MemoryInjectionEngine:
             logger.error("Failed to check rule conditions", error=str(e))
             return False
 
-    def _calculate_urgency(
-        self, rule: InjectionRule, memory_data: Dict[str, Any]
-    ) -> float:
+    def _calculate_urgency(self, rule: InjectionRule, memory_data: Dict[str, Any]) -> float:
         """Calculate urgency score for memory injection."""
         urgency = 0.5  # Base urgency
 

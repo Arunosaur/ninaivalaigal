@@ -84,9 +84,7 @@ class CharsetMatch:
 
     def add_submatch(self, other: CharsetMatch) -> None:
         if not isinstance(other, CharsetMatch) or other == self:
-            raise ValueError(
-                f"Unable to add instance <{other.__class__}> as a submatch of a CharsetMatch"
-            )
+            raise ValueError(f"Unable to add instance <{other.__class__}> as a submatch of a CharsetMatch")
 
         other._string = None  # Unload RAM usage; dirty trick.
         self._leaves.append(other)
@@ -212,11 +210,11 @@ class CharsetMatch:
         if self._output_encoding is None or self._output_encoding != encoding:
             self._output_encoding = encoding
             decoded_string = str(self)
-            if (
-                self._preemptive_declaration is not None
-                and self._preemptive_declaration.lower()
-                not in ["utf-8", "utf8", "utf_8"]
-            ):
+            if self._preemptive_declaration is not None and self._preemptive_declaration.lower() not in [
+                "utf-8",
+                "utf8",
+                "utf_8",
+            ]:
                 patched_header = sub(
                     RE_POSSIBLE_ENCODING_INDICATION,
                     lambda m: m.string[m.span()[0] : m.span()[1]].replace(
@@ -279,9 +277,7 @@ class CharsetMatches:
         Can be inserted as a submatch.
         """
         if not isinstance(item, CharsetMatch):
-            raise ValueError(
-                f"Cannot append instance '{str(item.__class__)}' to CharsetMatches"
-            )
+            raise ValueError(f"Cannot append instance '{str(item.__class__)}' to CharsetMatches")
         # We should disable the submatch factoring when the input file is too heavy (conserve RAM usage)
         if len(item.raw) < TOO_BIG_SEQUENCE:
             for match in self._results:

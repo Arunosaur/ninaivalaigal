@@ -120,9 +120,7 @@ async def signup_with_team_creation(
     try:
         # Validate email format and check if user exists
         if not validate_email(signup_data.email):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email format"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email format")
 
         existing_user = session.query(User).filter_by(email=signup_data.email).first()
         if existing_user:
@@ -211,11 +209,7 @@ async def signup_with_team_joining(
 
     try:
         # Validate invitation token first
-        invitation = (
-            session.query(TeamInvitation)
-            .filter_by(invitation_token=signup_data.invitation_token)
-            .first()
-        )
+        invitation = session.query(TeamInvitation).filter_by(invitation_token=signup_data.invitation_token).first()
 
         if not invitation or not invitation.is_valid():
             raise HTTPException(
@@ -232,18 +226,13 @@ async def signup_with_team_joining(
 
         # Validate email format and check if user exists
         if not validate_email(signup_data.email):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email format"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email format")
 
         existing_user = session.query(User).filter_by(email=signup_data.email).first()
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    "User with this email already exists. "
-                    "Please login and accept the invitation."
-                ),
+                detail=("User with this email already exists. " "Please login and accept the invitation."),
             )
 
         # Create user account
@@ -258,9 +247,7 @@ async def signup_with_team_joining(
         user_id = user_result["user_id"]
 
         # Accept team invitation
-        membership = team_manager.accept_invitation(
-            invitation_token=signup_data.invitation_token, user_id=user_id
-        )
+        membership = team_manager.accept_invitation(invitation_token=signup_data.invitation_token, user_id=user_id)
 
         if not membership:
             raise HTTPException(
@@ -335,24 +322,16 @@ async def join_team_by_code(
         # Find team by invite code
         from database import Team
 
-        team = (
-            session.query(Team)
-            .filter_by(team_invite_code=join_data.team_invite_code, is_standalone=True)
-            .first()
-        )
+        team = session.query(Team).filter_by(team_invite_code=join_data.team_invite_code, is_standalone=True).first()
 
         if not team:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Invalid team invite code"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid team invite code")
 
         # Check if user is already a member
         from models.standalone_teams import TeamMembership
 
         existing_membership = (
-            session.query(TeamMembership)
-            .filter_by(team_id=team.id, user_id=current_user.id, status="active")
-            .first()
+            session.query(TeamMembership).filter_by(team_id=team.id, user_id=current_user.id, status="active").first()
         )
 
         if existing_membership:
@@ -478,16 +457,10 @@ async def validate_invitation_token(
                 detail="Invitation token is required",
             )
 
-        invitation = (
-            session.query(TeamInvitation)
-            .filter_by(invitation_token=invitation_token)
-            .first()
-        )
+        invitation = session.query(TeamInvitation).filter_by(invitation_token=invitation_token).first()
 
         if not invitation:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Invitation not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation not found")
 
         if not invitation.is_valid():
             return {

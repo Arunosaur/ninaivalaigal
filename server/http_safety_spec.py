@@ -68,9 +68,7 @@ class HTTPSafetySpec:
     }
 
     @classmethod
-    def validate_response(
-        cls, response: Response, endpoint_path: str
-    ) -> Dict[str, Any]:
+    def validate_response(cls, response: Response, endpoint_path: str) -> Dict[str, Any]:
         """
         Validate a response against HTTP safety rules
         """
@@ -92,10 +90,7 @@ class HTTPSafetySpec:
                 )
 
         # Check JSON serialization for JSON responses
-        if (
-            hasattr(response, "media_type")
-            and response.media_type == "application/json"
-        ):
+        if hasattr(response, "media_type") and response.media_type == "application/json":
             try:
                 if hasattr(response, "body") and response.body:
                     json.loads(response.body.decode("utf-8"))
@@ -204,9 +199,7 @@ class SafeEndpointDecorator:
                 return result
 
             except Exception as e:
-                logger.error(
-                    f"Safe endpoint wrapper caught exception in {func.__name__}: {e}"
-                )
+                logger.error(f"Safe endpoint wrapper caught exception in {func.__name__}: {e}")
                 return HTTPSafetySpec.create_safe_response(
                     {"error": "Internal server error", "detail": str(e)},
                     status_code=500,

@@ -158,9 +158,7 @@ class AgentCore:
 
             # Determine execution mode
             if execution_mode is None:
-                execution_mode = await self.intention_router.route_intent(
-                    user_prompt, exec_context
-                )
+                execution_mode = await self.intention_router.route_intent(user_prompt, exec_context)
 
             logger.info(
                 "Starting agentic execution",
@@ -386,9 +384,7 @@ class AgentCore:
             "generation_type": context.context_data.get("generation_type", "text"),
         }
 
-    async def _execute_memory_analysis(
-        self, context: ExecutionContext
-    ) -> Dict[str, Any]:
+    async def _execute_memory_analysis(self, context: ExecutionContext) -> Dict[str, Any]:
         """Execute memory network analysis and insights."""
         # Perform memory network analysis
         network_analysis = await self.memory_tool.analyze_memory_network(
@@ -412,9 +408,7 @@ class AgentCore:
             "total_memories": network_analysis.get("total_memories", 0),
         }
 
-    async def _execute_graph_reasoning(
-        self, context: ExecutionContext
-    ) -> Dict[str, Any]:
+    async def _execute_graph_reasoning(self, context: ExecutionContext) -> Dict[str, Any]:
         """Execute graph-based reasoning using SPEC-061 integration."""
         if not self.graph_intelligence:
             raise RuntimeError("Graph intelligence not available")
@@ -455,22 +449,15 @@ class AgentCore:
             self.metrics["failed_executions"] += 1
 
         # Update average execution time
-        total_time = (
-            self.metrics["avg_execution_time"] * (self.metrics["total_executions"] - 1)
-            + result.execution_time
-        )
-        self.metrics["avg_execution_time"] = (
-            total_time / self.metrics["total_executions"]
-        )
+        total_time = self.metrics["avg_execution_time"] * (self.metrics["total_executions"] - 1) + result.execution_time
+        self.metrics["avg_execution_time"] = total_time / self.metrics["total_executions"]
 
         # Update mode usage
         self.metrics["mode_usage"][result.mode.value] += 1
 
         # Update tool usage
         for tool in result.tools_used:
-            self.metrics["tool_usage"][tool] = (
-                self.metrics["tool_usage"].get(tool, 0) + 1
-            )
+            self.metrics["tool_usage"][tool] = self.metrics["tool_usage"].get(tool, 0) + 1
 
         # Store in history (keep last 1000)
         self.execution_history.append(result)
@@ -482,9 +469,7 @@ class AgentCore:
         return {
             "metrics": self.metrics,
             "active_executions": len(self.active_executions),
-            "recent_executions": [
-                result.to_dict() for result in self.execution_history[-10:]
-            ],
+            "recent_executions": [result.to_dict() for result in self.execution_history[-10:]],
             "resource_limits": self.resource_limits,
             "available_modes": [mode.value for mode in ExecutionMode],
         }

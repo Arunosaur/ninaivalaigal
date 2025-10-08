@@ -56,20 +56,12 @@ async def store_memory(
         user_id = current_user.id
 
         # Extract context from data if provided, otherwise use default
-        context = (
-            entry.data.get("context", "default")
-            if hasattr(entry, "data") and entry.data
-            else "default"
-        )
+        context = entry.data.get("context", "default") if hasattr(entry, "data") and entry.data else "default"
 
         # If Windsurf is sending to hardcoded "test-context", redirect to actual active context
         if context == "test-context" and entry.source == "zsh_session":
             active_contexts = db.get_all_contexts()
-            active_context_names = [
-                ctx.get("name")
-                for ctx in active_contexts
-                if ctx.get("is_active", False)
-            ]
+            active_context_names = [ctx.get("name") for ctx in active_contexts if ctx.get("is_active", False)]
             if active_context_names:
                 # Use the first active context instead of hardcoded test-context
                 context = active_context_names[0]
@@ -115,9 +107,7 @@ async def store_memory(
 
 @router.get("")
 @require_permission(Resource.MEMORY, Action.READ)
-def get_memory(
-    request: Request, context: str, current_user: User = Depends(get_current_user)
-):
+def get_memory(request: Request, context: str, current_user: User = Depends(get_current_user)):
     """Retrieve memories for a context with user isolation"""
     try:
         # Use authenticated user ID (mandatory)
@@ -143,9 +133,7 @@ def get_all_memories(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/recall")
-async def recall_hierarchical(
-    query: str, context: str = None, current_user: User = Depends(get_current_user)
-):
+async def recall_hierarchical(query: str, context: str = None, current_user: User = Depends(get_current_user)):
     """Hierarchical memory recall with user isolation"""
     try:
         # Use authenticated user ID (mandatory)
@@ -160,9 +148,7 @@ async def recall_hierarchical(
             "count": len(memories),
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to recall memories: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to recall memories: {str(e)}")
 
 
 @router.post("/record")
@@ -192,9 +178,7 @@ async def record_interaction(
             "type": interaction_type,
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to record interaction: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to record interaction: {str(e)}")
 
 
 @router.post("/tokenize", response_model=TokenizeResponse)

@@ -65,9 +65,7 @@ class JWTClaimsResolver:
                 self.logger.info("JWT signature verified successfully")
             else:
                 # Unverified parsing for development/testing
-                claims = jwt.decode(
-                    token, options={"verify_signature": False, "verify_exp": False}
-                )
+                claims = jwt.decode(token, options={"verify_signature": False, "verify_exp": False})
                 self.logger.warning("JWT parsed without signature verification")
 
             return claims

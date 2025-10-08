@@ -52,9 +52,7 @@ async def create_organization(
             "message": "Organization created successfully",
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create organization: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create organization: {str(e)}")
 
 
 @router.get("")
@@ -73,17 +71,13 @@ def get_organizations(
                     "id": org.id,
                     "name": org.name,
                     "description": org.description,
-                    "created_at": (
-                        org.created_at.isoformat() if org.created_at else None
-                    ),
+                    "created_at": (org.created_at.isoformat() if org.created_at else None),
                 }
                 for org in organizations
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get organizations: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get organizations: {str(e)}")
 
 
 @router.get("/{org_id}/teams")
@@ -108,6 +102,4 @@ def get_organization_teams(
             ]
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get organization teams: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get organization teams: {str(e)}")

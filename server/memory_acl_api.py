@@ -32,9 +32,7 @@ class AccessEvaluationRequest(BaseModel):
     memory_id: str
     requested_permission: str = Field(..., description="Permission type to check")
     token_id: str | None = Field(None, description="Token ID for token-based access")
-    context: dict[str, Any] = Field(
-        default_factory=dict, description="Additional context"
-    )
+    context: dict[str, Any] = Field(default_factory=dict, description="Additional context")
 
 
 class AccessEvaluationResponse(BaseModel):
@@ -63,9 +61,7 @@ class ShareMemoryRequest(BaseModel):
 
 
 class UpdateVisibilityRequest(BaseModel):
-    visibility: str = Field(
-        ..., description="Visibility: private, team, organization, public"
-    )
+    visibility: str = Field(..., description="Visibility: private, team, organization, public")
 
 
 class AccessibleMemoriesResponse(BaseModel):
@@ -172,9 +168,7 @@ async def get_memory_acl(
 
         decision = await engine.evaluate_access(access_request)
         if not decision.granted:
-            raise HTTPException(
-                status_code=403, detail="Insufficient permissions to view memory ACL"
-            )
+            raise HTTPException(status_code=403, detail="Insufficient permissions to view memory ACL")
 
         # Get memory ACL
         acl = await engine._get_memory_acl(memory_id)
@@ -216,9 +210,7 @@ async def share_memory(
         try:
             access_level = AccessLevel(request.access_level)
         except ValueError:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid access level: {request.access_level}"
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid access level: {request.access_level}")
 
         # Share memory
         success = await engine.share_memory(
@@ -364,9 +356,7 @@ async def get_accessible_memories(
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to get accessible memories", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to get accessible memories", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -383,14 +373,10 @@ async def create_memory_acl(
         try:
             visibility_scope = VisibilityScope(visibility)
         except ValueError:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid visibility scope: {visibility}"
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid visibility scope: {visibility}")
 
         # Create memory ACL
-        acl = await engine.create_memory_acl(
-            memory_id=memory_id, owner_id=current_user.id, visibility=visibility_scope
-        )
+        acl = await engine.create_memory_acl(memory_id=memory_id, owner_id=current_user.id, visibility=visibility_scope)
 
         return {
             "message": "Memory ACL created successfully",
@@ -427,20 +413,14 @@ async def get_acl_stats(
 
         # Calculate stats (would be more sophisticated in real implementation)
         stats = {
-            "owned_memories": len(
-                [m for m in accessible_memories if f"memory_{current_user.id}" in m]
-            ),
+            "owned_memories": len([m for m in accessible_memories if f"memory_{current_user.id}" in m]),
             "shared_memories": 0,  # Would calculate from sharing data
             "accessible_memories": len(accessible_memories),
             "recent_access_decisions": 0,  # Would get from audit logs
             "permissions_summary": {
                 "read": len(accessible_memories),
-                "write": len(
-                    [m for m in accessible_memories if f"memory_{current_user.id}" in m]
-                ),
-                "admin": len(
-                    [m for m in accessible_memories if f"memory_{current_user.id}" in m]
-                ),
+                "write": len([m for m in accessible_memories if f"memory_{current_user.id}" in m]),
+                "admin": len([m for m in accessible_memories if f"memory_{current_user.id}" in m]),
             },
         }
 
@@ -505,9 +485,7 @@ async def bulk_evaluate_access(
         try:
             permission_type = PermissionType(permission)
         except ValueError:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid permission type: {permission}"
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid permission type: {permission}")
 
         results = []
 
@@ -555,7 +533,5 @@ async def bulk_evaluate_access(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Failed to bulk evaluate access", user_id=current_user.id, error=str(e)
-        )
+        logger.error("Failed to bulk evaluate access", user_id=current_user.id, error=str(e))
         raise HTTPException(status_code=500, detail=str(e))

@@ -49,17 +49,13 @@ class MemoryHealthSystemTester:
                 data = response.json()
                 if data.get("status") == "healthy":
                     capabilities = data.get("monitoring_capabilities", [])
-                    self.log(
-                        f"✅ Memory health system healthy with {len(capabilities)} capabilities"
-                    )
+                    self.log(f"✅ Memory health system healthy with {len(capabilities)} capabilities")
                     return True
                 else:
                     self.log(f"❌ Memory health system unhealthy: {data}")
                     return False
             else:
-                self.log(
-                    f"❌ Health status check failed with status {response.status_code}"
-                )
+                self.log(f"❌ Health status check failed with status {response.status_code}")
                 return False
 
         except Exception as e:
@@ -74,32 +70,20 @@ class MemoryHealthSystemTester:
             test_memory_id = "test_memory_health_001"
 
             start_time = time.time()
-            response = self.session.get(
-                f"{API_BASE_URL}/health/memory/{test_memory_id}"
-            )
+            response = self.session.get(f"{API_BASE_URL}/health/memory/{test_memory_id}")
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
-                self.log(
-                    "✅ Memory health analysis endpoint accessible (auth required)"
-                )
-                self.results["performance_metrics"][
-                    "memory_analysis_response_time"
-                ] = response_time
+                self.log("✅ Memory health analysis endpoint accessible (auth required)")
+                self.results["performance_metrics"]["memory_analysis_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Memory health analyzed: {data['health_status']} (quality: {data['quality_score']:.2f})"
-                )
-                self.results["performance_metrics"][
-                    "memory_analysis_response_time"
-                ] = response_time
+                self.log(f"✅ Memory health analyzed: {data['health_status']} (quality: {data['quality_score']:.2f})")
+                self.results["performance_metrics"]["memory_analysis_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Memory health analysis failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Memory health analysis failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -116,24 +100,16 @@ class MemoryHealthSystemTester:
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
-                self.log(
-                    "✅ Orphaned token detection endpoint accessible (auth required)"
-                )
-                self.results["performance_metrics"][
-                    "orphaned_detection_response_time"
-                ] = response_time
+                self.log("✅ Orphaned token detection endpoint accessible (auth required)")
+                self.results["performance_metrics"]["orphaned_detection_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Orphaned tokens detected: {len(data)} tokens found")
-                self.results["performance_metrics"][
-                    "orphaned_detection_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["orphaned_detection_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Orphaned token detection failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Orphaned token detection failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -150,26 +126,16 @@ class MemoryHealthSystemTester:
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
-                self.log(
-                    "✅ Health report generation endpoint accessible (auth required)"
-                )
-                self.results["performance_metrics"][
-                    "health_report_response_time"
-                ] = response_time
+                self.log("✅ Health report generation endpoint accessible (auth required)")
+                self.results["performance_metrics"]["health_report_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Health report generated: {data['total_memories']} memories analyzed"
-                )
-                self.results["performance_metrics"][
-                    "health_report_response_time"
-                ] = response_time
+                self.log(f"✅ Health report generated: {data['total_memories']} memories analyzed")
+                self.results["performance_metrics"]["health_report_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Health report generation failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Health report generation failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -187,23 +153,15 @@ class MemoryHealthSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Health summary endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "health_summary_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["health_summary_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Health summary retrieved: {data['system_health_status']} status"
-                )
-                self.results["performance_metrics"][
-                    "health_summary_response_time"
-                ] = response_time
+                self.log(f"✅ Health summary retrieved: {data['system_health_status']} status")
+                self.results["performance_metrics"]["health_summary_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Health summary failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Health summary failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -220,26 +178,16 @@ class MemoryHealthSystemTester:
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
-                self.log(
-                    "✅ Common issues analysis endpoint accessible (auth required)"
-                )
-                self.results["performance_metrics"][
-                    "issues_analysis_response_time"
-                ] = response_time
+                self.log("✅ Common issues analysis endpoint accessible (auth required)")
+                self.results["performance_metrics"]["issues_analysis_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Common issues analyzed: {data['issue_count']} issue types found"
-                )
-                self.results["performance_metrics"][
-                    "issues_analysis_response_time"
-                ] = response_time
+                self.log(f"✅ Common issues analyzed: {data['issue_count']} issue types found")
+                self.results["performance_metrics"]["issues_analysis_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Common issues analysis failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Common issues analysis failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -258,32 +206,20 @@ class MemoryHealthSystemTester:
             }
 
             start_time = time.time()
-            response = self.session.post(
-                f"{API_BASE_URL}/health/cleanup/recommendations", json=payload
-            )
+            response = self.session.post(f"{API_BASE_URL}/health/cleanup/recommendations", json=payload)
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
-                self.log(
-                    "✅ Cleanup recommendations endpoint accessible (auth required)"
-                )
-                self.results["performance_metrics"][
-                    "cleanup_recommendations_response_time"
-                ] = response_time
+                self.log("✅ Cleanup recommendations endpoint accessible (auth required)")
+                self.results["performance_metrics"]["cleanup_recommendations_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Cleanup recommendations generated: {data['total_analyzed']} memories analyzed"
-                )
-                self.results["performance_metrics"][
-                    "cleanup_recommendations_response_time"
-                ] = response_time
+                self.log(f"✅ Cleanup recommendations generated: {data['total_analyzed']} memories analyzed")
+                self.results["performance_metrics"]["cleanup_recommendations_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Cleanup recommendations failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Cleanup recommendations failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -301,21 +237,15 @@ class MemoryHealthSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Maintenance scan endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "maintenance_scan_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["maintenance_scan_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
                 self.log(f"✅ Maintenance scan triggered: {data['scan_type']}")
-                self.results["performance_metrics"][
-                    "maintenance_scan_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["maintenance_scan_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Maintenance scan failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Maintenance scan failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -333,23 +263,15 @@ class MemoryHealthSystemTester:
 
             if response.status_code == 403:  # Expected - no auth
                 self.log("✅ Health metrics endpoint accessible (auth required)")
-                self.results["performance_metrics"][
-                    "health_metrics_response_time"
-                ] = response_time
+                self.results["performance_metrics"]["health_metrics_response_time"] = response_time
                 return True
             elif response.status_code == 200:
                 data = response.json()
-                self.log(
-                    f"✅ Health metrics retrieved: {len(data['metrics'])} metrics available"
-                )
-                self.results["performance_metrics"][
-                    "health_metrics_response_time"
-                ] = response_time
+                self.log(f"✅ Health metrics retrieved: {len(data['metrics'])} metrics available")
+                self.results["performance_metrics"]["health_metrics_response_time"] = response_time
                 return True
             else:
-                self.log(
-                    f"❌ Health metrics failed: {response.status_code} - {response.text}"
-                )
+                self.log(f"❌ Health metrics failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
@@ -397,9 +319,7 @@ class MemoryHealthSystemTester:
                         accessible_count += 1
                         self.log(f"✅ Endpoint accessible: {endpoint}")
                     else:
-                        self.log(
-                            f"❌ Endpoint issue: {endpoint} - {response.status_code}"
-                        )
+                        self.log(f"❌ Endpoint issue: {endpoint} - {response.status_code}")
                 except Exception as e:
                     self.log(f"❌ Endpoint error: {endpoint} - {str(e)}")
 
@@ -434,12 +354,8 @@ class MemoryHealthSystemTester:
             avg_response_time = sum(request_times) / len(request_times)
             max_response_time = max(request_times)
 
-            self.results["performance_metrics"][
-                "avg_health_status_response_time"
-            ] = avg_response_time
-            self.results["performance_metrics"][
-                "max_health_status_response_time"
-            ] = max_response_time
+            self.results["performance_metrics"]["avg_health_status_response_time"] = avg_response_time
+            self.results["performance_metrics"]["max_health_status_response_time"] = max_response_time
 
             # Performance targets for health system (more lenient than basic operations)
             if avg_response_time < 50:  # 50ms target

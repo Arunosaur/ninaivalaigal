@@ -62,9 +62,7 @@ class TestSubstrateLifecycle:
             },
         ]
 
-    async def test_substrate_creation_retrieval_archival(
-        self, mock_substrate_manager, sample_substrates
-    ):
+    async def test_substrate_creation_retrieval_archival(self, mock_substrate_manager, sample_substrates):
         """Test SPEC-012: Substrate creation, retrieval, archival"""
 
         # Test substrate creation
@@ -78,22 +76,15 @@ class TestSubstrateLifecycle:
 
         # Test retrieval by status
         active_substrates = [s for s in sample_substrates if s["status"] == "active"]
-        archived_substrates = [
-            s for s in sample_substrates if s["status"] == "archived"
-        ]
+        archived_substrates = [s for s in sample_substrates if s["status"] == "archived"]
 
         assert len(active_substrates) == 2, "Should have 2 active substrates"
         assert len(archived_substrates) == 1, "Should have 1 archived substrate"
 
         # Test archival criteria (low access count + old age)
         for substrate in sample_substrates:
-            if (
-                substrate["access_count"] < 5
-                and (datetime.now(timezone.utc) - substrate["created_at"]).days > 7
-            ):
-                assert (
-                    substrate["status"] == "archived"
-                ), f"Substrate {substrate['id']} should be archived"
+            if substrate["access_count"] < 5 and (datetime.now(timezone.utc) - substrate["created_at"]).days > 7:
+                assert substrate["status"] == "archived", f"Substrate {substrate['id']} should be archived"
 
     async def test_write_read_throughput_under_load(self, mock_substrate_manager):
         """Test SPEC-012: Write/read throughput under load"""
@@ -115,9 +106,7 @@ class TestSubstrateLifecycle:
         # Test concurrent writes
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(simulate_write, i) for i in range(100)]
-            write_results = [
-                f.result() for f in concurrent.futures.as_completed(futures)
-            ]
+            write_results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
         # Validate write performance
         assert len(write_results) == 100, "All writes should complete"
@@ -140,16 +129,12 @@ class TestSubstrateLifecycle:
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
             futures = [executor.submit(simulate_read, i) for i in range(200)]
-            read_results = [
-                f.result() for f in concurrent.futures.as_completed(futures)
-            ]
+            read_results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
         # Validate read performance
         assert len(read_results) == 200, "All reads should complete"
         avg_read_time = sum(r["duration"] for r in read_results) / len(read_results)
-        assert (
-            avg_read_time < 0.01
-        ), f"Average read time should be under 10ms, got {avg_read_time:.3f}s"
+        assert avg_read_time < 0.01, f"Average read time should be under 10ms, got {avg_read_time:.3f}s"
 
     async def test_token_expiration_behavior(self, mock_substrate_manager):
         """Test SPEC-012: Token expiration behavior"""
@@ -180,17 +165,11 @@ class TestSubstrateLifecycle:
         current_time = datetime.now(timezone.utc)
         for token in tokens:
             if token["expires_at"] < current_time:
-                assert (
-                    token["status"] == "expired"
-                ), f"Token {token['token_id']} should be expired"
+                assert token["status"] == "expired", f"Token {token['token_id']} should be expired"
             else:
-                assert (
-                    token["status"] == "active"
-                ), f"Token {token['token_id']} should be active"
+                assert token["status"] == "active", f"Token {token['token_id']} should be active"
 
-    async def test_substrate_migration_between_tiers(
-        self, mock_substrate_manager, sample_substrates
-    ):
+    async def test_substrate_migration_between_tiers(self, mock_substrate_manager, sample_substrates):
         """Test SPEC-012: Substrate migration between tiers (e.g., Hot → Archive)"""
 
         # Test tier migration logic
@@ -199,9 +178,7 @@ class TestSubstrateLifecycle:
         for substrate in sample_substrates:
             # Migration criteria: access frequency and age
             age_days = (datetime.now(timezone.utc) - substrate["created_at"]).days
-            access_frequency = substrate["access_count"] / max(
-                age_days, 1
-            )  # Avoid division by zero
+            access_frequency = substrate["access_count"] / max(age_days, 1)  # Avoid division by zero
 
             migration_scenario = {
                 "substrate_id": substrate["id"],
@@ -224,13 +201,9 @@ class TestSubstrateLifecycle:
         # Validate migration recommendations
         for scenario in migration_scenarios:
             if scenario["access_frequency"] > 10:
-                assert (
-                    scenario["recommended_tier"] == "hot"
-                ), f"High frequency substrate should be in hot tier"
+                assert scenario["recommended_tier"] == "hot", f"High frequency substrate should be in hot tier"
             elif scenario["access_frequency"] <= 1:
-                assert (
-                    scenario["recommended_tier"] == "cold"
-                ), f"Low frequency substrate should be in cold tier"
+                assert scenario["recommended_tier"] == "cold", f"Low frequency substrate should be in cold tier"
 
     async def test_race_condition_simultaneous_writes(self, mock_substrate_manager):
         """Test SPEC-012: Race condition tests on simultaneous writes"""
@@ -270,9 +243,7 @@ class TestSubstrateLifecycle:
 
         # Launch concurrent writers
         with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
-            futures = [
-                executor.submit(concurrent_write, i, f"content_{i}") for i in range(30)
-            ]
+            futures = [executor.submit(concurrent_write, i, f"content_{i}") for i in range(30)]
             results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
         # Analyze race condition handling
@@ -285,9 +256,7 @@ class TestSubstrateLifecycle:
         assert len(conflicted_writes) > 0, "Some writes should detect conflicts"
         assert len(error_writes) == 0, "No writes should error unexpectedly"
 
-    async def test_performance_under_low_latency_use_cases(
-        self, mock_substrate_manager
-    ):
+    async def test_performance_under_low_latency_use_cases(self, mock_substrate_manager):
         """Test SPEC-012: Performance under low-latency use cases"""
 
         # Test low-latency operations
@@ -318,35 +287,23 @@ class TestSubstrateLifecycle:
 
         # Validate low-latency performance
         cache_hits = [t for t in latency_tests if t["operation_type"] == "cache_hit"]
-        memory_reads = [
-            t for t in latency_tests if t["operation_type"] == "memory_read"
-        ]
+        memory_reads = [t for t in latency_tests if t["operation_type"] == "memory_read"]
 
         # Cache hits should be very fast
         avg_cache_latency = sum(t["latency_ms"] for t in cache_hits) / len(cache_hits)
-        assert (
-            avg_cache_latency < 0.5
-        ), f"Cache hit latency should be under 0.5ms, got {avg_cache_latency:.3f}ms"
+        assert avg_cache_latency < 0.5, f"Cache hit latency should be under 0.5ms, got {avg_cache_latency:.3f}ms"
 
         # Memory reads should still be fast
-        avg_memory_latency = sum(t["latency_ms"] for t in memory_reads) / len(
-            memory_reads
-        )
-        assert (
-            avg_memory_latency < 1.0
-        ), f"Memory read latency should be under 1ms, got {avg_memory_latency:.3f}ms"
+        avg_memory_latency = sum(t["latency_ms"] for t in memory_reads) / len(memory_reads)
+        assert avg_memory_latency < 1.0, f"Memory read latency should be under 1ms, got {avg_memory_latency:.3f}ms"
 
         # Overall performance check
-        overall_avg_latency = sum(t["latency_ms"] for t in latency_tests) / len(
-            latency_tests
-        )
+        overall_avg_latency = sum(t["latency_ms"] for t in latency_tests) / len(latency_tests)
         assert (
             overall_avg_latency < 1.0
         ), f"Overall average latency should be under 1ms, got {overall_avg_latency:.3f}ms"
 
-    async def test_substrate_cleanup_and_maintenance(
-        self, mock_substrate_manager, sample_substrates
-    ):
+    async def test_substrate_cleanup_and_maintenance(self, mock_substrate_manager, sample_substrates):
         """Test SPEC-012: Substrate cleanup and maintenance operations"""
 
         # Test cleanup criteria
@@ -372,11 +329,7 @@ class TestSubstrateLifecycle:
             elif substrate["access_count"] == 0 and age_days > 30:
                 cleanup_criteria["should_cleanup"] = True
                 cleanup_criteria["cleanup_reason"] = "never_accessed"
-            elif (
-                substrate["status"] == "active"
-                and age_days > 365
-                and substrate["access_count"] < 5
-            ):
+            elif substrate["status"] == "active" and age_days > 365 and substrate["access_count"] < 5:
                 cleanup_criteria["should_cleanup"] = True
                 cleanup_criteria["cleanup_reason"] = "old_inactive"
 
@@ -385,18 +338,12 @@ class TestSubstrateLifecycle:
         # Validate cleanup logic
         for candidate in cleanup_candidates:
             if candidate["should_cleanup"]:
-                assert (
-                    candidate["cleanup_reason"] is not None
-                ), "Cleanup candidates should have a reason"
+                assert candidate["cleanup_reason"] is not None, "Cleanup candidates should have a reason"
 
                 if candidate["cleanup_reason"] == "old_archived":
-                    assert (
-                        candidate["status"] == "archived"
-                    ), "Old archived cleanup should target archived substrates"
+                    assert candidate["status"] == "archived", "Old archived cleanup should target archived substrates"
                 elif candidate["cleanup_reason"] == "never_accessed":
-                    assert (
-                        candidate["access_count"] == 0
-                    ), "Never accessed cleanup should target unused substrates"
+                    assert candidate["access_count"] == 0, "Never accessed cleanup should target unused substrates"
 
     @pytest.mark.asyncio
     async def test_substrate_performance_monitoring(self, mock_substrate_manager):
@@ -416,18 +363,10 @@ class TestSubstrateLifecycle:
 
         # Validate performance metrics
         assert performance_metrics["total_substrates"] > 0, "Should have substrates"
-        assert (
-            performance_metrics["avg_access_time_ms"] < 10
-        ), "Average access time should be reasonable"
-        assert (
-            performance_metrics["cache_hit_rate"] > 0.5
-        ), "Cache hit rate should be decent"
-        assert (
-            performance_metrics["storage_utilization"] < 1.0
-        ), "Storage should not be over-utilized"
+        assert performance_metrics["avg_access_time_ms"] < 10, "Average access time should be reasonable"
+        assert performance_metrics["cache_hit_rate"] > 0.5, "Cache hit rate should be decent"
+        assert performance_metrics["storage_utilization"] < 1.0, "Storage should not be over-utilized"
 
         # Validate tier distribution
         tier_total = sum(performance_metrics["tier_distribution"].values())
-        assert (
-            tier_total == performance_metrics["total_substrates"]
-        ), "Tier distribution should match total"
+        assert tier_total == performance_metrics["total_substrates"], "Tier distribution should match total"

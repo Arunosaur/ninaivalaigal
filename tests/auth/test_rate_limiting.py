@@ -29,18 +29,14 @@ class TestRateLimiting:
 
             # Make multiple rapid login attempts
             for i in range(10):
-                response = requests.post(
-                    f"{BASE_URL}/auth/login", json=login_data, timeout=5
-                )
+                response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
                 responses.append(response.status_code)
 
                 if response.status_code == 404:
                     pytest.skip("Login endpoint not implemented")
 
                 if response.status_code == 500:
-                    pytest.skip(
-                        "Login endpoint has internal server error - needs fixing"
-                    )
+                    pytest.skip("Login endpoint has internal server error - needs fixing")
 
                 # Small delay between requests
                 time.sleep(0.1)
@@ -49,9 +45,7 @@ class TestRateLimiting:
             rate_limited = any(r == 429 for r in responses)
             auth_rejected = all(r in [401, 403] for r in responses)
 
-            assert (
-                rate_limited or auth_rejected
-            ), f"Rate limiting not working: {responses}"
+            assert rate_limited or auth_rejected, f"Rate limiting not working: {responses}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -69,18 +63,14 @@ class TestRateLimiting:
                     "full_name": f"Rate Limit User {i}",
                 }
 
-                response = requests.post(
-                    f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5
-                )
+                response = requests.post(f"{BASE_URL}/auth/signup/individual", json=signup_data, timeout=5)
                 responses.append(response.status_code)
 
                 if response.status_code == 404:
                     pytest.skip("Signup endpoint not implemented")
 
                 if response.status_code == 500:
-                    pytest.skip(
-                        "Signup endpoint has internal server error - needs fixing"
-                    )
+                    pytest.skip("Signup endpoint has internal server error - needs fixing")
 
                 # Small delay between requests
                 time.sleep(0.2)
@@ -90,9 +80,7 @@ class TestRateLimiting:
             rate_limited_count = sum(1 for r in responses if r == 429)
 
             # Either all succeed (no rate limiting) or some get rate limited
-            assert (
-                success_count > 0 or rate_limited_count > 0
-            ), f"Unexpected responses: {responses}"
+            assert success_count > 0 or rate_limited_count > 0, f"Unexpected responses: {responses}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -121,18 +109,14 @@ class TestRateLimiting:
                     "password": password,
                 }  # pragma: allowlist secret
 
-                response = requests.post(
-                    f"{BASE_URL}/auth/login", json=login_data, timeout=5
-                )
+                response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
                 responses.append(response.status_code)
 
                 if response.status_code == 404:
                     pytest.skip("Login endpoint not implemented")
 
                 if response.status_code == 500:
-                    pytest.skip(
-                        "Login endpoint has internal server error - needs fixing"
-                    )
+                    pytest.skip("Login endpoint has internal server error - needs fixing")
 
                 # Rapid attempts
                 time.sleep(0.05)
@@ -144,9 +128,7 @@ class TestRateLimiting:
             # At minimum, should consistently reject invalid credentials
             invalid_creds = all(r in [401, 403] for r in responses)
 
-            assert (
-                rate_limited or blocked or invalid_creds
-            ), f"Brute force not handled: {responses}"
+            assert rate_limited or blocked or invalid_creds, f"Brute force not handled: {responses}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -163,18 +145,14 @@ class TestRateLimiting:
                     "password": "WrongPassword123!",  # pragma: allowlist secret
                 }
 
-                response = requests.post(
-                    f"{BASE_URL}/auth/login", json=login_data, timeout=5
-                )
+                response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
                 responses.append(response.status_code)
 
                 if response.status_code == 404:
                     pytest.skip("Login endpoint not implemented")
 
                 if response.status_code == 500:
-                    pytest.skip(
-                        "Login endpoint has internal server error - needs fixing"
-                    )
+                    pytest.skip("Login endpoint has internal server error - needs fixing")
 
                 time.sleep(0.1)
 
@@ -184,9 +162,7 @@ class TestRateLimiting:
             # Or consistently reject invalid credentials
             auth_rejected = all(r in [401, 403] for r in responses)
 
-            assert (
-                rate_limited or auth_rejected
-            ), f"IP rate limiting not working: {responses}"
+            assert rate_limited or auth_rejected, f"IP rate limiting not working: {responses}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -205,17 +181,13 @@ class TestRateLimitRecovery:
         try:
             # First, trigger rate limiting
             for i in range(5):
-                response = requests.post(
-                    f"{BASE_URL}/auth/login", json=login_data, timeout=5
-                )
+                response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
 
                 if response.status_code == 404:
                     pytest.skip("Login endpoint not implemented")
 
                 if response.status_code == 500:
-                    pytest.skip(
-                        "Login endpoint has internal server error - needs fixing"
-                    )
+                    pytest.skip("Login endpoint has internal server error - needs fixing")
 
                 time.sleep(0.1)
 
@@ -223,9 +195,7 @@ class TestRateLimitRecovery:
             time.sleep(2)
 
             # Try again
-            response = requests.post(
-                f"{BASE_URL}/auth/login", json=login_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
 
             # Should either still be rate limited or allow the attempt
             assert response.status_code in [
@@ -248,9 +218,7 @@ class TestRateLimitRecovery:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/login", json=valid_login_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", json=valid_login_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Login endpoint not implemented")
@@ -281,9 +249,7 @@ class TestRateLimitHeaders:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/auth/login", json=login_data, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("Login endpoint not implemented")
@@ -300,15 +266,11 @@ class TestRateLimitHeaders:
             ]
 
             # At least some rate limit information should be present
-            has_rate_limit_info = any(
-                header in response.headers for header in rate_limit_headers
-            )
+            has_rate_limit_info = any(header in response.headers for header in rate_limit_headers)
 
             # This is optional - not all APIs implement rate limit headers
             if has_rate_limit_info:
-                print(
-                    f"Rate limit headers found: {[h for h in rate_limit_headers if h in response.headers]}"
-                )
+                print(f"Rate limit headers found: {[h for h in rate_limit_headers if h in response.headers]}")
             else:
                 print("No rate limit headers found (this may be expected)")
 
@@ -336,18 +298,14 @@ class TestDistributedRateLimiting:
                     "password": f"attempt{i}",
                 }  # pragma: allowlist secret
 
-                response = requests.post(
-                    f"{BASE_URL}/auth/login", json=login_data, timeout=5
-                )
+                response = requests.post(f"{BASE_URL}/auth/login", json=login_data, timeout=5)
                 responses.append(response.status_code)
 
                 if response.status_code == 404:
                     pytest.skip("Login endpoint not implemented")
 
                 if response.status_code == 500:
-                    pytest.skip(
-                        "Login endpoint has internal server error - needs fixing"
-                    )
+                    pytest.skip("Login endpoint has internal server error - needs fixing")
 
                 time.sleep(0.1)
 
@@ -355,9 +313,7 @@ class TestDistributedRateLimiting:
             rate_limited = any(r == 429 for r in responses)
             auth_rejected = all(r in [401, 403] for r in responses)
 
-            assert (
-                rate_limited or auth_rejected
-            ), f"User-based rate limiting failed: {responses}"
+            assert rate_limited or auth_rejected, f"User-based rate limiting failed: {responses}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")

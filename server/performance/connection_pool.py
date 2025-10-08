@@ -47,9 +47,7 @@ class ConnectionPoolMonitor:
         runtime = stats["runtime_seconds"]
         if runtime > 0:
             stats["connections_per_second"] = stats["connections_created"] / runtime
-            stats["error_rate"] = stats["connection_errors"] / max(
-                1, stats["connections_created"]
-            )
+            stats["error_rate"] = stats["connection_errors"] / max(1, stats["connections_created"])
 
         return stats
 

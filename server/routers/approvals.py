@@ -68,17 +68,11 @@ async def handle_approval_action(
 ):
     """Approve or reject an approval request"""
     if approval_action.action == "approve":
-        _ = approval_manager.approve_request(
-            approval_action.request_id, current_user.id
-        )
+        _ = approval_manager.approve_request(approval_action.request_id, current_user.id)
     elif approval_action.action == "reject":
-        _ = approval_manager.reject_request(
-            approval_action.request_id, current_user.id, approval_action.reason
-        )
+        _ = approval_manager.reject_request(approval_action.request_id, current_user.id, approval_action.reason)
     else:
-        raise HTTPException(
-            status_code=400, detail="Invalid action. Must be 'approve' or 'reject'"
-        )
+        raise HTTPException(status_code=400, detail="Invalid action. Must be 'approve' or 'reject'")
 
 
 @router.get("/pending")

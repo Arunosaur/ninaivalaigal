@@ -96,9 +96,7 @@ class TestAgenticCore:
             },
         ]
 
-    def test_agent_lifecycle_management(
-        self, mock_agent_runtime, sample_agent_definitions
-    ):
+    def test_agent_lifecycle_management(self, mock_agent_runtime, sample_agent_definitions):
         """Test SPEC-063: Agent lifecycle management"""
 
         # Test agent lifecycle states
@@ -121,15 +119,11 @@ class TestAgenticCore:
             ], "Agent should have valid type"
 
             # Test capability validation
-            assert (
-                len(agent["capabilities"]) > 0
-            ), "Agent should have at least one capability"
+            assert len(agent["capabilities"]) > 0, "Agent should have at least one capability"
             assert len(agent["triggers"]) > 0, "Agent should have at least one trigger"
             assert len(agent["actions"]) > 0, "Agent should have at least one action"
 
-    def test_autonomous_decision_making(
-        self, mock_agent_runtime, sample_agent_definitions
-    ):
+    def test_autonomous_decision_making(self, mock_agent_runtime, sample_agent_definitions):
         """Test SPEC-063: Autonomous decision making capabilities"""
 
         # Test decision-making scenarios
@@ -185,9 +179,7 @@ class TestAgenticCore:
                 len(scenario["expected_decisions"]) > 0
             ), f"Scenario {scenario['scenario']} should have expected decisions"
 
-    def test_trigger_response_system(
-        self, mock_agent_runtime, sample_agent_definitions
-    ):
+    def test_trigger_response_system(self, mock_agent_runtime, sample_agent_definitions):
         """Test SPEC-063: Trigger response system"""
 
         # Test trigger response scenarios
@@ -290,13 +282,9 @@ class TestAgenticCore:
                 "scheduled",
                 "deferred",
             ], f"Action {scenario['action']} should have valid execution mode"
-            assert (
-                scenario["audit_required"] is True
-            ), f"Action {scenario['action']} should require audit trail"
+            assert scenario["audit_required"] is True, f"Action {scenario['action']} should require audit trail"
 
-    def test_human_oversight_integration(
-        self, mock_agent_runtime, sample_agent_definitions
-    ):
+    def test_human_oversight_integration(self, mock_agent_runtime, sample_agent_definitions):
         """Test SPEC-063: Human oversight and approval workflows"""
 
         # Test oversight scenarios based on autonomy levels
@@ -403,18 +391,12 @@ class TestAgenticCore:
             ), f"Learning scenario {scenario['learning_type']} should have adaptation strategy"
 
             if "confidence_improvement_target" in scenario:
-                assert (
-                    scenario["confidence_improvement_target"] > 0
-                ), "Confidence improvement should be positive"
+                assert scenario["confidence_improvement_target"] > 0, "Confidence improvement should be positive"
 
             if "performance_improvement_target" in scenario:
-                assert (
-                    scenario["performance_improvement_target"] > 0
-                ), "Performance improvement should be positive"
+                assert scenario["performance_improvement_target"] > 0, "Performance improvement should be positive"
 
-    def test_inter_agent_communication(
-        self, mock_agent_runtime, sample_agent_definitions
-    ):
+    def test_inter_agent_communication(self, mock_agent_runtime, sample_agent_definitions):
         """Test SPEC-063: Inter-agent communication and coordination"""
 
         # Test communication scenarios
@@ -461,9 +443,7 @@ class TestAgenticCore:
             ), f"Communication scenario {scenario['scenario']} should have message type"
 
             if scenario.get("timeout_seconds"):
-                assert (
-                    scenario["timeout_seconds"] > 0
-                ), "Communication timeout should be positive"
+                assert scenario["timeout_seconds"] > 0, "Communication timeout should be positive"
 
     def test_performance_monitoring(self, mock_agent_runtime):
         """Test SPEC-063: Performance monitoring and metrics"""
@@ -502,17 +482,11 @@ class TestAgenticCore:
 
         for metric in performance_metrics:
             if "target_p95" in metric:
-                assert (
-                    metric["target_p95"] > 0
-                ), f"Metric {metric['metric']} should have positive P95 target"
+                assert metric["target_p95"] > 0, f"Metric {metric['metric']} should have positive P95 target"
             if "target_average" in metric:
-                assert (
-                    metric["target_average"] > 0
-                ), f"Metric {metric['metric']} should have positive average target"
+                assert metric["target_average"] > 0, f"Metric {metric['metric']} should have positive average target"
             if "target_max" in metric:
-                assert (
-                    metric["target_max"] > 0
-                ), f"Metric {metric['metric']} should have positive max target"
+                assert metric["target_max"] > 0, f"Metric {metric['metric']} should have positive max target"
 
     def test_error_handling_and_recovery(self, mock_agent_runtime):
         """Test SPEC-063: Error handling and recovery mechanisms"""
@@ -599,12 +573,8 @@ class TestAgenticCore:
 
             if "resource_limits" in test:
                 limits = test["resource_limits"]
-                assert (
-                    limits.get("max_cpu_percent", 0) <= 100
-                ), "CPU limit should be <= 100%"
-                assert (
-                    limits.get("max_memory_mb", 0) > 0
-                ), "Memory limit should be positive"
+                assert limits.get("max_cpu_percent", 0) <= 100, "CPU limit should be <= 100%"
+                assert limits.get("max_memory_mb", 0) > 0, "Memory limit should be positive"
 
     def test_audit_and_compliance(self, mock_agent_runtime):
         """Test SPEC-063: Audit trail and compliance features"""

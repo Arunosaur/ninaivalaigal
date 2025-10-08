@@ -257,10 +257,7 @@ class ComplianceTestResult:
     def is_compliant(self) -> bool:
         """Check if compliance test passed"""
         return (
-            self.test_passed
-            and self.evidence_collected
-            and self.audit_trail_complete
-            and self.compliance_score >= 90.0
+            self.test_passed and self.evidence_collected and self.audit_trail_complete and self.compliance_score >= 90.0
         )
 
 
@@ -331,8 +328,5 @@ class AuthTestSuite:
             self.success_rate >= 95.0
             and all(sr.is_secure for sr in self.security_results)
             and all(cr.is_compliant for cr in self.compliance_results)
-            and (
-                not self.load_metrics
-                or self.load_metrics.performance_grade in ["A", "B"]
-            )
+            and (not self.load_metrics or self.load_metrics.performance_grade in ["A", "B"])
         )

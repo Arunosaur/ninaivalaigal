@@ -121,12 +121,8 @@ class TestMemoryFederationEngine:
             # Mock sharing eligibility and scoring
             with (
                 patch.object(federation_engine, "_is_shareable", return_value=True),
-                patch.object(
-                    federation_engine, "_calculate_sharing_score", return_value=0.8
-                ),
-                patch.object(
-                    federation_engine, "_apply_privacy_filters"
-                ) as mock_filter,
+                patch.object(federation_engine, "_calculate_sharing_score", return_value=0.8),
+                patch.object(federation_engine, "_apply_privacy_filters") as mock_filter,
             ):
 
                 # Mock privacy filtering to return filtered memory
@@ -165,12 +161,8 @@ class TestMemoryFederationEngine:
 
             with (
                 patch.object(federation_engine, "_is_shareable", return_value=True),
-                patch.object(
-                    federation_engine, "_calculate_sharing_score", return_value=0.8
-                ),
-                patch.object(
-                    federation_engine, "_apply_privacy_filters", return_value=None
-                ),
+                patch.object(federation_engine, "_calculate_sharing_score", return_value=0.8),
+                patch.object(federation_engine, "_apply_privacy_filters", return_value=None),
             ):
 
                 # Test with confidential memory
@@ -189,9 +181,7 @@ class TestMemoryFederationEngine:
                 assert "mem_003" in result.privacy_violations[0]
 
     @pytest.mark.asyncio
-    async def test_discover_shareable_knowledge(
-        self, federation_engine, target_team_context
-    ):
+    async def test_discover_shareable_knowledge(self, federation_engine, target_team_context):
         """Test knowledge discovery from other teams"""
 
         # Mock federated memories cache
@@ -214,17 +204,13 @@ class TestMemoryFederationEngine:
                 "_identify_relevant_teams",
                 return_value=["engineering"],
             ),
-            patch.object(
-                federation_engine, "_can_access_team_knowledge", return_value=True
-            ),
+            patch.object(federation_engine, "_can_access_team_knowledge", return_value=True),
             patch.object(
                 federation_engine,
                 "_fetch_team_memories",
                 return_value=mock_federated_memories,
             ),
-            patch.object(
-                federation_engine, "_calculate_query_relevance", return_value=0.85
-            ),
+            patch.object(federation_engine, "_calculate_query_relevance", return_value=0.85),
         ):
 
             discovered = await federation_engine.discover_shareable_knowledge(
@@ -252,20 +238,14 @@ class TestMemoryFederationEngine:
         memory = sample_memories[0]  # API debugging guide
 
         with (
-            patch.object(
-                federation_engine, "_calculate_content_relevance", return_value=0.8
-            ),
+            patch.object(federation_engine, "_calculate_content_relevance", return_value=0.8),
             patch.object(
                 federation_engine,
                 "_calculate_organizational_proximity",
                 return_value=0.6,
             ),
-            patch.object(
-                federation_engine, "_calculate_memory_freshness", return_value=0.9
-            ),
-            patch.object(
-                federation_engine, "_calculate_context_boost", return_value=0.7
-            ),
+            patch.object(federation_engine, "_calculate_memory_freshness", return_value=0.9),
+            patch.object(federation_engine, "_calculate_context_boost", return_value=0.7),
         ):
 
             score = await federation_engine._calculate_sharing_score(
@@ -290,9 +270,7 @@ class TestMemoryFederationEngine:
 
         specializations = ["debugging", "troubleshooting", "api"]
 
-        relevance = asyncio.run(
-            federation_engine._calculate_content_relevance(memory, specializations)
-        )
+        relevance = asyncio.run(federation_engine._calculate_content_relevance(memory, specializations))
 
         # Should have high relevance due to matching tags and content
         assert relevance > 0.7
@@ -321,9 +299,7 @@ class TestMemoryFederationEngine:
             collaboration_history={},
         )
 
-        proximity = federation_engine._calculate_organizational_proximity(
-            source, target
-        )
+        proximity = federation_engine._calculate_organizational_proximity(source, target)
 
         # Same org and department should have high proximity
         assert proximity > 0.7
@@ -336,9 +312,7 @@ class TestMemoryFederationEngine:
         recent_memory = {"created_at": datetime.utcnow().isoformat()}
 
         # Old memory
-        old_memory = {
-            "created_at": (datetime.utcnow() - timedelta(days=200)).isoformat()
-        }
+        old_memory = {"created_at": (datetime.utcnow() - timedelta(days=200)).isoformat()}
 
         recent_freshness = federation_engine._calculate_memory_freshness(recent_memory)
         old_freshness = federation_engine._calculate_memory_freshness(old_memory)
@@ -368,12 +342,8 @@ class TestMemoryFederationEngine:
 
             with (
                 patch.object(federation_engine, "_is_shareable", return_value=True),
-                patch.object(
-                    federation_engine, "_calculate_sharing_score", return_value=0.8
-                ),
-                patch.object(
-                    federation_engine, "_apply_privacy_filters"
-                ) as mock_filter,
+                patch.object(federation_engine, "_calculate_sharing_score", return_value=0.8),
+                patch.object(federation_engine, "_apply_privacy_filters") as mock_filter,
             ):
 
                 mock_filter.return_value = sample_memories[0]
@@ -392,9 +362,7 @@ class TestMemoryFederationEngine:
                 assert updated_metrics.federation_latency_ms > 0
 
     @pytest.mark.asyncio
-    async def test_privacy_filter_application(
-        self, federation_engine, source_team_context, target_team_context
-    ):
+    async def test_privacy_filter_application(self, federation_engine, source_team_context, target_team_context):
         """Test privacy filters are applied correctly"""
 
         confidential_memory = {
@@ -449,9 +417,7 @@ class TestMemoryFederationEngine:
         start_time = datetime.utcnow()
 
         # Simulate federation processing
-        federation_engine._update_federation_metrics(
-            successful=10, filtered=2, processing_time=50.0  # 50ms
-        )
+        federation_engine._update_federation_metrics(successful=10, filtered=2, processing_time=50.0)  # 50ms
 
         metrics = asyncio.run(federation_engine.get_federation_metrics())
 

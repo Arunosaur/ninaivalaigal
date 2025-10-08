@@ -117,11 +117,7 @@ TEAM_MEMBERSHIPS_DB = [
 def get_user_team_role(user_id: int, team_id: int) -> Optional[str]:
     """Get user's role in a specific team"""
     membership = next(
-        (
-            m
-            for m in TEAM_MEMBERSHIPS_DB
-            if m["team_id"] == team_id and m["user_id"] == user_id
-        ),
+        (m for m in TEAM_MEMBERSHIPS_DB if m["team_id"] == team_id and m["user_id"] == user_id),
         None,
     )
     return membership["role"] if membership else None
@@ -154,9 +150,7 @@ def can_access_memory_comments(user_id: int, memory_id: int, user_role: str) -> 
     return team_role is not None
 
 
-def can_access_approval_comments(
-    user_id: int, approval_id: int, user_role: str
-) -> bool:
+def can_access_approval_comments(user_id: int, approval_id: int, user_role: str) -> bool:
     """Check if user can access comments for an approval"""
     # Mock approval lookup - in real implementation, query approval system
     mock_approvals = {
@@ -247,9 +241,7 @@ async def get_memory_comments(
 
 
 @router.get("/approval/{approval_id}")
-async def get_approval_comments(
-    approval_id: int, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_approval_comments(approval_id: int, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get comments for a specific approval"""
     user_id = user["user_id"]
     user_role = user["role"]
@@ -293,9 +285,7 @@ async def add_comment(
 
     # Validate that either mem_id or approval_id is provided
     if not mem_id and not approval_id:
-        raise HTTPException(
-            status_code=400, detail="Either mem_id or approval_id must be provided"
-        )
+        raise HTTPException(status_code=400, detail="Either mem_id or approval_id must be provided")
 
     if mem_id and approval_id:
         raise HTTPException(
@@ -306,9 +296,7 @@ async def add_comment(
     # Check access permissions
     if mem_id:
         if not can_access_memory_comments(user_id, mem_id, user_role):
-            raise HTTPException(
-                status_code=403, detail="Access denied - cannot comment on this memory"
-            )
+            raise HTTPException(status_code=403, detail="Access denied - cannot comment on this memory")
         target_team_id = 1  # Mock - get from memory system
 
     if approval_id:
@@ -327,9 +315,7 @@ async def add_comment(
 
         # Ensure parent comment is for the same target
         if mem_id and parent_comment["memory_id"] != mem_id:
-            raise HTTPException(
-                status_code=400, detail="Parent comment is not for the specified memory"
-            )
+            raise HTTPException(status_code=400, detail="Parent comment is not for the specified memory")
 
         if approval_id and parent_comment["approval_id"] != approval_id:
             raise HTTPException(
@@ -406,9 +392,7 @@ async def add_comment(
 
 
 @router.get("/delete")
-async def delete_comment(
-    id: int, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def delete_comment(id: int, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Delete a comment (only by author or admin)"""
     user_id = user["user_id"]
     user_role = user["role"]
@@ -451,9 +435,7 @@ async def delete_comment(
 
 
 @router.get("/thread/{memory_id}")
-async def get_comment_thread_widget(
-    memory_id: int, user: Dict[str, Any] = Depends(get_current_user)
-) -> Dict[str, Any]:
+async def get_comment_thread_widget(memory_id: int, user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     """Get comment thread data optimized for frontend widget"""
     user_id = user["user_id"]
     user_role = user["role"]
@@ -501,11 +483,7 @@ async def get_comment_thread_widget(
             "total_comments": total_comments,
             "sentiment_analysis": sentiment_counts,
             "reaction_summary": reaction_counts,
-            "last_activity": (
-                max([c["created_at"] for c in memory_comments])
-                if memory_comments
-                else None
-            ),
+            "last_activity": (max([c["created_at"] for c in memory_comments]) if memory_comments else None),
         },
         "user_permissions": user_permissions,
         "widget_config": {
@@ -536,9 +514,7 @@ async def get_discussion_stats(
 
     accessible_comments = []
     for comment in COMMENTS_DB:
-        comment_time = datetime.fromisoformat(
-            comment["created_at"].replace("Z", "+00:00")
-        )
+        comment_time = datetime.fromisoformat(comment["created_at"].replace("Z", "+00:00"))
         if start_time <= comment_time <= end_time:
             # Check access based on team membership
             if team_filter is not None and comment["team_id"] != team_filter:
@@ -573,21 +549,15 @@ async def get_discussion_stats(
     for comment in accessible_comments:
         # Sentiment distribution
         sentiment = comment["sentiment"]
-        stats["sentiment_distribution"][sentiment] = (
-            stats["sentiment_distribution"].get(sentiment, 0) + 1
-        )
+        stats["sentiment_distribution"][sentiment] = stats["sentiment_distribution"].get(sentiment, 0) + 1
 
         # Comment types
         comment_type = comment["metadata"]["comment_type"]
-        stats["comment_types"][comment_type] = (
-            stats["comment_types"].get(comment_type, 0) + 1
-        )
+        stats["comment_types"][comment_type] = stats["comment_types"].get(comment_type, 0) + 1
 
         # Reaction popularity
         for reaction, count in comment["metadata"]["reactions"].items():
-            stats["reaction_popularity"][reaction] = (
-                stats["reaction_popularity"].get(reaction, 0) + count
-            )
+            stats["reaction_popularity"][reaction] = stats["reaction_popularity"].get(reaction, 0) + count
 
         # User engagement
         user_id_comment = comment["user_id"]
@@ -604,16 +574,12 @@ async def get_discussion_stats(
         # Memory engagement
         if comment["memory_id"]:
             memory_id = comment["memory_id"]
-            stats["memory_engagement"][memory_id] = (
-                stats["memory_engagement"].get(memory_id, 0) + 1
-            )
+            stats["memory_engagement"][memory_id] = stats["memory_engagement"].get(memory_id, 0) + 1
 
         # Approval engagement
         if comment["approval_id"]:
             approval_id = comment["approval_id"]
-            stats["approval_engagement"][approval_id] = (
-                stats["approval_engagement"].get(approval_id, 0) + 1
-            )
+            stats["approval_engagement"][approval_id] = stats["approval_engagement"].get(approval_id, 0) + 1
 
         # Thread depth analysis
         if comment["parent_id"] is None:
@@ -632,9 +598,7 @@ async def get_discussion_stats(
         "filters": {"team_filter": team_filter},
         "engagement_insights": {
             "most_discussed_memory": (
-                max(stats["memory_engagement"].items(), key=lambda x: x[1])
-                if stats["memory_engagement"]
-                else None
+                max(stats["memory_engagement"].items(), key=lambda x: x[1]) if stats["memory_engagement"] else None
             ),
             "most_active_user": (
                 max(
@@ -649,7 +613,6 @@ async def get_discussion_stats(
                 if stats["sentiment_distribution"]
                 else None
             ),
-            "engagement_rate": len(accessible_comments)
-            / max(days_back, 1),  # Comments per day
+            "engagement_rate": len(accessible_comments) / max(days_back, 1),  # Comments per day
         },
     }

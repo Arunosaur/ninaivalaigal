@@ -365,8 +365,6 @@ class ExecutionContext:
             "execution_steps": len(self.execution_steps),
             "performance_metrics": self.performance_metrics,
             "resource_usage": self.resource_usage,
-            "permissions_granted": sum(
-                1 for granted in self.permissions.values() if granted
-            ),
+            "permissions_granted": sum(1 for granted in self.permissions.values() if granted),
             "memory_context_loaded": bool(self.memory_context),
         }

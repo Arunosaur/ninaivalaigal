@@ -158,9 +158,7 @@ class MemorySharingContractManager:
             contract_id = f"contract_{secrets.token_urlsafe(16)}"
 
             # Validate sharing permissions
-            await self._validate_sharing_permissions(
-                owner_scope, share_request.target_scope, share_request.permissions
-            )
+            await self._validate_sharing_permissions(owner_scope, share_request.target_scope, share_request.permissions)
 
             # Create contract
             contract = MemoryLinkContract(
@@ -170,11 +168,7 @@ class MemorySharingContractManager:
                 target_scope=share_request.target_scope,
                 permissions=share_request.permissions,
                 visibility_level=share_request.visibility_level,
-                status=(
-                    ContractStatus.PENDING
-                    if share_request.require_consent
-                    else ContractStatus.ACTIVE
-                ),
+                status=(ContractStatus.PENDING if share_request.require_consent else ContractStatus.ACTIVE),
                 created_at=datetime.now(timezone.utc),
                 created_by=creator_user_id,
                 expires_at=share_request.expires_at,
@@ -193,9 +187,7 @@ class MemorySharingContractManager:
                 contract.consent_given_at = datetime.now(timezone.utc)
                 contract.consent_given_by = creator_user_id
 
-            logger.info(
-                f"Created sharing contract {contract_id} for memory {share_request.memory_id}"
-            )
+            logger.info(f"Created sharing contract {contract_id} for memory {share_request.memory_id}")
             return contract
 
         except Exception as e:
@@ -219,9 +211,7 @@ class MemorySharingContractManager:
                 raise ValueError(f"Contract {contract_id} is not pending consent")
 
             # Verify user has authority to consent for target scope
-            if not await self._can_user_consent_for_scope(
-                consenting_user_id, contract.target_scope
-            ):
+            if not await self._can_user_consent_for_scope(consenting_user_id, contract.target_scope):
                 raise PermissionError("User cannot consent for target scope")
 
             # Record consent
@@ -244,18 +234,14 @@ class MemorySharingContractManager:
             contract.consent_given_at = datetime.now(timezone.utc)
             contract.consent_given_by = consenting_user_id
 
-            logger.info(
-                f"Consent granted for contract {contract_id} by user {consenting_user_id}"
-            )
+            logger.info(f"Consent granted for contract {contract_id} by user {consenting_user_id}")
             return True
 
         except Exception as e:
             logger.error(f"Failed to grant consent for contract {contract_id}: {e}")
             raise
 
-    async def revoke_contract(
-        self, contract_id: str, revoking_user_id: int, reason: Optional[str] = None
-    ) -> bool:
+    async def revoke_contract(self, contract_id: str, revoking_user_id: int, reason: Optional[str] = None) -> bool:
         """Revoke a sharing contract"""
         try:
             contract = self.contracts.get(contract_id)
@@ -303,9 +289,7 @@ class MemorySharingContractManager:
                 # Check if accessing scope matches target scope
                 if self._scope_matches(accessing_scope, contract.target_scope):
                     # Check if user is member of target scope
-                    if await self._is_user_member_of_scope(
-                        accessing_user_id, contract.target_scope
-                    ):
+                    if await self._is_user_member_of_scope(accessing_user_id, contract.target_scope):
                         # Check if contract grants required permission
                         if required_permission in contract.permissions:
                             # Update access tracking
@@ -321,9 +305,7 @@ class MemorySharingContractManager:
             logger.error(f"Failed to check memory access: {e}")
             return False
 
-    async def list_contracts_for_memory(
-        self, memory_id: str, requesting_user_id: int
-    ) -> List[Dict[str, Any]]:
+    async def list_contracts_for_memory(self, memory_id: str, requesting_user_id: int) -> List[Dict[str, Any]]:
         """List all contracts for a specific memory"""
         try:
             contracts = []
@@ -347,9 +329,7 @@ class MemorySharingContractManager:
                     "visibility_level": contract.visibility_level.value,
                     "status": contract.status.value,
                     "created_at": contract.created_at.isoformat(),
-                    "expires_at": (
-                        contract.expires_at.isoformat() if contract.expires_at else None
-                    ),
+                    "expires_at": (contract.expires_at.isoformat() if contract.expires_at else None),
                     "usage_count": contract.usage_count,
                     "usage_limit": contract.usage_limit,
                     "title": contract.title,
@@ -406,11 +386,7 @@ class MemorySharingContractManager:
                     "permissions": [p.value for p in contract.permissions],
                     "status": contract.status.value,
                     "created_at": contract.created_at.isoformat(),
-                    "role": (
-                        "owner"
-                        if self._scope_matches(scope, contract.owner_scope)
-                        else "target"
-                    ),
+                    "role": ("owner" if self._scope_matches(scope, contract.owner_scope) else "target"),
                 }
 
                 contracts.append(contract_info)
@@ -421,9 +397,7 @@ class MemorySharingContractManager:
             logger.error(f"Failed to list contracts for scope: {e}")
             return []
 
-    async def get_sharing_statistics(
-        self, scope: ScopeIdentifier, requesting_user_id: int
-    ) -> Dict[str, Any]:
+    async def get_sharing_statistics(self, scope: ScopeIdentifier, requesting_user_id: int) -> Dict[str, Any]:
         """Get sharing statistics for a scope"""
         try:
             # Verify user can access scope statistics
@@ -460,14 +434,10 @@ class MemorySharingContractManager:
                 # Count permissions and visibility levels
                 if contract.status == ContractStatus.ACTIVE:
                     for perm in contract.permissions:
-                        stats["permissions_granted"][perm.value] = (
-                            stats["permissions_granted"].get(perm.value, 0) + 1
-                        )
+                        stats["permissions_granted"][perm.value] = stats["permissions_granted"].get(perm.value, 0) + 1
 
                     vis_level = contract.visibility_level.value
-                    stats["visibility_levels"][vis_level] = (
-                        stats["visibility_levels"].get(vis_level, 0) + 1
-                    )
+                    stats["visibility_levels"][vis_level] = stats["visibility_levels"].get(vis_level, 0) + 1
 
             return stats
 
@@ -493,9 +463,7 @@ class MemorySharingContractManager:
             if owner_scope.scope_type != ScopeType.ORGANIZATION:
                 raise ValueError("Only organizations can grant admin permissions")
 
-    async def _can_user_consent_for_scope(
-        self, user_id: int, scope: ScopeIdentifier
-    ) -> bool:
+    async def _can_user_consent_for_scope(self, user_id: int, scope: ScopeIdentifier) -> bool:
         """Check if user can consent for a scope"""
         if scope.scope_type == ScopeType.USER:
             return scope.scope_id == str(user_id)
@@ -503,9 +471,7 @@ class MemorySharingContractManager:
         # For team/org scopes, check membership
         return await self._is_user_member_of_scope(user_id, scope)
 
-    async def _can_user_revoke_contract(
-        self, user_id: int, contract: MemoryLinkContract
-    ) -> bool:
+    async def _can_user_revoke_contract(self, user_id: int, contract: MemoryLinkContract) -> bool:
         """Check if user can revoke a contract"""
         # Owner can always revoke
         if await self._is_user_member_of_scope(user_id, contract.owner_scope):
@@ -517,18 +483,14 @@ class MemorySharingContractManager:
 
         return False
 
-    async def _can_user_view_contract(
-        self, user_id: int, contract: MemoryLinkContract
-    ) -> bool:
+    async def _can_user_view_contract(self, user_id: int, contract: MemoryLinkContract) -> bool:
         """Check if user can view a contract"""
         # Members of owner or target scope can view
         return await self._is_user_member_of_scope(
             user_id, contract.owner_scope
         ) or await self._is_user_member_of_scope(user_id, contract.target_scope)
 
-    async def _is_user_member_of_scope(
-        self, user_id: int, scope: ScopeIdentifier
-    ) -> bool:
+    async def _is_user_member_of_scope(self, user_id: int, scope: ScopeIdentifier) -> bool:
         """Check if user is member of a scope"""
         if scope.scope_type == ScopeType.USER:
             return scope.scope_id == str(user_id)
@@ -540,10 +502,7 @@ class MemorySharingContractManager:
 
     def _scope_matches(self, scope1: ScopeIdentifier, scope2: ScopeIdentifier) -> bool:
         """Check if two scopes match"""
-        return (
-            scope1.scope_type == scope2.scope_type
-            and scope1.scope_id == scope2.scope_id
-        )
+        return scope1.scope_type == scope2.scope_type and scope1.scope_id == scope2.scope_id
 
     def _is_contract_valid(self, contract: MemoryLinkContract) -> bool:
         """Check if contract is currently valid"""

@@ -19,9 +19,7 @@ class IdempotencyStore(Protocol):
         """Get stored response for idempotency key."""
         ...
 
-    async def set(
-        self, key: str, response_data: dict[str, Any], ttl: int = 3600
-    ) -> None:
+    async def set(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> None:
         """Store response data for idempotency key."""
         ...
 
@@ -39,9 +37,7 @@ class MemoryIdempotencyStore:
     async def get(self, key: str) -> dict[str, Any] | None:
         return self._store.get(key)
 
-    async def set(
-        self, key: str, response_data: dict[str, Any], ttl: int = 3600
-    ) -> None:
+    async def set(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> None:
         self._store[key] = response_data
 
     async def exists(self, key: str) -> bool:
@@ -122,9 +118,7 @@ class IdempotencyMiddleware:
         context = f"{method}:{path}:{idempotency_key}"
         return hashlib.sha256(context.encode()).hexdigest()
 
-    async def _send_cached_response(
-        self, response_data: dict[str, Any], send: Send
-    ) -> None:
+    async def _send_cached_response(self, response_data: dict[str, Any], send: Send) -> None:
         """Send cached response."""
         # Add idempotency header
         headers = list(response_data.get("headers", []))
@@ -138,9 +132,7 @@ class IdempotencyMiddleware:
             }
         )
 
-        await send(
-            {"type": "http.response.body", "body": response_data.get("body", b"")}
-        )
+        await send({"type": "http.response.body", "body": response_data.get("body", b"")})
 
 
 def create_idempotency_middleware(

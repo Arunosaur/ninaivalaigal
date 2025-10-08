@@ -13,9 +13,7 @@ class TestObservabilityModule:
         try:
             from server.observability import health
 
-            assert hasattr(health, "health_check") or hasattr(
-                health, "get_health_status"
-            )
+            assert hasattr(health, "health_check") or hasattr(health, "get_health_status")
         except ImportError as e:
             pytest.skip(f"Observability module import failed: {e}")
 

@@ -45,9 +45,7 @@ class MultiUserTestManager:
         self.active_sessions: Dict[str, TestSession] = {}
         self.client_pool = []
 
-    async def create_test_users(
-        self, roles: List[UserRole], count_per_role: int = 5
-    ) -> List[TestUser]:
+    async def create_test_users(self, roles: List[UserRole], count_per_role: int = 5) -> List[TestUser]:
         """
         Create test users for multi-user scenarios
 
@@ -79,18 +77,14 @@ class MultiUserTestManager:
                     self.test_users[user.user_id] = user
                     created_users.append(user)
 
-            logger.info(
-                f"Created {len(created_users)} test users across {len(roles)} roles"
-            )
+            logger.info(f"Created {len(created_users)} test users across {len(roles)} roles")
             return created_users
 
         except Exception as e:
             logger.error(f"Failed to create test users: {e}")
             return []
 
-    async def simulate_concurrent_auth(
-        self, users: List[TestUser], concurrent_limit: int = 50
-    ) -> AuthTestResults:
+    async def simulate_concurrent_auth(self, users: List[TestUser], concurrent_limit: int = 50) -> AuthTestResults:
         """
         Simulate concurrent authentication for multiple users
 
@@ -140,11 +134,7 @@ class MultiUserTestManager:
 
             test_results = AuthTestResults(
                 test_name="concurrent_authentication",
-                result=(
-                    AuthTestResult.PASS
-                    if success_count >= len(users) * 0.95
-                    else AuthTestResult.FAIL
-                ),
+                result=(AuthTestResult.PASS if success_count >= len(users) * 0.95 else AuthTestResult.FAIL),
                 user_count=len(users),
                 success_count=success_count,
                 failure_count=failure_count,
@@ -158,9 +148,7 @@ class MultiUserTestManager:
                 },
             )
 
-            logger.info(
-                f"Concurrent auth completed: {success_count}/{len(users)} successful"
-            )
+            logger.info(f"Concurrent auth completed: {success_count}/{len(users)} successful")
             return test_results
 
         except Exception as e:
@@ -203,9 +191,7 @@ class MultiUserTestManager:
                     task = self._test_concurrent_operations(user_a, user_b)
                     conflict_tasks.append(task)
 
-            conflict_results = await asyncio.gather(
-                *conflict_tasks, return_exceptions=True
-            )
+            conflict_results = await asyncio.gather(*conflict_tasks, return_exceptions=True)
 
             # Analyze conflict results
             for result in conflict_results:
@@ -239,9 +225,7 @@ class MultiUserTestManager:
                 conflicts_resolved=False,
             )
 
-    async def validate_user_isolation(
-        self, user_a: TestUser, user_b: TestUser
-    ) -> IsolationResults:
+    async def validate_user_isolation(self, user_a: TestUser, user_b: TestUser) -> IsolationResults:
         """
         Validate isolation between two users from different teams
 
@@ -282,9 +266,7 @@ class MultiUserTestManager:
                 self._test_cross_team_admin_access(user_b, token_b, user_a.team_id),
             ]
 
-            isolation_results = await asyncio.gather(
-                *isolation_tests, return_exceptions=True
-            )
+            isolation_results = await asyncio.gather(*isolation_tests, return_exceptions=True)
 
             # Analyze isolation results
             for result in isolation_results:
@@ -325,9 +307,7 @@ class MultiUserTestManager:
                 isolation_violations=[f"Isolation test error: {str(e)}"],
             )
 
-    async def _authenticate_user_with_semaphore(
-        self, user: TestUser, semaphore: asyncio.Semaphore
-    ) -> Dict:
+    async def _authenticate_user_with_semaphore(self, user: TestUser, semaphore: asyncio.Semaphore) -> Dict:
         """Authenticate user with concurrency control"""
         async with semaphore:
             start_time = time.time()
@@ -424,9 +404,7 @@ class MultiUserTestManager:
             logger.error(f"Failed to get token for user {user.user_id}: {e}")
             return None
 
-    async def _test_concurrent_operations(
-        self, user_a: TestUser, user_b: TestUser
-    ) -> Dict:
+    async def _test_concurrent_operations(self, user_a: TestUser, user_b: TestUser) -> Dict:
         """Test concurrent operations between two users"""
         try:
             # Simulate concurrent memory operations
@@ -479,9 +457,7 @@ class MultiUserTestManager:
         except Exception as e:
             return {"error": str(e)}
 
-    async def _test_cross_team_memory_access(
-        self, user: TestUser, token: str, target_team_id: str
-    ) -> Dict:
+    async def _test_cross_team_memory_access(self, user: TestUser, token: str, target_team_id: str) -> Dict:
         """Test cross-team memory access attempt"""
         try:
             async with httpx.AsyncClient() as client:
@@ -498,9 +474,7 @@ class MultiUserTestManager:
 
                 return {
                     "access_blocked": access_blocked,
-                    "violation_type": (
-                        "cross_team_memory_access" if not access_blocked else None
-                    ),
+                    "violation_type": ("cross_team_memory_access" if not access_blocked else None),
                     "response_code": response.status_code,
                 }
 
@@ -511,9 +485,7 @@ class MultiUserTestManager:
                 "error": str(e),
             }
 
-    async def _test_cross_user_profile_access(
-        self, user: TestUser, token: str, target_user_id: str
-    ) -> Dict:
+    async def _test_cross_user_profile_access(self, user: TestUser, token: str, target_user_id: str) -> Dict:
         """Test cross-user profile access attempt"""
         try:
             async with httpx.AsyncClient() as client:
@@ -525,24 +497,18 @@ class MultiUserTestManager:
                 )
 
                 # Should be blocked unless admin
-                access_blocked = (
-                    response.status_code in [403, 404] or user.role != UserRole.ADMIN
-                )
+                access_blocked = response.status_code in [403, 404] or user.role != UserRole.ADMIN
 
                 return {
                     "access_blocked": access_blocked,
-                    "violation_type": (
-                        "cross_user_profile_access" if not access_blocked else None
-                    ),
+                    "violation_type": ("cross_user_profile_access" if not access_blocked else None),
                     "response_code": response.status_code,
                 }
 
         except Exception as e:
             return {"access_blocked": True, "violation_type": None, "error": str(e)}
 
-    async def _test_cross_team_admin_access(
-        self, user: TestUser, token: str, target_team_id: str
-    ) -> Dict:
+    async def _test_cross_team_admin_access(self, user: TestUser, token: str, target_team_id: str) -> Dict:
         """Test cross-team admin access attempt"""
         try:
             async with httpx.AsyncClient() as client:
@@ -562,9 +528,7 @@ class MultiUserTestManager:
 
                 return {
                     "access_blocked": access_blocked,
-                    "violation_type": (
-                        "cross_team_admin_access" if not access_blocked else None
-                    ),
+                    "violation_type": ("cross_team_admin_access" if not access_blocked else None),
                     "response_code": response.status_code,
                 }
 

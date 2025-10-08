@@ -49,9 +49,7 @@ async def auto_record_tool_usage(tool_name: str, description: str, result=None):
                     metadata={
                         "tool": tool_name,
                         "description": description,
-                        "result_count": (
-                            len(result) if isinstance(result, list) else None
-                        ),
+                        "result_count": (len(result) if isinstance(result, list) else None),
                         "user_id": get_component("DEFAULT_USER_ID", 1),
                     },
                 )
@@ -117,11 +115,7 @@ async def remember(text: str, context: str = None) -> str:
 
             # If CCTV recording is active, also record this interaction
             auto_recorder = get_component("auto_recorder")
-            if (
-                auto_recorder
-                and hasattr(auto_recorder, "active_contexts")
-                and context in auto_recorder.active_contexts
-            ):
+            if auto_recorder and hasattr(auto_recorder, "active_contexts") and context in auto_recorder.active_contexts:
                 await auto_recorder.record_interaction(
                     context_name=context,
                     interaction_type="user_memory",
@@ -182,9 +176,7 @@ async def recall(context: str = None, query: str = None) -> list[dict[str, Any]]
             memories = filtered_memories
 
         # Record the result
-        await auto_record_tool_usage(
-            "recall", f"Found {len(memories)} memories", memories
-        )
+        await auto_record_tool_usage("recall", f"Found {len(memories)} memories", memories)
 
         return memories
 
@@ -210,9 +202,7 @@ async def context_start(context_name: str) -> str:
         if not auto_recorder:
             return "❌ Error: Auto recorder not available"
 
-        result = await auto_recorder.start_recording(
-            context_name, user_id=DEFAULT_USER_ID
-        )
+        result = await auto_recorder.start_recording(context_name, user_id=DEFAULT_USER_ID)
 
         if result["success"]:
             # Record the context start event
@@ -262,9 +252,7 @@ async def context_stop(context_name: str = None) -> str:
                     stopped_contexts.append(ctx_name)
 
             if stopped_contexts:
-                return (
-                    f"🛑 Stopped recording for contexts: {', '.join(stopped_contexts)}"
-                )
+                return f"🛑 Stopped recording for contexts: {', '.join(stopped_contexts)}"
             else:
                 return "🔴 No active recordings to stop"
 
@@ -302,18 +290,12 @@ async def list_contexts() -> str:
                 scope = ctx.get("scope", "personal").title()
                 context_list.append(
                     f"  • {ctx['name']} ({scope}) - {status}"
-                    + (
-                        f" - {ctx.get('description', 'No description')}"
-                        if ctx.get("description")
-                        else ""
-                    )
+                    + (f" - {ctx.get('description', 'No description')}" if ctx.get("description") else "")
                 )
 
             return "\n".join(context_list)
         else:
-            error_msg = (
-                f"❌ Error listing contexts: {result.get('error', 'Unknown error')}"
-            )
+            error_msg = f"❌ Error listing contexts: {result.get('error', 'Unknown error')}"
             await auto_record_tool_usage("list_contexts", error_msg)
             return error_msg
 
@@ -431,13 +413,9 @@ async def team_merger_execute(merger_id: int) -> dict[str, Any]:
             return {"error": "Approval manager not available"}
 
         user_info = get_current_user()
-        result = approval_manager.execute_team_merger(
-            merger_id=merger_id, executor_user_id=user_info["user_id"]
-        )
+        result = approval_manager.execute_team_merger(merger_id=merger_id, executor_user_id=user_info["user_id"])
 
-        await auto_record_tool_usage(
-            "team_merger_execute", f"Executed team merger ID: {merger_id}"
-        )
+        await auto_record_tool_usage("team_merger_execute", f"Executed team merger ID: {merger_id}")
 
         return result
     except Exception as e:
@@ -465,9 +443,7 @@ async def team_merger_status(merger_id: int) -> dict[str, Any]:
 
         result = approval_manager.get_merger_status(merger_id)
 
-        await auto_record_tool_usage(
-            "team_merger_status", f"Checked status of merger ID: {merger_id}"
-        )
+        await auto_record_tool_usage("team_merger_status", f"Checked status of merger ID: {merger_id}")
 
         return result
     except Exception as e:
@@ -504,9 +480,7 @@ async def team_merger_rollback(merger_id: int, rollback_reason: str) -> dict[str
 
 
 @mcp.tool()
-async def approve_cross_team_request(
-    request_id: int, action: str, reason: str = None
-) -> str:
+async def approve_cross_team_request(request_id: int, action: str, reason: str = None) -> str:
     """Approve or deny cross-team access request
 
     Args:
@@ -533,9 +507,7 @@ async def approve_cross_team_request(
         if result["success"]:
             return f"✅ Request {request_id} {action}ed successfully"
         else:
-            return (
-                f"❌ Error processing request: {result.get('error', 'Unknown error')}"
-            )
+            return f"❌ Error processing request: {result.get('error', 'Unknown error')}"
 
     except Exception as e:
         return f" Error processing approval action: {str(e)}"
@@ -641,9 +613,7 @@ async def get_ai_context(user_id: int = None, project_context: str = None) -> st
             response.append("  No active recordings")
 
         if contexts_result["success"]:
-            response.append(
-                f"\n📋 Available contexts: {len(contexts_result['contexts'])}"
-            )
+            response.append(f"\n📋 Available contexts: {len(contexts_result['contexts'])}")
 
         return "\n".join(response)
 

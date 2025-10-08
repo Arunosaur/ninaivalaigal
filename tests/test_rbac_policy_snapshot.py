@@ -155,9 +155,7 @@ class RBACPolicySnapshot:
         self.created_at = time.time()
 
         # Calculate policy hash for drift detection
-        policy_content = json.dumps(
-            [rule.to_dict() for rule in self.rules], sort_keys=True
-        )
+        policy_content = json.dumps([rule.to_dict() for rule in self.rules], sort_keys=True)
         self.policy_hash = hashlib.sha256(policy_content.encode()).hexdigest()
 
         snapshot_data = {
@@ -255,9 +253,7 @@ class RBACPolicySnapshot:
             for resource in Resource:
                 key = f"{role.value}:{resource.value}"
                 if key not in existing_keys:
-                    missing_combinations.append(
-                        {"role": role.value, "resource": resource.value}
-                    )
+                    missing_combinations.append({"role": role.value, "resource": resource.value})
 
         return {
             "complete": len(missing_combinations) == 0,
@@ -309,11 +305,7 @@ def test_rbac_policy_snapshot():
         "completeness": completeness,
         "drift_detected": not drift_comparison["identical"],
         "drift_changes": drift_comparison["changes_count"],
-        "test_passed": (
-            comparison["identical"]
-            and completeness["complete"]
-            and drift_comparison["changes_count"] > 0
-        ),
+        "test_passed": (comparison["identical"] and completeness["complete"] and drift_comparison["changes_count"] > 0),
     }
 
 
@@ -324,9 +316,7 @@ def create_production_policy_snapshot() -> str:
     return snapshot.to_json()
 
 
-def validate_policy_against_snapshot(
-    current_policy_json: str, baseline_json: str
-) -> dict[str, Any]:
+def validate_policy_against_snapshot(current_policy_json: str, baseline_json: str) -> dict[str, Any]:
     """Validate current policy against baseline snapshot."""
 
     current = RBACPolicySnapshot.from_json(current_policy_json)
@@ -356,9 +346,7 @@ def validate_policy_against_snapshot(
         "comparison": comparison,
         "acceptable_changes": len(acceptable_changes),
         "concerning_changes": len(concerning_changes),
-        "recommendation": (
-            "APPROVE" if len(concerning_changes) == 0 else "REVIEW_REQUIRED"
-        ),
+        "recommendation": ("APPROVE" if len(concerning_changes) == 0 else "REVIEW_REQUIRED"),
     }
 
 

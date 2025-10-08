@@ -29,9 +29,7 @@ class TestCoreMemorySystem:
 
         # This will fail until we have the API running - that's expected
         try:
-            response = requests.post(
-                f"{BASE_URL}/memory", json=memory_data, headers=HEADERS, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/memory", json=memory_data, headers=HEADERS, timeout=5)
             assert response.status_code in [
                 200,
                 201,
@@ -47,14 +45,10 @@ class TestCoreMemorySystem:
         """Test basic memory recall functionality"""
         try:
             response = requests.get(f"{BASE_URL}/memory", headers=HEADERS, timeout=5)
-            assert (
-                response.status_code == 200
-            ), f"Memory recall failed: {response.status_code}"
+            assert response.status_code == 200, f"Memory recall failed: {response.status_code}"
 
             result = response.json()
-            assert isinstance(
-                result, (list, dict)
-            ), "Invalid memory recall response format"
+            assert isinstance(result, (list, dict)), "Invalid memory recall response format"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -68,9 +62,7 @@ class TestCoreMemorySystem:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/context", json=context_data, headers=HEADERS, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/context", json=context_data, headers=HEADERS, timeout=5)
             # Accept both 200 and 201 as valid success codes
             assert response.status_code in [
                 200,
@@ -91,9 +83,7 @@ class TestCoreMemorySystem:
                 headers=HEADERS,
                 timeout=5,
             )
-            assert (
-                response.status_code == 200
-            ), f"Memory search failed: {response.status_code}"
+            assert response.status_code == 200, f"Memory search failed: {response.status_code}"
 
             result = response.json()
             assert isinstance(result, (list, dict)), "Invalid search response format"
@@ -114,9 +104,7 @@ class TestMemorySystemEdgeCases:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/memory", json=memory_data, headers=HEADERS, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/memory", json=memory_data, headers=HEADERS, timeout=5)
             # Should either reject (400) or handle gracefully (200/201)
             assert response.status_code in [
                 200,
@@ -137,9 +125,7 @@ class TestMemorySystemEdgeCases:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/memory", json=memory_data, headers=HEADERS, timeout=10
-            )
+            response = requests.post(f"{BASE_URL}/memory", json=memory_data, headers=HEADERS, timeout=10)
             assert response.status_code in [
                 200,
                 201,
@@ -158,9 +144,7 @@ class TestMemorySystemEdgeCases:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/memory", json=memory_data, headers=HEADERS, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/memory", json=memory_data, headers=HEADERS, timeout=5)
             # Should either sanitize or reject
             assert response.status_code in [
                 200,

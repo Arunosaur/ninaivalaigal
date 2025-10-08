@@ -106,9 +106,7 @@ class MemoryProviderRegistry:
     """
 
     def __init__(self, config_path: Optional[str] = None):
-        self.config_path = config_path or os.getenv(
-            "MEMORY_PROVIDER_CONFIG", "memory_providers.json"
-        )
+        self.config_path = config_path or os.getenv("MEMORY_PROVIDER_CONFIG", "memory_providers.json")
         self.providers: Dict[str, RegisteredProvider] = {}
         self.active_providers: List[str] = []
         self.primary_provider: Optional[str] = None
@@ -128,9 +126,7 @@ class MemoryProviderRegistry:
             await self._validate_providers()
             await self._start_health_monitoring()
 
-            logger.info(
-                f"Provider registry initialized with {len(self.providers)} providers"
-            )
+            logger.info(f"Provider registry initialized with {len(self.providers)} providers")
 
         except Exception as e:
             logger.error(f"Failed to initialize provider registry: {e}")
@@ -145,9 +141,7 @@ class MemoryProviderRegistry:
         """Register a new memory provider"""
         try:
             if config.name in self.providers:
-                logger.warning(
-                    f"Provider {config.name} already registered, updating..."
-                )
+                logger.warning(f"Provider {config.name} already registered, updating...")
 
             registered_provider = RegisteredProvider(
                 config=config,
@@ -161,9 +155,7 @@ class MemoryProviderRegistry:
                 await self._activate_provider(config.name)
 
             await self._save_configuration()
-            logger.info(
-                f"Registered provider: {config.name} ({config.provider_type.value})"
-            )
+            logger.info(f"Registered provider: {config.name} ({config.provider_type.value})")
 
             return True
 
@@ -193,9 +185,7 @@ class MemoryProviderRegistry:
 
         # Find highest priority active provider
         active_providers = [
-            (name, provider)
-            for name, provider in self.providers.items()
-            if provider.status == ProviderStatus.ACTIVE
+            (name, provider) for name, provider in self.providers.items() if provider.status == ProviderStatus.ACTIVE
         ]
 
         if not active_providers:
@@ -207,9 +197,7 @@ class MemoryProviderRegistry:
 
         return await self.get_provider(self.primary_provider)
 
-    async def list_providers(
-        self, status_filter: Optional[ProviderStatus] = None
-    ) -> List[Dict[str, Any]]:
+    async def list_providers(self, status_filter: Optional[ProviderStatus] = None) -> List[Dict[str, Any]]:
         """List all registered providers with their status"""
         providers = []
 
@@ -224,9 +212,7 @@ class MemoryProviderRegistry:
                 "priority": registered.config.priority,
                 "enabled": registered.config.enabled,
                 "last_health_check": (
-                    registered.last_health_check.isoformat()
-                    if registered.last_health_check
-                    else None
+                    registered.last_health_check.isoformat() if registered.last_health_check else None
                 ),
                 "error_message": registered.error_message,
                 "metrics": registered.metrics,
@@ -281,9 +267,7 @@ class MemoryProviderRegistry:
             # Mark failed provider as inactive
             if failed_provider in self.providers:
                 self.providers[failed_provider].status = ProviderStatus.INACTIVE
-                logger.warning(
-                    f"Provider {failed_provider} marked as inactive due to failure"
-                )
+                logger.warning(f"Provider {failed_provider} marked as inactive due to failure")
 
             # Find next available provider by priority
             available_providers = [
@@ -303,9 +287,7 @@ class MemoryProviderRegistry:
             # Update primary provider
             self.primary_provider = backup_provider
 
-            logger.info(
-                f"Failover completed: switched from {failed_provider} to {backup_provider}"
-            )
+            logger.info(f"Failover completed: switched from {failed_provider} to {backup_provider}")
             return backup_provider
 
         except Exception as e:
@@ -325,11 +307,7 @@ class MemoryProviderRegistry:
             "type": registered.config.provider_type.value,
             "status": registered.status.value,
             "uptime": None,
-            "last_health_check": (
-                registered.last_health_check.isoformat()
-                if registered.last_health_check
-                else None
-            ),
+            "last_health_check": (registered.last_health_check.isoformat() if registered.last_health_check else None),
             "error_count": registered.metrics.get("error_count", 0),
             "success_count": registered.metrics.get("success_count", 0),
             "average_response_time": registered.metrics.get("avg_response_time", 0.0),
@@ -337,9 +315,7 @@ class MemoryProviderRegistry:
 
         # Calculate uptime if we have health check data
         if registered.last_health_check:
-            uptime_seconds = (
-                datetime.now(timezone.utc) - registered.last_health_check
-            ).total_seconds()
+            uptime_seconds = (datetime.now(timezone.utc) - registered.last_health_check).total_seconds()
             metrics["uptime"] = uptime_seconds
 
         return metrics
@@ -388,9 +364,7 @@ class MemoryProviderRegistry:
                 # Get provider class
                 provider_class = self._builtin_providers.get(config.provider_type)
                 if provider_class:
-                    registered = RegisteredProvider(
-                        config=config, provider_class=provider_class
-                    )
+                    registered = RegisteredProvider(config=config, provider_class=provider_class)
                     self.providers[config.name] = registered
 
             logger.info(f"Loaded {len(self.providers)} providers from configuration")
@@ -404,9 +378,7 @@ class MemoryProviderRegistry:
         try:
             # Auto-discover PostgreSQL provider
             postgres_url = (
-                os.getenv("NINAIVALAIGAL_DATABASE_URL")
-                or os.getenv("DATABASE_URL")
-                or os.getenv("POSTGRES_URL")
+                os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
             )
 
             if postgres_url and "postgres_primary" not in self.providers:
@@ -418,9 +390,7 @@ class MemoryProviderRegistry:
                     enabled=True,
                 )
 
-                registered = RegisteredProvider(
-                    config=config, provider_class=PostgresMemoryProvider
-                )
+                registered = RegisteredProvider(config=config, provider_class=PostgresMemoryProvider)
                 self.providers["postgres_primary"] = registered
                 logger.info("Auto-discovered PostgreSQL provider")
 
@@ -438,9 +408,7 @@ class MemoryProviderRegistry:
                     metadata={"auth_secret": mem0_secret},
                 )
 
-                registered = RegisteredProvider(
-                    config=config, provider_class=Mem0HttpMemoryProvider
-                )
+                registered = RegisteredProvider(config=config, provider_class=Mem0HttpMemoryProvider)
                 self.providers["mem0_http"] = registered
                 logger.info("Auto-discovered mem0 HTTP provider")
 
@@ -480,9 +448,7 @@ class MemoryProviderRegistry:
                     auth_secret=registered.config.metadata.get("auth_secret", ""),
                 )
             else:
-                raise ValueError(
-                    f"Unsupported provider type: {registered.config.provider_type}"
-                )
+                raise ValueError(f"Unsupported provider type: {registered.config.provider_type}")
 
             registered.instance = instance
             registered.status = ProviderStatus.ACTIVE
@@ -524,12 +490,7 @@ class MemoryProviderRegistry:
     async def _save_configuration(self) -> None:
         """Save current configuration to file"""
         try:
-            config_data = {
-                "providers": [
-                    registered.config.to_dict()
-                    for registered in self.providers.values()
-                ]
-            }
+            config_data = {"providers": [registered.config.to_dict() for registered in self.providers.values()]}
 
             config_file = Path(self.config_path)
             config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -544,9 +505,7 @@ class MemoryProviderRegistry:
         """Create default provider configuration"""
         try:
             # Create default PostgreSQL provider if database URL is available
-            postgres_url = os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv(
-                "DATABASE_URL"
-            )
+            postgres_url = os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL")
 
             if postgres_url:
                 config = ProviderConfig(
@@ -557,9 +516,7 @@ class MemoryProviderRegistry:
                     enabled=True,
                 )
 
-                registered = RegisteredProvider(
-                    config=config, provider_class=PostgresMemoryProvider
-                )
+                registered = RegisteredProvider(config=config, provider_class=PostgresMemoryProvider)
                 self.providers["postgres_default"] = registered
 
             await self._save_configuration()

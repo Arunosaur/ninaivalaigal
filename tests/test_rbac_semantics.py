@@ -31,11 +31,7 @@ def tok(roles=None, exp=None, extra=None):
 @pytest.fixture(scope="module")
 def app():
     app = FastAPI()
-    set_jwt_resolver(
-        JWTClaimsResolver(
-            secret=SECRET, algorithms=["HS256"], max_token_lifetime_s=7200
-        )
-    )
+    set_jwt_resolver(JWTClaimsResolver(secret=SECRET, algorithms=["HS256"], max_token_lifetime_s=7200))
 
     @app.get("/editor")
     @require_permission("org_editor")
@@ -64,11 +60,7 @@ def test_401_when_missing_required_claims(app):
 def test_403_when_insufficient_role(app):
     t = tok(roles=["viewer"])
     # first read counter
-    before = (
-        rbac_denials_total._value.get()
-        if hasattr(rbac_denials_total, "_value")
-        else None
-    )
+    before = rbac_denials_total._value.get() if hasattr(rbac_denials_total, "_value") else None
     res = c(app, t).get("/editor")
     assert res.status_code == 403
     # ensure counter increments (best-effort; shim may not expose)

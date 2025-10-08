@@ -32,9 +32,7 @@ class FeatureFlagManager:
     """Manages security feature flags with audit logging."""
 
     def __init__(self, config_file: str | None = None):
-        self.config_file = config_file or os.getenv(
-            "FEATURE_FLAGS_CONFIG", "/etc/ninaivalaigal/feature-flags.json"
-        )
+        self.config_file = config_file or os.getenv("FEATURE_FLAGS_CONFIG", "/etc/ninaivalaigal/feature-flags.json")
         self.flags: dict[str, FeatureFlag] = {}
         self.lock = Lock()
 
@@ -100,15 +98,9 @@ class FeatureFlagManager:
                 for name, flag_data in config_data.get("flags", {}).items():
                     if name in self.flags:
                         # Update existing flag
-                        self.flags[name].enabled = flag_data.get(
-                            "enabled", self.flags[name].enabled
-                        )
-                        self.flags[name].updated_at = flag_data.get(
-                            "updated_at", time.time()
-                        )
-                        self.flags[name].updated_by = flag_data.get(
-                            "updated_by", "config_file"
-                        )
+                        self.flags[name].enabled = flag_data.get("enabled", self.flags[name].enabled)
+                        self.flags[name].updated_at = flag_data.get("updated_at", time.time())
+                        self.flags[name].updated_by = flag_data.get("updated_by", "config_file")
 
                 logger.info(f"Loaded feature flags from {self.config_file}")
 
@@ -138,9 +130,7 @@ class FeatureFlagManager:
         with self.lock:
             flag = self.flags.get(flag_name)
             if flag is None:
-                logger.warning(
-                    f"Unknown feature flag: {flag_name}, defaulting to False"
-                )
+                logger.warning(f"Unknown feature flag: {flag_name}, defaulting to False")
                 return False
             return flag.enabled
 
@@ -158,8 +148,7 @@ class FeatureFlagManager:
 
             # Audit log
             logger.warning(
-                f"Feature flag changed: {flag_name} {old_value} → {enabled} "
-                f"by {updated_by} at {time.time()}"
+                f"Feature flag changed: {flag_name} {old_value} → {enabled} " f"by {updated_by} at {time.time()}"
             )
 
             # Save to file
@@ -178,9 +167,7 @@ class FeatureFlagManager:
             flag = self.flags.get(flag_name)
             return asdict(flag) if flag else None
 
-    def bulk_update(
-        self, updates: dict[str, bool], updated_by: str = "bulk_api"
-    ) -> dict[str, bool]:
+    def bulk_update(self, updates: dict[str, bool], updated_by: str = "bulk_api") -> dict[str, bool]:
         """Update multiple flags in a single operation."""
         results = {}
 
@@ -192,10 +179,7 @@ class FeatureFlagManager:
                     self.flags[flag_name].updated_at = time.time()
                     self.flags[flag_name].updated_by = updated_by
 
-                    logger.warning(
-                        f"Bulk flag change: {flag_name} {old_value} → {enabled} "
-                        f"by {updated_by}"
-                    )
+                    logger.warning(f"Bulk flag change: {flag_name} {old_value} → {enabled} " f"by {updated_by}")
                     results[flag_name] = True
                 else:
                     logger.error(f"Unknown flag in bulk update: {flag_name}")

@@ -288,6 +288,4 @@ if __name__ == "__main__":
             raise
 
     print(f"\nAll {len(test_functions)} strict JWT verifier tests passed!")
-    print(
-        "Enhanced JWT verifier with bounded leeway and comprehensive validation ready for production."
-    )
+    print("Enhanced JWT verifier with bounded leeway and comprehensive validation ready for production.")

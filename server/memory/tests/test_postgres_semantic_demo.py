@@ -4,9 +4,7 @@ import pytest
 
 from server.memory.stores.postgres_store import PGConfig, PostgresStore
 
-pytestmark = pytest.mark.skipif(
-    not os.getenv("DATABASE_URL"), reason="set DATABASE_URL to run PG tests"
-)
+pytestmark = pytest.mark.skipif(not os.getenv("DATABASE_URL"), reason="set DATABASE_URL to run PG tests")
 
 
 @pytest.mark.asyncio
@@ -23,7 +21,5 @@ async def test_write_query_semantic():
             "text": "ai context about standups",
         }
     )
-    rows = await s.query(
-        {"scope": "personal", "user_id": "u1", "semantic_query": "standups", "limit": 3}
-    )
+    rows = await s.query({"scope": "personal", "user_id": "u1", "semantic_query": "standups", "limit": 3})
     assert rows

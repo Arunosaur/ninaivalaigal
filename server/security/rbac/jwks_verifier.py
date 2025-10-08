@@ -38,9 +38,7 @@ class JWKSVerifier:
         self.logger = logging.getLogger("jwks.verifier")
 
         # Initialize PyJWKClient with caching
-        self.jwks_client = PyJWKClient(
-            uri=config.jwks_uri, cache_ttl=config.cache_ttl, cache_jwks=True
-        )
+        self.jwks_client = PyJWKClient(uri=config.jwks_uri, cache_ttl=config.cache_ttl, cache_jwks=True)
 
         # Track key rotation events
         self._last_kid_seen = None
@@ -65,9 +63,7 @@ class JWKSVerifier:
             # Track key rotation
             if self._last_kid_seen and self._last_kid_seen != kid:
                 self._rotation_count += 1
-                self.logger.info(
-                    f"Key rotation detected: {self._last_kid_seen} -> {kid}"
-                )
+                self.logger.info(f"Key rotation detected: {self._last_kid_seen} -> {kid}")
 
             self._last_kid_seen = kid
 
@@ -93,9 +89,7 @@ class JWKSVerifier:
             # Additional security checks
             self._validate_payload_security(payload)
 
-            self.logger.info(
-                f"Token verified successfully for subject: {payload.get('sub')}"
-            )
+            self.logger.info(f"Token verified successfully for subject: {payload.get('sub')}")
             return payload
 
         except InvalidTokenError as e:
@@ -122,18 +116,14 @@ class JWKSVerifier:
 
         # Check for suspicious claims
         if "admin" in payload.get("scope", "").lower():
-            self.logger.warning(
-                f"Admin scope detected for subject: {payload.get('sub')}"
-            )
+            self.logger.warning(f"Admin scope detected for subject: {payload.get('sub')}")
 
         # Validate subject format
         sub = payload.get("sub", "")
         if not sub or len(sub) < 3:
             raise InvalidTokenError("Invalid subject format")
 
-    async def verify_with_replay_guard(
-        self, token: str, nonce: str | None = None
-    ) -> dict[str, Any]:
+    async def verify_with_replay_guard(self, token: str, nonce: str | None = None) -> dict[str, Any]:
         """
         Verify token with replay attack protection.
 
@@ -179,9 +169,7 @@ class JWKSVerifierPool:
         self.verifiers[issuer] = JWKSVerifier(config)
         self.logger.info(f"Added JWKS verifier for issuer: {issuer}")
 
-    async def verify_token(
-        self, token: str, issuer: str | None = None
-    ) -> dict[str, Any]:
+    async def verify_token(self, token: str, issuer: str | None = None) -> dict[str, Any]:
         """Verify token using appropriate verifier."""
 
         if issuer:
@@ -203,10 +191,7 @@ class JWKSVerifierPool:
 
     def get_pool_stats(self) -> dict[str, Any]:
         """Get statistics for all verifiers."""
-        return {
-            issuer: verifier.get_rotation_stats()
-            for issuer, verifier in self.verifiers.items()
-        }
+        return {issuer: verifier.get_rotation_stats() for issuer, verifier in self.verifiers.items()}
 
 
 # Global verifier pool
@@ -242,9 +227,7 @@ def get_jwks_stats() -> dict[str, Any]:
 
 
 # Test utilities
-def create_test_jwks_config(
-    issuer: str = "https://test.example.com", audience: str = "test-audience"
-) -> JWKSConfig:
+def create_test_jwks_config(issuer: str = "https://test.example.com", audience: str = "test-audience") -> JWKSConfig:
     """Create test JWKS configuration."""
     return JWKSConfig(
         jwks_uri=f"{issuer}/.well-known/jwks.json",
@@ -254,9 +237,7 @@ def create_test_jwks_config(
     )
 
 
-async def test_jwks_rotation(
-    verifier: JWKSVerifier, tokens: list[str]
-) -> dict[str, Any]:
+async def test_jwks_rotation(verifier: JWKSVerifier, tokens: list[str]) -> dict[str, Any]:
     """Test JWKS key rotation with multiple tokens."""
     results = []
 

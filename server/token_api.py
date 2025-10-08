@@ -73,10 +73,7 @@ async def regenerate_jwt_token(current_user: dict = Depends(get_current_user)):
         return TokenRegenerateResponse(
             token=new_token,
             expires_at=expires_at,
-            message=(
-                "Token regenerated successfully. "
-                "Please update your applications with the new token."
-            ),
+            message=("Token regenerated successfully. " "Please update your applications with the new token."),
         )
 
     except Exception as e:
@@ -124,9 +121,7 @@ async def list_api_keys(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("/api-keys", response_model=ApiKeyResponse)
-async def create_api_key(
-    api_key_data: ApiKeyCreate, current_user: dict = Depends(get_current_user)
-):
+async def create_api_key(api_key_data: ApiKeyCreate, current_user: dict = Depends(get_current_user)):
     """Create a new API key for the current user"""
     try:
         # db = get_db()  # TODO: Implement database operations
@@ -222,9 +217,7 @@ async def get_token_usage(current_user: dict = Depends(get_current_user)):
 
 
 @router.patch("/settings")
-async def update_user_settings(
-    settings: UserSettings, current_user: dict = Depends(get_current_user)
-):
+async def update_user_settings(settings: UserSettings, current_user: dict = Depends(get_current_user)):
     """Update user security settings"""
     try:
         # TODO: Implement with get_db() and user_id

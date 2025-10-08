@@ -39,9 +39,7 @@ class SecurityMetricsCollector:
     def __init__(self, max_history: int = 1000):
         self.metrics: dict[str, float] = defaultdict(float)
         self.metric_metadata: dict[str, dict[str, Any]] = {}
-        self.metric_history: dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=max_history)
-        )
+        self.metric_history: dict[str, deque] = defaultdict(lambda: deque(maxlen=max_history))
         self.lock = threading.Lock()
 
         # Initialize core metrics
@@ -209,18 +207,14 @@ class SecurityMetricsCollector:
                 "created_at": time.time(),
             }
 
-    def increment_counter(
-        self, name: str, value: float = 1.0, labels: dict[str, str] | None = None
-    ):
+    def increment_counter(self, name: str, value: float = 1.0, labels: dict[str, str] | None = None):
         """Increment a counter metric."""
         with self.lock:
             full_name = self._build_metric_name(name, labels)
             self.metrics[full_name] += value
 
             # Record in history
-            self.metric_history[full_name].append(
-                {"timestamp": time.time(), "value": value, "labels": labels or {}}
-            )
+            self.metric_history[full_name].append({"timestamp": time.time(), "value": value, "labels": labels or {}})
 
     def set_gauge(self, name: str, value: float, labels: dict[str, str] | None = None):
         """Set a gauge metric value."""
@@ -229,13 +223,9 @@ class SecurityMetricsCollector:
             self.metrics[full_name] = value
 
             # Record in history
-            self.metric_history[full_name].append(
-                {"timestamp": time.time(), "value": value, "labels": labels or {}}
-            )
+            self.metric_history[full_name].append({"timestamp": time.time(), "value": value, "labels": labels or {}})
 
-    def record_histogram(
-        self, name: str, value: float, labels: dict[str, str] | None = None
-    ):
+    def record_histogram(self, name: str, value: float, labels: dict[str, str] | None = None):
         """Record a histogram metric value."""
         # For simplicity, we'll track histogram as multiple metrics
         with self.lock:
@@ -249,13 +239,9 @@ class SecurityMetricsCollector:
             self.metrics[sum_name] += value
 
             # Record in history
-            self.metric_history[base_name].append(
-                {"timestamp": time.time(), "value": value, "labels": labels or {}}
-            )
+            self.metric_history[base_name].append({"timestamp": time.time(), "value": value, "labels": labels or {}})
 
-    def _build_metric_name(
-        self, name: str, labels: dict[str, str] | None = None
-    ) -> str:
+    def _build_metric_name(self, name: str, labels: dict[str, str] | None = None) -> str:
         """Build full metric name with labels."""
         if not labels:
             return name
@@ -286,9 +272,7 @@ class SecurityMetricsCollector:
                     lines.append(f"# HELP {base_name} {help_text}")
 
                 # Add type
-                metric_type = self.metric_metadata.get(base_name, {}).get(
-                    "type", MetricType.COUNTER
-                )
+                metric_type = self.metric_metadata.get(base_name, {}).get("type", MetricType.COUNTER)
                 lines.append(f"# TYPE {base_name} {metric_type.value}")
 
                 # Add metrics
@@ -399,9 +383,7 @@ def record_idempotency_replay(method: str, path_template: str):
 def record_rbac_decision(granted: bool, resource: str, permission: str):
     """Record an RBAC access decision."""
     metric_name = "rbac_access_granted_total" if granted else "rbac_access_denied_total"
-    _metrics_collector.increment_counter(
-        metric_name, labels={"resource": resource, "permission": permission}
-    )
+    _metrics_collector.increment_counter(metric_name, labels={"resource": resource, "permission": permission})
 
 
 def record_security_policy_violation(policy_type: str, tier: int):
@@ -420,20 +402,14 @@ def record_fail_closed_event(tier: int, threshold: int):
     )
 
 
-def record_multipart_processing(
-    parts_count: int, bytes_count: int, duration_seconds: float
-):
+def record_multipart_processing(parts_count: int, bytes_count: int, duration_seconds: float):
     """Record multipart processing statistics."""
     _metrics_collector.increment_counter("multipart_parts_total", value=parts_count)
     _metrics_collector.increment_counter("multipart_bytes_total", value=bytes_count)
-    _metrics_collector.record_histogram(
-        "multipart_processing_duration_seconds", duration_seconds
-    )
+    _metrics_collector.record_histogram("multipart_processing_duration_seconds", duration_seconds)
 
 
-def record_multipart_rejection(
-    reason: str, endpoint: str = "unknown", tenant: str = "unknown"
-):
+def record_multipart_rejection(reason: str, endpoint: str = "unknown", tenant: str = "unknown"):
     """Record multipart rejection with specific reason."""
     _metrics_collector.increment_counter(
         "multipart_reject_total",
@@ -545,10 +521,7 @@ async def metrics_reporter(interval: int = 60):
             critical_metrics = {
                 k: v
                 for k, v in metrics.items()
-                if any(
-                    keyword in k
-                    for keyword in ["failure", "violation", "denied", "error"]
-                )
+                if any(keyword in k for keyword in ["failure", "violation", "denied", "error"])
             }
 
             if critical_metrics:

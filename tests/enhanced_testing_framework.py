@@ -64,9 +64,7 @@ class MultiTenantIsolationTesting:
 
                     # Test memory access
                     for memory_id in data_b["memories"]:
-                        response = self.framework.client.get(
-                            f"/memory/{memory_id}", headers=headers
-                        )
+                        response = self.framework.client.get(f"/memory/{memory_id}", headers=headers)
                         access_blocked = response.status_code in [403, 404]
 
                         test_results.append(
@@ -126,7 +124,7 @@ class SnapshotRegressionTesting:
                 return self._get_data_structure(data)
             else:
                 return {"content_type": response.headers.get("content-type")}
-        except:
+        except Exception:
             return {"error": "Could not parse response"}
 
     def _get_data_structure(self, data: Any, max_depth: int = 3) -> Any:
@@ -135,10 +133,7 @@ class SnapshotRegressionTesting:
             return "..."
 
         if isinstance(data, dict):
-            return {
-                key: self._get_data_structure(value, max_depth - 1)
-                for key, value in data.items()
-            }
+            return {key: self._get_data_structure(value, max_depth - 1) for key, value in data.items()}
         elif isinstance(data, list):
             return [self._get_data_structure(data[0], max_depth - 1)] if data else []
         else:
@@ -158,18 +153,13 @@ class SnapshotRegressionTesting:
         for endpoint, method in endpoints_to_test:
             try:
                 current_snapshot = self.create_api_snapshot(endpoint, method)
-                snapshot_file = (
-                    self.snapshots_dir / f"{endpoint.replace('/', '_')}_{method}.json"
-                )
+                snapshot_file = self.snapshots_dir / f"{endpoint.replace('/', '_')}_{method}.json"
 
                 if snapshot_file.exists():
                     with open(snapshot_file, "r") as f:
                         stored_snapshot = json.load(f)
 
-                    structure_match = (
-                        current_snapshot["response_structure"]
-                        == stored_snapshot["response_structure"]
-                    )
+                    structure_match = current_snapshot["response_structure"] == stored_snapshot["response_structure"]
 
                     test_results.append(
                         {
@@ -268,9 +258,7 @@ class FuzzTesting:
                 fuzz_data = self._generate_fuzz_data()
                 headers = {"Authorization": "Bearer test_token"}
 
-                response = self.framework.client.post(
-                    endpoint, json=fuzz_data, headers=headers
-                )
+                response = self.framework.client.post(endpoint, json=fuzz_data, headers=headers)
 
                 # Should handle gracefully (no 500 errors)
                 graceful_handling = response.status_code != 500
@@ -333,19 +321,13 @@ class EnhancedTestRunner:
 
         # Run enhanced tests
         print("  🔒 Multi-tenant isolation tests...")
-        results["test_categories"][
-            "multi_tenant"
-        ] = self.multi_tenant_testing.test_cross_tenant_access_validation()
+        results["test_categories"]["multi_tenant"] = self.multi_tenant_testing.test_cross_tenant_access_validation()
 
         print("  📸 Snapshot regression tests...")
-        results["test_categories"][
-            "snapshot_regression"
-        ] = self.snapshot_testing.test_api_response_regression()
+        results["test_categories"]["snapshot_regression"] = self.snapshot_testing.test_api_response_regression()
 
         print("  🗃️ Database integrity tests...")
-        results["test_categories"][
-            "database_integrity"
-        ] = self.db_testing.test_migration_integrity()
+        results["test_categories"]["database_integrity"] = self.db_testing.test_migration_integrity()
 
         print("  🎯 Fuzz testing...")
         results["test_categories"]["fuzz_testing"] = self.fuzz_testing.run_fuzz_tests()
@@ -353,21 +335,16 @@ class EnhancedTestRunner:
         # Calculate summary
         total_tests = sum(len(tests) for tests in results["test_categories"].values())
         passed_tests = sum(
-            sum(1 for test in tests if test.get("status") == "PASS")
-            for tests in results["test_categories"].values()
+            sum(1 for test in tests if test.get("status") == "PASS") for tests in results["test_categories"].values()
         )
 
         results["summary"] = {
             "total_tests": total_tests,
             "passed": passed_tests,
-            "pass_rate": (
-                round((passed_tests / total_tests) * 100, 2) if total_tests > 0 else 0
-            ),
+            "pass_rate": (round((passed_tests / total_tests) * 100, 2) if total_tests > 0 else 0),
         }
 
-        print(
-            f"✅ Enhanced testing complete: {passed_tests}/{total_tests} tests passed"
-        )
+        print(f"✅ Enhanced testing complete: {passed_tests}/{total_tests} tests passed")
 
         return results
 

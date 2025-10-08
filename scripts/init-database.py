@@ -14,13 +14,9 @@ def main():
     """Initialize database with all tables"""
     try:
         # Get database URL from environment
-        database_url = os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv(
-            "DATABASE_URL"
-        )
+        database_url = os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL")
         if not database_url:
-            print(
-                "❌ No database URL found. Set NINAIVALAIGAL_DATABASE_URL or DATABASE_URL"
-            )
+            print("❌ No database URL found. Set NINAIVALAIGAL_DATABASE_URL or DATABASE_URL")
             sys.exit(1)
 
         print(f"🔄 Initializing database: {database_url}")

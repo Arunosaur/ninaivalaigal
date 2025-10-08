@@ -91,9 +91,7 @@ async def create_memory(
 
     except Exception as e:
         logger.error(f"Error creating memory: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create memory: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create memory: {str(e)}")
 
 
 @router.post("/memories/search", response_model=List[MemoryResponse])
@@ -117,9 +115,7 @@ async def search_memories(
 
     except Exception as e:
         logger.error(f"Error searching memories: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to search memories: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to search memories: {str(e)}")
 
 
 @router.get("/memories", response_model=List[MemoryResponse])
@@ -145,9 +141,7 @@ async def list_memories(
 
     except Exception as e:
         logger.error(f"Error listing memories: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to list memories: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to list memories: {str(e)}")
 
 
 @router.delete("/memories/{memory_id}", status_code=204)
@@ -160,9 +154,7 @@ async def delete_memory(
     Delete a memory by ID with automatic failover
     """
     try:
-        success = await substrate.delete(
-            memory_id=memory_id, user_id=current_user["user_id"]
-        )
+        success = await substrate.delete(memory_id=memory_id, user_id=current_user["user_id"])
 
         if not success:
             raise HTTPException(status_code=404, detail="Memory not found")
@@ -171,9 +163,7 @@ async def delete_memory(
         raise
     except Exception as e:
         logger.error(f"Error deleting memory {memory_id}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to delete memory: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to delete memory: {str(e)}")
 
 
 @router.get("/health", response_model=Dict[str, ProviderHealthResponse])
@@ -202,9 +192,7 @@ async def get_substrate_health(
 
     except Exception as e:
         logger.error(f"Error getting substrate health: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get health status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get health status: {str(e)}")
 
 
 @router.get("/metrics", response_model=SubstrateMetricsResponse)
@@ -254,9 +242,7 @@ async def get_provider_info(
 
     except Exception as e:
         logger.error(f"Error getting provider info: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get provider info: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get provider info: {str(e)}")
 
 
 @router.post("/providers/{provider_name}/switch", status_code=200)
@@ -278,9 +264,7 @@ async def switch_primary_provider(
         success = await substrate.switch_primary_provider(provider_name)
 
         if success:
-            return {
-                "message": f"Successfully switched primary provider to {provider_name}"
-            }
+            return {"message": f"Successfully switched primary provider to {provider_name}"}
         else:
             raise HTTPException(status_code=400, detail="Failed to switch provider")
 
@@ -288,9 +272,7 @@ async def switch_primary_provider(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Error switching provider to {provider_name}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to switch provider: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to switch provider: {str(e)}")
 
 
 @router.get("/status")
@@ -307,11 +289,7 @@ async def get_substrate_status(
         metrics = await substrate.get_substrate_metrics()
 
         # Determine overall status
-        healthy_providers = sum(
-            1
-            for health in health_status.values()
-            if health.status == ProviderStatus.HEALTHY
-        )
+        healthy_providers = sum(1 for health in health_status.values() if health.status == ProviderStatus.HEALTHY)
 
         total_providers = len(health_status)
 

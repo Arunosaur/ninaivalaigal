@@ -14,6 +14,4 @@ def run(config):
     accuracy = compute_accuracy(results)
     print(f"✅ Similarity Accuracy: {accuracy:.2f}")
 
-    assert (
-        accuracy >= config["thresholds"]["similarity_accuracy"]
-    ), "❌ Similarity accuracy below threshold!"
+    assert accuracy >= config["thresholds"]["similarity_accuracy"], "❌ Similarity accuracy below threshold!"

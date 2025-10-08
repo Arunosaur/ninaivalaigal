@@ -202,24 +202,16 @@ async def get_security_audit_logs(
 
 
 @router.get("/health")
-async def providers_health_check(
-    registry=Depends(get_provider_registry), health_monitor=Depends(get_health_monitor)
-):
+async def providers_health_check(registry=Depends(get_provider_registry), health_monitor=Depends(get_health_monitor)):
     """Overall provider system health check"""
     try:
         providers = await registry.list_providers()
         health_data = await health_monitor.get_all_provider_health()
 
         total_providers = len(providers)
-        healthy_providers = sum(
-            1
-            for name, health in health_data.items()
-            if health.status.value == "healthy"
-        )
+        healthy_providers = sum(1 for name, health in health_data.items() if health.status.value == "healthy")
 
-        overall_status = (
-            "healthy" if healthy_providers == total_providers else "degraded"
-        )
+        overall_status = "healthy" if healthy_providers == total_providers else "degraded"
         if healthy_providers == 0:
             overall_status = "critical"
 
@@ -227,9 +219,7 @@ async def providers_health_check(
             "status": overall_status,
             "total_providers": total_providers,
             "healthy_providers": healthy_providers,
-            "provider_health": {
-                name: health.status.value for name, health in health_data.items()
-            },
+            "provider_health": {name: health.status.value for name, health in health_data.items()},
         }
 
     except Exception as e:

@@ -82,9 +82,7 @@ class GraphIntelligenceValidator:
 
                     # Calculate accuracy
                     matches = len(set(expected_similar) & set(found_similar))
-                    accuracy = (
-                        matches / len(expected_similar) if expected_similar else 1.0
-                    )
+                    accuracy = matches / len(expected_similar) if expected_similar else 1.0
                     accuracy_scores.append(accuracy)
 
                     test_details.append(
@@ -101,18 +99,14 @@ class GraphIntelligenceValidator:
                         passed_tests += 1
 
                 else:
-                    print(
-                        f"  ❌ API Error for {memory['memory_id']}: {response.status_code}"
-                    )
+                    print(f"  ❌ API Error for {memory['memory_id']}: {response.status_code}")
                     accuracy_scores.append(0.0)
 
             except Exception as e:
                 print(f"  ❌ Exception for {memory['memory_id']}: {str(e)}")
                 accuracy_scores.append(0.0)
 
-        overall_accuracy = (
-            sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0.0
-        )
+        overall_accuracy = sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0.0
         pass_rate = passed_tests / total_tests if total_tests > 0 else 0.0
 
         result = {
@@ -126,9 +120,7 @@ class GraphIntelligenceValidator:
             "details": test_details,
         }
 
-        print(
-            f"  ✅ Similarity Analysis: {overall_accuracy:.2f} accuracy, {pass_rate:.2f} pass rate"
-        )
+        print(f"  ✅ Similarity Analysis: {overall_accuracy:.2f} accuracy, {pass_rate:.2f} pass rate")
         return result
 
     def test_path_discovery(self, test_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -163,18 +155,12 @@ class GraphIntelligenceValidator:
                     paths_found = len(result.get("results", []))
 
                     if paths_found > 0:
-                        best_path = max(
-                            result["results"], key=lambda p: p.get("strength", 0)
-                        )
+                        best_path = max(result["results"], key=lambda p: p.get("strength", 0))
                         path_length = best_path.get("length", 999)
                         path_strength = best_path.get("strength", 0.0)
 
                         # Score based on length and strength
-                        length_score = (
-                            1.0
-                            if path_length <= path_test["expected_path_length"]
-                            else 0.5
-                        )
+                        length_score = 1.0 if path_length <= path_test["expected_path_length"] else 0.5
                         strength_score = path_strength
                         quality = (length_score + strength_score) / 2
                     else:
@@ -205,9 +191,7 @@ class GraphIntelligenceValidator:
                 print(f"  ❌ Exception for path test: {str(e)}")
                 quality_scores.append(0.0)
 
-        overall_quality = (
-            sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
-        )
+        overall_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
         pass_rate = passed_tests / total_tests if total_tests > 0 else 0.0
 
         result = {
@@ -221,9 +205,7 @@ class GraphIntelligenceValidator:
             "details": test_details,
         }
 
-        print(
-            f"  ✅ Path Discovery: {overall_quality:.2f} quality, {pass_rate:.2f} pass rate"
-        )
+        print(f"  ✅ Path Discovery: {overall_quality:.2f} quality, {pass_rate:.2f} pass rate")
         return result
 
     def test_recommendation_engine(self, test_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -259,9 +241,7 @@ class GraphIntelligenceValidator:
                     count_score = min(rec_count / 3, 1.0)  # Expect at least 3
 
                     if result.get("confidence_scores"):
-                        avg_confidence = sum(
-                            result["confidence_scores"].values()
-                        ) / len(result["confidence_scores"])
+                        avg_confidence = sum(result["confidence_scores"].values()) / len(result["confidence_scores"])
                     else:
                         avg_confidence = 0.0
 
@@ -277,25 +257,18 @@ class GraphIntelligenceValidator:
                         }
                     )
 
-                    if (
-                        quality
-                        >= self.config["thresholds"]["recommendation_confidence"]
-                    ):
+                    if quality >= self.config["thresholds"]["recommendation_confidence"]:
                         passed_tests += 1
 
                 else:
-                    print(
-                        f"  ❌ API Error for {memory['memory_id']}: {response.status_code}"
-                    )
+                    print(f"  ❌ API Error for {memory['memory_id']}: {response.status_code}")
                     quality_scores.append(0.0)
 
             except Exception as e:
                 print(f"  ❌ Exception for recommendation test: {str(e)}")
                 quality_scores.append(0.0)
 
-        overall_quality = (
-            sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
-        )
+        overall_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
         pass_rate = passed_tests / total_tests if total_tests > 0 else 0.0
 
         result = {
@@ -309,9 +282,7 @@ class GraphIntelligenceValidator:
             "details": test_details,
         }
 
-        print(
-            f"  ✅ Recommendation Engine: {overall_quality:.2f} quality, {pass_rate:.2f} pass rate"
-        )
+        print(f"  ✅ Recommendation Engine: {overall_quality:.2f} quality, {pass_rate:.2f} pass rate")
         return result
 
     def test_edge_weight_relevance(self, test_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -333,9 +304,7 @@ class GraphIntelligenceValidator:
         for rel in test_relationships:
             # Simulate relationship strength calculation
             # In production, this would query actual graph data
-            calculated_strength = min(
-                0.1 * hash(rel["source"] + rel["target"]) % 10, 1.0
-            )
+            calculated_strength = min(0.1 * hash(rel["source"] + rel["target"]) % 10, 1.0)
             expected_strength = rel["expected_strength"]
 
             accuracy = 1.0 - abs(calculated_strength - expected_strength)
@@ -354,9 +323,7 @@ class GraphIntelligenceValidator:
             if accuracy >= self.config["thresholds"]["edge_weight_accuracy"]:
                 passed_tests += 1
 
-        overall_accuracy = (
-            sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0.0
-        )
+        overall_accuracy = sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0.0
         pass_rate = passed_tests / total_tests if total_tests > 0 else 0.0
 
         result = {
@@ -370,9 +337,7 @@ class GraphIntelligenceValidator:
             "details": test_details,
         }
 
-        print(
-            f"  ✅ Edge Weight Relevance: {overall_accuracy:.2f} accuracy, {pass_rate:.2f} pass rate"
-        )
+        print(f"  ✅ Edge Weight Relevance: {overall_accuracy:.2f} accuracy, {pass_rate:.2f} pass rate")
         return result
 
     def generate_visualizations(self, test_data: Dict[str, Any]):
@@ -393,9 +358,7 @@ class GraphIntelligenceValidator:
 
         # Add memory nodes
         for memory in test_data["memories"][:5]:  # First 5 for clarity
-            G.add_node(
-                memory["memory_id"], node_type="memory", label=memory["memory_id"][:8]
-            )
+            G.add_node(memory["memory_id"], node_type="memory", label=memory["memory_id"][:8])
 
         # Add user nodes
         for user in test_data["users"][:3]:  # First 3 users
@@ -411,9 +374,7 @@ class GraphIntelligenceValidator:
         pos = nx.spring_layout(G, k=2, iterations=50)
 
         # Draw nodes by type
-        memory_nodes = [
-            n for n, d in G.nodes(data=True) if d.get("node_type") == "memory"
-        ]
+        memory_nodes = [n for n, d in G.nodes(data=True) if d.get("node_type") == "memory"]
         user_nodes = [n for n, d in G.nodes(data=True) if d.get("node_type") == "user"]
 
         nx.draw_networkx_nodes(
@@ -491,19 +452,12 @@ class GraphIntelligenceValidator:
 
         summary = {
             "timestamp": timestamp,
-            "execution_time_seconds": (
-                time.time() - self.start_time if self.start_time else 0
-            ),
+            "execution_time_seconds": (time.time() - self.start_time if self.start_time else 0),
             "overall_summary": {
                 "total_test_suites": len(self.results),
-                "passed_suites": sum(
-                    1 for r in self.results.values() if r.get("passed", False)
-                ),
+                "passed_suites": sum(1 for r in self.results.values() if r.get("passed", False)),
                 "overall_score": (
-                    sum(
-                        r.get("overall_accuracy", r.get("overall_quality", 0))
-                        for r in self.results.values()
-                    )
+                    sum(r.get("overall_accuracy", r.get("overall_quality", 0)) for r in self.results.values())
                     / len(self.results)
                     if self.results
                     else 0
@@ -527,19 +481,13 @@ class GraphIntelligenceValidator:
 
         # Load test data
         test_data = self.load_test_data()
-        print(
-            f"📊 Loaded test data: {len(test_data['memories'])} memories, {len(test_data['users'])} users"
-        )
+        print(f"📊 Loaded test data: {len(test_data['memories'])} memories, {len(test_data['users'])} users")
 
         # Run all validation tests
         self.results["similarity_analysis"] = self.test_similarity_analysis(test_data)
         self.results["path_discovery"] = self.test_path_discovery(test_data)
-        self.results["recommendation_engine"] = self.test_recommendation_engine(
-            test_data
-        )
-        self.results["edge_weight_relevance"] = self.test_edge_weight_relevance(
-            test_data
-        )
+        self.results["recommendation_engine"] = self.test_recommendation_engine(test_data)
+        self.results["edge_weight_relevance"] = self.test_edge_weight_relevance(test_data)
 
         # Generate visualizations
         self.generate_visualizations(test_data)
@@ -564,9 +512,7 @@ class GraphIntelligenceValidator:
         if passed_suites == total_suites:
             print("🎉 ALL TESTS PASSED! Graph intelligence system is performing well.")
         else:
-            print(
-                "⚠️  Some tests failed. Review results for optimization opportunities."
-            )
+            print("⚠️  Some tests failed. Review results for optimization opportunities.")
 
         print("\n📊 Individual Test Results:")
         for test_name, result in self.results.items():
@@ -585,10 +531,7 @@ def main():
         summary = validator.run_full_validation_suite()
 
         # Return appropriate exit code
-        if (
-            summary["overall_summary"]["passed_suites"]
-            == summary["overall_summary"]["total_test_suites"]
-        ):
+        if summary["overall_summary"]["passed_suites"] == summary["overall_summary"]["total_test_suites"]:
             exit(0)  # All tests passed
         else:
             exit(1)  # Some tests failed

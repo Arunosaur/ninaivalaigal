@@ -26,6 +26,4 @@ def run(config):
     avg_accuracy = total_accuracy / len(test_relationships)
     print(f"✅ Edge Weight Accuracy: {avg_accuracy:.2f}")
 
-    assert (
-        avg_accuracy >= config["thresholds"]["edge_weight_accuracy"]
-    ), "❌ Edge weight accuracy below threshold!"
+    assert avg_accuracy >= config["thresholds"]["edge_weight_accuracy"], "❌ Edge weight accuracy below threshold!"

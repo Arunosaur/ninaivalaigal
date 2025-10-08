@@ -29,10 +29,7 @@ class TestPublicAPISurface:
         endpoint_count = get_endpoint_count(filtered_schema)
 
         # Unauthenticated should see 0 endpoints
-        assert endpoint_count == 0, (
-            f"Unauthenticated users should see 0 endpoints, "
-            f"but saw {endpoint_count}"
-        )
+        assert endpoint_count == 0, f"Unauthenticated users should see 0 endpoints, " f"but saw {endpoint_count}"
 
     def test_viewer_role_limited_access(self):
         """VIEWER role should only see external-safe endpoints."""
@@ -42,21 +39,15 @@ class TestPublicAPISurface:
 
         # VIEWER should see limited endpoints (auth, health, memory-public)
         # Exact count will vary, but should be much less than total
-        assert (
-            endpoint_count < 50
-        ), f"VIEWER role should see <50 endpoints, but saw {endpoint_count}"
+        assert endpoint_count < 50, f"VIEWER role should see <50 endpoints, but saw {endpoint_count}"
 
         # Check that admin/billing endpoints are NOT visible
         paths = filtered_schema.get("paths", {})
         admin_paths = [p for p in paths if "admin" in p.lower()]
         billing_paths = [p for p in paths if "billing" in p.lower()]
 
-        assert (
-            len(admin_paths) == 0
-        ), f"VIEWER should not see admin paths: {admin_paths}"
-        assert (
-            len(billing_paths) == 0
-        ), f"VIEWER should not see billing paths: {billing_paths}"
+        assert len(admin_paths) == 0, f"VIEWER should not see admin paths: {admin_paths}"
+        assert len(billing_paths) == 0, f"VIEWER should not see billing paths: {billing_paths}"
 
     def test_member_role_no_admin_access(self):
         """MEMBER role should not see admin endpoints."""
@@ -65,9 +56,7 @@ class TestPublicAPISurface:
         paths = filtered_schema.get("paths", {})
         admin_paths = [p for p in paths if "/admin" in p]
 
-        assert (
-            len(admin_paths) == 0
-        ), f"MEMBER role should not see /admin paths, but saw: {admin_paths}"
+        assert len(admin_paths) == 0, f"MEMBER role should not see /admin paths, but saw: {admin_paths}"
 
     def test_admin_role_has_admin_access(self):
         """ADMIN role should see admin endpoints."""
@@ -80,8 +69,7 @@ class TestPublicAPISurface:
         member_count = get_endpoint_count(member_schema)
 
         assert endpoint_count > member_count, (
-            f"ADMIN should see more endpoints than MEMBER "
-            f"(admin: {endpoint_count}, member: {member_count})"
+            f"ADMIN should see more endpoints than MEMBER " f"(admin: {endpoint_count}, member: {member_count})"
         )
 
     def test_system_role_sees_all_endpoints(self):
@@ -92,9 +80,7 @@ class TestPublicAPISurface:
 
         # SYSTEM should see the most endpoints
         # Current total is ~265
-        assert (
-            endpoint_count > 200
-        ), f"SYSTEM role should see >200 endpoints, but saw {endpoint_count}"
+        assert endpoint_count > 200, f"SYSTEM role should see >200 endpoints, but saw {endpoint_count}"
 
     def test_role_hierarchy_is_enforced(self):
         """Ensure role hierarchy: VIEWER < MEMBER < ADMIN < SYSTEM."""
@@ -103,15 +89,9 @@ class TestPublicAPISurface:
         admin_count = get_endpoint_count(get_filtered_openapi(app, role=Role.ADMIN))
         system_count = get_endpoint_count(get_filtered_openapi(app, role=Role.SYSTEM))
 
-        assert (
-            viewer_count < member_count
-        ), "VIEWER should see fewer endpoints than MEMBER"
-        assert (
-            member_count < admin_count
-        ), "MEMBER should see fewer endpoints than ADMIN"
-        assert (
-            admin_count <= system_count
-        ), "ADMIN should see fewer or equal endpoints than SYSTEM"
+        assert viewer_count < member_count, "VIEWER should see fewer endpoints than MEMBER"
+        assert member_count < admin_count, "MEMBER should see fewer endpoints than ADMIN"
+        assert admin_count <= system_count, "ADMIN should see fewer or equal endpoints than SYSTEM"
 
     def test_sensitive_paths_not_in_public(self):
         """Ensure sensitive paths are never in public schema."""
@@ -132,8 +112,7 @@ class TestPublicAPISurface:
         for pattern in forbidden_patterns:
             matching_paths = [p for p in paths if pattern in p.lower()]
             assert len(matching_paths) == 0, (
-                f"Public schema should not contain paths with '{pattern}', "
-                f"but found: {matching_paths}"
+                f"Public schema should not contain paths with '{pattern}', " f"but found: {matching_paths}"
             )
 
     def test_is_public_endpoint_function(self):

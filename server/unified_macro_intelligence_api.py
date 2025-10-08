@@ -110,21 +110,14 @@ class MacroIntelligenceEngine:
                 pattern_type="daily_peak",
                 frequency=85,
                 contexts=["work", "research"],
-                time_distribution={
-                    "morning": 40,
-                    "afternoon": 45,
-                    "evening": 15
-                },
+                time_distribution={"morning": 40, "afternoon": 45, "evening": 15},
                 confidence=0.87,
             ),
             MemoryPattern(
                 pattern_type="context_clustering",
                 frequency=72,
                 contexts=["project_alpha", "meetings"],
-                time_distribution={
-                    "weekday": 80,
-                    "weekend": 20
-                },
+                time_distribution={"weekday": 80, "weekend": 20},
                 confidence=0.74,
             ),
             MemoryPattern(
@@ -152,48 +145,58 @@ class MacroIntelligenceEngine:
                         id=str(uuid4()),
                         type="insight",
                         title="Peak Productivity Hours Identified",
-                        description=(f"Your memory activity peaks during afternoon hours "
-                                     f"({pattern.time_distribution['afternoon']}% of activity). "
-                                     f"Consider scheduling important tasks during this time."),
+                        description=(
+                            f"Your memory activity peaks during afternoon hours "
+                            f"({pattern.time_distribution['afternoon']}% of activity). "
+                            f"Consider scheduling important tasks during this time."
+                        ),
                         confidence_score=pattern.confidence,
                         impact_level="high",
                         category="productivity",
-                        data_points=[{
-                            "metric": "time_distribution",
-                            "values": pattern.time_distribution,
-                            "contexts": pattern.contexts,
-                        }],
+                        data_points=[
+                            {
+                                "metric": "time_distribution",
+                                "values": pattern.time_distribution,
+                                "contexts": pattern.contexts,
+                            }
+                        ],
                         actionable_items=[
                             "Schedule important meetings in the afternoon",
                             "Block afternoon time for deep work",
                             "Use morning for routine tasks",
                         ],
                         created_at=datetime.utcnow(),
-                    ))
+                    )
+                )
 
-            elif (pattern.pattern_type == "context_clustering" and pattern.confidence > 0.7):
+            elif pattern.pattern_type == "context_clustering" and pattern.confidence > 0.7:
                 insights.append(
                     MacroInsight(
                         id=str(uuid4()),
                         type="pattern",
                         title="Context Clustering Detected",
-                        description=(f"Strong correlation between {', '.join(pattern.contexts)} "
-                                     f"contexts suggests workflow optimization opportunities."),
+                        description=(
+                            f"Strong correlation between {', '.join(pattern.contexts)} "
+                            f"contexts suggests workflow optimization opportunities."
+                        ),
                         confidence_score=pattern.confidence,
                         impact_level="medium",
                         category="efficiency",
-                        data_points=[{
-                            "metric": "context_correlation",
-                            "contexts": pattern.contexts,
-                            "frequency": pattern.frequency,
-                        }],
+                        data_points=[
+                            {
+                                "metric": "context_correlation",
+                                "contexts": pattern.contexts,
+                                "frequency": pattern.frequency,
+                            }
+                        ],
                         actionable_items=[
                             "Create templates for recurring context combinations",
                             "Set up automated workflows",
                             "Consider context-specific memory organization",
                         ],
                         created_at=datetime.utcnow(),
-                    ))
+                    )
+                )
 
             elif pattern.pattern_type == "knowledge_gaps" and pattern.confidence > 0.85:
                 insights.append(
@@ -201,23 +204,28 @@ class MacroIntelligenceEngine:
                         id=str(uuid4()),
                         type="recommendation",
                         title="Learning Opportunities Identified",
-                        description=("Consistent gaps in documentation and learning contexts "
-                                     "suggest structured learning could improve productivity."),
+                        description=(
+                            "Consistent gaps in documentation and learning contexts "
+                            "suggest structured learning could improve productivity."
+                        ),
                         confidence_score=pattern.confidence,
                         impact_level="high",
                         category="learning",
-                        data_points=[{
-                            "metric": "gap_frequency",
-                            "value": pattern.frequency,
-                            "contexts": pattern.contexts,
-                        }],
+                        data_points=[
+                            {
+                                "metric": "gap_frequency",
+                                "value": pattern.frequency,
+                                "contexts": pattern.contexts,
+                            }
+                        ],
                         actionable_items=[
                             "Schedule regular learning sessions",
                             "Create knowledge base templates",
                             "Set up documentation workflows",
                         ],
                         created_at=datetime.utcnow(),
-                    ))
+                    )
+                )
 
         return insights
 
@@ -236,18 +244,21 @@ class MacroIntelligenceEngine:
                     confidence_score=0.78,
                     impact_level="medium",
                     category="productivity",
-                    data_points=[{
-                        "metric": "predicted_increase",
-                        "value": 25,
-                        "timeframe": "next_week",
-                    }],
+                    data_points=[
+                        {
+                            "metric": "predicted_increase",
+                            "value": 25,
+                            "timeframe": "next_week",
+                        }
+                    ],
                     actionable_items=[
                         "Prepare additional memory capacity",
                         "Schedule memory organization time",
                         "Set up automated backups",
                     ],
                     created_at=datetime.utcnow(),
-                ))
+                )
+            )
 
         return predictions
 
@@ -263,8 +274,8 @@ class MacroIntelligenceEngine:
         impact_counts = {}
 
         for insight in insights:
-            category_counts[insight.category] = (category_counts.get(insight.category, 0) + 1)
-            impact_counts[insight.impact_level] = (impact_counts.get(insight.impact_level, 0) + 1)
+            category_counts[insight.category] = category_counts.get(insight.category, 0) + 1
+            impact_counts[insight.impact_level] = impact_counts.get(insight.impact_level, 0) + 1
 
         return {
             "total_insights": total_insights,
@@ -295,10 +306,10 @@ async def get_intelligence_engine():
 
 @router.post("/analyze", response_model=MacroIntelligenceResponse)
 async def analyze_macro_intelligence(
-        request: MacroInsightRequest,
-        background_tasks: BackgroundTasks,
-        current_user: User = Depends(get_current_user),
-        db: Session = Depends(get_db),
+    request: MacroInsightRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Generate macro intelligence analysis"""
 
@@ -400,11 +411,7 @@ async def get_intelligence_metrics(current_user: User = Depends(get_current_user
             "collaboration": 289,
             "efficiency": 181,
         },
-        insights_by_impact={
-            "high": 387,
-            "medium": 623,
-            "low": 237
-        },
+        insights_by_impact={"high": 387, "medium": 623, "low": 237},
         processing_time_ms=1250.0,
         cache_hit_rate=0.73,
     )
@@ -414,9 +421,9 @@ async def get_intelligence_metrics(current_user: User = Depends(get_current_user
 
 @router.post("/insights/{insight_id}/feedback")
 async def provide_insight_feedback(
-        insight_id: str,
-        feedback: Dict[str, Any],
-        current_user: User = Depends(get_current_user),
+    insight_id: str,
+    feedback: Dict[str, Any],
+    current_user: User = Depends(get_current_user),
 ):
     """Provide feedback on insight quality"""
 
@@ -443,52 +450,22 @@ async def get_intelligence_trends(days: int = 30, current_user: User = Depends(g
     # Mock trend data (in production, calculate from historical analyses)
     trends = {
         "insight_generation_trend": [
-            {
-                "date": "2024-09-01",
-                "count": 23
-            },
-            {
-                "date": "2024-09-02",
-                "count": 31
-            },
-            {
-                "date": "2024-09-03",
-                "count": 28
-            },
+            {"date": "2024-09-01", "count": 23},
+            {"date": "2024-09-02", "count": 31},
+            {"date": "2024-09-03", "count": 28},
             # ... more data points
         ],
         "confidence_trend": [
-            {
-                "date": "2024-09-01",
-                "avg_confidence": 0.78
-            },
-            {
-                "date": "2024-09-02",
-                "avg_confidence": 0.82
-            },
-            {
-                "date": "2024-09-03",
-                "avg_confidence": 0.85
-            },
+            {"date": "2024-09-01", "avg_confidence": 0.78},
+            {"date": "2024-09-02", "avg_confidence": 0.82},
+            {"date": "2024-09-03", "avg_confidence": 0.85},
             # ... more data points
         ],
         "category_trends": {
-            "productivity": {
-                "growth_rate": 0.15,
-                "trend": "increasing"
-            },
-            "learning": {
-                "growth_rate": 0.08,
-                "trend": "stable"
-            },
-            "collaboration": {
-                "growth_rate": 0.22,
-                "trend": "increasing"
-            },
-            "efficiency": {
-                "growth_rate": -0.05,
-                "trend": "decreasing"
-            },
+            "productivity": {"growth_rate": 0.15, "trend": "increasing"},
+            "learning": {"growth_rate": 0.08, "trend": "stable"},
+            "collaboration": {"growth_rate": 0.22, "trend": "increasing"},
+            "efficiency": {"growth_rate": -0.05, "trend": "decreasing"},
         },
     }
 

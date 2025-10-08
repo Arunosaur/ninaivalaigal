@@ -148,9 +148,9 @@ class AIFeedbackSystem:
             cutoff_date = datetime.utcnow() - timedelta(days=days_back)
 
             # Get feedback data for analysis
-            feedback_data = await self._get_feedback_data(user_id=user_id,
-                                                          feedback_type=feedback_type,
-                                                          since_date=cutoff_date)
+            feedback_data = await self._get_feedback_data(
+                user_id=user_id, feedback_type=feedback_type, since_date=cutoff_date
+            )
 
             patterns = []
 
@@ -238,18 +238,21 @@ class AIFeedbackSystem:
 
             # Apply memory relevance adjustments
             if "memory_relevance" in user_patterns:
-                adjusted_context = await self._apply_relevance_adjustments(adjusted_context,
-                                                                           user_patterns["memory_relevance"])
+                adjusted_context = await self._apply_relevance_adjustments(
+                    adjusted_context, user_patterns["memory_relevance"]
+                )
 
             # Apply context quality adjustments
             if "context_quality" in user_patterns:
-                adjusted_context = await self._apply_quality_adjustments(adjusted_context,
-                                                                         user_patterns["context_quality"])
+                adjusted_context = await self._apply_quality_adjustments(
+                    adjusted_context, user_patterns["context_quality"]
+                )
 
             # Apply temporal adjustments
             if "temporal_preferences" in user_patterns:
-                adjusted_context = await self._apply_temporal_adjustments(adjusted_context,
-                                                                          user_patterns["temporal_preferences"])
+                adjusted_context = await self._apply_temporal_adjustments(
+                    adjusted_context, user_patterns["temporal_preferences"]
+                )
 
             logger.debug(
                 "Learning adjustments applied",
@@ -324,13 +327,15 @@ class AIFeedbackSystem:
             return
 
         key = f"feedback:recent:{event.user_id}"
-        value = json.dumps({
-            "event_id": event.event_id,
-            "feedback_type": event.feedback_type.value,
-            "feedback_value": event.feedback_value.value,
-            "timestamp": event.timestamp.isoformat(),
-            "context": event.context,
-        })
+        value = json.dumps(
+            {
+                "event_id": event.event_id,
+                "feedback_type": event.feedback_type.value,
+                "feedback_value": event.feedback_value.value,
+                "timestamp": event.timestamp.isoformat(),
+                "context": event.context,
+            }
+        )
 
         # Store with 1-hour expiry
         await self.redis.lpush(key, value)
@@ -395,8 +400,9 @@ class AIFeedbackSystem:
 
         return patterns
 
-    async def _analyze_user_behavior_patterns(self, user_id: str,
-                                              feedback_data: List[Dict[str, Any]]) -> List[LearningPattern]:
+    async def _analyze_user_behavior_patterns(
+        self, user_id: str, feedback_data: List[Dict[str, Any]]
+    ) -> List[LearningPattern]:
         """Analyze user-specific behavior patterns."""
         patterns = []
 

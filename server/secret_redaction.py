@@ -150,11 +150,7 @@ class SecretRedactionPipeline:
                     (
                         self.detector.redact_secrets(item)
                         if isinstance(item, str)
-                        else (
-                            self._redact_dict_recursive(item)
-                            if isinstance(item, dict)
-                            else item
-                        )
+                        else (self._redact_dict_recursive(item) if isinstance(item, dict) else item)
                     )
                     for item in value
                 ]

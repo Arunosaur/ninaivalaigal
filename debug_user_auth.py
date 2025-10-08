@@ -42,9 +42,7 @@ def test_user_creation():
         if login_response.status_code == 200:
             login_result = login_response.json()
             print("✅ Login successful!")
-            print(
-                f"   Token: {login_result.get('user', {}).get('jwt_token', 'N/A')[:50]}..."
-            )
+            print(f"   Token: {login_result.get('user', {}).get('jwt_token', 'N/A')[:50]}...")
             return True
         else:
             print(f"❌ Login failed: {login_response.status_code}")

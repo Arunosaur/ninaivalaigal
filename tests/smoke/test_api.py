@@ -37,9 +37,7 @@ class TestAPISmoke:
 
             # Check for key health indicators
             assert "status" in data
-            assert (
-                "uptime_s" in data or "uptime" in data or "db" in data
-            )  # Should have uptime or db info
+            assert "uptime_s" in data or "uptime" in data or "db" in data  # Should have uptime or db info
 
             # Check database health
             if "database" in data:
@@ -92,9 +90,7 @@ class TestAPISmoke:
 
             response_time = (end_time - start_time) * 1000  # Convert to ms
             assert response.status_code == 200
-            assert (
-                response_time < 1000
-            ), f"Response time {response_time:.2f}ms exceeds 1000ms threshold"
+            assert response_time < 1000, f"Response time {response_time:.2f}ms exceeds 1000ms threshold"
 
         except Exception as e:
             pytest.fail(f"API response time check failed: {e}")
@@ -137,9 +133,7 @@ class TestAPIMemoryEndpoints:
         url = f"{self.BASE_URL}/memory/tokenize"
         try:
             # Test with valid text
-            response = requests.post(
-                url, json={"text": "test memory tokenization"}, timeout=self.TIMEOUT
-            )
+            response = requests.post(url, json={"text": "test memory tokenization"}, timeout=self.TIMEOUT)
             assert response.status_code == 200
             data = response.json()
             assert "tokens" in data

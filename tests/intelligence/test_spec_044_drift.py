@@ -39,18 +39,12 @@ class TestMemoryDriftDetection:
             if response.status_code == 404:
                 pytest.skip("Drift detection endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Drift detection failed: {response.status_code}"
+            assert response.status_code == 200, f"Drift detection failed: {response.status_code}"
 
             if response.status_code == 200:
                 result = response.json()
-                assert (
-                    "drift_detected" in result
-                ), "Drift detection response missing 'drift_detected' field"
-                assert (
-                    "similarity_score" in result
-                ), "Drift detection response missing similarity score"
+                assert "drift_detected" in result, "Drift detection response missing 'drift_detected' field"
+                assert "similarity_score" in result, "Drift detection response missing similarity score"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -75,9 +69,7 @@ class TestMemoryDriftDetection:
             if response.status_code == 404:
                 pytest.skip("Semantic drift detection endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Semantic drift detection failed: {response.status_code}"
+            assert response.status_code == 200, f"Semantic drift detection failed: {response.status_code}"
 
             if response.status_code == 200:
                 result = response.json()
@@ -116,9 +108,7 @@ class TestMemoryDriftDetection:
             if response.status_code == 404:
                 pytest.skip("Metadata drift detection endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Metadata drift detection failed: {response.status_code}"
+            assert response.status_code == 200, f"Metadata drift detection failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -138,9 +128,7 @@ class TestMemoryDriftDetection:
             if response.status_code == 404:
                 pytest.skip("Drift history endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Drift history failed: {response.status_code}"
+            assert response.status_code == 200, f"Drift history failed: {response.status_code}"
 
             if response.status_code == 200:
                 result = response.json()
@@ -173,19 +161,13 @@ class TestDriftDetectionEdgeCases:
             if response.status_code == 404:
                 pytest.skip("Drift detection endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Identical content test failed: {response.status_code}"
+            assert response.status_code == 200, f"Identical content test failed: {response.status_code}"
 
             if response.status_code == 200:
                 result = response.json()
                 # Should detect no drift for identical content
-                assert (
-                    result.get("drift_detected") == False
-                ), "Drift detected for identical content"
-                assert (
-                    result.get("similarity_score", 0) >= 0.99
-                ), "Similarity score too low for identical content"
+                assert result.get("drift_detected") == False, "Drift detected for identical content"
+                assert result.get("similarity_score", 0) >= 0.99, "Similarity score too low for identical content"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -210,17 +192,13 @@ class TestDriftDetectionEdgeCases:
             if response.status_code == 404:
                 pytest.skip("Drift detection endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Formatting drift test failed: {response.status_code}"
+            assert response.status_code == 200, f"Formatting drift test failed: {response.status_code}"
 
             if response.status_code == 200:
                 result = response.json()
                 # Should have high similarity despite formatting differences
                 similarity = result.get("similarity_score", 0)
-                assert (
-                    similarity > 0.8
-                ), f"Similarity too low for formatting changes: {similarity}"
+                assert similarity > 0.8, f"Similarity too low for formatting changes: {similarity}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -243,9 +221,7 @@ class TestDriftDetectionEdgeCases:
             if response.status_code == 404:
                 pytest.skip("Mass deletion detection endpoint not implemented")
 
-            assert (
-                response.status_code == 200
-            ), f"Mass deletion detection failed: {response.status_code}"
+            assert response.status_code == 200, f"Mass deletion detection failed: {response.status_code}"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -330,17 +306,13 @@ class TestDriftPerformance:
 
             assert response2.status_code == 200, "Cached similarity request failed"
 
-            print(
-                f"First calculation: {first_time:.3f}s, Second calculation: {second_time:.3f}s"
-            )
+            print(f"First calculation: {first_time:.3f}s, Second calculation: {second_time:.3f}s")
 
             # Results should be identical
             if response1.status_code == 200 and response2.status_code == 200:
                 result1 = response1.json()
                 result2 = response2.json()
-                assert result1.get("similarity_score") == result2.get(
-                    "similarity_score"
-                ), "Cached results differ"
+                assert result1.get("similarity_score") == result2.get("similarity_score"), "Cached results differ"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")

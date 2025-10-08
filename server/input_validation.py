@@ -82,16 +82,12 @@ class InputValidator:
         # Check length
         max_len = max_length or self.max_lengths.get(field_name, 1000)
         if len(value) > max_len:
-            raise InputValidationError(
-                f"{field_name} exceeds maximum length of {max_len}"
-            )
+            raise InputValidationError(f"{field_name} exceeds maximum length of {max_len}")
 
         # Check for dangerous patterns
         for dangerous_pattern in self.dangerous_patterns:
             if re.search(dangerous_pattern, value, re.IGNORECASE):
-                raise InputValidationError(
-                    f"{field_name} contains potentially dangerous content"
-                )
+                raise InputValidationError(f"{field_name} contains potentially dangerous content")
 
         # Apply pattern validation
         if pattern:
@@ -125,9 +121,7 @@ class InputValidator:
             raise InputValidationError("Password must be at least 8 characters long")
 
         if len(password) > self.max_lengths["password"]:
-            raise InputValidationError(
-                f"Password exceeds maximum length of {self.max_lengths['password']}"
-            )
+            raise InputValidationError(f"Password exceeds maximum length of {self.max_lengths['password']}")
 
         # Check for at least one letter and one number
         if not re.search(r"[A-Za-z]", password):
@@ -191,9 +185,7 @@ class InputValidator:
             raise InputValidationError(f"{field_name} must be a list")
 
         if len(value) > max_items:
-            raise InputValidationError(
-                f"{field_name} cannot have more than {max_items} items"
-            )
+            raise InputValidationError(f"{field_name} cannot have more than {max_items} items")
 
         if item_validator:
             validated_items = []
@@ -217,9 +209,7 @@ class InputValidator:
 
         # Additional sanitization for specific patterns
         sanitized = re.sub(r"javascript:", "", sanitized, flags=re.IGNORECASE)
-        sanitized = re.sub(
-            r'on\w+\s*=\s*["\'][^"\']*["\']', "", sanitized, flags=re.IGNORECASE
-        )
+        sanitized = re.sub(r'on\w+\s*=\s*["\'][^"\']*["\']', "", sanitized, flags=re.IGNORECASE)
 
         return sanitized
 
@@ -255,9 +245,7 @@ class InputValidator:
             # Check for dangerous patterns in string values
             for dangerous_pattern in self.dangerous_patterns:
                 if re.search(dangerous_pattern, obj, re.IGNORECASE):
-                    raise InputValidationError(
-                        f"{field_name} contains potentially dangerous content"
-                    )
+                    raise InputValidationError(f"{field_name} contains potentially dangerous content")
 
 
 class APIInputValidator:
@@ -271,9 +259,7 @@ class APIInputValidator:
         validated = {}
 
         validated["email"] = self.validator.validate_email(data.get("email", ""))
-        validated["password"] = self.validator.validate_password(
-            data.get("password", "")
-        )
+        validated["password"] = self.validator.validate_password(data.get("password", ""))
         validated["name"] = self.validator.validate_string(data.get("name", ""), "name")
 
         if "account_type" in data:
@@ -299,14 +285,10 @@ class APIInputValidator:
         """Validate memory storage data"""
         validated = {}
 
-        validated["text"] = self.validator.validate_string(
-            data.get("text", ""), "memory_text", max_length=10000
-        )
+        validated["text"] = self.validator.validate_string(data.get("text", ""), "memory_text", max_length=10000)
 
         if "context" in data:
-            validated["context"] = self.validator.validate_string(
-                data["context"], "context_name", allow_empty=True
-            )
+            validated["context"] = self.validator.validate_string(data["context"], "context_name", allow_empty=True)
 
         return validated
 
@@ -314,9 +296,7 @@ class APIInputValidator:
         """Validate context creation data"""
         validated = {}
 
-        validated["name"] = self.validator.validate_string(
-            data.get("name", ""), "context_name"
-        )
+        validated["name"] = self.validator.validate_string(data.get("name", ""), "context_name")
 
         if "description" in data:
             validated["description"] = self.validator.validate_string(

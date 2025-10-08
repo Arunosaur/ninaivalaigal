@@ -81,16 +81,8 @@ async def execute_agent(request: AgentExecutionRequest) -> AgentExecutionRespons
     try:
         # Get agent core instance
         performance_manager = get_performance_manager()
-        redis_client = (
-            performance_manager.redis_client
-            if performance_manager.initialized
-            else None
-        )
-        graph_intelligence = (
-            performance_manager.graph_intelligence
-            if performance_manager.initialized
-            else None
-        )
+        redis_client = performance_manager.redis_client if performance_manager.initialized else None
+        graph_intelligence = performance_manager.graph_intelligence if performance_manager.initialized else None
 
         agent_core = get_agent_core(
             redis_client=redis_client,
@@ -154,19 +146,13 @@ async def analyze_intent(request: IntentAnalysisRequest) -> IntentAnalysisRespon
 
         mock_context = ExecutionContext(
             execution_id=str(uuid.uuid4()),
-            user_id=(
-                request.context.get("user_id", "analysis_user")
-                if request.context
-                else "analysis_user"
-            ),
+            user_id=(request.context.get("user_id", "analysis_user") if request.context else "analysis_user"),
             user_prompt=request.user_prompt,
             context_data=request.context or {},
         )
 
         # Analyze intent
-        detected_mode = await agent_core.intention_router.route_intent(
-            request.user_prompt, mock_context
-        )
+        detected_mode = await agent_core.intention_router.route_intent(request.user_prompt, mock_context)
 
         # Get detailed explanation
         explanation = agent_core.intention_router.get_routing_explanation(
@@ -184,9 +170,7 @@ async def analyze_intent(request: IntentAnalysisRequest) -> IntentAnalysisRespon
 
         # Get alternative modes (top 3 excluding selected)
         sorted_modes = sorted(mode_scores.items(), key=lambda x: x[1], reverse=True)
-        alternative_modes = [
-            mode for mode, score in sorted_modes[1:4] if mode != detected_mode.value
-        ]
+        alternative_modes = [mode for mode, score in sorted_modes[1:4] if mode != detected_mode.value]
 
         return IntentAnalysisResponse(
             detected_intent=detected_mode.value,
@@ -216,11 +200,7 @@ async def deploy_graph_intelligence_endpoint(
     try:
         # Get Redis client from performance manager
         performance_manager = get_performance_manager()
-        redis_client = (
-            performance_manager.redis_client
-            if performance_manager.initialized
-            else None
-        )
+        redis_client = performance_manager.redis_client if performance_manager.initialized else None
 
         # Check if already deployed and not forcing redeploy
         deployment = get_graph_intelligence_deployment()
@@ -254,9 +234,7 @@ async def deploy_graph_intelligence_endpoint(
 
     except Exception as e:
         logger.error("Graph intelligence deployment failed", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Graph intelligence deployment failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Graph intelligence deployment failed: {str(e)}")
 
 
 @router.get("/graph-intelligence/status")
@@ -278,9 +256,7 @@ async def get_graph_intelligence_status():
 
     except Exception as e:
         logger.error("Failed to get graph intelligence status", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get graph intelligence status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get graph intelligence status: {str(e)}")
 
 
 @router.get("/execution/metrics")
@@ -298,9 +274,7 @@ async def get_execution_metrics():
 
     except Exception as e:
         logger.error("Failed to get execution metrics", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get execution metrics: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get execution metrics: {str(e)}")
 
 
 @router.get("/execution/{execution_id}/status")
@@ -322,9 +296,7 @@ async def get_execution_status(execution_id: str):
         raise
     except Exception as e:
         logger.error("Failed to get execution status", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get execution status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get execution status: {str(e)}")
 
 
 @router.post("/execution/{execution_id}/cancel")
@@ -335,9 +307,7 @@ async def cancel_execution(execution_id: str):
         cancelled = await agent_core.cancel_execution(execution_id)
 
         if not cancelled:
-            raise HTTPException(
-                status_code=404, detail="Execution not found or already completed"
-            )
+            raise HTTPException(status_code=404, detail="Execution not found or already completed")
 
         return {
             "status": "success",
@@ -349,9 +319,7 @@ async def cancel_execution(execution_id: str):
         raise
     except Exception as e:
         logger.error("Failed to cancel execution", error=str(e))
-        raise HTTPException(
-            status_code=500, detail=f"Failed to cancel execution: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to cancel execution: {str(e)}")
 
 
 @router.get("/modes")
@@ -449,8 +417,7 @@ async def agentic_health_check():
             "capabilities": {
                 "agent_execution": health_status["agentic_core"] == "healthy",
                 "graph_reasoning": health_status["graph_intelligence"] == "healthy",
-                "performance_optimization": health_status["performance_integration"]
-                == "healthy",
+                "performance_optimization": health_status["performance_integration"] == "healthy",
                 "redis_caching": health_status["redis_connection"] == "healthy",
             },
         }

@@ -20,15 +20,9 @@ class SessionConfig:
 
     def __init__(self):
         self.base_timeout_minutes = int(os.getenv("SESSION_BASE_TIMEOUT", "30"))
-        self.max_timeout_minutes = int(
-            os.getenv("SESSION_MAX_TIMEOUT", "480")
-        )  # 8 hours
-        self.min_timeout_minutes = int(
-            os.getenv("SESSION_MIN_TIMEOUT", "5")
-        )  # 5 minutes
-        self.renewal_threshold = float(
-            os.getenv("SESSION_RENEWAL_THRESHOLD", "0.8")
-        )  # 80% of timeout
+        self.max_timeout_minutes = int(os.getenv("SESSION_MAX_TIMEOUT", "480"))  # 8 hours
+        self.min_timeout_minutes = int(os.getenv("SESSION_MIN_TIMEOUT", "5"))  # 5 minutes
+        self.renewal_threshold = float(os.getenv("SESSION_RENEWAL_THRESHOLD", "0.8"))  # 80% of timeout
 
         # Intelligence multipliers
         self.multipliers = {
@@ -74,18 +68,14 @@ class IntelligentSessionManager:
         """Generate Redis key for renewal recommendations"""
         return f"session:renewal:{session_id}"
 
-    async def calculate_intelligent_timeout(
-        self, user_id: str, session_data: dict[str, Any]
-    ) -> int:
+    async def calculate_intelligent_timeout(self, user_id: str, session_data: dict[str, Any]) -> int:
         """Calculate intelligent session timeout based on user behavior"""
         try:
             base_timeout = self.config.base_timeout_minutes * 60  # Convert to seconds
 
             # Get user activity level
             activity_level = await self._get_user_activity_level(user_id)
-            activity_multiplier = self.config.multipliers.get(
-                f"activity_{activity_level}", 1.0
-            )
+            activity_multiplier = self.config.multipliers.get(f"activity_{activity_level}", 1.0)
 
             # Get user role
             user_role = session_data.get("user_role", "regular")
@@ -93,30 +83,21 @@ class IntelligentSessionManager:
 
             # Get context importance (integration with SPEC-031)
             context_level = await self._get_context_importance(user_id)
-            context_multiplier = self.config.multipliers.get(
-                f"context_{context_level}", 1.0
-            )
+            context_multiplier = self.config.multipliers.get(f"context_{context_level}", 1.0)
 
             # Get security risk level
             security_level = await self._get_security_risk_level(user_id, session_data)
-            security_multiplier = self.config.multipliers.get(
-                f"security_{security_level}", 1.0
-            )
+            security_multiplier = self.config.multipliers.get(f"security_{security_level}", 1.0)
 
             # Calculate intelligent timeout
             intelligent_timeout = base_timeout * (
-                activity_multiplier
-                * role_multiplier
-                * context_multiplier
-                * security_multiplier
+                activity_multiplier * role_multiplier * context_multiplier * security_multiplier
             )
 
             # Apply bounds
             max_timeout = self.config.max_timeout_minutes * 60
             min_timeout = self.config.min_timeout_minutes * 60
-            intelligent_timeout = max(
-                min_timeout, min(max_timeout, intelligent_timeout)
-            )
+            intelligent_timeout = max(min_timeout, min(max_timeout, intelligent_timeout))
 
             logger.debug(
                 "Intelligent timeout calculated",
@@ -132,9 +113,7 @@ class IntelligentSessionManager:
             return int(intelligent_timeout)
 
         except Exception as e:
-            logger.error(
-                "Error calculating intelligent timeout", user_id=user_id, error=str(e)
-            )
+            logger.error("Error calculating intelligent timeout", user_id=user_id, error=str(e))
             return self.config.base_timeout_minutes * 60  # Fallback to base timeout
 
     async def _get_user_activity_level(self, user_id: str) -> str:
@@ -161,9 +140,7 @@ class IntelligentSessionManager:
             activity_score = 0
 
             for session in recent_sessions[-10:]:  # Last 10 sessions
-                session_time = datetime.fromisoformat(
-                    session.get("created_at", now.isoformat())
-                )
+                session_time = datetime.fromisoformat(session.get("created_at", now.isoformat()))
                 hours_ago = (now - session_time).total_seconds() / 3600
 
                 if hours_ago < 24:  # Last 24 hours
@@ -178,9 +155,7 @@ class IntelligentSessionManager:
                 return "low"
 
         except Exception as e:
-            logger.error(
-                "Error getting user activity level", user_id=user_id, error=str(e)
-            )
+            logger.error("Error getting user activity level", user_id=user_id, error=str(e))
             return "medium"
 
     async def _get_context_importance(self, user_id: str) -> str:
@@ -206,14 +181,10 @@ class IntelligentSessionManager:
                 return "normal"
 
         except Exception as e:
-            logger.error(
-                "Error getting context importance", user_id=user_id, error=str(e)
-            )
+            logger.error("Error getting context importance", user_id=user_id, error=str(e))
             return "normal"
 
-    async def _get_security_risk_level(
-        self, user_id: str, session_data: dict[str, Any]
-    ) -> str:
+    async def _get_security_risk_level(self, user_id: str, session_data: dict[str, Any]) -> str:
         """Assess security risk level for the session"""
         try:
             risk_factors = 0
@@ -226,11 +197,7 @@ class IntelligentSessionManager:
             if not user_agent or "bot" in user_agent.lower():
                 risk_factors += 1
 
-            if (
-                not ip_address
-                or ip_address.startswith("10.")
-                or ip_address.startswith("192.168.")
-            ):
+            if not ip_address or ip_address.startswith("10.") or ip_address.startswith("192.168."):
                 # Internal/private IP might be more trusted
                 risk_factors -= 1
 
@@ -263,9 +230,7 @@ class IntelligentSessionManager:
                 raise Exception("Redis not connected")
 
             # Calculate intelligent timeout
-            timeout_seconds = await self.calculate_intelligent_timeout(
-                user_id, session_data
-            )
+            timeout_seconds = await self.calculate_intelligent_timeout(user_id, session_data)
 
             # Prepare session data
             enhanced_session_data = {
@@ -286,9 +251,7 @@ class IntelligentSessionManager:
 
             # Store session in Redis
             session_key = self._make_session_key(session_id)
-            await self.redis.redis.setex(
-                session_key, timeout_seconds, json.dumps(enhanced_session_data)
-            )
+            await self.redis.redis.setex(session_key, timeout_seconds, json.dumps(enhanced_session_data))
 
             # Create session metadata
             meta_data = {
@@ -297,9 +260,7 @@ class IntelligentSessionManager:
                 "created_at": enhanced_session_data["created_at"],
                 "original_timeout": timeout_seconds,
                 "intelligence_applied": True,
-                "features_enabled": list(
-                    enhanced_session_data["intelligent_features"].keys()
-                ),
+                "features_enabled": list(enhanced_session_data["intelligent_features"].keys()),
             }
 
             meta_key = self._make_session_meta_key(session_id)
@@ -315,14 +276,10 @@ class IntelligentSessionManager:
                 "total_count": 0,
                 "last_update": datetime.utcnow().isoformat(),
             }
-            await self.redis.redis.setex(
-                activity_key, 86400, json.dumps(activity_data)
-            )  # 24 hours
+            await self.redis.redis.setex(activity_key, 86400, json.dumps(activity_data))  # 24 hours
 
             # Update user session history
-            await self._update_user_session_history(
-                user_id, session_id, enhanced_session_data
-            )
+            await self._update_user_session_history(user_id, session_id, enhanced_session_data)
 
             logger.info(
                 "Intelligent session created",
@@ -349,9 +306,7 @@ class IntelligentSessionManager:
             )
             raise
 
-    async def track_session_activity(
-        self, session_id: str, activity_type: str, metadata: dict[str, Any] = None
-    ):
+    async def track_session_activity(self, session_id: str, activity_type: str, metadata: dict[str, Any] = None):
         """Track user activity for intelligent session management"""
         try:
             if not self.redis.is_connected:
@@ -367,9 +322,7 @@ class IntelligentSessionManager:
                 data["activity_count"] = data.get("activity_count", 0) + 1
 
                 # Update session with new activity
-                await self.redis.redis.setex(
-                    session_key, data["timeout_seconds"], json.dumps(data)
-                )
+                await self.redis.redis.setex(session_key, data["timeout_seconds"], json.dumps(data))
 
             # Track detailed activity
             activity_key = self._make_activity_key(session_id)
@@ -392,9 +345,7 @@ class IntelligentSessionManager:
                 if len(activities["activities"]) > 100:
                     activities["activities"] = activities["activities"][-100:]
 
-                await self.redis.redis.setex(
-                    activity_key, 86400, json.dumps(activities)
-                )
+                await self.redis.redis.setex(activity_key, 86400, json.dumps(activities))
 
             logger.debug(
                 "Session activity tracked",
@@ -404,9 +355,7 @@ class IntelligentSessionManager:
             )
 
         except Exception as e:
-            logger.error(
-                "Error tracking session activity", session_id=session_id, error=str(e)
-            )
+            logger.error("Error tracking session activity", session_id=session_id, error=str(e))
 
     async def get_session_analytics(self, session_id: str) -> dict[str, Any]:
         """Get comprehensive session analytics"""
@@ -431,11 +380,7 @@ class IntelligentSessionManager:
             # Get activity data
             activity_key = self._make_activity_key(session_id)
             activity_data = await self.redis.redis.get(activity_key)
-            activities = (
-                json.loads(activity_data)
-                if activity_data
-                else {"activities": [], "total_count": 0}
-            )
+            activities = json.loads(activity_data) if activity_data else {"activities": [], "total_count": 0}
 
             # Calculate session duration
             created_at = datetime.fromisoformat(session["created_at"])
@@ -457,25 +402,18 @@ class IntelligentSessionManager:
                 "remaining_minutes": round(remaining_seconds / 60, 2),
                 "activity_count": session.get("activity_count", 0),
                 "intelligent_features": session.get("intelligent_features", {}),
-                "recent_activities": activities["activities"][
-                    -10:
-                ],  # Last 10 activities
+                "recent_activities": activities["activities"][-10:],  # Last 10 activities
                 "session_health": {
                     "active": remaining_seconds > 0,
-                    "renewal_recommended": remaining_seconds
-                    < (timeout_seconds * self.config.renewal_threshold),
-                    "expires_at": (
-                        last_activity + timedelta(seconds=timeout_seconds)
-                    ).isoformat(),
+                    "renewal_recommended": remaining_seconds < (timeout_seconds * self.config.renewal_threshold),
+                    "expires_at": (last_activity + timedelta(seconds=timeout_seconds)).isoformat(),
                 },
             }
 
             return analytics
 
         except Exception as e:
-            logger.error(
-                "Error getting session analytics", session_id=session_id, error=str(e)
-            )
+            logger.error("Error getting session analytics", session_id=session_id, error=str(e))
             return {"error": str(e)}
 
     async def get_renewal_recommendation(self, session_id: str) -> dict[str, Any]:
@@ -525,11 +463,7 @@ class IntelligentSessionManager:
                 "reasons": renewal_reason,
                 "remaining_minutes": remaining_minutes,
                 "recommended_action": "renew" if should_renew else "continue",
-                "renewal_urgency": (
-                    "high"
-                    if remaining_minutes < 2
-                    else "medium" if remaining_minutes < 10 else "low"
-                ),
+                "renewal_urgency": ("high" if remaining_minutes < 2 else "medium" if remaining_minutes < 10 else "low"),
             }
 
             # Cache recommendation
@@ -596,9 +530,7 @@ class IntelligentSessionManager:
                 "session_id": session_id,
                 "renewed": True,
                 "new_timeout_minutes": new_timeout / 60,
-                "expires_at": (
-                    datetime.utcnow() + timedelta(seconds=new_timeout)
-                ).isoformat(),
+                "expires_at": (datetime.utcnow() + timedelta(seconds=new_timeout)).isoformat(),
                 "renewal_count": session["renewal_count"],
             }
 
@@ -606,9 +538,7 @@ class IntelligentSessionManager:
             logger.error("Error renewing session", session_id=session_id, error=str(e))
             raise
 
-    async def _update_user_session_history(
-        self, user_id: str, session_id: str, session_data: dict[str, Any]
-    ):
+    async def _update_user_session_history(self, user_id: str, session_id: str, session_data: dict[str, Any]):
         """Update user's session history for intelligence learning"""
         try:
             user_key = self._make_user_session_key(user_id)
@@ -644,9 +574,7 @@ class IntelligentSessionManager:
             await self.redis.redis.setex(user_key, 2592000, json.dumps(data))
 
         except Exception as e:
-            logger.error(
-                "Error updating user session history", user_id=user_id, error=str(e)
-            )
+            logger.error("Error updating user session history", user_id=user_id, error=str(e))
 
 
 # Global session manager instance
@@ -666,17 +594,13 @@ async def get_session_manager() -> IntelligentSessionManager:
 
 
 # Convenience functions for common operations
-async def create_intelligent_session(
-    user_id: str, session_id: str, session_data: dict[str, Any]
-) -> dict[str, Any]:
+async def create_intelligent_session(user_id: str, session_id: str, session_data: dict[str, Any]) -> dict[str, Any]:
     """Create an intelligent session"""
     manager = await get_session_manager()
     return await manager.create_intelligent_session(user_id, session_id, session_data)
 
 
-async def track_activity(
-    session_id: str, activity_type: str, metadata: dict[str, Any] = None
-):
+async def track_activity(session_id: str, activity_type: str, metadata: dict[str, Any] = None):
     """Track session activity"""
     manager = await get_session_manager()
     await manager.track_session_activity(session_id, activity_type, metadata)

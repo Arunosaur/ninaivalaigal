@@ -155,23 +155,15 @@ def calculate_pagerank(
                 weight = link["weight"]
 
                 # Calculate outgoing weight sum for source
-                outgoing_weight_sum = sum(
-                    link["weight"] for link in outgoing_links[source_id]
-                )
+                outgoing_weight_sum = sum(link["weight"] for link in outgoing_links[source_id])
 
                 if outgoing_weight_sum > 0:
-                    rank += (
-                        damping_factor
-                        * pagerank[source_id]
-                        * (weight / outgoing_weight_sum)
-                    )
+                    rank += damping_factor * pagerank[source_id] * (weight / outgoing_weight_sum)
 
             new_pagerank[node_id] = rank
 
         # Check convergence
-        max_change = max(
-            abs(new_pagerank[node_id] - pagerank[node_id]) for node_id in node_ids
-        )
+        max_change = max(abs(new_pagerank[node_id] - pagerank[node_id]) for node_id in node_ids)
         if max_change < tolerance:
             break
 
@@ -180,9 +172,7 @@ def calculate_pagerank(
     return pagerank
 
 
-def calculate_enhanced_scores(
-    nodes: Dict, pagerank_scores: Dict[str, float]
-) -> Dict[str, Dict]:
+def calculate_enhanced_scores(nodes: Dict, pagerank_scores: Dict[str, float]) -> Dict[str, Dict]:
     """Calculate enhanced ranking scores combining PageRank with other signals"""
 
     enhanced_scores = {}
@@ -202,21 +192,11 @@ def calculate_enhanced_scores(
             approval_boost = 0.2 if node.get("approval_status") == "approved" else 0.0
 
             # Recency factor (newer memories get slight boost)
-            created_date = datetime.fromisoformat(
-                node["created_at"].replace("Z", "+00:00")
-            )
+            created_date = datetime.fromisoformat(node["created_at"].replace("Z", "+00:00"))
             days_old = (datetime.utcnow() - created_date).days
-            recency_boost = max(
-                0, (30 - days_old) / 30 * 0.1
-            )  # Boost for memories < 30 days old
+            recency_boost = max(0, (30 - days_old) / 30 * 0.1)  # Boost for memories < 30 days old
 
-            enhanced_score = (
-                base_pagerank
-                + discussion_boost
-                + sentiment_boost
-                + approval_boost
-                + recency_boost
-            )
+            enhanced_score = base_pagerank + discussion_boost + sentiment_boost + approval_boost + recency_boost
 
             enhanced_scores[node_id] = {
                 "base_pagerank": base_pagerank,
@@ -428,9 +408,7 @@ async def get_memory_recommendations(
         for node_id, score_data in enhanced_scores.items():
             node = score_data["node"]
             if (
-                node["type"] == "memory"
-                and node.get("team_id") == user_team_id
-                and node.get("user_id") != user_id
+                node["type"] == "memory" and node.get("team_id") == user_team_id and node.get("user_id") != user_id
             ):  # Don't recommend own memories
 
                 recommendations.append(
@@ -504,8 +482,7 @@ async def get_graph_insights(
             "total_edges": len(GRAPH_EDGES),
             "avg_pagerank": sum(pagerank_scores.values()) / len(pagerank_scores),
             "max_pagerank": max(pagerank_scores.values()),
-            "graph_density": len(GRAPH_EDGES)
-            / (len(GRAPH_NODES) * (len(GRAPH_NODES) - 1)),
+            "graph_density": len(GRAPH_EDGES) / (len(GRAPH_NODES) * (len(GRAPH_NODES) - 1)),
         },
     }
 
@@ -558,9 +535,7 @@ async def get_graph_insights(
                 for tag in node.get("tags", []):
                     tag_counts[tag] = tag_counts.get(tag, 0) + 1
 
-    insights["trending_topics"] = dict(
-        sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-    )
+    insights["trending_topics"] = dict(sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:10])
 
     return {
         "success": True,

@@ -206,9 +206,7 @@ def enforce_part_limits(
                 "severity": "high",
             }
         )
-        raise ValueError(
-            f"multipart part exceeds per-part limit: {len(content)} > {config.max_part_bytes}"
-        )
+        raise ValueError(f"multipart part exceeds per-part limit: {len(content)} > {config.max_part_bytes}")
 
     # Magic byte detection
     if config.enforce_magic_byte_checks:
@@ -223,14 +221,10 @@ def enforce_part_limits(
                     "type": "executable_magic_bytes",
                     "message": f"Executable file detected: {magic_result.detected_type}",
                     "severity": "critical",
-                    "signature": (
-                        magic_result.signature.hex() if magic_result.signature else None
-                    ),
+                    "signature": (magic_result.signature.hex() if magic_result.signature else None),
                 }
             )
-            raise ValueError(
-                f"Executable content blocked: {magic_result.detected_type}"
-            )
+            raise ValueError(f"Executable content blocked: {magic_result.detected_type}")
 
         # Check for content type mismatch with magic bytes
         if magic_result.detected and magic_result.detected_type:
@@ -259,23 +253,15 @@ def enforce_part_limits(
                         "declared_type": content_type,
                         "detected_type": magic_result.detected_type,
                         "file_name": filename,  # Use file_name instead of filename to avoid LogRecord conflict
-                        "signature": (
-                            magic_result.signature.hex()
-                            if magic_result.signature
-                            else None
-                        ),
+                        "signature": (magic_result.signature.hex() if magic_result.signature else None),
                     },
                 )
 
     # Binary detection
-    result["is_binary"] = looks_binary(
-        content, printable_threshold=config.printable_threshold
-    )
+    result["is_binary"] = looks_binary(content, printable_threshold=config.printable_threshold)
 
     # Type-specific size limits
-    if result["is_binary"] or (
-        result["magic_byte_result"] and result["magic_byte_result"].detected
-    ):
+    if result["is_binary"] or (result["magic_byte_result"] and result["magic_byte_result"].detected):
         if len(content) > config.max_binary_part_bytes:
             result["valid"] = False
             result["violations"].append(
@@ -285,9 +271,7 @@ def enforce_part_limits(
                     "severity": "medium",
                 }
             )
-            raise ValueError(
-                f"Binary part exceeds size limit: {len(content)} > {config.max_binary_part_bytes}"
-            )
+            raise ValueError(f"Binary part exceeds size limit: {len(content)} > {config.max_binary_part_bytes}")
     else:
         # Text content
         if len(content) > config.max_text_part_bytes:
@@ -299,8 +283,6 @@ def enforce_part_limits(
                     "severity": "medium",
                 }
             )
-            raise ValueError(
-                f"Text part exceeds size limit: {len(content)} > {config.max_text_part_bytes}"
-            )
+            raise ValueError(f"Text part exceeds size limit: {len(content)} > {config.max_text_part_bytes}")
 
     return result

@@ -88,9 +88,7 @@ class TestACLEdgeCases:
         invalid_headers = {"Authorization": "Bearer invalid_token_12345"}
 
         try:
-            response = requests.get(
-                f"{BASE_URL}/memory", headers=invalid_headers, timeout=5
-            )
+            response = requests.get(f"{BASE_URL}/memory", headers=invalid_headers, timeout=5)
 
             # Should return 401 or 403 for unauthorized access
             assert response.status_code in [
@@ -121,9 +119,7 @@ class TestACLEdgeCases:
                 pytest.skip("ACL hierarchy testing endpoint not implemented")
 
             # Should resolve hierarchy correctly (admin > editor > viewer)
-            assert (
-                response.status_code == 200
-            ), f"Hierarchy resolution failed: {response.status_code}"
+            assert response.status_code == 200, f"Hierarchy resolution failed: {response.status_code}"
 
             if response.status_code == 200:
                 result = response.json()
@@ -181,9 +177,7 @@ class TestACLEdgeCases:
         }
 
         try:
-            response = requests.post(
-                f"{BASE_URL}/acl/test-loops", json=loop_data, headers=HEADERS, timeout=5
-            )
+            response = requests.post(f"{BASE_URL}/acl/test-loops", json=loop_data, headers=HEADERS, timeout=5)
 
             if response.status_code == 404:
                 pytest.skip("ACL loop detection not implemented")
@@ -212,9 +206,7 @@ class TestACLEdgeCases:
                     "user_id": "test_user_performance",
                 }
 
-                response = requests.post(
-                    f"{BASE_URL}/acl/check", json=check_data, headers=HEADERS, timeout=1
-                )
+                response = requests.post(f"{BASE_URL}/acl/check", json=check_data, headers=HEADERS, timeout=1)
 
                 if response.status_code == 404:
                     pytest.skip("ACL check endpoint not implemented")
@@ -231,9 +223,7 @@ class TestACLEdgeCases:
             print(f"Average ACL check time: {avg_time_per_check*1000:.2f}ms")
 
             # Performance assertion - ACL checks should be fast
-            assert (
-                avg_time_per_check < 0.1
-            ), f"ACL checks too slow: {avg_time_per_check:.3f}s average"
+            assert avg_time_per_check < 0.1, f"ACL checks too slow: {avg_time_per_check:.3f}s average"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -275,9 +265,7 @@ class TestACLSystemIntegrity:
 
             if check_response.status_code == 200:
                 permissions = check_response.json()
-                assert isinstance(
-                    permissions, (list, dict)
-                ), "Invalid permissions format"
+                assert isinstance(permissions, (list, dict)), "Invalid permissions format"
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
@@ -303,15 +291,11 @@ class TestACLSystemIntegrity:
                 pytest.skip("ACL permissions endpoint not implemented")
 
             # Check if audit log exists
-            audit_response = requests.get(
-                f"{BASE_URL}/acl/audit", headers=HEADERS, timeout=5
-            )
+            audit_response = requests.get(f"{BASE_URL}/acl/audit", headers=HEADERS, timeout=5)
 
             if audit_response.status_code == 200:
                 audit_logs = audit_response.json()
-                print(
-                    f"Found {len(audit_logs) if isinstance(audit_logs, list) else 1} audit entries"
-                )
+                print(f"Found {len(audit_logs) if isinstance(audit_logs, list) else 1} audit entries")
 
         except requests.exceptions.RequestException:
             pytest.skip("API not available - run 'make stack-up' first")
