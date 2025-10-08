@@ -4,8 +4,8 @@ import json
 import os
 import subprocess
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 
 def run_coverage():
@@ -178,9 +178,7 @@ def generate_html_dashboard(summary):
         color = (
             "#28a745"
             if coverage_pct >= 80
-            else "#ffc107"
-            if coverage_pct >= 60
-            else "#dc3545"
+            else "#ffc107" if coverage_pct >= 60 else "#dc3545"
         )
 
         html_template += f"""

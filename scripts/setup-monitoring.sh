@@ -59,12 +59,12 @@ check_gh_auth() {
 set_github_secret() {
     local secret_name=$1
     local secret_value=$2
-    
+
     if [ -z "$secret_value" ]; then
         print_status "WARNING" "Skipping $secret_name (empty value)"
         return 0
     fi
-    
+
     if gh secret set "$secret_name" --body "$secret_value" >/dev/null 2>&1; then
         print_status "SUCCESS" "Set GitHub secret: $secret_name"
         return 0
@@ -77,7 +77,7 @@ set_github_secret() {
 # Function to create local environment file
 create_local_env() {
     local env_file=".env.monitoring"
-    
+
     cat > "$env_file" << 'EOF'
 # Foundation Test Monitoring Configuration
 # Copy this file to .env and fill in your actual values
@@ -86,7 +86,7 @@ create_local_env() {
 # Get webhook URL from: https://api.slack.com/apps -> Incoming Webhooks
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
 
-# HealthChecks.io Integration (Optional)  
+# HealthChecks.io Integration (Optional)
 # Get UUID from: https://healthchecks.io/ -> Create Check -> Copy UUID
 HEALTHCHECK_UUID=your-healthchecks-io-uuid-here
 
@@ -104,7 +104,7 @@ EOF
 # Function to load environment variables
 load_env() {
     local env_file=".env.monitoring"
-    
+
     if [ -f "$env_file" ]; then
         # Source the file to load variables
         set -a
@@ -121,7 +121,7 @@ load_env() {
 # Function to prompt for monitoring configuration
 prompt_for_config() {
     print_status "INFO" "Setting up monitoring integration..."
-    
+
     # Slack configuration
     echo ""
     echo "📱 Slack Integration Setup:"
@@ -130,11 +130,11 @@ prompt_for_config() {
     echo "3. Go to 'Incoming Webhooks' and create webhook"
     echo "4. Copy the webhook URL"
     echo ""
-    
+
     if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
         read -p "Enter Slack Webhook URL (or press Enter to skip): " SLACK_WEBHOOK_URL
     fi
-    
+
     # HealthChecks.io configuration
     echo ""
     echo "🏥 HealthChecks.io Integration Setup:"
@@ -143,7 +143,7 @@ prompt_for_config() {
     echo "3. Set schedule to 'Daily'"
     echo "4. Copy the check UUID from the URL"
     echo ""
-    
+
     if [ -z "${HEALTHCHECK_UUID:-}" ]; then
         read -p "Enter HealthChecks.io UUID (or press Enter to skip): " HEALTHCHECK_UUID
     fi
@@ -152,15 +152,15 @@ prompt_for_config() {
 # Function to validate monitoring setup
 validate_monitoring() {
     local validation_passed=true
-    
+
     print_status "INFO" "Validating monitoring setup..."
-    
+
     # Test Slack webhook if provided
     if [ -n "${SLACK_WEBHOOK_URL:-}" ] && [ "$SLACK_WEBHOOK_URL" != "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK" ]; then
         print_status "INFO" "Testing Slack webhook..."
-        
+
         local test_payload='{"text":"🧪 Foundation Test Monitoring Setup - Test Message"}'
-        
+
         if curl -s -X POST -H 'Content-type: application/json' --data "$test_payload" "$SLACK_WEBHOOK_URL" >/dev/null; then
             print_status "SUCCESS" "Slack webhook test successful"
         else
@@ -170,11 +170,11 @@ validate_monitoring() {
     else
         print_status "INFO" "Slack webhook not configured (optional)"
     fi
-    
+
     # Test HealthChecks.io if provided
     if [ -n "${HEALTHCHECK_UUID:-}" ] && [ "$HEALTHCHECK_UUID" != "your-healthchecks-io-uuid-here" ]; then
         print_status "INFO" "Testing HealthChecks.io ping..."
-        
+
         if curl -fsS -m 10 --retry 3 -o /dev/null "https://hc-ping.com/$HEALTHCHECK_UUID" 2>/dev/null; then
             print_status "SUCCESS" "HealthChecks.io ping test successful"
         else
@@ -184,37 +184,37 @@ validate_monitoring() {
     else
         print_status "INFO" "HealthChecks.io not configured (optional)"
     fi
-    
+
     return $([ "$validation_passed" = true ] && echo 0 || echo 1)
 }
 
 # Function to set up GitHub secrets
 setup_github_secrets() {
     print_status "INFO" "Setting up GitHub repository secrets..."
-    
+
     # Check GitHub CLI availability and authentication
     if ! check_gh_cli || ! check_gh_auth; then
         print_status "ERROR" "Cannot set GitHub secrets without GitHub CLI"
         return 1
     fi
-    
+
     # Set secrets if provided
     local secrets_set=0
-    
+
     if [ -n "${SLACK_WEBHOOK_URL:-}" ] && [ "$SLACK_WEBHOOK_URL" != "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK" ]; then
         if set_github_secret "SLACK_WEBHOOK_URL" "$SLACK_WEBHOOK_URL"; then
             ((secrets_set++))
         fi
     fi
-    
+
     if [ -n "${HEALTHCHECK_UUID:-}" ] && [ "$HEALTHCHECK_UUID" != "your-healthchecks-io-uuid-here" ]; then
         if set_github_secret "HEALTHCHECK_UUID" "$HEALTHCHECK_UUID"; then
             ((secrets_set++))
         fi
     fi
-    
+
     print_status "SUCCESS" "Set $secrets_set GitHub secrets"
-    
+
     if [ $secrets_set -eq 0 ]; then
         print_status "WARNING" "No monitoring secrets configured. Foundation tests will run without external notifications."
     fi
@@ -262,29 +262,29 @@ EOF
 main() {
     echo ""
     print_status "INFO" "Starting Foundation Test Monitoring setup..."
-    
+
     # Create local environment template
     create_local_env
-    
+
     # Try to load existing environment
     load_env || true
-    
+
     # Prompt for configuration if not already set
     prompt_for_config
-    
+
     # Validate monitoring setup
     if validate_monitoring; then
         print_status "SUCCESS" "Monitoring validation passed"
     else
         print_status "WARNING" "Some monitoring tests failed (non-blocking)"
     fi
-    
+
     # Set up GitHub secrets
     setup_github_secrets
-    
+
     # Create monitoring test script
     create_monitoring_test
-    
+
     echo ""
     print_status "SUCCESS" "Foundation Test Monitoring setup complete!"
     echo ""

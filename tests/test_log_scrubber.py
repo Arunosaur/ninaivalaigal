@@ -1,6 +1,7 @@
 """
 Test log scrubber functionality
 """
+
 from server.security.logging.scrubber import safe_log_dict
 
 

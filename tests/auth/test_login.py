@@ -4,9 +4,10 @@ Authentication System Tests: Login Flow
 Tests user authentication and token generation functionality.
 """
 
+import json
+
 import pytest
 import requests
-import json
 
 # Test Configuration
 BASE_URL = "http://localhost:13370"

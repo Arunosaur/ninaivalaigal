@@ -525,11 +525,11 @@ class IntelligentSessionManager:
                 "reasons": renewal_reason,
                 "remaining_minutes": remaining_minutes,
                 "recommended_action": "renew" if should_renew else "continue",
-                "renewal_urgency": "high"
-                if remaining_minutes < 2
-                else "medium"
-                if remaining_minutes < 10
-                else "low",
+                "renewal_urgency": (
+                    "high"
+                    if remaining_minutes < 2
+                    else "medium" if remaining_minutes < 10 else "low"
+                ),
             }
 
             # Cache recommendation

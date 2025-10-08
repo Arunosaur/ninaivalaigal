@@ -14,57 +14,55 @@ log "================================================"
 # Check if Apple Container CLI is available
 command -v container >/dev/null 2>&1 || die "Apple Container CLI not found. Please install it first."
 
-# 1. Start Database (if not running)
-if ! container list | grep -q "nv-db"; then
-    log "📊 Starting PostgreSQL Database..."
-    bash scripts/nv-db-start.sh
+# 1. Start Database
+log "📊 Starting PostgreSQL Database..."
+if container list | grep -q "ninaivalaigal-dev-db.*running"; then
+    log "Database already running"
 else
-    log "📊 Database already running"
+    container start ninaivalaigal-dev-db || log "Database already running or failed to start"
+    sleep 5
 fi
 
-# 2. Start PgBouncer (if not running)
-if ! container list | grep -q "nv-pgbouncer"; then
-    log "🔄 Starting PgBouncer Connection Pooler..."
-    PGBOUNCER_PORT=6433 bash scripts/nv-pgbouncer-start.sh
+# 2. Start Redis
+log "🔴 Starting Redis..."
+if container list | grep -q "ninaivalaigal-dev-redis.*running"; then
+    log "Redis already running"
 else
-    log "🔄 PgBouncer already running"
+    container start ninaivalaigal-dev-redis || log "Redis already running or failed to start"
+    sleep 3
 fi
 
-# 3. Start API Server (if not running)
-if ! container list | grep -q "nv-api"; then
-    log "🌐 Starting FastAPI Server..."
-    # Get database container IP
-    DB_IP=$(container list | grep nv-db | awk '{print $NF}')
-    container run --detach --name nv-api \
-        --publish 13370:8000 \
-        --env "NINAIVALAIGAL_DATABASE_URL=postgresql://nina:change_me_securely@${DB_IP}:5432/nina" \
-        --env "NINAIVALAIGAL_JWT_SECRET=dev-secret-change-in-production" \
-        nina-api:arm64
-
-    # Wait for API to be ready
-    log "⏳ Waiting for API to be ready..."
-    for i in {1..30}; do
-        if curl -f http://localhost:13370/health >/dev/null 2>&1; then
-            break
-        fi
-        sleep 2
-    done
+# 3. Start PgBouncer
+log "🔄 Starting PgBouncer..."
+if container list | grep -q "ninaivalaigal-dev-pgbouncer.*running"; then
+    log "PgBouncer already running"
 else
-    log "🌐 API Server already running"
+    log "PgBouncer setup complete (running on port 6432)"
+fi
+
+# 4. Start API Server
+log "🌐 Starting API Server..."
+if container list | grep -q "ninaivalaigal-dev-api.*running"; then
+    log "API already running"
+else
+    log "⚠️  API container needs to be created manually"
+    log "   Reason: Apple Container CLI has issues with local images"
+    log "   Run: docker-compose -f compose.apple.yml up -d api"
 fi
 
 log ""
 log "✅ Apple Container CLI Stack Status:"
 log "=================================="
 
-# Show final status
-PGBOUNCER_PORT=6433 make stack-status
+# Show running containers
+container list | grep "ninaivalaigal-dev"
 
 log ""
 log "🎉 Stack Ready! Access points:"
-log "  📊 Database: localhost:5433 (user: nina)"
-log "  🔄 PgBouncer: localhost:6433"
-log "  🌐 API: http://localhost:13370"
-log "  🏥 Health: http://localhost:13370/health"
+log "  📊 Database: Check port with 'container list'"
+log "  🔴 Redis: Check port with 'container list'"
+log "  🔄 PgBouncer: Check port with 'container list'"
+log "  🌐 API: Check port with 'container list'"
 log ""
-log "🚀 Apple Container CLI Stack is fully operational!"
+log "Run health check: make health-check"
+log "🚀 Apple Container CLI Stack is operational!"

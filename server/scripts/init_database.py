@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""
+Initialize the ninaivalaigal database
+Creates all tables based on SQLAlchemy models
+"""
+
+import os
+import sys
+
+# Add server to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from database.manager import DatabaseManager
+from database.models import Base
+
+
+def main():
+    # Get database URL from environment or use default for Colima dev
+    database_url = os.getenv(
+        "DATABASE_URL",
+        "postgresql://nina:dev_password_change_in_production@localhost:5442/ninaivalaigal_dev",
+    )
+
+    print(f"🔧 Initializing database...")
+    print(
+        f"   URL: {database_url.replace(':dev_password_change_in_production', ':****')}"
+    )
+
+    try:
+        # Create database manager (this calls create_tables automatically)
+        db_manager = DatabaseManager(database_url)
+
+        print(f"✅ Database tables created successfully!")
+        print(f"   Total tables: {len(Base.metadata.tables)}")
+        print(f"\nTables created:")
+        for table_name in sorted(Base.metadata.tables.keys()):
+            print(f"   - {table_name}")
+
+        return 0
+
+    except Exception as e:
+        print(f"❌ Failed to initialize database: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

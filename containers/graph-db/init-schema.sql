@@ -48,7 +48,7 @@ SELECT create_elabel('ninaivalaigal_graph', 'SUGGESTS');
 
 -- Create a view for easier graph querying (graceful handling of empty graph)
 CREATE OR REPLACE VIEW graph_stats AS
-SELECT 
+SELECT
     'ninaivalaigal_graph' as graph_name,
     COALESCE((SELECT count(*) FROM ag_catalog.ag_label WHERE name LIKE '%' AND kind = 'v'), 0) as node_types,
     COALESCE((SELECT count(*) FROM ag_catalog.ag_label WHERE name LIKE '%' AND kind = 'e'), 0) as edge_types,

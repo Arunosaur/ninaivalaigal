@@ -2,6 +2,7 @@
 SecurityBundle helper middleware that combines request and response redaction
 for developer convenience instead of adding both middlewares separately.
 """
+
 from __future__ import annotations
 
 import typing as t

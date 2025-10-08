@@ -5,10 +5,10 @@ metadata:
   namespace: argocd
 spec:
   description: Ninaivalaigal Memory & Graph Intelligence Platform
-  
+
   sourceRepos:
   - https://github.com/Arunosaur/ninaivalaigal.git
-  
+
   destinations:
   - namespace: ninaivalaigal-dev
     server: https://kubernetes.default.svc
@@ -16,7 +16,7 @@ spec:
     server: https://kubernetes.default.svc
   - namespace: ninaivalaigal-prod
     server: https://kubernetes.default.svc
-    
+
   clusterResourceWhitelist:
   - group: ''
     kind: Namespace
@@ -28,7 +28,7 @@ spec:
     kind: ClusterRole
   - group: rbac.authorization.k8s.io
     kind: ClusterRoleBinding
-    
+
   namespaceResourceWhitelist:
   - group: ''
     kind: ConfigMap
@@ -52,7 +52,7 @@ spec:
     kind: PodDisruptionBudget
   - group: autoscaling
     kind: HorizontalPodAutoscaler
-    
+
   roles:
   - name: developer
     description: Developer access to dev environment
@@ -61,7 +61,7 @@ spec:
     - p, proj:ninaivalaigal:developer, applications, sync, ninaivalaigal/ninaivalaigal-dev, allow
     groups:
     - ninaivalaigal:developers
-    
+
   - name: operator
     description: Operator access to all environments
     policies:
@@ -69,7 +69,7 @@ spec:
     - p, proj:ninaivalaigal:operator, repositories, *, *, allow
     groups:
     - ninaivalaigal:operators
-    
+
   syncWindows:
   - kind: allow
     schedule: '0 9-17 * * 1-5'  # Business hours Mon-Fri

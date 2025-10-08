@@ -4,9 +4,10 @@ Authentication System Tests: Module Access Control
 Tests module-level access control and feature permissions.
 """
 
+import json
+
 import pytest
 import requests
-import json
 
 # Test Configuration
 BASE_URL = "http://localhost:13370"

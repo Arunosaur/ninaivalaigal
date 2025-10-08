@@ -298,9 +298,11 @@ class MemoryGarbageCollector:
                     team_id=row["team_id"],
                     org_id=row["org_id"],
                     policy_type=row["policy_type"],
-                    policy_config=row["policy_config"]
-                    if isinstance(row["policy_config"], dict)
-                    else {},
+                    policy_config=(
+                        row["policy_config"]
+                        if isinstance(row["policy_config"], dict)
+                        else {}
+                    ),
                     enabled=row["enabled"],
                 )
                 for row in rows

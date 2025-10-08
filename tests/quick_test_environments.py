@@ -80,7 +80,9 @@ class QuickTester:
                     print("✅ FastAPI: Memory endpoint working")
                     return True
                 else:
-                    print(f"❌ FastAPI: Memory endpoint failed ({response.status_code})")
+                    print(
+                        f"❌ FastAPI: Memory endpoint failed ({response.status_code})"
+                    )
                     return False
             else:
                 print(f"❌ FastAPI: Server not responding ({response.status_code})")

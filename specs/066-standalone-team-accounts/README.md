@@ -1,9 +1,9 @@
 # SPEC-066: Standalone Team Accounts
 
-**Status**: 📋 **PLANNED** - Ready for Implementation  
-**Priority**: High (Enables SaaS Monetization Pipeline)  
-**Created**: 2024-09-23  
-**Authors**: Arun Rajagopalan  
+**Status**: 📋 **PLANNED** - Ready for Implementation
+**Priority**: High (Enables SaaS Monetization Pipeline)
+**Created**: 2024-09-23
+**Authors**: Arun Rajagopalan
 
 ## Title:
 Standalone Team Account Support (No Organization Binding)
@@ -14,7 +14,7 @@ Support creation and management of teams that are not tied to any parent organiz
 ## Motivation:
 Many use cases require group collaboration but do not belong to a formal organization:
 - Small project teams or working groups
-- Classroom/student collaborations  
+- Classroom/student collaborations
 - Informal communities or nonprofits
 - Startups evaluating the platform pre-onboarding
 
@@ -49,7 +49,7 @@ Individual User → Standalone Team → Organization
 
 ### APIs/Endpoints:
 - `POST /auth/signup/team-create` - Create team during signup
-- `POST /auth/signup/team-join` - Join team during signup  
+- `POST /auth/signup/team-join` - Join team during signup
 - `POST /team/create-standalone` - Create team from dashboard
 - `GET /team/my` - Get current user's team info
 - `POST /team/invite` - Send team invitations
@@ -106,7 +106,7 @@ Individual User → Standalone Team → Organization
 - **Risk**: Database schema changes affect existing users
 - **Mitigation**: Careful migration scripts with rollback capability, extensive testing
 
-- **Risk**: Three signup paths create UX confusion  
+- **Risk**: Three signup paths create UX confusion
 - **Mitigation**: Clear UI design with guided onboarding flows
 
 - **Risk**: Team isolation breaks existing functionality

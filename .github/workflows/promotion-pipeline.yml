@@ -29,13 +29,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     environment: staging
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITOPS_TOKEN }}
-        
+
     - name: Determine image tag
       id: image-tag
       run: |
@@ -47,27 +47,27 @@ jobs:
         fi
         echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
         echo "Promoting image tag: $IMAGE_TAG"
-        
+
     - name: Update staging environment
       run: |
         echo "🎯 Promoting to staging environment..."
-        
+
         # Update staging kustomization with new image tag
         sed -i "s|newTag:.*|newTag: ${{ steps.image-tag.outputs.tag }}|g" k8s/overlays/staging/kustomization.yaml
-        
+
         # Commit changes
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action - Promotion"
-        
+
         git add k8s/overlays/staging/kustomization.yaml
         git commit -m "promote: staging deployment to ${{ steps.image-tag.outputs.tag }} [skip ci]"
         git push
-        
+
     - name: Notify staging deployment
       run: |
         echo "✅ Staging promotion complete"
         echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}"
-        
+
         # Send Slack notification if webhook is configured
         if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
           curl -X POST -H 'Content-type: application/json' \
@@ -102,30 +102,30 @@ jobs:
   wait-for-staging-validation:
     needs: promote-to-staging
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Wait for ArgoCD sync
       run: |
         echo "⏳ Waiting for ArgoCD to sync staging deployment..."
         sleep 60  # Give ArgoCD time to sync
-        
+
     - name: Validate staging deployment
       run: |
         echo "🔍 Validating staging deployment..."
-        
+
         # In a real setup, this would:
         # 1. Check ArgoCD application status
         # 2. Run health checks against staging environment
         # 3. Run smoke tests
         # 4. Validate performance metrics
-        
+
         echo "✅ Staging validation complete"
 
   request-production-approval:
     needs: [promote-to-staging, wait-for-staging-validation]
     runs-on: ubuntu-latest
     if: github.event.inputs.environment == 'production' || github.ref == 'refs/heads/main'
-    
+
     steps:
     - name: Create production deployment issue
       uses: actions/github-script@v7
@@ -136,59 +136,59 @@ jobs:
             repo: context.repo.repo,
             title: `Production Deployment Approval: ${{ needs.promote-to-staging.outputs.tag || github.sha }}`,
             body: `## Production Deployment Request
-            
+
             **Image Tag**: \`${{ needs.promote-to-staging.outputs.tag || github.sha }}\`
             **Staging Validation**: ✅ Passed
             **Commit**: ${{ github.sha }}
-            
+
             ### Pre-deployment Checklist
             - [ ] Staging tests passed
             - [ ] Performance metrics acceptable
             - [ ] Security scan clean
             - [ ] Database migrations reviewed
             - [ ] Rollback plan confirmed
-            
+
             ### Approval
             To approve this deployment, comment: \`/approve\`
             To reject this deployment, comment: \`/reject\`
-            
+
             **Note**: This deployment requires manual approval due to production safety policies.`,
             labels: ['deployment', 'production', 'approval-required']
           });
-          
+
           console.log('Created production approval issue:', issue.number);
 
   promote-to-production:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
     environment: production
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITOPS_TOKEN }}
-        
+
     - name: Update production environment
       run: |
         echo "🚀 Promoting to production environment..."
-        
+
         # Update production kustomization with approved image tag
         sed -i "s|newTag:.*|newTag: ${{ github.event.inputs.image_tag }}|g" k8s/overlays/prod/kustomization.yaml
-        
+
         # Commit changes
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action - Production Promotion"
-        
+
         git add k8s/overlays/prod/kustomization.yaml
         git commit -m "promote: production deployment to ${{ github.event.inputs.image_tag }} [skip ci]"
         git push
-        
+
     - name: Notify production deployment
       run: |
         echo "🎉 Production promotion complete"
         echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.image_tag }}"
-        
+
         # Send high-priority Slack notification
         if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
           curl -X POST -H 'Content-type: application/json' \
@@ -228,16 +228,16 @@ jobs:
   rollback:
     runs-on: ubuntu-latest
     if: failure()
-    
+
     steps:
     - name: Automatic rollback
       run: |
         echo "🔄 Initiating automatic rollback..."
-        
+
         # This would implement automatic rollback logic:
         # 1. Revert to previous known-good image tag
         # 2. Update kustomization files
         # 3. Trigger ArgoCD sync
         # 4. Notify team of rollback
-        
+
         echo "⚠️ Rollback completed - check logs for details"

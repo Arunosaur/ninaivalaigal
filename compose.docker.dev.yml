@@ -1,0 +1,56 @@
+# Docker + Dev Environment (Port Matrix)
+# Database: 5432, PgBouncer: 6432, Redis: 6379, API: 13370, UI: 8081
+# Uses GHCR multi-arch images (x86_64 + ARM64)
+
+services:
+  postgres:
+    image: ghcr.io/arunosaur/ninaivalaigal-db:latest
+    container_name: nina-docker-dev-db
+    environment:
+      POSTGRES_DB: ninaivalaigal_dev
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: dev_password_change_in_production
+    ports:
+      - "5432:5432"
+    volumes:
+      - docker_dev_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nina"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: nina-docker-dev-pgbouncer
+    environment:
+      DATABASE_URL: "postgres://nina:dev_password_change_in_production@postgres:5432/ninaivalaigal_dev"
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 20
+    ports:
+      - "6432:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: nina-docker-dev-redis
+    command: redis-server --requirepass dev_redis_password --maxmemory 256mb
+    ports:
+      - "6379:6379"
+    volumes:
+      - docker_dev_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  docker_dev_postgres:
+  docker_dev_redis:

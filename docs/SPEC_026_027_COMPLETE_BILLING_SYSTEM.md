@@ -148,7 +148,7 @@ GET /billing-engine/analytics/{team_id}          # Get billing analytics
 ```python
 # Automated customer communication:
 - Standard: 1, 3, 7, 14 day escalation
-- Aggressive: 1, 2, 4, 7 day escalation  
+- Aggressive: 1, 2, 4, 7 day escalation
 - Gentle: 3, 7, 14, 30 day escalation
 - Email templates with personalization
 - Response tracking and resolution management

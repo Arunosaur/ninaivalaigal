@@ -438,11 +438,11 @@ class MemoryDriftEngine:
             changes = {
                 "semantic_similarity": float(similarity),
                 "embedding_distance": float(confidence),
-                "drift_magnitude": "high"
-                if confidence > 0.7
-                else "medium"
-                if confidence > 0.4
-                else "low",
+                "drift_magnitude": (
+                    "high"
+                    if confidence > 0.7
+                    else "medium" if confidence > 0.4 else "low"
+                ),
             }
 
             return DriftDetection(

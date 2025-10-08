@@ -66,29 +66,25 @@ colima-dev-down:
 
 ## Apple Container CLI Development Environment
 apple-dev-up:
-	@echo "🍎 Starting Apple CLI dev - ALL SERVICES (Customer + Admin)..."
-	@echo "   Ports: API=8020, Customer=3020, Admin=3021"
-	@NINA_ENV=dev container compose -f compose.apple.yml --profile external --profile internal up -d
-	@echo "✅ Apple CLI dev is running!"
-	@echo "   Customer App: http://localhost:3020"
-	@echo "   Admin Console: http://localhost:3021"
-	@echo "   API Docs: http://localhost:8020/docs"
+	@echo "🍎 Starting Apple Container CLI Stack..."
+	@bash start-apple-container-stack.sh
 
 apple-dev-up-external:
 	@echo "🍎 Starting Apple CLI dev - EXTERNAL (Customer App only)..."
-	@NINA_ENV=dev container compose -f compose.apple.yml --profile external up -d
+	@NINA_ENV=dev docker-compose -f compose.apple.yml --profile external up -d
 	@echo "✅ Customer App: http://localhost:3020"
 	@echo "✅ API: http://localhost:8020/docs"
 
 apple-dev-up-internal:
 	@echo "🔧 Starting Apple CLI dev - INTERNAL (Admin Console only)..."
-	@NINA_ENV=dev container compose -f compose.apple.yml --profile internal up -d
+	@NINA_ENV=dev docker-compose -f compose.apple.yml --profile internal up -d
 	@echo "✅ Admin Console: http://localhost:3021"
 	@echo "✅ API: http://localhost:8020/docs"
 
 apple-dev-down:
-	@echo "🛑 Stopping Apple CLI dev environment..."
-	@NINA_ENV=dev container compose -f compose.apple.yml down
+	@echo "🛑 Stopping Apple Container CLI Stack..."
+	@container stop nv-api nv-pgbouncer nv-db 2>/dev/null || true
+	@echo "✅ Stack stopped"
 
 ## Docker Test Environment
 docker-test-up:
@@ -159,6 +155,30 @@ health:
 logs:
 	@echo "📋 Showing logs from all ninaivalaigal containers..."
 	@docker ps --filter "name=ninaivalaigal" --format "{{.Names}}" | xargs -I {} sh -c 'echo "=== {} ===" && docker logs --tail=20 {}'
+
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🏗️ BULLETPROOF STACK MANAGEMENT (Day 3: Infrastructure Reliability)
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## start complete stack with health checks (DB→PgBouncer→Redis→API→UIs)
+stack-start:
+	@$(SCRIPTS)/stack-start-unified.sh apple dev
+
+## stop stack cleanly
+stack-stop:
+	@$(SCRIPTS)/stack-stop.sh
+
+## show detailed stack status with health checks
+stack-check:
+	@$(SCRIPTS)/stack-status.sh
+
+## restart stack (stop + start with health checks)
+stack-restart:
+	@$(SCRIPTS)/stack-restart.sh
+
+## test crash recovery and auto-restart capabilities
+test-crash-recovery:
+	@$(SCRIPTS)/test-crash-recovery.sh
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 📚 LEGACY COMMANDS (Apple Container CLI specific)
@@ -1718,6 +1738,68 @@ environment-monitor:
 		echo "Sleeping for 5 minutes..."; \
 		sleep 300; \
 	done
+
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔄 RUNTIME MANAGEMENT (docker/colima/apple)
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## show current runtime configuration
+runtime-status:
+	@echo "🔍 Current Runtime Configuration:"
+	@if [ -f .runtime-config ]; then \
+		cat .runtime-config | grep -v '^#' | grep -v '^$$'; \
+	else \
+		echo "❌ No .runtime-config found. Run 'make runtime-init' to create one."; \
+	fi
+
+## initialize runtime config (first-time setup)
+runtime-init:
+	@echo "🎬 Initializing runtime configuration..."
+	@if [ -f .runtime-config ]; then \
+		echo "⚠️  .runtime-config already exists"; \
+		make runtime-status; \
+	else \
+		echo "ACTIVE_RUNTIME=apple" > .runtime-config; \
+		echo "HEALTH_MONITORING_ENABLED=true" >> .runtime-config; \
+		echo "AUTO_RESTART_ENABLED=false" >> .runtime-config; \
+		echo "✅ Created .runtime-config with default (apple)"; \
+	fi
+
+## switch to docker runtime
+runtime-docker:
+	@echo "🐳 Switching to Docker runtime..."
+	@bash scripts/switch-runtime.sh docker
+
+## switch to colima runtime
+runtime-colima:
+	@echo "🦙 Switching to Colima runtime..."
+	@bash scripts/switch-runtime.sh colima
+
+## switch to apple container CLI runtime
+runtime-apple:
+	@echo "🍎 Switching to Apple Container CLI runtime..."
+	@bash scripts/switch-runtime.sh apple
+
+## run runtime-aware health check
+health-check:
+	@echo "🏥 Running runtime-aware health check..."
+	@bash scripts/runtime-aware-health-check.sh
+
+## enable auto-restart for unhealthy containers
+runtime-auto-restart-on:
+	@echo "✅ Enabling auto-restart..."
+	@sed -i.bak 's/AUTO_RESTART_ENABLED=false/AUTO_RESTART_ENABLED=true/' .runtime-config
+	@rm -f .runtime-config.bak
+	@echo "Auto-restart enabled for current runtime"
+	@make runtime-status
+
+## disable auto-restart
+runtime-auto-restart-off:
+	@echo "🛑 Disabling auto-restart..."
+	@sed -i.bak 's/AUTO_RESTART_ENABLED=true/AUTO_RESTART_ENABLED=false/' .runtime-config
+	@rm -f .runtime-config.bak
+	@echo "Auto-restart disabled"
+	@make runtime-status
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 👥 STAFF MANAGEMENT (SPEC-085)

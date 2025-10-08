@@ -1,4 +1,5 @@
 """Performance benchmark tests."""
+
 import pytest
 
 

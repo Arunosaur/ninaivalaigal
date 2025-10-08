@@ -108,7 +108,7 @@ server/database/
 ├── operations/         # Modular operations
 │   ├── __init__.py
 │   ├── memory_ops.py   # Memory operations
-│   ├── user_ops.py     # User operations  
+│   ├── user_ops.py     # User operations
 │   ├── token_ops.py    # Token operations
 │   ├── graph_ops.py    # Graph operations
 │   ├── rbac_ops.py     # RBAC operations

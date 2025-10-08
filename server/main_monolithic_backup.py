@@ -18,13 +18,14 @@ from observability import MetricsMiddleware, health_router, metrics_router
 from performance_monitor import get_performance_monitor, start_performance_monitoring
 from pydantic import BaseModel
 from rate_limiting import rate_limit_middleware
-from rbac.permissions import Action, Resource
 from rbac_middleware import get_rbac_context, rbac_middleware, require_permission
 from redis_client import redis_client
 from redis_queue import queue_manager
 from security_integration import configure_security, log_admin_action, redact_text
 from signup_api import router as signup_router
 from spec_kit import ContextScope, ContextSpec, SpecKitContextManager
+
+from rbac.permissions import Action, Resource
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

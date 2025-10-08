@@ -214,9 +214,9 @@ async def get_security_alerts(
                     "context_id": alert.context_id,
                     "metadata": alert.metadata,
                     "resolved": alert.resolved,
-                    "resolved_at": alert.resolved_at.isoformat()
-                    if alert.resolved_at
-                    else None,
+                    "resolved_at": (
+                        alert.resolved_at.isoformat() if alert.resolved_at else None
+                    ),
                 }
             )
 

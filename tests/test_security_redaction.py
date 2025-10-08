@@ -2,7 +2,6 @@
 Unit tests for security redaction engine
 """
 
-
 import pytest
 
 from server.security import RedactionEngine

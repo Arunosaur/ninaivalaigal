@@ -39,10 +39,10 @@ test_endpoint() {
     local description=$3
     local data=${4:-""}
     local expected_status=${5:-200}
-    
+
     echo -e "\n${BLUE}Testing: $description${NC}"
     echo "Endpoint: $method $endpoint"
-    
+
     if [ -n "$data" ]; then
         response=$(curl -s -w "HTTPSTATUS:%{http_code}" \
             -X "$method" \
@@ -56,10 +56,10 @@ test_endpoint() {
             -H "Authorization: Bearer $JWT_TOKEN" \
             "$API_BASE$endpoint" || echo "HTTPSTATUS:000")
     fi
-    
+
     http_code=$(echo "$response" | grep -o "HTTPSTATUS:[0-9]*" | cut -d: -f2)
     body=$(echo "$response" | sed -E 's/HTTPSTATUS:[0-9]*$//')
-    
+
     if [ "$http_code" -eq "$expected_status" ]; then
         print_status "SUCCESS" "$description (HTTP $http_code)"
         if [ -n "$body" ] && [ "$body" != "null" ]; then

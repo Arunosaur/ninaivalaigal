@@ -6,8 +6,4 @@ from .rbac_engine import RBACTestEngine
 from .security_scenarios import SecurityScenarioEngine
 from .test_fixtures import *
 
-__all__ = [
-    'MultiUserTestManager',
-    'RBACTestEngine', 
-    'SecurityScenarioEngine'
-]
+__all__ = ["MultiUserTestManager", "RBACTestEngine", "SecurityScenarioEngine"]

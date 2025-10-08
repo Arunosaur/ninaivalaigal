@@ -185,9 +185,9 @@ class JWKSVerifierWithNegativeCache:
                     # Still unknown after refresh, cache it
                     await self.negative_cache.cache_unknown_kid(kid)
                     result["cache_action"] = "cached_unknown"
-                    result[
-                        "error"
-                    ] = f"Kid {kid} unknown after refresh: {refresh_error}"
+                    result["error"] = (
+                        f"Kid {kid} unknown after refresh: {refresh_error}"
+                    )
 
         return result
 

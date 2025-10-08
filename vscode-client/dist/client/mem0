@@ -5,8 +5,8 @@ Portable solution that works on any system
 """
 
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 

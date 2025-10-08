@@ -1,7 +1,9 @@
 """Enhanced test configuration with comprehensive fixtures."""
-import pytest
+
 import os
 from unittest.mock import Mock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -208,8 +210,8 @@ def pytest_collection_modifyitems(config, items):
 def _services_available():
     """Check if required services are available."""
     try:
-        import redis
         import psycopg2
+        import redis
 
         # Try to connect to Redis
         r = redis.Redis(host="localhost", port=6379, db=1)

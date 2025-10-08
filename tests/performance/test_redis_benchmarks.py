@@ -4,9 +4,10 @@ Comprehensive benchmarking suite for Redis operations and caching performance
 """
 
 import asyncio
-import pytest
 import time
 from unittest.mock import Mock, patch
+
+import pytest
 
 # Import pytest-benchmark for performance testing
 pytest_benchmark = pytest.importorskip("pytest_benchmark")

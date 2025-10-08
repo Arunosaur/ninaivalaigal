@@ -1,6 +1,8 @@
 """Enhanced unit tests for RBAC module."""
+
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 
 class TestRBACModule:

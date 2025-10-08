@@ -1,4 +1,5 @@
 """Security tests for authentication."""
+
 import pytest
 
 

@@ -4,24 +4,25 @@ Unit tests for Graph Intelligence API - SPEC-061
 Tests the FastAPI endpoints for graph reasoning functionality.
 """
 
-import pytest
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
-from fastapi.testclient import TestClient
-from fastapi import FastAPI
+import os
 
 # Add project root to path
 import sys
-import os
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from server.graph_intelligence_api import router
 from server.graph.graph_reasoner import (
     ContextExplanation,
-    RelevanceInference,
     ReasoningPath,
+    RelevanceInference,
 )
+from server.graph_intelligence_api import router
 
 
 @pytest.fixture

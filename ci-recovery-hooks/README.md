@@ -96,7 +96,7 @@ RECOVERY_BACKOFF_MULTIPLIER=2.0
 ### 1. Service Failure Recovery
 
 **Detection**: Health check failures
-**Strategy**: 
+**Strategy**:
 1. Stop existing container/service
 2. Remove container (if applicable)
 3. Restart with fresh configuration

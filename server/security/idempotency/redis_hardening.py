@@ -149,9 +149,11 @@ class HardenedRedisStore:
                 # Log structured outage event
                 outage_event = RedisOutageEvent(
                     timestamp=time.time(),
-                    status=RedisHealthStatus.DEGRADED
-                    if attempt < self.max_retry_attempts - 1
-                    else RedisHealthStatus.UNAVAILABLE,
+                    status=(
+                        RedisHealthStatus.DEGRADED
+                        if attempt < self.max_retry_attempts - 1
+                        else RedisHealthStatus.UNAVAILABLE
+                    ),
                     error_message=str(e),
                     operation=operation,
                     fallback_used=attempt == self.max_retry_attempts - 1,
@@ -411,7 +413,7 @@ def get_redis_metrics(store: HardenedRedisStore) -> dict[str, Any]:
         ],
         "redis_health_status": 1 if health_status["status"] == "healthy" else 0,
         "redis_failure_count": health_status["failure_count"],
-        "redis_circuit_breaker_active": 1
-        if health_status["circuit_breaker_active"]
-        else 0,
+        "redis_circuit_breaker_active": (
+            1 if health_status["circuit_breaker_active"] else 0
+        ),
     }

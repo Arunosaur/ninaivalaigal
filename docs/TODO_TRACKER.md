@@ -2,6 +2,29 @@
 
 ## 🔴 CRITICAL PRIORITY
 
+### 0. Fix Pre-Commit ShellCheck Violations ⏳
+**Status:** TRACKED - See docs/TECHNICAL_DEBT.md
+**Blocker:** None
+**Effort:** 4-6 hours
+**Owner:** TBD
+**Created:** October 7, 2025
+
+**Current Status:**
+- 20 ShellCheck error codes temporarily excluded
+- All scripts work but have style/parsing issues
+- Documented in `docs/TECHNICAL_DEBT.md`
+
+**Tasks:**
+- [ ] Fix parsing errors in Python-embedded scripts (2h)
+- [ ] Fix common anti-patterns (ls, ps aux, quoting) (2h)
+- [ ] Address style issues and warnings (2h)
+- [ ] Remove exclusions from `.pre-commit-config.yaml`
+- [ ] Verify all scripts pass shellcheck
+
+**Priority:** Fix before next major release
+
+---
+
 ### 1. Build AMD64 Database Image ⏳
 **Status:** Not Started
 **Blocker:** Need x86 machine or Docker buildx

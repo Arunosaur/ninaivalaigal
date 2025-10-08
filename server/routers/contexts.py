@@ -7,8 +7,9 @@ from auth import get_current_user
 from database import ContextPermission, DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from models.api_models import ContextCreate, ContextShare, ContextTransfer
-from rbac.permissions import Action, Resource
 from rbac_middleware import require_permission
+
+from rbac.permissions import Action, Resource
 
 # Initialize router
 router = APIRouter(prefix="/contexts", tags=["contexts"])

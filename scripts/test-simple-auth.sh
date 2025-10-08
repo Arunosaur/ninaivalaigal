@@ -23,7 +23,7 @@ echo "Testing signup endpoint availability..."
 signup_test=$(curl -s -w "HTTP:%{http_code}" -X GET "$API_BASE/auth/signup/individual" || echo "HTTP:000")
 echo "Signup endpoint test: $signup_test"
 
-# Test login endpoint structure  
+# Test login endpoint structure
 echo "Testing login endpoint availability..."
 login_test=$(curl -s -w "HTTP:%{http_code}" -X GET "$API_BASE/auth/login" || echo "HTTP:000")
 echo "Login endpoint test: $login_test"
@@ -48,7 +48,7 @@ echo "Signup response: $signup_response"
 # Test 4: Try to login with the user
 echo -e "\n4. Testing login..."
 login_data='{
-    "email": "simple@test.com", 
+    "email": "simple@test.com",
     "password": "simplepass123"
 }'
 

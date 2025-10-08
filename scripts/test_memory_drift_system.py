@@ -154,7 +154,9 @@ class MemoryDriftSystemTester:
                 self.log(f"✅ Drift detection completed: {drift_count} drifts detected")
                 return True
             else:
-                self.log(f"❌ Drift detection failed with status {response.status_code}")
+                self.log(
+                    f"❌ Drift detection failed with status {response.status_code}"
+                )
                 return False
 
         except Exception as e:
@@ -182,7 +184,9 @@ class MemoryDriftSystemTester:
             elif response.status_code == 200:
                 data = response.json()
                 total_drifts = data.get("total_drifts", 0)
-                self.log(f"✅ Drift history retrieved: {total_drifts} historical drifts")
+                self.log(
+                    f"✅ Drift history retrieved: {total_drifts} historical drifts"
+                )
                 return True
             else:
                 self.log(
@@ -409,7 +413,9 @@ class MemoryDriftSystemTester:
 
         # Final status
         if success_rate >= 80.0:
-            self.log("\n🎉 SPEC-044 MEMORY DRIFT & DIFF DETECTION SYSTEM: OPERATIONAL ✅")
+            self.log(
+                "\n🎉 SPEC-044 MEMORY DRIFT & DIFF DETECTION SYSTEM: OPERATIONAL ✅"
+            )
         else:
             self.log(
                 "\n⚠️ SPEC-044 MEMORY DRIFT & DIFF DETECTION SYSTEM: NEEDS ATTENTION"

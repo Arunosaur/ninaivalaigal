@@ -135,9 +135,9 @@ class OpenAIIntegration(AIToolIntegration):
             self._wait_for_rate_limit()
 
         payload = {
-            "model": context.get("model", "gpt-3.5-turbo")
-            if context
-            else "gpt-3.5-turbo",
+            "model": (
+                context.get("model", "gpt-3.5-turbo") if context else "gpt-3.5-turbo"
+            ),
             "messages": [{"role": "user", "content": query}],
             "max_tokens": context.get("max_tokens", 1000) if context else 1000,
             "temperature": context.get("temperature", 0.7) if context else 0.7,
@@ -205,9 +205,11 @@ class AnthropicIntegration(AIToolIntegration):
             self._wait_for_rate_limit()
 
         payload = {
-            "model": context.get("model", "claude-3-sonnet-20240229")
-            if context
-            else "claude-3-sonnet-20240229",
+            "model": (
+                context.get("model", "claude-3-sonnet-20240229")
+                if context
+                else "claude-3-sonnet-20240229"
+            ),
             "max_tokens": context.get("max_tokens", 1000) if context else 1000,
             "messages": [{"role": "user", "content": query}],
         }

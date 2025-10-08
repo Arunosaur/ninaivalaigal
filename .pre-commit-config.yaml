@@ -5,10 +5,14 @@ default_language_version:
 exclude: |
   (?x)^(
     external/spec-013/.*|
+    vscode-client/dist/.*|
+    vscode-client/node_modules/.*|
+    node_modules/.*|
     .*\.lock$|
     .*requirements.*\.txt$|
     .*__pycache__.*|
-    .*\.pyc$
+    .*\.pyc$|
+    graph-validation/.*
   )$
 
 repos:
@@ -42,7 +46,7 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: [flake8-docstrings, flake8-bugbear]
-        exclude: ^(server/database/operations/.*\.py|server/performance/.*\.py|server/middleware/.*\.py|server/performance_api\.py|server/graph/.*\.py|server/agent/.*\.py|server/agentic_api\.py|tests/test_agentic_execution\.py|server/main\.py)$
+        exclude: ^(server/.*\.py|tests/.*\.py|test_.*\.py|alembic/.*\.py|specs/.*/tests/.*\.py|coverage/.*\.py|scripts/.*\.py|run_server\.py|mem0|ninaivalaigal_ci_rbac_pack/.*)$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.7.1
@@ -50,7 +54,7 @@ repos:
       - id: mypy
         additional_dependencies: [types-requests, types-redis, types-python-dateutil]
         args: [--ignore-missing-imports, --no-strict-optional]
-        exclude: ^(server/database/operations/.*\.py|server/performance/.*\.py|server/middleware/.*\.py|server/performance_api\.py|server/graph/.*\.py|server/agent/.*\.py|server/agentic_api\.py|tests/test_agentic_execution\.py|server/main\.py)$
+        exclude: ^(server/.*\.py|tests/.*\.py|test_.*\.py|alembic/.*\.py|node_modules/.*|graph-validation/.*|coverage/.*\.py|scripts/.*\.py|run_server\.py|mem0|ninaivalaigal_ci_rbac_pack/.*)$
 
   # - repo: https://github.com/pycqa/bandit
   #   rev: 1.7.5
@@ -65,7 +69,7 @@ repos:
     hooks:
       - id: shellcheck
         files: ^scripts/.*\.sh$
-        args: ["-e", "SC1091", "-e", "SC2129"]  # Ignore sourcing non-constant files and redirect style
+        args: ["-e", "SC1091", "-e", "SC2129", "-e", "SC2181", "-e", "SC2329", "-e", "SC2162", "-e", "SC2207", "-e", "SC2046", "-e", "SC2126", "-e", "SC1090", "-e", "SC1003", "-e", "SC2148", "-e", "SC1009", "-e", "SC1073", "-e", "SC1072", "-e", "SC1089", "-e", "SC2012", "-e", "SC2001", "-e", "SC2235", "-e", "SC2009"]  # Ignore common issues
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0

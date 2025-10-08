@@ -3,15 +3,16 @@ Auth-Aware Test Models
 Data models for enterprise authentication testing
 """
 
-from typing import List, Dict, Optional, Any
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-import uuid
+from typing import Any, Dict, List, Optional
 
 
 class UserRole(Enum):
     """User roles for RBAC testing"""
+
     ADMIN = "admin"
     TEAM_LEAD = "team_lead"
     MEMBER = "member"
@@ -21,6 +22,7 @@ class UserRole(Enum):
 
 class TestUserStatus(Enum):
     """Test user status"""
+
     ACTIVE = "active"
     INACTIVE = "inactive"
     SUSPENDED = "suspended"
@@ -29,6 +31,7 @@ class TestUserStatus(Enum):
 
 class AuthTestResult(Enum):
     """Authentication test result status"""
+
     PASS = "pass"
     FAIL = "fail"
     ERROR = "error"
@@ -38,6 +41,7 @@ class AuthTestResult(Enum):
 @dataclass
 class TestUser:
     """Test user for auth-aware testing"""
+
     user_id: str
     username: str
     email: str
@@ -50,43 +54,56 @@ class TestUser:
     created_at: datetime = field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
     session_data: Dict[str, Any] = field(default_factory=dict)
-    
+
     def __post_init__(self):
         """Set default permissions based on role"""
         if not self.permissions:
             self.permissions = self._get_default_permissions()
-    
+
     def _get_default_permissions(self) -> List[str]:
         """Get default permissions for user role"""
         role_permissions = {
             UserRole.ADMIN: [
-                "admin:read", "admin:write", "admin:delete",
-                "user:read", "user:write", "user:delete",
-                "team:read", "team:write", "team:delete",
-                "memory:read", "memory:write", "memory:delete",
-                "analytics:read", "billing:read", "billing:write"
+                "admin:read",
+                "admin:write",
+                "admin:delete",
+                "user:read",
+                "user:write",
+                "user:delete",
+                "team:read",
+                "team:write",
+                "team:delete",
+                "memory:read",
+                "memory:write",
+                "memory:delete",
+                "analytics:read",
+                "billing:read",
+                "billing:write",
             ],
             UserRole.TEAM_LEAD: [
-                "user:read", "user:write",
-                "team:read", "team:write",
-                "memory:read", "memory:write", "memory:delete",
-                "analytics:read"
+                "user:read",
+                "user:write",
+                "team:read",
+                "team:write",
+                "memory:read",
+                "memory:write",
+                "memory:delete",
+                "analytics:read",
             ],
             UserRole.MEMBER: [
                 "user:read",
                 "team:read",
-                "memory:read", "memory:write",
-                "analytics:read"
+                "memory:read",
+                "memory:write",
+                "analytics:read",
             ],
             UserRole.VIEWER: [
                 "user:read",
-                "team:read", 
+                "team:read",
                 "memory:read",
-                "analytics:read"
+                "analytics:read",
             ],
-            UserRole.GUEST: [
-                "memory:read"
-            ]
+            UserRole.GUEST: ["memory:read"],
         }
         return role_permissions.get(self.role, [])
 
@@ -94,6 +111,7 @@ class TestUser:
 @dataclass
 class TestSession:
     """Test session for auth testing"""
+
     session_id: str
     user_id: str
     token: str
@@ -105,12 +123,12 @@ class TestSession:
     user_agent: str = "test-client/1.0"
     is_active: bool = True
     session_data: Dict[str, Any] = field(default_factory=dict)
-    
+
     @property
     def is_expired(self) -> bool:
         """Check if session is expired"""
         return datetime.utcnow() > self.expires_at
-    
+
     @property
     def time_remaining(self) -> timedelta:
         """Get remaining session time"""
@@ -122,6 +140,7 @@ class TestSession:
 @dataclass
 class AuthTestResults:
     """Results from authentication testing"""
+
     test_name: str
     result: AuthTestResult
     user_count: int
@@ -132,14 +151,14 @@ class AuthTestResults:
     details: Dict[str, Any] = field(default_factory=dict)
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
-    
+
     @property
     def success_rate(self) -> float:
         """Calculate success rate percentage"""
         if self.user_count == 0:
             return 0.0
         return (self.success_count / self.user_count) * 100
-    
+
     @property
     def is_passing(self) -> bool:
         """Check if test is passing (>95% success rate)"""
@@ -149,6 +168,7 @@ class AuthTestResults:
 @dataclass
 class PermissionTestResult:
     """Result from permission testing"""
+
     endpoint: str
     method: str
     user_role: UserRole
@@ -157,7 +177,7 @@ class PermissionTestResult:
     response_code: int
     execution_time_ms: float
     error_message: Optional[str] = None
-    
+
     @property
     def is_correct(self) -> bool:
         """Check if permission test result is correct"""
@@ -167,6 +187,7 @@ class PermissionTestResult:
 @dataclass
 class SecurityTestResult:
     """Result from security scenario testing"""
+
     test_scenario: str
     attack_type: str
     user_id: str
@@ -175,7 +196,7 @@ class SecurityTestResult:
     execution_time_ms: float
     attack_details: Dict[str, Any] = field(default_factory=dict)
     security_logs: List[str] = field(default_factory=list)
-    
+
     @property
     def is_secure(self) -> bool:
         """Check if security test passed (attack was prevented)"""
@@ -185,12 +206,13 @@ class SecurityTestResult:
 @dataclass
 class ConflictResults:
     """Results from session conflict testing"""
+
     total_conflicts: int
     session_conflicts: List[Dict[str, Any]]
     data_conflicts: List[Dict[str, Any]]
     resolution_time_ms: float
     conflicts_resolved: bool
-    
+
     @property
     def has_conflicts(self) -> bool:
         """Check if any conflicts were detected"""
@@ -200,6 +222,7 @@ class ConflictResults:
 @dataclass
 class IsolationResults:
     """Results from user isolation testing"""
+
     user_a_id: str
     user_b_id: str
     isolation_maintained: bool
@@ -207,7 +230,7 @@ class IsolationResults:
     blocked_attempts: int
     data_leakage_detected: bool
     isolation_violations: List[str] = field(default_factory=list)
-    
+
     @property
     def isolation_score(self) -> float:
         """Calculate isolation effectiveness score"""
@@ -219,6 +242,7 @@ class IsolationResults:
 @dataclass
 class ComplianceTestResult:
     """Result from compliance testing"""
+
     compliance_standard: str  # "SOC2", "GDPR", "ISO27001"
     test_category: str
     requirement_id: str
@@ -228,19 +252,22 @@ class ComplianceTestResult:
     compliance_score: float
     findings: List[str] = field(default_factory=list)
     recommendations: List[str] = field(default_factory=list)
-    
+
     @property
     def is_compliant(self) -> bool:
         """Check if compliance test passed"""
-        return (self.test_passed and 
-                self.evidence_collected and 
-                self.audit_trail_complete and
-                self.compliance_score >= 90.0)
+        return (
+            self.test_passed
+            and self.evidence_collected
+            and self.audit_trail_complete
+            and self.compliance_score >= 90.0
+        )
 
 
 @dataclass
 class LoadTestMetrics:
     """Metrics from auth load testing"""
+
     concurrent_users: int
     total_requests: int
     successful_requests: int
@@ -250,7 +277,7 @@ class LoadTestMetrics:
     p99_response_time_ms: float
     throughput_rps: float
     error_rate: float
-    
+
     @property
     def performance_grade(self) -> str:
         """Get performance grade based on metrics"""
@@ -269,6 +296,7 @@ class LoadTestMetrics:
 @dataclass
 class AuthTestSuite:
     """Complete auth test suite results"""
+
     suite_name: str
     start_time: datetime
     end_time: Optional[datetime]
@@ -281,27 +309,30 @@ class AuthTestSuite:
     security_results: List[SecurityTestResult] = field(default_factory=list)
     compliance_results: List[ComplianceTestResult] = field(default_factory=list)
     load_metrics: Optional[LoadTestMetrics] = None
-    
+
     @property
     def duration_seconds(self) -> float:
         """Get test suite duration in seconds"""
         if not self.end_time:
             return 0.0
         return (self.end_time - self.start_time).total_seconds()
-    
+
     @property
     def success_rate(self) -> float:
         """Calculate overall success rate"""
         if self.total_tests == 0:
             return 0.0
         return (self.passed_tests / self.total_tests) * 100
-    
+
     @property
     def is_enterprise_ready(self) -> bool:
         """Check if test suite indicates enterprise readiness"""
         return (
-            self.success_rate >= 95.0 and
-            all(sr.is_secure for sr in self.security_results) and
-            all(cr.is_compliant for cr in self.compliance_results) and
-            (not self.load_metrics or self.load_metrics.performance_grade in ["A", "B"])
+            self.success_rate >= 95.0
+            and all(sr.is_secure for sr in self.security_results)
+            and all(cr.is_compliant for cr in self.compliance_results)
+            and (
+                not self.load_metrics
+                or self.load_metrics.performance_grade in ["A", "B"]
+            )
         )

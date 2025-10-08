@@ -5,7 +5,7 @@
     "expected_similar_ids": ["uuid-2", "uuid-3"]
   },
   {
-    "memory_id": "uuid-2", 
+    "memory_id": "uuid-2",
     "content": "Machine learning model optimization techniques",
     "expected_similar_ids": ["uuid-1", "uuid-3"]
   },

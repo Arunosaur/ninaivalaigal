@@ -25,13 +25,13 @@ CREATE TABLE IF NOT EXISTS discount_codes (
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either percent_off or amount_off is specified, but not both
     CONSTRAINT discount_type_check CHECK (
-        (percent_off IS NOT NULL AND amount_off IS NULL) OR 
+        (percent_off IS NOT NULL AND amount_off IS NULL) OR
         (percent_off IS NULL AND amount_off IS NOT NULL)
     ),
-    
+
     -- Ensure usage doesn't exceed limit
     CONSTRAINT usage_limit_check CHECK (
         usage_limit IS NULL OR used_count <= usage_limit
@@ -55,13 +55,13 @@ CREATE TABLE IF NOT EXISTS team_credits (
     reason TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified, but not both
     CONSTRAINT credit_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     ),
-    
+
     -- Ensure used amount doesn't exceed total amount
     CONSTRAINT used_amount_check CHECK (used_amount <= amount)
 );
@@ -88,10 +88,10 @@ CREATE TABLE IF NOT EXISTS nonprofit_applications (
     review_notes TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified, but not both
     CONSTRAINT nonprofit_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     )
 );
@@ -113,16 +113,16 @@ CREATE TABLE IF NOT EXISTS team_usage_stats (
     billing_period_start DATE NOT NULL,
     billing_period_end DATE NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified, but not both
     CONSTRAINT usage_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     ),
-    
+
     -- Ensure billing period is valid
     CONSTRAINT billing_period_check CHECK (billing_period_start <= billing_period_end),
-    
+
     -- Unique constraint to prevent duplicate metrics for same period
     CONSTRAINT unique_usage_metric UNIQUE (team_id, org_id, metric_name, billing_period_start, billing_period_end)
 );
@@ -154,16 +154,16 @@ CREATE TABLE IF NOT EXISTS billing_invoices (
     tax_amount NUMERIC(10,2) DEFAULT 0 CHECK (tax_amount >= 0),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified, but not both
     CONSTRAINT invoice_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     ),
-    
+
     -- Ensure billing period is valid
     CONSTRAINT invoice_billing_period_check CHECK (billing_period_start <= billing_period_end),
-    
+
     -- Ensure amounts are consistent
     CONSTRAINT invoice_amount_check CHECK (amount_paid <= amount_due)
 );
@@ -184,10 +184,10 @@ CREATE TABLE IF NOT EXISTS discount_code_usage (
     invoice_id UUID REFERENCES billing_invoices(id) ON DELETE CASCADE,
     amount_discounted NUMERIC(10,2) NOT NULL CHECK (amount_discounted >= 0),
     used_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified, but not both
     CONSTRAINT discount_usage_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     )
 );
@@ -211,10 +211,10 @@ CREATE TABLE IF NOT EXISTS team_billing_settings (
     payment_terms_days INTEGER DEFAULT 30 CHECK (payment_terms_days > 0),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified, but not both
     CONSTRAINT billing_settings_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     )
 );
@@ -243,7 +243,7 @@ CREATE TRIGGER update_team_billing_settings_updated_at BEFORE UPDATE ON team_bil
 CREATE OR REPLACE FUNCTION increment_discount_code_usage()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE discount_codes 
+    UPDATE discount_codes
     SET used_count = used_count + 1
     WHERE id = NEW.discount_code_id;
     RETURN NEW;
@@ -260,22 +260,22 @@ DECLARE
     code_record discount_codes%ROWTYPE;
 BEGIN
     SELECT * INTO code_record FROM discount_codes WHERE id = NEW.discount_code_id;
-    
+
     -- Check if code is active
     IF NOT code_record.is_active THEN
         RAISE EXCEPTION 'Discount code is not active';
     END IF;
-    
+
     -- Check expiration
     IF code_record.expires_at IS NOT NULL AND code_record.expires_at < NOW() THEN
         RAISE EXCEPTION 'Discount code has expired';
     END IF;
-    
+
     -- Check usage limit
     IF code_record.usage_limit IS NOT NULL AND code_record.used_count >= code_record.usage_limit THEN
         RAISE EXCEPTION 'Discount code usage limit exceeded';
     END IF;
-    
+
     RETURN NEW;
 END;
 $$ language 'plpgsql';
@@ -287,7 +287,7 @@ CREATE TRIGGER validate_discount_usage BEFORE INSERT ON discount_code_usage FOR 
 
 -- Active discount codes view
 CREATE OR REPLACE VIEW active_discount_codes AS
-SELECT 
+SELECT
     id,
     code,
     percent_off,
@@ -298,14 +298,14 @@ SELECT
     (usage_limit IS NULL OR used_count < usage_limit) AS can_be_used,
     (expires_at IS NULL OR expires_at > NOW()) AS not_expired,
     created_at
-FROM discount_codes 
+FROM discount_codes
 WHERE is_active = TRUE
     AND (expires_at IS NULL OR expires_at > NOW())
     AND (usage_limit IS NULL OR used_count < usage_limit);
 
 -- Team billing summary view
 CREATE OR REPLACE VIEW team_billing_summary AS
-SELECT 
+SELECT
     t.id AS team_id,
     t.name AS team_name,
     t.billing_plan,
@@ -324,7 +324,7 @@ GROUP BY t.id, t.name, t.billing_plan, t.is_standalone, t.max_members, t.created
 
 -- Usage summary view for current billing period
 CREATE OR REPLACE VIEW current_period_usage AS
-SELECT 
+SELECT
     team_id,
     org_id,
     metric_name,
@@ -332,8 +332,8 @@ SELECT
     MAX(recorded_date) AS last_recorded,
     billing_period_start,
     billing_period_end
-FROM team_usage_stats 
-WHERE billing_period_start <= CURRENT_DATE 
+FROM team_usage_stats
+WHERE billing_period_start <= CURRENT_DATE
     AND billing_period_end >= CURRENT_DATE
 GROUP BY team_id, org_id, metric_name, billing_period_start, billing_period_end;
 
@@ -343,8 +343,8 @@ GRANT SELECT ON ALL VIEWS IN SCHEMA public TO authenticated_users;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO authenticated_users;
 
 -- Insert default billing plans data
-INSERT INTO discount_codes (code, percent_off, expires_at, usage_limit, created_by, is_active) 
-VALUES 
+INSERT INTO discount_codes (code, percent_off, expires_at, usage_limit, created_by, is_active)
+VALUES
     ('WELCOME10', 10, NOW() + INTERVAL '30 days', 100, (SELECT id FROM users WHERE role = 'admin' LIMIT 1), TRUE),
     ('STARTUP50', 50, NOW() + INTERVAL '90 days', 50, (SELECT id FROM users WHERE role = 'admin' LIMIT 1), TRUE)
 ON CONFLICT (code) DO NOTHING;
@@ -353,7 +353,7 @@ ON CONFLICT (code) DO NOTHING;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM users WHERE role = 'admin') THEN
-        INSERT INTO users (id, email, role, created_at) 
+        INSERT INTO users (id, email, role, created_at)
         VALUES (gen_random_uuid(), 'admin@ninaivalaigal.com', 'admin', NOW());
     END IF;
 END $$;

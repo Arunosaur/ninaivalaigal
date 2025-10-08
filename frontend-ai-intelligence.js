@@ -18,12 +18,12 @@ class AIIntelligenceManager {
     // Get ranked memories
     async getRankedMemories(limit = 10, teamFilter = null, includeScores = false) {
         try {
-            const params = new URLSearchParams({ 
+            const params = new URLSearchParams({
                 limit: limit,
-                include_scores: includeScores 
+                include_scores: includeScores
             });
             if (teamFilter !== null) params.append('team_filter', teamFilter);
-            
+
             const url = `${this.baseUrl}/graph-rank/memories?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -35,12 +35,12 @@ class AIIntelligenceManager {
     // Get ranked contexts
     async getRankedContexts(limit = 10, teamFilter = null, includeScores = false) {
         try {
-            const params = new URLSearchParams({ 
+            const params = new URLSearchParams({
                 limit: limit,
-                include_scores: includeScores 
+                include_scores: includeScores
             });
             if (teamFilter !== null) params.append('team_filter', teamFilter);
-            
+
             const url = `${this.baseUrl}/graph-rank/contexts?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -52,11 +52,11 @@ class AIIntelligenceManager {
     // Get memory recommendations
     async getMemoryRecommendations(userId, limit = 5, type = 'trending') {
         try {
-            const params = new URLSearchParams({ 
+            const params = new URLSearchParams({
                 limit: limit,
-                recommendation_type: type 
+                recommendation_type: type
             });
-            
+
             const url = `${this.baseUrl}/graph-rank/recommendations/${userId}?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -68,12 +68,12 @@ class AIIntelligenceManager {
     // Suggest tags for content
     async suggestTags(content, existingTags = null, maxSuggestions = 3) {
         try {
-            const params = new URLSearchParams({ 
+            const params = new URLSearchParams({
                 content: content,
-                max_suggestions: maxSuggestions 
+                max_suggestions: maxSuggestions
             });
             if (existingTags) params.append('existing_tags', existingTags);
-            
+
             const url = `${this.baseUrl}/tag-suggester/suggest?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -99,7 +99,7 @@ class AIIntelligenceManager {
         try {
             const params = new URLSearchParams();
             if (teamFilter !== null) params.append('team_filter', teamFilter);
-            
+
             const url = `${this.baseUrl}/graph-rank/insights?${params.toString()}`;
             const response = await fetch(url, { headers: this.getHeaders() });
             return await response.json();
@@ -117,7 +117,7 @@ class RankedMemoryVisualization {
         this.width = 800;
         this.height = 600;
         this.margin = { top: 20, right: 30, bottom: 40, left: 50 };
-        
+
         this.initializeSVG();
     }
 
@@ -146,17 +146,17 @@ class RankedMemoryVisualization {
 
     async renderRankedMemories(teamFilter = null, includeScores = true) {
         const result = await this.aiManager.getRankedMemories(15, teamFilter, includeScores);
-        
+
         if (!result.success) {
             console.error('Failed to load ranked memories:', result.error);
             return;
         }
 
         const memories = result.ranked_memories;
-        
+
         // Clear previous visualization
         this.g.selectAll('*').remove();
-        
+
         // Create scales
         const xScale = d3.scaleLinear()
             .domain([0, d3.max(memories, d => d.rank_score)])
@@ -188,7 +188,7 @@ class RankedMemoryVisualization {
                 self.tooltip.transition()
                     .duration(200)
                     .style('opacity', .9);
-                
+
                 const scoreBreakdown = d.score_breakdown ? `
                     <br><strong>Score Breakdown:</strong>
                     <br>PageRank: ${d.score_breakdown.pagerank.toFixed(3)}
@@ -196,7 +196,7 @@ class RankedMemoryVisualization {
                     <br>Sentiment: +${d.score_breakdown.sentiment_boost.toFixed(3)}
                     <br>Approval: +${d.score_breakdown.approval_boost.toFixed(3)}
                 ` : '';
-                
+
                 self.tooltip.html(`
                     <strong>${d.title}</strong><br>
                     Rank Score: ${d.rank_score.toFixed(3)}<br>
@@ -273,14 +273,14 @@ class AIIntelligenceDashboard extends React.Component {
             viewMode: 'ranked', // ranked, recommendations, insights, tags
             tagInputText: ''
         };
-        
+
         this.aiManager = new AIIntelligenceManager('http://localhost:13370', this.props.authService);
         this.visualizationRef = React.createRef();
     }
 
     async componentDidMount() {
         await this.loadAIData();
-        
+
         // Initialize D3 visualization
         if (this.state.viewMode === 'ranked') {
             this.initializeVisualization();
@@ -289,7 +289,7 @@ class AIIntelligenceDashboard extends React.Component {
 
     async loadAIData() {
         this.setState({ loading: true });
-        
+
         try {
             const [memoriesResult, insightsResult] = await Promise.all([
                 this.aiManager.getRankedMemories(10, this.state.selectedTeam, true),
@@ -318,9 +318,9 @@ class AIIntelligenceDashboard extends React.Component {
 
     async handleTagSuggestion() {
         if (!this.state.tagInputText.trim()) return;
-        
+
         const result = await this.aiManager.suggestTags(this.state.tagInputText);
-        
+
         if (result.success) {
             this.setState({ tagSuggestions: result.suggestions });
         } else {
@@ -350,10 +350,10 @@ class AIIntelligenceDashboard extends React.Component {
         return (
             <div className="ai-intelligence-dashboard">
                 <h1>🧠 AI Intelligence Dashboard</h1>
-                
+
                 {/* View Mode Tabs */}
                 <div className="view-mode-tabs">
-                    <button 
+                    <button
                         className={viewMode === 'ranked' ? 'active' : ''}
                         onClick={() => {
                             this.setState({ viewMode: 'ranked' });
@@ -362,19 +362,19 @@ class AIIntelligenceDashboard extends React.Component {
                     >
                         📊 Ranked Memories
                     </button>
-                    <button 
+                    <button
                         className={viewMode === 'recommendations' ? 'active' : ''}
                         onClick={() => this.setState({ viewMode: 'recommendations' })}
                     >
                         🎯 Recommendations
                     </button>
-                    <button 
+                    <button
                         className={viewMode === 'insights' ? 'active' : ''}
                         onClick={() => this.setState({ viewMode: 'insights' })}
                     >
                         💡 Insights
                     </button>
-                    <button 
+                    <button
                         className={viewMode === 'tags' ? 'active' : ''}
                         onClick={() => this.setState({ viewMode: 'tags' })}
                     >
@@ -386,10 +386,10 @@ class AIIntelligenceDashboard extends React.Component {
                 {viewMode === 'ranked' && (
                     <div className="ranked-memories-view">
                         <h2>📊 PageRank + AI Ranked Memories</h2>
-                        
+
                         {/* D3 Visualization */}
                         <div id="d3-ranked-viz" ref={this.visualizationRef}></div>
-                        
+
                         {/* Memory List */}
                         <div className="ranked-memories-list">
                             {rankedMemories.map((memory, index) => (
@@ -397,13 +397,13 @@ class AIIntelligenceDashboard extends React.Component {
                                     <div className="memory-rank">
                                         {this.getRankIcon(index + 1)}
                                     </div>
-                                    
+
                                     <div className="memory-content">
                                         <h3>{memory.title}</h3>
                                         <p>{memory.content.substring(0, 150)}...</p>
-                                        
+
                                         <div className="memory-metrics">
-                                            <span 
+                                            <span
                                                 className="rank-score"
                                                 style={{ color: this.getScoreColor(memory.rank_score) }}
                                             >
@@ -416,7 +416,7 @@ class AIIntelligenceDashboard extends React.Component {
                                                 😊 {(memory.sentiment_score * 100).toFixed(0)}%
                                             </span>
                                         </div>
-                                        
+
                                         <div className="memory-tags">
                                             {memory.tags.map(tag => (
                                                 <span key={tag} className="tag">{tag}</span>
@@ -433,7 +433,7 @@ class AIIntelligenceDashboard extends React.Component {
                 {viewMode === 'tags' && (
                     <div className="tag-suggester-view">
                         <h2>🏷️ AI Tag Suggester</h2>
-                        
+
                         <div className="tag-input-section">
                             <textarea
                                 placeholder="Enter memory content to get AI-powered tag suggestions..."
@@ -442,14 +442,14 @@ class AIIntelligenceDashboard extends React.Component {
                                 rows={4}
                                 cols={80}
                             />
-                            <button 
+                            <button
                                 onClick={() => this.handleTagSuggestion()}
                                 disabled={!this.state.tagInputText.trim()}
                             >
                                 🤖 Get AI Tag Suggestions
                             </button>
                         </div>
-                        
+
                         {tagSuggestions.length > 0 && (
                             <div className="tag-suggestions">
                                 <h3>Suggested Tags:</h3>
@@ -473,7 +473,7 @@ class AIIntelligenceDashboard extends React.Component {
                 {viewMode === 'insights' && insights && (
                     <div className="insights-view">
                         <h2>💡 Graph Intelligence Insights</h2>
-                        
+
                         <div className="insights-grid">
                             <div className="insight-card">
                                 <h3>🏆 Top Memories</h3>
@@ -486,7 +486,7 @@ class AIIntelligenceDashboard extends React.Component {
                                     ))}
                                 </div>
                             </div>
-                            
+
                             <div className="insight-card">
                                 <h3>📁 Top Contexts</h3>
                                 <div className="top-contexts">
@@ -498,7 +498,7 @@ class AIIntelligenceDashboard extends React.Component {
                                     ))}
                                 </div>
                             </div>
-                            
+
                             <div className="insight-card">
                                 <h3>🔥 Trending Topics</h3>
                                 <div className="trending-topics">
@@ -511,7 +511,7 @@ class AIIntelligenceDashboard extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className="graph-metrics">
                             <h3>📊 Graph Metrics</h3>
                             <div className="metrics-grid">
@@ -548,17 +548,17 @@ const AIIntelligenceVue = {
             aiManager: null
         };
     },
-    
+
     async created() {
         this.aiManager = new AIIntelligenceManager('http://localhost:13370', this.$auth);
         await this.loadRankedMemories();
     },
-    
+
     methods: {
         async loadRankedMemories() {
             this.loading = true;
             const result = await this.aiManager.getRankedMemories(10);
-            
+
             if (result.success) {
                 this.rankedMemories = result.ranked_memories;
             } else {
@@ -566,16 +566,16 @@ const AIIntelligenceVue = {
             }
             this.loading = false;
         },
-        
+
         async suggestTags() {
             if (!this.tagInputText.trim()) return;
-            
+
             const result = await this.aiManager.suggestTags(this.tagInputText);
             if (result.success) {
                 this.tagSuggestions = result.suggestions;
             }
         },
-        
+
         getRankIcon(rank) {
             if (rank === 1) return '🥇';
             if (rank === 2) return '🥈';
@@ -583,14 +583,14 @@ const AIIntelligenceVue = {
             return `#${rank}`;
         }
     },
-    
+
     template: `
         <div class="ai-intelligence-vue">
             <h1>🧠 AI Intelligence</h1>
-            
+
             <div v-if="loading">Loading AI data...</div>
             <div v-else-if="error">Error: {{ error }}</div>
-            
+
             <div v-else>
                 <div class="ranked-memories">
                     <h2>📊 Ranked Memories</h2>
@@ -605,12 +605,12 @@ const AIIntelligenceVue = {
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tag-suggester">
                     <h2>🏷️ Tag Suggester</h2>
                     <textarea v-model="tagInputText" placeholder="Enter content for tag suggestions..."></textarea>
                     <button @click="suggestTags" :disabled="!tagInputText.trim()">Get Suggestions</button>
-                    
+
                     <div v-if="tagSuggestions.length > 0" class="suggestions">
                         <div v-for="suggestion in tagSuggestions" :key="suggestion.tag" class="suggestion">
                             <span class="tag">{{ suggestion.tag }}</span>
@@ -628,31 +628,31 @@ async function aiIntelligenceDemo() {
     // Initialize AI manager
     const auth = new AuthService();
     const aiManager = new AIIntelligenceManager('http://localhost:13370', auth);
-    
+
     // Login first
     await auth.login('user@example.com', 'password');
-    
+
     // Get ranked memories
     const rankedMemories = await aiManager.getRankedMemories(10, null, true);
     console.log('Ranked memories:', rankedMemories);
-    
+
     // Get tag suggestions
     const tagSuggestions = await aiManager.suggestTags('This is about database performance optimization');
     console.log('Tag suggestions:', tagSuggestions);
-    
+
     // Get team dashboard
     const dashboard = await aiManager.getTeamDashboard(1, 30);
     console.log('Team dashboard:', dashboard);
-    
+
     // Get graph insights
     const insights = await aiManager.getGraphInsights();
     console.log('Graph insights:', insights);
 }
 
-export { 
-    AIIntelligenceManager, 
-    RankedMemoryVisualization, 
-    AIIntelligenceDashboard, 
-    AIIntelligenceVue, 
-    aiIntelligenceDemo 
+export {
+    AIIntelligenceManager,
+    RankedMemoryVisualization,
+    AIIntelligenceDashboard,
+    AIIntelligenceVue,
+    aiIntelligenceDemo
 };

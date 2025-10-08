@@ -78,7 +78,7 @@ class User(Base):
     user_permissions = relationship(
         "ContextPermission", foreign_keys="[ContextPermission.user_id]"
     )
-    
+
     # RBAC relationships (defined in rbac_models.py)
     # These are added dynamically by rbac_models.py to avoid circular imports
 

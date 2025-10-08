@@ -224,9 +224,11 @@ class PerformanceMonitor:
 
             summary = {
                 "timestamp": now.isoformat(),
-                "uptime_seconds": (now - self.snapshots[0].timestamp).total_seconds()
-                if self.snapshots
-                else 0,
+                "uptime_seconds": (
+                    (now - self.snapshots[0].timestamp).total_seconds()
+                    if self.snapshots
+                    else 0
+                ),
                 "total_requests": self.request_count,
                 "total_errors": self.error_count,
                 "error_rate": self.error_count / max(self.request_count, 1),

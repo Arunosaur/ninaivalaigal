@@ -52,7 +52,7 @@ check_container() {
     local image=$1
     local name=$2
     local test_cmd=$3
-    
+
     print_status "INFO" "Testing $name container..."
     if docker run --rm $image $test_cmd >/dev/null 2>&1; then
         print_status "SUCCESS" "$name container is accessible"
@@ -75,21 +75,21 @@ if check_command "docker" "Docker"; then
     # Check if Docker daemon is running
     if docker ps >/dev/null 2>&1; then
         print_status "SUCCESS" "Docker daemon is running"
-        
+
         # Test PostgreSQL container
         if check_container "postgres:15" "PostgreSQL" "pg_isready --help"; then
             true
         else
             ((error_count++))
         fi
-        
+
         # Test Redis container
         if check_container "redis:7-alpine" "Redis" "redis-cli --version"; then
             true
         else
             ((error_count++))
         fi
-        
+
     else
         print_status "ERROR" "Docker daemon is not running"
         ((error_count++))
@@ -168,7 +168,7 @@ echo "------------------"
 if check_command "python3" "Python 3"; then
     python_version=$(python3 --version 2>&1 | awk '{print $2}')
     print_status "INFO" "Python version: $python_version"
-    
+
     # Check if pytest is available
     if python3 -c "import pytest" 2>/dev/null; then
         pytest_version=$(python3 -c "import pytest; print(pytest.__version__)" 2>/dev/null || echo "unknown")
@@ -176,7 +176,7 @@ if check_command "python3" "Python 3"; then
     else
         print_status "WARNING" "pytest is not available"
     fi
-    
+
     # Check if coverage is available
     if python3 -c "import coverage" 2>/dev/null; then
         coverage_version=$(python3 -c "import coverage; print(coverage.__version__)" 2>/dev/null || echo "unknown")
@@ -193,7 +193,7 @@ fi
 if check_command "make" "Make"; then
     if [ -f "Makefile" ]; then
         print_status "SUCCESS" "Makefile found"
-        
+
         # Check for test targets
         if grep -q "test-foundation" Makefile 2>/dev/null; then
             print_status "SUCCESS" "test-foundation target available"

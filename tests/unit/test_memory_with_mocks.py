@@ -1,9 +1,11 @@
 # SPEC-056: Example of improved testing with mocks and fixtures
 # This demonstrates the new testing approach with comprehensive mocking
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 import pytest_asyncio
-from unittest.mock import patch, AsyncMock
+
 from tests.fixtures import MockContext, assert_memory_valid, assert_user_valid
 
 
@@ -16,27 +18,22 @@ class TestMemoryWithMocks:
         with mock_context:
             # Create test user
             user = await mock_context.mock_db.create_user(
-                email="test@example.com",
-                username="testuser"
+                email="test@example.com", username="testuser"
             )
 
             # Create test memories
             memory1 = await mock_context.mock_db.create_memory(
-                user_id=user["id"],
-                content="First test memory",
-                context="work"
+                user_id=user["id"], content="First test memory", context="work"
             )
 
             memory2 = await mock_context.mock_db.create_memory(
-                user_id=user["id"],
-                content="Second test memory",
-                context="personal"
+                user_id=user["id"], content="Second test memory", context="personal"
             )
 
             yield {
                 "user": user,
                 "memories": [memory1, memory2],
-                "mock_context": mock_context
+                "mock_context": mock_context,
             }
 
     @pytest.mark.asyncio
@@ -49,9 +46,7 @@ class TestMemoryWithMocks:
         with mock_context:
             # Test memory creation
             new_memory = await mock_context.mock_db.create_memory(
-                user_id=user["id"],
-                content="New memory content",
-                context="test"
+                user_id=user["id"], content="New memory content", context="test"
             )
 
             # Validate memory structure
@@ -105,7 +100,7 @@ class TestMemoryWithMocks:
         # Setup mock response
         mock_http_client.set_response(
             "https://api.example.com/data",
-            {"status_code": 200, "data": {"result": "success"}}
+            {"status_code": 200, "data": {"result": "success"}},
         )
 
         # Make request
@@ -124,8 +119,7 @@ class TestMemoryWithMocks:
         """Test user validation using data factory"""
         # Create test user using factory
         user = test_data_factory.create_user(
-            email="factory@example.com",
-            username="factoryuser"
+            email="factory@example.com", username="factoryuser"
         )
 
         # Validate user structure
@@ -138,8 +132,7 @@ class TestMemoryWithMocks:
         """Test memory validation using data factory"""
         # Create test memory using factory
         memory = test_data_factory.create_memory(
-            content="Factory memory content",
-            context="factory_test"
+            content="Factory memory content", context="factory_test"
         )
 
         # Validate memory structure
@@ -153,34 +146,29 @@ class TestMemoryWithMocks:
         with mock_context:
             # Create user
             user = await mock_context.mock_db.create_user(
-                email="comprehensive@example.com",
-                username="compuser"
+                email="comprehensive@example.com", username="compuser"
             )
 
             # Create memory
             memory = await mock_context.mock_db.create_memory(
-                user_id=user["id"],
-                content="Comprehensive test memory"
+                user_id=user["id"], content="Comprehensive test memory"
             )
 
             # Cache memory in Redis
             cache_key = f"memory:{memory['id']}"
             await mock_context.mock_redis.set(
-                cache_key,
-                f"cached_content_{memory['id']}",
-                ex=3600
+                cache_key, f"cached_content_{memory['id']}", ex=3600
             )
 
             # Setup HTTP mock for external API
             mock_context.mock_http.set_response(
                 "https://api.memory.com/analyze",
-                {"status_code": 200, "analysis": "positive"}
+                {"status_code": 200, "analysis": "positive"},
             )
 
             # Simulate external API call
             response = await mock_context.mock_http.post(
-                "https://api.memory.com/analyze",
-                json={"content": memory["content"]}
+                "https://api.memory.com/analyze", json={"content": memory["content"]}
             )
 
             # Verify all operations
@@ -203,8 +191,7 @@ class TestPerformanceWithMocks:
         with mock_context:
             # Create user
             user = await mock_context.mock_db.create_user(
-                email="bulk@example.com",
-                username="bulkuser"
+                email="bulk@example.com", username="bulkuser"
             )
 
             # Create multiple memories
@@ -213,7 +200,7 @@ class TestPerformanceWithMocks:
                 memory = await mock_context.mock_db.create_memory(
                     user_id=user["id"],
                     content=f"Bulk memory {i}",
-                    context=f"bulk_context_{i % 10}"
+                    context=f"bulk_context_{i % 10}",
                 )
                 memories.append(memory)
 

@@ -419,9 +419,9 @@ class SpecKitContextManager(ContextInterface):
             "organization_id": context.organization_id,
             "visibility": context.visibility,
             "is_active": context.is_active,
-            "created_at": context.created_at.isoformat()
-            if context.created_at
-            else None,
+            "created_at": (
+                context.created_at.isoformat() if context.created_at else None
+            ),
         }
 
     def _spec_to_dict(self, spec: ContextSpec) -> dict[str, Any]:

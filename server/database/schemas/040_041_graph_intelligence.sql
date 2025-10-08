@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS graph_relationship_strength (
     decay_factor DECIMAL(3,2) DEFAULT 0.95, -- for time-based decay
     calculated_at TIMESTAMP DEFAULT NOW(),
     metadata JSONB DEFAULT '{}',
-    
+
     UNIQUE(source_id, target_id, relationship_type)
 );
 
@@ -254,7 +254,7 @@ CREATE TRIGGER calculate_graph_relationship_decay
 
 -- Active graph insights view
 CREATE OR REPLACE VIEW active_graph_insights AS
-SELECT 
+SELECT
     i.*,
     u.name as user_name,
     t.name as team_name
@@ -266,15 +266,15 @@ ORDER BY i.confidence_score DESC, i.created_at DESC;
 
 -- Strong relationships view
 CREATE OR REPLACE VIEW strong_graph_relationships AS
-SELECT 
+SELECT
     r.*,
-    CASE 
+    CASE
         WHEN r.source_type = 'Memory' THEN m1.title
         WHEN r.source_type = 'User' THEN u1.name
         WHEN r.source_type = 'Token' THEN 'Token'
         ELSE r.source_type
     END as source_name,
-    CASE 
+    CASE
         WHEN r.target_type = 'Memory' THEN m2.title
         WHEN r.target_type = 'User' THEN u2.name
         WHEN r.target_type = 'Token' THEN 'Token'
@@ -290,7 +290,7 @@ ORDER BY r.strength_score DESC;
 
 -- Current graph clusters view
 CREATE OR REPLACE VIEW current_graph_clusters AS
-SELECT 
+SELECT
     c.*,
     array_length(c.entity_ids, 1) as actual_size
 FROM graph_clusters c
@@ -299,7 +299,7 @@ ORDER BY c.cohesion_score DESC, c.calculated_at DESC;
 
 -- Graph performance metrics view
 CREATE OR REPLACE VIEW graph_performance_metrics AS
-SELECT 
+SELECT
     'reasoning_cache' as component,
     COUNT(*) as total_entries,
     AVG(execution_time_ms) as avg_execution_time_ms,
@@ -308,7 +308,7 @@ SELECT
 FROM graph_reasoning_cache
 WHERE created_at > NOW() - INTERVAL '24 hours'
 UNION ALL
-SELECT 
+SELECT
     'intelligence_insights' as component,
     COUNT(*) as total_entries,
     0 as avg_execution_time_ms,
@@ -317,7 +317,7 @@ SELECT
 FROM graph_intelligence_insights
 WHERE created_at > NOW() - INTERVAL '24 hours'
 UNION ALL
-SELECT 
+SELECT
     'relationship_strength' as component,
     COUNT(*) as total_entries,
     0 as avg_execution_time_ms,
@@ -358,11 +358,11 @@ DECLARE
 BEGIN
     DELETE FROM graph_reasoning_cache WHERE expires_at < NOW();
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
-    
+
     DELETE FROM graph_intelligence_insights WHERE expires_at < NOW();
-    
+
     DELETE FROM graph_clusters WHERE expires_at < NOW();
-    
+
     RETURN deleted_count;
 END;
 $$ LANGUAGE plpgsql;
@@ -373,7 +373,7 @@ RETURNS VOID AS $$
 BEGIN
     -- This would contain actual graph metric calculations
     -- For now, we'll update the timestamp to indicate recalculation
-    UPDATE graph_analytics 
+    UPDATE graph_analytics
     SET calculated_at = NOW()
     WHERE metric_type IN ('node_count', 'edge_count', 'clustering', 'density');
 END;

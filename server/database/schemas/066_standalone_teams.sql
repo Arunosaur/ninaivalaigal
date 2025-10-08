@@ -83,10 +83,10 @@ BEGIN
     LOOP
         -- Generate 8-character alphanumeric code
         code := upper(substring(md5(random()::text) from 1 for 8));
-        
+
         -- Check if code already exists
         SELECT EXISTS(SELECT 1 FROM teams WHERE team_invite_code = code) INTO exists;
-        
+
         -- If unique, return the code
         IF NOT exists THEN
             RETURN code;
@@ -139,7 +139,7 @@ DECLARE
     max_allowed INTEGER;
 BEGIN
     -- Get current member count and max allowed
-    SELECT 
+    SELECT
         COUNT(tm.user_id),
         t.max_members
     INTO current_members, max_allowed
@@ -147,7 +147,7 @@ BEGIN
     LEFT JOIN team_memberships tm ON t.id = tm.team_id AND tm.status = 'active'
     WHERE t.id = team_uuid
     GROUP BY t.max_members;
-    
+
     -- Return true if under limit
     RETURN COALESCE(current_members, 0) < COALESCE(max_allowed, 10);
 END;
@@ -155,7 +155,7 @@ $$ LANGUAGE plpgsql;
 
 -- View for team statistics
 CREATE OR REPLACE VIEW team_stats AS
-SELECT 
+SELECT
     t.id,
     t.name,
     t.is_standalone,
@@ -184,7 +184,7 @@ BEGIN
             (SELECT id FROM users LIMIT 1), -- Use first available user
             5
         );
-        
+
         RAISE NOTICE 'Sample standalone team created for testing';
     END IF;
 END $$;

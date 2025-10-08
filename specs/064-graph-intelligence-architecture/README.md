@@ -1,7 +1,7 @@
 # SPEC-064: Graph Intelligence Architecture Blueprint
 
-**Status**: ✅ APPROVED / IMPLEMENTED  
-**Date**: September 23, 2024  
+**Status**: ✅ APPROVED / IMPLEMENTED
+**Date**: September 23, 2024
 **Purpose**: Establish scalable, modular architecture for Graph Intelligence
 
 ## 🎯 **Purpose**

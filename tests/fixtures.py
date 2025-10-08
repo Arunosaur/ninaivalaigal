@@ -2,13 +2,15 @@
 # Comprehensive test fixtures and mocks for ninaivalaigal
 
 import asyncio
+import os
+import tempfile
+from datetime import datetime, timedelta
+from typing import Any, AsyncGenerator, Dict, Optional
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
-from typing import AsyncGenerator, Dict, Any, Optional
-import tempfile
-import os
-from datetime import datetime, timedelta
+
 
 # Test data factories
 class TestDataFactory:
@@ -20,7 +22,7 @@ class TestDataFactory:
         email: str = "test@example.com",
         username: str = "testuser",
         is_active: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Create a test user object"""
         return {
@@ -30,7 +32,7 @@ class TestDataFactory:
             "is_active": is_active,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
-            **kwargs
+            **kwargs,
         }
 
     @staticmethod
@@ -39,7 +41,7 @@ class TestDataFactory:
         user_id: int = 1,
         content: str = "Test memory content",
         context: str = "test_context",
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Create a test memory object"""
         return {
@@ -50,15 +52,12 @@ class TestDataFactory:
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
             "metadata": {},
-            **kwargs
+            **kwargs,
         }
 
     @staticmethod
     def create_team(
-        id: int = 1,
-        name: str = "Test Team",
-        organization_id: int = 1,
-        **kwargs
+        id: int = 1, name: str = "Test Team", organization_id: int = 1, **kwargs
     ) -> Dict[str, Any]:
         """Create a test team object"""
         return {
@@ -67,8 +66,9 @@ class TestDataFactory:
             "organization_id": organization_id,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
-            **kwargs
+            **kwargs,
         }
+
 
 # Database mocks
 class MockDatabaseManager:
@@ -103,7 +103,9 @@ class MockDatabaseManager:
                 return user
         return None
 
-    async def create_memory(self, user_id: int, content: str, **kwargs) -> Dict[str, Any]:
+    async def create_memory(
+        self, user_id: int, content: str, **kwargs
+    ) -> Dict[str, Any]:
         """Mock memory creation"""
         memory_id = self._get_next_id()
         memory = TestDataFactory.create_memory(
@@ -115,6 +117,7 @@ class MockDatabaseManager:
     async def get_user_memories(self, user_id: int) -> list[Dict[str, Any]]:
         """Mock memory retrieval for user"""
         return [m for m in self.memories.values() if m["user_id"] == user_id]
+
 
 # Redis mocks
 class MockRedisClient:
@@ -153,6 +156,7 @@ class MockRedisClient:
         """Mock Redis EXISTS"""
         return 1 if key in self.data else 0
 
+
 # HTTP client mocks
 class MockHttpClient:
     """Mock HTTP client for testing external API calls"""
@@ -175,32 +179,38 @@ class MockHttpClient:
         self.call_history.append(("POST", url, kwargs))
         return self.responses.get(url, {"status_code": 404})
 
+
 # Pytest fixtures
 @pytest.fixture
 def test_data_factory():
     """Provide test data factory"""
     return TestDataFactory()
 
+
 @pytest.fixture
 def mock_db():
     """Provide mock database manager"""
     return MockDatabaseManager()
+
 
 @pytest.fixture
 def mock_redis():
     """Provide mock Redis client"""
     return MockRedisClient()
 
+
 @pytest.fixture
 def mock_http_client():
     """Provide mock HTTP client"""
     return MockHttpClient()
+
 
 @pytest.fixture
 def temp_dir():
     """Provide temporary directory for tests"""
     with tempfile.TemporaryDirectory() as tmpdir:
         yield tmpdir
+
 
 @pytest.fixture
 def test_env_vars():
@@ -209,7 +219,7 @@ def test_env_vars():
         "NINAIVALAIGAL_JWT_SECRET": "test-secret-key",
         "DATABASE_URL": "sqlite:///:memory:",
         "REDIS_URL": "redis://localhost:6379/0",
-        "TESTING": "true"
+        "TESTING": "true",
     }
 
     # Set test environment variables
@@ -227,21 +237,24 @@ def test_env_vars():
         else:
             os.environ[key] = original_value
 
+
 @pytest_asyncio.fixture
 async def mock_database_session():
     """Provide mock database session"""
-    with patch('server.database.DatabaseManager') as mock_db_class:
+    with patch("server.database.DatabaseManager") as mock_db_class:
         mock_db = MockDatabaseManager()
         mock_db_class.return_value = mock_db
         yield mock_db
 
+
 @pytest_asyncio.fixture
 async def mock_redis_session():
     """Provide mock Redis session"""
-    with patch('server.redis_client.redis_client') as mock_redis:
+    with patch("server.redis_client.redis_client") as mock_redis:
         mock_redis_instance = MockRedisClient()
         mock_redis.return_value = mock_redis_instance
         yield mock_redis_instance
+
 
 # Context managers for mocking
 class MockContext:
@@ -255,19 +268,19 @@ class MockContext:
 
     def __enter__(self):
         # Mock database
-        db_patch = patch('server.database.DatabaseManager')
+        db_patch = patch("server.database.DatabaseManager")
         mock_db_class = db_patch.start()
         mock_db_class.return_value = self.mock_db
         self.patches.append(db_patch)
 
         # Mock Redis
-        redis_patch = patch('server.redis_client.redis_client')
+        redis_patch = patch("server.redis_client.redis_client")
         mock_redis_client = redis_patch.start()
         mock_redis_client.return_value = self.mock_redis
         self.patches.append(redis_patch)
 
         # Mock HTTP client
-        http_patch = patch('httpx.AsyncClient')
+        http_patch = patch("httpx.AsyncClient")
         mock_http_client = http_patch.start()
         mock_http_client.return_value = self.mock_http
         self.patches.append(http_patch)
@@ -278,21 +291,19 @@ class MockContext:
         for patch_obj in reversed(self.patches):
             patch_obj.stop()
 
+
 @pytest.fixture
 def mock_context():
     """Provide comprehensive mock context"""
     return MockContext()
 
+
 # Performance testing utilities
 @pytest.fixture
 def benchmark_config():
     """Configure pytest-benchmark for performance tests"""
-    return {
-        "min_rounds": 5,
-        "max_time": 1.0,
-        "warmup": True,
-        "warmup_iterations": 2
-    }
+    return {"min_rounds": 5, "max_time": 1.0, "warmup": True, "warmup_iterations": 2}
+
 
 # Async test utilities
 @pytest.fixture(scope="session")
@@ -302,8 +313,10 @@ def event_loop():
     yield loop
     loop.close()
 
+
 # Test markers
 pytest_plugins = ["pytest_asyncio"]
+
 
 # Custom assertions
 def assert_memory_valid(memory: Dict[str, Any]):
@@ -316,6 +329,7 @@ def assert_memory_valid(memory: Dict[str, Any]):
     assert isinstance(memory["user_id"], int), "User ID must be integer"
     assert isinstance(memory["content"], str), "Content must be string"
     assert len(memory["content"]) > 0, "Content must not be empty"
+
 
 def assert_user_valid(user: Dict[str, Any]):
     """Assert that a user object is valid"""

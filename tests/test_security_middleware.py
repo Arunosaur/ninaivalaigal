@@ -2,7 +2,6 @@
 Integration tests for security middleware
 """
 
-
 import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient

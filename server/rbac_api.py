@@ -205,9 +205,9 @@ async def get_user_role_assignments(
                     "scope_id": role.scope_id,
                     "granted_by": role.granted_by,
                     "granted_at": role.granted_at.isoformat(),
-                    "expires_at": role.expires_at.isoformat()
-                    if role.expires_at
-                    else None,
+                    "expires_at": (
+                        role.expires_at.isoformat() if role.expires_at else None
+                    ),
                     "is_active": role.is_active,
                 }
                 for role in roles
@@ -535,9 +535,9 @@ async def get_permission_audit_log(
                         "resource_id": entry.resource_id,
                         "allowed": entry.allowed,
                         "timestamp": entry.timestamp.isoformat(),
-                        "request_ip": str(entry.request_ip)
-                        if entry.request_ip
-                        else None,
+                        "request_ip": (
+                            str(entry.request_ip) if entry.request_ip else None
+                        ),
                         "endpoint": entry.endpoint,
                         "method": entry.method,
                     }

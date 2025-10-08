@@ -22,29 +22,29 @@ jobs:
   auth-matrix-test:
     name: 🧪 Auth Matrix (${{ matrix.auth-mode }})
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
         auth-mode: ['auth-enabled', 'auth-disabled']
         test-suite: ['memory', 'approval', 'discussion', 'ai-intelligence', 'teams']
-        
+
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
-      
+
     - name: 🐍 Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
-        
+
     - name: 📦 Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-asyncio httpx pytest-cov
-        
+
     - name: 🔧 Setup Test Environment
       run: |
         # Create test environment file
@@ -57,12 +57,12 @@ jobs:
         AUTH_MODE=${{ matrix.auth-mode }}
         TEST_SUITE=${{ matrix.test-suite }}
         EOF
-        
+
     - name: 🚀 Start Redis (for caching tests)
       uses: supercharge/redis-github-action@1.7.0
       with:
         redis-version: 7
-        
+
     - name: 🏗️ Initialize Database
       run: |
         cd server
@@ -71,54 +71,54 @@ jobs:
         Base.metadata.create_all(bind=engine)
         print('Database initialized for testing')
         "
-        
+
     - name: 🔐 Auth-Enabled Tests
       if: matrix.auth-mode == 'auth-enabled'
       run: |
         cd server
         echo "🔒 Running tests with FULL authentication enforcement"
-        
+
         # Test that all POST/PUT/DELETE require auth
         python -m pytest tests/test_auth_enforcement.py -v \
           --cov=. --cov-report=xml \
           -k "test_${{ matrix.test-suite }}_auth_required"
-          
+
         # Test RBAC permissions
         python -m pytest tests/test_rbac_permissions.py -v \
           -k "test_${{ matrix.test-suite }}_rbac"
-          
+
         # Test JWT validation
         python -m pytest tests/test_jwt_validation.py -v \
           -k "test_${{ matrix.test-suite }}_jwt"
-          
-    - name: 🔓 Auth-Disabled Tests  
+
+    - name: 🔓 Auth-Disabled Tests
       if: matrix.auth-mode == 'auth-disabled'
       run: |
         cd server
         echo "🔓 Running tests with authentication BYPASSED (development mode)"
-        
+
         # Test core functionality without auth
         python -m pytest tests/test_core_functionality.py -v \
           --cov=. --cov-report=xml \
           -k "test_${{ matrix.test-suite }}_core"
-          
+
         # Test that endpoints work without auth headers
         python -m pytest tests/test_no_auth_mode.py -v \
           -k "test_${{ matrix.test-suite }}_no_auth"
-          
+
     - name: 📊 Upload Coverage
       uses: codecov/codecov-action@v3
       with:
         file: ./server/coverage.xml
         flags: ${{ matrix.auth-mode }}-${{ matrix.test-suite }}
         name: ${{ matrix.auth-mode }}-${{ matrix.test-suite }}-coverage
-        
+
   # E2E Integration Tests
   e2e-auth-flow:
     name: 🔄 E2E Auth Flow Testing
     runs-on: ubuntu-latest
     needs: auth-matrix-test
-    
+
     services:
       postgres:
         image: postgres:15
@@ -132,7 +132,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-          
+
       redis:
         image: redis:7
         options: >-
@@ -142,22 +142,22 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-          
+
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
-      
+
     - name: 🐍 Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        
+
     - name: 📦 Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-asyncio httpx pytest-cov
-        
+
     - name: 🔧 Setup E2E Environment
       run: |
         cat > .env.e2e << EOF
@@ -169,7 +169,7 @@ jobs:
         AUTH_MODE=auth-enabled
         LOG_LEVEL=INFO
         EOF
-        
+
     - name: 🏗️ Initialize E2E Database
       run: |
         cd server
@@ -180,51 +180,51 @@ jobs:
         Base.metadata.create_all(bind=engine)
         print('E2E database initialized')
         "
-        
+
     - name: 🚀 Start Application Server
       run: |
         cd server
         python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
         sleep 10
         echo "Application server started"
-        
+
     - name: 🧪 Run E2E Auth Tests
       run: |
         cd server
-        
+
         # Test complete auth flow
         python -m pytest tests/e2e/test_complete_auth_flow.py -v \
           --cov=. --cov-report=xml
-          
+
         # Test memory system with auth
         python -m pytest tests/e2e/test_memory_auth_e2e.py -v
-        
+
         # Test approval workflows with auth
         python -m pytest tests/e2e/test_approval_auth_e2e.py -v
-        
+
         # Test discussion layer with auth
         python -m pytest tests/e2e/test_discussion_auth_e2e.py -v
-        
+
         # Test AI intelligence with auth
         python -m pytest tests/e2e/test_ai_auth_e2e.py -v
-        
+
     - name: 🔍 Security Vulnerability Scan
       run: |
         pip install bandit safety
-        
+
         # Security scan
         bandit -r server/ -f json -o security-report.json || true
-        
+
         # Dependency vulnerability scan
         safety check --json --output safety-report.json || true
-        
+
     - name: 📊 Upload E2E Coverage
       uses: codecov/codecov-action@v3
       with:
         file: ./server/coverage.xml
         flags: e2e-auth-flow
         name: e2e-auth-flow-coverage
-        
+
     - name: 📋 Upload Security Reports
       uses: actions/upload-artifact@v3
       with:
@@ -232,47 +232,47 @@ jobs:
         path: |
           security-report.json
           safety-report.json
-          
+
   # Performance Testing with Auth
   performance-auth-test:
     name: ⚡ Performance Testing (Auth Impact)
     runs-on: ubuntu-latest
     needs: auth-matrix-test
-    
+
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
-      
+
     - name: 🐍 Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        
+
     - name: 📦 Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install locust pytest-benchmark
-        
+
     - name: 🚀 Start Test Server
       run: |
         cd server
         python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
         sleep 10
-        
+
     - name: ⚡ Run Performance Tests
       run: |
         cd tests/performance
-        
+
         # Test auth overhead
         python test_auth_performance.py
-        
+
         # Load testing with auth
         locust -f locustfile_auth.py --headless \
           --users 50 --spawn-rate 5 --run-time 60s \
           --host http://localhost:8000 \
           --html performance-report.html
-          
+
     - name: 📊 Upload Performance Reports
       uses: actions/upload-artifact@v3
       with:
@@ -280,47 +280,47 @@ jobs:
         path: |
           tests/performance/performance-report.html
           tests/performance/auth-benchmark.json
-          
+
   # Security Compliance Check
   security-compliance:
     name: 🛡️ Security Compliance Check
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
-      
+
     - name: 🔍 OWASP ZAP Security Scan
       uses: zaproxy/action-full-scan@v0.7.0
       with:
         target: 'http://localhost:8000'
         rules_file_name: '.zap/rules.tsv'
         cmd_options: '-a'
-        
+
     - name: 🔐 JWT Security Validation
       run: |
         # Validate JWT implementation security
         python tests/security/test_jwt_security.py
-        
-    - name: 🛡️ RBAC Security Validation  
+
+    - name: 🛡️ RBAC Security Validation
       run: |
         # Test RBAC implementation
         python tests/security/test_rbac_security.py
-        
+
   # Documentation and Reporting
   test-report:
     name: 📊 Generate Test Report
     runs-on: ubuntu-latest
     needs: [auth-matrix-test, e2e-auth-flow, performance-auth-test]
     if: always()
-    
+
     steps:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
-      
+
     - name: 📊 Download All Artifacts
       uses: actions/download-artifact@v3
-      
+
     - name: 📋 Generate Comprehensive Report
       run: |
         python scripts/generate_test_report.py \
@@ -329,13 +329,13 @@ jobs:
           --performance-results ./performance-reports/ \
           --security-results ./security-reports/ \
           --output comprehensive-test-report.html
-          
+
     - name: 📤 Upload Comprehensive Report
       uses: actions/upload-artifact@v3
       with:
         name: comprehensive-test-report
         path: comprehensive-test-report.html
-        
+
     - name: 💬 Comment PR with Results
       if: github.event_name == 'pull_request'
       uses: actions/github-script@v6
@@ -343,44 +343,44 @@ jobs:
         script: |
           const fs = require('fs');
           const reportPath = 'comprehensive-test-report.html';
-          
+
           if (fs.existsSync(reportPath)) {
             const report = fs.readFileSync(reportPath, 'utf8');
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `## 🔐 Auth Matrix Testing Results
-              
+
               ✅ **Phase 1 Production Readiness Check Complete**
-              
+
               - Auth-enabled tests: ${{ needs.auth-matrix-test.result }}
-              - E2E auth flow: ${{ needs.e2e-auth-flow.result }}  
+              - E2E auth flow: ${{ needs.e2e-auth-flow.result }}
               - Performance impact: ${{ needs.performance-auth-test.result }}
-              
+
               📊 [View Comprehensive Report](${reportPath})
-              
+
               **Ready for Phase 1 deployment with secure authentication!** 🚀`
             });
           }
-          
+
   # Deployment Readiness Check
   deployment-readiness:
     name: 🚀 Phase 1 Deployment Readiness
     runs-on: ubuntu-latest
     needs: [auth-matrix-test, e2e-auth-flow, security-compliance]
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
     - name: ✅ Validate Phase 1 Requirements
       run: |
         echo "🔐 Auth Matrix Testing: ${{ needs.auth-matrix-test.result }}"
         echo "🔄 E2E Auth Flow: ${{ needs.e2e-auth-flow.result }}"
         echo "🛡️ Security Compliance: ${{ needs.security-compliance.result }}"
-        
-        if [[ "${{ needs.auth-matrix-test.result }}" == "success" && 
-              "${{ needs.e2e-auth-flow.result }}" == "success" && 
+
+        if [[ "${{ needs.auth-matrix-test.result }}" == "success" &&
+              "${{ needs.e2e-auth-flow.result }}" == "success" &&
               "${{ needs.security-compliance.result }}" == "success" ]]; then
           echo "✅ PHASE 1 READY FOR PRODUCTION DEPLOYMENT!"
           echo "🎉 All authentication and security requirements met"
@@ -388,18 +388,18 @@ jobs:
           echo "❌ Phase 1 requirements not met - deployment blocked"
           exit 1
         fi
-        
+
     - name: 🏷️ Tag Release
       if: success()
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
+
         # Create Phase 1 release tag
         TIMESTAMP=$(date +%Y%m%d-%H%M%S)
         TAG="phase1-auth-ready-${TIMESTAMP}"
-        
+
         git tag -a $TAG -m "Phase 1: Authentication & Security Ready for Production"
         git push origin $TAG
-        
+
         echo "🏷️ Created release tag: $TAG"

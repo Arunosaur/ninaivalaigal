@@ -59,7 +59,7 @@ check_recovery_enabled() {
 # Function to determine recovery strategy based on failure type
 determine_recovery_strategy() {
     local failure_type=$1
-    
+
     case $failure_type in
         "test_failure")
             echo "run_recovery_tests"
@@ -85,9 +85,9 @@ determine_recovery_strategy() {
 # Function to execute recovery based on strategy
 execute_recovery() {
     local strategy=$1
-    
+
     print_status "INFO" "Executing recovery strategy: $strategy"
-    
+
     case $strategy in
         "run_recovery_tests")
             print_status "INFO" "Running recovery test suite..."
@@ -119,7 +119,7 @@ execute_recovery() {
             return 1
             ;;
     esac
-    
+
     return 0
 }
 
@@ -128,25 +128,25 @@ send_failure_notification() {
     local failure_type=$1
     local recovery_attempted=$2
     local recovery_success=$3
-    
+
     # Prepare notification message
     local status_emoji="❌"
     local status_text="FAILED"
     local color="danger"
-    
+
     if [ "$recovery_success" == "true" ]; then
         status_emoji="🔄"
         status_text="RECOVERED"
         color="warning"
     fi
-    
+
     local message="$status_emoji CI Pipeline $status_text"
     local details="Job: $FAILED_JOB\nFailure Type: $failure_type\nRecovery Attempted: $recovery_attempted\nRecovery Success: $recovery_success"
-    
+
     # Send Slack notification if configured
     if [ -n "${SLACK_WEBHOOK_URL:-}" ]; then
         print_status "INFO" "Sending Slack notification..."
-        
+
         curl -X POST -H 'Content-type: application/json' \
             --data "{
                 \"text\": \"$message\",
@@ -175,11 +175,11 @@ send_failure_notification() {
             }" \
             "$SLACK_WEBHOOK_URL" || print_status "WARNING" "Failed to send Slack notification"
     fi
-    
+
     # Send HealthChecks.io ping if configured
     if [ -n "${HEALTHCHECK_UUID:-}" ]; then
         print_status "INFO" "Sending HealthChecks.io ping..."
-        
+
         if [ "$recovery_success" == "true" ]; then
             curl -fsS -m 10 --retry 3 "https://hc-ping.com/$HEALTHCHECK_UUID/recovery" || true
         else
@@ -194,7 +194,7 @@ create_failure_report() {
     local recovery_attempted=$2
     local recovery_success=$3
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    
+
     cat > failure_report.md << EOF
 # CI/CD Pipeline Failure Report
 
@@ -216,7 +216,7 @@ EOF
     if [ "$recovery_attempted" == "true" ]; then
         echo "- ✅ Post-failure hook executed" >> failure_report.md
         echo "- 🔄 Recovery strategy determined and executed" >> failure_report.md
-        
+
         if [ "$recovery_success" == "true" ]; then
             echo "- ✅ Recovery completed successfully" >> failure_report.md
             echo "- 🧪 Foundation tests validated recovery" >> failure_report.md
@@ -226,7 +226,7 @@ EOF
     else
         echo "- ⚠️ Recovery was not attempted (disabled or unsupported failure type)" >> failure_report.md
     fi
-    
+
     cat >> failure_report.md << EOF
 
 ## Next Steps
@@ -247,25 +247,25 @@ EOF
 - 🚨 Consider disabling auto-deployment until resolved
 EOF
     fi
-    
+
     print_status "SUCCESS" "Failure report created: failure_report.md"
 }
 
 # Function to update PR with failure status
 update_pr_status() {
     local recovery_success=$1
-    
+
     # Only update PR status if we're in a PR context
     if [ -n "${GITHUB_EVENT_NAME:-}" ] && [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
         print_status "INFO" "Updating PR with failure status..."
-        
+
         local status_message
         if [ "$recovery_success" == "true" ]; then
             status_message="🔄 **Pipeline Recovered**: Automatic recovery completed successfully. Please review the recovery report."
         else
             status_message="❌ **Pipeline Failed**: Automatic recovery was attempted but failed. Manual intervention required."
         fi
-        
+
         # This would typically use GitHub API to comment on PR
         # For now, we'll just log the message
         print_status "INFO" "PR status message: $status_message"
@@ -275,7 +275,7 @@ update_pr_status() {
 # Main execution
 main() {
     print_status "INFO" "Starting post-failure recovery process..."
-    
+
     # Check if recovery is enabled
     if ! check_recovery_enabled; then
         print_status "WARNING" "Recovery disabled - sending notification only"
@@ -283,11 +283,11 @@ main() {
         create_failure_report "$FAILURE_TYPE" "false" "false"
         return 0
     fi
-    
+
     # Determine recovery strategy
     recovery_strategy=$(determine_recovery_strategy "$FAILURE_TYPE")
     print_status "INFO" "Recovery strategy: $recovery_strategy"
-    
+
     # Execute recovery
     recovery_success="false"
     if execute_recovery "$recovery_strategy"; then
@@ -296,16 +296,16 @@ main() {
     else
         print_status "ERROR" "Recovery failed"
     fi
-    
+
     # Send notifications
     send_failure_notification "$FAILURE_TYPE" "true" "$recovery_success"
-    
+
     # Create failure report
     create_failure_report "$FAILURE_TYPE" "true" "$recovery_success"
-    
+
     # Update PR status if applicable
     update_pr_status "$recovery_success"
-    
+
     # Return appropriate exit code
     if [ "$recovery_success" == "true" ]; then
         print_status "SUCCESS" "Post-failure hook completed successfully"

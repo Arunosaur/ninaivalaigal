@@ -2,6 +2,7 @@
 Detector glue system that provides a unified interface for the redaction engine.
 Attempts to import and use the existing redaction engine, falls back to basic detectors.
 """
+
 from __future__ import annotations
 
 import re

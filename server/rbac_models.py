@@ -4,13 +4,14 @@ RBAC Database Models - Enhanced database models for Role-Based Access Control
 Extends existing database schema with RBAC-specific tables and relationships
 """
 
+import uuid
 from datetime import datetime
 
 from database import Base
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime
 from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
-import uuid
 from sqlalchemy.orm import relationship
 
 from rbac.permissions import Action, Resource, Role
@@ -22,7 +23,9 @@ class RoleAssignment(Base):
     __tablename__ = "role_assignments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
+    )
     role = Column(SQLEnum(Role), nullable=False)
     scope_type = Column(
         String(20), nullable=False, index=True
@@ -49,7 +52,9 @@ class PermissionAudit(Base):
     __tablename__ = "permission_audits"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
+    )
     action = Column(SQLEnum(Action), nullable=False, index=True)
     resource = Column(SQLEnum(Resource), nullable=False, index=True)
     resource_id = Column(String(50), nullable=True, index=True)

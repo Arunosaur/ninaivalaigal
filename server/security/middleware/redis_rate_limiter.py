@@ -35,9 +35,7 @@ class RedisRateLimiterMiddleware(BaseHTTPMiddleware):
         if not self.redis:
             try:
                 redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
-                self.redis = aioredis.from_url(
-                    redis_url, decode_responses=True
-                )
+                self.redis = aioredis.from_url(redis_url, decode_responses=True)
             except Exception as e:
                 # Fail fast if Redis isn't available
                 raise RuntimeError(f"Redis connection failed: {e}")
@@ -54,9 +52,7 @@ class RedisRateLimiterMiddleware(BaseHTTPMiddleware):
                 await self.redis.expire(key, self.window)
 
             if current > self.limit:
-                raise HTTPException(
-                    status_code=429, detail="Rate limit exceeded"
-                )
+                raise HTTPException(status_code=429, detail="Rate limit exceeded")
 
             return await call_next(request)
 

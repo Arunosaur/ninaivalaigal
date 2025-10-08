@@ -80,7 +80,9 @@ class MemoryHealthSystemTester:
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
-                self.log("✅ Memory health analysis endpoint accessible (auth required)")
+                self.log(
+                    "✅ Memory health analysis endpoint accessible (auth required)"
+                )
                 self.results["performance_metrics"][
                     "memory_analysis_response_time"
                 ] = response_time
@@ -218,7 +220,9 @@ class MemoryHealthSystemTester:
             response_time = (time.time() - start_time) * 1000
 
             if response.status_code == 403:  # Expected - no auth
-                self.log("✅ Common issues analysis endpoint accessible (auth required)")
+                self.log(
+                    "✅ Common issues analysis endpoint accessible (auth required)"
+                )
                 self.results["performance_metrics"][
                     "issues_analysis_response_time"
                 ] = response_time

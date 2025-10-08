@@ -23,15 +23,27 @@ mcp-client-config.json
 ninaivalaigal.config.json
 mem0.config.json
 
-# Environment files
+# Environment variables
 .env
 .env.local
+.env.dev
+.env.*.dev
+.env.colima.dev
+.env.docker.dev
+
+# Secrets (NEVER commit these)
+configs/secrets-*.env
+*.secret.env
 .env.production
 .env.staging
 
 # Data directories (bind mounts - shared across runtimes)
 data/postgres_*/
 data/redis_*/
+data/
+
+# Runtime configuration (local machine specific)
+.runtime-config
 
 # Ignore server process file
 .server.pid

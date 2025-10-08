@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Basic system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc libpq-dev curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy only what's needed
+COPY server ./server
+COPY run_server.py ./
+
+# Install Python dependencies from server/requirements.txt
+RUN pip install --no-cache-dir -r server/requirements.txt
+
+ENV PYTHONPATH=/app:/app/server
+
+EXPOSE 8000
+
+CMD ["python", "run_server.py"]

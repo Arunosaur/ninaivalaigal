@@ -1,6 +1,8 @@
 """Enhanced unit tests for database module."""
+
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 
 class TestDatabaseModule:

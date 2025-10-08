@@ -1,8 +1,8 @@
 # SPEC-021: GitOps with ArgoCD + Kubernetes Deployment
 
-**Status**: 🚧 In Progress  
-**Priority**: High  
-**Phase**: 3A - Operational Maturity  
+**Status**: 🚧 In Progress
+**Priority**: High
+**Phase**: 3A - Operational Maturity
 **Dependencies**: Phase 2B Bulletproof Foundation
 
 ## 🎯 Objective
@@ -99,7 +99,7 @@ k8s/
 3. Set up persistent storage
 4. Implement health checks
 
-### Phase 2: ArgoCD GitOps (Week 2)  
+### Phase 2: ArgoCD GitOps (Week 2)
 1. Install ArgoCD in cluster
 2. Configure GitOps applications
 3. Set up automated sync policies

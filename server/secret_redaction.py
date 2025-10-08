@@ -147,11 +147,15 @@ class SecretRedactionPipeline:
                 redacted[key] = self._redact_dict_recursive(value)
             elif isinstance(value, list):
                 redacted[key] = [
-                    self.detector.redact_secrets(item)
-                    if isinstance(item, str)
-                    else self._redact_dict_recursive(item)
-                    if isinstance(item, dict)
-                    else item
+                    (
+                        self.detector.redact_secrets(item)
+                        if isinstance(item, str)
+                        else (
+                            self._redact_dict_recursive(item)
+                            if isinstance(item, dict)
+                            else item
+                        )
+                    )
                     for item in value
                 ]
             else:

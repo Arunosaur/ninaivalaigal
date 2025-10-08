@@ -4,10 +4,11 @@ Authentication System Tests: Rate Limiting
 Tests rate limiting and brute force protection mechanisms.
 """
 
-import pytest
-import requests
 import json
 import time
+
+import pytest
+import requests
 
 # Test Configuration
 BASE_URL = "http://localhost:13370"

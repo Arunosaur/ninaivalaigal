@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Console - Ninaivalaigal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .plan-popular {
+            position: relative;
+            border: 2px solid #3b82f6;
+        }
+        .plan-popular::before {
+            content: "Most Popular";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #3b82f6;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .usage-bar {
+            transition: width 0.5s ease;
+        }
+        .billing-animation {
+            animation: slideInUp 0.6s ease-out;
+        }
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/team-dashboard" class="text-gray-600 hover:text-gray-900 flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Team Dashboard
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-600" id="user-info">Loading...</span>
+                    <button onclick="logout()" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Billing Console</h1>
+            <p class="text-gray-600">Manage your team's subscription, usage, and billing settings</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Loading billing information...</p>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="billing-dashboard" class="hidden">
+            <!-- Current Plan Overview -->
+            <div class="bg-white rounded-lg shadow-sm border p-6 mb-8 billing-animation">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">Current Plan</h2>
+                    <span id="subscription-status" class="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">Active</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-600" id="current-plan-name">Team Pro</div>
+                        <div class="text-gray-600 mt-1" id="current-plan-price">$29/month</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-semibold text-gray-900" id="next-billing-date">Oct 23, 2024</div>
+                        <div class="text-gray-600 mt-1">Next billing date</div>
+                    </div>
+                    <div class="text-center">
+                        <button onclick="showPlanSelector()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-arrow-up mr-2"></i>
+                            Upgrade Plan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Metrics -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Team Usage -->
+                <div class="bg-white rounded-lg shadow-sm border p-6 billing-animation">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Team Usage</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-600">Team Members</span>
+                                <span class="font-medium" id="members-usage">8 / 20</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full usage-bar" id="members-bar" style="width: 40%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-600">Storage Used</span>
+                                <span class="font-medium" id="storage-usage">4.2 GB / 10 GB</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-600 h-2 rounded-full usage-bar" id="storage-bar" style="width: 42%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-600">AI Queries (This Month)</span>
+                                <span class="font-medium" id="ai-usage">Unlimited</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-purple-600 h-2 rounded-full usage-bar" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upgrade Recommendations -->
+                <div class="bg-white rounded-lg shadow-sm border p-6 billing-animation" id="recommendations-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recommendations</h3>
+                    <div id="recommendations-content">
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
+                            <p>You're all set! No recommendations at this time.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Methods & Billing History -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Payment Methods -->
+                <div class="bg-white rounded-lg shadow-sm border p-6 billing-animation">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Payment Methods</h3>
+                        <button onclick="addPaymentMethod()" class="text-blue-600 hover:text-blue-800 text-sm">
+                            <i class="fas fa-plus mr-1"></i>
+                            Add Method
+                        </button>
+                    </div>
+
+                    <div id="payment-methods-list">
+                        <div class="flex items-center justify-between p-4 border rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fab fa-cc-visa text-2xl text-blue-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium">•••• •••• •••• 4242</div>
+                                    <div class="text-sm text-gray-600">Expires 12/25</div>
+                                </div>
+                            </div>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Default</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing History -->
+                <div class="bg-white rounded-lg shadow-sm border p-6 billing-animation">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Recent Invoices</h3>
+                        <button onclick="viewAllInvoices()" class="text-blue-600 hover:text-blue-800 text-sm">
+                            View All
+                        </button>
+                    </div>
+
+                    <div id="billing-history-list" class="space-y-3">
+                        <div class="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                                <div class="font-medium">Team Pro - September</div>
+                                <div class="text-sm text-gray-600">Sep 23, 2024</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-medium">$29.00</div>
+                                <button class="text-xs text-blue-600 hover:text-blue-800">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Selector Modal -->
+        <div id="plan-selector-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg max-w-6xl w-full max-h-screen overflow-y-auto">
+                    <div class="p-6 border-b">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-bold text-gray-900">Choose Your Plan</h2>
+                            <button onclick="closePlanSelector()" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Billing Toggle -->
+                        <div class="flex justify-center mb-8">
+                            <div class="bg-gray-100 p-1 rounded-lg">
+                                <button id="monthly-toggle" onclick="setBillingCycle('monthly')" class="px-4 py-2 rounded-md text-sm font-medium bg-white text-gray-900 shadow-sm">
+                                    Monthly
+                                </button>
+                                <button id="yearly-toggle" onclick="setBillingCycle('yearly')" class="px-4 py-2 rounded-md text-sm font-medium text-gray-600">
+                                    Yearly <span class="text-green-600 text-xs">(Save 17%)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Plans Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="plans-grid">
+                            <!-- Plans will be populated by JavaScript -->
+                        </div>
+
+                        <div class="mt-8 text-center">
+                            <p class="text-sm text-gray-600">All plans include 14-day free trial • Cancel anytime • No setup fees</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg max-w-md w-full">
+                    <div class="p-6 border-b">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-gray-900">Complete Your Subscription</h2>
+                            <button onclick="closePaymentModal()" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="mb-6">
+                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                <div class="text-lg font-semibold text-blue-900" id="selected-plan-name">Team Pro</div>
+                                <div class="text-blue-700" id="selected-plan-price">$29/month</div>
+                            </div>
+                        </div>
+
+                        <form id="payment-form">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Card Information</label>
+                                <div id="card-element" class="p-3 border rounded-lg">
+                                    <!-- Stripe Elements will create form elements here -->
+                                </div>
+                                <div id="card-errors" class="text-red-600 text-sm mt-2"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Billing Email</label>
+                                <input type="email" id="billing-email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+
+                            <button type="submit" id="submit-payment" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                                <span id="payment-button-text">Start Subscription</span>
+                                <div id="payment-spinner" class="hidden inline-block ml-2">
+                                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                </div>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let billingData = null;
+        let selectedPlan = null;
+        let billingCycle = 'monthly';
+        let stripe = null;
+        let elements = null;
+        let cardElement = null;
+
+        // Initialize Stripe
+        if (window.Stripe) {
+            stripe = Stripe('pk_test_...'); // Replace with your publishable key
+            elements = stripe.elements();
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadBillingDashboard();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Decode token to get user info (simplified)
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                currentUser = payload;
+                document.getElementById('user-info').textContent = `${currentUser.name || currentUser.email}`;
+            } catch (e) {
+                console.error('Invalid token');
+                logout();
+            }
+        }
+
+        async function loadBillingDashboard() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/billing/dashboard', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load billing data');
+                }
+
+                billingData = await response.json();
+                renderBillingDashboard();
+
+            } catch (error) {
+                console.error('Error loading billing dashboard:', error);
+                showError('Failed to load billing information');
+            } finally {
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('billing-dashboard').classList.remove('hidden');
+            }
+        }
+
+        function renderBillingDashboard() {
+            if (!billingData) return;
+
+            // Current plan info
+            document.getElementById('current-plan-name').textContent = billingData.current_plan.name;
+            document.getElementById('current-plan-price').textContent =
+                billingData.current_plan.price_monthly > 0
+                    ? `$${billingData.current_plan.price_monthly}/month`
+                    : 'Free';
+
+            // Subscription status
+            const statusElement = document.getElementById('subscription-status');
+            statusElement.textContent = billingData.subscription_status === 'free' ? 'Free Plan' : 'Active';
+            statusElement.className = billingData.subscription_status === 'free'
+                ? 'px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800'
+                : 'px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800';
+
+            // Next billing date
+            if (billingData.subscription_status !== 'free') {
+                const date = new Date(billingData.next_billing_date);
+                document.getElementById('next-billing-date').textContent = date.toLocaleDateString();
+            } else {
+                document.getElementById('next-billing-date').textContent = 'N/A';
+            }
+
+            // Usage metrics
+            const usage = billingData.usage_metrics;
+            const plan = billingData.current_plan;
+
+            // Members usage
+            document.getElementById('members-usage').textContent = `${usage.members_count} / ${plan.max_members}`;
+            const membersPercentage = (usage.members_count / plan.max_members) * 100;
+            document.getElementById('members-bar').style.width = `${membersPercentage}%`;
+
+            // Storage usage
+            const storageLimit = plan.id === 'team_enterprise' || plan.id === 'organization' ? '∞' : '10 GB';
+            document.getElementById('storage-usage').textContent = `${usage.storage_used_gb.toFixed(1)} GB / ${storageLimit}`;
+            const storagePercentage = plan.id === 'team_enterprise' || plan.id === 'organization' ? 50 : (usage.storage_used_gb / 10) * 100;
+            document.getElementById('storage-bar').style.width = `${Math.min(storagePercentage, 100)}%`;
+
+            // AI usage
+            document.getElementById('ai-usage').textContent = plan.id === 'free' ? `${usage.ai_queries_count} / 100` : 'Unlimited';
+
+            // Recommendations
+            renderRecommendations(billingData.upgrade_recommendations);
+        }
+
+        function renderRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-content');
+
+            if (!recommendations || recommendations.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
+                        <p>You're all set! No recommendations at this time.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const recommendation = recommendations[0];
+            container.innerHTML = `
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-lightbulb text-2xl text-blue-600"></i>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-1">${recommendation.title}</h4>
+                            <p class="text-gray-700 mb-3">${recommendation.message}</p>
+                            <button onclick="showPlanSelector()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                                ${recommendation.cta}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function showPlanSelector() {
+            try {
+                const response = await fetch('/billing/plans');
+                const plans = await response.json();
+
+                renderPlansGrid(plans);
+                document.getElementById('plan-selector-modal').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Error loading plans:', error);
+                showError('Failed to load billing plans');
+            }
+        }
+
+        function renderPlansGrid(plans) {
+            const grid = document.getElementById('plans-grid');
+            grid.innerHTML = '';
+
+            plans.forEach(plan => {
+                const price = billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly;
+                const monthlyPrice = billingCycle === 'yearly' ? (plan.price_yearly / 12).toFixed(0) : plan.price_monthly;
+
+                const planCard = document.createElement('div');
+                planCard.className = `bg-white rounded-lg border p-6 card-hover cursor-pointer ${plan.is_popular ? 'plan-popular' : ''}`;
+                planCard.onclick = () => selectPlan(plan);
+
+                planCard.innerHTML = `
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">${plan.name}</h3>
+                        <div class="mb-4">
+                            ${price === 0 ?
+                                '<div class="text-3xl font-bold text-gray-900">Free</div>' :
+                                `<div class="text-3xl font-bold text-gray-900">$${monthlyPrice}</div>
+                                 <div class="text-gray-600">/month${billingCycle === 'yearly' ? ' (billed yearly)' : ''}</div>`
+                            }
+                        </div>
+                        <p class="text-gray-600 text-sm mb-6">${plan.description}</p>
+                        <ul class="text-left space-y-2 mb-6">
+                            ${plan.features.map(feature => `
+                                <li class="flex items-center text-sm">
+                                    <i class="fas fa-check text-green-500 mr-2"></i>
+                                    ${feature}
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                            ${plan.id === 'free' ? 'Current Plan' : 'Select Plan'}
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(planCard);
+            });
+        }
+
+        function setBillingCycle(cycle) {
+            billingCycle = cycle;
+
+            // Update toggle buttons
+            document.getElementById('monthly-toggle').className = cycle === 'monthly'
+                ? 'px-4 py-2 rounded-md text-sm font-medium bg-white text-gray-900 shadow-sm'
+                : 'px-4 py-2 rounded-md text-sm font-medium text-gray-600';
+
+            document.getElementById('yearly-toggle').className = cycle === 'yearly'
+                ? 'px-4 py-2 rounded-md text-sm font-medium bg-white text-gray-900 shadow-sm'
+                : 'px-4 py-2 rounded-md text-sm font-medium text-gray-600';
+
+            // Re-render plans with new pricing
+            if (document.getElementById('plan-selector-modal').classList.contains('hidden') === false) {
+                fetch('/billing/plans')
+                    .then(response => response.json())
+                    .then(plans => renderPlansGrid(plans));
+            }
+        }
+
+        function selectPlan(plan) {
+            if (plan.id === 'free') {
+                showError('You are already on the free plan');
+                return;
+            }
+
+            selectedPlan = plan;
+            closePlanSelector();
+            showPaymentModal();
+        }
+
+        function showPaymentModal() {
+            if (!selectedPlan) return;
+
+            const price = billingCycle === 'yearly' ? selectedPlan.price_yearly : selectedPlan.price_monthly;
+            const displayPrice = billingCycle === 'yearly'
+                ? `$${price}/year`
+                : `$${price}/month`;
+
+            document.getElementById('selected-plan-name').textContent = selectedPlan.name;
+            document.getElementById('selected-plan-price').textContent = displayPrice;
+            document.getElementById('billing-email').value = currentUser.email || '';
+
+            // Setup Stripe Elements
+            if (stripe && !cardElement) {
+                cardElement = elements.create('card', {
+                    style: {
+                        base: {
+                            fontSize: '16px',
+                            color: '#424770',
+                            '::placeholder': {
+                                color: '#aab7c4',
+                            },
+                        },
+                    },
+                });
+                cardElement.mount('#card-element');
+
+                cardElement.on('change', ({error}) => {
+                    const displayError = document.getElementById('card-errors');
+                    if (error) {
+                        displayError.textContent = error.message;
+                    } else {
+                        displayError.textContent = '';
+                    }
+                });
+            }
+
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+
+        function closePlanSelector() {
+            document.getElementById('plan-selector-modal').classList.add('hidden');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        // Payment form submission
+        document.getElementById('payment-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            if (!stripe || !cardElement) {
+                showError('Payment system not initialized');
+                return;
+            }
+
+            const submitButton = document.getElementById('submit-payment');
+            const buttonText = document.getElementById('payment-button-text');
+            const spinner = document.getElementById('payment-spinner');
+
+            // Disable button and show loading
+            submitButton.disabled = true;
+            buttonText.textContent = 'Processing...';
+            spinner.classList.remove('hidden');
+
+            try {
+                // Create payment method
+                const {error, paymentMethod} = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
+                    billing_details: {
+                        email: document.getElementById('billing-email').value,
+                    },
+                });
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+
+                // Create subscription
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/billing/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        plan_id: selectedPlan.id,
+                        billing_cycle: billingCycle,
+                        payment_method_id: paymentMethod.id,
+                        billing_email: document.getElementById('billing-email').value
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Subscription failed');
+                }
+
+                const result = await response.json();
+
+                // Success!
+                closePaymentModal();
+                showSuccess('Subscription created successfully!');
+
+                // Reload dashboard
+                setTimeout(() => {
+                    loadBillingDashboard();
+                }, 1000);
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                showError(error.message || 'Payment failed');
+            } finally {
+                // Re-enable button
+                submitButton.disabled = false;
+                buttonText.textContent = 'Start Subscription';
+                spinner.classList.add('hidden');
+            }
+        });
+
+        function addPaymentMethod() {
+            showError('Add payment method functionality coming soon');
+        }
+
+        function viewAllInvoices() {
+            showError('Invoice history functionality coming soon');
+        }
+
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            window.location.href = '/login';
+        }
+
+        function showError(message) {
+            // Simple error display - in production, use a proper notification system
+            alert('Error: ' + message);
+        }
+
+        function showSuccess(message) {
+            // Simple success display - in production, use a proper notification system
+            alert('Success: ' + message);
+        }
+    </script>
+</body>
+</html>

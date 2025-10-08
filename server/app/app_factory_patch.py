@@ -1,9 +1,8 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, FastAPI
-from pydantic import BaseModel
-
 from memory.store_factory import get_memory_store
+from pydantic import BaseModel
 
 
 class WriteBody(BaseModel):

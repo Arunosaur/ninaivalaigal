@@ -37,7 +37,7 @@ python3 comprehensive_test_runner.py
 
 This will:
 - Run all 4 core graph validations
-- Compare real vs expected outputs  
+- Compare real vs expected outputs
 - Raise errors if below thresholds
 - Output metrics for inspection
 - Generate network graphs and heatmaps
@@ -55,7 +55,7 @@ python3 test_runner.py  # Simple version
 - Compares expected vs actual similar memories
 - Validates confidence scoring accuracy
 
-### 2. Path Discovery (60% threshold)  
+### 2. Path Discovery (60% threshold)
 - Tests path finding between entities
 - Validates path length and strength metrics
 - Checks shortest/strongest path algorithms
@@ -133,7 +133,7 @@ python3 generate_test_data.py  # Extracts from actual database
 
 **PASS**: All tests meet their thresholds
 - Similarity: ≥70% accuracy
-- Path Discovery: ≥60% quality  
+- Path Discovery: ≥60% quality
 - Recommendations: ≥60% confidence
 - Edge Weights: ≥80% accuracy
 

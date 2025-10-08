@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management - Ninaivalaigal Admin Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-users-cog text-white text-2xl mr-3"></i>
+                    <h1 class="text-white text-xl font-bold">Staff Management</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="./admin-analytics.html" class="text-white hover:text-gray-200">
+                        <i class="fas fa-chart-line mr-1"></i> Dashboard
+                    </a>
+                    <span class="text-white text-sm" id="user-info">Loading...</span>
+                    <button onclick="logout()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header with Actions -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Staff Accounts</h2>
+                <p class="text-gray-600 mt-1">Manage platform staff and permissions</p>
+            </div>
+            <button onclick="showCreateModal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg">
+                <i class="fas fa-user-plus mr-2"></i> Add Staff
+            </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                    <input type="text" id="search-input" placeholder="Name or email..."
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select id="role-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Roles</option>
+                        <option value="support">Support</option>
+                        <option value="ops">Operations</option>
+                        <option value="analyst">Analyst</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="loadStaff()" class="w-full bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-filter mr-2"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staff-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Staff rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="hidden text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Loading staff...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-12">
+            <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
+            <p class="text-gray-600 text-lg">No staff members found</p>
+        </div>
+    </div>
+
+    <!-- Create Staff Modal -->
+    <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="gradient-bg text-white px-6 py-4 rounded-t-lg">
+                <h3 class="text-xl font-bold">
+                    <i class="fas fa-user-plus mr-2"></i> Create Staff Account
+                </h3>
+            </div>
+            <form id="create-staff-form" class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                        <input type="text" id="staff-name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                        <input type="email" id="staff-email" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                        <select id="staff-role" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Role</option>
+                            <option value="support">Support</option>
+                            <option value="ops">Operations</option>
+                            <option value="analyst">Analyst</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                        <input type="text" id="staff-department"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input type="tel" id="staff-phone"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="mt-6 flex space-x-3">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        <i class="fas fa-check mr-2"></i> Create Staff
+                    </button>
+                    <button type="button" onclick="hideCreateModal()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors font-medium">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Staff Created Successfully!</h3>
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-gray-700 mb-2"><strong>Temporary Password:</strong></p>
+                    <code id="temp-password" class="block bg-white px-3 py-2 rounded border border-gray-300 text-sm font-mono"></code>
+                    <p class="text-xs text-gray-600 mt-2">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Save this password! It expires in 24 hours.
+                    </p>
+                </div>
+                <button onclick="hideSuccessModal()" class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                    Got it!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:13370';
+        let currentUser = null;
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('jwt_token');
+            const role = localStorage.getItem('user_role');
+
+            if (!token || role !== 'admin') {
+                window.location.href = './staff-login.html';
+                return;
+            }
+
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                currentUser = payload;
+                document.getElementById('user-info').textContent = payload.name || payload.email;
+            } catch (e) {
+                logout();
+            }
+        }
+
+        // Load staff list
+        async function loadStaff() {
+            const token = localStorage.getItem('jwt_token');
+            const role = document.getElementById('role-filter').value;
+            const active = document.getElementById('status-filter').value;
+
+            document.getElementById('loading-state').classList.remove('hidden');
+
+            try {
+                let url = `${API_URL}/admin/staff?`;
+                if (role) url += `role=${role}&`;
+                if (active !== '') url += `active=${active}`;
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load staff');
+
+                const staff = await response.json();
+                displayStaff(staff);
+            } catch (error) {
+                console.error('Error loading staff:', error);
+                alert('Failed to load staff list');
+            } finally {
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        // Display staff in table
+        function displayStaff(staffList) {
+            const tbody = document.getElementById('staff-table-body');
+
+            if (staffList.length === 0) {
+                tbody.innerHTML = '';
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('empty-state').classList.add('hidden');
+
+            tbody.innerHTML = staffList.map(staff => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                ${staff.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm font-medium text-gray-900">${staff.name}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${staff.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeClass(staff.role)}">
+                            ${staff.role}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${staff.department || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        ${staff.last_login ? new Date(staff.last_login).toLocaleDateString() : 'Never'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${staff.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${staff.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <button onclick="viewActivity('${staff.id}')" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-history"></i>
+                        </button>
+                        ${staff.is_active ? `
+                            <button onclick="deactivateStaff('${staff.id}', '${staff.name}')" class="text-red-600 hover:text-red-800">
+                                <i class="fas fa-user-times"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getRoleBadgeClass(role) {
+            const classes = {
+                'support': 'bg-blue-100 text-blue-800',
+                'ops': 'bg-purple-100 text-purple-800',
+                'analyst': 'bg-green-100 text-green-800',
+                'admin': 'bg-red-100 text-red-800'
+            };
+            return classes[role] || 'bg-gray-100 text-gray-800';
+        }
+
+        // Show create modal
+        function showCreateModal() {
+            document.getElementById('create-modal').classList.remove('hidden');
+        }
+
+        // Hide create modal
+        function hideCreateModal() {
+            document.getElementById('create-modal').classList.add('hidden');
+            document.getElementById('create-staff-form').reset();
+        }
+
+        // Hide success modal
+        function hideSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            loadStaff(); // Reload staff list
+        }
+
+        // Create staff
+        document.getElementById('create-staff-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const token = localStorage.getItem('jwt_token');
+            const staffData = {
+                name: document.getElementById('staff-name').value,
+                email: document.getElementById('staff-email').value,
+                role: document.getElementById('staff-role').value,
+                department: document.getElementById('staff-department').value || null,
+                phone: document.getElementById('staff-phone').value || null
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/admin/staff`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(staffData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to create staff');
+                }
+
+                const result = await response.json();
+
+                // Show success modal with temporary password
+                document.getElementById('temp-password').textContent = result.temporary_password;
+                hideCreateModal();
+                document.getElementById('success-modal').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Error creating staff:', error);
+                alert(error.message);
+            }
+        });
+
+        // Deactivate staff
+        async function deactivateStaff(staffId, staffName) {
+            const reason = prompt(`Reason for deactivating ${staffName}:`);
+            if (!reason || reason.length < 10) {
+                alert('Please provide a reason (minimum 10 characters)');
+                return;
+            }
+
+            const token = localStorage.getItem('jwt_token');
+
+            try {
+                const response = await fetch(`${API_URL}/admin/staff/${staffId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason })
+                });
+
+                if (!response.ok) throw new Error('Failed to deactivate staff');
+
+                alert(`${staffName} has been deactivated`);
+                loadStaff();
+            } catch (error) {
+                console.error('Error deactivating staff:', error);
+                alert('Failed to deactivate staff');
+            }
+        }
+
+        // View staff activity
+        function viewActivity(staffId) {
+            // TODO: Implement activity viewer
+            alert('Activity viewer coming soon');
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_role');
+            window.location.href = './staff-login.html';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadStaff();
+        });
+    </script>
+</body>
+</html>

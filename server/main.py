@@ -6,17 +6,16 @@ This addresses the external code review feedback:
 - Break down monolithic files (main.py 1300+ lines → focused modules)
 - Consolidate configuration into single source
 - Improve code organization and maintainability
+- Use FastAPI lifespan events for proper startup/shutdown (SPEC-055 compliant)
 """
 
 import os
+from contextlib import asynccontextmanager
 
 import structlog
 import uvicorn
 from approval_workflow import ApprovalWorkflowManager
 from auto_recording import get_auto_recorder
-
-# Configuration and core services
-from config import get_database_url, load_config
 from database import DatabaseManager
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,6 +32,9 @@ from redis_client import redis_client
 from redis_queue import queue_manager
 from security_integration import configure_security
 from spec_kit import SpecKitContextManager
+
+# Configuration and core services
+from config import get_database_url, load_config
 
 # Routers will be imported after app initialization to avoid import-time database connections
 
@@ -58,22 +60,92 @@ structlog.configure(
 # Initialize logger
 logger = structlog.get_logger(__name__)
 
-# Load configuration
+# Load configuration (but don't create connections yet)
 config = load_config()
-database_url = get_database_url()
 
-# Initialize core services
-db_manager = DatabaseManager(database_url)
-db = db_manager  # Alias for backward compatibility
-spec_context_manager = SpecKitContextManager(db)
-auto_recorder = get_auto_recorder(db_manager)
-approval_manager = ApprovalWorkflowManager(db_manager)
 
-# Performance monitoring
-performance_monitor = get_performance_monitor()
-start_performance_monitoring()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    FastAPI lifespan context manager for proper startup/shutdown.
 
-# Initialize FastAPI app
+    This replaces import-time initialization to comply with SPEC-055:
+    - No database connections at import time
+    - Proper resource cleanup on shutdown
+    - Graceful degradation if services unavailable
+    """
+    logger.info("🚀 Starting ninaivalaigal API server...")
+
+    # Get configuration
+    database_url = get_database_url()
+    logger.info(f"📊 Database URL: {database_url[:50]}... (via PgBouncer)")
+
+    # Initialize database connection
+    try:
+        db_manager = DatabaseManager(database_url)
+        app.state.db_manager = db_manager
+        app.state.db = db_manager  # Alias for backward compatibility
+        logger.info("✅ Database connected successfully")
+    except Exception as e:
+        logger.error(f"❌ Database connection failed: {e}")
+        raise
+
+    # Initialize dependent services
+    try:
+        app.state.spec_context_manager = SpecKitContextManager(app.state.db)
+        app.state.auto_recorder = get_auto_recorder(app.state.db_manager)
+        app.state.approval_manager = ApprovalWorkflowManager(app.state.db_manager)
+        logger.info("✅ Core services initialized")
+    except Exception as e:
+        logger.error(f"⚠️  Service initialization warning: {e}")
+        # Continue startup even if some services fail
+
+    # Initialize performance monitoring
+    try:
+        app.state.performance_monitor = get_performance_monitor()
+        start_performance_monitoring()
+        logger.info("✅ Performance monitoring started")
+    except Exception as e:
+        logger.warning(f"⚠️  Performance monitoring warning: {e}")
+
+    # Initialize Redis connection
+    try:
+        await redis_client.connect()
+        logger.info("✅ Redis client connected")
+
+        if hasattr(queue_manager, "connect"):
+            queue_manager.connect()
+            logger.info("✅ Queue manager initialized")
+    except Exception as e:
+        logger.warning(f"⚠️  Redis startup failed (graceful degradation): {e}")
+
+    logger.info("🎉 API server startup complete!")
+
+    yield  # Server is running
+
+    # Shutdown: Clean up resources
+    logger.info("🛑 Shutting down API server...")
+
+    try:
+        if hasattr(queue_manager, "disconnect"):
+            queue_manager.disconnect()
+        if hasattr(redis_client, "disconnect"):
+            await redis_client.disconnect()
+        logger.info("✅ Redis connections closed")
+    except Exception as e:
+        logger.warning(f"⚠️  Redis shutdown error: {e}")
+
+    try:
+        if hasattr(app.state, "db_manager") and hasattr(app.state.db_manager, "close"):
+            app.state.db_manager.close()
+        logger.info("✅ Database connections closed")
+    except Exception as e:
+        logger.warning(f"⚠️  Database shutdown error: {e}")
+
+    logger.info("👋 API server shutdown complete")
+
+
+# Initialize FastAPI app with lifespan
 # Disable default docs - we'll add protected, role-scoped docs below
 app = FastAPI(
     title="ninaivalaigal Memory Management API",
@@ -82,6 +154,7 @@ app = FastAPI(
     docs_url=None,  # Disabled - using protected endpoint
     redoc_url=None,  # Disabled - using protected endpoint
     openapi_url=None,  # Disabled - using protected endpoint
+    lifespan=lifespan,  # Use modern lifespan context manager
 )
 
 # Configure CORS
@@ -106,34 +179,54 @@ is_development = os.getenv("ENVIRONMENT", "production").lower() == "development"
 configure_security(app, development_mode=is_development)
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize Redis connection and queue manager on startup"""
-    try:
-        await redis_client.connect()
-        logger.info("Redis client connected")
-
-        # Initialize queue manager (synchronous)
-        if hasattr(queue_manager, "connect"):
-            queue_manager.connect()
-            logger.info("Queue manager initialized")
-
-    except Exception as e:
-        logger.warning(f"Redis startup failed: {e}")
-        # Don't fail startup if Redis is unavailable - graceful degradation
+# Startup/shutdown events now handled by lifespan context manager above
+# Old @app.on_event("startup") and @app.on_event("shutdown") removed
 
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Close Redis connection and queue manager on shutdown"""
-    try:
-        if hasattr(queue_manager, "disconnect"):
-            queue_manager.disconnect()
-        if hasattr(redis_client, "disconnect"):
-            await redis_client.disconnect()
-        logger.info("Redis connections closed")
-    except Exception as e:
-        logger.warning(f"Redis shutdown error: {e}")
+# ============================================================================
+# DEPENDENCY INJECTION HELPERS
+# ============================================================================
+# These functions provide access to services initialized in lifespan context
+
+
+def get_db_manager(request: Request) -> DatabaseManager:
+    """Get database manager from app state"""
+    return request.app.state.db_manager
+
+
+def get_db(request: Request) -> DatabaseManager:
+    """Alias for get_db_manager for backward compatibility"""
+    return request.app.state.db
+
+
+def get_spec_context_manager(request: Request):
+    """Get SpecKit context manager from app state"""
+    return request.app.state.spec_context_manager
+
+
+def get_auto_recorder_instance(request: Request):
+    """Get auto recorder from app state"""
+    return request.app.state.auto_recorder
+
+
+def get_approval_manager_instance(request: Request):
+    """Get approval manager from app state"""
+    return request.app.state.approval_manager
+
+
+def get_performance_monitor_instance(request: Request):
+    """Get performance monitor from app state"""
+    return request.app.state.performance_monitor
+
+
+# Module-level variables for backward compatibility with code that imports them
+# These will be None at import time but available after app startup
+db_manager = None
+db = None
+spec_context_manager = None
+auto_recorder = None
+approval_manager = None
+performance_monitor = None
 
 
 # Custom OpenAPI Fix - prevent Content-Length issues with large schema

@@ -1,6 +1,7 @@
 """
 Test suite for CCTV-style automatic recording functionality
 """
+
 import os
 import sys
 from unittest.mock import Mock

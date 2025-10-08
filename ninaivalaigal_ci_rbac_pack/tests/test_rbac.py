@@ -1,4 +1,5 @@
 import pytest
+
 from rbac.permissions import (
     Action,
     Resource,

@@ -3,15 +3,16 @@ Graph Intelligence Models
 Data models for advanced graph intelligence features
 """
 
-from typing import List, Dict, Optional, Any, Tuple
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-import uuid
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class SharingPolicy(Enum):
     """Memory sharing policy levels"""
+
     PRIVATE = "private"
     TEAM_ONLY = "team_only"
     DEPARTMENT = "department"
@@ -21,6 +22,7 @@ class SharingPolicy(Enum):
 
 class PrivacyLevel(Enum):
     """Privacy levels for memory content"""
+
     CONFIDENTIAL = "confidential"
     INTERNAL = "internal"
     RESTRICTED = "restricted"
@@ -30,6 +32,7 @@ class PrivacyLevel(Enum):
 @dataclass
 class TeamContext:
     """Team context for memory federation"""
+
     team_id: str
     team_name: str
     department: str
@@ -42,6 +45,7 @@ class TeamContext:
 @dataclass
 class SharingRule:
     """Rules for memory sharing between teams"""
+
     rule_id: str
     source_team: str
     target_teams: List[str]
@@ -56,6 +60,7 @@ class SharingRule:
 @dataclass
 class FederatedMemory:
     """Memory with federation metadata"""
+
     memory_id: str
     original_team: str
     shared_with: List[str]
@@ -69,6 +74,7 @@ class FederatedMemory:
 @dataclass
 class FederationResult:
     """Result of memory federation operation"""
+
     success: bool
     federated_memories: List[FederatedMemory]
     filtered_count: int
@@ -80,6 +86,7 @@ class FederationResult:
 @dataclass
 class GraphContext:
     """Context for graph-aware ML operations"""
+
     user_id: str
     team_context: TeamContext
     current_task: Optional[str] = None
@@ -91,6 +98,7 @@ class GraphContext:
 @dataclass
 class ScoredMemory:
     """Memory with ML-generated relevance score"""
+
     memory_id: str
     content_preview: str
     relevance_score: float
@@ -104,6 +112,7 @@ class ScoredMemory:
 @dataclass
 class RelationshipPrediction:
     """Predicted relationship between memories"""
+
     memory_a: str
     memory_b: str
     relationship_type: str
@@ -115,6 +124,7 @@ class RelationshipPrediction:
 @dataclass
 class EmbeddingUpdate:
     """Update to memory embeddings based on graph intelligence"""
+
     memory_id: str
     original_embedding: List[float]
     enhanced_embedding: List[float]
@@ -126,6 +136,7 @@ class EmbeddingUpdate:
 @dataclass
 class UserFeedback:
     """User feedback for adaptive learning"""
+
     feedback_id: str
     user_id: str
     memory_id: str
@@ -140,6 +151,7 @@ class UserFeedback:
 @dataclass
 class WeightUpdate:
     """Update to ranking weights based on feedback"""
+
     feature_weights: Dict[str, float]
     confidence_threshold: float
     learning_rate: float
@@ -150,6 +162,7 @@ class WeightUpdate:
 @dataclass
 class KnowledgeGap:
     """Identified gap in team knowledge"""
+
     gap_id: str
     team_id: str
     topic_area: str
@@ -163,6 +176,7 @@ class KnowledgeGap:
 @dataclass
 class TrendingTopic:
     """Trending topic in memory access patterns"""
+
     topic: str
     trend_score: float
     growth_rate: float
@@ -175,6 +189,7 @@ class TrendingTopic:
 @dataclass
 class SuggestedConnection:
     """Suggested connection between memories"""
+
     source_memory: str
     target_memory: str
     connection_type: str
@@ -186,6 +201,7 @@ class SuggestedConnection:
 @dataclass
 class TeamInsights:
     """Generated insights for a team"""
+
     team_id: str
     knowledge_coverage: Dict[str, float]
     collaboration_patterns: Dict[str, Any]
@@ -199,6 +215,7 @@ class TeamInsights:
 @dataclass
 class GraphMLMetrics:
     """Metrics for graph ML performance"""
+
     model_accuracy: float
     prediction_confidence: float
     processing_latency_ms: float
@@ -212,6 +229,7 @@ class GraphMLMetrics:
 @dataclass
 class FederationMetrics:
     """Metrics for memory federation performance"""
+
     total_federations: int
     successful_shares: int
     privacy_blocks: int

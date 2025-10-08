@@ -172,8 +172,9 @@ class MetricsLabelGuard:
         }
 
         # Reset tracking window if needed
-        if self.config.enable_cardinality_tracking and self.tracker.should_reset_window(
-            self.config.cardinality_window_seconds
+        if (
+            self.config.enable_cardinality_tracking
+            and self.tracker.should_reset_window(self.config.cardinality_window_seconds)
         ):
             self.tracker.reset_window()
 

@@ -7,9 +7,10 @@ from auth import get_current_user
 from database import DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from models.api_models import OrganizationCreate
-from rbac.permissions import Action, Resource
 from rbac_middleware import get_rbac_context, require_permission
 from security_integration import log_admin_action
+
+from rbac.permissions import Action, Resource
 
 # Initialize router
 router = APIRouter(prefix="/organizations", tags=["organizations"])

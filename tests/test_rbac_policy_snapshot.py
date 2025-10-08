@@ -356,9 +356,9 @@ def validate_policy_against_snapshot(
         "comparison": comparison,
         "acceptable_changes": len(acceptable_changes),
         "concerning_changes": len(concerning_changes),
-        "recommendation": "APPROVE"
-        if len(concerning_changes) == 0
-        else "REVIEW_REQUIRED",
+        "recommendation": (
+            "APPROVE" if len(concerning_changes) == 0 else "REVIEW_REQUIRED"
+        ),
     }
 
 

@@ -144,8 +144,9 @@ class AuthHealthChecker:
     async def _test_database_connection(self) -> Dict[str, Any]:
         """Test database connection"""
         try:
-            from config import load_config
             from database.simple_operations import SimpleDatabaseOperations
+
+            from config import load_config
 
             start_time = time.time()
 

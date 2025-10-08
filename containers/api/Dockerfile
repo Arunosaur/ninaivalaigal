@@ -9,16 +9,19 @@ WORKDIR /app
 
 # Copy requirements and install Python dependencies
 COPY server/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir "psycopg[binary]" sqlalchemy alembic fastapi "uvicorn[standard]" httpx PyJWT email-validator python-multipart bcrypt psutil prometheus-client && \
+RUN pip install --no-cache-dir "psycopg[binary]" sqlalchemy alembic fastapi "uvicorn[standard]" httpx PyJWT email-validator python-multipart bcrypt psutil prometheus-client uvloop httptools structlog && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY server/ ./server/
 COPY frontend/ ./frontend/
+COPY run_server.py ./
+COPY eM.py ./
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
 
-# Set Python path and working directory
-ENV PYTHONPATH=/app
-WORKDIR /app/server
+# Set Python path to include both /app and /app/server for imports
+ENV PYTHONPATH=/app:/app/server
 
 # Create non-root user for security
 RUN useradd --system --no-create-home --shell /bin/false apiuser && \
@@ -33,5 +36,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 8000
 
-# Start command with conditional reload
-CMD ["bash", "-c", "exec uvicorn main:app --host 0.0.0.0 --port 8000 $([ \"${API_RELOAD:-false}\" = \"true\" ] && echo --reload)"]
+# Use run_server.py for proper initialization (same as Docker)
+CMD ["python", "run_server.py"]

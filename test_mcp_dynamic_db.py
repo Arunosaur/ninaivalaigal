@@ -3,11 +3,12 @@
 Test script for MCP server with dynamic database URL resolution
 """
 
-import sys
 import os
+import sys
 
 # Add server directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'server'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "server"))
+
 
 def test_dynamic_database_url():
     """Test the dynamic database URL resolution"""
@@ -26,13 +27,17 @@ def test_dynamic_database_url():
 
         if components:
             print(f"   ✅ Components initialized successfully")
-            print(f"   📊 Database manager: {type(components.get('db', 'None')).__name__}")
+            print(
+                f"   📊 Database manager: {type(components.get('db', 'None')).__name__}"
+            )
             print(f"   🔧 Config loaded: {'Yes' if components.get('config') else 'No'}")
-            print(f"   👤 Default user ID: {components.get('DEFAULT_USER_ID', 'Unknown')}")
+            print(
+                f"   👤 Default user ID: {components.get('DEFAULT_USER_ID', 'Unknown')}"
+            )
 
             # Test database connection
-            db = components.get('db')
-            if db and hasattr(db, 'engine'):
+            db = components.get("db")
+            if db and hasattr(db, "engine"):
                 try:
                     # Try a simple connection test
                     with db.engine.connect() as conn:
@@ -40,7 +45,9 @@ def test_dynamic_database_url():
                         if result and result[0] == 1:
                             print(f"   ✅ Database connection successful")
                         else:
-                            print(f"   ❌ Database connection failed: unexpected result")
+                            print(
+                                f"   ❌ Database connection failed: unexpected result"
+                            )
                 except Exception as e:
                     print(f"   ⚠️ Database connection test failed: {e}")
             else:
@@ -58,12 +65,13 @@ def test_dynamic_database_url():
 
     return True
 
+
 def test_config_dynamic_url():
     """Test the config module dynamic URL resolution"""
     print("\n🧪 Testing config module dynamic database URL resolution...")
 
     try:
-        from config import get_dynamic_database_url, get_database_url
+        from config import get_database_url, get_dynamic_database_url
 
         print("\n1. Testing config dynamic database URL:")
         db_url = get_dynamic_database_url()
@@ -86,6 +94,7 @@ def test_config_dynamic_url():
         return False
 
     return True
+
 
 if __name__ == "__main__":
     print("🚀 Testing ninaivalaigal MCP server modularization fixes...")

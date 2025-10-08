@@ -7,8 +7,9 @@ from auth import get_current_user
 from database import DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from models.api_models import TeamCreate, TeamMemberAdd
-from rbac.permissions import Action, Resource
 from rbac_middleware import require_permission
+
+from rbac.permissions import Action, Resource
 
 # Initialize router
 router = APIRouter(prefix="/teams", tags=["teams"])

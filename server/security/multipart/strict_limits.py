@@ -223,9 +223,9 @@ def enforce_part_limits(
                     "type": "executable_magic_bytes",
                     "message": f"Executable file detected: {magic_result.detected_type}",
                     "severity": "critical",
-                    "signature": magic_result.signature.hex()
-                    if magic_result.signature
-                    else None,
+                    "signature": (
+                        magic_result.signature.hex() if magic_result.signature else None
+                    ),
                 }
             )
             raise ValueError(
@@ -259,9 +259,11 @@ def enforce_part_limits(
                         "declared_type": content_type,
                         "detected_type": magic_result.detected_type,
                         "file_name": filename,  # Use file_name instead of filename to avoid LogRecord conflict
-                        "signature": magic_result.signature.hex()
-                        if magic_result.signature
-                        else None,
+                        "signature": (
+                            magic_result.signature.hex()
+                            if magic_result.signature
+                            else None
+                        ),
                     },
                 )
 

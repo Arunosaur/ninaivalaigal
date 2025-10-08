@@ -1,0 +1,217 @@
+# Ninaivalaigal Canonical Port Matrix V2
+# Machine-readable port allocation for automated validation
+# Reference: SPEC-086 Multi-Runtime Port Allocation
+
+version: "2.0"
+updated: "2025-10-07"
+
+# Port calculation formula
+formula:
+  base_ports:
+    postgresql: 5432
+    pgbouncer: 6432
+    redis: 6379
+    api: 13370
+    ui_external: 8081
+    ui_internal: 8181
+    em: 8281
+
+  runtime_offset:
+    docker: 0
+    colima: 10
+    apple: 20
+
+  environment_offset:
+    dev: 0
+    test: 100
+    prod: 200
+
+# Complete port matrix (3 runtimes × 3 environments × 7 services)
+matrix:
+  docker:
+    dev:
+      postgresql: 5432
+      pgbouncer: 6432
+      redis: 6379
+      api: 13370
+      ui_external: 8081
+      ui_internal: 8181
+      em: 8281
+    test:
+      postgresql: 5532
+      pgbouncer: 6532
+      redis: 6479
+      api: 13470
+      ui_external: 8091
+      ui_internal: 8191
+      em: 8291
+    prod:
+      postgresql: 5632
+      pgbouncer: 6632
+      redis: 6579
+      api: 13570
+      ui_external: 8101
+      ui_internal: 8201
+      em: 8301
+
+  colima:
+    dev:
+      postgresql: 5442
+      pgbouncer: 6442
+      redis: 6389
+      api: 13380
+      ui_external: 8091
+      ui_internal: 8191
+      em: 8291
+    test:
+      postgresql: 5542
+      pgbouncer: 6542
+      redis: 6489
+      api: 13480
+      ui_external: 8101
+      ui_internal: 8201
+      em: 8301
+    prod:
+      postgresql: 5642
+      pgbouncer: 6642
+      redis: 6589
+      api: 13580
+      ui_external: 8111
+      ui_internal: 8211
+      em: 8311
+
+  apple:
+    dev:
+      postgresql: 5452
+      pgbouncer: 6452
+      redis: 6399
+      api: 13390
+      ui_external: 8101
+      ui_internal: 8201
+      em: 8301
+    test:
+      postgresql: 5552
+      pgbouncer: 6552
+      redis: 6499
+      api: 13490
+      ui_external: 8111
+      ui_internal: 8211
+      em: 8311
+    prod:
+      postgresql: 5652
+      pgbouncer: 6652
+      redis: 6599
+      api: 13590
+      ui_external: 8121
+      ui_internal: 8221
+      em: 8321
+
+# Container name patterns
+# NOTE: Containers are named by environment only, NOT by runtime
+# All runtimes share the same container names per environment
+container_names:
+  database: "ninaivalaigal-{env}-db"
+  pgbouncer: "ninaivalaigal-{env}-pgbouncer"
+  redis: "ninaivalaigal-{env}-redis"
+  api: "ninaivalaigal-{env}-api"
+  ui_customer: "ninaivalaigal-{env}-ui-customer"
+  ui_admin: "ninaivalaigal-{env}-ui-admin"
+  em: "ninaivalaigal-{env}-em"
+
+# Service metadata
+services:
+  postgresql:
+    description: "PostgreSQL 15 with pgvector"
+    container_port: 5432
+    protocol: "tcp"
+    health_check: "pg_isready -U nina"
+
+  pgbouncer:
+    description: "Connection pooler (SCRAM-SHA-256)"
+    container_port: 6432
+    protocol: "tcp"
+    health_check: "psql -h localhost -p 6432 -U nina -c 'SELECT 1;'"
+
+  redis:
+    description: "Cache & rate limiting"
+    container_port: 6379
+    protocol: "tcp"
+    health_check: "redis-cli ping"
+
+  api:
+    description: "FastAPI backend"
+    container_port: 8000
+    protocol: "http"
+    health_check: "curl -f http://localhost:8000/health"
+
+  ui_external:
+    description: "Customer-facing UI"
+    container_port: 8101  # Internal container port
+    protocol: "http"
+    health_check: "curl -f http://localhost:{host_port}/"
+
+  ui_internal:
+    description: "Admin console"
+    container_port: 8102  # Internal container port
+    protocol: "http"
+    health_check: "curl -f http://localhost:{host_port}/"
+
+  em:
+    description: "Enhanced Memory (mem0ai) orchestrator"
+    container_port: 7070
+    protocol: "http"
+    health_check: "curl -f http://localhost:{host_port}/health"
+
+# Port range reservations
+port_ranges:
+  postgresql:
+    start: 5432
+    end: 5699
+    total: 268
+
+  pgbouncer:
+    start: 6432
+    end: 6699
+    total: 268
+
+  redis:
+    start: 6379
+    end: 6699
+    total: 321
+
+  api:
+    start: 13370
+    end: 13699
+    total: 330
+
+  ui_external:
+    start: 8081
+    end: 8299
+    total: 219
+
+  ui_internal:
+    start: 8181
+    end: 8399
+    total: 219
+
+  em:
+    start: 8281
+    end: 8499
+    total: 219
+
+# Validation rules
+validation:
+  required_services:
+    - postgresql
+    - pgbouncer
+    - redis
+    - api
+    - ui_external
+    - ui_internal
+
+  optional_services:
+    - em
+
+  port_collision_check: true
+  container_name_check: true
+  health_check_timeout: 30  # seconds

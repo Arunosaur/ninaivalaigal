@@ -1,6 +1,7 @@
 """
 Advanced security test scenarios based on external code review recommendations
 """
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 

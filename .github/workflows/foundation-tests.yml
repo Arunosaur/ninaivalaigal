@@ -628,7 +628,7 @@ jobs:
     needs: [foundation-spec-tests, foundation-summary]
     if: failure()
     name: Notify on Foundation Test Failure
-    
+
     steps:
       - name: Notify Slack on Failure
         if: failure()
@@ -653,7 +653,7 @@ jobs:
                       "text": "*Repository:*\n${{ github.repository }}"
                     },
                     {
-                      "type": "mrkdwn", 
+                      "type": "mrkdwn",
                       "text": "*Branch:*\n${{ github.ref }}"
                     },
                     {
@@ -687,7 +687,7 @@ jobs:
                     {
                       "type": "button",
                       "text": {
-                        "type": "plain_text", 
+                        "type": "plain_text",
                         "text": "Download Artifacts"
                       },
                       "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
@@ -704,7 +704,7 @@ jobs:
     needs: [foundation-spec-tests, foundation-summary]
     if: always()
     name: Foundation Test Health Ping
-    
+
     steps:
       - name: Healthcheck Ping - Start
         run: |
@@ -737,7 +737,7 @@ jobs:
   environment-validation:
     runs-on: ubuntu-latest
     name: Validate Test Environment
-    
+
     steps:
       - name: Check Docker Availability
         run: |
@@ -749,7 +749,7 @@ jobs:
       - name: Validate Test Services
         run: |
           echo "🔍 Validating test environment..."
-          
+
           # Check if PostgreSQL container would be accessible
           echo "📊 PostgreSQL Test:"
           if docker run --rm postgres:15 pg_isready --help > /dev/null 2>&1; then
@@ -758,8 +758,8 @@ jobs:
             echo "❌ PostgreSQL container not accessible"
             exit 1
           fi
-          
-          # Check if Redis container would be accessible  
+
+          # Check if Redis container would be accessible
           echo "🔄 Redis Test:"
           if docker run --rm redis:7-alpine redis-cli --version > /dev/null 2>&1; then
             echo "✅ Redis container accessible"
@@ -774,7 +774,7 @@ jobs:
           echo "Host: $(hostname)"
           echo "IP: $(hostname -I || echo 'N/A')"
           echo "DNS: $(cat /etc/resolv.conf | grep nameserver || echo 'N/A')"
-          
+
           # Test localhost connectivity
           if curl -s --connect-timeout 5 http://localhost:80 > /dev/null 2>&1 || true; then
             echo "✅ Localhost connectivity available"
@@ -794,29 +794,29 @@ jobs:
         run: |
           cat > environment_report.md << 'EOF'
           # Foundation Test Environment Report
-          
+
           **Date**: $(date -u)
           **Runner**: ${{ runner.os }}
           **Workflow**: ${{ github.workflow }}
           **Run ID**: ${{ github.run_id }}
-          
+
           ## Environment Status
-          
+
           - ✅ Docker: Available
           - ✅ PostgreSQL: Container accessible
           - ✅ Redis: Container accessible
           - ✅ Network: Configured
           - ✅ Environment Variables: Set
-          
+
           ## Configuration
-          
+
           - **Coverage Threshold**: ${{ env.COVERAGE_THRESHOLD_FOUNDATION }}%
           - **Test Timeout**: ${{ env.TEST_TIMEOUT_MINUTES }} minutes
           - **PostgreSQL Version**: 15
           - **Redis Version**: 7-alpine
-          
+
           ## Next Steps
-          
+
           Environment is ready for Foundation SPEC testing.
           EOF
 

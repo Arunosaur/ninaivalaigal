@@ -12,9 +12,9 @@ import pytest
 
 # Set up test environment
 os.environ["MEMORY_PROVIDER"] = "native"
-os.environ[
-    "NINAIVALAIGAL_DATABASE_URL"
-] = "postgresql://nina:change_me_securely@localhost:5433/nina"
+os.environ["NINAIVALAIGAL_DATABASE_URL"] = (
+    "postgresql://nina:change_me_securely@localhost:5433/nina"
+)
 
 from server.memory import get_memory_provider
 from server.memory.factory import reset_memory_provider

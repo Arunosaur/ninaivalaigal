@@ -164,9 +164,9 @@ class MemoryHealthEngine:
                 quality_score=quality_score,
                 last_accessed=access_data.get("last_accessed"),
                 access_frequency=access_data.get("frequency", 0),
-                feedback_score=feedback_data.get("total_score")
-                if feedback_data
-                else None,
+                feedback_score=(
+                    feedback_data.get("total_score") if feedback_data else None
+                ),
                 relevance_score=relevance_score,
                 issues=issues,
                 recommendations=recommendations,

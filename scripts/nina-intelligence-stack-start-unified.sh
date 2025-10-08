@@ -155,6 +155,7 @@ if ! $SKIP_API; then
     -e REDIS_PORT=6379 \
     -e REDIS_PASSWORD="${NINA_REDIS_PASSWORD:-nina_redis_${NINA_ENV}_password}" \
     -e NINAIVALAIGAL_JWT_SECRET="${NINA_JWT_SECRET:-test-jwt-secret-for-ci}" \
+    -e PYTHONPATH=/app:/app/server \
     -e NINA_ENV="$NINA_ENV" \
     nina-api:arm64
 

@@ -1,6 +1,7 @@
 """
 Functional tests for Redis module (API-level)
 """
+
 import pytest
 
 

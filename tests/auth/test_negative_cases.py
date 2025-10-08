@@ -4,9 +4,10 @@ Authentication System Tests: Negative Cases
 Tests error handling, edge cases, and security vulnerabilities.
 """
 
+import json
+
 import pytest
 import requests
-import json
 
 # Test Configuration
 BASE_URL = "http://localhost:13370"

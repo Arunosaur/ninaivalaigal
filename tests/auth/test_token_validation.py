@@ -4,9 +4,10 @@ Authentication System Tests: Token Validation
 Tests JWT token validation and authorization functionality.
 """
 
+import json
+
 import pytest
 import requests
-import json
 
 # Test Configuration
 BASE_URL = "http://localhost:13370"

@@ -14,10 +14,10 @@ CREATE TABLE IF NOT EXISTS stripe_customers (
     default_payment_method VARCHAR(255),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified
     CONSTRAINT stripe_customer_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     )
 );
@@ -46,10 +46,10 @@ CREATE TABLE IF NOT EXISTS stripe_subscriptions (
     metadata JSONB,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified
     CONSTRAINT stripe_subscription_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     )
 );
@@ -110,10 +110,10 @@ CREATE TABLE IF NOT EXISTS payment_attempts (
     succeeded_at TIMESTAMP,
     metadata JSONB,
     created_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified
     CONSTRAINT payment_attempt_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     )
 );
@@ -145,10 +145,10 @@ CREATE TABLE IF NOT EXISTS dunning_campaigns (
     resolution_notes TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified
     CONSTRAINT dunning_campaign_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     )
 );
@@ -200,13 +200,13 @@ CREATE TABLE IF NOT EXISTS usage_records (
     processed_for_billing BOOLEAN DEFAULT FALSE,
     invoice_line_item_id UUID,
     recorded_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified
     CONSTRAINT usage_record_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     ),
-    
+
     -- Ensure billing period is valid
     CONSTRAINT usage_billing_period_check CHECK (billing_period_start <= billing_period_end)
 );
@@ -277,13 +277,13 @@ CREATE TABLE IF NOT EXISTS billing_metrics (
     calculation_method VARCHAR(100),
     metadata JSONB,
     calculated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure either team_id or org_id is specified
     CONSTRAINT billing_metrics_target_check CHECK (
-        (team_id IS NOT NULL AND org_id IS NULL) OR 
+        (team_id IS NOT NULL AND org_id IS NULL) OR
         (team_id IS NULL AND org_id IS NOT NULL)
     ),
-    
+
     -- Unique constraint for metric per entity per date
     CONSTRAINT unique_billing_metric UNIQUE (team_id, org_id, metric_date, metric_type)
 );
@@ -300,8 +300,8 @@ CREATE OR REPLACE FUNCTION update_subscription_from_webhook()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.event_type = 'customer.subscription.updated' AND NEW.processed = TRUE THEN
-        UPDATE stripe_subscriptions 
-        SET 
+        UPDATE stripe_subscriptions
+        SET
             status = (NEW.data->'object'->>'status'),
             current_period_start = to_timestamp((NEW.data->'object'->>'current_period_start')::bigint),
             current_period_end = to_timestamp((NEW.data->'object'->>'current_period_end')::bigint),
@@ -313,16 +313,16 @@ END;
 $$ language 'plpgsql';
 
 -- Create trigger for webhook subscription updates
-CREATE TRIGGER update_subscription_webhook AFTER UPDATE ON webhook_events 
+CREATE TRIGGER update_subscription_webhook AFTER UPDATE ON webhook_events
 FOR EACH ROW EXECUTE FUNCTION update_subscription_from_webhook();
 
 -- Function to automatically retry failed payments
 CREATE OR REPLACE FUNCTION schedule_payment_retry()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.status IN ('requires_payment_method', 'requires_action') AND 
+    IF NEW.status IN ('requires_payment_method', 'requires_action') AND
        NEW.retry_count < NEW.max_retries THEN
-        
+
         -- Calculate next retry time based on strategy
         IF NEW.retry_strategy = 'immediate' THEN
             NEW.next_retry_at = NOW();
@@ -337,7 +337,7 @@ END;
 $$ language 'plpgsql';
 
 -- Create trigger for payment retry scheduling
-CREATE TRIGGER schedule_retry BEFORE INSERT OR UPDATE ON payment_attempts 
+CREATE TRIGGER schedule_retry BEFORE INSERT OR UPDATE ON payment_attempts
 FOR EACH ROW EXECUTE FUNCTION schedule_payment_retry();
 
 -- Function to advance dunning campaigns
@@ -346,12 +346,12 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.executed_at IS NOT NULL AND OLD.executed_at IS NULL THEN
         -- Action was just executed, advance campaign if needed
-        UPDATE dunning_campaigns 
-        SET 
+        UPDATE dunning_campaigns
+        SET
             current_step = current_step + 1,
             emails_sent = emails_sent + 1,
-            next_action_at = CASE 
-                WHEN current_step < total_steps THEN 
+            next_action_at = CASE
+                WHEN current_step < total_steps THEN
                     NOW() + INTERVAL '1 day' * escalation_days[current_step + 1]
                 ELSE NULL
             END,
@@ -363,7 +363,7 @@ END;
 $$ language 'plpgsql';
 
 -- Create trigger for dunning campaign advancement
-CREATE TRIGGER advance_campaign AFTER UPDATE ON dunning_actions 
+CREATE TRIGGER advance_campaign AFTER UPDATE ON dunning_actions
 FOR EACH ROW EXECUTE FUNCTION advance_dunning_campaign();
 
 -- Function to calculate daily billing metrics
@@ -374,9 +374,9 @@ DECLARE
     team_record RECORD;
 BEGIN
     -- Calculate MRR for each team
-    FOR team_record IN 
+    FOR team_record IN
         SELECT DISTINCT t.id as team_id, NULL as org_id
-        FROM teams t 
+        FROM teams t
         WHERE t.is_standalone = TRUE
         UNION
         SELECT NULL as team_id, o.id as org_id
@@ -384,29 +384,29 @@ BEGIN
     LOOP
         -- Calculate MRR
         INSERT INTO billing_metrics (team_id, org_id, metric_date, metric_type, metric_value, calculation_method)
-        SELECT 
+        SELECT
             team_record.team_id,
             team_record.org_id,
             target_date,
             'mrr',
             COALESCE(
                 (SELECT SUM(
-                    CASE 
-                        WHEN ss.status = 'active' THEN 
-                            (SELECT price FROM unnest(ARRAY['free', 'starter', 'nonprofit']) AS plan_name 
-                             JOIN (VALUES ('free', 0), ('starter', 10), ('nonprofit', 5)) AS plans(name, price) 
+                    CASE
+                        WHEN ss.status = 'active' THEN
+                            (SELECT price FROM unnest(ARRAY['free', 'starter', 'nonprofit']) AS plan_name
+                             JOIN (VALUES ('free', 0), ('starter', 10), ('nonprofit', 5)) AS plans(name, price)
                              ON plan_name = plans.name WHERE plan_name = ss.plan_id)
                         ELSE 0
                     END
                 )
-                FROM stripe_subscriptions ss 
+                FROM stripe_subscriptions ss
                 WHERE (ss.team_id = team_record.team_id OR ss.org_id = team_record.org_id)
-                AND ss.current_period_end >= target_date), 
+                AND ss.current_period_end >= target_date),
                 0
             ),
             'subscription_based'
-        ON CONFLICT (team_id, org_id, metric_date, metric_type) 
-        DO UPDATE SET 
+        ON CONFLICT (team_id, org_id, metric_date, metric_type)
+        DO UPDATE SET
             metric_value = EXCLUDED.metric_value,
             calculated_at = NOW();
     END LOOP;
@@ -417,7 +417,7 @@ $$ language 'plpgsql';
 
 -- Active subscriptions view
 CREATE OR REPLACE VIEW active_subscriptions AS
-SELECT 
+SELECT
     ss.*,
     COALESCE(t.name, o.name) as entity_name,
     CASE WHEN t.id IS NOT NULL THEN 'team' ELSE 'organization' END as entity_type,
@@ -431,13 +431,13 @@ WHERE ss.status IN ('active', 'trialing', 'past_due');
 
 -- Payment failures requiring attention
 CREATE OR REPLACE VIEW failed_payments_summary AS
-SELECT 
+SELECT
     pa.*,
     bi.invoice_number,
     bi.due_date,
     COALESCE(t.name, o.name) as entity_name,
     sc.email as billing_email,
-    CASE 
+    CASE
         WHEN pa.retry_count >= pa.max_retries THEN 'max_retries_reached'
         WHEN pa.next_retry_at < NOW() THEN 'ready_for_retry'
         ELSE 'scheduled_for_retry'
@@ -451,7 +451,7 @@ WHERE pa.status NOT IN ('succeeded', 'canceled');
 
 -- Dunning campaigns requiring action
 CREATE OR REPLACE VIEW active_dunning_campaigns AS
-SELECT 
+SELECT
     dc.*,
     bi.invoice_number,
     bi.amount_due,
@@ -474,8 +474,8 @@ GRANT SELECT ON ALL VIEWS IN SCHEMA public TO authenticated_users;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO authenticated_users;
 
 -- Create initial webhook event types for reference
-INSERT INTO webhook_events (event_id, event_type, api_version, created_timestamp, data, livemode, processed) 
-VALUES 
+INSERT INTO webhook_events (event_id, event_type, api_version, created_timestamp, data, livemode, processed)
+VALUES
     ('evt_example_payment_succeeded', 'invoice.payment_succeeded', '2023-10-16', NOW(), '{"object": "event"}', FALSE, TRUE),
     ('evt_example_payment_failed', 'invoice.payment_failed', '2023-10-16', NOW(), '{"object": "event"}', FALSE, TRUE),
     ('evt_example_subscription_updated', 'customer.subscription.updated', '2023-10-16', NOW(), '{"object": "event"}', FALSE, TRUE)

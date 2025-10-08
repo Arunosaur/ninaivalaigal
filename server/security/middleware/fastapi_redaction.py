@@ -2,6 +2,7 @@
 FastAPI-specific redaction middleware that integrates with the existing redaction engine.
 Provides ASGI middleware for both request and response redaction with streaming support.
 """
+
 from __future__ import annotations
 
 import typing as t

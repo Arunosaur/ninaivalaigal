@@ -1,8 +1,8 @@
 # SPEC-022: ArgoCD Promotion Pipeline (Quick Win)
 
-**Status**: 🚧 In Progress  
-**Priority**: High (Quick Win)  
-**Phase**: 3A - Operational Maturity Extension  
+**Status**: 🚧 In Progress
+**Priority**: High (Quick Win)
+**Phase**: 3A - Operational Maturity Extension
 **Dependencies**: SPEC-021 Complete
 
 ## 🎯 Objective
@@ -28,7 +28,7 @@ Extend SPEC-021's GitOps foundation with automated promotion pipelines and advan
 
 ### Promotion Flow
 ```
-Developer → Feature Branch → PR → Merge → Dev Deploy → 
+Developer → Feature Branch → PR → Merge → Dev Deploy →
 Staging Deploy → Approval Gate → Production Deploy → Monitor
 ```
 
@@ -48,7 +48,7 @@ Since SPEC-021 is complete, we can leverage existing infrastructure:
 - Adjust replica count and resources
 - Create ArgoCD application
 
-### 2. Production Environment (10 minutes)  
+### 2. Production Environment (10 minutes)
 - Create production overlay with HA configuration
 - Add manual sync policy
 - Configure approval workflows

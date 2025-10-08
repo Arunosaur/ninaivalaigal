@@ -1,8 +1,8 @@
 # Billing Model Strategy for Ninaivalaigal
 ## Comprehensive Revenue Model Design
 
-**Document Version**: 1.0  
-**Last Updated**: September 23, 2024  
+**Document Version**: 1.0
+**Last Updated**: September 23, 2024
 **Status**: Strategic Design Phase
 
 ## 🎯 **Executive Summary**
@@ -14,7 +14,7 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 ### **Primary Revenue Streams**
 
 1. **Team Subscriptions** (Seat-based) - 70% of revenue
-2. **Usage-based Features** (AI/Storage) - 20% of revenue  
+2. **Usage-based Features** (AI/Storage) - 20% of revenue
 3. **Enterprise Licenses** (Organization-level) - 10% of revenue
 
 ### **Customer Segmentation**
@@ -31,8 +31,8 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 
 ### **Tier 1: Free (Viral Growth Engine)**
 
-**Target**: Individual users and small teams  
-**Price**: $0/month  
+**Target**: Individual users and small teams
+**Price**: $0/month
 **Limits**:
 - Up to 5 team members
 - 1,000 memories per team
@@ -48,8 +48,8 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 
 ### **Tier 2: Team Pro ($29/month per team)**
 
-**Target**: Growing teams and startups  
-**Price**: $29/month per team (not per user)  
+**Target**: Growing teams and startups
+**Price**: $29/month per team (not per user)
 **Features**:
 - Up to 20 team members
 - 10,000 memories per team
@@ -72,8 +72,8 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 
 ### **Tier 3: Team Enterprise ($99/month per team)**
 
-**Target**: Established teams and departments  
-**Price**: $99/month per team  
+**Target**: Established teams and departments
+**Price**: $99/month per team
 **Features**:
 - Up to 50 team members
 - Unlimited memories
@@ -98,8 +98,8 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 
 ### **Tier 4: Organization (Custom Pricing)**
 
-**Target**: Large enterprises and institutions  
-**Price**: Starting at $500/month  
+**Target**: Large enterprises and institutions
+**Price**: Starting at $500/month
 **Features**:
 - Unlimited teams and members
 - Dedicated account manager
@@ -113,7 +113,7 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 
 ### **AI Compute Credits**
 
-**Model**: Pay-per-use for advanced AI features  
+**Model**: Pay-per-use for advanced AI features
 **Pricing**:
 - Basic AI operations: Included in all plans
 - Advanced context analysis: $0.10 per 1,000 operations
@@ -128,8 +128,8 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 
 ### **Storage Overages**
 
-**Model**: Additional storage beyond plan limits  
-**Pricing**: $5 per additional 1,000 memories per month  
+**Model**: Additional storage beyond plan limits
+**Pricing**: $5 per additional 1,000 memories per month
 **Application**:
 - Free tier: After 1,000 memories
 - Team Pro: After 10,000 memories
@@ -137,8 +137,8 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 
 ### **Advanced Analytics**
 
-**Model**: Premium analytics and insights  
-**Pricing**: $19/month per team add-on  
+**Model**: Premium analytics and insights
+**Pricing**: $19/month per team add-on
 **Features**:
 - Team productivity metrics
 - Memory usage patterns
@@ -184,14 +184,14 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 
 ### **Payment Processing**
 
-**Primary**: Stripe for all subscription billing  
-**Secondary**: PayPal for international customers  
+**Primary**: Stripe for all subscription billing
+**Secondary**: PayPal for international customers
 **Enterprise**: Wire transfers and custom invoicing
 
 ### **Billing Cycles**
 
-**Monthly**: Standard for all tiers  
-**Annual**: 20% discount for annual prepayment  
+**Monthly**: Standard for all tiers
+**Annual**: 20% discount for annual prepayment
 **Enterprise**: Quarterly or annual billing
 
 ### **Payment Features**
@@ -217,7 +217,7 @@ This document outlines the comprehensive billing strategy for ninaivalaigal, des
 ### **Growth Assumptions**
 
 - **Free to Pro conversion**: 5% monthly
-- **Pro to Enterprise conversion**: 10% monthly  
+- **Pro to Enterprise conversion**: 10% monthly
 - **Enterprise to Organization**: 20% annually
 - **Churn rate**: 5% monthly across all paid tiers
 - **Viral coefficient**: 1.3 (each team invites 1.3 new teams)

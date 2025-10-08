@@ -596,7 +596,9 @@ class MemoryACLSystemTester:
     def print_results(self):
         """Print comprehensive test results"""
         self.log("=" * 80)
-        self.log("🎯 SPEC-043 MEMORY ACCESS CONTROL (ACL) PER TOKEN SYSTEM TEST RESULTS")
+        self.log(
+            "🎯 SPEC-043 MEMORY ACCESS CONTROL (ACL) PER TOKEN SYSTEM TEST RESULTS"
+        )
         self.log("=" * 80)
 
         # Test summary
@@ -629,9 +631,7 @@ class MemoryACLSystemTester:
         if success_rate >= 80:
             self.log("\n🎉 SPEC-043 MEMORY ACCESS CONTROL SYSTEM: OPERATIONAL ✅")
         elif success_rate >= 60:
-            self.log(
-                "\n⚠️ SPEC-043 MEMORY ACCESS CONTROL SYSTEM: PARTIALLY OPERATIONAL"
-            )
+            self.log("\n⚠️ SPEC-043 MEMORY ACCESS CONTROL SYSTEM: PARTIALLY OPERATIONAL")
         else:
             self.log("\n❌ SPEC-043 MEMORY ACCESS CONTROL SYSTEM: NEEDS ATTENTION")
 

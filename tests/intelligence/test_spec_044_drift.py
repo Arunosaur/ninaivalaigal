@@ -4,10 +4,11 @@ SPEC-044: Memory Drift & Diff Detection - Comprehensive Test Coverage
 Tests memory drift detection and change tracking system.
 """
 
+import json
+from unittest.mock import Mock, patch
+
 import pytest
 import requests
-from unittest.mock import Mock, patch
-import json
 
 # Test Configuration
 BASE_URL = "http://localhost:13370"

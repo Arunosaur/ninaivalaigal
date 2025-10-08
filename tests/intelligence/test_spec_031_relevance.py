@@ -4,10 +4,11 @@ SPEC-031: Memory Relevance Ranking - Comprehensive Test Coverage
 Tests memory relevance ranking and token prioritization system.
 """
 
+import json
+from unittest.mock import Mock, patch
+
 import pytest
 import requests
-from unittest.mock import Mock, patch
-import json
 
 # Test Configuration
 BASE_URL = "http://localhost:13370"

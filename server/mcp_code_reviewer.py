@@ -642,9 +642,9 @@ class CodeAnalyzer:
             "non_empty_lines": non_empty_lines,
             "comment_lines": comment_lines,
             "code_lines": non_empty_lines - comment_lines,
-            "comment_ratio": comment_lines / non_empty_lines
-            if non_empty_lines > 0
-            else 0,
+            "comment_ratio": (
+                comment_lines / non_empty_lines if non_empty_lines > 0 else 0
+            ),
         }
 
     def _create_summary(self, issues: list[CodeIssue]) -> dict[str, int]:

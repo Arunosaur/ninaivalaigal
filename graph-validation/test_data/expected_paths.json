@@ -1,7 +1,7 @@
 [
   {
     "source_id": "uuid-1",
-    "target_id": "uuid-3", 
+    "target_id": "uuid-3",
     "expected_path_length": 2,
     "expected_strength": 0.8,
     "path_type": "similarity"

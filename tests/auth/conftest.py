@@ -4,11 +4,12 @@ Authentication Test Fixtures and Configuration
 Provides shared fixtures and configuration for authentication tests.
 """
 
+import os
+import sys
+
 import pytest
 import requests
 from fastapi.testclient import TestClient
-import os
-import sys
 
 # Add project root to Python path for imports
 project_root = os.path.dirname(

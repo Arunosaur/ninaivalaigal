@@ -4,10 +4,11 @@ Authentication System Tests: Token Refresh
 Tests JWT token refresh and renewal mechanisms.
 """
 
-import pytest
-import requests
 import json
 import time
+
+import pytest
+import requests
 
 # Test Configuration
 BASE_URL = "http://localhost:13370"

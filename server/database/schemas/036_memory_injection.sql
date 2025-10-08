@@ -115,9 +115,9 @@ CREATE OR REPLACE FUNCTION update_injection_performance_metrics()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Update daily performance metrics when injection records are updated
-    INSERT INTO injection_performance_metrics 
+    INSERT INTO injection_performance_metrics
     (user_id, rule_id, trigger_type, strategy, success_count, total_count, measurement_date)
-    SELECT 
+    SELECT
         NEW.user_id,
         NEW.rule_id,
         r.trigger_type,
@@ -129,13 +129,13 @@ BEGIN
     WHERE r.rule_id = NEW.rule_id
     ON CONFLICT (user_id, rule_id, measurement_date)
     DO UPDATE SET
-        success_count = injection_performance_metrics.success_count + 
+        success_count = injection_performance_metrics.success_count +
                        CASE WHEN NEW.user_response IN ('accepted', 'used') THEN 1 ELSE 0 END,
         total_count = injection_performance_metrics.total_count + 1,
-        average_relevance = (injection_performance_metrics.average_relevance * 
-                           (injection_performance_metrics.total_count - 1) + 
+        average_relevance = (injection_performance_metrics.average_relevance *
+                           (injection_performance_metrics.total_count - 1) +
                            COALESCE(NEW.relevance_score, 0.5)) / injection_performance_metrics.total_count;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -156,16 +156,16 @@ CREATE OR REPLACE FUNCTION update_context_patterns(
 )
 RETURNS void AS $$
 BEGIN
-    INSERT INTO injection_context_patterns 
+    INSERT INTO injection_context_patterns
     (user_id, context_type, context_signature, total_injections, successful_injections)
     VALUES (p_user_id, p_context_type, p_context_signature, 1, CASE WHEN p_was_successful THEN 1 ELSE 0 END)
     ON CONFLICT (user_id, context_type, context_signature)
     DO UPDATE SET
         total_injections = injection_context_patterns.total_injections + 1,
-        successful_injections = injection_context_patterns.successful_injections + 
+        successful_injections = injection_context_patterns.successful_injections +
                                CASE WHEN p_was_successful THEN 1 ELSE 0 END,
-        success_rate = (injection_context_patterns.successful_injections + 
-                       CASE WHEN p_was_successful THEN 1 ELSE 0 END)::DECIMAL / 
+        success_rate = (injection_context_patterns.successful_injections +
+                       CASE WHEN p_was_successful THEN 1 ELSE 0 END)::DECIMAL /
                        (injection_context_patterns.total_injections + 1),
         pattern_strength = LEAST(1.0, (injection_context_patterns.total_injections + 1) / 10.0),
         last_updated = NOW();
@@ -184,7 +184,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         TIME '14:00:00' as recommended_time,  -- Default afternoon time
         0.7::DECIMAL(3,2) as confidence,
         COUNT(*)::INTEGER as based_on_patterns
@@ -200,25 +200,25 @@ CREATE OR REPLACE FUNCTION cleanup_old_injection_data()
 RETURNS void AS $$
 BEGIN
     -- Keep injection records for 6 months
-    DELETE FROM memory_injection_records 
+    DELETE FROM memory_injection_records
     WHERE injected_at < NOW() - INTERVAL '6 months';
-    
+
     -- Keep performance metrics for 2 years
-    DELETE FROM injection_performance_metrics 
+    DELETE FROM injection_performance_metrics
     WHERE measurement_date < CURRENT_DATE - INTERVAL '2 years';
-    
+
     -- Clean up unused context patterns (no activity for 3 months)
-    DELETE FROM injection_context_patterns 
+    DELETE FROM injection_context_patterns
     WHERE last_updated < NOW() - INTERVAL '3 months'
         AND total_injections < 5;
-    
+
     -- Deactivate old unused rules
-    UPDATE memory_injection_rules 
-    SET is_active = FALSE 
+    UPDATE memory_injection_rules
+    SET is_active = FALSE
     WHERE updated_at < NOW() - INTERVAL '6 months'
         AND rule_id NOT IN (
-            SELECT DISTINCT rule_id 
-            FROM memory_injection_records 
+            SELECT DISTINCT rule_id
+            FROM memory_injection_records
             WHERE injected_at > NOW() - INTERVAL '1 month'
         );
 END;
@@ -226,13 +226,13 @@ $$ LANGUAGE plpgsql;
 
 -- View for injection analytics
 CREATE OR REPLACE VIEW injection_analytics AS
-SELECT 
+SELECT
     u.id as user_id,
     u.email,
     COUNT(mir.injection_id) as total_injections,
     COUNT(mir.injection_id) FILTER (WHERE mir.user_response IN ('accepted', 'used')) as successful_injections,
     ROUND(
-        AVG(CASE 
+        AVG(CASE
             WHEN mir.user_response = 'used' THEN 1.0
             WHEN mir.user_response = 'accepted' THEN 0.8
             WHEN mir.user_response = 'dismissed' THEN 0.2
@@ -250,7 +250,7 @@ GROUP BY u.id, u.email;
 
 -- View for rule performance
 CREATE OR REPLACE VIEW rule_performance_summary AS
-SELECT 
+SELECT
     mir.rule_id,
     r.name as rule_name,
     r.trigger_type,
@@ -259,7 +259,7 @@ SELECT
     COUNT(mir.injection_id) as total_injections,
     COUNT(mir.injection_id) FILTER (WHERE mir.user_response IN ('accepted', 'used')) as successful_injections,
     ROUND(
-        COUNT(mir.injection_id) FILTER (WHERE mir.user_response IN ('accepted', 'used'))::DECIMAL / 
+        COUNT(mir.injection_id) FILTER (WHERE mir.user_response IN ('accepted', 'used'))::DECIMAL /
         NULLIF(COUNT(mir.injection_id), 0), 2
     ) as success_rate,
     AVG(mir.relevance_score) as avg_relevance_score,

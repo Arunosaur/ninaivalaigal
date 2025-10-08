@@ -180,15 +180,15 @@ def make_health_router(cfg: SecurityConfig) -> APIRouter:
             "env": cfg.env,
             "security_config": {
                 "jwks_url_configured": bool(cfg.jwks_url),
-                "jwks_url_domain": _extract_domain(cfg.jwks_url)
-                if cfg.jwks_url
-                else None,
+                "jwks_url_domain": (
+                    _extract_domain(cfg.jwks_url) if cfg.jwks_url else None
+                ),
                 "jwt_aud_configured": bool(cfg.jwt_aud),
                 "jwt_iss_configured": bool(cfg.jwt_iss),
                 "redis_configured": bool(cfg.redis_url),
-                "redis_scheme": _extract_scheme(cfg.redis_url)
-                if cfg.redis_url
-                else None,
+                "redis_scheme": (
+                    _extract_scheme(cfg.redis_url) if cfg.redis_url else None
+                ),
                 "fail_closed_tier_threshold": cfg.fail_closed_tier_threshold,
                 "guard_profile": cfg.guard_profile,
                 "max_body_mb": round(cfg.max_body_bytes / (1024 * 1024), 2),

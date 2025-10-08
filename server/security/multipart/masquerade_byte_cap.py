@@ -58,9 +58,9 @@ class BoundedBinaryMasqueradeDetector(BinaryMasqueradeDetector):
                 "analysis_bytes": analysis_bytes,
                 "total_bytes": total_bytes,
                 "byte_cap_applied": byte_cap_applied,
-                "analysis_percentage": (analysis_bytes / total_bytes * 100)
-                if total_bytes > 0
-                else 0,
+                "analysis_percentage": (
+                    (analysis_bytes / total_bytes * 100) if total_bytes > 0 else 0
+                ),
             }
         )
 

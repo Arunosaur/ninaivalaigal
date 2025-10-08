@@ -10,13 +10,13 @@ import sys
 sys.path.append("/Users/asrajag/Workspace/mem0/server")
 
 # Set environment variables for testing
-os.environ[
-    "NINAIVALAIGAL_USER_TOKEN"
-] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo4LCJlbWFpbCI6ImR1cmFpQGV4YW1wbGUuY29tIiwiYWNjb3VudF90eXBlIjoiaW5kaXZpZHVhbCIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzU3ODc5NjI5fQ.FQulmDLPK2WaBLuW-NIZ5TsKutnqP4E7iMKigVKoWaI"
+os.environ["NINAIVALAIGAL_USER_TOKEN"] = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo4LCJlbWFpbCI6ImR1cmFpQGV4YW1wbGUuY29tIiwiYWNjb3VudF90eXBlIjoiaW5kaXZpZHVhbCIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzU3ODc5NjI5fQ.FQulmDLPK2WaBLuW-NIZ5TsKutnqP4E7iMKigVKoWaI"
+)
 os.environ["NINAIVALAIGAL_USER_ID"] = "8"
-os.environ[
-    "NINAIVALAIGAL_DATABASE_URL"
-] = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+os.environ["NINAIVALAIGAL_DATABASE_URL"] = (
+    "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+)
 
 from auth import load_config
 from database import DatabaseManager

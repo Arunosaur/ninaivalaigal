@@ -11,8 +11,9 @@ from typing import Any
 import jwt
 from fastapi import HTTPException, Request, Response
 from fastapi.security import HTTPBearer
-from rbac.permissions import Action, Resource, Role, SubjectContext, authorize
 from secret_redaction import redact_log_message
+
+from rbac.permissions import Action, Resource, Role, SubjectContext, authorize
 
 
 class RBACContext:

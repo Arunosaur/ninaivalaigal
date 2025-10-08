@@ -1,6 +1,7 @@
 """
 Context merger utility for handling duplicate contexts safely
 """
+
 import logging
 from typing import Any
 

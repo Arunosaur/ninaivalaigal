@@ -14,7 +14,7 @@ from ..manager import DatabaseManager
 class DatabaseUtilities(DatabaseManager):
     """Shared database utilities and helpers."""
 
-    def get_db_instance(self) -> 'DatabaseUtilities':
+    def get_db_instance(self) -> "DatabaseUtilities":
         """Get database manager instance."""
         return self
 
@@ -24,7 +24,9 @@ class DatabaseUtilities(DatabaseManager):
             raise ValueError("Database session is required")
         return True
 
-    def safe_commit(self, session: Session, operation_name: str = "database operation") -> bool:
+    def safe_commit(
+        self, session: Session, operation_name: str = "database operation"
+    ) -> bool:
         """Safely commit database transaction with error handling."""
         try:
             session.commit()
@@ -47,7 +49,9 @@ class DatabaseUtilities(DatabaseManager):
         except Exception:
             pass  # Session close failures are typically not critical
 
-    def execute_with_session(self, operation_func: Callable, *args: Any, **kwargs: Any) -> Any:
+    def execute_with_session(
+        self, operation_func: Callable, *args: Any, **kwargs: Any
+    ) -> Any:
         """Execute database operation with automatic session management."""
         session = self.get_session()
         try:

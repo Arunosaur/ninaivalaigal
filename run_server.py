@@ -5,8 +5,11 @@ import sys
 import structlog
 import uvicorn
 
-# Ensure current directory is on sys.path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Ensure current directory and server directory are on sys.path
+app_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, app_dir)
+sys.path.insert(0, "/app/server")  # Absolute container path for module imports
+sys.path.insert(0, os.path.join(app_dir, "server"))  # Fallback for local development
 
 # Configure structlog
 structlog.configure(
