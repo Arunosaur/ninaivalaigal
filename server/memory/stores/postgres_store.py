@@ -69,7 +69,10 @@ class PostgresStore:
         sql = f"""
         INSERT INTO {self.cfg.table}
         (scope,user_id,team_id,org_id,kind,text,metadata,embedding)
-        VALUES (%(scope)s,%(user_id)s,%(team_id)s,%(org_id)s,%(kind)s,%(text)s,%(metadata)s::jsonb,%(embedding)s)
+        VALUES (
+            %(scope)s,%(user_id)s,%(team_id)s,%(org_id)s,%(kind)s,
+            %(text)s,%(metadata)s::jsonb,%(embedding)s
+        )
         RETURNING *;
         """
         params = {

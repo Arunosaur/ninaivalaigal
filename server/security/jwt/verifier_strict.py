@@ -194,7 +194,8 @@ def verify_jwt_strict(
     _validate_claim_security(claims)
 
     logger.info(
-        f"Strict JWT validation completed successfully for sub={sub} in {time.time() - start_time:.3f}s"
+        f"Strict JWT validation completed successfully for sub={sub} "
+        f"in {time.time() - start_time:.3f}s"
     )
 
     return claims

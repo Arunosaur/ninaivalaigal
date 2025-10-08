@@ -369,7 +369,8 @@ def set_ttl_command(memory_id: str, hours: int):
                 # Log event
                 await conn.execute(
                     """
-                    INSERT INTO memory_lifecycle_events (memory_id, event_type, triggered_by, event_data)
+                    INSERT INTO memory_lifecycle_events
+                    (memory_id, event_type, triggered_by, event_data)
                     VALUES ($1, 'ttl_set', 'cli', $2)
                 """,
                     memory_id,
