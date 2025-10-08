@@ -257,9 +257,12 @@ def create_emergency_auth_bypass(app):
     def emergency_login(data: dict):
         """Emergency login that bypasses all middleware"""
         email = data.get("email", "")
-        password = data.get("password", ""  # pragma: allowlist secret)
+        password = data.get("password", "")  # pragma: allowlist secret
 
-        if email == "test@ninaivalaigal.com" and password == "test"  # pragma: allowlist secret:
+        if (
+            email == "test@ninaivalaigal.com"
+            and password == "test"  # pragma: allowlist secret
+        ):
             return {
                 "success": True,
                 "message": "Emergency login successful!",

@@ -220,7 +220,9 @@ class TestUserAuthentication:
         mock_user.id = "123"
         mock_user.email = "test@example.com"
         mock_user.name = "Test User"
-        mock_user.hashed_password = hash_password("correct_password"  # pragma: allowlist secret)
+        mock_user.hashed_password = hash_password(
+            "correct_password"
+        )  # pragma: allowlist secret
         mock_user.is_verified = True
 
         mock_session.query().filter().first.return_value = mock_user
@@ -241,7 +243,9 @@ class TestUserAuthentication:
         mock_db.get_session.return_value = mock_session
 
         mock_user = Mock()
-        mock_user.hashed_password = hash_password("correct_password"  # pragma: allowlist secret)
+        mock_user.hashed_password = hash_password(
+            "correct_password"
+        )  # pragma: allowlist secret
         mock_user.is_verified = True
 
         mock_session.query().filter().first.return_value = mock_user
@@ -275,7 +279,9 @@ class TestUserAuthentication:
         mock_db.get_session.return_value = mock_session
 
         mock_user = Mock()
-        mock_user.hashed_password = hash_password("correct_password"  # pragma: allowlist secret)
+        mock_user.hashed_password = hash_password(
+            "correct_password"
+        )  # pragma: allowlist secret
         mock_user.is_verified = False  # Unverified user
 
         mock_session.query().filter().first.return_value = mock_user

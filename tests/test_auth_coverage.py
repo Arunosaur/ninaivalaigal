@@ -130,7 +130,7 @@ class TestUserAuthentication:
     def test_authenticate_user_with_valid_credentials(self, mock_get_user):
         """Test user authentication with valid credentials."""
         # Mock user data
-        hashed_password = hash_password("correct_password"  # pragma: allowlist secret)
+        hashed_password = hash_password("correct_password")  # pragma: allowlist secret
         mock_user = {
             "id": "123",
             "email": "test@example.com",
@@ -157,7 +157,7 @@ class TestUserAuthentication:
     @patch("server.auth.get_user_by_email")
     def test_authenticate_user_with_wrong_password(self, mock_get_user):
         """Test user authentication with wrong password."""
-        hashed_password = hash_password("correct_password"  # pragma: allowlist secret)
+        hashed_password = hash_password("correct_password")  # pragma: allowlist secret
         mock_user = {
             "id": "123",
             "email": "test@example.com",
@@ -173,7 +173,7 @@ class TestUserAuthentication:
     @patch("server.auth.get_user_by_email")
     def test_authenticate_user_with_inactive_user(self, mock_get_user):
         """Test user authentication with inactive user."""
-        hashed_password = hash_password("correct_password"  # pragma: allowlist secret)
+        hashed_password = hash_password("correct_password")  # pragma: allowlist secret
         mock_user = {
             "id": "123",
             "email": "test@example.com",
