@@ -49,10 +49,6 @@ log_success() {
     echo -e "${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')]${NC} ✅ $*"
 }
 
-log_warning() {
-    echo -e "${YELLOW}[$(date '+%Y-%m-%d %H:%M:%S')]${NC} ⚠️  $*"
-}
-
 log_error() {
     echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')]${NC} ❌ $*"
 }
@@ -65,18 +61,6 @@ check_container_cli() {
         exit 1
     fi
     log_success "Container CLI available"
-}
-
-# Check if port is available
-check_port_available() {
-    local port=$1
-    local service=$2
-
-    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
-        log_warning "Port $port already in use (expected for $service)"
-        return 1
-    fi
-    return 0
 }
 
 # Wait for container to be healthy
@@ -168,16 +152,14 @@ start_database() {
         log_info "Auto-restart requested (requires external watchdog)"
     fi
 
-    container run -d --name "$DB_CONTAINER" \
+    if ! container run -d --name "$DB_CONTAINER" \
         -p "$DB_PORT:5432" \
         -e POSTGRES_DB="$DB_NAME" \
         -e POSTGRES_USER="$DB_USER" \
         -e POSTGRES_PASSWORD="$DB_PASSWORD" \
         -e PGDATA="/var/lib/postgresql/data/pgdata" \
         -v "ninaivalaigal_${ENV}_db_data:/var/lib/postgresql/data" \
-        nina-intelligence-db:arm64
-
-    if [ $? -ne 0 ]; then
+        nina-intelligence-db:arm64; then
         log_error "Failed to start $DB_CONTAINER"
         return 1
     fi
@@ -209,15 +191,13 @@ start_redis() {
     # Note: Apple Container CLI doesn't support --restart flag
     # Auto-restart must be configured externally (launchd, systemd, etc.)
 
-    container run -d --name "$REDIS_CONTAINER" \
+    if ! container run -d --name "$REDIS_CONTAINER" \
         -p "$REDIS_PORT:6379" \
         -v "ninaivalaigal_${ENV}_redis_data:/data" \
         redis:7-alpine redis-server \
             --requirepass "$REDIS_PASSWORD" \
             --maxmemory 512mb \
-            --maxmemory-policy allkeys-lru
-
-    if [ $? -ne 0 ]; then
+            --maxmemory-policy allkeys-lru; then
         log_error "Failed to start $REDIS_CONTAINER"
         return 1
     fi

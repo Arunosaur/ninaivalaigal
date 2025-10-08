@@ -133,7 +133,7 @@ prompt_for_config() {
     echo ""
 
     if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
-        read -p "Enter Slack Webhook URL (or press Enter to skip): " SLACK_WEBHOOK_URL
+        read -rp "Enter Slack Webhook URL (or press Enter to skip): " SLACK_WEBHOOK_URL
     fi
 
     # HealthChecks.io configuration
@@ -146,7 +146,7 @@ prompt_for_config() {
     echo ""
 
     if [ -z "${HEALTHCHECK_UUID:-}" ]; then
-        read -p "Enter HealthChecks.io UUID (or press Enter to skip): " HEALTHCHECK_UUID
+        read -rp "Enter HealthChecks.io UUID (or press Enter to skip): " HEALTHCHECK_UUID
     fi
 }
 

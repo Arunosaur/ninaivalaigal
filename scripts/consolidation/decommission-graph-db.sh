@@ -58,24 +58,24 @@ confirm_decommission() {
     warning "Ensure migration to nv-db is complete and verified!"
     log ""
 
-    read -p "Have you successfully migrated all graph data to nv-db? (yes/no): " migration_confirmed
+    read -rp "Have you successfully migrated all graph data to nv-db? (yes/no): " migration_confirmed
     if [[ "$migration_confirmed" != "yes" ]]; then
         error "Migration not confirmed. Aborting decommission."
     fi
 
-    read -p "Have you tested the consolidated database functionality? (yes/no): " testing_confirmed
+    read -rp "Have you tested the consolidated database functionality? (yes/no): " testing_confirmed
     if [[ "$testing_confirmed" != "yes" ]]; then
         error "Testing not confirmed. Aborting decommission."
     fi
 
-    read -p "Do you have recent backups of the graph database? (yes/no): " backup_confirmed
+    read -rp "Do you have recent backups of the graph database? (yes/no): " backup_confirmed
     if [[ "$backup_confirmed" != "yes" ]]; then
         error "Backups not confirmed. Aborting decommission."
     fi
 
     log ""
     log "Type 'DECOMMISSION' to proceed with permanent removal:"
-    read -p "> " final_confirmation
+    read -rp "> " final_confirmation
     if [[ "$final_confirmation" != "DECOMMISSION" ]]; then
         error "Final confirmation not provided. Aborting decommission."
     fi

@@ -67,7 +67,7 @@ main() {
 
     # Step 5: Decommission old infrastructure
     log "Step 5: Decommissioning separate graph database..."
-    read -p "Proceed with decommissioning separate graph database? (y/N): " confirm
+    read -rp "Proceed with decommissioning separate graph database? (y/N): " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
         "${SCRIPT_DIR}/decommission-graph-db.sh"
         success "Decommission completed"

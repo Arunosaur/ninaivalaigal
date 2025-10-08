@@ -7,6 +7,7 @@ SPEC_NAME="${2:-}"
 
 # Source system detection
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/system-detect.sh
 source "${SCRIPT_DIR}/system-detect.sh"
 
 log(){ printf "\033[1;36m[spec-new]\033[0m %s\n" "$*"; }
@@ -39,7 +40,7 @@ main(){
   if [[ "${SYSTEM_IS_DEPLOYMENT:-false}" == "false" ]] && [[ $(uname -m) == "arm64" ]] && [[ $(sysctl -n hw.memsize 2>/dev/null || echo 0) -gt 100000000000 ]]; then
     warn "You're on Mac Studio - consider authoring SPECs on laptop for faster iteration"
     warn "Studio is optimized for: make stack-up && make spec-test"
-    read -p "Continue anyway? (y/N) " -n 1 -r
+    read -rp "Continue anyway? (y/N) " -n 1 -r
     echo
     [[ $REPLY =~ ^[Yy]$ ]] || exit 0
   elif [[ "${SYSTEM_IS_DEPLOYMENT:-false}" == "true" ]]; then

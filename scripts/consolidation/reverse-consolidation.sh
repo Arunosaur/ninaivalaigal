@@ -83,7 +83,8 @@ create_relational_tables_in_graph_db() {
     log "Creating relational tables in graph database..."
 
     # Extract table creation statements from backup
-    local backup_file=$(ls -t "${BACKUP_DIR}"/nv-db-relational-backup-*.sql | head -1)
+    local backup_file
+    backup_file=$(find "${BACKUP_DIR}" -name 'nv-db-relational-backup-*.sql' -type f -print0 | xargs -0 ls -t | head -1)
 
     if [[ ! -f "$backup_file" ]]; then
         error "No backup file found"
@@ -233,7 +234,7 @@ main() {
     test_consolidated_setup
 
     # Stop old database
-    read -p "Stop old nv-db container? (y/N): " confirm
+    read -rp "Stop old nv-db container? (y/N): " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
         stop_old_nv_db
     fi
