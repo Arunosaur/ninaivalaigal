@@ -11,7 +11,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
-from mcp_server import context_start, recall, remember
+from mcp_server import context_start, recall, remember  # noqa: E402
 
 
 async def test_memory_recording():

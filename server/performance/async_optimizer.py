@@ -290,12 +290,12 @@ class AsyncOperationOptimizer:
         # Wrap operation with rate limiting if specified
         if rate_limiter:
             params = rate_limit_params or {}
-            
+
             async def rate_limited_op():
                 return await self.rate_limited_operation(
                     rate_limiter, operation, **params
                 )
-            
+
             operation = rate_limited_op
 
         # Wrap with caching if specified

@@ -64,7 +64,6 @@ class ConfigError(Exception):
     """Configuration validation error."""
 
 
-
 def validate_or_raise(cfg: SecurityConfig) -> None:
     """
     Validate security configuration and raise ConfigError for unsafe prod configs.

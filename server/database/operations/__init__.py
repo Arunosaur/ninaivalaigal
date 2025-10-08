@@ -28,7 +28,6 @@ class DatabaseOperations(
     """
 
 
-
 __all__ = [
     "DatabaseOperations",
     "DatabaseUtilities",

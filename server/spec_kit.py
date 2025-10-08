@@ -117,25 +117,20 @@ class ContextValidationError(Exception):
     """Context validation error"""
 
 
-
 class ContextPermissionError(Exception):
     """Context permission error"""
-
 
 
 class OwnershipError(Exception):
     """Ownership management error"""
 
 
-
 class TeamManagementError(Exception):
     """Team management error"""
 
 
-
 class OrganizationManagementError(Exception):
     """Organization management error"""
-
 
 
 class ContextInterface(ABC):

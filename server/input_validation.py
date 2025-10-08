@@ -16,7 +16,6 @@ class InputValidationError(Exception):
     """Custom exception for input validation errors"""
 
 
-
 class InputValidator:
     """Comprehensive input validation and sanitization"""
 

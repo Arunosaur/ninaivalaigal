@@ -10,8 +10,8 @@ import sys
 # Add server to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database.manager import DatabaseManager
-from database.models import Base
+from database.manager import DatabaseManager  # noqa: E402
+from database.models import Base  # noqa: E402
 
 
 def main():
@@ -40,7 +40,7 @@ def main():
 
     except Exception as e:
         print(f"❌ Failed to initialize database: {e}")
-        import traceback
+        import traceback  # noqa: E402
 
         traceback.print_exc()
         return 1

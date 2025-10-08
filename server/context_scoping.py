@@ -431,7 +431,9 @@ async def get_team_context_graph(
         # Add memories if requested
         if include_memories:
             context_links = [
-                link for link in MEMORY_CONTEXT_LINKS_DB if link["context_id"] == context["id"]
+                link
+                for link in MEMORY_CONTEXT_LINKS_DB
+                if link["context_id"] == context["id"]
             ]
 
             for link in context_links:

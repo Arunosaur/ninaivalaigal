@@ -70,12 +70,9 @@ class MemoryProviderError(Exception):
     """Base exception for memory provider errors"""
 
 
-
 class MemoryNotFoundError(MemoryProviderError):
     """Raised when a memory item is not found"""
 
 
-
 class MemoryProviderConnectionError(MemoryProviderError):
     """Raised when connection to provider fails"""
-

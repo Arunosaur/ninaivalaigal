@@ -1,4 +1,3 @@
-
 """
 SPEC-061: Property Graph Intelligence Framework
 

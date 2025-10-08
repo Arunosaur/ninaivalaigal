@@ -80,8 +80,8 @@ class MemoryAccessTool:
             # Cache the result
             if self.redis_client and memories:
                 await self.redis_client.setex(
-                    cache_key, 300, memories  # 5-minute cache
-                )
+                    cache_key, 300, memories
+                )  # 5-minute cache
 
             self.metrics["memories_retrieved"] += len(memories)
             self._update_query_metrics(time.time() - start_time, False)

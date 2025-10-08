@@ -259,9 +259,8 @@ def create_emergency_auth_bypass(app):
         password = data.get("password", "")  # pragma: allowlist secret
 
         if (
-            email == "test@ninaivalaigal.com"
-            and password == "test"  # pragma: allowlist secret
-        ):
+            email == "test@ninaivalaigal.com" and password == "test"
+        ):  # pragma: allowlist secret
             return {
                 "success": True,
                 "message": "Emergency login successful!",

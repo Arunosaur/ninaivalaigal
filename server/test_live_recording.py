@@ -11,7 +11,12 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
-from mcp_server import auto_record_tool_usage, context_start, recall, remember
+from mcp_server import (  # noqa: E402
+    auto_record_tool_usage,
+    context_start,
+    recall,
+    remember,
+)
 
 
 async def test_live_recording():

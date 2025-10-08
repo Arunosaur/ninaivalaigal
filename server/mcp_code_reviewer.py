@@ -18,7 +18,7 @@ from typing import Any
 # Add the server directory to the path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from mcp_server import Server
+from mcp_server import Server  # noqa: E402
 
 
 @dataclass

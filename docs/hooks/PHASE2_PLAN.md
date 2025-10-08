@@ -1,7 +1,7 @@
 # Phase 2 Pre-Commit Hook Restoration - Plan
 
-**Date:** October 8, 2025  
-**Status:** In Progress  
+**Date:** October 8, 2025
+**Status:** In Progress
 **Goal:** Fix all non-critical flake8 warnings in server/
 
 ---
@@ -157,7 +157,7 @@
 # Check Wave 1 progress
 flake8 server/ --select=F401,E712,F541,E741,E731 --exclude="*_backup.py"
 
-# Check Wave 2 progress  
+# Check Wave 2 progress
 flake8 server/ --select=E402 --exclude="*_backup.py"
 
 # Check Wave 3 progress

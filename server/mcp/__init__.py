@@ -7,7 +7,6 @@ This addresses external code review feedback:
 - Improve code organization and maintainability
 """
 
-
 # Import all components for backward compatibility
 from .server import get_user_from_jwt, mcp
 

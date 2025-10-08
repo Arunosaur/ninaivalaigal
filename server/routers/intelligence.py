@@ -36,8 +36,8 @@ federation_engine = MemoryFederationEngine(
 ml_engine = GraphMLEngine(config={"model_cache_size": 100, "prediction_threshold": 0.7})
 
 analytics_engine = GraphAnalyticsEngine(
-    config={"cache_ttl": 300, "max_trends": 50}  # 5 minutes
-)
+    config={"cache_ttl": 300, "max_trends": 50}
+)  # 5 minutes
 
 
 @router.post("/federation/federate", response_model=FederationResult)

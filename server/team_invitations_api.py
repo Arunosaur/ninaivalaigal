@@ -356,18 +356,33 @@ async def send_invitation_email(invitation: TeamInvitationResponse, token: str):
                     <p style="color: #4a5568; margin: 10px 0 0 0;"><strong>Role:</strong> {invitation.role.title()}</p>
                 </div>
 
-                {f'<div style="background: #edf2f7; padding: 15px; border-radius: 8px; margin: 20px 0;"><p style="color: #4a5568; margin: 0; font-style: italic;">"{invitation.message}"</p></div>' if invitation.message else ''}
+                {
+                    (
+                        f'<div style="background: #edf2f7; padding: 15px; '
+                        f'border-radius: 8px; margin: 20px 0;">'
+                        f'<p style="color: #4a5568; margin: 0; font-style: italic;">'
+                        f'"{invitation.message}"</p></div>'
+                    )
+                    if invitation.message
+                    else ""
+                }
 
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="{invitation.invitation_link}"
-                       style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                       style="background: #667eea; color: white; padding: 15px 30px;
+                       text-decoration: none; border-radius: 8px; font-weight: bold;
+                       display: inline-block;">
                         Accept Invitation
                     </a>
                 </div>
 
                 <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px;">
                     <p style="color: #718096; font-size: 14px; margin: 0;">
-                        This invitation will expire on {invitation.expires_at.strftime('%B %d, %Y') if invitation.expires_at else 'Never'}.
+                        This invitation will expire on {
+                            invitation.expires_at.strftime('%B %d, %Y')
+                            if invitation.expires_at
+                            else 'Never'
+                        }.
                     </p>
                     <p style="color: #718096; font-size: 14px; margin: 10px 0 0 0;">
                         If you didn't expect this invitation, you can safely ignore this email.

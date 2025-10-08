@@ -45,7 +45,6 @@ class AccessDeniedError(Exception):
     """Raised when access is denied by RBAC."""
 
 
-
 class RBACEnforcer:
     """RBAC enforcement engine with audit logging."""
 

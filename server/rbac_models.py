@@ -145,8 +145,8 @@ class AccessRequest(Base):
 
 
 # Import User model and add RBAC relationships
-from database import User
-from sqlalchemy.orm import relationship
+from database import User  # noqa: E402
+from sqlalchemy.orm import relationship  # noqa: E402
 
 # Add RBAC relationships to User model
 User.role_assignments = relationship(

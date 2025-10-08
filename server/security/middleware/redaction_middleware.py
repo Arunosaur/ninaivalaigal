@@ -17,7 +17,7 @@ from rbac_middleware import RBACContext  # noqa: E402
 from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 
 from ..redaction import RedactionEngine  # noqa: E402
-from ..redaction import ContextSensitivity, redaction_audit_logger
+from ..redaction import ContextSensitivity, redaction_audit_logger  # noqa: E402
 
 
 class RedactionMiddleware(BaseHTTPMiddleware):

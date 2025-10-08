@@ -139,7 +139,7 @@ def looks_binary(payload: bytes, *, printable_threshold: float = 0.30) -> bool:
 
 
 # Import hardened implementation functions
-from server.security.multipart.strict_limits_hardened import (
+from server.security.multipart.strict_limits_hardened import (  # noqa: E402
     DEFAULT_MAX_BINARY_PART_BYTES,
     DEFAULT_MAX_PARTS_PER_REQUEST,
     DEFAULT_MAX_TEXT_PART_BYTES,

@@ -12,13 +12,12 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import Column, DateTime
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from database import Base, DatabaseManager
+from database import Base, DatabaseManager  # noqa: E402 (after sys.path modification)
 
 
 class ApprovalStatus(Enum):

@@ -9,8 +9,8 @@ import threading
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any
+from enum import Enum  # noqa: E402
+from typing import Any  # noqa: E402
 
 
 class MetricType(Enum):
@@ -515,7 +515,7 @@ class MetricsMiddleware:
 # Metrics export endpoint
 async def metrics_endpoint():
     """FastAPI endpoint to export Prometheus metrics."""
-    from starlette.responses import PlainTextResponse
+    from starlette.responses import PlainTextResponse  # noqa: E402
 
     metrics_text = get_prometheus_metrics()
     return PlainTextResponse(
@@ -525,12 +525,12 @@ async def metrics_endpoint():
 
 
 # Background metrics reporter
-import asyncio
+import asyncio  # noqa: E402
 
 
 async def metrics_reporter(interval: int = 60):
     """Background task to report metrics periodically."""
-    import logging
+    import logging  # noqa: E402
 
     logger = logging.getLogger("metrics.reporter")
 
@@ -564,7 +564,7 @@ async def metrics_reporter(interval: int = 60):
 # Test utilities
 def generate_test_metrics():
     """Generate test metrics for dashboard validation."""
-    import random
+    import random  # noqa: E402
 
     # Simulate various security events
     for _ in range(100):

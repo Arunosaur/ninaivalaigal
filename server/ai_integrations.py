@@ -17,9 +17,9 @@ import aiohttp
 
 # Import existing mem0 components
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from database import DatabaseManager
-from main import load_config
-from performance_monitor import record_memory_operation, record_request
+from database import DatabaseManager  # noqa: E402
+from main import load_config  # noqa: E402
+from performance_monitor import record_memory_operation, record_request  # noqa: E402
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -15,7 +15,6 @@ class JWTValidationError(Exception):
     """Strict JWT validation error with detailed context."""
 
 
-
 @dataclass
 class StrictJWTConfig:
     """Configuration for strict JWT verification."""

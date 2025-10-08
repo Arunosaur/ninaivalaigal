@@ -10,11 +10,11 @@ Based on the code review recommendations for merging hardened multipart validati
 import logging
 from collections.abc import Callable
 
-from fastapi import HTTPException
-from starlette.datastructures import UploadFile
-from starlette.requests import Request
+from fastapi import HTTPException  # noqa: E402
+from starlette.datastructures import UploadFile  # noqa: E402
+from starlette.requests import Request  # noqa: E402
 
-from server.security.multipart.strict_limits_hardened import (
+from server.security.multipart.strict_limits_hardened import (  # noqa: E402
     HardenedPartLimitConfig,
     enforce_max_parts_per_request,
     enforce_part_limits_stream,
@@ -158,10 +158,10 @@ async def scan_with_starlette(
 
 
 # Import helper functions from hardened implementation
-from server.security.multipart.strict_limits_hardened import (
+from server.security.multipart.strict_limits_hardened import (  # noqa: E402
     _looks_binary_enhanced as looks_binary,
 )
-from server.security.multipart.strict_limits_hardened import (
+from server.security.multipart.strict_limits_hardened import (  # noqa: E402
     disallow_archives_for_text,
     reject_content_transfer_encoding,
     require_utf8_text,

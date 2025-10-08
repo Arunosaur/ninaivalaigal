@@ -153,7 +153,11 @@ class MacroIntelligenceEngine:
                         id=str(uuid4()),
                         type="insight",
                         title="Peak Productivity Hours Identified",
-                        description=f"Your memory activity peaks during afternoon hours ({pattern.time_distribution['afternoon']}% of activity). Consider scheduling important tasks during this time.",
+                        description=(
+                            f"Your memory activity peaks during afternoon hours "
+                            f"({pattern.time_distribution['afternoon']}% of activity). "
+                            f"Consider scheduling important tasks during this time."
+                        ),
                         confidence_score=pattern.confidence,
                         impact_level="high",
                         category="productivity",
@@ -182,7 +186,10 @@ class MacroIntelligenceEngine:
                         id=str(uuid4()),
                         type="pattern",
                         title="Context Clustering Detected",
-                        description=f"Strong correlation between {', '.join(pattern.contexts)} contexts suggests workflow optimization opportunities.",
+                        description=(
+                            f"Strong correlation between {', '.join(pattern.contexts)} "
+                            f"contexts suggests workflow optimization opportunities."
+                        ),
                         confidence_score=pattern.confidence,
                         impact_level="medium",
                         category="efficiency",
@@ -208,7 +215,10 @@ class MacroIntelligenceEngine:
                         id=str(uuid4()),
                         type="recommendation",
                         title="Learning Opportunities Identified",
-                        description="Consistent gaps in documentation and learning contexts suggest structured learning could improve productivity.",
+                        description=(
+                            "Consistent gaps in documentation and learning contexts "
+                            "suggest structured learning could improve productivity."
+                        ),
                         confidence_score=pattern.confidence,
                         impact_level="high",
                         category="learning",

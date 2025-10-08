@@ -263,11 +263,11 @@ class RBACEnhancedAuthMiddleware(EnhancedJSONAuthMiddleware):
             "/approval-workflows/approve": {"POST": ["team_admin", "org_admin"]},
             # Discussion rules
             "/comments/add": {
-                "GET": ["user", "team_admin", "org_admin"]  # GET-based for now
-            },
+                "GET": ["user", "team_admin", "org_admin"]
+            },  # GET-based for now
             "/comments/delete": {
-                "GET": ["author", "team_admin", "org_admin"]  # GET-based for now
-            },
+                "GET": ["author", "team_admin", "org_admin"]
+            },  # GET-based for now
             # Team management rules
             "/teams-working/teams": {
                 "POST": ["org_admin"],
