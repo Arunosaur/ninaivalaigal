@@ -5,7 +5,7 @@ The heart of Ninaivalaigal - user and team memory management
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from auth_utils import get_current_user
 from fastapi import APIRouter, Depends, HTTPException

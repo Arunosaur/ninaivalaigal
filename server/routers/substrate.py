@@ -4,13 +4,12 @@ FastAPI router for memory substrate management and monitoring
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..auth_utils import get_current_user
-from ..memory.interfaces import MemoryItem
 from ..memory.substrate_manager import (
     MemorySubstrateManager,
     ProviderStatus,
