@@ -155,10 +155,22 @@
 - **Flake8:** PASSING (auth protection utility)
 - **Status:** Ready to remove from exclusions
 
+#### server/context_merger.py ✅
+- **Flake8:** PASSING (context merger utility)
+- **Status:** Ready to remove from exclusions
+
+#### server/openapi_filter.py ✅
+- **Flake8:** PASSING (OpenAPI filter config)
+- **Status:** Ready to remove from exclusions
+
+#### server/protected_routes.py ✅
+- **Flake8:** PASSING (protected routes utility)
+- **Status:** Ready to remove from exclusions
+
 ---
 
 ### Current Status:
-- **Total Graduated:** 20 files 🎉🎯
+- **Total Graduated:** 23 files 🎉🚀
 - **Modules with 100% Compliance:** 4 (observability, memory, config, models)
 - **Modules with Partial Compliance:** 4 (database, routers, middleware, server core)
 - **Files Fixed:** 2 (health.py, config.py)
