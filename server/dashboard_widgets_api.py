@@ -511,7 +511,7 @@ async def dashboard_update_task():
     while True:
         try:
             # Update widgets for all connected users
-            for user_id, websocket in manager.active_connections.items():
+            for user_id, _websocket in manager.active_connections.items():
                 user_widgets = manager.user_widgets.get(user_id, [])
 
                 for widget_id in user_widgets:
