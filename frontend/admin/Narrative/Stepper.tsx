@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import React, { useState, useCallback } from 'react';
+
 import { cn } from '../../utils/cn';
 
 // Stepper variants using class-variance-authority for narrative UI

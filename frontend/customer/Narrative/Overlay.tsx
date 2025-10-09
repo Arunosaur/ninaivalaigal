@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+
 import { cn } from '../../utils/cn';
 
 // Overlay variants using class-variance-authority

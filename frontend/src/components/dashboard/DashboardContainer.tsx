@@ -1,11 +1,13 @@
+import { Bell, RefreshCw, Settings, Maximize2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { TopMemoryCard } from './TopMemoryCard';
-import { SentimentTrendGraph } from './SentimentTrendGraph';
+
 import { AIInsightPanel } from './AIInsightPanel';
+import { SentimentTrendGraph } from './SentimentTrendGraph';
 import { SmartNotificationDrawer } from './SmartNotificationDrawer';
+import { TopMemoryCard } from './TopMemoryCard';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Bell, RefreshCw, Settings, Maximize2 } from 'lucide-react';
 
 interface DashboardContainerProps {
   userRole: 'user' | 'team_admin' | 'org_admin';

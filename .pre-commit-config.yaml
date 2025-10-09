@@ -24,6 +24,8 @@ repos:
       - id: check-yaml
         args: ['--allow-multiple-documents']
       - id: check-added-large-files
+        args: ['--maxkb=5000']
+        exclude: 'package-lock\.json$'
       - id: check-json
       - id: check-merge-conflict
       - id: check-toml
