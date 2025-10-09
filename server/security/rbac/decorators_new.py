@@ -16,6 +16,7 @@ _resolver: JWTClaimsResolver | None = None
 
 
 def set_jwt_resolver(resolver: JWTClaimsResolver) -> None:
+    """Configure global JWT resolver for RBAC decorators."""
     global _resolver
     _resolver = resolver
 
@@ -43,6 +44,7 @@ def _forbid(detail="Permission denied"):
 
 
 def require_permission(*required: str):
+    """Decorator to enforce permission requirements on FastAPI endpoints."""
     required_set = set(required)
 
     def decorator(func: Callable):

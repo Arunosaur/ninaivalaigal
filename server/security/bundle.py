@@ -31,6 +31,7 @@ try:
 except ImportError:
     # Fallback for development
     def default_subject_ctx(token: str) -> dict:
+        """Fallback subject context for development when RBAC module unavailable."""
         return {"user_id": "default_user", "role": "user"}
 
 
