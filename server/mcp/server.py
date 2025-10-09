@@ -38,6 +38,7 @@ except ImportError:
 
         def tool(self):
             """Tool method."""
+
             def decorator(func):
                 self.tools[func.__name__] = func
                 return func
@@ -46,6 +47,7 @@ except ImportError:
 
         def resource(self, uri):
             """Resource method."""
+
             def decorator(func):
                 self.resources[uri] = func
                 return func
@@ -54,6 +56,7 @@ except ImportError:
 
         def prompt(self):
             """Prompt method."""
+
             def decorator(func):
                 self.prompts[func.__name__] = func
                 return func

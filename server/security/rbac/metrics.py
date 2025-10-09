@@ -1,4 +1,5 @@
 """metrics module."""
+
 from __future__ import annotations
 
 try:

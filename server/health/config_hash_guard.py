@@ -1,4 +1,5 @@
 """config hash guard module."""
+
 import hashlib
 import json
 import os

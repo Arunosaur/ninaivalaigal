@@ -468,7 +468,7 @@ class MetricsMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        """  call   method."""
+        """call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return

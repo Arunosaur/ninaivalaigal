@@ -1,4 +1,5 @@
 """models module."""
+
 from pydantic import BaseModel
 
 

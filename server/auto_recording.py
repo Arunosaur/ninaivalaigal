@@ -1,4 +1,5 @@
 """auto recording module."""
+
 # auto_recording.py - Automatic CCTV-style recording for mem0
 # Records AI interactions automatically without manual 'remember' commands
 

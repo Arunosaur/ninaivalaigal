@@ -1,4 +1,5 @@
 """metrics red module."""
+
 from prometheus_client import Counter, Histogram
 
 # RED metrics (Requests, Errors, Duration)

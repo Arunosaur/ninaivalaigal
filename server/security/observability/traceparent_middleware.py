@@ -1,4 +1,5 @@
 """traceparent middleware module."""
+
 import uuid
 
 from starlette.middleware.base import BaseHTTPMiddleware

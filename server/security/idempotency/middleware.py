@@ -65,7 +65,7 @@ class IdempotencyMiddleware:
         self.methods = methods or {"POST", "PUT", "PATCH", "DELETE"}
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        """  call   method."""
+        """call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return

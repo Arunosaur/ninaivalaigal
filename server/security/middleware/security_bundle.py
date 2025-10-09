@@ -98,7 +98,7 @@ class SecurityBundleMiddleware:
         self.reject_disallowed = reject_disallowed
 
     async def __call__(self, scope, receive, send):
-        """  call   method."""
+        """call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return
@@ -201,13 +201,13 @@ class SecurityBundleMiddleware:
         await self.app(scope, redacting_receive, redacting_send)
 
     def _is_allowed_type(self, content_type: str) -> bool:
-        """ is allowed type method."""
+        """is allowed type method."""
         if not content_type:
             return True
         return any(content_type.startswith(prefix) for prefix in self.allowed_types)
 
     async def _send_error(self, send, status: int, message: str):
-        """ send error method."""
+        """send error method."""
         await send(
             {
                 "type": "http.response.start",

@@ -1,4 +1,5 @@
 """semantic module."""
+
 import os
 
 from fastapi import APIRouter

@@ -1,10 +1,10 @@
-# SPEC-037: Terminal/CLI Auto Context Capture
+# SPEC-097: Feedback Loop for AI Context
 
 ## Status
 - 📋 **PLANNED**
 
 ## Summary
-- Terminal/CLI Auto Context Capture for Ninaivalaigal platform.
+- Feedback Loop for AI Context for Ninaivalaigal platform.
 
 ## Objectives
 - Define behavior, interfaces, and integration points.

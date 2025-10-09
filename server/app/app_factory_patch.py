@@ -1,4 +1,5 @@
 """app factory patch module."""
+
 from typing import Any
 
 from fastapi import APIRouter, Depends, FastAPI

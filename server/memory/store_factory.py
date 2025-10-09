@@ -1,4 +1,5 @@
 """store factory module."""
+
 import os
 
 

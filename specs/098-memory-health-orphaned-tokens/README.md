@@ -1,4 +1,4 @@
-# SPEC-042: Memory Health & Orphaned Token Report
+# SPEC-098: Memory Health & Orphaned Token Report
 
 ## Status
 - 📋 **PLANNED**

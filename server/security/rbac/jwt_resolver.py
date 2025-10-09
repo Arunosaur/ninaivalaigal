@@ -89,7 +89,7 @@ class JWTClaimsResolver:
         self.max_token_lifetime_s = max_token_lifetime_s  # e.g., 3600 for 1h
 
     def _header(self, token: str) -> dict[str, object]:
-        """ header method."""
+        """header method."""
         try:
             seg = token.split(".")[0]
             pad = "=" * (-len(seg) % 4)

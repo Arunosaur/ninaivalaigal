@@ -1,4 +1,5 @@
 """conftest module."""
+
 import pytest
 from fastapi.testclient import TestClient
 
