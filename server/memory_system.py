@@ -23,6 +23,7 @@ class Memory:
         content: str,
         created_at: str,
     ):
+        """Initialize memory instance."""
         self.id = id
         self.user_id = user_id
         self.team_id = team_id

@@ -22,6 +22,7 @@ class EnhancedJSONAuthMiddleware(BaseHTTPMiddleware):
     """
 
     def __init__(self, app, exclude_paths: Optional[list] = None):
+        """Initialize enhanced auth middleware."""
         super().__init__(app)
         self.exclude_paths = exclude_paths or [
             "/",
@@ -246,6 +247,7 @@ class RBACEnhancedAuthMiddleware(EnhancedJSONAuthMiddleware):
         exclude_paths: Optional[list] = None,
         rbac_rules: Optional[Dict] = None,
     ):
+        """Initialize RBAC middleware with rules."""
         super().__init__(app, exclude_paths)
         self.rbac_rules = rbac_rules or self._get_default_rbac_rules()
 

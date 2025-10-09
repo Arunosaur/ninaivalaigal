@@ -33,6 +33,7 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
         default_ttl: int = 300,  # 5 minutes default
         cache_prefix: str = "response_cache",
     ):
+        """Initialize response cache middleware."""
         super().__init__(app)
         self.redis = redis_client
         self.default_ttl = default_ttl
@@ -226,6 +227,7 @@ class CacheManager:
     """Utility class for manual cache management."""
 
     def __init__(self, redis_client, cache_prefix: str = "response_cache"):
+        """Initialize cache manager."""
         self.redis = redis_client
         self.cache_prefix = cache_prefix
 
