@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Frontend Pre-commit Hook - Quality Enforcement
+# Part of SPEC-096: Frontend Quality Enforcement & CI/CD
+
+echo "🔍 Running pre-commit quality checks..."
+
+# Run lint-staged (ESLint + Prettier on staged files)
+npx lint-staged
+
+# Type check
+echo "📝 Type checking..."
+npm run type-check
+
+echo "✅ Pre-commit checks passed!"

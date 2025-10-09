@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Frontend Pre-push Hook - Test Validation
+# Part of SPEC-096: Frontend Quality Enforcement & CI/CD
+
+echo "🧪 Running pre-push test validation..."
+
+# Run tests on changed files
+npm run test -- --bail --findRelatedTests --passWithNoTests
+
+echo "✅ Pre-push tests passed!"

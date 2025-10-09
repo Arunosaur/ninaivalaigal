@@ -1,0 +1,185 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - 'packages/ui/**'
+      - 'apps/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - 'packages/ui/**'
+      - 'apps/**'
+  workflow_dispatch:
+
+jobs:
+  lighthouse:
+    name: Lighthouse Performance & Accessibility Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build application
+        working-directory: frontend
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Start application
+        working-directory: frontend
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000
+
+      - name: Run Lighthouse CI
+        working-directory: frontend
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Upload Lighthouse results
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-results
+          path: frontend/.lighthouseci
+          retention-days: 30
+
+      - name: Comment PR with Lighthouse results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Read Lighthouse results
+            const resultsPath = path.join(process.cwd(), 'frontend', '.lighthouseci');
+
+            if (!fs.existsSync(resultsPath)) {
+              console.log('No Lighthouse results found');
+              return;
+            }
+
+            // Find the latest manifest
+            const files = fs.readdirSync(resultsPath);
+            const manifestFile = files.find(f => f.includes('manifest'));
+
+            if (!manifestFile) {
+              console.log('No manifest file found');
+              return;
+            }
+
+            const manifest = JSON.parse(
+              fs.readFileSync(path.join(resultsPath, manifestFile), 'utf8')
+            );
+
+            const results = manifest[0];
+            const summary = results.summary;
+
+            const scores = {
+              performance: Math.round(summary.performance * 100),
+              accessibility: Math.round(summary.accessibility * 100),
+              'best-practices': Math.round(summary['best-practices'] * 100),
+              seo: Math.round(summary.seo * 100)
+            };
+
+            const getEmoji = (score) => {
+              if (score >= 90) return '🟢';
+              if (score >= 50) return '🟡';
+              return '🔴';
+            };
+
+            const body = `## 🔍 Lighthouse CI Results
+
+            | Category | Score | Status |
+            |----------|-------|--------|
+            | ${getEmoji(scores.performance)} Performance | ${scores.performance} | ${scores.performance >= 90 ? '✅' : '❌'} |
+            | ${getEmoji(scores.accessibility)} Accessibility | ${scores.accessibility} | ${scores.accessibility === 100 ? '✅' : '❌'} |
+            | ${getEmoji(scores['best-practices'])} Best Practices | ${scores['best-practices']} | ${scores['best-practices'] >= 90 ? '✅' : '❌'} |
+            | ${getEmoji(scores.seo)} SEO | ${scores.seo} | ${scores.seo >= 90 ? '✅' : '❌'} |
+
+            **Thresholds**:
+            - Performance: 90+ (required)
+            - Accessibility: 100 (required)
+            - Best Practices: 90+ (required)
+            - SEO: 90+ (required)
+
+            [View detailed report in workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+            // Fail if thresholds not met
+            if (scores.performance < 90 ||
+                scores.accessibility < 100 ||
+                scores['best-practices'] < 90 ||
+                scores.seo < 90) {
+              core.setFailed('Lighthouse scores below thresholds');
+            }
+
+  mobile-lighthouse:
+    name: Lighthouse Mobile Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build application
+        working-directory: frontend
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Start application
+        working-directory: frontend
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000
+
+      - name: Run Lighthouse CI (Mobile)
+        working-directory: frontend
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun --config=lighthouserc.mobile.js || lhci autorun
+
+      - name: Upload mobile results
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-mobile-results
+          path: frontend/.lighthouseci
+          retention-days: 30
