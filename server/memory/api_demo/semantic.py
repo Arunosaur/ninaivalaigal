@@ -34,6 +34,7 @@ class DemoSemanticQuery(BaseModel):
 
 
 def store() -> PostgresStore:
+    """Create and return PostgresStore instance from environment config."""
     return PostgresStore(
         PGConfig(dsn=os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"))
     )
@@ -41,6 +42,7 @@ def store() -> PostgresStore:
 
 @router.post("/write")
 async def demo_write(body: DemoWrite):
+    """Demo endpoint to write a memory record."""
     s = store()
     row = await s.write(body.dict())
     return {"id": row["id"], "kind": row["kind"], "text": row["text"]}
@@ -48,6 +50,7 @@ async def demo_write(body: DemoWrite):
 
 @router.post("/semantic_search")
 async def demo_semantic_search(q: DemoSemanticQuery):
+    """Demo endpoint for semantic search queries."""
     s = store()
     rows = await s.query(q.dict())
     return {"count": len(rows), "results": rows}

@@ -52,6 +52,7 @@ def _scrub(obj: Any) -> Any:
 
 
 def safe_log_dict(d: dict[str, Any]) -> dict[str, Any]:
+    """Scrub sensitive data from dictionary for safe logging."""
     try:
         return _scrub(dict(d))
     except Exception:

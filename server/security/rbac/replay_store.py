@@ -10,6 +10,7 @@ _seen = OrderedDict()
 
 
 def seen_before(jti: str) -> bool:
+    """Check if JWT token ID has been seen before to prevent replay attacks."""
     now = time.time()
     if jti in _seen and now - _seen[jti] < TTL:
         return True

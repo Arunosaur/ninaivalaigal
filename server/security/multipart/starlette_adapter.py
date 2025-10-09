@@ -51,6 +51,7 @@ async def scan_with_starlette(
     max_binary_part_bytes: int = DEFAULT_MAX_BINARY_PART_BYTES,
     max_parts_per_request: int = DEFAULT_MAX_PARTS_PER_REQUEST,
 ) -> None:
+    """Scan multipart request with Starlette parser and invoke handlers with size limits."""
     try:
         parser = MultiPartParser(headers=request.headers, stream=request.stream())
     except Exception as e:
