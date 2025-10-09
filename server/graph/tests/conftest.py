@@ -8,4 +8,5 @@ from server.main import app
 
 @pytest.fixture(scope="module")
 def client():
+    """Pytest fixture providing FastAPI test client."""
     return TestClient(app)

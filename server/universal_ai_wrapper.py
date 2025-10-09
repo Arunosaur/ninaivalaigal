@@ -554,6 +554,7 @@ async def enhance_ai_prompt(**kwargs) -> str:
 if __name__ == "__main__":
     # Test the universal wrapper
     async def test_wrapper():
+        """Test the universal AI wrapper with sample context."""
         context = AIContext(
             file_path="auth.ts",
             language="typescript",

@@ -306,6 +306,7 @@ async def quick_auth_test():
 if __name__ == "__main__":
     # Run health check
     async def main():
+        """Run authentication health check and print results."""
         checker = AuthHealthChecker()
         results = await checker.run_full_health_check()
 

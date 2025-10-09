@@ -367,6 +367,7 @@ async def enhance_copilot_with_mem0(request_data: dict[str, Any]) -> dict[str, A
 if __name__ == "__main__":
     # Test the wrapper
     async def test_wrapper():
+        """Test the Mem0 Copilot wrapper with sample context."""
         context = CopilotContext(
             file_path="test.ts",
             language="typescript",
