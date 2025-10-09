@@ -4,11 +4,10 @@ Comprehensive test coverage for server/memory_api.py
 Target: Increase from 0% to 80% coverage
 """
 import os
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
 
 # Set test environment
 os.environ.setdefault("NINAIVALAIGAL_JWT_SECRET", "test_secret_key_for_testing")
@@ -20,8 +19,6 @@ from server.memory_api import (
     create_memory,
     delete_memory,
     get_memory,
-    get_memory_attachments,
-    get_memory_context,
     list_memories,
     remove_memory_tag,
     search_memories,

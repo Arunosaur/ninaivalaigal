@@ -16,15 +16,18 @@ import pytest
 # Add the project root to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from server.graph.age_client import ApacheAGEClient
-from server.graph.graph_reasoner import create_graph_reasoner
-from server.graph.models.edge_models import create_created_edge, create_linked_to_edge
-from server.graph.models.node_models import (
+from server.graph.age_client import ApacheAGEClient  # noqa: E402
+from server.graph.graph_reasoner import create_graph_reasoner  # noqa: E402
+from server.graph.models.edge_models import (  # noqa: E402
+    create_created_edge,
+    create_linked_to_edge,
+)
+from server.graph.models.node_models import (  # noqa: E402
     MemoryType,
     create_memory_node,
     create_user_node,
 )
-from server.redis_client import RedisClient
+from server.redis_client import RedisClient  # noqa: E402
 
 
 @pytest.fixture

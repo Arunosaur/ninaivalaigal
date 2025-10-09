@@ -22,12 +22,16 @@ router = APIRouter(prefix="/graph", tags=["Graph Intelligence"])
 
 # Request/Response Models
 class ExplainContextRequest(BaseModel):
+    """ExplainContextRequest class."""
+
     memory_id: str = Field(..., description="Memory ID to explain")
     context_type: str = Field(default="retrieval", description="Type of context explanation")
     max_depth: int = Field(default=3, ge=1, le=10, description="Maximum graph traversal depth")
 
 
 class ExplainContextResponse(BaseModel):
+    """ExplainContextResponse class."""
+
     memory_id: str
     retrieval_reason: str
     paths: list[dict[str, Any]]
@@ -37,12 +41,16 @@ class ExplainContextResponse(BaseModel):
 
 
 class InferRelevanceRequest(BaseModel):
+    """InferRelevanceRequest class."""
+
     current_memory_id: str = Field(..., description="Current memory context")
     suggestion_count: int = Field(default=5, ge=1, le=20, description="Number of suggestions")
     context_memories: Optional[list[str]] = Field(default=None, description="Additional context memories")
 
 
 class InferRelevanceResponse(BaseModel):
+    """InferRelevanceResponse class."""
+
     suggested_memories: list[str]
     suggested_agents: list[str]
     reasoning_scores: dict[str, float]
@@ -51,6 +59,8 @@ class InferRelevanceResponse(BaseModel):
 
 
 class FeedbackLoopRequest(BaseModel):
+    """FeedbackLoopRequest class."""
+
     memory_id: str = Field(..., description="Memory being rated")
     feedback_type: str = Field(..., description="Type of feedback (relevance, accuracy, usefulness)")
     feedback_score: float = Field(..., ge=0.0, le=1.0, description="Feedback score (0.0 to 1.0)")
@@ -58,17 +68,23 @@ class FeedbackLoopRequest(BaseModel):
 
 
 class FeedbackLoopResponse(BaseModel):
+    """FeedbackLoopResponse class."""
+
     feedback_stored: bool
     weight_updates: dict[str, Any]
     cache_invalidated: bool
 
 
 class AnalyzeNetworkRequest(BaseModel):
+    """AnalyzeNetworkRequest class."""
+
     analysis_type: str = Field(default="comprehensive", description="Type of analysis")
     time_window: Optional[str] = Field(default=None, description="Time window for analysis")
 
 
 class AnalyzeNetworkResponse(BaseModel):
+    """AnalyzeNetworkResponse class."""
+
     structure: dict[str, Any]
     patterns: dict[str, Any]
     insights: list[str]

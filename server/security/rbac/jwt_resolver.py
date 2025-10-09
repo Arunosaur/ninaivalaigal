@@ -28,12 +28,14 @@ class Backoff:
         self.lock = threading.Lock()
 
     def sleep(self):
+        """Sleep method."""
         with self.lock:
             self.failures += 1
             delay = min(self.cap, self.base * (2 ** (self.failures - 1)))
         time.sleep(delay)
 
     def reset(self):
+        """Reset method."""
         with self.lock:
             self.failures = 0
 
@@ -45,10 +47,12 @@ class NegativeKidCache:
         self._lock = threading.Lock()
 
     def add(self, kid: str) -> None:
+        """Add method."""
         with self._lock:
             self._store[kid] = time.time() + self.ttl
 
     def contains(self, kid: str) -> bool:
+        """Contains method."""
         with self._lock:
             exp = self._store.get(kid)
             if not exp:
@@ -85,6 +89,7 @@ class JWTClaimsResolver:
         self.max_token_lifetime_s = max_token_lifetime_s  # e.g., 3600 for 1h
 
     def _header(self, token: str) -> dict[str, object]:
+        """ header method."""
         try:
             seg = token.split(".")[0]
             pad = "=" * (-len(seg) % 4)
@@ -93,6 +98,7 @@ class JWTClaimsResolver:
             return {}
 
     def resolve(self, token: str) -> SubjectContext:
+        """Resolve method."""
         with start_span("auth.validate_jwt") as span:
             if not token or not jwt:
                 if span:

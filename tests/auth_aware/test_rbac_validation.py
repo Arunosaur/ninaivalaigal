@@ -4,11 +4,11 @@ Role-based access control testing for enterprise security validation
 """
 
 import asyncio
-from typing import Dict, List
+from typing import List
 
 import pytest
 
-from .models import AuthTestResult, PermissionTestResult, UserRole
+from .models import AuthTestResult, UserRole
 from .rbac_engine import RBACTestEngine
 from .test_fixtures import AuthTestHelper
 
@@ -260,7 +260,7 @@ class TestRBACValidation:
         # Validate no permission bleeding between concurrent tests
         for i, result in enumerate(concurrent_results):
             if not isinstance(result, Exception):
-                user_role = all_role_users[i].role
+                all_role_users[i].role
 
                 # Validate results match expected role permissions
                 allowed_results = [r for r in result if r.expected_result == "allow"]

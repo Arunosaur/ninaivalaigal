@@ -69,9 +69,7 @@ class HTTPSafetySpec:
 
     @classmethod
     def validate_response(cls, response: Response, endpoint_path: str) -> Dict[str, Any]:
-        """
-        Validate a response against HTTP safety rules
-        """
+        """Validate a response against HTTP safety rules"""
         violations = []
 
         # Check Content-Length accuracy
@@ -112,9 +110,7 @@ class HTTPSafetySpec:
 
     @classmethod
     def create_safe_response(cls, content: Any, status_code: int = 200) -> JSONResponse:
-        """
-        Create a guaranteed safe HTTP response
-        """
+        """Create a guaranteed safe HTTP response"""
         try:
             # Ensure content is JSON serializable
             if hasattr(content, "__dict__"):
@@ -155,9 +151,7 @@ class HTTPSafetySpec:
 
     @classmethod
     def _make_json_safe(cls, obj: Any) -> Any:
-        """
-        Recursively make an object JSON serializable
-        """
+        """Recursively make an object JSON serializable"""
         if obj is None:
             return None
         elif isinstance(obj, (str, int, float, bool)):
@@ -172,15 +166,11 @@ class HTTPSafetySpec:
 
 
 class SafeEndpointDecorator:
-    """
-    Decorator to make endpoints HTTP-safe
-    """
+    """Decorator to make endpoints HTTP-safe"""
 
     @staticmethod
     def safe_endpoint(func):
-        """
-        Decorator that wraps endpoint functions with safety checks
-        """
+        """Decorator that wraps endpoint functions with safety checks"""
 
         async def wrapper(*args, **kwargs):
             try:

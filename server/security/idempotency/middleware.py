@@ -35,12 +35,15 @@ class MemoryIdempotencyStore:
         self._store: dict[str, dict[str, Any]] = {}
 
     async def get(self, key: str) -> dict[str, Any] | None:
+        """Get method."""
         return self._store.get(key)
 
     async def set(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> None:
+        """Set method."""
         self._store[key] = response_data
 
     async def exists(self, key: str) -> bool:
+        """Exists method."""
         return key in self._store
 
 
@@ -62,6 +65,7 @@ class IdempotencyMiddleware:
         self.methods = methods or {"POST", "PUT", "PATCH", "DELETE"}
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """  call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return

@@ -42,6 +42,7 @@ class ContextualRedactor:
     """Main redaction processor with context sensitivity awareness"""
 
     def __init__(self, config: RedactionConfig | None = None):
+        """Initialize instance."""
         self.config = config or redaction_config
         self.secret_detector = CombinedSecretDetector(
             min_entropy=self.config.min_entropy, min_length=self.config.min_length
@@ -218,6 +219,7 @@ class TierSpecificRedactor:
     """Specialized redactor for specific sensitivity tiers"""
 
     def __init__(self, tier: ContextSensitivity):
+        """Initialize instance."""
         self.tier = tier
         self.redactor = ContextualRedactor()
 
@@ -230,6 +232,7 @@ class BatchRedactor:
     """Batch processing for multiple texts with different tiers"""
 
     def __init__(self):
+        """Initialize instance."""
         self.redactor = ContextualRedactor()
 
     def redact_batch(self, texts_with_tiers: list[tuple]) -> list[RedactionResult]:

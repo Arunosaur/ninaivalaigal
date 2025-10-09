@@ -3,12 +3,8 @@ SPEC-063: Agentic Core - Agentic Core System Tests
 Tests for agentic core functionality and autonomous operations
 """
 
-import asyncio
-import json
-import time
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock
 
 import pytest
 

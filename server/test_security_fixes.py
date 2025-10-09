@@ -244,7 +244,7 @@ class SecurityTestSuite:
         blocked_count = 0
 
         # Make 5 requests rapidly
-        for i in range(5):
+        for _i in range(5):
             allowed, info = limiter.is_allowed(client_id)
             if allowed:
                 allowed_count += 1

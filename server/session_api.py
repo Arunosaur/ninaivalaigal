@@ -25,12 +25,16 @@ router = APIRouter(prefix="/auth/session", tags=["intelligent-sessions"])
 
 # Request/Response models
 class SessionPreferencesRequest(BaseModel):
+    """SessionPreferencesRequest class."""
+
     auto_renew: bool = True
     notification_preferences: dict[str, bool] = {}
     timeout_preference: str | None = None  # 'short', 'medium', 'long'
 
 
 class SessionAnalyticsResponse(BaseModel):
+    """SessionAnalyticsResponse class."""
+
     session_id: str
     user_id: str
     created_at: str
@@ -44,6 +48,8 @@ class SessionAnalyticsResponse(BaseModel):
 
 
 class RenewalRecommendationResponse(BaseModel):
+    """RenewalRecommendationResponse class."""
+
     session_id: str
     should_renew: bool
     confidence: float

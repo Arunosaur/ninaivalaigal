@@ -17,8 +17,10 @@ try:
 except ImportError:
 
     class Prompt:
+        """Prompt class."""
 
         def __init__(self, name, description, messages):
+            """Initialize instance."""
             self.name = name
             self.description = description
             self.messages = messages

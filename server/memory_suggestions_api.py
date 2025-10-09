@@ -25,6 +25,8 @@ router = APIRouter(prefix="/memory/suggestions", tags=["memory_suggestions"])
 
 # Request/Response Models
 class SuggestionsRequest(BaseModel):
+    """SuggestionsRequest class."""
+
     current_memory_id: Optional[str] = None
     query_text: Optional[str] = None
     session_context: Dict[str, Any] = {}
@@ -33,16 +35,22 @@ class SuggestionsRequest(BaseModel):
 
 
 class ContextualSuggestionsRequest(BaseModel):
+    """ContextualSuggestionsRequest class."""
+
     current_context: Dict[str, Any]
     max_suggestions: int = 5
 
 
 class DiscoverySuggestionsRequest(BaseModel):
+    """DiscoverySuggestionsRequest class."""
+
     discovery_type: str = "explore"  # explore, trending, forgotten
     max_suggestions: int = 8
 
 
 class SuggestionInteractionRequest(BaseModel):
+    """SuggestionInteractionRequest class."""
+
     memory_id: str
     suggestion_type: SuggestionType
     relevance_score: float
@@ -52,6 +60,8 @@ class SuggestionInteractionRequest(BaseModel):
 
 
 class SuggestionsResponse(BaseModel):
+    """SuggestionsResponse class."""
+
     suggestions: List[MemorySuggestion]
     total_count: int
     algorithms_used: List[str]
@@ -59,6 +69,8 @@ class SuggestionsResponse(BaseModel):
 
 
 class SuggestionStatsResponse(BaseModel):
+    """SuggestionStatsResponse class."""
+
     total_suggestions_generated: int
     user_interaction_rate: float
     top_performing_algorithms: List[Dict[str, Any]]
@@ -81,9 +93,7 @@ async def get_related_memories(
     current_user: dict = Depends(get_current_user),
     suggestions_system: IntelligentMemorySuggestions = Depends(get_suggestions_system),
 ) -> SuggestionsResponse:
-    """
-    Get intelligent related memory suggestions.
-    """
+    """Get intelligent related memory suggestions."""
     try:
         import time
 
@@ -131,9 +141,7 @@ async def get_contextual_suggestions(
     current_user: dict = Depends(get_current_user),
     suggestions_system: IntelligentMemorySuggestions = Depends(get_suggestions_system),
 ) -> SuggestionsResponse:
-    """
-    Get memory suggestions based on current context.
-    """
+    """Get memory suggestions based on current context."""
     try:
         import time
 
@@ -173,9 +181,7 @@ async def get_discovery_suggestions(
     current_user: dict = Depends(get_current_user),
     suggestions_system: IntelligentMemorySuggestions = Depends(get_suggestions_system),
 ) -> SuggestionsResponse:
-    """
-    Get memory suggestions for discovery and exploration.
-    """
+    """Get memory suggestions for discovery and exploration."""
     try:
         import time
 
@@ -215,9 +221,7 @@ async def record_suggestion_interaction(
     current_user: dict = Depends(get_current_user),
     suggestions_system: IntelligentMemorySuggestions = Depends(get_suggestions_system),
 ) -> Dict[str, str]:
-    """
-    Record user interaction with a suggestion for learning.
-    """
+    """Record user interaction with a suggestion for learning."""
     try:
         user_id = current_user["user_id"]
 
@@ -258,9 +262,7 @@ async def get_memory_related_suggestions(
     current_user: dict = Depends(get_current_user),
     suggestions_system: IntelligentMemorySuggestions = Depends(get_suggestions_system),
 ) -> SuggestionsResponse:
-    """
-    Get suggestions related to a specific memory.
-    """
+    """Get suggestions related to a specific memory."""
     try:
         import time
 
@@ -304,9 +306,7 @@ async def search_related_memories(
     current_user: dict = Depends(get_current_user),
     suggestions_system: IntelligentMemorySuggestions = Depends(get_suggestions_system),
 ) -> SuggestionsResponse:
-    """
-    Search for memories related to a text query.
-    """
+    """Search for memories related to a text query."""
     try:
         import time
 
@@ -344,9 +344,7 @@ async def get_suggestion_statistics(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> SuggestionStatsResponse:
-    """
-    Get statistics about suggestion system performance.
-    """
+    """Get statistics about suggestion system performance."""
     try:
         user_id = current_user["user_id"]
 
@@ -404,9 +402,7 @@ async def get_suggestion_statistics(
 async def get_available_algorithms(
     current_user: dict = Depends(get_current_user),
 ) -> Dict[str, Any]:
-    """
-    Get information about available suggestion algorithms.
-    """
+    """Get information about available suggestion algorithms."""
     try:
         algorithms = {
             SuggestionType.SEMANTIC_SIMILAR: {

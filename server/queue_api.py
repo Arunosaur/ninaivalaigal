@@ -26,17 +26,23 @@ router = APIRouter(prefix="/queue", tags=["background-tasks"])
 
 # Request/Response models
 class TaskRequest(BaseModel):
+    """TaskRequest class."""
+
     task_type: str
     parameters: dict[str, Any]
 
 
 class TaskResponse(BaseModel):
+    """TaskResponse class."""
+
     job_id: str
     status: str
     message: str
 
 
 class JobStatusResponse(BaseModel):
+    """JobStatusResponse class."""
+
     id: str
     status: str
     created_at: str | None
@@ -47,6 +53,8 @@ class JobStatusResponse(BaseModel):
 
 
 class QueueStatsResponse(BaseModel):
+    """QueueStatsResponse class."""
+
     queues: dict[str, dict[str, int]]
     total_jobs: int
     healthy: bool

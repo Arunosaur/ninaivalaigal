@@ -23,12 +23,16 @@ router = APIRouter(prefix="/memory/preload", tags=["memory-preloading"])
 
 # Request/Response models
 class PreloadTriggerRequest(BaseModel):
+    """PreloadTriggerRequest class."""
+
     user_ids: list[str] | None = None
     strategies: list[str] | None = None
     force_refresh: bool = False
 
 
 class PreloadConfigRequest(BaseModel):
+    """PreloadConfigRequest class."""
+
     enabled: bool = True
     max_memories_per_user: int = 100
     refresh_interval_minutes: int = 30
@@ -36,6 +40,8 @@ class PreloadConfigRequest(BaseModel):
 
 
 class PreloadStatusResponse(BaseModel):
+    """PreloadStatusResponse class."""
+
     user_id: str
     status: str
     last_preload: str | None
@@ -45,6 +51,8 @@ class PreloadStatusResponse(BaseModel):
 
 
 class PreloadTriggerResponse(BaseModel):
+    """PreloadTriggerResponse class."""
+
     user_id: str
     status: str
     preload_stats: dict

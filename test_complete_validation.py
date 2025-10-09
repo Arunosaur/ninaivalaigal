@@ -119,8 +119,8 @@ def test_cli_integration(token):
     print("\n🖥️  Testing CLI Integration...")
 
     # Set environment variables for CLI
-    db_url = os.getenv("NINAIVALAIGAL_DATABASE_URL")
-    jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
+    os.getenv("NINAIVALAIGAL_DATABASE_URL")
+    os.getenv("NINAIVALAIGAL_JWT_SECRET")
     env = os.environ.copy()
     env["NINAIVALAIGAL_USER_ID"] = "7"  # Krishna's user ID
     env["NINAIVALAIGAL_SERVER_URL"] = "http://localhost:8000"
@@ -223,8 +223,8 @@ def main():
     # Run all tests
     context_ok = test_context_management(token)
     memory_ok = test_memory_recording(token)
-    recall_ok = test_memory_recall(token)
-    cli_ok = test_cli_integration(token)
+    test_memory_recall(token)
+    test_cli_integration(token)
     dashboard_ok = test_dashboard_access(token)
 
     # Create summary

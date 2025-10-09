@@ -7,14 +7,7 @@ Memory ingest → tokenization → embedding → graph node/edge creation
 Graph traversal → memory recall → context injection
 """
 
-import asyncio
-import json
-import os
-import subprocess
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -519,7 +512,7 @@ class TestMemoryGraphUnified:
                 },
                 "expected_recovery": {
                     "fallback_mode": "memory_only_operation",
-                    "retry_strategy": "exponential_backoff",
+                    "retry_strategy": "exponential_backof",
                     "max_retries": 3,
                     "recovery_time_target_seconds": 60,
                 },
@@ -711,10 +704,10 @@ class TestMemoryGraphUnified:
             for test_case in test_group["test_cases"]:
                 # Validate scalability parameters are reasonable
                 if "target_ingest_time_seconds" in test_case:
-                    assert test_case["target_ingest_time_seconds"] > 0, f"Ingest time should be positive"
+                    assert test_case["target_ingest_time_seconds"] > 0, "Ingest time should be positive"
 
                 if "target_search_time_ms" in test_case:
-                    assert test_case["target_search_time_ms"] > 0, f"Search time should be positive"
+                    assert test_case["target_search_time_ms"] > 0, "Search time should be positive"
 
                 if "target_total_time_seconds" in test_case:
-                    assert test_case["target_total_time_seconds"] > 0, f"Total time should be positive"
+                    assert test_case["target_total_time_seconds"] > 0, "Total time should be positive"

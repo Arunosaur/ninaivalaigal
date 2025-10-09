@@ -3,12 +3,10 @@ SPEC-012: Memory Substrate - Substrate Lifecycle Tests
 Tests for substrate creation, retrieval, archival, and performance
 """
 
-import asyncio
 import concurrent.futures
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -201,16 +199,14 @@ class TestSubstrateLifecycle:
         # Validate migration recommendations
         for scenario in migration_scenarios:
             if scenario["access_frequency"] > 10:
-                assert scenario["recommended_tier"] == "hot", f"High frequency substrate should be in hot tier"
+                assert scenario["recommended_tier"] == "hot", "High frequency substrate should be in hot tier"
             elif scenario["access_frequency"] <= 1:
-                assert scenario["recommended_tier"] == "cold", f"Low frequency substrate should be in cold tier"
+                assert scenario["recommended_tier"] == "cold", "Low frequency substrate should be in cold tier"
 
     async def test_race_condition_simultaneous_writes(self, mock_substrate_manager):
         """Test SPEC-012: Race condition tests on simultaneous writes"""
 
         # Test concurrent writes to the same substrate
-        substrate_id = "sub_race_test"
-        write_conflicts = []
 
         def concurrent_write(writer_id, content):
             try:

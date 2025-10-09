@@ -128,7 +128,7 @@ class TestGraphOpsIntegration:
                 if i % 2 == 0:
                     task = self._create_memory_async(api_base_url, f"concurrent_test_{i}")
                 else:
-                    task = self._query_graph_async(graphops_base_url, f"concurrent_test")
+                    task = self._query_graph_async(graphops_base_url, "concurrent_test")
 
                 tasks.append(task)
 

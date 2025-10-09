@@ -4,7 +4,6 @@ These tests ensure the API is running and responding correctly.
 """
 
 import time
-from typing import Any, Dict
 
 import pytest
 import requests

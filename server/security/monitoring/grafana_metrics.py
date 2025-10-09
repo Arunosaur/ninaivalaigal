@@ -37,6 +37,7 @@ class SecurityMetricsCollector:
     """Collector for security middleware metrics."""
 
     def __init__(self, max_history: int = 1000):
+        """Initialize instance."""
         self.metrics: dict[str, float] = defaultdict(float)
         self.metric_metadata: dict[str, dict[str, Any]] = {}
         self.metric_history: dict[str, deque] = defaultdict(lambda: deque(maxlen=max_history))
@@ -463,9 +464,11 @@ class MetricsMiddleware:
     """FastAPI middleware to collect security metrics."""
 
     def __init__(self, app):
+        """Initialize instance."""
         self.app = app
 
     async def __call__(self, scope, receive, send):
+        """  call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return

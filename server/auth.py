@@ -19,6 +19,8 @@ from pydantic import BaseModel, EmailStr
 
 # Configuration loading (moved from main.py to avoid circular import)
 def load_config():
+    """Load config."""
+
     # PRIORITY 1: Environment variable (for container deployment)
     env_database_url = os.getenv("NINAIVALAIGAL_DATABASE_URL")
     if env_database_url:
@@ -62,7 +64,11 @@ def get_user_by_uuid(db, user_id):
         if row:
             # Create user-like object
             class UserResult:
+                """UserResult class."""
+
                 def __init__(self, row):
+                    """Initialize instance."""
+
                     self.id = row.id
                     self.email = row.email
                     self.name = row.name
@@ -130,6 +136,8 @@ def generate_invitation_token() -> str:
 
 # Pydantic models for signup and auth
 class IndividualUserSignup(BaseModel):
+    """IndividualUserSignup class."""
+
     email: EmailStr
     password: str
     name: str
@@ -137,21 +145,29 @@ class IndividualUserSignup(BaseModel):
 
 
 class OrganizationSignup(BaseModel):
+    """OrganizationSignup class."""
+
     user: dict[str, Any]  # email, password, name
     organization: dict[str, Any]  # name, domain, size, industry
 
 
 class UserLogin(BaseModel):
+    """UserLogin class."""
+
     email: EmailStr
     password: str
 
 
 class InvitationAccept(BaseModel):
+    """InvitationAccept class."""
+
     invitation_token: str
     user: dict[str, Any]  # password, name
 
 
 class UserInvitation(BaseModel):
+    """UserInvitation class."""
+
     email: EmailStr
     team_ids: list | None = []
     role: str = "user"
@@ -159,22 +175,30 @@ class UserInvitation(BaseModel):
 
 
 class Token(BaseModel):
+    """Token class."""
+
     access_token: str
     token_type: str
 
 
 class TokenData(BaseModel):
+    """TokenData class."""
+
     username: str | None = None
     user_id: str | None = None  # Changed to str to support UUID
 
 
 class ApiKeyCreate(BaseModel):
+    """ApiKeyCreate class."""
+
     name: str
     permissions: list = []
     expiration: int | None = None  # days, None for never expires
 
 
 class ApiKeyResponse(BaseModel):
+    """ApiKeyResponse class."""
+
     id: str
     name: str
     key: str | None = None  # Only returned on creation
@@ -186,6 +210,8 @@ class ApiKeyResponse(BaseModel):
 
 
 class TokenUsage(BaseModel):
+    """TokenUsage class."""
+
     requests_today: int = 0
     requests_week: int = 0
     last_used: datetime | None = None
@@ -199,6 +225,8 @@ security = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    """Create access_token."""
+
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta

@@ -549,5 +549,5 @@ def run_billing_tests():
 if __name__ == "__main__":
     # Run tests when script is executed directly
     test_results = run_billing_tests()
-    print(f"\n📊 Test results saved to billing_test_results.json")
+    print("\n📊 Test results saved to billing_test_results.json")
     print(f"🎯 Overall pass rate: {test_results['summary']['pass_rate']}%")

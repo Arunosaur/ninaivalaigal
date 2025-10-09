@@ -4,7 +4,6 @@ These tests ensure the UI is running and serving content correctly.
 """
 
 import time
-from typing import Any, Dict
 
 import pytest
 import requests
@@ -96,7 +95,7 @@ class TestUISmoke:
             ]
 
             # At least one security header should be present
-            present_headers = [h for h in security_headers if h in headers]
+            [h for h in security_headers if h in headers]
             # Note: This is lenient - in production you'd want more specific checks
 
         except Exception as e:

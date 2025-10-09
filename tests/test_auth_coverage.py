@@ -4,11 +4,10 @@ Comprehensive test coverage for server/auth.py
 Target: Increase from 15% to 80% coverage
 """
 import os
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
 
 # Set test environment
 os.environ.setdefault("NINAIVALAIGAL_JWT_SECRET", "test_secret_key_for_testing")

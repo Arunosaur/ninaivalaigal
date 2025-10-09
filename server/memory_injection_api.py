@@ -28,6 +28,8 @@ router = APIRouter(prefix="/memory/injection", tags=["memory_injection"])
 
 # Request/Response Models
 class InjectionAnalysisRequest(BaseModel):
+    """InjectionAnalysisRequest class."""
+
     session_id: Optional[str] = None
     current_activity: Optional[str] = None
     location_context: Dict[str, Any] = {}
@@ -39,12 +41,16 @@ class InjectionAnalysisRequest(BaseModel):
 
 
 class InjectionExecutionRequest(BaseModel):
+    """InjectionExecutionRequest class."""
+
     context: InjectionAnalysisRequest
     strategy: InjectionStrategy = InjectionStrategy.CONTEXTUAL
     max_injections: int = 5
 
 
 class CreateRuleRequest(BaseModel):
+    """CreateRuleRequest class."""
+
     name: str
     description: str
     trigger: InjectionTrigger
@@ -55,6 +61,8 @@ class CreateRuleRequest(BaseModel):
 
 
 class InjectionAnalysisResponse(BaseModel):
+    """InjectionAnalysisResponse class."""
+
     candidates: List[InjectionCandidate]
     total_candidates: int
     analysis_time_ms: float
@@ -63,6 +71,8 @@ class InjectionAnalysisResponse(BaseModel):
 
 
 class InjectionExecutionResponse(BaseModel):
+    """InjectionExecutionResponse class."""
+
     injected_memories: List[Dict[str, Any]]
     execution_time_ms: float
     strategy_used: str
@@ -71,6 +81,8 @@ class InjectionExecutionResponse(BaseModel):
 
 
 class InjectionAnalyticsResponse(BaseModel):
+    """InjectionAnalyticsResponse class."""
+
     total_injections: int
     successful_injections: int
     success_rate: float
@@ -96,9 +108,7 @@ async def analyze_injection_opportunities(
     current_user: dict = Depends(get_current_user),
     injection_engine: MemoryInjectionEngine = Depends(get_injection_engine),
 ) -> InjectionAnalysisResponse:
-    """
-    Analyze current context and identify memory injection opportunities.
-    """
+    """Analyze current context and identify memory injection opportunities."""
     try:
         import time
 
@@ -153,9 +163,7 @@ async def execute_memory_injection(
     current_user: dict = Depends(get_current_user),
     injection_engine: MemoryInjectionEngine = Depends(get_injection_engine),
 ) -> InjectionExecutionResponse:
-    """
-    Execute memory injection based on context and strategy.
-    """
+    """Execute memory injection based on context and strategy."""
     try:
         import time
 
@@ -205,9 +213,7 @@ async def create_injection_rule(
     current_user: dict = Depends(get_current_user),
     injection_engine: MemoryInjectionEngine = Depends(get_injection_engine),
 ) -> InjectionRule:
-    """
-    Create a new memory injection rule.
-    """
+    """Create a new memory injection rule."""
     try:
         user_id = current_user["user_id"]
 
@@ -239,9 +245,7 @@ async def get_injection_rules(
     current_user: dict = Depends(get_current_user),
     injection_engine: MemoryInjectionEngine = Depends(get_injection_engine),
 ) -> List[InjectionRule]:
-    """
-    Get user's injection rules.
-    """
+    """Get user's injection rules."""
     try:
         user_id = current_user["user_id"]
 
@@ -264,9 +268,7 @@ async def get_injection_analytics(
     current_user: dict = Depends(get_current_user),
     injection_engine: MemoryInjectionEngine = Depends(get_injection_engine),
 ) -> InjectionAnalyticsResponse:
-    """
-    Get analytics about memory injection performance.
-    """
+    """Get analytics about memory injection performance."""
     try:
         user_id = current_user["user_id"]
 
@@ -291,9 +293,7 @@ async def inject_for_context_type(
     current_user: dict = Depends(get_current_user),
     injection_engine: MemoryInjectionEngine = Depends(get_injection_engine),
 ) -> InjectionExecutionResponse:
-    """
-    Execute context-specific memory injection.
-    """
+    """Execute context-specific memory injection."""
     try:
         import time
 
@@ -335,9 +335,7 @@ async def inject_for_context_type(
 async def get_available_triggers(
     current_user: dict = Depends(get_current_user),
 ) -> Dict[str, Any]:
-    """
-    Get information about available injection triggers.
-    """
+    """Get information about available injection triggers."""
     try:
         triggers = {
             InjectionTrigger.CONTEXT_MATCH: {

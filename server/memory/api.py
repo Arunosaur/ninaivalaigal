@@ -1,3 +1,4 @@
+"""api module."""
 from fastapi import APIRouter, Request
 
 from .models import MemoryQuery, MemoryRecord, MemoryShare

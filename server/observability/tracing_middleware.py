@@ -1,3 +1,4 @@
+"""tracing middleware module."""
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
@@ -10,7 +11,10 @@ except ImportError:
 
 
 class TracingMiddleware(BaseHTTPMiddleware):
+    """TracingMiddleware middleware."""
+
     async def dispatch(self, request: Request, call_next):
+        """Dispatch method."""
         if tracer:
             with tracer.start_as_current_span("http_request") as span:
                 span.set_attribute("http.method", request.method)

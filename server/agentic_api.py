@@ -23,6 +23,8 @@ router = APIRouter(prefix="/agentic", tags=["agentic_intelligence"])
 
 # Request/Response Models
 class AgentExecutionRequest(BaseModel):
+    """AgentExecutionRequest class."""
+
     user_prompt: str
     user_id: str
     context: Optional[Dict[str, Any]] = None
@@ -31,6 +33,8 @@ class AgentExecutionRequest(BaseModel):
 
 
 class AgentExecutionResponse(BaseModel):
+    """AgentExecutionResponse class."""
+
     execution_id: str
     success: bool
     result: Optional[Any] = None
@@ -42,12 +46,16 @@ class AgentExecutionResponse(BaseModel):
 
 
 class GraphIntelligenceDeployRequest(BaseModel):
+    """GraphIntelligenceDeployRequest class."""
+
     redis_config: Optional[Dict[str, Any]] = None
     graph_db_config: Optional[Dict[str, Any]] = None
     force_redeploy: bool = False
 
 
 class GraphIntelligenceResponse(BaseModel):
+    """GraphIntelligenceResponse class."""
+
     status: str
     deployment_time: Optional[float] = None
     components: List[str]
@@ -56,11 +64,15 @@ class GraphIntelligenceResponse(BaseModel):
 
 
 class IntentAnalysisRequest(BaseModel):
+    """IntentAnalysisRequest class."""
+
     user_prompt: str
     context: Optional[Dict[str, Any]] = None
 
 
 class IntentAnalysisResponse(BaseModel):
+    """IntentAnalysisResponse class."""
+
     detected_intent: str
     confidence: float
     explanation: Dict[str, Any]

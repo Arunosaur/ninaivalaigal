@@ -1,6 +1,6 @@
 """Enhanced unit tests for database module."""
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -139,7 +139,7 @@ class TestDatabaseOperations:
     def test_database_connection_string_validation(self):
         """Test database connection string validation."""
         try:
-            import os
+            pass
 
             # Test environment variable handling
             test_db_url = "postgresql://test:test@localhost:5432/test_db"  # pragma: allowlist secret

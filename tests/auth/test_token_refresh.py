@@ -4,9 +4,6 @@ Authentication System Tests: Token Refresh
 Tests JWT token refresh and renewal mechanisms.
 """
 
-import json
-import time
-
 import pytest
 import requests
 

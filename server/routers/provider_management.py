@@ -24,6 +24,8 @@ router = APIRouter(prefix="/providers", tags=["memory-providers"])
 
 
 class ProviderRegistrationRequest(BaseModel):
+    """ProviderRegistrationRequest class."""
+
     name: str
     provider_type: str
     connection_string: str
@@ -32,6 +34,8 @@ class ProviderRegistrationRequest(BaseModel):
 
 
 class ProviderUpdateRequest(BaseModel):
+    """ProviderUpdateRequest class."""
+
     priority: Optional[int] = None
     enabled: Optional[bool] = None
 

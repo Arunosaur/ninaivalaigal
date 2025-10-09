@@ -179,7 +179,7 @@ class Mem0Client:
         response = self.make_request("POST", "/contexts", json=data)
         if response.status_code == 200:
             result = response.json()
-            context = result.get("context", {})
+            result.get("context", {})
             scope_icon = {"personal": "👤", "team": "👥", "organization": "🏢"}.get(scope, "📁")
             print(f"✅ {scope_icon} Context '{name}' created successfully ({scope} scope)")
         else:

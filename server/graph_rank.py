@@ -142,7 +142,7 @@ def calculate_pagerank(
             incoming_links[target].append({"source": source, "weight": weight})
 
     # PageRank iterations
-    for iteration in range(max_iterations):
+    for _iteration in range(max_iterations):
         new_pagerank = {}
 
         for node_id in node_ids:

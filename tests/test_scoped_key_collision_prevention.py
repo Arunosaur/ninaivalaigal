@@ -42,7 +42,7 @@ def test_same_template_different_paths_no_collision():
 
     # Verify collision analysis detects no risk
     collision_info = ScopedKeyHelper.get_collision_info(key1, key2)
-    assert collision_info["full_collision"] == False
+    assert collision_info["full_collision"] is False
 
 
 def test_template_normalization_consistency():
@@ -90,7 +90,7 @@ def test_cross_user_same_template_collision_prevention():
 
     # Verify no collision risk
     collision_info = ScopedKeyHelper.get_collision_info(key_user1, key_user2)
-    assert collision_info["full_collision"] == False
+    assert collision_info["full_collision"] is False
 
 
 def test_cross_org_same_template_collision_prevention():
@@ -120,7 +120,7 @@ def test_cross_org_same_template_collision_prevention():
 
     # Verify no collision risk
     collision_info = ScopedKeyHelper.get_collision_info(key_org1, key_org2)
-    assert collision_info["full_collision"] == False
+    assert collision_info["full_collision"] is False
 
 
 def test_method_differentiation_same_template():
@@ -156,9 +156,9 @@ def test_method_differentiation_same_template():
     assert len({key_get, key_post, key_delete}) == 3
 
     # Verify no collisions between any pair
-    assert ScopedKeyHelper.get_collision_info(key_get, key_post)["full_collision"] == False
-    assert ScopedKeyHelper.get_collision_info(key_post, key_delete)["full_collision"] == False
-    assert ScopedKeyHelper.get_collision_info(key_get, key_delete)["full_collision"] == False
+    assert ScopedKeyHelper.get_collision_info(key_get, key_post)["full_collision"] is False
+    assert ScopedKeyHelper.get_collision_info(key_post, key_delete)["full_collision"] is False
+    assert ScopedKeyHelper.get_collision_info(key_get, key_delete)["full_collision"] is False
 
 
 def test_high_collision_scenario_detection():
@@ -166,7 +166,6 @@ def test_high_collision_scenario_detection():
 
     # Generate many keys with similar patterns
     keys = []
-    base_path = "/api/items/{id}/actions"
 
     for i in range(100):
         key = ScopedKeyHelper.generate_scoped_key(
@@ -185,7 +184,7 @@ def test_high_collision_scenario_detection():
     for _ in range(10):
         key1, key2 = random.sample(keys, 2)
         collision_info = ScopedKeyHelper.get_collision_info(key1, key2)
-        assert collision_info["full_collision"] == False
+        assert collision_info["full_collision"] is False
 
 
 def test_edge_case_path_templates():
@@ -267,7 +266,7 @@ def test_collision_analysis_comprehensive():
     for i in range(len(keys)):
         for j in range(i + 1, len(keys)):
             collision_info = ScopedKeyHelper.get_collision_info(keys[i], keys[j])
-            assert collision_info["full_collision"] == False
+            assert collision_info["full_collision"] is False
 
 
 if __name__ == "__main__":

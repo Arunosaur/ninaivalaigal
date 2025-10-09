@@ -1,7 +1,5 @@
 """Security tests for authentication."""
 
-import pytest
-
 
 class TestAuthentication:
     """Test authentication security."""

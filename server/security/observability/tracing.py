@@ -1,3 +1,4 @@
+"""tracing module."""
 from __future__ import annotations
 
 try:
@@ -11,12 +12,15 @@ def start_span(name: str):
 
         class _Noop:
             def __enter__(self):
+                """  enter   method."""
                 return self
 
             def __exit__(self, *a):
+                """  exit   method."""
                 return False
 
             def set_attribute(self, *a, **k):
+                """Set attribute."""
                 pass
 
         return _Noop()

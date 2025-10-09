@@ -4,15 +4,13 @@ End-to-end testing across memory providers, agents, APIs, and RBAC
 """
 
 import asyncio
-import json
 import logging
 import os
 
 # Import foundation components for testing
 import sys
-import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import pytest
 import redis.asyncio as redis
@@ -22,18 +20,18 @@ from httpx import AsyncClient
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../server"))
 
-from memory.audit_logger import AuditEventType, MemorySharingAuditLogger
-from memory.provider_registry import (
+from memory.audit_logger import AuditEventType, MemorySharingAuditLogger  # noqa: E402
+from memory.provider_registry import (  # noqa: E402
     MemoryProviderRegistry,
     ProviderConfig,
     ProviderType,
 )
-from memory.sharing_contracts import (
+from memory.sharing_contracts import (  # noqa: E402
     MemorySharingContractManager,
     ScopeIdentifier,
     ScopeType,
 )
-from memory.temporal_access import AccessType, TemporalAccessManager
+from memory.temporal_access import AccessType, TemporalAccessManager  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +146,7 @@ class TestMemoryProviderMatrix:
     async def test_provider_security_integration(self):
         """Test provider security with RBAC integration"""
         try:
-            from memory.provider_security import (
+            from memory.provider_security import (  # noqa: E402
                 MemoryProviderSecurityManager,
                 SecurityLevel,
             )
@@ -213,7 +211,7 @@ class TestMemorySharingMatrix:
             org_scope = ScopeIdentifier(ScopeType.ORGANIZATION, "1", "Acme Corp")
 
             # Test 1: User-to-user sharing
-            from memory.sharing_contracts import (
+            from memory.sharing_contracts import (  # noqa: E402
                 SharePermission,
                 ShareRequest,
                 VisibilityLevel,
@@ -284,7 +282,7 @@ class TestMemorySharingMatrix:
             await temporal_manager.start_cleanup_service()
 
             # Test 1: Time-limited access
-            alice_scope = ScopeIdentifier(ScopeType.USER, "1", "Alice")
+            ScopeIdentifier(ScopeType.USER, "1", "Alice")
             bob_scope = ScopeIdentifier(ScopeType.USER, "2", "Bob")
 
             time_grant = await temporal_manager.create_temporal_access(
@@ -323,7 +321,7 @@ class TestMemorySharingMatrix:
             logger.info("✅ Session access permission working")
 
             # Test 4: Access revocation
-            from memory.temporal_access import RevocationReason
+            from memory.temporal_access import RevocationReason  # noqa: E402
 
             revoked = await temporal_manager.revoke_access(time_grant.grant_id, 1, RevocationReason.USER_REQUEST)
 
@@ -398,7 +396,7 @@ class TestAuditTrailMatrix:
             logger.info("✅ Transfer record created")
 
             # Test 4: Audit query functionality
-            from memory.audit_logger import AuditQuery
+            from memory.audit_logger import AuditQuery  # noqa: E402
 
             query = AuditQuery(
                 event_types={
@@ -515,7 +513,7 @@ class TestAPIEndpointMatrix:
             response = await self.matrix.api_client.get("/providers/failover/statistics")
 
             if response.status_code == 200:
-                stats = response.json()
+                response.json()
                 logger.info("✅ Failover statistics API working")
             else:
                 logger.warning(f"⚠️  Failover statistics API returned {response.status_code}")
@@ -607,7 +605,7 @@ class TestFailureSimulationMatrix:
                 alice_scope = ScopeIdentifier(ScopeType.USER, str(user_id), f"User{user_id}")
                 bob_scope = ScopeIdentifier(ScopeType.USER, "999", "SharedUser")
 
-                from memory.sharing_contracts import (
+                from memory.sharing_contracts import (  # noqa: E402
                     SharePermission,
                     ShareRequest,
                     VisibilityLevel,

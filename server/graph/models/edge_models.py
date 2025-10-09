@@ -43,6 +43,8 @@ class BaseEdge:
     updated_at: datetime | None = None
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         if self.created_at is None:
             self.created_at = datetime.utcnow()
         if self.updated_at is None:
@@ -92,6 +94,8 @@ class CreatedEdge(BaseEdge):
     timestamp: str | None = None
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.CREATED.value
         self.properties.update(
             {
@@ -110,6 +114,8 @@ class LinkedToEdge(BaseEdge):
     link_type: str = "semantic"  # semantic, causal, temporal
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.LINKED_TO.value
         self.properties.update({"relevance": self.relevance, "link_type": self.link_type})
         super().__post_init__()
@@ -124,6 +130,8 @@ class TriggeredByEdge(BaseEdge):
     success_rate: float = 1.0
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.TRIGGERED_BY.value
         self.properties.update(
             {
@@ -144,6 +152,8 @@ class TaggedWithEdge(BaseEdge):
     confidence: float = 1.0
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.TAGGED_WITH.value
         self.properties.update(
             {
@@ -164,6 +174,8 @@ class DerivedFromEdge(BaseEdge):
     source_section: str | None = None
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.DERIVED_FROM.value
         self.properties.update(
             {
@@ -185,6 +197,8 @@ class MemberOfEdge(BaseEdge):
     active: bool = True
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.MEMBER_OF.value
         self.properties.update(
             {
@@ -206,6 +220,8 @@ class BelongsToEdge(BaseEdge):
     reporting_structure: str = "direct"
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.BELONGS_TO.value
         self.properties.update(
             {
@@ -226,6 +242,8 @@ class InfluencesEdge(BaseEdge):
     bidirectional: bool = False
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.INFLUENCES.value
         self.properties.update(
             {
@@ -246,6 +264,8 @@ class ParticipatedInEdge(BaseEdge):
     duration: int | None = None  # Duration in seconds
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.PARTICIPATED_IN.value
         self.properties.update(
             {
@@ -265,6 +285,8 @@ class CreatedInEdge(BaseEdge):
     context_phase: str = "main"  # setup, main, conclusion
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.CREATED_IN.value
         self.properties.update({"relevance": self.relevance, "context_phase": self.context_phase})
         super().__post_init__()
@@ -279,6 +301,8 @@ class SimilarToEdge(BaseEdge):
     algorithm: str = "embedding"  # embedding, graph, manual
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         self.relationship_type = RelationshipType.SIMILAR_TO.value
         self.properties.update(
             {

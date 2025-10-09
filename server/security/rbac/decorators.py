@@ -22,17 +22,23 @@ try:
 except ImportError:
     # Fallback definitions
     class Role(Enum):
+        """Role class."""
+
         ADMIN = "admin"
         USER = "user"
         VIEWER = "viewer"
 
     class Permission(Enum):
+        """Permission class."""
+
         READ = "read"
         WRITE = "write"
         DELETE = "delete"
         ADMIN = "admin"
 
     class Resource(Enum):
+        """Resource class."""
+
         MEMORY = "memory"
         CONTEXT = "context"
         USER = "user"
@@ -47,6 +53,7 @@ class RBACEnforcer:
     """RBAC enforcement engine with audit logging."""
 
     def __init__(self):
+        """Initialize instance."""
         self.logger = logging.getLogger("rbac.audit")
 
     def check_permission(

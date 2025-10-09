@@ -27,6 +27,7 @@ class GraphIntelligenceDeployment:
     """
 
     def __init__(self):
+        """Initialize instance."""
         self.deployed = False
         self.graph_reasoner = None
         self.optimized_intelligence = None
@@ -317,6 +318,7 @@ class GraphDBClient:
     """Basic graph database client for Apache AGE integration."""
 
     def __init__(self, config: Dict):
+        """Initialize instance."""
         self.config = config
         self.connected = False
 
@@ -347,6 +349,7 @@ class BasicGraphReasoner:
     """Basic graph reasoner implementation for deployment testing."""
 
     def __init__(self, redis_client, graph_db_client):
+        """Initialize instance."""
         self.redis_client = redis_client
         self.graph_db_client = graph_db_client
 

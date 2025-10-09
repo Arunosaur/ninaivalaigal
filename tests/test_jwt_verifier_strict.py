@@ -227,8 +227,8 @@ def test_production_config():
     assert config.issuer_allowlist == {"https://prod.auth.com"}
     assert config.leeway_seconds == 30
     assert config.max_token_age_seconds == 900
-    assert config.require_jti == True
-    assert config.require_nbf == True
+    assert config.require_jti is True
+    assert config.require_nbf is True
     assert config.algorithms == ("RS256", "ES256")
 
 

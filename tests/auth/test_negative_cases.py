@@ -4,8 +4,6 @@ Authentication System Tests: Negative Cases
 Tests error handling, edge cases, and security vulnerabilities.
 """
 
-import json
-
 import pytest
 import requests
 
@@ -162,7 +160,6 @@ class TestAuthenticationNegativeCases:
 
         try:
             import threading
-            import time
 
             responses = []
 
@@ -190,7 +187,7 @@ class TestAuthenticationNegativeCases:
 
             # Only one should succeed, others should fail with conflict
             success_count = sum(1 for r in responses if r in [200, 201])
-            conflict_count = sum(1 for r in responses if r in [400, 409])
+            sum(1 for r in responses if r in [400, 409])
 
             if 404 in responses:
                 pytest.skip("Signup endpoint not implemented")

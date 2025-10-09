@@ -23,6 +23,8 @@ from mcp_server import Server  # noqa: E402
 
 @dataclass
 class CodeIssue:
+    """CodeIssue class."""
+
     file_path: str
     line_number: int
     issue_type: str
@@ -37,6 +39,8 @@ class CodeIssue:
 
 @dataclass
 class CodeReviewResult:
+    """CodeReviewResult class."""
+
     file_path: str
     language: str
     total_lines: int
@@ -49,6 +53,7 @@ class CodeAnalyzer:
     """Advanced code analysis engine"""
 
     def __init__(self, project_root: str):
+        """Initialize instance."""
         self.project_root = Path(project_root)
         self.executor = ThreadPoolExecutor(max_workers=4)
 
@@ -640,6 +645,7 @@ class CodeReviewerServer(Server):
     """MCP Server for comprehensive code review"""
 
     def __init__(self):
+        """Initialize instance."""
         super().__init__("code-reviewer")
         self.analyzer = CodeAnalyzer(os.getcwd())
 

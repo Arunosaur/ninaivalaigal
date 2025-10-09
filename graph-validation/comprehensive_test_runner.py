@@ -7,7 +7,7 @@ SPEC-040/041 Validation: Test similarity, path, recommendation, and edge weight 
 import json
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict
 
 import matplotlib.pyplot as plt
 import networkx as nx

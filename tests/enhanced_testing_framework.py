@@ -362,5 +362,5 @@ def run_enhanced_tests():
 
 if __name__ == "__main__":
     test_results = run_enhanced_tests()
-    print(f"\n📊 Enhanced test results saved")
+    print("\n📊 Enhanced test results saved")
     print(f"🎯 Pass rate: {test_results['summary']['pass_rate']}%")

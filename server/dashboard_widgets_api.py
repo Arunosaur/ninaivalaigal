@@ -26,6 +26,8 @@ router = APIRouter(prefix="/dashboard-widgets", tags=["dashboard"])
 
 # Widget Configuration Models
 class WidgetType(str, Enum):
+    """WidgetType class."""
+
     TOP_MEMORIES = "top_memories"
     SENTIMENT_TRENDS = "sentiment_trends"
     AI_PERFORMANCE = "ai_performance"
@@ -36,7 +38,12 @@ class WidgetType(str, Enum):
     SMART_ALERTS = "smart_alerts"
 
 
+"""Class docstring."""
+
+
 class WidgetSize(str, Enum):
+    """WidgetSize class."""
+
     SMALL = "small"  # 4x3 grid
     MEDIUM = "medium"  # 6x4 grid
     LARGE = "large"  # 8x5 grid
@@ -44,18 +51,26 @@ class WidgetSize(str, Enum):
 
 
 class WidgetConfig(BaseModel):
+    """WidgetConfig configuration."""
+
     id: str
+    """Class docstring."""
+
     type: WidgetType
     title: str
     size: WidgetSize
     position: Dict[str, int]  # {"row": 0, "col": 0}
     permissions: List[str]
     refresh_interval: int = 30  # seconds
+    """Class docstring."""
+
     auto_refresh: bool = True
     filters: Dict[str, Any] = {}
 
 
 class WidgetData(BaseModel):
+    """WidgetData class."""
+
     widget_id: str
     data: Dict[str, Any]
     last_updated: datetime
@@ -63,26 +78,46 @@ class WidgetData(BaseModel):
     alerts: List[Dict[str, Any]] = []
 
 
+"""Class docstring."""
+
+
 # WebSocket Connection Manager for Real-time Updates
 class DashboardConnectionManager:
+    """DashboardConnectionManager manages operations."""
 
     def __init__(self):
+        """Initialize instance."""
+
         self.active_connections: Dict[str, WebSocket] = {}
         self.user_widgets: Dict[str, List[str]] = {}
 
+    """Class docstring."""
+
     async def connect(self, websocket: WebSocket, user_id: str):
+        """Function docstring."""
+
         await websocket.accept()
         self.active_connections[user_id] = websocket
         self.user_widgets[user_id] = []
 
+    """Function docstring."""
+
     def disconnect(self, user_id: str):
+        """disconnect function."""
+
         if user_id in self.active_connections:
             del self.active_connections[user_id]
+        """Function docstring."""
+
         if user_id in self.user_widgets:
             del self.user_widgets[user_id]
 
     async def send_widget_update(self, user_id: str, widget_data: WidgetData):
+        """send_widget_update function."""
+
         if user_id in self.active_connections:
+            """Function docstring."""
+
             try:
                 await self.active_connections[user_id].send_text(
                     json.dumps(
@@ -100,6 +135,8 @@ class DashboardConnectionManager:
                 self.disconnect(user_id)
 
     async def send_smart_alert(self, user_id: str, alert: Dict[str, Any]):
+        """Function docstring."""
+
         if user_id in self.active_connections:
             try:
                 await self.active_connections[user_id].send_text(

@@ -18,10 +18,14 @@ class MiddlewareDebugger:
     """Debug middleware to trace request processing and identify hangs"""
 
     def __init__(self, name: str = "Unknown"):
+        """Initialize instance."""
+
         self.name = name
         self.request_count = 0
 
     async def __call__(self, request: Request, call_next: Callable) -> Response:
+        """__call__ function."""
+
         self.request_count += 1
         request_id = f"{self.name}-{self.request_count}"
 
@@ -83,9 +87,13 @@ class AuthPathTracker:
     """Specifically track /auth path processing"""
 
     def __init__(self):
+        """Initialize instance."""
+
         self.auth_requests = {}
 
     async def __call__(self, request: Request, call_next: Callable) -> Response:
+        """__call__ function."""
+
         path = request.url.path
 
         if "/auth" not in path.lower():
@@ -151,9 +159,13 @@ class RedisCallTracker:
     """Track Redis calls that might be causing hangs"""
 
     def __init__(self):
+        """Initialize instance."""
+
         self.redis_calls = []
 
     async def __call__(self, request: Request, call_next: Callable) -> Response:
+        """__call__ function."""
+
         path = request.url.path
 
         # Only track auth paths for Redis issues
@@ -175,6 +187,8 @@ class RedisCallTracker:
                     original_redis_get = redis_client.get
 
                     async def tracked_get(self, *args, **kwargs):
+                        """tracked_get function."""
+
                         print(f"🔴 REDIS GET called from {path}")
                         start = time.time()
                         try:

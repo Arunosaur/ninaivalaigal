@@ -26,7 +26,7 @@ def test_dynamic_database_url():
         components = get_initialized_components()
 
         if components:
-            print(f"   ✅ Components initialized successfully")
+            print("   ✅ Components initialized successfully")
             print(f"   📊 Database manager: {type(components.get('db', 'None')).__name__}")
             print(f"   🔧 Config loaded: {'Yes' if components.get('config') else 'No'}")
             print(f"   👤 Default user ID: {components.get('DEFAULT_USER_ID', 'Unknown')}")
@@ -39,15 +39,15 @@ def test_dynamic_database_url():
                     with db.engine.connect() as conn:
                         result = conn.execute("SELECT 1 as test").fetchone()
                         if result and result[0] == 1:
-                            print(f"   ✅ Database connection successful")
+                            print("   ✅ Database connection successful")
                         else:
-                            print(f"   ❌ Database connection failed: unexpected result")
+                            print("   ❌ Database connection failed: unexpected result")
                 except Exception as e:
                     print(f"   ⚠️ Database connection test failed: {e}")
             else:
-                print(f"   ⚠️ Database manager not available for connection test")
+                print("   ⚠️ Database manager not available for connection test")
         else:
-            print(f"   ❌ Component initialization failed")
+            print("   ❌ Component initialization failed")
 
     except ImportError as e:
         print(f"   ❌ Import error: {e}")

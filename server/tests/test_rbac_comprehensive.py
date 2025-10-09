@@ -186,7 +186,7 @@ class TestRBACComprehensive:
         headers = {"Authorization": f"Bearer {self.auth_token}"}
 
         # Test rate limiting doesn't interfere with RBAC
-        for i in range(5):
+        for _i in range(5):
             response = client.get("/contexts", headers=headers)
             assert response.status_code == 200
 
@@ -251,7 +251,7 @@ def test_rbac_performance():
 
     # Time multiple operations
     start_time = time.time()
-    for i in range(10):
+    for _i in range(10):
         response = client.get("/contexts", headers=headers)
         assert response.status_code == 200
     end_time = time.time()

@@ -14,10 +14,10 @@ import pytest
 os.environ["MEMORY_PROVIDER"] = "native"
 os.environ["NINAIVALAIGAL_DATABASE_URL"] = "postgresql://nina:change_me_securely@localhost:5433/nina"
 
-from server.memory import get_memory_provider
-from server.memory.factory import reset_memory_provider
-from server.memory.providers.mem0_http import Mem0HttpMemoryProvider
-from server.memory.providers.postgres import PostgresMemoryProvider
+from server.memory import get_memory_provider  # noqa: E402
+from server.memory.factory import reset_memory_provider  # noqa: E402
+from server.memory.providers.mem0_http import Mem0HttpMemoryProvider  # noqa: E402
+from server.memory.providers.postgres import PostgresMemoryProvider  # noqa: E402
 
 
 class TestMemoryProviderFactory:

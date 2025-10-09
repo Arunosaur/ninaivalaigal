@@ -19,20 +19,24 @@ class TenantContext:
     """Thread-local tenant context."""
 
     def __init__(self):
+        """Initialize instance."""
         self._tenant_id: str | None = None
         self._user_id: str | None = None
         self._organization_id: str | None = None
 
     @property
     def tenant_id(self) -> str | None:
+        """Tenant id method."""
         return self._tenant_id
 
     @property
     def user_id(self) -> str | None:
+        """User id method."""
         return self._user_id
 
     @property
     def organization_id(self) -> str | None:
+        """Organization id method."""
         return self._organization_id
 
     def set_context(
@@ -65,6 +69,7 @@ class TenancyGuard:
     """ORM tenancy guard for automatic tenant filtering."""
 
     def __init__(self, enforce_context: bool = True):
+        """Initialize instance."""
         self.enforce_context = enforce_context
         self.logger = logging.getLogger("tenancy.guard")
         self._registered_models: dict[str, str] = {}

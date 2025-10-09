@@ -1,7 +1,5 @@
 """Unit tests for server modules."""
 
-import pytest
-
 
 class TestServerModules:
     """Test server module imports and basic functionality."""

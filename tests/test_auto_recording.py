@@ -11,8 +11,8 @@ import pytest
 # Add server directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "server"))
 
-from auto_recording import AutoRecorder, get_auto_recorder
-from database import DatabaseManager
+from auto_recording import AutoRecorder, get_auto_recorder  # noqa: E402
+from database import DatabaseManager  # noqa: E402
 
 
 class TestAutoRecording:

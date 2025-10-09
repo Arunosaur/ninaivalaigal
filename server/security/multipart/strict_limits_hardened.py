@@ -128,9 +128,7 @@ def detect_mp4_iso_bmff(payload: bytes, max_scan_bytes: int = 32) -> bool:
 
 
 def detect_enhanced_magic_bytes(payload: bytes, max_check_bytes: int = 512) -> dict[str, Any]:
-    """
-    P0: Enhanced magic byte detection with Mach-O, Java, and MP4 offset detection.
-    """
+    """P0: Enhanced magic byte detection with Mach-O, Java, and MP4 offset detection."""
     if not payload:
         return {
             "detected": False,

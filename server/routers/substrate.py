@@ -23,18 +23,24 @@ router = APIRouter(prefix="/substrate", tags=["memory-substrate"])
 
 # Pydantic models for SPEC-012
 class MemoryCreate(BaseModel):
+    """MemoryCreate class."""
+
     text: str = Field(..., min_length=1, description="Memory content")
     meta: Optional[Dict[str, Any]] = Field(None, description="Memory metadata")
     context_id: Optional[str] = Field(None, description="Context ID")
 
 
 class MemoryQuery(BaseModel):
+    """MemoryQuery class."""
+
     query: str = Field(..., min_length=1, description="Search query")
     k: int = Field(5, ge=1, le=100, description="Number of results")
     context_id: Optional[str] = Field(None, description="Context ID filter")
 
 
 class ProviderHealthResponse(BaseModel):
+    """ProviderHealthResponse class."""
+
     status: str
     response_time_ms: float
     last_check: str
@@ -43,6 +49,8 @@ class ProviderHealthResponse(BaseModel):
 
 
 class SubstrateMetricsResponse(BaseModel):
+    """SubstrateMetricsResponse class."""
+
     total_memories: int
     active_providers: int
     average_response_time_ms: float
@@ -52,6 +60,8 @@ class SubstrateMetricsResponse(BaseModel):
 
 
 class ProviderInfoResponse(BaseModel):
+    """ProviderInfoResponse class."""
+
     primary_provider: Optional[str]
     fallback_providers: List[str]
     total_providers: int
@@ -59,6 +69,8 @@ class ProviderInfoResponse(BaseModel):
 
 
 class MemoryResponse(BaseModel):
+    """MemoryResponse class."""
+
     id: str
     text: str
     meta: Dict[str, Any]
@@ -100,9 +112,7 @@ async def search_memories(
     current_user: dict = Depends(get_current_user),
     substrate: MemorySubstrateManager = Depends(get_substrate_manager),
 ):
-    """
-    Search memories using similarity search with automatic failover
-    """
+    """Search memories using similarity search with automatic failover"""
     try:
         results = await substrate.recall(
             query=query_data.query,
@@ -126,9 +136,7 @@ async def list_memories(
     current_user: dict = Depends(get_current_user),
     substrate: MemorySubstrateManager = Depends(get_substrate_manager),
 ):
-    """
-    List memories with pagination and optional context filtering
-    """
+    """List memories with pagination and optional context filtering"""
     try:
         results = await substrate.list_memories(
             user_id=current_user["user_id"],
@@ -150,9 +158,7 @@ async def delete_memory(
     current_user: dict = Depends(get_current_user),
     substrate: MemorySubstrateManager = Depends(get_substrate_manager),
 ):
-    """
-    Delete a memory by ID with automatic failover
-    """
+    """Delete a memory by ID with automatic failover"""
     try:
         success = await substrate.delete(memory_id=memory_id, user_id=current_user["user_id"])
 

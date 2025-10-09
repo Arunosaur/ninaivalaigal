@@ -54,6 +54,7 @@ class ContentTypeGuardMiddleware:
         self.reject_disallowed = reject_disallowed
 
     async def __call__(self, scope, receive, send):
+        """  call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return
@@ -100,6 +101,7 @@ class RedactionASGIMiddleware:
         self.overlap = overlap
 
     async def __call__(self, scope, receive, send):
+        """  call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return
@@ -118,6 +120,7 @@ class ResponseRedactionASGIMiddleware:
         self.overlap = overlap
 
     async def __call__(self, scope, receive, send):
+        """  call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return

@@ -33,6 +33,7 @@ class CompressionGuardMiddleware:
         self.max_decompressed_size = max_decompressed_size
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """  call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return

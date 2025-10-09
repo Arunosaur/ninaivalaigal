@@ -34,6 +34,7 @@ class JWKSVerifier:
     """JWT verifier with JWKS rotation and caching."""
 
     def __init__(self, config: JWKSConfig):
+        """Initialize instance."""
         self.config = config
         self.logger = logging.getLogger("jwks.verifier")
 
@@ -161,6 +162,7 @@ class JWKSVerifierPool:
     """Pool of JWKS verifiers for multiple issuers."""
 
     def __init__(self):
+        """Initialize instance."""
         self.verifiers: dict[str, JWKSVerifier] = {}
         self.logger = logging.getLogger("jwks.pool")
 

@@ -1,3 +1,4 @@
+"""semantic module."""
 import os
 
 from fastapi import APIRouter
@@ -9,6 +10,8 @@ router = APIRouter(prefix="/demo/memory", tags=["memory-demo"])
 
 
 class DemoWrite(BaseModel):
+    """DemoWrite class."""
+
     scope: str = "personal"
     user_id: str
     team_id: str | None = None
@@ -19,6 +22,8 @@ class DemoWrite(BaseModel):
 
 
 class DemoSemanticQuery(BaseModel):
+    """DemoSemanticQuery class."""
+
     scope: str = "personal"
     user_id: str | None = None
     team_id: str | None = None

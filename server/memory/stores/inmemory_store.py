@@ -1,8 +1,15 @@
+"""inmemory store module."""
+
+
 class InMemoryStore:
+    """InMemoryStore class."""
+
     def __init__(self):
+        """Initialize instance."""
         self._rows = []
 
     async def write(self, rec: dict):
+        """Write method."""
         from uuid import uuid4
 
         rec = {**rec, "id": str(uuid4())}
@@ -10,6 +17,7 @@ class InMemoryStore:
         return rec
 
     async def query(self, q: dict):
+        """Query method."""
         scope = q.get("scope", "personal")
         user_id = q.get("user_id")
 

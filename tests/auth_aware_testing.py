@@ -482,7 +482,7 @@ class AuthTestRunner:
 
     def generate_test_report(self, results: Dict[str, Any]) -> str:
         """Generate comprehensive test report"""
-        report = f"""
+        report = """
 # Auth-Aware Testing Infrastructure Report
 
 **Test Run ID**: {results['test_run_id']}
@@ -540,5 +540,5 @@ def run_auth_tests():
 if __name__ == "__main__":
     # Run tests when script is executed directly
     test_results = run_auth_tests()
-    print(f"\n📊 Test results saved to auth_test_report.md")
+    print("\n📊 Test results saved to auth_test_report.md")
     print(f"🎯 Overall pass rate: {test_results['summary']['pass_rate']}%")

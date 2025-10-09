@@ -93,9 +93,7 @@ class AIFeedbackSystem:
         session_id: Optional[str] = None,
         confidence_score: Optional[float] = None,
     ) -> str:
-        """
-        Collect feedback from user interactions.
-        """
+        """Collect feedback from user interactions."""
         try:
             event_id = f"fb_{int(time.time() * 1000)}_{user_id[:8]}"
 
@@ -141,9 +139,7 @@ class AIFeedbackSystem:
         feedback_type: Optional[FeedbackType] = None,
         days_back: int = 30,
     ) -> List[LearningPattern]:
-        """
-        Analyze feedback patterns to identify learning opportunities.
-        """
+        """Analyze feedback patterns to identify learning opportunities."""
         try:
             cutoff_date = datetime.utcnow() - timedelta(days=days_back)
 
@@ -192,9 +188,7 @@ class AIFeedbackSystem:
             raise
 
     async def generate_context_improvements(self, patterns: List[LearningPattern]) -> List[ContextImprovement]:
-        """
-        Generate actionable context improvements based on learned patterns.
-        """
+        """Generate actionable context improvements based on learned patterns."""
         try:
             improvements = []
 
@@ -227,9 +221,7 @@ class AIFeedbackSystem:
             raise
 
     async def apply_learning_adjustments(self, user_id: str, context: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Apply learned adjustments to improve context quality.
-        """
+        """Apply learned adjustments to improve context quality."""
         try:
             adjusted_context = context.copy()
 
@@ -267,9 +259,7 @@ class AIFeedbackSystem:
             return context  # Return original context on error
 
     async def get_feedback_insights(self, user_id: Optional[str] = None, days_back: int = 30) -> Dict[str, Any]:
-        """
-        Get insights from collected feedback for analytics.
-        """
+        """Get insights from collected feedback for analytics."""
         try:
             cutoff_date = datetime.utcnow() - timedelta(days=days_back)
 

@@ -16,6 +16,8 @@ router = APIRouter(prefix="/gamification", tags=["gamification"])
 
 # Badge System
 class BadgeType(str, Enum):
+    """BadgeType class."""
+
     TOP_COMMENTER = "top_commenter"
     FASTEST_APPROVER = "fastest_approver"
     AI_TAG_HELPER = "ai_tag_helper"
@@ -27,6 +29,8 @@ class BadgeType(str, Enum):
 
 
 class BadgeLevel(str, Enum):
+    """BadgeLevel class."""
+
     BRONZE = "bronze"
     SILVER = "silver"
     GOLD = "gold"
@@ -34,6 +38,8 @@ class BadgeLevel(str, Enum):
 
 
 class Badge(BaseModel):
+    """Badge class."""
+
     id: str
     type: BadgeType
     level: BadgeLevel
@@ -46,6 +52,8 @@ class Badge(BaseModel):
 
 
 class UserBadge(BaseModel):
+    """UserBadge class."""
+
     badge: Badge
     earned_at: datetime
     progress: Dict[str, Any]

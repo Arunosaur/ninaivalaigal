@@ -54,6 +54,8 @@ class BaseNode:
     updated_at: datetime | None = field(default=None)
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         if self.created_at is None:
             self.created_at = datetime.utcnow()
         if self.updated_at is None:
@@ -98,6 +100,8 @@ class UserNode:
     updated_at: datetime | None = field(default=None)
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         if self.created_at is None:
             self.created_at = datetime.utcnow()
         if self.updated_at is None:
@@ -153,6 +157,8 @@ class MemoryNode:
     updated_at: datetime | None = field(default=None)
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         if self.created_at is None:
             self.created_at = datetime.utcnow()
         if self.updated_at is None:
@@ -204,6 +210,8 @@ class MacroNode(BaseNode):
     user_id: str | None = field(default=None)
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         super().__post_init__()
         self.label = NodeType.MACRO.value
         self.properties.update(
@@ -229,6 +237,8 @@ class AgentNode(BaseNode):
     active: bool = True
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         super().__post_init__()
         self.label = NodeType.AGENT.value
         self.properties.update(
@@ -252,6 +262,8 @@ class TopicNode(BaseNode):
     weight: float = 1.0
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         super().__post_init__()
         self.label = NodeType.TOPIC.value
         self.properties.update(
@@ -274,6 +286,8 @@ class SourceNode(BaseNode):
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         super().__post_init__()
         self.label = NodeType.SOURCE.value
         self.properties.update(
@@ -297,6 +311,8 @@ class ContextNode(BaseNode):
     active: bool = True
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         super().__post_init__()
         self.label = NodeType.CONTEXT.value
         self.properties.update(
@@ -321,6 +337,8 @@ class TeamNode(BaseNode):
     department: str | None = field(default=None)
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         super().__post_init__()
         self.label = NodeType.TEAM.value
         self.properties.update(
@@ -345,6 +363,8 @@ class OrganizationNode(BaseNode):
     industry: str | None = field(default=None)
 
     def __post_init__(self):
+        """__post_init__ function."""
+
         super().__post_init__()
         self.label = NodeType.ORGANIZATION.value
         self.properties.update(

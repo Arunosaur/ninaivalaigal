@@ -1,6 +1,6 @@
 """Enhanced unit tests for observability module."""
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -38,7 +38,7 @@ class TestObservabilityModule:
             # Test health check if function exists
             if hasattr(health, "_check_database"):
                 # This is an async function, so we need to handle it properly
-                import asyncio
+                pass
 
                 async def test_async():
                     result = await health._check_database()

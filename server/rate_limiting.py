@@ -17,6 +17,7 @@ class RateLimiter:
     """Token bucket rate limiter with sliding window"""
 
     def __init__(self, max_requests: int, window_seconds: int, burst_allowance: int = None):
+        """Initialize instance."""
         self.max_requests = max_requests
         self.window_seconds = window_seconds
         self.burst_allowance = burst_allowance or max_requests
@@ -80,6 +81,7 @@ class EndpointRateLimiter:
     """Rate limiter with different limits per endpoint"""
 
     def __init__(self):
+        """Initialize instance."""
         # Define rate limits per endpoint pattern
         self.endpoint_limits = {
             "/auth/signup": RateLimiter(max_requests=5, window_seconds=300),  # 5 per 5 minutes
@@ -188,6 +190,7 @@ class SecurityMiddleware:
     """Additional security middleware for DDoS protection"""
 
     def __init__(self):
+        """Initialize instance."""
         self.suspicious_patterns = [
             # SQL injection attempts
             r"(?i)(union|select|insert|delete|drop|create|alter|exec)",

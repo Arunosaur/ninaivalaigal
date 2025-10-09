@@ -1,3 +1,5 @@
+"""Postgres Store module."""
+
 from __future__ import annotations
 
 import json
@@ -12,6 +14,8 @@ from psycopg.rows import dict_row
 
 # --- tiny embedding stub (swap for your embedding service) ------------------
 def embed(text: str, dim: int = 8) -> list[float]:
+    """embed function."""
+
     v = [0.0] * dim
     for i, ch in enumerate(text[:1024]):
         v[i % dim] += (ord(ch) % 97) / 97.0
@@ -20,6 +24,8 @@ def embed(text: str, dim: int = 8) -> list[float]:
 
 @dataclass
 class PGConfig:
+    """PGConfig configuration."""
+
     dsn: str
     table: str = "memory_records"
     dim: int = 8
@@ -27,14 +33,22 @@ class PGConfig:
 
 
 class PostgresStore:
+    """PostgresStore storage implementation."""
+
     def __init__(self, cfg: PGConfig | None = None):
+        """Initialize instance."""
+
         dsn = os.getenv("DATABASE_URL") or "postgresql://postgres:postgres@localhost:5432/postgres"
         self.cfg = cfg or PGConfig(dsn=dsn)
 
     async def _conn(self):
+        """_conn function."""
+
         return await psycopg.AsyncConnection.connect(self.cfg.dsn, row_factory=dict_row)
 
     async def ensure_schema(self):
+        """ensure_schema function."""
+
         sql = f"""
         CREATE EXTENSION IF NOT EXISTS vector;
         CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -61,6 +75,8 @@ class PostgresStore:
                 await conn.commit()
 
     async def write(self, rec: dict[str, Any]) -> dict[str, Any]:
+        """write function."""
+
         await self.ensure_schema()
         emb = embed(rec.get("text", ""), self.cfg.dim) if self.cfg.use_vectors else None
         sql = f"""
@@ -90,6 +106,8 @@ class PostgresStore:
         return row
 
     async def query(self, q: dict[str, Any]) -> list[dict[str, Any]]:
+        """query function."""
+
         filters = ["scope = %(scope)s"]
         if q.get("scope") == "personal":
             filters.append("user_id = %(user_id)s")
@@ -126,6 +144,8 @@ class PostgresStore:
         return rows
 
     async def share(self, record_ids: Sequence[str], to_scope: str, target: dict[str, Any]) -> int:
+        """share function."""
+
         if not record_ids:
             return 0
         ids_tuple = tuple(record_ids)

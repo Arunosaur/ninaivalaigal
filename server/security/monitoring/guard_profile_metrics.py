@@ -42,6 +42,7 @@ class GuardProfileCollector:
     """Collects and aggregates guard profile metrics."""
 
     def __init__(self):
+        """Initialize instance."""
         self.events: dict[str, list] = {}
         self.counters: dict[str, int] = {}
         self.durations: dict[str, list] = {}
@@ -160,6 +161,7 @@ class GuardProfileTimer:
     """Context manager for timing guard profile operations."""
 
     def __init__(self, mode: GuardMode, **metadata):
+        """Initialize instance."""
         self.mode = mode
         self.metadata = metadata
         self.start_time = None

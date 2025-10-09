@@ -1,3 +1,4 @@
+"""suuject ctx module."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -5,6 +6,8 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class SubjectContext:
+    """SubjectContext class."""
+
     user_id: str | None = None
     org_id: str | None = None
     team_id: str | None = None

@@ -4,9 +4,7 @@ SPEC-033: Redis Integration - Comprehensive Test Coverage
 Tests Redis caching, session management, and performance claims validation.
 """
 
-import json
 import time
-from unittest.mock import Mock, patch
 
 import pytest
 import redis

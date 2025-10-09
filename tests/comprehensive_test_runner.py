@@ -124,7 +124,7 @@ class ComprehensiveTestSuite:
         if self.config["reporting"]["generate_html_report"]:
             self._generate_html_report()
 
-        print(f"\n✅ COMPREHENSIVE TEST SUITE COMPLETE")
+        print("\n✅ COMPREHENSIVE TEST SUITE COMPLETE")
         print(f"📊 Total Duration: {suite_duration:.2f} seconds")
         print(f"🎯 Overall Pass Rate: {self.overall_metrics.get('overall_pass_rate', 0):.1f}%")
 
@@ -360,7 +360,7 @@ class ComprehensiveTestSuite:
         pass_rate = self.overall_metrics.get("overall_pass_rate", 0)
         status_color = "#10b981" if pass_rate >= 95 else "#f59e0b" if pass_rate >= 90 else "#ef4444"
 
-        html = f"""
+        html = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -460,7 +460,7 @@ class ComprehensiveTestSuite:
                 "#10b981" if framework_pass_rate >= 95 else "#f59e0b" if framework_pass_rate >= 90 else "#ef4444"
             )
 
-            html += f"""
+            html += """
                 <div class="flex items-center justify-between p-4 border rounded-lg">
                     <div>
                         <h3 class="font-semibold text-gray-900">{framework_display}</h3>
@@ -492,7 +492,7 @@ class ComprehensiveTestSuite:
                 "INFO": "bg-green-100 text-green-800 border-green-200",
             }.get(rec["priority"], "bg-gray-100 text-gray-800 border-gray-200")
 
-            html += f"""
+            html += """
                 <div class="border rounded-lg p-4 {priority_color}">
                     <div class="flex items-center justify-between mb-2">
                         <span class="font-semibold">{rec['priority']} - {rec['category'].title()}</span>
@@ -524,5 +524,5 @@ def run_comprehensive_tests(config: Optional[Dict[str, Any]] = None):
 if __name__ == "__main__":
     # Run comprehensive tests when script is executed directly
     test_results = run_comprehensive_tests()
-    print(f"\n🎉 Comprehensive testing complete!")
-    print(f"📊 Check generated reports for detailed results")
+    print("\n🎉 Comprehensive testing complete!")
+    print("📊 Check generated reports for detailed results")

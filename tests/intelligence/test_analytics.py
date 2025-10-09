@@ -3,17 +3,14 @@ Tests for Graph Analytics Engine
 Testing real-time graph intelligence and insights generation
 """
 
-import asyncio
 from collections import defaultdict
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
 from server.intelligence.analytics import GraphAnalyticsEngine
 from server.intelligence.models import (
-    FederationMetrics,
-    GraphMLMetrics,
     KnowledgeGap,
     SuggestedConnection,
     TeamContext,

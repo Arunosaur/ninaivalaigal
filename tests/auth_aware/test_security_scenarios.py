@@ -8,9 +8,8 @@ from typing import Dict, List
 
 import pytest
 
-from .models import ComplianceTestResult, SecurityTestResult, UserRole
+from .models import ComplianceTestResult, SecurityTestResult
 from .security_scenarios import SecurityScenarioEngine
-from .test_fixtures import AuthTestHelper
 
 
 class TestSecurityScenarios:

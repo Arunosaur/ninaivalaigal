@@ -3,12 +3,9 @@ SPEC-061: Advanced Execution - Advanced Graph Execution Tests
 Tests for advanced graph execution patterns and optimization
 """
 
-import asyncio
 import concurrent.futures
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 

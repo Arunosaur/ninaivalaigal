@@ -4,8 +4,6 @@ Authentication System Tests: Login Flow
 Tests user authentication and token generation functionality.
 """
 
-import json
-
 import pytest
 import requests
 

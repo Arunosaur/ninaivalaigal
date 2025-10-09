@@ -22,11 +22,10 @@ logger = structlog.get_logger(__name__)
 
 
 class PerformanceIntegrationMiddleware(BaseHTTPMiddleware):
-    """
-    Comprehensive performance middleware that integrates all optimizations.
-    """
+    """Comprehensive performance middleware that integrates all optimizations."""
 
     def __init__(self, app, redis_client, db_manager):
+        """Initialize instance."""
         super().__init__(app)
         self.redis = redis_client
         self.db_manager = db_manager
@@ -87,11 +86,10 @@ class PerformanceIntegrationMiddleware(BaseHTTPMiddleware):
 
 
 class PerformanceManager:
-    """
-    Central manager for all performance optimizations.
-    """
+    """Central manager for all performance optimizations."""
 
     def __init__(self):
+        """Initialize instance."""
         self.redis_client: Optional[RedisClient] = None
         self.db_manager = None
         self.query_cache: Optional[QueryCache] = None

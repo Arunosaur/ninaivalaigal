@@ -11,7 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 class ContextMerger:
+    """ContextMerger class."""
+
     def __init__(self, db_manager: DatabaseManager):
+        """Initialize instance."""
+
         self.db = db_manager
 
     def merge_duplicate_contexts(self, context_name: str, user_id: int) -> dict[str, Any]:
@@ -47,7 +51,7 @@ class ContextMerger:
                 # Update memories to point to target context
                 memories = session.query(Memory).filter_by(context=context_name, user_id=user_id).all()
 
-                for memory in memories:
+                for _memory in memories:
                     # Ensure memory points to the correct context (by name, not ID)
                     # Memories use context name, not context_id in this system
                     merged_memory_count += 1

@@ -1,3 +1,4 @@
+"""permissions module."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -5,6 +6,8 @@ from enum import Enum, auto
 
 
 class Role(Enum):
+    """Role class."""
+
     OWNER = auto()
     ADMIN = auto()
     MAINTAINER = auto()
@@ -13,6 +16,8 @@ class Role(Enum):
 
 
 class Action(Enum):
+    """Action class."""
+
     READ = auto()
     CREATE = auto()
     UPDATE = auto()
@@ -23,6 +28,8 @@ class Action(Enum):
 
 
 class Resource(Enum):
+    """Resource class."""
+
     MEMORY = auto()
     CONTEXT = auto()
     TEAM = auto()
@@ -119,6 +126,8 @@ allow(Role.VIEWER, Resource.MEMORY, Action.READ, Action.EXPORT)
 
 @dataclass(frozen=True)
 class SubjectContext:
+    """SubjectContext class."""
+
     org_id: str
     team_ids: set[str]
     roles: dict[str, Role]

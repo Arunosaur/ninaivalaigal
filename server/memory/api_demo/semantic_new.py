@@ -1,3 +1,5 @@
+"""Semantic New module."""
+
 import os
 
 from fastapi import APIRouter
@@ -9,6 +11,8 @@ router = APIRouter(prefix="/demo/memory", tags=["memory-demo"])
 
 
 class DemoWrite(BaseModel):
+    """DemoWrite class."""
+
     scope: str = "personal"
     user_id: str
     team_id: str | None = None
@@ -19,6 +23,8 @@ class DemoWrite(BaseModel):
 
 
 class DemoSemanticQuery(BaseModel):
+    """DemoSemanticQuery class."""
+
     scope: str = "personal"
     user_id: str | None = None
     team_id: str | None = None
@@ -28,6 +34,8 @@ class DemoSemanticQuery(BaseModel):
 
 
 def store() -> PostgresStore:
+    """store function."""
+
     return PostgresStore(
         PGConfig(dsn=os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"))
     )
@@ -35,6 +43,8 @@ def store() -> PostgresStore:
 
 @router.post("/write")
 async def demo_write(body: DemoWrite):
+    """demo_write function."""
+
     s = store()
     row = await s.write(body.dict())
     return {"id": row["id"], "kind": row["kind"], "text": row["text"]}
@@ -42,6 +52,8 @@ async def demo_write(body: DemoWrite):
 
 @router.post("/semantic_search")
 async def demo_semantic_search(q: DemoSemanticQuery):
+    """demo_semantic_search function."""
+
     s = store()
     rows = await s.query(q.dict())
     return {"count": len(rows), "results": rows}

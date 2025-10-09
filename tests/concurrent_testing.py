@@ -221,7 +221,7 @@ class ConcurrentBillingScenarios:
 
         try:
             headers = {
-                "Authorization": f"Bearer admin_token",
+                "Authorization": "Bearer admin_token",
                 "Content-Type": "application/json",
             }
 
@@ -549,7 +549,7 @@ class ConcurrentTestRunner:
         # Calculate overall performance metrics
         self._calculate_performance_summary(results)
 
-        print(f"✅ Concurrent testing complete!")
+        print("✅ Concurrent testing complete!")
 
         return results
 
@@ -632,5 +632,5 @@ def run_concurrent_tests():
 
 if __name__ == "__main__":
     test_results = run_concurrent_tests()
-    print(f"\n📊 Test results saved to concurrent_test_results.json")
-    print(f"🎯 Performance summary available in results")
+    print("\n📊 Test results saved to concurrent_test_results.json")
+    print("🎯 Performance summary available in results")

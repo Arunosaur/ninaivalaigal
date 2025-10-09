@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Rbac Api module."""
+
 """
 RBAC API Endpoints - Role-Based Access Control management APIs
 Provides endpoints for managing roles, permissions, and access requests
@@ -30,6 +32,8 @@ rbac_router = APIRouter(prefix="/rbac", tags=["rbac"])
 
 # Pydantic models for API requests/responses
 class RoleAssignmentRequest(BaseModel):
+    """RoleAssignmentRequest class."""
+
     user_id: int
     role: str
     scope_type: str  # 'global', 'org', 'team', 'context'
@@ -38,6 +42,8 @@ class RoleAssignmentRequest(BaseModel):
 
 
 class RoleAssignmentResponse(BaseModel):
+    """RoleAssignmentResponse class."""
+
     id: int
     user_id: int
     role: str
@@ -50,6 +56,8 @@ class RoleAssignmentResponse(BaseModel):
 
 
 class PermissionDelegationRequest(BaseModel):
+    """PermissionDelegationRequest class."""
+
     delegate_user_id: int
     resource: str
     actions: list[str]
@@ -61,6 +69,8 @@ class PermissionDelegationRequest(BaseModel):
 
 
 class AccessRequestRequest(BaseModel):
+    """AccessRequestRequest class."""
+
     resource: str
     action: str
     resource_id: str | None = None
@@ -70,6 +80,8 @@ class AccessRequestRequest(BaseModel):
 
 
 class AccessRequestResponse(BaseModel):
+    """AccessRequestResponse class."""
+
     id: int
     requester_id: int
     resource: str
@@ -86,6 +98,8 @@ class AccessRequestResponse(BaseModel):
 
 
 class ApprovalActionRequest(BaseModel):
+    """ApprovalActionRequest class."""
+
     action: str  # 'approve' or 'reject'
     reason: str | None = None
 

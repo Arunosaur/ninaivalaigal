@@ -234,9 +234,9 @@ class FeedbackSystemTester:
             # Test multiple rapid requests
             request_times = []
 
-            for i in range(10):
+            for _i in range(10):
                 start_time = time.time()
-                response = self.session.get(f"{API_BASE_URL}/feedback/health")
+                self.session.get(f"{API_BASE_URL}/feedback/health")
                 request_time = (time.time() - start_time) * 1000
                 request_times.append(request_time)
 

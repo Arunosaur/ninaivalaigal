@@ -3,22 +3,13 @@ Auth-Aware Test Fixtures
 Comprehensive fixtures for enterprise authentication testing
 """
 
-import asyncio
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, Generator, List, Optional
+from typing import Dict, List
 
 import pytest
 
-from .models import (
-    AuthTestResults,
-    ComplianceTestResult,
-    SecurityTestResult,
-    TestSession,
-    TestUser,
-    TestUserStatus,
-    UserRole,
-)
+from .models import TestSession, TestUser, UserRole
 from .multi_user_manager import MultiUserTestManager
 from .rbac_engine import RBACTestEngine
 from .security_scenarios import SecurityScenarioEngine

@@ -15,6 +15,7 @@ class ShellInjectionPrevention:
     """Prevents shell injection attacks in system commands"""
 
     def __init__(self):
+        """Initialize instance."""
         # Dangerous characters that could enable injection
         self.dangerous_patterns = [
             r"[;&|`$()]",  # Command separators and substitution
@@ -202,6 +203,7 @@ class GitCommandSanitizer(ShellInjectionPrevention):
     """Specialized sanitizer for Git commands"""
 
     def __init__(self):
+        """Initialize instance."""
         super().__init__()
         self.allowed_git_commands = {
             "status",

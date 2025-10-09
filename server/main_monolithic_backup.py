@@ -857,7 +857,7 @@ async def stop_recording(context: str = None, current_user: User = Depends(get_c
     """Stop CCTV-style automatic recording"""
     try:
         # Use authenticated user ID (mandatory)
-        user_id = current_user.id
+        current_user.id
 
         if context:
             # Stop specific context recording
@@ -893,7 +893,7 @@ async def get_recording_status(current_user: User = Depends(get_current_user)):
     """Get CCTV recording status for all contexts"""
     try:
         # Use authenticated user ID (mandatory)
-        user_id = current_user.id
+        current_user.id
 
         status = await auto_recorder.get_recording_status()
         return {
@@ -941,7 +941,7 @@ async def record_interaction(
 ):
     """Record AI interaction automatically (CCTV capture)"""
     try:
-        user_id = current_user.id if current_user else None
+        current_user.id if current_user else None
 
         success = await auto_recorder.record_interaction(context, interaction_type, content, metadata)
 

@@ -9,7 +9,7 @@ from fastapi import HTTPException
 
 sys.path.insert(0, "/Users/asrajag/Workspace/mem0")
 
-from server.security.multipart.starlette_adapter import (
+from server.security.multipart.starlette_adapter import (  # noqa: E402
     DEFAULT_MAX_PARTS_PER_REQUEST,
     scan_with_starlette,
 )

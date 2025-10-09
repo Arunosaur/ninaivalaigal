@@ -19,6 +19,8 @@ router = APIRouter(prefix="/vendor/admin", tags=["vendor_admin"])
 
 # Request/Response Models
 class TenantInfo(BaseModel):
+    """TenantInfo class."""
+
     tenant_id: str
     organization_name: str
     subscription_tier: str
@@ -32,6 +34,8 @@ class TenantInfo(BaseModel):
 
 
 class UsageMetrics(BaseModel):
+    """UsageMetrics class."""
+
     tenant_id: str
     date: str
     api_calls: int
@@ -42,6 +46,8 @@ class UsageMetrics(BaseModel):
 
 
 class RateLimitConfig(BaseModel):
+    """RateLimitConfig class."""
+
     tenant_id: str
     api_calls_per_minute: int
     memory_operations_per_hour: int
@@ -50,6 +56,8 @@ class RateLimitConfig(BaseModel):
 
 
 class AdminAuditLog(BaseModel):
+    """AdminAuditLog class."""
+
     log_id: str
     admin_user_id: str
     action: str
@@ -60,6 +68,8 @@ class AdminAuditLog(BaseModel):
 
 
 class SystemHealthMetrics(BaseModel):
+    """SystemHealthMetrics class."""
+
     total_tenants: int
     active_tenants_24h: int
     total_api_calls_24h: int
@@ -75,9 +85,7 @@ async def get_admin_dashboard_overview(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> SystemHealthMetrics:
-    """
-    Get high-level system overview for vendor admin dashboard.
-    """
+    """Get high-level system overview for vendor admin dashboard."""
     require_admin_role(current_user, "vendor_admin")
 
     try:
@@ -120,9 +128,7 @@ async def list_all_tenants(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    List all tenants with pagination and filtering.
-    """
+    """List all tenants with pagination and filtering."""
     require_admin_role(current_user, "vendor_admin")
 
     try:
@@ -170,9 +176,7 @@ async def get_tenant_usage_analytics(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> List[UsageMetrics]:
-    """
-    Get detailed usage analytics for a specific tenant.
-    """
+    """Get detailed usage analytics for a specific tenant."""
     require_admin_role(current_user, "vendor_admin")
 
     try:
@@ -215,9 +219,7 @@ async def get_tenant_rate_limits(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> RateLimitConfig:
-    """
-    Get current rate limit configuration for a tenant.
-    """
+    """Get current rate limit configuration for a tenant."""
     require_admin_role(current_user, "vendor_admin")
 
     try:
@@ -250,9 +252,7 @@ async def update_tenant_rate_limits(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, str]:
-    """
-    Update rate limit configuration for a tenant.
-    """
+    """Update rate limit configuration for a tenant."""
     require_admin_role(current_user, "vendor_admin")
 
     try:
@@ -301,9 +301,7 @@ async def suspend_tenant(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, str]:
-    """
-    Suspend a tenant (disable access while preserving data).
-    """
+    """Suspend a tenant (disable access while preserving data)."""
     require_admin_role(current_user, "vendor_admin")
 
     try:
@@ -352,9 +350,7 @@ async def reactivate_tenant(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, str]:
-    """
-    Reactivate a suspended tenant.
-    """
+    """Reactivate a suspended tenant."""
     require_admin_role(current_user, "vendor_admin")
 
     try:
@@ -405,9 +401,7 @@ async def get_admin_audit_logs(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Get admin audit logs with pagination and filtering.
-    """
+    """Get admin audit logs with pagination and filtering."""
     require_admin_role(current_user, "vendor_admin")
 
     try:
@@ -455,9 +449,7 @@ async def get_system_health_detailed(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Get detailed system health information for vendor admin.
-    """
+    """Get detailed system health information for vendor admin."""
     require_admin_role(current_user, "vendor_admin")
 
     try:

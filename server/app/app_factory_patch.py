@@ -1,3 +1,4 @@
+"""app factory patch module."""
 from typing import Any
 
 from fastapi import APIRouter, Depends, FastAPI
@@ -6,6 +7,8 @@ from pydantic import BaseModel
 
 
 class WriteBody(BaseModel):
+    """WriteBody class."""
+
     scope: str = "personal"
     user_id: str
     team_id: str | None = None

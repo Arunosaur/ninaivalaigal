@@ -26,6 +26,7 @@ class RetentionExecutor:
         self.page_size = page_size
 
     def run(self, tier: int, now: datetime | None = None, dry_run: bool = False) -> int:
+        """Run method."""
         now = now or datetime.utcnow()
         policy = self.tier_policy.get(tier)
         if not policy or policy.days < 0:

@@ -27,6 +27,8 @@ partner_performance_store = {}
 
 # Enums
 class PartnerTier(str, Enum):
+    """PartnerTier class."""
+
     BRONZE = "bronze"
     SILVER = "silver"
     GOLD = "gold"
@@ -34,6 +36,8 @@ class PartnerTier(str, Enum):
 
 
 class ReferralStatus(str, Enum):
+    """ReferralStatus class."""
+
     PENDING = "pending"
     CONVERTED = "converted"
     PAID = "paid"
@@ -41,6 +45,8 @@ class ReferralStatus(str, Enum):
 
 
 class PayoutStatus(str, Enum):
+    """PayoutStatus class."""
+
     PENDING = "pending"
     PROCESSING = "processing"
     PAID = "paid"

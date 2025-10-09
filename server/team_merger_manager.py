@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class MergerType(Enum):
+    """MergerType class."""
+
     CONSOLIDATION = "consolidation"
     SPLIT = "split"
     DISSOLUTION = "dissolution"
@@ -19,6 +21,8 @@ class MergerType(Enum):
 
 
 class MergerStatus(Enum):
+    """MergerStatus class."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -27,6 +31,8 @@ class MergerStatus(Enum):
 
 
 class MigrationType(Enum):
+    """MigrationType class."""
+
     MOVE = "move"
     COPY = "copy"
     ARCHIVE = "archive"
@@ -34,7 +40,11 @@ class MigrationType(Enum):
 
 
 class TeamMergerManager:
+    """TeamMergerManager manages operations."""
+
     def __init__(self, db_manager):
+        """Initialize instance."""
+
         self.db = db_manager
 
     def initiate_team_merger(self, org_id: str, merger_config: dict) -> int:
@@ -477,6 +487,8 @@ class MemoryMigrationPolicy:
 
     @staticmethod
     def get_consolidation_policy() -> dict:
+        """Get consolidation_policy."""
+
         return {
             "default_action": MigrationType.MOVE.value,
             "conflict_resolution": "merge",
@@ -486,6 +498,8 @@ class MemoryMigrationPolicy:
 
     @staticmethod
     def get_split_policy() -> dict:
+        """Get split_policy."""
+
         return {
             "distribution_strategy": "relevance_based",
             "cross_team_access": "selective",
@@ -505,6 +519,8 @@ class MemoryMigrationPolicy:
 
     @staticmethod
     def get_dissolution_policy() -> dict:
+        """Get dissolution_policy."""
+
         return {
             "member_redistribution": "manual",
             "memory_action": MigrationType.ARCHIVE.value,
@@ -514,6 +530,8 @@ class MemoryMigrationPolicy:
 
     @staticmethod
     def get_rename_policy() -> dict:
+        """Get rename_policy."""
+
         return {
             "memory_action": "update_metadata",
             "preserve_history": True,

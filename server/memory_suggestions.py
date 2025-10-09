@@ -74,9 +74,7 @@ class IntelligentMemorySuggestions:
         max_suggestions: int = 10,
         min_confidence: float = 0.3,
     ) -> List[MemorySuggestion]:
-        """
-        Get intelligent memory suggestions based on multiple algorithms.
-        """
+        """Get intelligent memory suggestions based on multiple algorithms."""
         try:
             # Check cache first
             cache_key = f"suggestions:{context.user_id}:{hash(str(context.dict()))}"
@@ -138,9 +136,7 @@ class IntelligentMemorySuggestions:
     async def get_contextual_suggestions(
         self, user_id: str, current_context: Dict[str, Any], max_suggestions: int = 5
     ) -> List[MemorySuggestion]:
-        """
-        Get suggestions based on current context (e.g., what user is working on).
-        """
+        """Get suggestions based on current context (e.g., what user is working on)."""
         try:
             context = SuggestionContext(user_id=user_id, session_context=current_context)
 
@@ -164,9 +160,7 @@ class IntelligentMemorySuggestions:
     async def get_discovery_suggestions(
         self, user_id: str, discovery_type: str = "explore", max_suggestions: int = 8
     ) -> List[MemorySuggestion]:
-        """
-        Get suggestions for memory discovery and exploration.
-        """
+        """Get suggestions for memory discovery and exploration."""
         try:
             context = SuggestionContext(user_id=user_id, user_preferences={"discovery_type": discovery_type})
 
@@ -196,9 +190,7 @@ class IntelligentMemorySuggestions:
         interaction_type: str,
         context: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """
-        Record user interaction with suggestions for learning.
-        """
+        """Record user interaction with suggestions for learning."""
         try:
             interaction_data = {
                 "user_id": user_id,

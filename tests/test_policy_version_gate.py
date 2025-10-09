@@ -90,11 +90,11 @@ def test_policy_version_gate_blocks_changes():
 
     # If hashes match, gate should pass
     if gate_result["policy_hash_matches"]:
-        assert gate_result["gate_passed"] == True
+        assert gate_result["gate_passed"] is True
         return {"test_result": "PASS - Policy hash matches expected"}
 
     # If hashes don't match and no env var, gate should block
-    assert gate_result["gate_passed"] == False
+    assert gate_result["gate_passed"] is False
     assert "ALLOW_POLICY_HASH_CHANGE=true" in gate_result["error"]
 
     return {"test_result": "PASS - Gate correctly blocks unauthorized changes"}
@@ -110,8 +110,8 @@ def test_policy_version_gate_allows_with_env_var():
         gate_result = PolicyVersionGate.check_policy_version_gate()
 
         # Gate should pass with environment variable set
-        assert gate_result["gate_passed"] == True
-        assert gate_result["change_allowed"] == True
+        assert gate_result["gate_passed"] is True
+        assert gate_result["change_allowed"] is True
 
         return {"test_result": "PASS - Gate allows changes with env var"}
 

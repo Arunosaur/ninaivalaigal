@@ -4,9 +4,6 @@ SPEC-043: Memory Access Control (ACL) Per Token - Comprehensive Test Coverage
 Tests the ACL system for memory tokens with role-based permissions.
 """
 
-import json
-from unittest.mock import Mock, patch
-
 import pytest
 import requests
 

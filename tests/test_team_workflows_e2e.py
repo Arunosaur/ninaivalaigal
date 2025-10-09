@@ -4,9 +4,8 @@ Tests complete user journeys from signup through billing
 """
 
 import asyncio
-import uuid
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,17 +13,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from server.database import Base, get_db
-from server.enhanced_signup_api import router as enhanced_signup_router
 
 # Test imports
 from server.main import app
-from server.models.standalone_teams import (
-    StandaloneTeamManager,
-    TeamInvitation,
-    TeamMembership,
-    TeamUpgradeHistory,
-)
-from server.standalone_teams_api import router as standalone_teams_router
 
 
 class TestTeamWorkflowsE2E:
@@ -402,10 +393,10 @@ class TestSecurityAndValidation(TestTeamWorkflowsE2E):
         team1_result = response1.json()
         team2_result = response2.json()
 
-        team1_id = team1_result["team"]["id"]
+        team1_result["team"]["id"]
         team2_id = team2_result["team"]["id"]
         team1_token = team1_result["user"]["jwt_token"]
-        team2_token = team2_result["user"]["jwt_token"]
+        team2_result["user"]["jwt_token"]
 
         # Try to access Team 2's members with Team 1's token
         response = client.get(

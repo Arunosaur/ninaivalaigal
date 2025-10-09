@@ -5,11 +5,15 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fake_objects import FakePart, FakeRequest
-from fastapi import HTTPException
+from fake_objects import FakePart, FakeRequest  # noqa: E402
+from fastapi import HTTPException  # noqa: E402
 
-from server.security.multipart.starlette_adapter import scan_with_starlette
-from server.security.multipart.strict_limits_hardened import DEFAULT_MAX_TEXT_PART_BYTES
+from server.security.multipart.starlette_adapter import (  # noqa: E402
+    scan_with_starlette,
+)
+from server.security.multipart.strict_limits_hardened import (  # noqa: E402
+    DEFAULT_MAX_TEXT_PART_BYTES,
+)
 
 # Magic byte constants
 ZIP_MAGIC = b"PK\x03\x04"

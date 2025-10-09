@@ -4,8 +4,8 @@ Comprehensive test coverage for server/auth.py functions
 Target: Increase from 15% to 80% coverage
 """
 import os
-from datetime import datetime, timedelta
-from unittest.mock import MagicMock, Mock, patch
+from datetime import timedelta
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -293,7 +293,6 @@ class TestUserCreation:
     @patch("server.auth.send_verification_email")
     def test_create_individual_user_success(self, mock_send_email, mock_get_db):
         """Test successful individual user creation."""
-        from server.auth import IndividualUserSignup
 
         # Mock database
         mock_db = Mock()

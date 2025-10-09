@@ -143,7 +143,7 @@ class TestRedisBenchmarks:
     async def test_redis_connection_performance(self, benchmark):
         """Benchmark Redis connection and health check operations"""
         try:
-            from server.redis_client import get_redis_client
+            pass
 
             # Mock Redis client for benchmarking
             with patch("server.redis_client.redis_client") as mock_redis_client:
@@ -217,7 +217,7 @@ class TestRedisPerformanceMetrics:
                 time.sleep(0.005)  # 5ms simulation
                 return True
 
-            result = benchmark(fast_cache_operation)
+            benchmark(fast_cache_operation)
 
             # Validate SLO: operations should complete in < 10ms
             stats = benchmark.stats

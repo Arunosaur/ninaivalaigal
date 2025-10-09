@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 class LifecycleEventType(Enum):
+    """LifecycleEventType class."""
+
     CREATED = "created"
     ACCESSED = "accessed"
     EXPIRED = "expired"
@@ -30,6 +32,8 @@ class LifecycleEventType(Enum):
 
 
 class LifecycleStatus(Enum):
+    """LifecycleStatus class."""
+
     ACTIVE = "active"
     EXPIRING = "expiring"
     EXPIRED = "expired"
@@ -39,6 +43,8 @@ class LifecycleStatus(Enum):
 
 @dataclass
 class LifecyclePolicy:
+    """LifecyclePolicy class."""
+
     id: str
     scope: str
     user_id: str | None
@@ -51,6 +57,8 @@ class LifecyclePolicy:
 
 @dataclass
 class MemoryLifecycleStats:
+    """MemoryLifecycleStats class."""
+
     total_memories: int
     active_memories: int
     expired_memories: int
@@ -62,11 +70,10 @@ class MemoryLifecycleStats:
 
 
 class MemoryGarbageCollector:
-    """
-    Background service for memory lifecycle management
-    """
+    """Background service for memory lifecycle management"""
 
     def __init__(self, database_url: str, dry_run: bool = False):
+        """Initialize instance."""
         self.database_url = database_url
         self.dry_run = dry_run
         self.pool: asyncpg.Pool | None = None

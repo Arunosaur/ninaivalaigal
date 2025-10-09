@@ -121,7 +121,7 @@ class TestDatabaseFailureScenarios:
 
             duration = time.time() - start_time
 
-            logger.info(f"✅ Database failure simulation completed")
+            logger.info("✅ Database failure simulation completed")
             logger.info(f"   Duration: {duration:.1f}s")
             logger.info(f"   Success rate: {success_count}/{success_count + error_count}")
 
@@ -201,7 +201,7 @@ class TestDatabaseFailureScenarios:
             degraded_duration = time.time() - start_time
             degraded_rps = degraded_requests / degraded_duration if degraded_duration > 0 else 0
 
-            logger.info(f"✅ Degraded performance test completed")
+            logger.info("✅ Degraded performance test completed")
             logger.info(f"   Performance: {degraded_rps:.1f} requests/second")
             logger.info(f"   Timeouts: {timeout_count}/20")
 
@@ -255,7 +255,7 @@ class TestRedisFailureScenarios:
                     logger.debug(f"Expected Redis error during chaos test: {e}")
 
             success_rate = (operations_successful / operations_attempted * 100) if operations_attempted > 0 else 0
-            logger.info(f"✅ Redis failure simulation completed")
+            logger.info("✅ Redis failure simulation completed")
             logger.info(f"   Success rate: {success_rate:.1f}% ({operations_successful}/{operations_attempted})")
 
             # Test 3: API functionality without Redis (graceful degradation)
@@ -317,7 +317,7 @@ class TestRedisFailureScenarios:
                 except Exception:
                     pass
 
-            logger.info(f"✅ Redis memory pressure test completed")
+            logger.info("✅ Redis memory pressure test completed")
             logger.info(f"   Keys created: {keys_created}")
             logger.info(f"   Keys cleaned up: {cleanup_count}")
 
@@ -373,7 +373,7 @@ class TestConcurrentLoadScenarios:
             failed_requests = concurrent_requests - successful_requests
             requests_per_second = concurrent_requests / duration if duration > 0 else 0
 
-            logger.info(f"✅ Concurrent API load test completed")
+            logger.info("✅ Concurrent API load test completed")
             logger.info(f"   Duration: {duration:.2f}s")
             logger.info(f"   Successful requests: {successful_requests}/{concurrent_requests}")
             logger.info(f"   Failed requests: {failed_requests}")
@@ -401,7 +401,7 @@ class TestConcurrentLoadScenarios:
 
             sustained_rps = sustained_requests / sustained_duration
 
-            logger.info(f"✅ Sustained load test completed")
+            logger.info("✅ Sustained load test completed")
             logger.info(f"   Duration: {sustained_duration}s")
             logger.info(f"   Requests per second: {sustained_rps:.1f}")
             logger.info(f"   Error rate: {sustained_errors / (sustained_requests + sustained_errors) * 100:.1f}%")
@@ -469,7 +469,7 @@ class TestConcurrentLoadScenarios:
             successful_contracts = sum(1 for r in results if isinstance(r, dict) and r.get("success", False))
             failed_contracts = concurrent_users - successful_contracts
 
-            logger.info(f"✅ Concurrent memory sharing test completed")
+            logger.info("✅ Concurrent memory sharing test completed")
             logger.info(f"   Duration: {duration:.2f}s")
             logger.info(f"   Successful contracts: {successful_contracts}/{concurrent_users}")
             logger.info(f"   Failed contracts: {failed_contracts}")
@@ -544,7 +544,7 @@ class TestResourceExhaustionScenarios:
             cleanup_time = time.time() - cleanup_start
             final_memory = process.memory_info().rss / 1024 / 1024
 
-            logger.info(f"✅ Memory exhaustion test completed")
+            logger.info("✅ Memory exhaustion test completed")
             logger.info(f"   Peak allocation: {allocated_mb}MB")
             logger.info(f"   Cleanup time: {cleanup_time:.2f}s")
             logger.info(f"   Final memory usage: {final_memory:.1f}MB")
@@ -606,7 +606,7 @@ class TestResourceExhaustionScenarios:
 
             final_fds = process.num_fds() if hasattr(process, "num_fds") else 0
 
-            logger.info(f"✅ File descriptor exhaustion test completed")
+            logger.info("✅ File descriptor exhaustion test completed")
             logger.info(f"   Files opened: {len(temp_files)}")
             logger.info(f"   Files cleaned up: {cleanup_count}")
             logger.info(f"   Final file descriptors: {final_fds}")
@@ -690,7 +690,7 @@ async def run_chaos_testing_suite():
 async def _generate_chaos_report(test_results: Dict[str, Any]):
     """Generate chaos testing report"""
     try:
-        report = f"""
+        report = """
 # SPEC-052: Chaos Testing Report
 
 **Execution Date**: {test_results['start_time'].isoformat()}
@@ -711,7 +711,7 @@ async def _generate_chaos_report(test_results: Dict[str, Any]):
             if scenario["status"] == "failed":
                 report += f"  - Error: {scenario.get('error', 'Unknown error')}\n"
 
-        report += f"""
+        report += """
 
 ## Resilience Validation
 

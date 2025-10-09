@@ -5,11 +5,13 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pytest
-from fake_objects import FakePart, FakeRequest
-from fastapi import HTTPException
+import pytest  # noqa: E402
+from fake_objects import FakePart, FakeRequest  # noqa: E402
+from fastapi import HTTPException  # noqa: E402
 
-from server.security.multipart.starlette_adapter import scan_with_starlette
+from server.security.multipart.starlette_adapter import (  # noqa: E402
+    scan_with_starlette,
+)
 
 
 class TestStatusCodeIntegration:
@@ -136,7 +138,7 @@ class TestStatusCodeIntegration:
         """Test 400 status for malformed multipart stream."""
         # This test would require mocking parser exceptions
         # For now, verify the pattern exists in the code
-        from server.security.multipart.starlette_adapter import (
+        from server.security.multipart.starlette_adapter import (  # noqa: E402
             REASON_ENGINE_ERROR,
             _emit_multipart_reject,
         )

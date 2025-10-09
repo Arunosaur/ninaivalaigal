@@ -3,13 +3,7 @@ SPEC-062: GraphOps Deployment - GraphOps Deployment Tests
 Tests for GraphOps stack deployment and infrastructure management
 """
 
-import asyncio
-import os
-import subprocess
-import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -351,11 +345,11 @@ class TestGraphOpsDeployment:
                 "hourly",
                 "daily",
                 "weekly",
-            ], f"Backup frequency should be standard interval"
-            assert strategy["recovery_time_target_minutes"] > 0, f"Recovery time should be positive"
+            ], "Backup frequency should be standard interval"
+            assert strategy["recovery_time_target_minutes"] > 0, "Recovery time should be positive"
             assert strategy["backup_location"].startswith(
                 "./backups/"
-            ), f"Backup location should be in backups directory"
+            ), "Backup location should be in backups directory"
 
     def test_performance_benchmarks(self, mock_container_client):
         """Test SPEC-062: Performance benchmarks and optimization"""

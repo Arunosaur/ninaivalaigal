@@ -91,7 +91,7 @@ def test_jwt_authentication():
     print("=" * 50)
 
     # Setup environment
-    token = setup_environment()
+    setup_environment()
 
     # Ensure test user exists
     if not ensure_test_user_exists():

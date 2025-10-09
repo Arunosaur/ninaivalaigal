@@ -4,9 +4,6 @@ SPEC-044: Memory Drift & Diff Detection - Comprehensive Test Coverage
 Tests memory drift detection and change tracking system.
 """
 
-import json
-from unittest.mock import Mock, patch
-
 import pytest
 import requests
 
@@ -166,7 +163,7 @@ class TestDriftDetectionEdgeCases:
             if response.status_code == 200:
                 result = response.json()
                 # Should detect no drift for identical content
-                assert result.get("drift_detected") == False, "Drift detected for identical content"
+                assert result.get("drift_detected") is False, "Drift detected for identical content"
                 assert result.get("similarity_score", 0) >= 0.99, "Similarity score too low for identical content"
 
         except requests.exceptions.RequestException:

@@ -4,8 +4,6 @@ Authentication System Tests: RBAC Restrictions
 Tests Role-Based Access Control and permission enforcement.
 """
 
-import json
-
 import pytest
 import requests
 

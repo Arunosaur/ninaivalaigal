@@ -43,10 +43,12 @@ class MetricsMiddleware(BaseHTTPMiddleware):
     """Middleware to track request metrics and structured logging"""
 
     def __init__(self, app, logger_name: str = "app"):
+        """Initialize instance."""
         super().__init__(app)
         self.logger = logging.getLogger(logger_name)
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """Dispatch method."""
         # Generate request ID
         rid = request.headers.get("X-Request-ID", str(uuid.uuid4()))
         request_id_ctx.set(rid)

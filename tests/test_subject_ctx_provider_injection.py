@@ -56,11 +56,11 @@ def test_mock_provider_injection():
     response = client.get("/whoami")
     assert response.status_code == 200
     data = response.json()
-    assert data["authenticated"] == True
+    assert data["authenticated"] is True
     assert data["user_id"] == "test_user_123"
     assert data["org_id"] == "test_org_456"
     assert data["role"] is not None
-    assert data["mock"] == True
+    assert data["mock"] is True
 
     return True
 
@@ -150,8 +150,8 @@ def test_fallback_provider_behavior():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["fallback"] == True
-    assert data["authenticated"] == False
+    assert data["fallback"] is True
+    assert data["authenticated"] is False
 
     return True
 
@@ -184,8 +184,8 @@ def test_provider_error_handling():
 
     assert response.status_code == 200
     data = response.json()
-    assert data["error_handled"] == True
-    assert data["ctx_is_none"] == True
+    assert data["error_handled"] is True
+    assert data["ctx_is_none"] is True
 
     return True
 

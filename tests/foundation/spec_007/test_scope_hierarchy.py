@@ -3,12 +3,10 @@ SPEC-007: Unified Context Scope System - Scope Hierarchy Tests
 Tests for scope-based memory isolation and hierarchical permissions
 """
 
-import asyncio
 from datetime import datetime, timezone
-from typing import Any, Dict, List
 
 # Test framework imports
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 

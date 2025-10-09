@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Ai Integrations module."""
+
 """
 mem0 Enhanced AI Tool Integrations
 Provides seamless integration with various AI tools and platforms
@@ -56,6 +58,8 @@ class AIToolIntegration:
     """Base class for AI tool integrations"""
 
     def __init__(self, config: AIToolConfig):
+        """Initialize instance."""
+
         self.config = config
         self.session = None
         self.last_request_time = 0
@@ -110,6 +114,8 @@ class OpenAIIntegration(AIToolIntegration):
     """Integration with OpenAI API"""
 
     async def initialize(self):
+        """initialize function."""
+
         self.api_key = os.getenv(self.config.api_key_env)
         if not self.api_key:
             raise ValueError(f"API key not found in environment: {self.config.api_key_env}")
@@ -122,6 +128,8 @@ class OpenAIIntegration(AIToolIntegration):
         )
 
     async def send_query(self, query: str, context: dict[str, Any] = None) -> dict[str, Any]:
+        """send_query function."""
+
         if not self._check_rate_limit():
             self._wait_for_rate_limit()
 
@@ -165,6 +173,8 @@ class OpenAIIntegration(AIToolIntegration):
             return {"success": False, "error": str(e), "response_time": response_time}
 
     async def get_context(self, context_id: str) -> dict[str, Any]:
+        """Get context."""
+
         # OpenAI doesn't have persistent contexts, return empty
         return {"context_id": context_id, "conversations": []}
 
@@ -173,6 +183,8 @@ class AnthropicIntegration(AIToolIntegration):
     """Integration with Anthropic Claude API"""
 
     async def initialize(self):
+        """initialize function."""
+
         self.api_key = os.getenv(self.config.api_key_env)
         if not self.api_key:
             raise ValueError(f"API key not found in environment: {self.config.api_key_env}")
@@ -186,6 +198,8 @@ class AnthropicIntegration(AIToolIntegration):
         )
 
     async def send_query(self, query: str, context: dict[str, Any] = None) -> dict[str, Any]:
+        """send_query function."""
+
         if not self._check_rate_limit():
             self._wait_for_rate_limit()
 
@@ -228,6 +242,8 @@ class AnthropicIntegration(AIToolIntegration):
             return {"success": False, "error": str(e), "response_time": response_time}
 
     async def get_context(self, context_id: str) -> dict[str, Any]:
+        """Get context."""
+
         # Anthropic doesn't have persistent contexts, return empty
         return {"context_id": context_id, "conversations": []}
 
@@ -236,11 +252,15 @@ class GitHubCopilotIntegration(AIToolIntegration):
     """Integration with GitHub Copilot (via VS Code extension API)"""
 
     async def initialize(self):
+        """initialize function."""
+
         # GitHub Copilot integration would typically be handled through VS Code extension
         # This is a placeholder for potential API integration
         self.session = None
 
     async def send_query(self, query: str, context: dict[str, Any] = None) -> dict[str, Any]:
+        """send_query function."""
+
         # GitHub Copilot doesn't have a direct API
         # This would need to be integrated through VS Code extension
         return {
@@ -250,6 +270,8 @@ class GitHubCopilotIntegration(AIToolIntegration):
         }
 
     async def get_context(self, context_id: str) -> dict[str, Any]:
+        """Get context."""
+
         return {
             "context_id": context_id,
             "tool": "github_copilot",
@@ -261,6 +283,8 @@ class AIIntegrationManager:
     """Manages all AI tool integrations"""
 
     def __init__(self):
+        """Initialize instance."""
+
         self.integrations: dict[str, AIToolIntegration] = {}
         self.interactions: list[AIInteraction] = []
         self.db = DatabaseManager(load_config())
@@ -491,6 +515,8 @@ async def cleanup_ai_integrations():
 if __name__ == "__main__":
     # Example usage
     async def main():
+        """main function."""
+
         await initialize_ai_integrations()
 
         tools = get_supported_ai_tools()

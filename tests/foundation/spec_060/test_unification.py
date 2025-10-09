@@ -3,11 +3,8 @@ SPEC-060: Unification - Unified Graph Operations Tests
 Tests for unified graph operations and memory integration
 """
 
-import asyncio
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 

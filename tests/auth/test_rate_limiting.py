@@ -4,7 +4,6 @@ Authentication System Tests: Rate Limiting
 Tests rate limiting and brute force protection mechanisms.
 """
 
-import json
 import time
 
 import pytest

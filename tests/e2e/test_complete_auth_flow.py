@@ -5,9 +5,7 @@ Critical for Phase 1 production readiness
 """
 
 import asyncio
-import json
 import time
-from typing import Any, Dict
 
 import httpx
 import pytest
@@ -40,7 +38,6 @@ class TestCompleteAuthFlow:
         await self.ensure_test_users_exist()
         yield
         # Teardown - cleanup if needed
-        pass
 
     async def ensure_test_users_exist(self):
         """Ensure test users exist in the system"""

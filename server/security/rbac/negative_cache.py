@@ -28,6 +28,7 @@ class JWKSNegativeCache:
     """Negative cache for unknown kid values in JWKS rotation."""
 
     def __init__(self, default_ttl: int = 300, max_entries: int = 1000):
+        """Initialize instance."""
         self.default_ttl = default_ttl
         self.max_entries = max_entries
         self._cache: dict[str, NegativeCacheEntry] = {}
@@ -125,6 +126,7 @@ class JWKSVerifierWithNegativeCache:
     """JWKS Verifier enhanced with negative caching for unknown kids."""
 
     def __init__(self, jwks_client, negative_cache_ttl: int = 300):
+        """Initialize instance."""
         self.jwks_client = jwks_client
         self.negative_cache = JWKSNegativeCache(default_ttl=negative_cache_ttl)
         self._refresh_lock = asyncio.Lock()

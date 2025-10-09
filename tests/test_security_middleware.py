@@ -261,11 +261,11 @@ class TestSecurityIntegration:
 
         # Test same org access (should be allowed)
         allowed = await check_cross_org_access(rbac_context, 1)
-        assert allowed == True
+        assert allowed is True
 
         # Test different org access (should be blocked)
         blocked = await check_cross_org_access(rbac_context, 2)
-        assert blocked == False
+        assert blocked is False
 
 
 class TestSecurityAlerting:

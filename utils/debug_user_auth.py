@@ -64,7 +64,7 @@ def test_existing_user_login():
     response = requests.post(f"{BASE_URL}/auth/login", json=login_data)
 
     if response.status_code == 200:
-        result = response.json()
+        response.json()
         print("✅ Krishna login successful!")
         return True
     else:

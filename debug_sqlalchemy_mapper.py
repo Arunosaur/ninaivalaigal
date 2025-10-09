@@ -4,11 +4,8 @@ SQLAlchemy Mapper Debug Script
 Systematically debug the Team.invitations mapper issue without commenting out code
 """
 
-import os
-import sys
 import traceback
 
-from sqlalchemy import inspect
 from sqlalchemy.orm import configure_mappers
 
 
@@ -28,9 +25,9 @@ def debug_step(step_name, func):
 
 def step1_basic_imports():
     """Test basic model imports"""
-    from database.models import Organization, Team, User
+    from database.models import Organization, Team, User  # noqa: F401
 
-    return f"Imported User, Team, Organization successfully"
+    return "Imported User, Team, Organization successfully"
 
 
 def step2_check_team_attributes():
@@ -44,9 +41,9 @@ def step2_check_team_attributes():
 def step3_check_team_relationships():
     """Check Team's SQLAlchemy relationships"""
     from database.models import Team
-    from sqlalchemy import inspect
+    from sqlalchemy import inspect as sqla_inspect
 
-    mapper = inspect(Team)
+    mapper = sqla_inspect(Team)
     relationships = [rel.key for rel in mapper.relationships]
     return f"Team relationships: {relationships}"
 
@@ -61,9 +58,9 @@ def step4_import_team_invitation():
 def step5_check_team_invitation_relationships():
     """Check TeamInvitation's relationships"""
     from models.standalone_teams import TeamInvitation
-    from sqlalchemy import inspect
+    from sqlalchemy import inspect as sqla_inspect
 
-    mapper = inspect(TeamInvitation)
+    mapper = sqla_inspect(TeamInvitation)
     relationships = [rel.key for rel in mapper.relationships]
     return f"TeamInvitation relationships: {relationships}"
 
@@ -71,7 +68,6 @@ def step5_check_team_invitation_relationships():
 def step6_check_registry_state():
     """Check SQLAlchemy registry state"""
     from database.models import Base
-    from sqlalchemy.orm import registry
 
     mappers = list(Base.registry._class_registry.keys())
     return f"Registered classes: {mappers}"
@@ -86,9 +82,9 @@ def step7_configure_mappers():
 def step8_check_back_populates():
     """Check if any relationships have back_populates='invitations'"""
     from models.standalone_teams import TeamInvitation
-    from sqlalchemy import inspect
+    from sqlalchemy import inspect as sqla_inspect
 
-    mapper = inspect(TeamInvitation)
+    mapper = sqla_inspect(TeamInvitation)
     for rel in mapper.relationships:
         if hasattr(rel, "back_populates"):
             print(f"  {rel.key} -> back_populates: {rel.back_populates}")

@@ -140,9 +140,9 @@ class TestMultipartMonitoring:
         results = emergency_rollback("test_incident")
 
         # Verify rollback results
-        assert results["archive_checks_enabled"] == True  # Successfully disabled
-        assert results["magic_byte_detection_enabled"] == True  # Successfully disabled
-        assert results["compression_ratio_checks_enabled"] == True  # Successfully disabled
+        assert results["archive_checks_enabled"] is True  # Successfully disabled
+        assert results["magic_byte_detection_enabled"] is True  # Successfully disabled
+        assert results["compression_ratio_checks_enabled"] is True  # Successfully disabled
 
         # Verify flags are actually disabled
         flags = get_all_flags()

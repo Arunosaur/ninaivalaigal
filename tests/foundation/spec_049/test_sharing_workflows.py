@@ -3,11 +3,9 @@ SPEC-049: Memory Sharing Collaboration - Sharing Workflows Tests
 Tests for tokenized sharing, temporal access, and revocation workflows
 """
 
-import asyncio
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -370,7 +368,7 @@ class TestSharingWorkflows:
                     # Valid shares should have compatible contexts
                     if len(from_parts) >= 2 and len(to_parts) >= 2:
                         # Check if they share at least the organization level
-                        assert from_parts[0] == to_parts[0], f"Valid shares should share org context"
+                        assert from_parts[0] == to_parts[0], "Valid shares should share org context"
                 else:
                     # Invalid shares should have incompatible contexts
                     if len(from_parts) >= 2 and len(to_parts) >= 2:
@@ -471,10 +469,10 @@ class TestSharingWorkflows:
             if contract["expires_at"]:
                 if contract["expires_at"] <= current_time:
                     # Contract should be expired
-                    expected_status = "expired"
+                    pass
                 else:
                     # Contract should still be active
-                    expected_status = "active"
+                    pass
 
                 # In a real system, we'd update the status
                 if contract["expires_at"] <= current_time:

@@ -26,9 +26,7 @@ class ContentLengthDiagnosticMiddleware(BaseHTTPMiddleware):
         self.endpoints_with_issues = set()
 
     async def dispatch(self, request: Request, call_next):
-        """
-        Intercept response and validate Content-Length header matches actual body
-        """
+        """Intercept response and validate Content-Length header matches actual body"""
         try:
             # Get the response from the endpoint
             response = await call_next(request)
@@ -95,15 +93,11 @@ class ContentLengthDiagnosticMiddleware(BaseHTTPMiddleware):
 
 
 class SafeResponseWrapper:
-    """
-    Utility class to ensure responses are properly formatted
-    """
+    """Utility class to ensure responses are properly formatted"""
 
     @staticmethod
     def safe_json_response(content: dict, status_code: int = 200):
-        """
-        Create a JSON response with guaranteed correct Content-Length
-        """
+        """Create a JSON response with guaranteed correct Content-Length"""
         try:
             # Serialize content to ensure it's valid JSON
             json_str = json.dumps(content, ensure_ascii=False)
@@ -121,9 +115,7 @@ class SafeResponseWrapper:
 
     @staticmethod
     def validate_response_body(body: bytes, declared_length: int) -> bool:
-        """
-        Validate that response body matches declared Content-Length
-        """
+        """Validate that response body matches declared Content-Length"""
         actual_length = len(body)
         if actual_length != declared_length:
             logger.warning(f"Response body length mismatch: declared={declared_length}, actual={actual_length}")

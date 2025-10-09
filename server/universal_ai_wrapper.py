@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 class AIModel(Enum):
+    """AIModel class."""
+
     COPILOT = "github_copilot"
     CLAUDE = "anthropic_claude"
     GPT = "openai_gpt"
@@ -77,6 +79,7 @@ class UniversalAIWrapper:
     """Universal wrapper that enhances any AI model with mem0 memories via MCP"""
 
     def __init__(self):
+        """Initialize instance."""
         self.db = DatabaseManager(load_config())
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
@@ -500,6 +503,7 @@ class MCPAIEnhancer:
     """MCP tool that provides AI enhancement capabilities"""
 
     def __init__(self):
+        """Initialize instance."""
         self.wrapper = UniversalAIWrapper()
 
     async def enhance_prompt(self, **kwargs) -> str:

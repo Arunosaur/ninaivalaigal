@@ -26,6 +26,8 @@ router = APIRouter(prefix="/contexts", tags=["contexts"])
 
 # Pydantic models for SPEC-007
 class ContextCreate(BaseModel):
+    """ContextCreate class."""
+
     name: str = Field(..., min_length=1, max_length=255, description="Context name")
     description: Optional[str] = Field(None, max_length=1000, description="Context description")
     scope: ContextScope = Field("personal", description="Context scope")
@@ -36,6 +38,8 @@ class ContextCreate(BaseModel):
 
 
 class ContextUpdate(BaseModel):
+    """ContextUpdate class."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
     visibility: Optional[ContextVisibility] = None
@@ -43,6 +47,8 @@ class ContextUpdate(BaseModel):
 
 
 class PermissionGrant(BaseModel):
+    """PermissionGrant class."""
+
     user_id: Optional[int] = None
     team_id: Optional[int] = None
     organization_id: Optional[int] = None
@@ -51,6 +57,8 @@ class PermissionGrant(BaseModel):
 
 
 class ContextShare(BaseModel):
+    """ContextShare class."""
+
     shared_with_user_id: Optional[int] = None
     shared_with_team_id: Optional[int] = None
     shared_with_organization_id: Optional[int] = None
@@ -60,6 +68,8 @@ class ContextShare(BaseModel):
 
 
 class ContextResponse(BaseModel):
+    """ContextResponse class."""
+
     id: int
     name: str
     description: Optional[str]
@@ -71,6 +81,8 @@ class ContextResponse(BaseModel):
 
 
 class ContextListResponse(BaseModel):
+    """ContextListResponse class."""
+
     contexts: List[ContextResponse]
     total: int
     limit: int
@@ -79,6 +91,8 @@ class ContextListResponse(BaseModel):
 
 # Dependency to get context operations
 async def get_context_ops() -> UnifiedContextOps:
+    """Get context_ops."""
+
     pool = await get_db_pool()
     return UnifiedContextOps(pool)
 

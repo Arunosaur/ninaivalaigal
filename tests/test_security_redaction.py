@@ -352,7 +352,7 @@ class TestConfigurationManagement:
 
     def test_default_configuration(self):
         """Test default configuration values"""
-        assert redaction_config.enabled == True, "Redaction should be enabled by default"
+        assert redaction_config.enabled is True, "Redaction should be enabled by default"
         assert redaction_config.default_tier == ContextSensitivity.INTERNAL, "Default tier should be internal"
         assert redaction_config.min_entropy > 0, "Min entropy should be positive"
         assert redaction_config.min_length > 0, "Min length should be positive"

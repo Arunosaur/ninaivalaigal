@@ -1,3 +1,4 @@
+"""starlette adapter module."""
 # server/security/multipart/starlette_adapter.py
 from __future__ import annotations
 

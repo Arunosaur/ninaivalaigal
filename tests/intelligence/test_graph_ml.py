@@ -5,7 +5,7 @@ Testing graph-aware machine learning for memory ranking and relationship predict
 
 import asyncio
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -14,7 +14,6 @@ from server.intelligence.graph_ml import GraphMLEngine
 from server.intelligence.models import (
     EmbeddingUpdate,
     GraphContext,
-    GraphMLMetrics,
     RelationshipPrediction,
     ScoredMemory,
     TeamContext,

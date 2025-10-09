@@ -19,6 +19,8 @@ router = APIRouter(prefix="/teams", tags=["team-invitations"])
 
 
 class TeamInvitationCreate(BaseModel):
+    """TeamInvitationCreate class."""
+
     email: EmailStr
     team_ids: list[str]
     role: str = "member"  # member, admin, viewer
@@ -27,6 +29,8 @@ class TeamInvitationCreate(BaseModel):
 
 
 class TeamInvitationResponse(BaseModel):
+    """TeamInvitationResponse class."""
+
     id: str
     email: str
     name: str | None = None
@@ -42,11 +46,15 @@ class TeamInvitationResponse(BaseModel):
 
 
 class TeamInvitationAccept(BaseModel):
+    """TeamInvitationAccept class."""
+
     token: str
     user_data: dict  # name, password if new user
 
 
 class BulkInvitationAction(BaseModel):
+    """BulkInvitationAction class."""
+
     invitation_ids: list[str]
     action: str  # resend, revoke, extend
     extend_days: int | None = 14

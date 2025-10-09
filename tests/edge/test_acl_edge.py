@@ -4,9 +4,6 @@ Edge Case Tests for ACL System (SPEC-043)
 Tests conflicting permissions, unauthorized access, and role hierarchy edge cases.
 """
 
-import json
-from unittest.mock import Mock, patch
-
 import pytest
 import requests
 

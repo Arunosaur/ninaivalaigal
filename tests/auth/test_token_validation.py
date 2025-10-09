@@ -4,8 +4,6 @@ Authentication System Tests: Token Validation
 Tests JWT token validation and authorization functionality.
 """
 
-import json
-
 import pytest
 import requests
 

@@ -29,7 +29,7 @@ from typing import Any
 
 # Import the existing RBAC policy snapshot functionality
 sys.path.append(str(Path(__file__).parent.parent))
-from tests.test_rbac_policy_snapshot import (
+from tests.test_rbac_policy_snapshot import (  # noqa: E402
     RBACPolicySnapshot,
     create_production_policy_snapshot,
     validate_policy_against_snapshot,

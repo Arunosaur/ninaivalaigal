@@ -203,7 +203,7 @@ def main():
     print(f"\n🎫 JWT Token obtained: {token}")
 
     # Step 2: List existing contexts
-    existing_contexts = list_contexts(token)
+    list_contexts(token)
 
     # Step 3: Create a test context
     test_context_name = f"test-validation-{int(time.time())}"
@@ -225,13 +225,13 @@ def main():
             time.sleep(0.5)  # Brief pause between requests
 
         # Step 5: Recall all memories
-        all_memories = recall_memories(token, test_context_name)
+        recall_memories(token, test_context_name)
 
         # Step 6: Test query-based recall
-        query_memories = recall_memories(token, test_context_name, "authentication JWT")
+        recall_memories(token, test_context_name, "authentication JWT")
 
         # Step 7: List contexts again to see the new one
-        updated_contexts = list_contexts(token)
+        list_contexts(token)
 
     print("\n" + "=" * 50)
     print("✅ Memory validation complete!")

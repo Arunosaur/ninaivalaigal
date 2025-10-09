@@ -117,7 +117,7 @@ class RedisPerformanceBenchmark:
             key = f"memory:user_1:{memory['memory_id']}"
             cached_memory = self.redis_client.get(key)
             if cached_memory:
-                parsed_memory = json.loads(cached_memory)
+                json.loads(cached_memory)
             end = time.time()
             retrieve_times.append((end - start) * 1000)
 
@@ -255,7 +255,7 @@ class RedisPerformanceBenchmark:
                 data = self.redis_client.get(key)
                 if data:
                     parsed_data = json.loads(data)
-                    memory_count = len(parsed_data.get("memories", []))
+                    len(parsed_data.get("memories", []))
                 end = time.time()
                 retrieval_times.append((end - start) * 1000)
 

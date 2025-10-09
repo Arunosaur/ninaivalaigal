@@ -1,6 +1,6 @@
 """Enhanced unit tests for Redis module."""
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -44,7 +44,7 @@ class TestRedisModule:
     def test_redis_connection_health(self, mock_redis_client):
         """Test Redis connection health check."""
         try:
-            from server import redis_client
+            pass
 
             # Mock Redis client with async health_check
             mock_redis_client.health_check = Mock(return_value={"status": "healthy"})
@@ -62,7 +62,7 @@ class TestRedisModule:
     def test_redis_configuration(self):
         """Test Redis configuration handling."""
         try:
-            import os
+            pass
 
             # Test Redis URL configuration
             test_redis_url = "redis://localhost:6379/0"

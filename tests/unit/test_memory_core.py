@@ -1,9 +1,5 @@
 """Unit tests for core memory functionality."""
 
-from unittest.mock import Mock, patch
-
-import pytest
-
 
 class TestMemoryCore:
     """Test core memory operations."""

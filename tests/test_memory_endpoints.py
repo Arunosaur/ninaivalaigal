@@ -4,7 +4,7 @@ Test coverage for server/memory_api.py endpoints
 Target: Increase from 0% to 60% coverage
 """
 import os
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -43,7 +43,7 @@ class TestMemoryAPIEndpoints:
 
         app = FastAPI()
         app.include_router(router)
-        client = TestClient(app)
+        TestClient(app)
 
         # Test data
         remember_data = {

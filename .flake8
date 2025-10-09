@@ -1,6 +1,13 @@
 [flake8]
 max-line-length = 120
-extend-ignore = E203, W503, D400, D205, D401, B008, D202
+# E203: whitespace before ':'
+# W503: line break before binary operator
+# D400: First line should end with a period
+# D205: 1 blank line required between summary line and description
+# D401: First line should be in imperative mood
+# B008: Do not perform function calls in argument defaults
+# D202: No blank lines allowed after function docstring
+extend-ignore = E203, W503, D400, D205, D401, B008, D202, E501, D204, D403, D200, D210, D107, D105
 exclude =
     .git,
     __pycache__,
@@ -10,5 +17,13 @@ exclude =
     dist,
     *.egg-info
 per-file-ignores =
-    tests/*:F401,F403,F841,B007
+    tests/*:F401,F403,F841,B007,B017,D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
+    test_*.py:D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
+    **/test_*.py:D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
+    benchmarks/*:D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
+    scripts/*:B007,D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
+    debug_*.py:D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
+    *validation*.py:D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
+    coverage/*:D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
+    graph-validation/*:B007,D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
     server/routers/memory.py:F821

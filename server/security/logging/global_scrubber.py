@@ -29,6 +29,7 @@ class GlobalLogScrubber:
     """Global scrubber for logs and telemetry data."""
 
     def __init__(self):
+        """Initialize instance."""
         self.patterns: list[ScrubPattern] = []
         self.enabled = True
         self._setup_default_patterns()
@@ -175,6 +176,7 @@ class ScrubberLogHandler(logging.Handler):
     """Log handler that scrubs secrets before logging."""
 
     def __init__(self, target_handler: logging.Handler):
+        """Initialize instance."""
         super().__init__()
         self.target_handler = target_handler
         self.setLevel(target_handler.level)

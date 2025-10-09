@@ -25,6 +25,8 @@ router = APIRouter(prefix="/ai/feedback", tags=["ai_feedback"])
 
 # Request/Response Models
 class FeedbackRequest(BaseModel):
+    """FeedbackRequest class."""
+
     feedback_type: FeedbackType
     feedback_value: FeedbackValue
     context: Dict[str, Any]
@@ -34,12 +36,16 @@ class FeedbackRequest(BaseModel):
 
 
 class FeedbackResponse(BaseModel):
+    """FeedbackResponse class."""
+
     event_id: str
     status: str
     message: str
 
 
 class LearningInsights(BaseModel):
+    """LearningInsights class."""
+
     feedback_statistics: Dict[str, Any]
     improvement_metrics: Dict[str, Any]
     learning_effectiveness: Dict[str, Any]
@@ -49,11 +55,15 @@ class LearningInsights(BaseModel):
 
 
 class ContextOptimizationRequest(BaseModel):
+    """ContextOptimizationRequest class."""
+
     context: Dict[str, Any]
     apply_learning: bool = True
 
 
 class ContextOptimizationResponse(BaseModel):
+    """ContextOptimizationResponse class."""
+
     original_context: Dict[str, Any]
     optimized_context: Dict[str, Any]
     adjustments_applied: List[str]
@@ -73,9 +83,7 @@ async def collect_feedback(
     current_user: dict = Depends(get_current_user),
     feedback_system: AIFeedbackSystem = Depends(get_feedback_system),
 ) -> FeedbackResponse:
-    """
-    Collect user feedback for AI learning.
-    """
+    """Collect user feedback for AI learning."""
     try:
         user_id = current_user["user_id"]
 
@@ -111,9 +119,7 @@ async def get_learning_patterns(
     current_user: dict = Depends(get_current_user),
     feedback_system: AIFeedbackSystem = Depends(get_feedback_system),
 ) -> List[LearningPattern]:
-    """
-    Get learned patterns from user feedback.
-    """
+    """Get learned patterns from user feedback."""
     try:
         user_id = current_user["user_id"]
 
@@ -137,9 +143,7 @@ async def get_context_improvements(
     current_user: dict = Depends(get_current_user),
     feedback_system: AIFeedbackSystem = Depends(get_feedback_system),
 ) -> List[ContextImprovement]:
-    """
-    Get suggested context improvements based on learning.
-    """
+    """Get suggested context improvements based on learning."""
     try:
         user_id = current_user["user_id"]
 
@@ -166,9 +170,7 @@ async def optimize_context(
     current_user: dict = Depends(get_current_user),
     feedback_system: AIFeedbackSystem = Depends(get_feedback_system),
 ) -> ContextOptimizationResponse:
-    """
-    Optimize context using learned patterns.
-    """
+    """Optimize context using learned patterns."""
     try:
         user_id = current_user["user_id"]
         original_context = optimization_request.context.copy()
@@ -212,9 +214,7 @@ async def get_learning_insights(
     current_user: dict = Depends(get_current_user),
     feedback_system: AIFeedbackSystem = Depends(get_feedback_system),
 ) -> LearningInsights:
-    """
-    Get insights from AI learning system.
-    """
+    """Get insights from AI learning system."""
     try:
         user_id = current_user["user_id"]
 
@@ -239,9 +239,7 @@ async def rate_memory_relevance(
     current_user: dict = Depends(get_current_user),
     feedback_system: AIFeedbackSystem = Depends(get_feedback_system),
 ) -> FeedbackResponse:
-    """
-    Rate the relevance of a specific memory.
-    """
+    """Rate the relevance of a specific memory."""
     try:
         user_id = current_user["user_id"]
 
@@ -290,9 +288,7 @@ async def rate_context_quality(
     current_user: dict = Depends(get_current_user),
     feedback_system: AIFeedbackSystem = Depends(get_feedback_system),
 ) -> FeedbackResponse:
-    """
-    Rate the quality of provided context.
-    """
+    """Rate the quality of provided context."""
     try:
         user_id = current_user["user_id"]
 
@@ -338,9 +334,7 @@ async def get_feedback_statistics(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Get feedback statistics for the user.
-    """
+    """Get feedback statistics for the user."""
     try:
         user_id = current_user["user_id"]
 

@@ -27,13 +27,17 @@ except ImportError:
     print("⚠️ MCP not available, using mock implementation")
 
     class MockMCP:
+        """MockMCP class."""
+
         def __init__(self, name):
+            """Initialize instance."""
             self.name = name
             self.tools = {}
             self.resources = {}
             self.prompts = {}
 
         def tool(self):
+            """Tool method."""
             def decorator(func):
                 self.tools[func.__name__] = func
                 return func
@@ -41,6 +45,7 @@ except ImportError:
             return decorator
 
         def resource(self, uri):
+            """Resource method."""
             def decorator(func):
                 self.resources[uri] = func
                 return func
@@ -48,6 +53,7 @@ except ImportError:
             return decorator
 
         def prompt(self):
+            """Prompt method."""
             def decorator(func):
                 self.prompts[func.__name__] = func
                 return func
@@ -55,6 +61,7 @@ except ImportError:
             return decorator
 
         def run(self):
+            """Run method."""
             print(f"Mock MCP server '{self.name}' would run with:")
             print(f"  Tools: {list(self.tools.keys())}")
             print(f"  Resources: {list(self.resources.keys())}")
@@ -246,13 +253,18 @@ def get_initialized_components():
 
         # Return minimal mock components
         class MockDB:
+            """MockDB class."""
+
             def get_memories(self, *args, **kwargs):
+                """Get memories."""
                 return []
 
             def get_all_contexts(self, *args, **kwargs):
+                """Get all contexts."""
                 return []
 
             def add_memory(self, *args, **kwargs):
+                """Add memory method."""
                 return 1
 
         _components_cache = {

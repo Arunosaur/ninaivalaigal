@@ -4,9 +4,6 @@ SPEC-001: Core Memory System - Comprehensive Test Coverage
 Tests the fundamental memory recording, recall, and context management functionality.
 """
 
-import json
-from unittest.mock import Mock, patch
-
 import pytest
 import requests
 

@@ -3,16 +3,10 @@ SPEC-058: Documentation Expansion - Documentation Links Tests
 Tests for link validation, code samples, and OpenAPI syntax
 """
 
-import asyncio
 import json
-import os
 import re
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-import yaml
 
 
 class TestDocumentationLinks:

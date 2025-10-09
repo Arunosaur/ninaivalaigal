@@ -17,8 +17,10 @@ try:
 except ImportError:
 
     class Resource:
+        """Resource class."""
 
         def __init__(self, uri, name, description, mimeType, text):
+            """Initialize instance."""
             self.uri = uri
             self.name = name
             self.description = description
@@ -26,8 +28,10 @@ except ImportError:
             self.text = text
 
     class TextResourceContents:
+        """TextResourceContents class."""
 
         def __init__(self, text):
+            """Initialize instance."""
             self.text = text
 
 

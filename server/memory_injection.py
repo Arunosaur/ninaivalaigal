@@ -123,9 +123,7 @@ class MemoryInjectionEngine:
     async def analyze_injection_opportunities(
         self, context: InjectionContext, max_candidates: int = 10
     ) -> List[InjectionCandidate]:
-        """
-        Analyze current context and identify memory injection opportunities.
-        """
+        """Analyze current context and identify memory injection opportunities."""
         try:
             start_time = time.time()
 
@@ -171,9 +169,7 @@ class MemoryInjectionEngine:
         strategy: InjectionStrategy = InjectionStrategy.CONTEXTUAL,
         max_injections: int = 5,
     ) -> List[Dict[str, Any]]:
-        """
-        Execute memory injection based on analysis and strategy.
-        """
+        """Execute memory injection based on analysis and strategy."""
         try:
             # Get injection candidates
             candidates = await self.analyze_injection_opportunities(context, max_candidates=max_injections * 2)
@@ -205,9 +201,7 @@ class MemoryInjectionEngine:
             raise
 
     async def create_injection_rule(self, user_id: str, rule_data: Dict[str, Any]) -> InjectionRule:
-        """
-        Create a new memory injection rule.
-        """
+        """Create a new memory injection rule."""
         try:
             rule_id = f"rule_{int(time.time())}_{user_id[:8]}"
 
@@ -246,9 +240,7 @@ class MemoryInjectionEngine:
             raise
 
     async def get_injection_analytics(self, user_id: str, days_back: int = 30) -> Dict[str, Any]:
-        """
-        Get analytics about memory injection performance.
-        """
+        """Get analytics about memory injection performance."""
         try:
             cutoff_date = datetime.utcnow() - timedelta(days=days_back)
 

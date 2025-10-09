@@ -21,6 +21,8 @@ from database import Base, DatabaseManager  # noqa: E402 (after sys.path modific
 
 
 class ApprovalStatus(Enum):
+    """ApprovalStatus class."""
+
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"

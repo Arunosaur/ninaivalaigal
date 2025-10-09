@@ -94,7 +94,7 @@ def test_mcp_tools_list():
         process.stdin.flush()
 
         # Read init response
-        init_response = process.stdout.readline()
+        process.stdout.readline()
 
         # Send initialized notification (required by MCP protocol)
         initialized_notification = {

@@ -34,6 +34,8 @@ router = APIRouter(prefix="/drift", tags=["Memory Drift Detection"])
 
 # Request/Response Models
 class DriftDetectionRequest(BaseModel):
+    """DriftDetectionRequest class."""
+
     memory_id: str = Field(..., description="Memory ID to analyze")
     content: str = Field(..., description="Current memory content")
     metadata: dict[str, Any] | None = Field(None, description="Memory metadata")
@@ -41,6 +43,8 @@ class DriftDetectionRequest(BaseModel):
 
 
 class SnapshotRequest(BaseModel):
+    """SnapshotRequest class."""
+
     memory_id: str = Field(..., description="Memory ID")
     content: str = Field(..., description="Memory content")
     metadata: dict[str, Any] | None = Field(None, description="Memory metadata")
@@ -48,6 +52,8 @@ class SnapshotRequest(BaseModel):
 
 
 class DriftDetectionResponse(BaseModel):
+    """DriftDetectionResponse class."""
+
     memory_id: str
     drift_count: int
     detections: list[dict[str, Any]]
@@ -55,6 +61,8 @@ class DriftDetectionResponse(BaseModel):
 
 
 class DriftHistoryResponse(BaseModel):
+    """DriftHistoryResponse class."""
+
     memory_id: str
     total_drifts: int
     drift_history: list[dict[str, Any]]
@@ -62,6 +70,8 @@ class DriftHistoryResponse(BaseModel):
 
 
 class DriftReportResponse(BaseModel):
+    """DriftReportResponse class."""
+
     memory_id: str
     report_period_days: int
     total_drifts: int
@@ -71,6 +81,8 @@ class DriftReportResponse(BaseModel):
 
 
 class DriftStatsResponse(BaseModel):
+    """DriftStatsResponse class."""
+
     total_memories_tracked: int
     total_drifts_detected: int
     drift_types_distribution: dict[str, int]
@@ -80,6 +92,8 @@ class DriftStatsResponse(BaseModel):
 
 
 class SnapshotResponse(BaseModel):
+    """SnapshotResponse class."""
+
     memory_id: str
     version: int
     content_hash: str

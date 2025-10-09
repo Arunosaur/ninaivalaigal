@@ -15,6 +15,8 @@ router = APIRouter(prefix="/approval", tags=["approval"])
 
 # Approval Status Enum
 class ApprovalStatus(str, Enum):
+    """ApprovalStatus class."""
+
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"

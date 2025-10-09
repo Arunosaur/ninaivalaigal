@@ -1,12 +1,11 @@
 # SPEC-056: Example of improved testing with mocks and fixtures
 # This demonstrates the new testing approach with comprehensive mocking
 
-from unittest.mock import AsyncMock, patch
 
 import pytest
 import pytest_asyncio
 
-from tests.fixtures import MockContext, assert_memory_valid, assert_user_valid
+from tests.fixtures import assert_memory_valid, assert_user_valid
 
 
 class TestMemoryWithMocks:

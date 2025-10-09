@@ -19,6 +19,7 @@ class RedisClient:
     """Redis client with connection pooling and caching utilities"""
 
     def __init__(self) -> None:
+        """Initialize instance."""
         self.redis: Redis | None = None
         self.connection_pool = None
         self._connected = False
@@ -112,6 +113,7 @@ class MemoryTokenCache:
     """Redis-based memory token caching for SPEC-033"""
 
     def __init__(self, redis_client: RedisClient):
+        """Initialize instance."""
         self.redis = redis_client
         self.key_prefix = "memory:"
         self.default_ttl = 3600  # 1 hour as per SPEC-033
@@ -207,6 +209,7 @@ class SessionStore:
     """Redis-backed session storage - SPEC-045 synergy"""
 
     def __init__(self, redis_client: RedisClient):
+        """Initialize instance."""
         self.redis = redis_client
         self.default_ttl = 1800  # 30 minutes
         self.key_prefix = "session:"
@@ -276,6 +279,7 @@ class RateLimiter:
     """Redis-backed API rate limiting"""
 
     def __init__(self, redis_client: RedisClient):
+        """Initialize instance."""
         self.redis = redis_client
         self.key_prefix = "rate:"
 
@@ -336,6 +340,7 @@ class RelevanceScoreCache:
     """Redis-based relevance score caching for SPEC-031/033 integration"""
 
     def __init__(self, redis_client: RedisClient):
+        """Initialize instance."""
         self.redis = redis_client
         self.key_prefix = "score:"
         self.default_ttl = 900  # 15 minutes as per SPEC-033

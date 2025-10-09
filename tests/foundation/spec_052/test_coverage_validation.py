@@ -3,14 +3,9 @@ SPEC-052: Comprehensive Test Coverage - Coverage Validation Tests
 Tests for coverage validation, chaos testing, and report generation
 """
 
-import asyncio
-import json
-import os
-import subprocess
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -116,24 +111,24 @@ class TestCoverageValidation:
             # Simulate chaos scenario
             if scenario["scenario"] == "connection_timeout":
                 # Simulate connection timeout recovery
-                recovery_time = min(scenario["duration_seconds"] * 1.5, scenario["max_recovery_time"])
+                min(scenario["duration_seconds"] * 1.5, scenario["max_recovery_time"])
                 time.sleep(0.001)  # Simulate processing
 
             elif scenario["scenario"] == "connection_pool_exhaustion":
                 # Simulate pool exhaustion recovery
-                recovery_time = min(scenario["duration_seconds"] * 2, scenario["max_recovery_time"])
+                min(scenario["duration_seconds"] * 2, scenario["max_recovery_time"])
                 time.sleep(0.001)
 
             elif scenario["scenario"] == "query_timeout":
                 # Simulate query timeout recovery
-                recovery_time = scenario["duration_seconds"]
+                scenario["duration_seconds"]
                 time.sleep(0.001)
 
             end_time = time.time()
             actual_recovery_time = end_time - start_time
 
             assert scenario["expected_recovery"], f"Scenario {scenario['scenario']} should recover"
-            assert actual_recovery_time < 1.0, f"Test simulation should be fast"
+            assert actual_recovery_time < 1.0, "Test simulation should be fast"
 
         # Test Redis chaos scenarios
         redis_chaos_scenarios = [

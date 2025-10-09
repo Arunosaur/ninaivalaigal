@@ -128,9 +128,7 @@ async def submit_early_adopter_application(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Submit application for early adopter program
-    """
+    """Submit application for early adopter program"""
     # Check if user already applied
     existing_user = db.query(User).filter(User.email == application.email).first()
     if existing_user and str(existing_user.id) in early_adopters_db:

@@ -5,7 +5,6 @@ These tests ensure Redis is running and accessible.
 
 import os
 import time
-from typing import Optional
 
 import pytest
 import redis

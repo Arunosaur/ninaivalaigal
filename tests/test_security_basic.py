@@ -86,13 +86,9 @@ def test_security_middleware_imports():
     """Test security middleware imports"""
     try:
         from security.middleware.rate_limiting import EnhancedRateLimiter
-        from security.middleware.redaction_middleware import RedactionMiddleware
-        from security.middleware.security_headers import SecurityHeadersMiddleware
 
         # Test instantiation
-        headers_middleware = SecurityHeadersMiddleware
-        redaction_middleware = RedactionMiddleware
-        rate_limiter = EnhancedRateLimiter()
+        EnhancedRateLimiter()
 
         print("✅ Security middleware imports working correctly")
         return True

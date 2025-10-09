@@ -27,11 +27,15 @@ router = APIRouter(prefix="/teams", tags=["standalone-teams"])
 
 # Pydantic models for request/response
 class StandaloneTeamCreate(BaseModel):
+    """StandaloneTeamCreate class."""
+
     name: str
     max_members: int = 10
 
     @validator("name")
     def validate_name(cls, v):
+        """Validate name."""
+
         if not v or len(v.strip()) < 2:
             raise ValueError("Team name must be at least 2 characters")
         if len(v) > 100:
@@ -40,27 +44,37 @@ class StandaloneTeamCreate(BaseModel):
 
     @validator("max_members")
     def validate_max_members(cls, v):
+        """Validate max_members."""
+
         if v < 2 or v > 50:
             raise ValueError("Max members must be between 2 and 50")
         return v
 
 
 class TeamInviteCreate(BaseModel):
+    """TeamInviteCreate class."""
+
     email: EmailStr
     role: str = "contributor"
 
     @validator("role")
     def validate_role(cls, v):
+        """Validate role."""
+
         if v not in ["admin", "contributor", "viewer"]:
             raise ValueError("Role must be admin, contributor, or viewer")
         return v
 
 
 class TeamInviteAccept(BaseModel):
+    """TeamInviteAccept class."""
+
     invitation_token: str
 
 
 class TeamUpgrade(BaseModel):
+    """TeamUpgrade class."""
+
     organization_name: str
     domain: Optional[str] = None
     size: str = "startup"
@@ -68,6 +82,8 @@ class TeamUpgrade(BaseModel):
 
     @validator("size")
     def validate_size(cls, v):
+        """Validate size."""
+
         valid_sizes = ["startup", "small", "medium", "large", "enterprise"]
         if v not in valid_sizes:
             raise ValueError(f'Size must be one of: {", ".join(valid_sizes)}')
@@ -75,6 +91,8 @@ class TeamUpgrade(BaseModel):
 
 
 class TeamResponse(BaseModel):
+    """TeamResponse class."""
+
     id: UUID
     name: str
     is_standalone: bool
@@ -85,10 +103,14 @@ class TeamResponse(BaseModel):
     created_by_user_id: UUID
 
     class Config:
+        """Config configuration."""
+
         from_attributes = True
 
 
 class TeamMemberResponse(BaseModel):
+    """TeamMemberResponse class."""
+
     id: UUID
     user_id: UUID
     user_name: str
@@ -98,10 +120,14 @@ class TeamMemberResponse(BaseModel):
     status: str
 
     class Config:
+        """Config configuration."""
+
         from_attributes = True
 
 
 class TeamInvitationResponse(BaseModel):
+    """TeamInvitationResponse class."""
+
     id: UUID
     email: str
     role: str
@@ -111,6 +137,8 @@ class TeamInvitationResponse(BaseModel):
     invited_by_name: str
 
     class Config:
+        """Config configuration."""
+
         from_attributes = True
 
 
@@ -236,9 +264,7 @@ async def get_my_team(
     team_manager: StandaloneTeamManager = Depends(get_team_manager),
     db: Session = Depends(get_db),
 ) -> Optional[TeamResponse]:
-    """
-    Get current user's standalone team
-    """
+    """Get current user's standalone team"""
     # Check if user has a standalone team
     team = None
 

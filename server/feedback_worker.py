@@ -59,9 +59,7 @@ async def process_feedback_event(event_data: dict[str, Any]):
 
 
 async def batch_process_feedback_events(event_data_list: list):
-    """
-    Process multiple feedback events in batch for efficiency.
-    """
+    """Process multiple feedback events in batch for efficiency."""
     try:
         engine = await get_feedback_engine()
 

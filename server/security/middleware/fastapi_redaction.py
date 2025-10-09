@@ -18,11 +18,13 @@ class RedactionASGIMiddleware:
     """
 
     def __init__(self, app: ASGIApp, detector_fn: t.Callable[[str], str], overlap: int = 64):
+        """Initialize instance."""
         self.app = app
         self.detector_fn = detector_fn
         self.overlap = overlap
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """  call   method."""
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return

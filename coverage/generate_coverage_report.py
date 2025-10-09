@@ -5,7 +5,6 @@ import os
 import subprocess
 import sys
 from datetime import datetime
-from pathlib import Path
 
 
 def run_coverage():
@@ -140,7 +139,8 @@ def generate_html_dashboard(summary):
         <h1>🧪 Ninaivalaigal Code Coverage Dashboard</h1>
         <p>Generated: {summary['timestamp']}</p>
         <div class="metric coverage-{'high' if summary['total_coverage'] >= 80 else 'medium' if summary['total_coverage'] >= 60 else 'low'}">
-            <strong>Total Coverage: {summary['total_coverage']:.1f}%</strong>
+            <strong>Total Coverage: {summary['total_coverage']:.1f}%
+            </strong>
         </div>
         <div class="metric">
             <strong>Total Lines: {summary['total_lines']}</strong>
@@ -200,7 +200,10 @@ def generate_html_dashboard(summary):
         <li><strong>Target:</strong> 80% overall coverage</li>
         <li><strong>Critical modules:</strong> auth/, security/, memory/ should reach 100%</li>
         <li><strong>Current status:</strong> """
-        + f"{summary['total_coverage']:.1f}% ({'✅ Target reached!' if summary['total_coverage'] >= 80 else '🔄 In progress'})"
+        + (
+            f"{summary['total_coverage']:.1f}% "
+            f"({'✅ Target reached!' if summary['total_coverage'] >= 80 else '🔄 In progress'})"
+        )
         + """</li>
     </ul>
 
@@ -241,11 +244,11 @@ def main():
     summary = generate_summary_report()
     generate_html_dashboard(summary)
 
-    print(f"\n🎉 Coverage analysis complete!")
+    print("\n🎉 Coverage analysis complete!")
     print(f"📊 Total Coverage: {total_coverage:.1f}%")
-    print(f"🌐 Dashboard: coverage/dashboard.html")
-    print(f"📋 Summary: coverage/summary.json")
-    print(f"🏷️  Badge: coverage/badge.json")
+    print("🌐 Dashboard: coverage/dashboard.html")
+    print("📋 Summary: coverage/summary.json")
+    print("🏷️  Badge: coverage/badge.json")
 
     # Check if target is met
     if total_coverage >= 80:

@@ -231,8 +231,8 @@ def test_health_router_endpoints():
         data = response.json()
         assert data["status"] == "healthy"
         assert data["env"] == "development"
-        assert data["security_config"]["jwks_url_configured"] == True
-        assert data["security_config"]["redis_configured"] == True
+        assert data["security_config"]["jwks_url_configured"] is True
+        assert data["security_config"]["redis_configured"] is True
         assert data["security_config"]["guard_profile"] == "edge-decompress"
         assert "jwks_url_domain" in data["security_config"]
 
@@ -246,7 +246,7 @@ def test_health_router_endpoints():
         assert response.status_code == 200
 
         data = response.json()
-        assert data["validation_passed"] == True
+        assert data["validation_passed"] is True
         assert data["env"] == "development"
         assert len(data["errors"]) == 0
 
@@ -296,9 +296,9 @@ def test_config_loading_defaults():
         assert cfg.fail_closed_tier_threshold == 3  # Default
         assert cfg.guard_profile == "edge-decompress"  # Default
         assert cfg.max_body_bytes == 10 * 1024 * 1024  # 10MB default
-        assert cfg.enable_compression_guard == True  # Default
-        assert cfg.enable_multipart_adapter == True  # Default
-        assert cfg.enable_global_scrubbing == True  # Default
+        assert cfg.enable_compression_guard is True  # Default
+        assert cfg.enable_multipart_adapter is True  # Default
+        assert cfg.enable_global_scrubbing is True  # Default
         assert cfg.idempotency_ttl_seconds == 3600  # 1 hour default
 
         return True

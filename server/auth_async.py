@@ -160,9 +160,7 @@ async def create_user_async(
     name: str,
     account_type: str = "individual",  # pragma: allowlist secret
 ) -> Optional[Dict[str, Any]]:
-    """
-    Async-compatible user creation
-    """
+    """Async-compatible user creation"""
     try:
         loop = asyncio.get_event_loop()
 

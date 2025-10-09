@@ -27,6 +27,8 @@ router = APIRouter(prefix="/suggestions", tags=["suggestions"])
 
 # Request/Response models
 class GetSuggestionsRequest(BaseModel):
+    """GetSuggestionsRequest class."""
+
     memory_id: str | None = Field(None, description="Base memory for similarity suggestions")
     query: str | None = Field(None, description="Query for content-based suggestions")
     context_id: str | None = Field(None, description="Context for contextual suggestions")
@@ -37,6 +39,8 @@ class GetSuggestionsRequest(BaseModel):
 
 
 class MemorySuggestionResponse(BaseModel):
+    """MemorySuggestionResponse class."""
+
     memory_id: str
     title: str
     content_preview: str
@@ -52,6 +56,8 @@ class MemorySuggestionResponse(BaseModel):
 
 
 class SuggestionsListResponse(BaseModel):
+    """SuggestionsListResponse class."""
+
     suggestions: list[MemorySuggestionResponse]
     total_found: int
     algorithms_used: list[str]
@@ -61,6 +67,8 @@ class SuggestionsListResponse(BaseModel):
 
 
 class SuggestionStatsResponse(BaseModel):
+    """SuggestionStatsResponse class."""
+
     total_suggestions_generated: int
     cache_hit_rate: float
     avg_generation_time_ms: float
@@ -69,12 +77,16 @@ class SuggestionStatsResponse(BaseModel):
 
 
 class SimilarMemoriesRequest(BaseModel):
+    """SimilarMemoriesRequest class."""
+
     memory_id: str
     limit: int = Field(5, ge=1, le=20)
     min_similarity: float = Field(0.5, ge=0.0, le=1.0)
 
 
 class RelatedByQueryRequest(BaseModel):
+    """RelatedByQueryRequest class."""
+
     query: str
     limit: int = Field(10, ge=1, le=30)
     context_id: str | None = None

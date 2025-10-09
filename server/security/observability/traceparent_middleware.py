@@ -1,10 +1,14 @@
+"""traceparent middleware module."""
 import uuid
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
 
 class TraceparentHeaderMiddleware(BaseHTTPMiddleware):
+    """TraceparentHeaderMiddleware middleware."""
+
     async def dispatch(self, request, call_next):
+        """Dispatch method."""
         trace_id = uuid.uuid4().hex
         request.state.trace_id = trace_id
         response = await call_next(request)

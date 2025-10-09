@@ -462,7 +462,7 @@ class CoverageValidator:
         try:
             overall_assessment = validation_results.get("overall_assessment", {})
 
-            report = f"""
+            report = """
 # SPEC-052: Comprehensive Test Coverage Report
 
 **Generated**: {validation_results['start_time'].isoformat()}
@@ -581,7 +581,7 @@ async def main():
 
         # Print summary
         overall = results.get("overall_assessment", {})
-        print(f"\n🎯 SPEC-052 Coverage Validation Summary")
+        print("\n🎯 SPEC-052 Coverage Validation Summary")
         print(f"Overall Coverage: {overall.get('overall_coverage_percentage', 0):.1f}%")
         print(f"Quality Gates: {overall.get('quality_gates_passed', '0/0')}")
         print(f"Production Ready: {'✅ YES' if overall.get('ready_for_production', False) else '❌ NO'}")

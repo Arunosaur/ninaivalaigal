@@ -1,7 +1,6 @@
 """Enhanced functional tests for auth endpoints."""
 
 import pytest
-from fastapi.testclient import TestClient
 
 
 @pytest.mark.functional

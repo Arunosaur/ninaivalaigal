@@ -1,9 +1,3 @@
-import json
-
-import requests
-from metrics.scoring import compute_edge_weight_accuracy
-
-
 def run(config):
     print("⚖️ Validating Edge Weight Relevance...")
 

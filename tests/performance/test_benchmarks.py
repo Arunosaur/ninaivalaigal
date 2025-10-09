@@ -1,7 +1,5 @@
 """Performance benchmark tests."""
 
-import pytest
-
 
 class TestPerformanceBenchmarks:
     """Test performance benchmarks."""

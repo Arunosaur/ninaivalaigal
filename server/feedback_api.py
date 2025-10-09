@@ -27,6 +27,8 @@ router = APIRouter(prefix="/feedback", tags=["feedback"])
 
 # Request/Response models
 class ImplicitFeedbackRequest(BaseModel):
+    """ImplicitFeedbackRequest class."""
+
     memory_id: str
     feedback_type: str = Field(..., description="Type: dwell, click, navigation")
     value: float = Field(..., ge=0.0, description="Raw feedback value")
@@ -37,6 +39,8 @@ class ImplicitFeedbackRequest(BaseModel):
 
 
 class ExplicitFeedbackRequest(BaseModel):
+    """ExplicitFeedbackRequest class."""
+
     memory_id: str
     feedback_type: str = Field(..., description="Type: thumbs_up, thumbs_down, quality_note")
     sentiment: str = Field(..., description="Sentiment: positive, negative, neutral")
@@ -47,6 +51,8 @@ class ExplicitFeedbackRequest(BaseModel):
 
 
 class DwellTimeFeedbackRequest(BaseModel):
+    """DwellTimeFeedbackRequest class."""
+
     memory_id: str
     dwell_time_seconds: float = Field(..., ge=0.0, description="Time spent viewing memory")
     context_id: str | None = None
@@ -55,6 +61,8 @@ class DwellTimeFeedbackRequest(BaseModel):
 
 
 class MemoryRatingRequest(BaseModel):
+    """MemoryRatingRequest class."""
+
     memory_id: str
     rating: str = Field(..., description="Rating: thumbs_up or thumbs_down")
     notes: str | None = None
@@ -63,12 +71,16 @@ class MemoryRatingRequest(BaseModel):
 
 
 class FeedbackResponse(BaseModel):
+    """FeedbackResponse class."""
+
     event_id: str
     message: str
     timestamp: datetime
 
 
 class MemoryFeedbackScoreResponse(BaseModel):
+    """MemoryFeedbackScoreResponse class."""
+
     memory_id: str
     user_id: int
     total_score: float
@@ -81,6 +93,8 @@ class MemoryFeedbackScoreResponse(BaseModel):
 
 
 class FeedbackStatsResponse(BaseModel):
+    """FeedbackStatsResponse class."""
+
     total_events: int
     positive_feedback: int
     negative_feedback: int

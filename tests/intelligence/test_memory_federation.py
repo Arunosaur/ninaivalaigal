@@ -5,19 +5,12 @@ Testing cross-team memory sharing with intelligent privacy and relevance scoring
 
 import asyncio
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
 from server.intelligence.memory_federation import MemoryFederationEngine
-from server.intelligence.models import (
-    FederatedMemory,
-    FederationResult,
-    PrivacyLevel,
-    SharingPolicy,
-    SharingRule,
-    TeamContext,
-)
+from server.intelligence.models import FederatedMemory, TeamContext
 
 
 class TestMemoryFederationEngine:
@@ -414,7 +407,7 @@ class TestMemoryFederationEngine:
         """Test federation meets performance targets"""
 
         # Federation should complete within reasonable time
-        start_time = datetime.utcnow()
+        datetime.utcnow()
 
         # Simulate federation processing
         federation_engine._update_federation_metrics(successful=10, filtered=2, processing_time=50.0)  # 50ms

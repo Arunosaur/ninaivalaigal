@@ -21,12 +21,16 @@ router = APIRouter(prefix="/memory", tags=["memory"])
 
 # Request/Response models
 class RememberRequest(BaseModel):
+    """RememberRequest class."""
+
     text: str
     meta: dict | None = None
     context_id: str | None = None
 
 
 class RememberResponse(BaseModel):
+    """RememberResponse class."""
+
     id: str
     text: str
     meta: dict
@@ -36,6 +40,8 @@ class RememberResponse(BaseModel):
 
 
 class MemoryItemResponse(BaseModel):
+    """MemoryItemResponse class."""
+
     id: str
     text: str
     meta: dict | None = None
@@ -43,12 +49,16 @@ class MemoryItemResponse(BaseModel):
 
 
 class RecallResponse(BaseModel):
+    """RecallResponse class."""
+
     items: list[MemoryItemResponse]
     total: int
     query: str
 
 
 class MemoryListResponse(BaseModel):
+    """MemoryListResponse class."""
+
     items: list[MemoryItemResponse]
     total: int
     limit: int

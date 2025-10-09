@@ -21,9 +21,9 @@ from pathlib import Path
 server_path = Path(__file__).parent.parent / "server"
 sys.path.insert(0, str(server_path))
 
-import bcrypt
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+import bcrypt  # noqa: E402
+from sqlalchemy import create_engine, text  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
 
 
 def hash_password(password: str) -> str:
@@ -41,7 +41,7 @@ def seed_initial_staff():
         "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev",
     )
 
-    print(f"🔌 Connecting to database...")
+    print("🔌 Connecting to database...")
     engine = create_engine(database_url)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -65,7 +65,7 @@ def seed_initial_staff():
             return False
 
         # Check if any staff already exist
-        check_staff = text("SELECT COUNT(*) FROM staff")
+        check_staff = text("SELECT COUNT(*) FROM staf")
         staff_count = session.execute(check_staff).scalar()
 
         if staff_count > 0:

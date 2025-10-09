@@ -13,6 +13,7 @@ class SecretDetector:
     """Detects various types of secrets and credentials"""
 
     def __init__(self):
+        """Initialize instance."""
         self.patterns = {
             "jwt_token": [
                 r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+",  # JWT tokens
@@ -86,6 +87,7 @@ class SecretRedactionPipeline:
     """Main pipeline for secret redaction across the system"""
 
     def __init__(self):
+        """Initialize instance."""
         self.detector = SecretDetector()
         self.redaction_log = []
         self.enabled = True

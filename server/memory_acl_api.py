@@ -29,6 +29,8 @@ router = APIRouter(prefix="/acl", tags=["memory-acl"])
 
 # Request/Response models
 class AccessEvaluationRequest(BaseModel):
+    """AccessEvaluationRequest class."""
+
     memory_id: str
     requested_permission: str = Field(..., description="Permission type to check")
     token_id: str | None = Field(None, description="Token ID for token-based access")
@@ -36,6 +38,8 @@ class AccessEvaluationRequest(BaseModel):
 
 
 class AccessEvaluationResponse(BaseModel):
+    """AccessEvaluationResponse class."""
+
     granted: bool
     access_level: str
     reason: str
@@ -45,6 +49,8 @@ class AccessEvaluationResponse(BaseModel):
 
 
 class MemoryACLResponse(BaseModel):
+    """MemoryACLResponse class."""
+
     memory_id: str
     owner_id: int
     visibility: str
@@ -55,16 +61,22 @@ class MemoryACLResponse(BaseModel):
 
 
 class ShareMemoryRequest(BaseModel):
+    """ShareMemoryRequest class."""
+
     share_with_user_id: int
     access_level: str = Field(..., description="Access level: read, write, admin")
     expires_at: datetime | None = Field(None, description="Optional expiration time")
 
 
 class UpdateVisibilityRequest(BaseModel):
+    """UpdateVisibilityRequest class."""
+
     visibility: str = Field(..., description="Visibility: private, team, organization, public")
 
 
 class AccessibleMemoriesResponse(BaseModel):
+    """AccessibleMemoriesResponse class."""
+
     user_id: int
     accessible_memories: list[str]
     total_count: int
@@ -73,6 +85,8 @@ class AccessibleMemoriesResponse(BaseModel):
 
 
 class ACLStatsResponse(BaseModel):
+    """ACLStatsResponse class."""
+
     user_id: int
     owned_memories: int
     shared_memories: int

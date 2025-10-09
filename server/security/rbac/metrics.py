@@ -1,3 +1,4 @@
+"""metrics module."""
 from __future__ import annotations
 
 try:
@@ -6,12 +7,15 @@ except Exception:  # pragma: no cover
     # lightweight shim if prometheus_client isn't installed in test envs
     class _C:
         def __init__(self, *a, **k):
+            """Initialize instance."""
             pass
 
         def labels(self, *a, **k):
+            """Labels method."""
             return self
 
         def inc(self, *a, **k):
+            """Inc method."""
             pass
 
     def Counter(*a, **k):

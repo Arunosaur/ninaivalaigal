@@ -20,6 +20,7 @@ class PreloadingConfig:
     """Configuration for memory preloading strategies"""
 
     def __init__(self):
+        """Initialize instance."""
         self.enabled = os.getenv("PRELOAD_ENABLED", "true").lower() == "true"
         self.startup_preload = os.getenv("PRELOAD_STARTUP", "true").lower() == "true"
         self.background_refresh = os.getenv("PRELOAD_BACKGROUND", "true").lower() == "true"
@@ -47,6 +48,7 @@ class MemoryPreloadingEngine:
     """Redis-backed memory preloading system for performance optimization"""
 
     def __init__(self, redis_client: RedisClient, relevance_engine: RelevanceEngine):
+        """Initialize instance."""
         self.redis = redis_client
         self.relevance = relevance_engine
         self.config = PreloadingConfig()

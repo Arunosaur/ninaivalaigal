@@ -23,12 +23,16 @@ logger = logging.getLogger(__name__)
 
 # Pydantic models for API requests/responses
 class LifecyclePolicyType(str, Enum):
+    """LifecyclePolicyType class."""
+
     TTL = "ttl"
     ARCHIVAL = "archival"
     PURGE = "purge"
 
 
 class LifecycleStatusEnum(str, Enum):
+    """LifecycleStatusEnum class."""
+
     ACTIVE = "active"
     EXPIRING = "expiring"
     EXPIRED = "expired"
@@ -37,11 +41,15 @@ class LifecycleStatusEnum(str, Enum):
 
 
 class SetMemoryTTLRequest(BaseModel):
+    """SetMemoryTTLRequest class."""
+
     memory_id: str = Field(..., description="UUID of the memory to set TTL for")
     ttl_hours: int = Field(..., ge=1, le=8760, description="TTL in hours (1 hour to 1 year)")
 
 
 class CreateLifecyclePolicyRequest(BaseModel):
+    """CreateLifecyclePolicyRequest class."""
+
     scope: str = Field(..., pattern="^(personal|team|organization)$")
     user_id: str | None = None
     team_id: str | None = None
@@ -52,11 +60,15 @@ class CreateLifecyclePolicyRequest(BaseModel):
 
 
 class UpdateLifecyclePolicyRequest(BaseModel):
+    """UpdateLifecyclePolicyRequest class."""
+
     policy_config: dict[str, Any] | None = None
     enabled: bool | None = None
 
 
 class LifecyclePolicyResponse(BaseModel):
+    """LifecyclePolicyResponse class."""
+
     id: str
     scope: str
     user_id: str | None
@@ -70,6 +82,8 @@ class LifecyclePolicyResponse(BaseModel):
 
 
 class MemoryLifecycleStatsResponse(BaseModel):
+    """MemoryLifecycleStatsResponse class."""
+
     total_memories: int
     active_memories: int
     expired_memories: int
@@ -81,6 +95,8 @@ class MemoryLifecycleStatsResponse(BaseModel):
 
 
 class LifecycleCycleStatsResponse(BaseModel):
+    """LifecycleCycleStatsResponse class."""
+
     expired_count: int
     archived_count: int
     purged_count: int
@@ -90,6 +106,8 @@ class LifecycleCycleStatsResponse(BaseModel):
 
 
 class MemoryLifecycleInfo(BaseModel):
+    """MemoryLifecycleInfo class."""
+
     memory_id: str
     lifecycle_status: LifecycleStatusEnum
     created_at: datetime
@@ -107,6 +125,8 @@ lifecycle_router = APIRouter(prefix="/memory/lifecycle", tags=["Memory Lifecycle
 
 # Dependency to get GC instance (would be injected in real app)
 async def get_memory_gc() -> MemoryGarbageCollector:
+    """Get memory_gc."""
+
     # In a real app, this would be injected from the app context
     import os
     import sys

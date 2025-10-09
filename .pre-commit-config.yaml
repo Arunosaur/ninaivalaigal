@@ -1,7 +1,7 @@
 default_language_version:
   python: python3
 
-# Minimal exclusions - only build artifacts, external dependencies, and third-party vendor code
+# Minimal exclusions - only build artifacts, external dependencies, third-party vendor code, and backup files
 exclude: |
   (?x)^(
     external/spec-013/.*|
@@ -9,6 +9,7 @@ exclude: |
     vscode-client/node_modules/.*|
     node_modules/.*|
     client-tools/vendor/.*|
+    .*_backup\.py$|
     .*\.lock$|
     .*__pycache__.*|
     .*\.pyc$

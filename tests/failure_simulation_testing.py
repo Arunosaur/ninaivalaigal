@@ -87,7 +87,7 @@ class FailureSimulationFramework:
                 "type": "system_failure",
                 "description": "Stripe API rate limit exceeded",
                 "retry_eligible": True,
-                "expected_actions": ["exponential_backoff", "queue_request"],
+                "expected_actions": ["exponential_backof", "queue_request"],
             },
         ]
 
@@ -673,5 +673,5 @@ def run_failure_tests():
 
 if __name__ == "__main__":
     test_results = run_failure_tests()
-    print(f"\n📊 Test results saved to failure_test_results.json")
+    print("\n📊 Test results saved to failure_test_results.json")
     print(f"🎯 Overall pass rate: {test_results['summary']['pass_rate']}%")
