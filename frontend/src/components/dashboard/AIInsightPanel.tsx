@@ -1,7 +1,7 @@
-import { Bot, Target, Clock, Users, TrendingUp, AlertCircle } from 'lucide-react';
+import { Bot, Target, Clock, Users, TrendingUp } from 'lucide-react';
 import React from 'react';
 
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge'; // Unused - will be needed later
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 

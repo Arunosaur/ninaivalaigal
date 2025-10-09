@@ -1,10 +1,10 @@
-import { X, Clock, AlertTriangle, Info, CheckCircle, TrendingUp } from 'lucide-react';
+import { Clock, AlertTriangle, Info, CheckCircle, TrendingUp } from 'lucide-react';
 import React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 interface Notification {
   type: string;
@@ -112,7 +112,7 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                 <CheckCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                 <p className="text-sm">No active alerts</p>
                 <p className="text-xs text-gray-400 mt-1">
-                  You're all caught up! 🎉
+                  You&apos;re all caught up! 🎉
                 </p>
               </div>
             ) : (
@@ -180,8 +180,8 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                                   size="sm"
                                   className="h-6 px-2 text-xs"
                                   onClick={() => {
-                                    // Handle navigation to action URL
-                                    console.log('Navigate to:', notification.action);
+                                    // TODO: Handle navigation to action URL
+                                    // console.log('Navigate to:', notification.action);
                                   }}
                                 >
                                   View
@@ -216,8 +216,8 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                 size="sm"
                 className="flex-1"
                 onClick={() => {
-                  // Mark all as read
-                  console.log('Mark all as read');
+                  // TODO: Mark all as read
+                  // console.log('Mark all as read');
                 }}
               >
                 Mark All Read
@@ -227,8 +227,8 @@ export const SmartNotificationDrawer: React.FC<SmartNotificationDrawerProps> = (
                 size="sm"
                 className="flex-1"
                 onClick={() => {
-                  // Clear all notifications
-                  console.log('Clear all');
+                  // TODO: Clear all notifications
+                  // console.log('Clear all');
                 }}
               >
                 Clear All

@@ -37,7 +37,8 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
 
     ws.onopen = () => {
       setIsConnected(true);
-      console.log('Dashboard WebSocket connected');
+      // TODO: Add proper logging
+      // console.log('Dashboard WebSocket connected');
 
       // Subscribe to widgets based on user role
       const widgets = userRole === 'user'
@@ -78,7 +79,8 @@ export const DashboardContainer: React.FC<DashboardContainerProps> = ({
 
     ws.onclose = () => {
       setIsConnected(false);
-      console.log('Dashboard WebSocket disconnected');
+      // TODO: Add proper logging
+      // console.log('Dashboard WebSocket disconnected');
     };
 
     ws.onerror = (error) => {

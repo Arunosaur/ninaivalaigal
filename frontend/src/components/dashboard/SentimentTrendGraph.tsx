@@ -1,6 +1,6 @@
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Smile } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Smile } from 'lucide-react';
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -226,7 +226,7 @@ export const SentimentTrendGraph: React.FC<SentimentTrendGraphProps> = ({
         {/* Prediction Indicator */}
         <div className="pt-3 border-t">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Tomorrow's Prediction:</span>
+            <span className="text-gray-600">Tomorrow&apos;s Prediction:</span>
             <div className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${
                 predictedSentiment > currentSentiment ? 'bg-green-400' :
