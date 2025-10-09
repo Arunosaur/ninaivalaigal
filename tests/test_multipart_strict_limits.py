@@ -16,6 +16,6 @@ def test_null_byte_is_binary():
 def test_part_limit_enforced():
     try:
         enforce_part_limits(b"x" * 11, max_part_bytes=10)
-        assert False
+        raise AssertionError("Expected ValueError to be raised")
     except ValueError:
         pass

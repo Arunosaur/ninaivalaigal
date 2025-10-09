@@ -6,14 +6,14 @@ RBAC API Endpoints - Role-Based Access Control management APIs
 Provides endpoints for managing roles, permissions, and access requests
 """
 
-from datetime import datetime
+from datetime import datetime  # noqa: E402
 
-from auth import get_current_user
-from database import DatabaseManager, User
-from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
-from rbac_middleware import get_rbac_context, require_permission
-from rbac_models import (
+from auth import get_current_user  # noqa: E402
+from database import DatabaseManager, User  # noqa: E402
+from fastapi import APIRouter, Depends, HTTPException, Request  # noqa: E402
+from pydantic import BaseModel  # noqa: E402
+from rbac_middleware import get_rbac_context, require_permission  # noqa: E402
+from rbac_models import (  # noqa: E402
     AccessRequest,
     PermissionAudit,
     PermissionDelegation,
@@ -24,7 +24,7 @@ from rbac_models import (
     revoke_role,
 )
 
-from rbac.permissions import Action, Resource, Role
+from rbac.permissions import Action, Resource, Role  # noqa: E402
 
 # Create router for RBAC endpoints
 rbac_router = APIRouter(prefix="/rbac", tags=["rbac"])
@@ -127,7 +127,7 @@ async def assign_user_role(
         rbac_context = get_rbac_context(request)
         current_role = rbac_context.get_effective_role()
 
-        from rbac.permissions import has_role_precedence
+        from rbac.permissions import has_role_precedence  # noqa: E402
 
         if not has_role_precedence(current_role, role_enum):
             raise HTTPException(status_code=403, detail="Cannot assign a role higher than your own")
@@ -280,7 +280,7 @@ async def delegate_permission(
         rbac_context = get_rbac_context(request)
         current_role = rbac_context.get_effective_role()
 
-        from rbac.permissions import can_delegate_permission
+        from rbac.permissions import can_delegate_permission  # noqa: E402
 
         for action in action_enums:
             if not can_delegate_permission(current_role, action, resource_enum):

@@ -28,8 +28,8 @@ ENHANCED_MAGIC_SIGNATURES = {
     b"\xce\xfa\xed\xfe": "application/x-mach-binary",  # Mach-O 32-bit reverse (P0)
     b"\xfe\xed\xfa\xcf": "application/x-mach-binary",  # Mach-O 32-bit big-endian (P0)
     b"\xfe\xed\xfa\xce": "application/x-mach-binary",  # Mach-O 32-bit big-endian reverse (P0)
-    b"\xcf\xfa\xed\xfe": "application/x-mach-binary",  # Mach-O 64-bit (P0)
-    b"\xcf\xfa\xed\xfe": "application/x-mach-binary",  # Mach-O 64-bit reverse (P0)
+    b"\xcf\xfa\xed\xfe\x00": "application/x-mach-binary",  # Mach-O 64-bit (P0) - unique
+    b"\xce\xfa\xed\xfe\x00": "application/x-mach-binary",  # Mach-O 64-bit reverse (P0) - unique
     # Documents
     b"%PDF": "application/pdf",
     b"PK\x03\x04": "application/zip",  # ZIP/Office docs

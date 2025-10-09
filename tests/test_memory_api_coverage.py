@@ -4,17 +4,17 @@ Comprehensive test coverage for server/memory_api.py
 Target: Increase from 0% to 80% coverage
 """
 import os
-from unittest.mock import patch
+from unittest.mock import patch  # noqa: E402
 
-import pytest
-from fastapi import HTTPException
+import pytest  # noqa: E402
+from fastapi import HTTPException  # noqa: E402
 
 # Set test environment
 os.environ.setdefault("NINAIVALAIGAL_JWT_SECRET", "test_secret_key_for_testing")
 os.environ.setdefault("NINAIVALAIGAL_ENV", "test")
 
 # Import after setting environment
-from server.memory_api import (
+from server.memory_api import (  # noqa: E402
     add_memory_tag,
     create_memory,
     delete_memory,
@@ -68,7 +68,7 @@ class TestMemoryCreation:
     @patch("server.memory_api.database.execute_query")
     def test_create_memory_with_invalid_user(self, mock_db):
         """Test creating memory with invalid user ID."""
-        from psycopg2 import IntegrityError
+        from psycopg2 import IntegrityError  # noqa: E402
 
         mock_db.side_effect = IntegrityError("Invalid user")
 
@@ -92,7 +92,7 @@ class TestMemoryRetrieval:
     @patch("server.memory_api.database.execute_query")
     def test_get_memory_from_cache(self, mock_db, mock_redis):
         """Test retrieving memory from Redis cache."""
-        import json
+        import json  # noqa: E402
 
         cached_memory = {
             "id": "mem_123",

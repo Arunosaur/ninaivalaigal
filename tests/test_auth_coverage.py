@@ -4,16 +4,16 @@ Comprehensive test coverage for server/auth.py
 Target: Increase from 15% to 80% coverage
 """
 import os
-from unittest.mock import patch
+from unittest.mock import patch  # noqa: E402
 
-import pytest
-from fastapi import HTTPException
+import pytest  # noqa: E402
+from fastapi import HTTPException  # noqa: E402
 
 # Set test environment
 os.environ.setdefault("NINAIVALAIGAL_JWT_SECRET", "test_secret_key_for_testing")
 os.environ.setdefault("NINAIVALAIGAL_ENV", "test")
 
-from server.auth import (
+from server.auth import (  # noqa: E402
     authenticate_user,
     create_access_token,
     create_user,
@@ -76,7 +76,7 @@ class TestJWTTokens:
 
     def test_create_access_token_with_expiration(self):
         """Test creating access token with custom expiration."""
-        from datetime import timedelta
+        from datetime import timedelta  # noqa: E402
 
         user_data = {"sub": "test@example.com", "user_id": "123"}
         expires_delta = timedelta(minutes=30)
@@ -100,7 +100,7 @@ class TestJWTTokens:
     @patch("server.auth.jwt.decode")
     def test_verify_token_with_invalid_token(self, mock_decode):
         """Test token verification with invalid token."""
-        from jose import JWTError
+        from jose import JWTError  # noqa: E402
 
         mock_decode.side_effect = JWTError("Invalid token")
 
@@ -112,7 +112,7 @@ class TestJWTTokens:
     @patch("server.auth.jwt.decode")
     def test_verify_token_with_expired_token(self, mock_decode):
         """Test token verification with expired token."""
-        from jose import ExpiredSignatureError
+        from jose import ExpiredSignatureError  # noqa: E402
 
         mock_decode.side_effect = ExpiredSignatureError("Token expired")
 
@@ -209,7 +209,7 @@ class TestUserManagement:
     @patch("server.auth.database.execute_query")
     def test_create_user_with_duplicate_email(self, mock_execute):
         """Test user creation with duplicate email."""
-        from psycopg2 import IntegrityError
+        from psycopg2 import IntegrityError  # noqa: E402
 
         mock_execute.side_effect = IntegrityError("Duplicate email")
 
