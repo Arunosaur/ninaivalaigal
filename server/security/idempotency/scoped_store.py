@@ -136,6 +136,7 @@ class ScopedMemoryStore:
         self._store: dict[str, dict[str, Any]] = {}
 
     async def get_scoped(self, key: str, scope: IdempotencyScope) -> dict[str, Any] | None:
+        """Get cached response data for a scoped key."""
         scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
         return self._store.get(scoped_key)
 
@@ -146,6 +147,7 @@ class ScopedMemoryStore:
         response_data: dict[str, Any],
         ttl: int = 3600,
     ) -> None:
+        """Store response data with scoped key."""
         scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
         self._store[scoped_key] = {
             **response_data,
@@ -154,6 +156,7 @@ class ScopedMemoryStore:
         }
 
     async def exists_scoped(self, key: str, scope: IdempotencyScope) -> bool:
+        """Check if scoped key exists in store."""
         scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
         return scoped_key in self._store
 
@@ -176,6 +179,7 @@ class ScopedRedisStore:
         self.key_prefix = key_prefix
 
     async def get_scoped(self, key: str, scope: IdempotencyScope) -> dict[str, Any] | None:
+        """Get cached response data from Redis for scoped key."""
         try:
             scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
             full_key = f"{self.key_prefix}{scoped_key}"
@@ -195,6 +199,7 @@ class ScopedRedisStore:
         response_data: dict[str, Any],
         ttl: int = 3600,
     ) -> None:
+        """Store response data in Redis with scoped key and TTL."""
         try:
             scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
             full_key = f"{self.key_prefix}{scoped_key}"
@@ -213,6 +218,7 @@ class ScopedRedisStore:
             pass  # Fail silently for idempotency
 
     async def exists_scoped(self, key: str, scope: IdempotencyScope) -> bool:
+        """Check if scoped key exists in Redis."""
         try:
             scoped_key = IdempotencyKeyGenerator.generate_scoped_key(key, scope)
             full_key = f"{self.key_prefix}{scoped_key}"

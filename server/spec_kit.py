@@ -474,20 +474,25 @@ class SpecKitContextManager(ContextInterface):
         }
 
     def update_context(self, context_id: int, updates: dict[str, Any], user_id: int) -> ContextOperationResult:
+        """Update context with provided changes."""
         return ContextOperationResult(success=False, message="Not implemented")
 
     def delete_context(self, context_id: int, user_id: int) -> ContextOperationResult:
+        """Delete a context."""
         return ContextOperationResult(success=False, message="Not implemented")
 
     def share_context(self, context_id: int, permission: ContextPermissionSpec, user_id: int) -> ContextOperationResult:
+        """Share context with permissions."""
         return ContextOperationResult(success=False, message="Not implemented")
 
     def transfer_context(
         self, context_id: int, target_type: str, target_id: int, user_id: int
     ) -> ContextOperationResult:
+        """Transfer context ownership."""
         return ContextOperationResult(success=False, message="Not implemented")
 
     def activate_context(self, context_id: int, user_id: int) -> ContextOperationResult:
+        """Activate a context for recording."""
         return ContextOperationResult(success=False, message="Not implemented")
 
     def deactivate_context(self, context_id: int, user_id: int) -> ContextOperationResult:
@@ -624,15 +629,19 @@ class SpecKitOwnershipManager(OwnershipInterface):
 
     # Placeholder implementations
     def create_organization_with_owner(self, org_spec: OrganizationSpec, owner_id: int) -> ContextOperationResult:
+        """Create organization with initial owner."""
         return ContextOperationResult(success=False, message="Not implemented")
 
     def accept_ownership_transfer(self, transfer_id: int, user_id: int) -> ContextOperationResult:
+        """Accept an ownership transfer."""
         return ContextOperationResult(success=False, message="Not implemented")
 
     def reject_ownership_transfer(self, transfer_id: int, user_id: int, reason: str) -> ContextOperationResult:
+        """Reject an ownership transfer with reason."""
         return ContextOperationResult(success=False, message="Not implemented")
 
     def get_ownership_transfers(self, user_id: int) -> ContextOperationResult:
+        """Get pending ownership transfers for user."""
         return ContextOperationResult(success=False, message="Not implemented")
 
     def change_member_role(
@@ -643,4 +652,5 @@ class SpecKitOwnershipManager(OwnershipInterface):
         new_role: OwnershipRole,
         changed_by: int,
     ) -> ContextOperationResult:
+        """Change a member's role in a team or organization."""
         return ContextOperationResult(success=False, message="Not implemented")

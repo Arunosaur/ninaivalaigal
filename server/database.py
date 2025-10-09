@@ -286,9 +286,11 @@ class DatabaseManager:
         self.create_tables()
 
     def create_tables(self):
+        """Create all database tables from SQLAlchemy models."""
         Base.metadata.create_all(bind=self.engine)
 
     def get_session(self):
+        """Create and return a new database session."""
         return self.SessionLocal()
 
     def migrate_from_json(self, json_file="mem0_data.json"):
@@ -344,6 +346,7 @@ class DatabaseManager:
             print(f"Error migrating from JSON: {e}")
 
     def set_active_context(self, context_name: str, user_id: int = None, scope: str = None):
+        """Set or create a context as the active recording context."""
         session = self.get_session()
         try:
             context = self.resolve_context(context_name, user_id, scope, session)
@@ -453,6 +456,7 @@ class DatabaseManager:
             session.close()
 
     def clear_active_context(self, user_id: int = None):
+        """Clear active context flag for user or globally."""
         session = self.get_session()
         try:
             if user_id:
@@ -467,6 +471,7 @@ class DatabaseManager:
             session.close()
 
     def get_active_context(self, user_id: int = None):
+        """Get the currently active context name for a user."""
         session = self.get_session()
         try:
             if user_id:
@@ -629,6 +634,7 @@ class DatabaseManager:
         data: dict,
         user_id: int = None,
     ):
+        """Add a new memory to the database."""
         session = self.get_session()
         try:
             memory = Memory(
@@ -648,6 +654,7 @@ class DatabaseManager:
             session.close()
 
     def get_memories(self, context: str, user_id: int = None):
+        """Get all memories for a specific context."""
         session = self.get_session()
         try:
             if user_id:
@@ -678,6 +685,7 @@ class DatabaseManager:
             session.close()
 
     def get_all_memories(self, user_id: int = None):
+        """Get all memories across all contexts for a user."""
         session = self.get_session()
         try:
             if user_id:
@@ -699,6 +707,7 @@ class DatabaseManager:
             session.close()
 
     def get_recent_memories(self, limit: int = 50, user_id: int = None):
+        """Get the most recent memories, limited to specified count."""
         session = self.get_session()
         try:
             if user_id:
@@ -728,6 +737,7 @@ class DatabaseManager:
             session.close()
 
     def get_contexts(self, user_id: int = None):
+        """Get list of all distinct context names for a user."""
         session = self.get_session()
         try:
             if user_id:
@@ -740,6 +750,7 @@ class DatabaseManager:
             session.close()
 
     def start_context(self, context_name: str):
+        """Start recording context (placeholder for MCP compatibility)."""
         # For MCP compatibility - could store active context state
         pass
 
