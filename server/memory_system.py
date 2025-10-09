@@ -15,6 +15,11 @@ router = APIRouter(prefix="/memory", tags=["memory"])
 
 # Memory Model (simplified for GET-based API)
 class Memory:
+    """In-memory model for GET-based API operations.
+    
+    Lightweight representation of memories for read operations
+    without full database ORM overhead.
+    """
     def __init__(
         self,
         id: int,

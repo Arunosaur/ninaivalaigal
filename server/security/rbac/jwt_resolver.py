@@ -23,6 +23,11 @@ from .subject_ctx import SubjectContext
 
 
 class Backoff:
+    """Exponential backoff handler for failed operations.
+    
+    Implements exponential backoff with configurable base delay and maximum cap
+    for retry logic in JWKS fetching and other network operations.
+    """
     def __init__(self, base=0.2, cap=5.0):
         """Initialize instance."""
         self.base, self.cap = base, cap
@@ -43,6 +48,11 @@ class Backoff:
 
 
 class NegativeKidCache:
+    """Cache for unknown JWT key IDs (kid) to reduce repeated lookups.
+    
+    Temporarily caches kid values that failed JWKS lookup to avoid
+    hammering the JWKS endpoint for non-existent keys.
+    """
     def __init__(self, ttl_seconds: int = 600):
         """Initialize instance."""
         self.ttl = ttl_seconds
@@ -67,6 +77,11 @@ class NegativeKidCache:
 
 
 class JWTClaimsResolver:
+    """JWT token verification and claims extraction for RBAC.
+    
+    Supports multiple verification methods: HMAC secret, JWKS endpoints,
+    with caching, backoff handling, and configurable claim requirements.
+    """
     def __init__(
         self,
         secret: str | None = None,
