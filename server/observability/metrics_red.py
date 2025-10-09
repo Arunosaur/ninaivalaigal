@@ -9,6 +9,7 @@ REQUEST_LATENCY = Histogram("http_request_duration_seconds", "Request latency", 
 
 
 def observe_request(method, endpoint, status, duration, error_reason=None):
+    """Record RED metrics (requests, errors, duration) for an HTTP request."""
     REQUEST_COUNT.labels(method=method, endpoint=endpoint, status=status).inc()
     REQUEST_LATENCY.labels(endpoint=endpoint).observe(duration)
     if error_reason:

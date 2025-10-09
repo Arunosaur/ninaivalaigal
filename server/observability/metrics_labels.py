@@ -9,10 +9,12 @@ ALLOWED_ROUTES = {
 
 
 def normalize_route_template(raw_path: str, template: str | None) -> str:
+    """Normalize route path to template or clean path without query params."""
     return template or raw_path.split("?", 1)[0]
 
 
 def validate_metric_labels(labels: dict[str, str]) -> None:
+    """Validate metric labels to prevent cardinality explosion."""
     route = labels.get("route") or ""
     if route and route not in ALLOWED_ROUTES:
         raise ValueError("route label must be a known template, not a concrete path")
