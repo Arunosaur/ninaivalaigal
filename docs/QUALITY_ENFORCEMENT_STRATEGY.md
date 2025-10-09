@@ -1,6 +1,6 @@
 # Quality Enforcement Strategy: Pragmatic Now, Museum-Clean Later
 
-**Date**: October 8, 2025  
+**Date**: October 8, 2025
 **Decision**: User-approved two-tier quality strategy
 
 ---
@@ -21,7 +21,7 @@
 - Generic exception catching (B017) - testing errors
 - **Docstrings (D100-D107)** - Test names are self-documenting
 
-**Scripts (`scripts/`, `benchmarks/`)**: ⚠️ **Pragmatic Exemptions**  
+**Scripts (`scripts/`, `benchmarks/`)**: ⚠️ **Pragmatic Exemptions**
 - Unused variables (F841, B007) - exploration code
 - **Docstrings (D100-D107)** - One-off utilities
 
@@ -74,10 +74,10 @@ pre-commit run --config .pre-commit-ci.yml --all-files
 ```
 
 ### Benefits
-✅ **Developer velocity**: Fast local pre-commit  
-✅ **Visibility**: CI tracks all quality metrics  
-✅ **No friction**: Tests don't block PRs  
-✅ **Gradual improvement**: Fix test docs opportunistically  
+✅ **Developer velocity**: Fast local pre-commit
+✅ **Visibility**: CI tracks all quality metrics
+✅ **No friction**: Tests don't block PRs
+✅ **Gradual improvement**: Fix test docs opportunistically
 ✅ **Museum-clean goal**: Clear path to 100% quality
 
 ---
@@ -143,14 +143,14 @@ Future:                       CI reports only
 ## 📝 Decision Log
 
 **October 8, 2025**: User Decision
-> "Fixing the 178 production violations. Maintaining strict pre-commit 
+> "Fixing the 178 production violations. Maintaining strict pre-commit
 > compliance in server/. Keeping test and script exemptions as-is.
-> 
-> One day want to go 'museum-clean': Create a secondary pre-commit-ci.yml 
-> for strict testing only. Run it nightly in CI (not locally). Enforce test 
+>
+> One day want to go 'museum-clean': Create a secondary pre-commit-ci.yml
+> for strict testing only. Run it nightly in CI (not locally). Enforce test
 > docstrings and script docstrings. Track those in reports, not PR gates."
 
-**Rationale**: 
+**Rationale**:
 - Focus effort where it matters most (production)
 - Maintain developer productivity
 - Build visibility into quality debt
@@ -206,7 +206,7 @@ Future:                       CI reports only
 
 ---
 
-**Last Updated**: October 8, 2025  
-**Status**: Approved strategy, actively executing  
-**Owner**: Engineering team  
+**Last Updated**: October 8, 2025
+**Status**: Approved strategy, actively executing
+**Owner**: Engineering team
 **Review**: After Milestone 2 completion

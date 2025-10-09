@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ContextScope(Enum):
     """Context ownership and visibility scope.
-    
+
     Defines whether a context is personal, team-shared, or organization-wide.
     """
     PERSONAL = "personal"
@@ -24,7 +24,7 @@ class ContextScope(Enum):
 
 class PermissionLevel(Enum):
     """Permission levels for context access control.
-    
+
     Hierarchical permissions from read-only to full ownership.
     """
     READ = "read"
@@ -35,7 +35,7 @@ class PermissionLevel(Enum):
 
 class EntityType(Enum):
     """Types of collaborative entities in the system.
-    
+
     Represents grouping entities that can own contexts and manage permissions.
     """
     TEAM = "team"
@@ -44,7 +44,7 @@ class EntityType(Enum):
 
 class OwnershipRole(Enum):
     """User roles within teams and organizations.
-    
+
     Defines hierarchical roles for access control and permission management.
     """
     OWNER = "owner"

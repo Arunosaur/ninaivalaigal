@@ -25,7 +25,7 @@ Base = declarative_base()
 
 class User(Base):
     """User account model for authentication and profile management.
-    
+
     Supports individual users, team members, and organization admins
     with RBAC integration and subscription tiers.
     """
@@ -67,7 +67,7 @@ class User(Base):
 
 class Memory(Base):
     """Memory storage model for contextual data.
-    
+
     Stores user memories with context association, type classification,
     and source tracking for retrieval and analytics.
     """
@@ -85,7 +85,7 @@ class Memory(Base):
 
 class Organization(Base):
     """Organization entity for multi-tenant support.
-    
+
     Represents companies or groups with multiple teams, custom settings,
     and domain-based user management.
     """
@@ -108,7 +108,7 @@ class Organization(Base):
 
 class Team(Base):
     """Team entity for collaborative workspaces.
-    
+
     Groups users within or across organizations for shared context access
     and collaborative memory management.
     """
@@ -134,7 +134,7 @@ class Team(Base):
 
 class TeamMember(Base):
     """Team membership association model.
-    
+
     Links users to teams with role-based permissions (owner, admin, member, viewer)
     and tracks join timestamps.
     """
@@ -153,7 +153,7 @@ class TeamMember(Base):
 
 class ContextPermission(Base):
     """Access control permissions for contexts.
-    
+
     Manages granular permissions (owner, admin, write, read) for users, teams,
     and organizations to access specific contexts.
     """
@@ -181,7 +181,7 @@ class ContextPermission(Base):
 # New models for user management system
 class OrganizationRegistration(Base):
     """Organization registration and billing information.
-    
+
     Tracks organization signup data, billing details, company metadata,
     and subscription status for multi-tenant SaaS management.
     """
@@ -205,7 +205,7 @@ class OrganizationRegistration(Base):
 
 class UserInvitation(Base):
     """User invitation system for teams and organizations.
-    
+
     Manages email invitations with secure tokens, role assignment,
     expiration tracking, and invitation status lifecycle.
     """
@@ -234,7 +234,7 @@ class UserInvitation(Base):
 # Update existing models to support sharing
 class Context(Base):
     """Memory context for organizing and sharing data.
-    
+
     Groups related memories with ownership (user/team/org), visibility controls,
     and permission management for collaborative access.
     """
@@ -263,7 +263,7 @@ class Context(Base):
 
 class DatabaseManager:
     """Database connection and session management.
-    
+
     Handles PostgreSQL connections, session lifecycle, and provides
     context managers for safe database operations.
     """

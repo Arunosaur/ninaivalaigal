@@ -1,7 +1,7 @@
 # Option A Completion Roadmap: Zero Bypasses
 
-**Date:** October 8, 2025  
-**Goal:** Fix all remaining 199 violations with NO BYPASSES  
+**Date:** October 8, 2025
+**Goal:** Fix all remaining 199 violations with NO BYPASSES
 **Current Progress:** 53/252 fixed (21%)
 
 ## Executive Summary
@@ -55,16 +55,16 @@ pre-commit run flake8 --all-files 2>&1 | grep "D104"
 - `server/__init__.py`
 - Other package `__init__.py` files
 
-**Risk**: Low - simple string addition  
+**Risk**: Low - simple string addition
 **Time**: 15 minutes
 
-#### 1.2 Fix D100 (Module Docstrings) - 6 violations  
+#### 1.2 Fix D100 (Module Docstrings) - 6 violations
 **Approach**: Add module docstrings at top of files
 ```python
 """Module description."""
 ```
 
-**Risk**: Low - add at file start  
+**Risk**: Low - add at file start
 **Time**: 15 minutes
 
 #### 1.3 Fix F841 (Unused Variables) - 7 violations
@@ -77,7 +77,7 @@ pre-commit run flake8 --all-files 2>&1 | grep "F841" | grep "server/"
 autoflake --in-place --remove-unused-variables <file>
 ```
 
-**Risk**: Low - automated tool  
+**Risk**: Low - automated tool
 **Time**: 30 minutes
 
 #### 1.4 Fix D105 (Magic Method Docstrings) - 9 violations
@@ -88,7 +88,7 @@ def __str__(self):
     ...
 ```
 
-**Risk**: Low - standard patterns  
+**Risk**: Low - standard patterns
 **Time**: 30 minutes
 
 ### Phase 2: Medium-Risk Structural Fixes (96 violations, ~4 hours)
@@ -99,7 +99,7 @@ def __str__(self):
 # Before
 for badge_type in BadgeType:
 
-# After  
+# After
 for _badge_type in BadgeType:
 ```
 
@@ -118,7 +118,7 @@ server/usage_analytics_api.py (2 violations)
 + 13 more files
 ```
 
-**Risk**: Medium - must verify variable truly unused  
+**Risk**: Medium - must verify variable truly unused
 **Time**: 2 hours
 
 #### 2.2 Fix D107 (__init__ Docstrings) - 54 violations
@@ -134,7 +134,7 @@ def __init__(self, ...):
 2. Manual review for complex constructors
 3. Test each batch
 
-**Risk**: Medium - automated script may miss edge cases  
+**Risk**: Medium - automated script may miss edge cases
 **Time**: 2 hours
 
 ### Phase 3: High-Risk Manual Fixes (73 violations, ~4 hours)
@@ -144,10 +144,10 @@ def __init__(self, ...):
 ```python
 def process_memory(memory_id: str):
     """Process memory with given ID.
-    
+
     Args:
         memory_id: Unique identifier for memory
-        
+
     Returns:
         Processed memory data
     """
@@ -159,7 +159,7 @@ def process_memory(memory_id: str):
 2. Add meaningful docstring (not just "Function implementation")
 3. Include Args/Returns for complex functions
 
-**Risk**: HIGH - requires understanding code context  
+**Risk**: HIGH - requires understanding code context
 **Time**: 2-3 hours
 
 #### 3.2 Fix D102 (Method Docstrings) - 27 violations
@@ -167,14 +167,14 @@ def process_memory(memory_id: str):
 ```python
 def get_user_stats(self):
     """Get statistics for current user.
-    
+
     Returns:
         Dictionary of user statistics
     """
     ...
 ```
 
-**Risk**: HIGH - must understand method purpose  
+**Risk**: HIGH - must understand method purpose
 **Time**: 1-2 hours
 
 #### 3.3 Fix D101 (Class Docstrings) - 20 violations
@@ -182,7 +182,7 @@ def get_user_stats(self):
 ```python
 class MemoryManager:
     """Manage memory lifecycle and operations.
-    
+
     Attributes:
         cache: Redis cache instance
         db: Database session
@@ -190,13 +190,13 @@ class MemoryManager:
     ...
 ```
 
-**Risk**: HIGH - requires architectural understanding  
+**Risk**: HIGH - requires architectural understanding
 **Time**: 1-2 hours
 
 #### 3.4 Fix D106 (Nested Class Docstrings) - 2 violations
 **Approach**: Add docstrings to nested classes
 
-**Risk**: Low - only 2 violations  
+**Risk**: Low - only 2 violations
 **Time**: 10 minutes
 
 ## Safe Execution Strategy
@@ -321,6 +321,6 @@ Use safe script for simple `__init__` methods, test batches of 10, commit freque
 
 ---
 
-**Last Updated**: October 8, 2025  
-**Next Review**: After completing Phase 1  
+**Last Updated**: October 8, 2025
+**Next Review**: After completing Phase 1
 **Estimated Completion**: October 29, 2025 (3 weeks)

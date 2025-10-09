@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 @dataclass
 class RetentionPolicy:
     """Data retention policy configuration.
-    
+
     Defines retention period in days; 0 means immediate discard.
     """
     days: int  # 0 for immediate discard
@@ -17,7 +17,7 @@ class RetentionPolicy:
 
 class RetentionExecutor:
     """Executes data retention policies based on tier configuration.
-    
+
     Queries expired records, performs batch deletion with pagination,
     and emits metrics for monitoring retention operations.
     """
