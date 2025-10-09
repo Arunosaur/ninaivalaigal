@@ -562,7 +562,7 @@ def test_function():
 
         # Validate linting results
         errors = [r for r in linting_results if r["severity"] == "error"]
-        warnings = [r for r in linting_results if r["severity"] == "warning"]
+        _warnings = [r for r in linting_results if r["severity"] == "warning"]
 
         assert len(linting_results) > 0, "Linter should find issues"
         assert len(errors) > 0, "Should find error-level issues"

@@ -96,7 +96,7 @@ class TestAgenticCore:
         """Test SPEC-063: Agent lifecycle management"""
 
         # Test agent lifecycle states
-        lifecycle_states = [
+        _lifecycle_states = [
             "created",
             "initialized",
             "active",

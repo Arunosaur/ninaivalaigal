@@ -46,7 +46,7 @@ class TestMemoryAPIEndpoints:
         TestClient(app)
 
         # Test data
-        remember_data = {
+        _remember_data = {
             "text": "Test memory content",
             "meta": {"source": "api"},
             "context_id": "ctx_123",

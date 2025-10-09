@@ -53,7 +53,7 @@ class RedisPerformanceBenchmark:
         get_times = []
         for i in range(iterations):
             start = time.time()
-            value = self.redis_client.get(f"bench:set:{i}")
+            _value = self.redis_client.get(f"bench:set:{i}")
             end = time.time()
             get_times.append((end - start) * 1000)
 

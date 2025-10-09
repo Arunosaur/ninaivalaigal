@@ -337,7 +337,7 @@ class TestBillingIntegration(TestTeamWorkflowsE2E):
         jwt_token = team_data["user"]["jwt_token"]
 
         # Simulate subscription creation
-        billing_data = {
+        _billing_data = {
             "plan": "team_pro",
             "payment_method_id": "pm_test123",
             "billing_email": "billing@company.com",
