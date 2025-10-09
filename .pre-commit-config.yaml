@@ -58,13 +58,12 @@ repos:
   #   # Note: Temporarily disabled due to duplicate module name issues across codebase
   #   # Will be re-enabled once module naming conflicts are resolved
 
-  # - repo: https://github.com/pycqa/bandit
-  #   rev: 1.7.5
-  #   hooks:
-  #     - id: bandit
-  #       files: ^server/.*\.py$
-  #       args: ["-f", "json"]
-  #       exclude: ^(tests/|scripts/|server/database/operations/|server/performance/|server/middleware/|server/performance_api\.py|server/graph/|server/agent/|server/agentic_api\.py)
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.0
+    hooks:
+      - id: bandit
+        args: ["-c", ".bandit", "-r", "server/"]
+        files: ^server/.*\.py$
 
   - repo: https://github.com/koalaman/shellcheck-precommit
     rev: v0.11.0

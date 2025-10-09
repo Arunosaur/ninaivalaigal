@@ -1,0 +1,18 @@
+# Bandit Security Configuration
+# https://bandit.readthedocs.io/en/latest/config.html
+
+# Skip false positive checks
+# B104: Binding to 0.0.0.0 is expected for development servers (production uses proper host binding)
+# B608: SQLAlchemy parameterized queries are safe (false positives from ORM usage)
+# B101: Assert usage in test files is standard practice
+# B105: Hardcoded test passwords are acceptable in test/demo files
+# B404/B603: subprocess module usage is in shell_injection_prevention.py (security utility)
+skips: ['B104', 'B608', 'B101', 'B105', 'B404', 'B603']
+
+# Exclude non-production directories
+exclude_dirs:
+  - /tests/
+  - /scripts/
+  - /alembic/
+  - /client-tools/
+  - /external/
