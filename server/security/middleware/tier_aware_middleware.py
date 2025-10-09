@@ -87,6 +87,7 @@ class TierPolicyViolation(Exception):
     """Exception raised when tier policy is violated."""
 
     def __init__(self, message: str, tier: int, threshold: int):
+        """Initialize instance."""
         super().__init__(message)
         self.tier = tier
         self.threshold = threshold
@@ -168,6 +169,7 @@ class TierConfiguration:
     """Configuration for tier-based security policies."""
 
     def __init__(self):
+        """Initialize instance."""
         self.tier_policies: dict[int, dict[str, Any]] = {
             DataTier.PUBLIC: {
                 "fail_closed": False,
@@ -279,6 +281,7 @@ class TierMetrics:
     """Metrics collector for tier-based processing."""
 
     def __init__(self):
+        """Initialize instance."""
         self.counters = {
             "requests_by_tier": {},
             "failures_by_tier": {},

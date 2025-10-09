@@ -19,6 +19,7 @@ class ConnectionPoolMonitor:
     """Monitor and optimize database connection pool performance."""
 
     def __init__(self):
+        """Initialize instance."""
         self.stats = {
             "connections_created": 0,
             "connections_closed": 0,

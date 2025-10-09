@@ -24,6 +24,7 @@ from .subject_ctx import SubjectContext
 
 class Backoff:
     def __init__(self, base=0.2, cap=5.0):
+        """Initialize instance."""
         self.base, self.cap = base, cap
         self.failures = 0
         self.lock = threading.Lock()
@@ -43,6 +44,7 @@ class Backoff:
 
 class NegativeKidCache:
     def __init__(self, ttl_seconds: int = 600):
+        """Initialize instance."""
         self.ttl = ttl_seconds
         self._store: dict[str, float] = {}
         self._lock = threading.Lock()
@@ -77,6 +79,7 @@ class JWTClaimsResolver:
         require_claims: list[str] | None = None,
         max_token_lifetime_s: int | None = None,
     ) -> None:
+        """Initialize JWT claims resolver."""
         self.secret = secret
         self.algorithms = algorithms or ["HS256"]
         self.jwks_url = jwks_url

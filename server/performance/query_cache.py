@@ -294,6 +294,7 @@ class QueryCacheDecorator:
     """Decorator for automatic query caching."""
 
     def __init__(self, query_cache: QueryCache):
+        """Initialize instance."""
         self.cache = query_cache
 
     def cached_query(

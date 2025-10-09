@@ -32,6 +32,7 @@ class MemoryIdempotencyStore:
     """In-memory idempotency store for development."""
 
     def __init__(self):
+        """Initialize instance."""
         self._store: dict[str, dict[str, Any]] = {}
 
     async def get(self, key: str) -> dict[str, Any] | None:

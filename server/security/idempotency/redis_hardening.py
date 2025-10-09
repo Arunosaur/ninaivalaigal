@@ -307,6 +307,7 @@ class RateLimitedRedisStore(HardenedRedisStore):
     """Redis store with rate limiting to prevent abuse."""
 
     def __init__(self, *args, rate_limit_per_minute: int = 1000, **kwargs):
+        """Initialize instance."""
         super().__init__(*args, **kwargs)
         self.rate_limit_per_minute = rate_limit_per_minute
         self.request_timestamps = []

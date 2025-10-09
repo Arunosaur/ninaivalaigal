@@ -97,6 +97,7 @@ class AsyncCache:
     """
 
     def __init__(self, default_ttl: int = 300):
+        """Initialize instance."""
         self.cache: Dict[str, Tuple[Any, float]] = {}
         self.default_ttl = default_ttl
         self._cleanup_task: Optional[asyncio.Task] = None
@@ -175,6 +176,7 @@ class AsyncRateLimiter:
     """
 
     def __init__(self, rate: float, burst: int):
+        """Initialize instance."""
         self.rate = rate  # tokens per second
         self.burst = burst  # maximum tokens
         self.tokens = burst
@@ -215,6 +217,7 @@ class AsyncOperationOptimizer:
     """
 
     def __init__(self):
+        """Initialize instance."""
         self.batch_processor = AsyncBatchProcessor()
         self.cache = AsyncCache()
         self.rate_limiters: Dict[str, AsyncRateLimiter] = {}

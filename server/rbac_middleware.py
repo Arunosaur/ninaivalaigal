@@ -62,6 +62,7 @@ class RBACMiddleware:
     """FastAPI middleware for RBAC integration"""
 
     def __init__(self, jwt_secret: str) -> None:
+        """Initialize RBAC manager."""
         self.security = HTTPBearer(auto_error=False)
         self.jwt_secret = jwt_secret
         if not self.jwt_secret:

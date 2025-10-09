@@ -257,6 +257,7 @@ class GraphPerformanceOptimizer:
     """
 
     def __init__(self, redis_client, graph_db_client=None):
+        """Initialize instance."""
         self.redis = redis_client
         self.graph_db = graph_db_client
         self.query_cache = GraphQueryCache(redis_client)
