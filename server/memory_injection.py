@@ -102,6 +102,7 @@ class MemoryInjectionEngine:
         feedback_system=None,
         suggestions_system=None,
     ):
+        """Initialize instance."""
         self.db = db_manager
         self.redis = redis_client
         self.feedback_system = feedback_system

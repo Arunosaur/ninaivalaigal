@@ -96,6 +96,7 @@ class MemoryDriftEngine:
     """Core engine for memory drift and diff detection"""
 
     def __init__(self):
+        """Initialize instance."""
         self.redis_client = None
         self.snapshot_ttl = 86400 * 30  # 30 days
         self.drift_threshold = 0.3  # Similarity threshold for drift detection

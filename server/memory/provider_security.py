@@ -96,6 +96,7 @@ class MemoryProviderSecurityManager:
     """
 
     def __init__(self, rbac_ops: Optional[RBACOps] = None):
+        """Initialize instance."""
         self.rbac_ops = rbac_ops
         self.api_keys: Dict[str, APIKey] = {}
         self.security_policies: Dict[str, SecurityPolicy] = {}

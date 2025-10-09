@@ -27,6 +27,7 @@ class MonitoringIntegration:
     """
 
     def __init__(self):
+        """Initialize instance."""
         self.initialized = False
         self.dashboard_enabled = False
 

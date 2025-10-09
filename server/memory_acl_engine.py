@@ -116,6 +116,7 @@ class MemoryACLEngine:
     """Core engine for memory access control"""
 
     def __init__(self):
+        """Initialize instance."""
         self.redis_client = None
         self.acl_cache_ttl = 3600  # 1 hour cache for ACL data
 

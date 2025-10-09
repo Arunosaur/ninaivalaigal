@@ -31,6 +31,7 @@ class ExecutionContext:
         context_data: Optional[Dict] = None,
         redis_client=None,
     ):
+        """Initialize execution context."""
         # Core identification
         self.execution_id = execution_id
         self.user_id = user_id

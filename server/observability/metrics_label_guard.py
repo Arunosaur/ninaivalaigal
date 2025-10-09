@@ -136,6 +136,7 @@ class MetricsLabelGuard:
     """Comprehensive metrics label validation with cardinality bounds."""
 
     def __init__(self, config: MetricsLabelGuardConfig | None = None):
+        """Initialize instance."""
         self.config = config or MetricsLabelGuardConfig()
         self.tracker = CardinalityTracker()
         self._route_template_pattern = re.compile(r"^/[a-zA-Z0-9_/-]*(\{[a-zA-Z0-9_]+\}[a-zA-Z0-9_/-]*)*$")

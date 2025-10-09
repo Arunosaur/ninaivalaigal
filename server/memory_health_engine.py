@@ -103,6 +103,7 @@ class MemoryHealthEngine:
     """Core engine for memory health monitoring and analysis"""
 
     def __init__(self):
+        """Initialize instance."""
         self.redis_client = None
         self.relevance_engine = None
         self.feedback_engine = None

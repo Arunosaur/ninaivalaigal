@@ -138,6 +138,7 @@ class MemorySharingContractManager:
     """
 
     def __init__(self):
+        """Initialize instance."""
         self.contracts: Dict[str, MemoryLinkContract] = {}
         self.consent_records: Dict[str, List[ConsentRecord]] = {}
         self.scope_memberships: Dict[str, Set[int]] = {}  # scope_id -> user_ids

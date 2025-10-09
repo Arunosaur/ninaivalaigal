@@ -124,6 +124,7 @@ class TemporalAccessManager:
     """
 
     def __init__(self):
+        """Initialize instance."""
         self.access_grants: Dict[str, TemporalAccessGrant] = {}
         self.active_sessions: Dict[str, AccessSession] = {}
         self.access_windows: Dict[str, List[AccessWindow]] = {}  # grant_id -> windows

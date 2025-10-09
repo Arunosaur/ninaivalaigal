@@ -86,6 +86,7 @@ class MemoryProviderFailoverManager:
     """
 
     def __init__(self, registry: MemoryProviderRegistry, health_monitor: ProviderHealthMonitor):
+        """Initialize instance."""
         self.registry = registry
         self.health_monitor = health_monitor
 

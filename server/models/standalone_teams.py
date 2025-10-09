@@ -139,6 +139,7 @@ class StandaloneTeamManager:
     """Manager class for standalone team operations"""
 
     def __init__(self, db_session):
+        """Initialize instance."""
         self.session = db_session
 
     def create_standalone_team(self, name: str, created_by_user_id: UUID, max_members: int = 10) -> "Team":

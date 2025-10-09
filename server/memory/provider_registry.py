@@ -106,6 +106,7 @@ class MemoryProviderRegistry:
     """
 
     def __init__(self, config_path: Optional[str] = None):
+        """Initialize instance."""
         self.config_path = config_path or os.getenv("MEMORY_PROVIDER_CONFIG", "memory_providers.json")
         self.providers: Dict[str, RegisteredProvider] = {}
         self.active_providers: List[str] = []

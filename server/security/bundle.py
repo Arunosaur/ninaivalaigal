@@ -41,6 +41,7 @@ class ContentTypeGuardMiddleware:
         self,
         app,
         allowed_prefixes: tuple = (
+            """Initialize instance."""
             "text/",
             "application/json",
             "application/x-www-form-urlencoded",
@@ -96,6 +97,7 @@ class RedactionASGIMiddleware:
     """Request redaction middleware with streaming support."""
 
     def __init__(self, app, detector_fn: Callable[[str], str], overlap: int = 64):
+        """Initialize instance."""
         self.app = app
         self.detector_fn = detector_fn
         self.overlap = overlap
@@ -115,6 +117,7 @@ class ResponseRedactionASGIMiddleware:
     """Response redaction middleware with streaming support."""
 
     def __init__(self, app, detector_fn: Callable[[str], str], overlap: int = 64):
+        """Initialize instance."""
         self.app = app
         self.detector_fn = detector_fn
         self.overlap = overlap

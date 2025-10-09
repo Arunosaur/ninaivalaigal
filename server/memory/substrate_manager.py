@@ -57,6 +57,7 @@ class MemorySubstrateManager:
     """
 
     def __init__(self):
+        """Initialize instance."""
         self.providers: Dict[str, MemoryProvider] = {}
         self.health_status: Dict[str, ProviderHealth] = {}
         self.primary_provider: Optional[str] = None

@@ -26,6 +26,7 @@ class DashboardManager:
     """Manages real-time dashboard connections and data streaming."""
 
     def __init__(self):
+        """Initialize instance."""
         self.active_connections: List[WebSocket] = []
         self.metrics_history: List[Dict[str, Any]] = []
         self.max_history_size = 1000  # Keep last 1000 data points

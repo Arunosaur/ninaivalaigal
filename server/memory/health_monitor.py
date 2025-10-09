@@ -81,6 +81,7 @@ class ProviderHealthMonitor:
     """
 
     def __init__(self, metrics_retention_hours: int = 168):  # 7 days default
+        """Initialize instance."""
         self.metrics_retention_hours = metrics_retention_hours
         self.provider_metrics: Dict[str, List[HealthMetric]] = {}
         self.provider_summaries: Dict[str, HealthSummary] = {}

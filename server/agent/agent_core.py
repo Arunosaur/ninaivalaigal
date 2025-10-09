@@ -33,6 +33,7 @@ class ExecutionResult:
         tools_used: Optional[List[str]] = None,
         context: Optional[Dict] = None,
     ):
+        """Initialize execution result."""
         self.execution_id = execution_id
         self.mode = mode
         self.success = success
@@ -76,6 +77,7 @@ class AgentCore:
         graph_intelligence=None,
         performance_manager=None,
     ):
+        """Initialize agentic core with optional dependencies."""
         self.redis_client = redis_client
         self.graph_intelligence = graph_intelligence
         self.performance_manager = performance_manager
