@@ -37,6 +37,7 @@ class RoleAssignment(Base):
     granted_by_user = relationship("User", foreign_keys=[granted_by])
 
     def __repr__(self):
+        """Return string representation."""
         return (
             f"<RoleAssignment(user_id={self.user_id}, role={self.role.name}, "
             f"scope={self.scope_type}:{self.scope_id})>"
@@ -66,6 +67,7 @@ class PermissionAudit(Base):
     user = relationship("User", back_populates="permission_audits")
 
     def __repr__(self):
+        """Return string representation."""
         return (
             f"<PermissionAudit(user_id={self.user_id}, action={self.action.name}, "
             f"resource={self.resource.name}, allowed={self.allowed})>"
@@ -105,6 +107,7 @@ class PermissionDelegation(Base):
         self.actions = ",".join([action.name for action in actions])
 
     def __repr__(self):
+        """Return string representation."""
         return (
             f"<PermissionDelegation(delegator_id={self.delegator_id}, delegate_id={self.delegate_id}, "
             f"resource={self.resource.name})>"
@@ -136,6 +139,7 @@ class AccessRequest(Base):
     reviewer = relationship("User", foreign_keys=[reviewed_by])
 
     def __repr__(self):
+        """Return string representation."""
         return (
             f"<AccessRequest(requester_id={self.requester_id}, resource={self.resource.name}, "
             f"action={self.action.name}, status={self.status})>"

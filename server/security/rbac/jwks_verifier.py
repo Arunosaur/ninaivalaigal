@@ -26,6 +26,7 @@ class JWKSConfig:
     algorithms: list[str] = None
 
     def __post_init__(self):
+        """Set default algorithms if not provided."""
         if self.algorithms is None:
             self.algorithms = ["RS256", "ES256", "HS256"]
 

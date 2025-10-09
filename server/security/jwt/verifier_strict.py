@@ -30,6 +30,7 @@ class StrictJWTConfig:
     algorithms: tuple[str, ...] = ("RS256", "ES256", "HS256")
 
     def __post_init__(self):
+        """Validate configuration after initialization."""
         # Validate bounded leeway
         if self.leeway_seconds < 0 or self.leeway_seconds > 300:  # Max 5 minutes
             raise ValueError(f"leeway_seconds must be 0-300, got {self.leeway_seconds}")

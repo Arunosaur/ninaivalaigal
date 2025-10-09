@@ -34,6 +34,7 @@ class GuardProfileEvent:
     timestamp: float = None
 
     def __post_init__(self):
+        """Set timestamp if not provided."""
         if self.timestamp is None:
             self.timestamp = time.time()
 
@@ -168,10 +169,12 @@ class GuardProfileTimer:
         self.action = "allowed"  # Default, can be changed
 
     def __enter__(self):
+        """Enter context manager."""
         self.start_time = time.time()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit context manager and record metrics."""
         duration_ms = (time.time() - self.start_time) * 1000
 
         # Determine action based on exception
