@@ -1,3 +1,4 @@
+"""JWT token resolver for RBAC."""
 from __future__ import annotations
 
 import base64

@@ -1,4 +1,4 @@
-# database.py - Database models and operations for mem0
+"""Database models and operations for mem0."""
 
 import json
 import os

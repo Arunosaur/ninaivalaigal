@@ -1,1 +1,1 @@
-# Router package for modularized FastAPI endpoints
+"""Router package for modularized FastAPI endpoints."""

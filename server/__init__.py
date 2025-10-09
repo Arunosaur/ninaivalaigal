@@ -1,1 +1,1 @@
-# Server package initialization
+"""Server package initialization."""

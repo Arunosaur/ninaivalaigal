@@ -1,0 +1,1 @@
+"""Legacy database operations (deprecated)."""
