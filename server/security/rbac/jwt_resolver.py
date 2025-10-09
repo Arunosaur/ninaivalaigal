@@ -125,6 +125,7 @@ class JWTClaimsResolver:
                 hdr = self._header(token)
                 kid = hdr.get("kid") if isinstance(hdr, dict) else None
                 if isinstance(kid, str) and self._neg_kid.contains(kid):
+                    """Initialize instance."""
                     jwt_neg_kid_cache_hits_total.inc()
                     if span:
                         span.set_attribute("auth.neg_kid_cache", True)

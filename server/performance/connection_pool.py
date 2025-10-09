@@ -71,6 +71,7 @@ class OptimizedDatabaseManager:
         pool_recycle: int = 3600,  # 1 hour
         pool_pre_ping: bool = True,
     ):
+        """Initialize instance."""
         self.database_url = database_url
         self.monitor = ConnectionPoolMonitor()
 

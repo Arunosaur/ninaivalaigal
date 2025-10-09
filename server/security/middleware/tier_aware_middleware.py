@@ -33,6 +33,7 @@ class TierAwareDetectorWrapper:
         fail_closed_threshold: int = 3,
         fallback_tier: int = 2,
     ):
+        """Initialize instance."""
         self.detector_fn = detector_fn
         self.fail_closed_threshold = fail_closed_threshold
         self.fallback_tier = fallback_tier
@@ -100,6 +101,7 @@ class TierAwareMiddleware:
         detector_wrapper: TierAwareDetectorWrapper,
         tier_extractor: Callable[[Scope], int] | None = None,
     ):
+        """Initialize instance."""
         self.app = app
         self.detector_wrapper = detector_wrapper
         self.tier_extractor = tier_extractor or self._default_tier_extractor
@@ -222,6 +224,7 @@ def extract_tier_from_jwt(scope: Scope) -> int:
         auth_header = headers.get(b"authorization", b"").decode()
 
         if not auth_header.startswith("Bearer "):
+            """Initialize instance."""
             return DataTier.PUBLIC
 
         token = auth_header[7:]

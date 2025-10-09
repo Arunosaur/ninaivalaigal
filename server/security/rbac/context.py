@@ -44,6 +44,7 @@ class JWTClaimsResolver:
         verify_signature: bool = True,
         algorithm: str = "HS256",
     ):
+        """Initialize instance."""
         self.secret_key = secret_key or os.getenv("NINAIVALAIGAL_JWT_SECRET")
         self.verify_signature = verify_signature and bool(
             os.getenv("NINAIVALAIGAL_JWT_VERIFY", "true").lower() == "true"

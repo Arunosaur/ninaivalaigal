@@ -27,6 +27,7 @@ class RBACContext:
         org_id: str | None = None,
         team_ids: set[str] | None = None,
     ):
+        """Initialize instance."""
         self.user_id = user_id
         self.email = email
         self.org_id = org_id or "default"
@@ -81,6 +82,7 @@ class RBACMiddleware:
                 return None
 
             if not auth_header.startswith("Bearer "):
+                """Initialize instance."""
                 if debug_mode:
                     print(f"[AUTH_DEBUG] Invalid Authorization header format for " f"{request.url.path}")
                 return None

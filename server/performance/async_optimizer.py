@@ -30,6 +30,7 @@ class AsyncBatchProcessor:
         batch_timeout: float = 0.1,  # 100ms
         max_concurrent: int = 50,
     ):
+        """Initialize instance."""
         self.batch_size = batch_size
         self.batch_timeout = batch_timeout
         self.max_concurrent = max_concurrent
@@ -263,6 +264,7 @@ class AsyncOperationOptimizer:
         limiter = self.get_rate_limiter(limiter_name, rate, burst)
 
         async with limiter.limit(tokens):
+            """Initialize instance."""
             self.metrics["rate_limited_operations"] += 1
             return await operation()
 

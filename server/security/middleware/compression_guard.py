@@ -26,6 +26,7 @@ class CompressionGuardMiddleware:
         allowed_encodings: set[str] | None = None,
         max_decompressed_size: int = 10 * 1024 * 1024,  # 10MB
     ):
+        """Initialize instance."""
         self.app = app
         self.detector_fn = detector_fn
         self.strict_mode = strict_mode

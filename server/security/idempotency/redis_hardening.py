@@ -46,6 +46,7 @@ class HardenedRedisStore:
         circuit_breaker_threshold: int = 5,
         key_prefix: str = "idempotency:",
     ):
+        """Initialize instance."""
         self.redis = redis_client
         self.fallback_store = fallback_store or {}  # In-memory fallback
         self.key_prefix = key_prefix

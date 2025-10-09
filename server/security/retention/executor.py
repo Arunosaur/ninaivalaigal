@@ -20,6 +20,7 @@ class RetentionExecutor:
         metrics: Callable[[str, dict], None] | None = None,
         page_size: int = 1000,
     ):
+        """Initialize instance."""
         self.tier_policy = tier_policy
         self.query_expired = query_expired
         self.delete_ids = delete_ids

@@ -49,6 +49,7 @@ class ContentTypeGuardMiddleware:
         max_body_bytes: int = 10 * 1024 * 1024,
         reject_disallowed: bool = True,
     ):
+        """Initialize instance."""
         self.app = app
         self.allowed_prefixes = allowed_prefixes
         self.max_body_bytes = max_body_bytes

@@ -31,6 +31,7 @@ class GraphQueryCache:
         default_ttl: int = 300,  # 5 minutes default
         cache_prefix: str = "graph_cache",
     ):
+        """Initialize instance."""
         self.redis = redis_client
         self.default_ttl = default_ttl
         self.cache_prefix = cache_prefix
@@ -283,6 +284,7 @@ class GraphPerformanceOptimizer:
         """
 
         async def executor(query, params):
+            """Initialize instance."""
             # This would integrate with your actual graph DB client
             # For now, we'll simulate the execution
             self.metrics["graph_queries_executed"] += 1

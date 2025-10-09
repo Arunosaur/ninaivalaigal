@@ -90,6 +90,7 @@ class SecurityBundleMiddleware:
         max_body_bytes: int = 10 * 1024 * 1024,
         reject_disallowed: bool = True,
     ):
+        """Initialize instance."""
         self.app = app
         self.detector_fn = detector_fn
         self.overlap = overlap

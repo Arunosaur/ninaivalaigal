@@ -30,6 +30,7 @@ class QueryCache:
         default_ttl: int = 300,  # 5 minutes default
         cache_prefix: str = "query_cache",
     ):
+        """Initialize instance."""
         self.redis = redis_client
         self.default_ttl = default_ttl
         self.cache_prefix = cache_prefix

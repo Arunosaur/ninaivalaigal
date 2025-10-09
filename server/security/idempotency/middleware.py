@@ -58,6 +58,7 @@ class IdempotencyMiddleware:
         ttl: int = 3600,
         methods: set | None = None,
     ):
+        """Initialize instance."""
         self.app = app
         self.store = store
         self.header_name = header_name
