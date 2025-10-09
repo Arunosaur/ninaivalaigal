@@ -191,7 +191,7 @@ def evaluate_badges(user_stats: Dict[str, Any]) -> List[UserBadge]:
     """Evaluate which badges a user has earned"""
     earned_badges = []
 
-    for badge_type, levels in BADGE_DEFINITIONS.items():
+    for _badge_type, levels in BADGE_DEFINITIONS.items():
         highest_earned = None
 
         for level in [BadgeLevel.BRONZE, BadgeLevel.SILVER, BadgeLevel.GOLD]:
@@ -289,8 +289,8 @@ async def get_available_badges():
     """Get all available badges and their criteria"""
 
     badges_list = []
-    for badge_type, levels in BADGE_DEFINITIONS.items():
-        for level, badge in levels.items():
+    for _badge_type, levels in BADGE_DEFINITIONS.items():
+        for _level, badge in levels.items():
             badges_list.append(badge.dict())
 
     return {"success": True, "badges": badges_list, "total_badges": len(badges_list)}

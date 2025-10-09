@@ -74,7 +74,7 @@ async def scan_with_starlette(
     form = await request.form()
     part_count = 0
 
-    for field_name, field_value in form.items():
+    for _field_name, field_value in form.items():
         part_count += 1
 
         # P0: Part count DoS guard

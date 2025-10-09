@@ -529,7 +529,7 @@ async def get_graph_insights(
 
     # Trending topics from tags
     tag_counts = {}
-    for node_id, node in GRAPH_NODES.items():
+    for _node_id, node in GRAPH_NODES.items():
         if node["type"] == "memory":
             if team_filter is None or node.get("team_id") == team_filter:
                 for tag in node.get("tags", []):

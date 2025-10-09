@@ -183,7 +183,7 @@ class JWKSVerifierPool:
 
         # Try all verifiers if issuer not specified
         last_error = None
-        for iss, verifier in self.verifiers.items():
+        for _iss, verifier in self.verifiers.items():
             try:
                 return await verifier.verify_token(token)
             except InvalidTokenError as e:

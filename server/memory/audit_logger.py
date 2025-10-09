@@ -397,7 +397,7 @@ class MemorySharingAuditLogger:
         try:
             matching_events = []
 
-            for i, event in enumerate(self.audit_events):
+            for _i, event in enumerate(self.audit_events):
                 # Apply filters
                 if query.event_types and event.event_type not in query.event_types:
                     continue

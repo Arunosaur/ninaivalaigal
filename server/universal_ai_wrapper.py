@@ -490,7 +490,7 @@ class UniversalAIWrapper:
         }
 
         code_lower = code.lower()
-        for category, category_patterns in patterns.items():
+        for _category, category_patterns in patterns.items():
             for pattern in category_patterns:
                 if pattern in code_lower:
                     keywords.append(pattern)

@@ -156,7 +156,7 @@ def mock_gpt_tag_suggestion(content: str, existing_tags: List[str] = None) -> Di
     confidence_scores = []
 
     # Check against existing tag categories
-    for category, tags in EXISTING_TAGS_DB.items():
+    for _category, tags in EXISTING_TAGS_DB.items():
         for tag in tags:
             # Simple matching - check if tag appears in keywords or content
             if tag in keywords or tag in content.lower():
@@ -233,7 +233,7 @@ async def suggest_tags(
         related_tags = []
         for suggestion in filtered_suggestions:
             tag = suggestion["tag"]
-            for category, tags in EXISTING_TAGS_DB.items():
+            for _category, tags in EXISTING_TAGS_DB.items():
                 if tag in tags:
                     # Add other tags from same category as related
                     category_tags = [t for t in tags if t != tag and t not in existing_tag_list][:2]

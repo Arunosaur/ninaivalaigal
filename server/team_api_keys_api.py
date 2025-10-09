@@ -259,7 +259,7 @@ async def list_team_api_keys(
 
     # Get team keys
     team_keys = []
-    for key_id, key_data in api_keys_store.items():
+    for _key_id, key_data in api_keys_store.items():
         if key_data.get("team_id") != team_id:
             continue
 

@@ -196,7 +196,7 @@ async def get_analytics_dashboard(
     )
 
     total_revenue = 0.0
-    for team_id, member_count in teams_with_members:
+    for _team_id, member_count in teams_with_members:
         plan = calculate_team_plan(member_count)
         total_revenue += calculate_monthly_revenue(plan)
 
@@ -514,7 +514,7 @@ async def get_revenue_forecast(
         "organization": 0,
     }
 
-    for team_id, member_count in teams_with_members:
+    for _team_id, member_count in teams_with_members:
         plan = calculate_team_plan(member_count)
         plan_distribution[plan] += 1
         current_revenue += calculate_monthly_revenue(plan)

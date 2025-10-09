@@ -315,7 +315,7 @@ class SecurityTestSuite:
 
         print("\nSecurity Implementation Status:")
         categories = {}
-        for category, test_name, passed in self.test_results:
+        for category, _test_name, passed in self.test_results:
             if category not in categories:
                 categories[category] = {"passed": 0, "total": 0}
             categories[category]["total"] += 1
