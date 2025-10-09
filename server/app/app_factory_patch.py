@@ -20,10 +20,12 @@ class WriteBody(BaseModel):
 
 
 def wire_memory_store(app: FastAPI) -> None:
+    """Function implementation."""
     app.state.memory_store = get_memory_store()
     router = APIRouter(prefix="/mem-demo", tags=["memory-factory-demo"])
 
     def store_dep():
+        """Function implementation."""
         return app.state.memory_store
 
     @router.post("/write")

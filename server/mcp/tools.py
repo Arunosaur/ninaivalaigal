@@ -19,6 +19,7 @@ try:
 except ImportError:
 
     def redact_memory_before_storage(data):
+        """Function implementation."""
         return data
 
 

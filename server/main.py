@@ -228,6 +228,7 @@ performance_monitor = None
 # Custom OpenAPI Fix - prevent Content-Length issues with large schema
 @app.get("/openapi.json", include_in_schema=False)
 async def custom_openapi():
+    """Return OpenAPI schema as JSON response."""
     from fastapi.responses import JSONResponse
 
     return JSONResponse(app.openapi())
@@ -352,6 +353,7 @@ if os.path.exists(frontend_dir):
 # Frontend page routes
 # Custom route ID generator and OpenAPI fix
 def custom_generate_unique_id(route: APIRoute):
+    """Function implementation."""
     return f"{route.name}_{route.path}"
 
 

@@ -16,6 +16,7 @@ SECURITY_CONFIG = {
 
 
 def compute_hash():
+    """Function implementation."""
     return hashlib.sha256(json.dumps(SECURITY_CONFIG, sort_keys=True).encode()).hexdigest()
 
 
