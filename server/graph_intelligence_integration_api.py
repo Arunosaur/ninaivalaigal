@@ -85,6 +85,7 @@ class GraphIntelligenceEngine:
     """Core engine for graph intelligence operations"""
 
     def __init__(self, redis_client, db_session):
+        """Initialize instance."""
         self.redis = redis_client
         self.db = db_session
         self.cache_ttl = 3600  # 1 hour

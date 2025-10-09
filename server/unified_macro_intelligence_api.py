@@ -91,6 +91,7 @@ class MacroIntelligenceEngine:
     """Core engine for macro intelligence analysis"""
 
     def __init__(self, redis_client, relevance_engine: RelevanceEngine):
+        """Initialize instance."""
         self.redis = redis_client
         self.relevance_engine = relevance_engine
         self.cache_ttl = 3600  # 1 hour cache

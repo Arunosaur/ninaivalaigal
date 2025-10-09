@@ -35,6 +35,7 @@ class RedactionConfig:
     """Centralized redaction configuration"""
 
     def __init__(self):
+        """Initialize instance."""
         self.enabled = os.getenv("REDACTION_ENABLED", "true").lower() == "true"
         self.default_tier = ContextSensitivity(os.getenv("REDACTION_DEFAULT_TIER", "internal"))
         self.audit_enabled = os.getenv("REDACTION_AUDIT_ENABLED", "true").lower() == "true"

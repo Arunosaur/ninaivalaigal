@@ -31,6 +31,7 @@ class MemoryFederationEngine:
     """
 
     def __init__(self, config: Dict):
+        """Initialize instance."""
         self.config = config
         self.sharing_rules: Dict[str, List[SharingRule]] = {}
         self.team_contexts: Dict[str, TeamContext] = {}

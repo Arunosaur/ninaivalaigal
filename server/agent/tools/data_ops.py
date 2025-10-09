@@ -24,6 +24,7 @@ class DataOperationsTool:
     """
 
     def __init__(self):
+        """Initialize instance."""
         # Performance tracking
         self.metrics = {
             "total_operations": 0,

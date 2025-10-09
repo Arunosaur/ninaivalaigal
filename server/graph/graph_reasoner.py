@@ -67,6 +67,7 @@ class GraphReasoner:
     """
 
     def __init__(self, age_client: ApacheAGEClient, redis_client: RedisClient):
+        """Initialize instance."""
         self.age_client = age_client
         self.redis_client = redis_client
         self.cache_ttl = 300  # 5 minutes for reasoning results

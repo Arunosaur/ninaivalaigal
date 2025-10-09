@@ -63,6 +63,7 @@ class ApprovalWorkflowManager:
     """Manages cross-team memory sharing approval workflows"""
 
     def __init__(self, db_manager: DatabaseManager):
+        """Initialize instance."""
         self.db = db_manager
         self.default_expiry_days = 7  # Requests expire after 7 days
 

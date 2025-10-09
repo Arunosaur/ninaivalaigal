@@ -15,6 +15,7 @@ class TokenManager:
     """Manages JWT token refresh and graceful expiration handling"""
 
     def __init__(self):
+        """Initialize instance."""
         self.refresh_buffer_hours = 2  # Refresh tokens 2 hours before expiration
         self.active_sessions = {}  # user_id -> session_info
 

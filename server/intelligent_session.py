@@ -19,6 +19,7 @@ class SessionConfig:
     """Configuration for intelligent session management"""
 
     def __init__(self):
+        """Initialize instance."""
         self.base_timeout_minutes = int(os.getenv("SESSION_BASE_TIMEOUT", "30"))
         self.max_timeout_minutes = int(os.getenv("SESSION_MAX_TIMEOUT", "480"))  # 8 hours
         self.min_timeout_minutes = int(os.getenv("SESSION_MIN_TIMEOUT", "5"))  # 5 minutes
@@ -44,6 +45,7 @@ class IntelligentSessionManager:
     """Redis-backed intelligent session management system"""
 
     def __init__(self, redis_client: RedisClient, relevance_engine: RelevanceEngine):
+        """Initialize instance."""
         self.redis = redis_client
         self.relevance = relevance_engine
         self.config = SessionConfig()

@@ -1,13 +1,14 @@
 [flake8]
 max-line-length = 120
-# E203: whitespace before ':'
-# W503: line break before binary operator
-# D400: First line should end with a period
-# D205: 1 blank line required between summary line and description
-# D401: First line should be in imperative mood
-# B008: Do not perform function calls in argument defaults
-# D202: No blank lines allowed after function docstring
-extend-ignore = E203, W503, D400, D205, D401, B008, D202, E501, D204, D403, D200, D210, D107, D105
+# Pragmatic ignores - style over substance
+# E203: whitespace before ':' (Black compatibility)
+# W503: line break before binary operator (Black compatibility)
+# E501: line too long (pragmatic - we set max-line-length=120)
+# B008: function calls in argument defaults (FastAPI dependency injection pattern)
+# D200,D202,D204,D205,D210: docstring formatting (one-line, blank lines, indentation)
+# D400,D401,D403: docstring content style (punctuation, imperative mood)
+# ENFORCED: D100,D101,D102,D103,D104,D105,D106,D107 (structural - must have docstrings)
+extend-ignore = E203, W503, E501, B008, D200, D202, D204, D205, D210, D400, D401, D403
 exclude =
     .git,
     __pycache__,

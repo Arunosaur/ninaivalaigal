@@ -218,6 +218,7 @@ class Context(Base):
 
 class DatabaseManager:
     def __init__(self, config="postgresql://mem0user:mem0pass@localhost:5432/mem0db"):
+        """Initialize instance."""
         # Handle both string URL and config dict
         if isinstance(config, dict):
             database_url = config.get("database_url", "postgresql://mem0user:mem0pass@localhost:5432/mem0db")
@@ -1084,6 +1085,7 @@ class DatabaseManager:
                 # Convert row to user-like object
                 class UserResult:
                     def __init__(self, row):
+                        """Initialize instance."""
                         self.id = row.id
                         self.email = row.email
                         self.name = row.name

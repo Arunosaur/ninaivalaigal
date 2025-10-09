@@ -15,6 +15,7 @@ class RedactionEngine:
     """Main redaction engine that combines detection and processing"""
 
     def __init__(self):
+        """Initialize instance."""
         self.detector = CombinedSecretDetector()
         self.processor = ContextualRedactor()
 

@@ -21,6 +21,7 @@ class ContentLengthDiagnosticMiddleware(BaseHTTPMiddleware):
     """
 
     def __init__(self, app: ASGIApp):
+        """Initialize instance."""
         super().__init__(app)
         self.mismatch_count = 0
         self.endpoints_with_issues = set()

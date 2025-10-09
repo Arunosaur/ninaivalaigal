@@ -132,6 +132,7 @@ class ScopedMemoryStore:
     """In-memory scoped idempotency store for development."""
 
     def __init__(self):
+        """Initialize instance."""
         self._store: dict[str, dict[str, Any]] = {}
 
     async def get_scoped(self, key: str, scope: IdempotencyScope) -> dict[str, Any] | None:
@@ -170,6 +171,7 @@ class ScopedRedisStore:
     """Redis-backed scoped idempotency store."""
 
     def __init__(self, redis_client, key_prefix: str = "scoped_idempotency:"):
+        """Initialize instance."""
         self.redis = redis_client
         self.key_prefix = key_prefix
 

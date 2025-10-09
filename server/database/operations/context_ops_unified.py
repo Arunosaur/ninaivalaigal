@@ -25,6 +25,7 @@ class UnifiedContextOps:
     """
 
     def __init__(self, pool: asyncpg.Pool):
+        """Initialize instance."""
         self.pool = pool
 
     async def create_context(

@@ -24,6 +24,7 @@ class RedisQueueManager:
     """Redis Queue manager for background task processing"""
 
     def __init__(self):
+        """Initialize instance."""
         self.redis_conn = None
         self.queues = {}
         self.rq_available = Job is not None and Queue is not None

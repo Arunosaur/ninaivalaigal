@@ -20,6 +20,7 @@ class DatabaseManager:
     """Core database manager with connection and session management"""
 
     def __init__(self, config=None):
+        """Initialize instance."""
         # Get database URL from environment or use default
         default_url = os.getenv(
             "DATABASE_URL",

@@ -44,6 +44,7 @@ class PerformanceMonitor:
     """Central performance monitoring system for mem0"""
 
     def __init__(self, retention_hours: int = 24):
+        """Initialize instance."""
         self.metrics: list[PerformanceMetric] = []
         self.snapshots: list[PerformanceSnapshot] = []
         self.retention_hours = retention_hours

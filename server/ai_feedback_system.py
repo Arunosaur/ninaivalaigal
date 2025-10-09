@@ -78,6 +78,7 @@ class AIFeedbackSystem:
     """
 
     def __init__(self, db_manager, redis_client=None):
+        """Initialize instance."""
         self.db = db_manager
         self.redis = redis_client
         self.learning_patterns = {}

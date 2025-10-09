@@ -14,6 +14,7 @@ class BoundedBinaryMasqueradeDetector(BinaryMasqueradeDetector):
     """Binary masquerade detector with CPU-bounded analysis."""
 
     def __init__(self, max_check_bytes: int = 256 * 1024):  # 256KB default cap
+        """Initialize instance."""
         super().__init__(max_check_bytes=max_check_bytes)
         self.analysis_byte_cap = max_check_bytes
 

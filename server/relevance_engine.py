@@ -23,6 +23,7 @@ class RelevanceEngine:
     """Redis-backed memory relevance scoring and ranking system"""
 
     def __init__(self, redis_client: RedisClient, relevance_cache: RelevanceScoreCache):
+        """Initialize instance."""
         self.redis = redis_client
         self.relevance_cache = relevance_cache
         self.score_ttl = 3600  # 1 hour

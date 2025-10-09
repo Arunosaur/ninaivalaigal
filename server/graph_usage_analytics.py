@@ -48,6 +48,7 @@ class GraphUsageAnalytics:
     """Core analytics engine for graph usage tracking"""
 
     def __init__(self, redis_client, db_session):
+        """Initialize instance."""
         self.redis = redis_client
         self.db = db_session
         self.analytics_ttl = 86400  # 24 hours

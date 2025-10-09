@@ -32,6 +32,7 @@ class FeatureFlagManager:
     """Manages security feature flags with audit logging."""
 
     def __init__(self, config_file: str | None = None):
+        """Initialize instance."""
         self.config_file = config_file or os.getenv("FEATURE_FLAGS_CONFIG", "/etc/ninaivalaigal/feature-flags.json")
         self.flags: dict[str, FeatureFlag] = {}
         self.lock = Lock()

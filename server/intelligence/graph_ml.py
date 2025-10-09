@@ -32,6 +32,7 @@ class GraphMLEngine:
     """
 
     def __init__(self, config: Dict):
+        """Initialize instance."""
         self.config = config
         self.model_cache = {}
         self.feature_weights = {

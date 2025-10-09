@@ -82,6 +82,7 @@ class FeedbackEngine:
     """Core feedback loop engine for memory relevance improvement"""
 
     def __init__(self):
+        """Initialize instance."""
         self.redis_client = None
         self.queue_manager = None
         self.relevance_engine = None

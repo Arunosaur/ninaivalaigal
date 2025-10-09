@@ -100,6 +100,7 @@ class IntelligentSuggestionsEngine:
     """Core engine for generating intelligent memory suggestions"""
 
     def __init__(self):
+        """Initialize instance."""
         self.redis_client = None
         self.relevance_engine = None
         self.feedback_engine = None

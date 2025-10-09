@@ -25,6 +25,7 @@ class AIToolchain:
     """
 
     def __init__(self):
+        """Initialize instance."""
         self.supported_models = ["openai", "claude", "local_llm"]
         self.default_model = "openai"  # Would be configurable
 

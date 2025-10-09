@@ -18,6 +18,7 @@ class Mem0Client:
     """Mem0Client class."""
 
     def __init__(self):
+        """Initialize instance."""
         self.base_url = "http://127.0.0.1:13370"
         self.session = requests.Session()
 

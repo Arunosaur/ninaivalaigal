@@ -16,6 +16,7 @@ class VendorAdminOperations:
     """Database operations for vendor admin functionality."""
 
     def __init__(self, db_manager):
+        """Initialize instance."""
         self.db = db_manager
 
     async def get_total_tenant_count(self, status_filter: Optional[str] = None) -> int:

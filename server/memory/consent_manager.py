@@ -112,6 +112,7 @@ class MemoryConsentManager:
     """
 
     def __init__(self):
+        """Initialize instance."""
         self.consent_preferences: Dict[str, List[ConsentPreference]] = {}  # user_id -> preferences
         self.visibility_profiles: Dict[str, VisibilityProfile] = {}  # profile_id -> profile
         self.consent_requests: Dict[str, ConsentRequest] = {}  # request_id -> request

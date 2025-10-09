@@ -251,6 +251,7 @@ class SpecKitContextManager(ContextInterface):
     """Spec-kit compliant context manager implementation"""
 
     def __init__(self, database_manager):
+        """Initialize instance."""
         self.db = database_manager
         self.validator = ContextValidator()
         self.resolver = ContextResolver()
@@ -521,6 +522,7 @@ class SpecKitOwnershipManager(OwnershipInterface):
     """Spec-kit compliant ownership manager implementation"""
 
     def __init__(self, database_manager):
+        """Initialize instance."""
         self.db = database_manager
 
     def create_team_with_owners(self, team_spec: TeamSpec, owner_ids: list[int]) -> ContextOperationResult:

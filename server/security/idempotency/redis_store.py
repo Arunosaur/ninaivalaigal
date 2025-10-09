@@ -18,6 +18,7 @@ class RedisKeyStore:
     """Redis-backed idempotency store for multi-instance deployments."""
 
     def __init__(self, redis_client, key_prefix: str = "idempotency:"):
+        """Initialize instance."""
         if redis is None:
             raise ImportError("redis package required for RedisKeyStore")
 

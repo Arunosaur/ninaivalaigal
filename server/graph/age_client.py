@@ -47,6 +47,7 @@ class ApacheAGEClient:
     """
 
     def __init__(self, database_url: str, graph_name: str = "ninaivalaigal_graph"):
+        """Initialize instance."""
         self.database_url = database_url
         self.graph_name = graph_name
         self.connection_pool: asyncpg.Pool | None = None

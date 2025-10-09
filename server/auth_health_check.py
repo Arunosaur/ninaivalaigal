@@ -17,6 +17,7 @@ class AuthHealthChecker:
     """Comprehensive auth system health checker"""
 
     def __init__(self):
+        """Initialize instance."""
         self.test_results = []
 
     async def run_full_health_check(self) -> Dict[str, Any]:

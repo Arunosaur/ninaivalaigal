@@ -22,6 +22,7 @@ class IntentionRouter:
     """
 
     def __init__(self):
+        """Initialize instance."""
         # Intent patterns for different execution modes
         self.intent_patterns = {
             ExecutionMode.SEARCH: [

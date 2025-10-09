@@ -42,6 +42,7 @@ class BinaryMasqueradeDetector:
     ]
 
     def __init__(self, max_check_bytes: int = 1024):
+        """Initialize instance."""
         self.max_check_bytes = max_check_bytes
 
     def detect_masquerade(

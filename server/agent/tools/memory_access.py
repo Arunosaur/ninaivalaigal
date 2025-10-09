@@ -24,6 +24,7 @@ class MemoryAccessTool:
     """
 
     def __init__(self, redis_client=None):
+        """Initialize instance."""
         self.redis_client = redis_client
 
         # Performance tracking

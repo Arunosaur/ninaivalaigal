@@ -25,6 +25,7 @@ class ContextOps:
     """
 
     def __init__(self, pool: asyncpg.Pool):
+        """Initialize instance."""
         self.pool = pool
 
     def set_active_context(self, context_name: str, user_id: int = None, scope: str = None):

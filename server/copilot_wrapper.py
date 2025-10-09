@@ -40,6 +40,7 @@ class Mem0CopilotWrapper:
     """Wrapper that enhances Copilot with mem0 memories via MCP"""
 
     def __init__(self):
+        """Initialize instance."""
         self.db = DatabaseManager(load_config())
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
@@ -315,6 +316,7 @@ class VSCodeCopilotBridge:
     """Bridge between VS Code, Copilot, and mem0"""
 
     def __init__(self):
+        """Initialize instance."""
         self.wrapper = Mem0CopilotWrapper()
 
     async def handle_copilot_request(self, request_data: dict[str, Any]) -> dict[str, Any]:

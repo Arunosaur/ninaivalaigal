@@ -155,6 +155,7 @@ class MemorySharingAuditLogger:
     """
 
     def __init__(self, retention_days: int = 2555):  # 7 years default
+        """Initialize instance."""
         self.audit_events: List[AuditEvent] = []
         self.transfer_records: Dict[str, TransferRecord] = {}
         self.retention_days = retention_days

@@ -19,6 +19,7 @@ class SubjectContextRegistry:
     """Registry for subject context providers per FastAPI app."""
 
     def __init__(self):
+        """Initialize instance."""
         self._providers: dict[id, SubjectContextProvider] = {}
 
     def register(self, app: FastAPI, provider: SubjectContextProvider):

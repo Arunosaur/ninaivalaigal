@@ -61,6 +61,7 @@ class StrictMultipartValidator:
     }
 
     def __init__(self, policy: MultipartPolicy | None = None):
+        """Initialize instance."""
         self.policy = policy or MultipartPolicy(
             allowed_text_types=self.DEFAULT_TEXT_TYPES.copy(),
             allowed_binary_types=self.DEFAULT_BINARY_TYPES.copy(),

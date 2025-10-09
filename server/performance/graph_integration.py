@@ -22,6 +22,7 @@ class GraphIntelligencePerformanceWrapper:
     """
 
     def __init__(self, graph_reasoner, redis_client):
+        """Initialize instance."""
         self.graph_reasoner = graph_reasoner
         self.optimizer = GraphPerformanceOptimizer(redis_client)
 

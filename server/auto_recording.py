@@ -17,6 +17,7 @@ class AutoRecorder:
     """
 
     def __init__(self, db_manager: DatabaseManager):
+        """Initialize instance."""
         self.db = db_manager
         self.active_contexts = {}  # context_name -> recording_state
         self.recording_buffer = {}  # context_name -> [messages]

@@ -32,6 +32,7 @@ class GraphAnalyticsEngine:
     """
 
     def __init__(self, config: Dict):
+        """Initialize instance."""
         self.config = config
         self.analytics_cache = {}
         self.trend_history = defaultdict(list)
