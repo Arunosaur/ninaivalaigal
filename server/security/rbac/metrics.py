@@ -20,6 +20,7 @@ except Exception:  # pragma: no cover
             pass
 
     def Counter(*a, **k):
+        """Fallback counter when prometheus_client unavailable."""
         return _C()
 
 

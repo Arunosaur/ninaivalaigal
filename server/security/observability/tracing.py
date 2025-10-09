@@ -9,6 +9,7 @@ except Exception:  # pragma: no cover
 
 
 def start_span(name: str):
+    """Start an OpenTelemetry tracing span or return no-op if unavailable."""
     if trace is None:
 
         class _Noop:

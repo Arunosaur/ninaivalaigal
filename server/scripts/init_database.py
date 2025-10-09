@@ -15,6 +15,7 @@ from database.models import Base  # noqa: E402
 
 
 def main():
+    """Initialize database tables for ninaivalaigal platform."""
     # Get database URL from environment or use default for Colima dev
     database_url = os.getenv(
         "DATABASE_URL",

@@ -22,4 +22,5 @@ def compute_hash():
 
 @router.get("/healthz/config")
 async def health_config():
+    """Health check endpoint returning security configuration hash."""
     return {"security_config_hash": compute_hash()}
