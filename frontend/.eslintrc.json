@@ -57,7 +57,9 @@
       }
     ],
     "import/no-duplicates": "error",
-    "import/no-unused-modules": "warn"
+    "import/no-unused-modules": "warn",
+
+    "@next/next/no-html-link-for-pages": "off"
   },
   "parserOptions": {
     "ecmaVersion": 2022,
@@ -88,6 +90,10 @@
     "build/",
     "coverage/",
     "*.config.js",
-    "*.config.ts"
+    "*.config.ts",
+    "*.stories.tsx",
+    "*.stories.ts",
+    "*.stories.jsx",
+    "*.stories.js"
   ]
 }
