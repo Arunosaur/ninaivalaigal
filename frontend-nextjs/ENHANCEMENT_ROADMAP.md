@@ -3,7 +3,7 @@
 
 ## ✅ **Implemented**
 
-### **1. Bundle Size Tracking** (Completed: Oct 9, 2025)
+### **1. Bundle Size Tracking** ✅ (Completed: Oct 9, 2025)
 
 **Tool**: `@next/bundle-analyzer`
 
@@ -30,11 +30,88 @@ make analyze                 # Makefile convenience command
 
 ---
 
-## 🔲 **Planned Enhancements**
+### **2. Visual Regression Testing** ✅ (Completed: Oct 10, 2025)
 
-### **2. Visual Regression Testing** (Trigger: ≥50% components ported)
+**Tool**: Chromatic
 
-**Status**: **Ready to implement at 9/17 components** (currently 2/17 = 12%)
+**Implementation**:
+```bash
+npm install -D chromatic                    # Installed
+npm run chromatic -- --project-token=TOKEN  # Ready to use
+```
+
+**Files Created**:
+- `.github/workflows/chromatic.yml` - CI automation
+- `CHROMATIC_SETUP.md` - Complete setup guide
+- `package.json` - chromatic script
+
+**What's Included**:
+- Automatic visual regression testing on PRs
+- GitHub integration for visual reviews
+- Auto-accept on main branch
+- Exit-zero-on-changes (non-blocking CI)
+
+**Status**: **Setup complete, awaiting project token**
+
+**Next Steps**:
+1. Create Chromatic account at chromatic.com
+2. Link GitHub repository
+3. Get project token
+4. Add CHROMATIC_PROJECT_TOKEN to GitHub secrets
+5. Run first baseline: `npm run chromatic -- --project-token=TOKEN`
+
+---
+
+### **3. Token Documentation** ✅ (Completed: Oct 10, 2025)
+
+**Tool**: Storybook Design Token Stories
+
+**Implementation**:
+```bash
+# Created comprehensive token documentation
+src/components/DesignTokens.stories.tsx  # 400+ lines
+```
+
+**What's Included**:
+- **Colors**: Full palette with visual swatches (5 color groups, 45+ shades)
+- **Typography**: Font families, sizes, weights, line heights
+- **Spacing**: Complete spacing scale with visual bars
+- **Border Radius**: All radius values with examples
+- **Shadows**: Box shadow elevation system
+- **All Tokens**: Overview dashboard with stats
+
+**Features**:
+- Interactive visual examples
+- Copy-paste token values
+- Designer-friendly interface
+- Auto-generated from tokens.json
+- Accessible via Storybook navigation
+
+**Usage**:
+```bash
+npm run storybook
+# Navigate to Foundation → Design Tokens
+```
+
+**Stories Created** (6):
+1. `AllTokens` - Overview dashboard
+2. `Colors` - Complete color palette
+3. `Typography` - Font system
+4. `Spacing` - Spacing scale
+5. `BorderRadius` - Radius examples
+6. `Shadows` - Elevation system
+
+**Status**: **Complete and ready to use**
+
+---
+
+## 🔲 **Removed (Completed Above)**
+
+### **~~2. Visual Regression Testing~~** (COMPLETED ✅)
+
+**Status**: ~~**Ready to implement at 9/17 components** (currently 2/17 = 12%)~~
+
+**IMPLEMENTED**: All 17/17 components ported, Chromatic configured
 
 **Recommended Tool**: **Chromatic**
 
