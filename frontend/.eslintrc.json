@@ -89,11 +89,18 @@
     "out/",
     "build/",
     "coverage/",
-    "*.config.js",
     "*.config.ts",
     "*.stories.tsx",
     "*.stories.ts",
     "*.stories.jsx",
-    "*.stories.js"
+    "*.stories.js",
+    "*.html",
+    "js/**/*.js",
+    "admin/**/*.html",
+    "admin/**/*.js",
+    "admin/Narrative/*.tsx",
+    "admin/Narrative/*.ts",
+    "customer/Narrative/*.tsx",
+    "customer/Narrative/*.ts"
   ]
 }
