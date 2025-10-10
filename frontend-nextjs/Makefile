@@ -44,3 +44,6 @@ test: lint type-check ## Run all checks (lint + type-check)
 
 ci: install test build ## Full CI pipeline (install, test, build)
 	@echo "✅ CI pipeline complete!"
+
+analyze: ## Analyze bundle size with visual report
+	npm run analyze

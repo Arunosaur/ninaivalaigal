@@ -1,13 +1,14 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  reactStrictMode: true,
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
 
-  // API proxy configuration
+const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
+        source: "/api/:path*",
         destination: process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api/:path*` : 'http://localhost:13370/api/:path*',
       },
     ];
