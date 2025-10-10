@@ -64,7 +64,7 @@ export const useGraphOpsNarrative = () => {
 
   // API base URL - TODO: Make configurable
   const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  const graphApiBase = process.env.NEXT_PUBLIC_GRAPH_API_URL || 'http://localhost:5433';
+  const _graphApiBase = process.env.NEXT_PUBLIC_GRAPH_API_URL || 'http://localhost:5433';
 
   /**
    * Fetch narrative sequence from GraphOps

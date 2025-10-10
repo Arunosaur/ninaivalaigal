@@ -246,6 +246,7 @@ export const Overlay: React.FC<OverlayProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? 'overlay-title' : undefined}
+      tabIndex={-1}
       {...props}
     >
       {/* Spotlight Effect */}
