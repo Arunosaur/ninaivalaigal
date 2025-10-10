@@ -1,5 +1,6 @@
 import React from 'react';
-import tokens from '../design/tokens.json';
+// @ts-ignore - tokens.json is in design/ folder
+import tokens from '../../design/tokens.json';
 
 export default {
   title: 'Foundation/Design Tokens',
