@@ -210,7 +210,7 @@ export const Callout: React.FC<CalloutProps> = ({
   const [visible, setVisible] = useState(isVisible);
   const [isHovered, setIsHovered] = useState(false);
   const calloutRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Handle auto-hide
   useEffect(() => {

@@ -40,6 +40,12 @@ const buttonVariants = cva(
           'active:bg-error-800 active:border-error-800',
           'focus-visible:ring-error-500',
         ],
+        outline: [
+          'bg-white text-secondary-700 border border-secondary-300',
+          'hover:bg-secondary-50',
+          'active:bg-secondary-100',
+          'focus-visible:ring-secondary-500',
+        ],
       },
       size: {
         sm: 'h-8 px-3 text-sm',
