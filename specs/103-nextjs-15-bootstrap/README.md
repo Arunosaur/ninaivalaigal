@@ -218,6 +218,23 @@ npm install -D \
 
 ### Phase 2: Configuration Port (2 hours)
 
+**Note on ESLint Performance**: For optimal local development speed, `sonarjs` and `security` plugins are configured for CI-only. Create `.eslintrc.ci.json` for full checks:
+
+```json
+{
+  "extends": [
+    "./.eslintrc.json",
+    "plugin:security/recommended",
+    "plugin:sonarjs/recommended"
+  ],
+  "plugins": ["security", "sonarjs"]
+}
+```
+
+Use in CI: `eslint --config .eslintrc.ci.json`
+
+---
+
 **2.1 Port Tailwind Configuration**
 
 Copy from `frontend/tailwind.config.js`:
@@ -249,52 +266,6 @@ const config: Config = {
 };
 
 export default config;
-```
-
-**2.2 Port ESLint Configuration**
-
-Enhanced for Next.js:
-
-```json
-{
-  "extends": [
-    "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:jsx-a11y/recommended",
-    "plugin:security/recommended",
-    "plugin:sonarjs/recommended",
-    "prettier"
-  ],
-  "plugins": [
-    "@typescript-eslint",
-    "jsx-a11y",
-    "security",
-    "sonarjs"
-  ],
-  "rules": {
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/no-unused-vars": ["error", {
-      "argsIgnorePattern": "^_",
-      "varsIgnorePattern": "^_"
-    }],
-    "jsx-a11y/no-noninteractive-element-interactions": "error",
-    "no-console": "warn",
-    "prefer-const": "error"
-  },
-  "ignorePatterns": [
-    "node_modules/",
-    ".next/",
-    "out/",
-    "public/"
-  ]
-}
-```
-
-**2.3 Port Jest Configuration**
-
-```javascript
-// frontend-nextjs/jest.config.js
-const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({
   dir: './',

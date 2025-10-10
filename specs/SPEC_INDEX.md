@@ -149,9 +149,9 @@
 |------|-------|--------|-------|-------|
 | 100 | API Surface Contracts | Complete | Phase 2B | OpenAPI schema governance |
 | 101 | Memory Sharing (Federation via Redis + GraphOps) | Complete | Phase 3 | Cross-team memory federation |
-| 102 | Frontend Migration Preparation | **Proposed** | Phase 2B | Legacy code freeze & keeper cleanup |
-| 103 | Next.js 15 Bootstrap & Component Port | **Proposed** | Phase 2B → 3 | Modern frontend migration |
-| 104 | Post-Migration Quality Verification | **Proposed** | Phase 3 | Comprehensive quality audit |
+| 102 | Frontend Migration Preparation | **Proposed** | Phase 2B | **Migration Trilogy v1** - Legacy freeze |
+| 103 | Next.js 15 Bootstrap & Component Port | **Proposed** | Phase 2B → 3 | **Migration Trilogy v1** - Modernization |
+| 104 | Post-Migration Quality Verification | **Proposed** | Phase 3 | **Migration Trilogy v1** - Quality audit |
 
   ## Reference (999)
 
@@ -280,10 +280,10 @@
 **Enterprise Readiness**: Phase 2B operational with full-stack quality parity
 **Milestone**: First 100+ specifications achieved!
 
-### Migration Trilogy (SPEC-102 to 104)
+### Frontend Migration Trilogy v1 (SPEC-102 to 104)
 **Strategic Context**: After achieving 53% lint improvement (428 → 201 issues) in SPEC-096, analysis revealed 70% of remaining issues exist in files that will be deleted during Next.js migration.
 
-**Migration Trilogy Dependencies**:
+**Trilogy Dependencies**:
 - **SPEC-102** (Preparation) depends on: SPEC-096
 - **SPEC-103** (Bootstrap) depends on: SPEC-102
 - **SPEC-104** (Verification) depends on: SPEC-103
@@ -293,3 +293,8 @@
 - Achieve <20 ESLint issues (vs 201 in legacy)
 - Lighthouse scores 90+ across all pages
 - Modern Next.js 15 stack with App Router
+
+**Release Tags**:
+- `spec-102-migration-ready` - Phase 1 complete (legacy frozen, keepers cleaned)
+- `spec-103-nextjs-complete` - Phase 2 complete (Next.js app operational)
+- `spec-104-verified` - Phase 3 complete (quality gates passed, production-ready)

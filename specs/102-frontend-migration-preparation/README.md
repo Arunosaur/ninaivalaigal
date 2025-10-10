@@ -322,12 +322,30 @@ Canonical list of 17 files to port to Next.js.
 
 Track progress through all steps.
 
-**3.3 Git Snapshot**
+**3.3 Git Snapshot & Release**
 
 ```bash
-git tag -a spec-102-migration-ready -m "Frontend ready for Next.js migration"
+# Create migration-ready tag
+git tag -a spec-102-migration-ready -m "Frontend Migration Trilogy v1: Phase 1 Complete
+
+- Legacy files frozen (145 issues ignored)
+- Keeper files cleaned (81 → 35 issues)
+- Migration readiness checklist 100% complete
+- Ready for SPEC-103 (Next.js Bootstrap)"
+
+# Push tag (triggers GitHub release via CI)
 git push origin spec-102-migration-ready
+
+# GitHub Actions will automatically:
+# - Create GitHub Release
+# - Run quality gate checks
+# - Generate migration readiness report
 ```
+
+**GitHub Release**: Tag triggers automated release creation with:
+- Migration readiness report
+- Before/after metrics
+- Next steps checklist
 
 ---
 
