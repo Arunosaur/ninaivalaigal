@@ -1,12 +1,11 @@
-  # Ninaivalaigal SPEC Index
+# Ninaivalaigal SPEC Index
 
   **Last Updated:** October 9, 2025
-  **Total SPECs:** 102 specifications
+  **Total SPECs:** 105 specifications
 
   ## Overview
 
   This index catalogs all technical specifications for the ninaivalaigal AI memory management platform. SPECs are organized by functional area and implementation phase.
-
   ## SPEC Numbering
 
   - **000-099**: Core platform specifications
@@ -139,24 +138,25 @@
   | 092 | Middleware Resilience Follow-up | Planned | Phase 3 | Future middleware hardening |
   | 093 | Container Build Recovery & Apple CLI Integration | Complete | Phase 2B | Multi-arch container builds |
   | 094 | API Health Regression Tracking | Planned | Phase 3 | Health monitoring expansion |
-  | 095 | Multi-Runtime Port Allocation | Complete | Phase 2B | Dynamic port management |
   | 096 | Frontend Quality Enforcement & CI/CD | **Complete** | Phase 2B | **Full-stack quality parity** |
   | 097 | Feedback Loop for AI Context | Complete | Phase 2B | AI feedback integration |
   | 098 | Memory Health & Orphaned Tokens | Planned | Phase 3 | Memory cleanup utilities |
   | 099 | Approval Chain Processing (ACP) | Proposed | Phase 3 | Agentic workflow governance |
 
-  ## Advanced Features (100-101)
+  ## Advanced Features (100-104)
 
-  | SPEC | Title | Status | Phase | Notes |
-  |------|-------|--------|-------|-------|
-  | 100 | API Surface Contracts | Complete | Phase 2B | OpenAPI schema governance |
-  | 101 | Memory Sharing (Federation via Redis + GraphOps) | Complete | Phase 3 | Cross-team memory federation |
+| SPEC | Title | Status | Phase | Notes |
+|------|-------|--------|-------|-------|
+| 100 | API Surface Contracts | Complete | Phase 2B | OpenAPI schema governance |
+| 101 | Memory Sharing (Federation via Redis + GraphOps) | Complete | Phase 3 | Cross-team memory federation |
+| 102 | Frontend Migration Preparation | **Proposed** | Phase 2B | Legacy code freeze & keeper cleanup |
+| 103 | Next.js 15 Bootstrap & Component Port | **Proposed** | Phase 2B → 3 | Modern frontend migration |
+| 104 | Post-Migration Quality Verification | **Proposed** | Phase 3 | Comprehensive quality audit |
 
   ## Reference (999)
 
   | SPEC | Title | Status | Phase |
   |------|-------|--------|-------|
-  | 999 | SPEC Template | Reference | - |
 
   ---
 
@@ -205,6 +205,24 @@
     - Apache AGE GraphOps for federated reasoning
     - Secure multi-tenant memory collaboration
 
+- **SPEC-102**: **Frontend Migration Preparation** - **PROPOSED**
+  - Strategic freeze of legacy files (145 issues ignored)
+  - Focused cleanup of 17 keeper files (81 → 35 issues)
+  - Migration readiness checklist and documentation
+  - ROI: Avoids 60+ hours of wasted effort
+
+- **SPEC-103**: **Next.js 15 Bootstrap** - **PROPOSED**
+  - Clean Next.js 15 project with App Router
+  - Port 17 keeper components (zero legacy baggage)
+  - Server Components + Server Actions
+  - Expected: <20 ESLint issues (vs 201 in legacy)
+
+- **SPEC-104**: **Post-Migration Quality Verification** - **PROPOSED**
+  - Comprehensive quality audit and benchmarking
+  - Lighthouse 90+ scores validation
+  - WCAG 2.1 AA accessibility compliance
+  - Migration completion report with metrics
+
   ### October 8-9, 2025 - Backend Quality Stack Complete ✅
   - Flake8: 252 → 0 violations (100% fixed)
   - Bandit: Zero HIGH/MEDIUM security issues
@@ -214,16 +232,16 @@
   - Documentation: Complete quality guides
 
   ### Added (October 2025)
-  - **SPEC-090 to 099**: Quality & Integration SPECs
-  - **SPEC-100**: API Surface Contracts (Complete)
-  - **SPEC-101**: Memory Sharing Federation (Complete)
-  - **First 100+ specifications milestone achieved** 🎉
+- **SPEC-090 to 099**: Quality & Integration SPECs
+- **SPEC-100**: API Surface Contracts (Complete)
+- **SPEC-101**: Memory Sharing Federation (Complete)
+- **SPEC-102 to 104**: Next.js Migration Trilogy (Proposed)
+- **First 100+ specifications milestone achieved**
 
   ## Dependencies
 
   ### SPEC-090 Dependencies
   - SPEC-009 (Security Middleware Redaction)
-  - SPEC-010 (Observability and Telemetry)
   - SPEC-014 (Authentication and Authorization)
   - SPEC-025 (Vendor Admin Console)
   - SPEC-040 (AI Feedback System)
@@ -257,7 +275,21 @@
   - Working CI/CD integrations
   - Ready for immediate deployment
 
-  **Total Active SPECs**: 102 specifications (000-101 + 999 template)
-  **Implementation Coverage**: ~67% complete
-  **Enterprise Readiness**: Phase 2B operational with full-stack quality parity
-  **Milestone**: First 100+ specifications achieved! 🎉
+  **Total Active SPECs**: 105 specifications (000-104 + 999 template)
+**Implementation Coverage**: ~65% complete
+**Enterprise Readiness**: Phase 2B operational with full-stack quality parity
+**Milestone**: First 100+ specifications achieved!
+
+### Migration Trilogy (SPEC-102 to 104)
+**Strategic Context**: After achieving 53% lint improvement (428 → 201 issues) in SPEC-096, analysis revealed 70% of remaining issues exist in files that will be deleted during Next.js migration.
+
+**Migration Trilogy Dependencies**:
+- **SPEC-102** (Preparation) depends on: SPEC-096
+- **SPEC-103** (Bootstrap) depends on: SPEC-102
+- **SPEC-104** (Verification) depends on: SPEC-103
+
+**Expected Outcomes**:
+- Avoid 60+ hours of wasted cleanup effort
+- Achieve <20 ESLint issues (vs 201 in legacy)
+- Lighthouse scores 90+ across all pages
+- Modern Next.js 15 stack with App Router

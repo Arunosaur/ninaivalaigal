@@ -490,6 +490,9 @@ rm -rf frontend/*.html
 - [Next.js 15 Migration Guide](https://nextjs.org/docs/app/building-your-application/upgrading)
 - [React Router → Next.js App Router](https://nextjs.org/docs/app/building-your-application/routing)
 - [SPEC-096: Frontend Quality Enforcement](../specs/096-frontend-quality-enforcement-ci-cd/README.md)
+- [SPEC-102: Frontend Migration Preparation](../specs/102-frontend-migration-preparation/README.md)
+- [SPEC-103: Next.js 15 Bootstrap](../specs/103-nextjs-15-bootstrap/README.md)
+- [SPEC-104: Post-Migration Quality Verification](../specs/104-post-migration-quality-verification/README.md)
 
 ---
 

@@ -280,4 +280,13 @@ Type:
 
 ---
 
+## 📋 **Related SPECs**
+
+- **SPEC-096**: Frontend Quality Enforcement (Complete - Day 1)
+- **SPEC-102**: Frontend Migration Preparation (Proposed)
+- **SPEC-103**: Next.js 15 Bootstrap (Proposed)
+- **SPEC-104**: Post-Migration Quality Verification (Proposed)
+
+---
+
 *See full analysis in: NEXTJS_MIGRATION_IMPACT_REPORT.md*
