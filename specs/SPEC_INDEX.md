@@ -391,6 +391,6 @@ High-level summaries and completion reports for multi-SPEC implementation phases
 - **Phase Roadmaps**: Strategic planning documents (Phase 4, Phase 5, etc.)
 - **SPEC Range Summaries**: Implementation reports for SPEC bundles (106-111, 112-116, 118-120, 121-125)
 - **Session Reports**: Daily completion summaries and strategic analyses
-- **Frontend Split Analysis**: Gap analysis and planning for frontend decomposition
+- **Frontend Split Gap Analysis**: [FRONTEND_SPLIT_GAP_ANALYSIS.md](PHASE_SUMMARIES/FRONTEND_SPLIT_GAP_ANALYSIS.md) - Production-grade audit bridging SPEC layer and implementation reality (canonical Phase-5 kickoff reference)
 
 See [PHASE_SUMMARIES/README.md](PHASE_SUMMARIES/README.md) for full directory contents and organization principles.
