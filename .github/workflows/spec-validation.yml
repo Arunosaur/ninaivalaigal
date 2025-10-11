@@ -1,0 +1,44 @@
+name: SPEC Structure Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'specs/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'specs/**'
+
+jobs:
+  validate-specs:
+    runs-on: ubuntu-latest
+    name: Validate SPEC Directory Structure
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run SPEC validation
+        run: python scripts/validate_specs.py
+
+      - name: Report validation results
+        if: failure()
+        run: |
+          echo "❌ SPEC validation failed!"
+          echo "Please ensure:"
+          echo "  - SPEC numbering is continuous (no gaps)"
+          echo "  - Each SPEC folder contains README.md"
+          echo "  - All .md files are listed under /specs/"
+          exit 1
+
+      - name: Success summary
+        if: success()
+        run: |
+          echo "✅ SPEC structure validation passed!"
+          echo "Your living SPEC system stays evergreen 🌲"
