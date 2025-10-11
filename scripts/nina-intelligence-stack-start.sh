@@ -138,10 +138,10 @@ if ! $SKIP_API; then
   CACHE_IP=$(container list | grep nina-intelligence-cache | awk '{print $NF}')
 
   # Clean up any stopped API container first
-  container stop nv-api >/dev/null 2>&1 || true
-  container delete nv-api >/dev/null 2>&1 || true
+  container stop ninaivalaigal-dev-api >/dev/null 2>&1 || true
+  container delete ninaivalaigal-dev-api >/dev/null 2>&1 || true
 
-  container run -d --name nv-api -p 13370:8000 \
+  container run -d --name ninaivalaigal-dev-api -p 13370:8000 \
     -e DATABASE_URL=postgresql://nina:secure_nina_password@${DB_IP}:5432/ninaivalaigal \
     -e NINAIVALAIGAL_DATABASE_URL=postgresql://nina:secure_nina_password@${DB_IP}:5432/ninaivalaigal \
     -e REDIS_HOST=${CACHE_IP} \
@@ -157,17 +157,17 @@ fi
 # 4) UI
 if ! $SKIP_UI; then
   log "Starting UI..."
-  if container list | grep -q "nv-ui.*running"; then
-    log "nv-ui already running, skipping start."
+  if container list | grep -q "ninaivalaigal-dev-ui.*running"; then
+    log "ninaivalaigal-dev-ui already running, skipping start."
   else
     # Clean up any stopped UI container first
-    container stop nv-ui >/dev/null 2>&1 || true
-    container delete nv-ui >/dev/null 2>&1 || true
+    container stop ninaivalaigal-dev-ui-customer >/dev/null 2>&1 || true
+    container delete ninaivalaigal-dev-ui-customer >/dev/null 2>&1 || true
 
     # Build and start UI
     container build -t ninaivalaigal-ui:latest -f Dockerfile.ui . >/dev/null 2>&1
-    container run -d --name nv-ui --publish 8081:8080 ninaivalaigal-ui:latest
-    log "nv-ui started successfully."
+    container run -d --name ninaivalaigal-dev-ui-customer --publish 8081:8080 ninaivalaigal-ui:latest
+    log "ninaivalaigal-dev-ui-customer started successfully."
   fi
 else
   log "Skipping UI per flag."
@@ -177,4 +177,4 @@ log "✅ Nina Intelligence Stack start complete."
 
 # Show status
 log "📊 Current stack status:"
-container list | grep -E "(nina-intelligence|nv-api|nv-ui)" || log "No nina intelligence containers found."
+container list | grep -E "(nina-intelligence|ninaivalaigal-dev)" || log "No nina intelligence containers found."

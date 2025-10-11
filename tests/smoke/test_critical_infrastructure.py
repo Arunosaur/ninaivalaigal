@@ -3,75 +3,104 @@
 These tests validate core infrastructure.
 If ANY test fails, there's a regression.
 
+Architecture:
+- Apple Container CLI: No localhost port forwarding
+- Access via PgBouncer (port 6432), not direct DB
+- Dynamic IP detection from container inspect
+
 Run before every commit: pytest tests/smoke/ -v
 """
 
+import json
 import os
 import subprocess
 
 import pytest
 
 
+def get_container_ip(container_name: str) -> str | None:
+    """Get IP address of Apple Container CLI container."""
+    try:
+        result = subprocess.run(
+            ["container", "inspect", container_name],
+            capture_output=True,
+            timeout=5,
+        )
+        if result.returncode != 0:
+            return None
+
+        inspect_data = json.loads(result.stdout)
+        if inspect_data and len(inspect_data) > 0:
+            networks = inspect_data[0].get("networks", [])
+            if networks and len(networks) > 0:
+                address = networks[0].get("address", "")
+                # Remove CIDR suffix if present (e.g., "192.168.64.99/24" -> "192.168.64.99")
+                return address.split("/")[0] if address else None
+    except Exception:
+        return None
+    return None
+
+
 class TestInfrastructureSmoke:
     """Test core infrastructure accessibility."""
 
-    def test_database_accessible(self):
-        """Test PostgreSQL database accessibility via psql."""
-        # Check if database is running (try Apple CLI port 5452 first, then others)
-        ports_to_try = [5452, 5432, 5433]
+    def test_database_accessible_via_pgbouncer(self):
+        """Test PostgreSQL database accessibility via PgBouncer (correct architecture)."""
+        # Get PgBouncer container IP (Apple Container CLI)
+        pgbouncer_ip = get_container_ip("ninaivalaigal-dev-pgbouncer")
 
-        for port in ports_to_try:
-            result = subprocess.run(
-                [
-                    "psql",
-                    "-h",
-                    "localhost",
-                    "-p",
-                    str(port),
-                    "-U",
-                    "nina",
-                    "-d",
-                    "ninaivalaigal_dev",
-                    "-c",
-                    "SELECT 1;",
-                ],
-                env={
-                    **os.environ,
-                    "PGPASSWORD": "dev_password_change_in_production",  # pragma: allowlist secret
-                },
-                capture_output=True,
-                timeout=5,
-            )
-            if result.returncode == 0:
-                return  # Success on this port
+        if not pgbouncer_ip:
+            pytest.skip("PgBouncer container not running (ninaivalaigal-dev-pgbouncer)")
 
-        # If we get here, all ports failed
-        raise AssertionError(f"Database connection failed on all ports {ports_to_try}")
+        # Connect through PgBouncer on port 6432 (NOT direct DB)
+        result = subprocess.run(
+            [
+                "psql",
+                "-h",
+                pgbouncer_ip,
+                "-p",
+                "6432",
+                "-U",
+                "nina",
+                "-d",
+                "nina",  # Database name through PgBouncer
+                "-c",
+                "SELECT 1;",
+            ],
+            env={
+                **os.environ,
+                "PGPASSWORD": "change_me_securely",  # pragma: allowlist secret
+            },
+            capture_output=True,
+            timeout=5,
+        )
+
+        assert result.returncode == 0, f"PgBouncer connection failed: {result.stderr.decode()}"
 
     def test_redis_accessible(self):
-        """Redis must be accessible."""
-        # Try Apple CLI port 6399 first, then default 6379
-        ports_to_try = [6399, 6379]
+        """Redis must be accessible via Apple Container CLI."""
+        # Get Redis container IP
+        redis_ip = get_container_ip("ninaivalaigal-dev-redis")
 
-        for port in ports_to_try:
-            result = subprocess.run(
-                [
-                    "redis-cli",
-                    "-h",
-                    "localhost",
-                    "-p",
-                    str(port),
-                    "-a",
-                    "dev_redis_password",
-                    "ping",
-                ],
-                capture_output=True,
-                timeout=5,
-            )
-            if result.returncode == 0:
-                return  # Success
+        if not redis_ip:
+            pytest.skip("Redis container not running (ninaivalaigal-dev-redis)")
 
-        raise AssertionError(f"Redis connection failed on all ports {ports_to_try}")
+        result = subprocess.run(
+            [
+                "redis-cli",
+                "-h",
+                redis_ip,
+                "-p",
+                "6379",
+                "-a",
+                "nina_redis_dev_password",  # pragma: allowlist secret
+                "ping",
+            ],
+            capture_output=True,
+            timeout=5,
+        )
+
+        assert result.returncode == 0, f"Redis connection failed: {result.stderr.decode()}"
 
     def test_api_health_endpoint(self):
         """API /health endpoint must return 200."""
@@ -88,27 +117,31 @@ class TestDatabaseSchema:
     """Database schema must be in expected state."""
 
     def test_migrations_applied(self):
-        """Alembic migrations must be up to date."""
-        # Check alembic current version (run from project root)
-        # Try multiple database ports
-        ports = [5452, 5432, 5433]
+        """Alembic migrations must be up to date via PgBouncer."""
+        # Get PgBouncer container IP
+        pgbouncer_ip = get_container_ip("ninaivalaigal-dev-pgbouncer")
 
-        for port in ports:
-            db_url = f"postgresql://nina:dev_password_change_in_production@localhost:{port}/ninaivalaigal_dev"  # pragma: allowlist secret  # noqa: E501
-            result = subprocess.run(
-                ["alembic", "current"],
-                cwd="/Users/swami/WorkSpace/ninaivalaigal",  # pragma: allowlist secret
-                env={**os.environ, "DATABASE_URL": db_url},
-                capture_output=True,
-                timeout=10,
-            )
-            if result.returncode == 0:
-                # Alembic connected successfully
-                # Note: Empty output is OK if no migrations have been run yet
-                return
+        if not pgbouncer_ip:
+            pytest.skip("PgBouncer container not running (ninaivalaigal-dev-pgbouncer)")
 
-        # All ports failed
-        raise AssertionError(f"Alembic failed to connect on all ports {ports}: " f"{result.stderr.decode()}")
+        # Connect through PgBouncer on port 6432
+        db_url = (
+            f"postgresql://nina:change_me_securely@{pgbouncer_ip}:6432/nina"  # pragma: allowlist secret  # noqa: E501
+        )
+        result = subprocess.run(
+            ["alembic", "current"],
+            cwd="/Users/swami/WorkSpace/ninaivalaigal",  # pragma: allowlist secret
+            env={**os.environ, "DATABASE_URL": db_url},
+            capture_output=True,
+            timeout=10,
+        )
+
+        if result.returncode == 0:
+            # Alembic connected successfully
+            # Note: Empty output is OK if no migrations have been run yet
+            return
+
+        raise AssertionError(f"Alembic failed to connect via PgBouncer: {result.stderr.decode()}")
 
 
 class TestCriticalPaths:
@@ -145,11 +178,14 @@ def test_regression_guard():
     This test documents the current working state.
     Update this when you make intentional changes.
 
-    Current known working state (v0.9-pre-phase1):
-    - Database: PostgreSQL accessible
-    - Redis: Accessible on 6379
+    Current architecture (v5.0-frontend-split-audit-final):
+    - Apple Container CLI: Dynamic IP-based networking
+    - Database: Accessible ONLY via PgBouncer (port 6432)
+    - PgBouncer: ninaivalaigal-dev-pgbouncer container
+    - Redis: ninaivalaigal-dev-redis (port 6379)
     - API: May or may not be running (depending on context)
-    - Migrations: Should be applied
+    - Migrations: Run through PgBouncer connection
+    - NO direct DB access, NO localhost ports
     """
     # This test always passes but serves as documentation
     assert True, "If this fails, something is very wrong"

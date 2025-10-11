@@ -23,9 +23,9 @@ container tag nina-api:stable nina-api:arm64
 
 # Step 5: Restart API
 echo "🔄 Restarting API with stable version..."
-container stop nv-api && container rm nv-api || true
+container stop ninaivalaigal-dev-api && container rm ninaivalaigal-dev-api || true
 
-container run -d --name nv-api -p 13370:8000 \
+container run -d --name ninaivalaigal-dev-api -p 13370:8000 \
   --workdir /app/server \
   -e NINAIVALAIGAL_DATABASE_URL="postgresql://nina:change_me_securely@192.168.65.173:6432/nina" \
   -e DATABASE_URL="postgresql://nina:change_me_securely@192.168.65.173:6432/nina" \
@@ -49,7 +49,7 @@ if curl -f http://localhost:13370/health >/dev/null 2>&1; then
     make stack-status
 else
     echo "❌ API still not responding - checking logs..."
-    container logs nv-api
+    container logs ninaivalaigal-dev-api
 fi
 
 echo ""
