@@ -447,6 +447,11 @@ curl http://localhost:13370/health
 
 ## 🔄 Changelog
 
+### **v1.1.0 - October 10, 2025**
+- **Simplified naming convention:** Removed `-{runtime}` suffix from container names
+- **Containers now use:** `ninaivalaigal-{env}-{service}` (not `ninaivalaigal-{env}-{service}-{runtime}`)
+- **Cleanup performed:** Removed old `nv-*` containers and archived legacy scripts
+
 ### **v1.0.0 - October 4, 2025**
 - Initial specification
 - Port allocation formula defined
@@ -455,6 +460,37 @@ curl http://localhost:13370/health
 - PgBouncer mandate established
 - UI split strategy defined
 - Mermaid diagrams created
+
+---
+
+## 🚧 Technical Debt & Future Work
+
+### **Items Deferred for Later Implementation:**
+
+1. **container-compose.yml** (Removed Oct 10, 2025)
+   - Used old `nv-db` and `nv-redis` naming
+   - Needs to be recreated with new `ninaivalaigal-{env}-{service}` naming
+   - File location: `/container-compose.yml`
+   - **Action Required:** Recreate with standardized naming when compose support is needed
+
+2. **GitHub Actions Healthcheck Workflow** (Removed Oct 10, 2025)
+   - File: `.github/workflows/healthcheck-restart.yml`
+   - Auto-restarted services using old `nv-db-temp` and `nv-redis-temp` naming
+   - **Action Required:** Reimplement with new naming convention when healthcheck automation is needed
+
+3. **CI/CD Workflows Using Old Naming** (Cleaned Oct 10, 2025)
+   - Multiple workflows referenced old `nv-db`, `nv-redis`, `nv-pgbouncer` containers
+   - **Action Required:** Audit all `.github/workflows/*.yml` for consistency with new naming
+   - Priority workflows to review:
+     - `dev-stack-validation.yml`
+     - `macstudio-validate-clean.yml`
+     - `foundation-tests.yml`
+
+### **Migration Notes:**
+- All old `nv-*-start.sh` scripts archived to `scripts/archive/legacy-nv-scripts-2025-10-10/`
+- Container naming simplified: No runtime suffix needed (runtime determined by which CLI invokes the container)
+- Database name: `nina` (not `ninaivalaigal`)
+- Schema: `ninaivalaigal_intelligence` (not `public`)
 
 ---
 

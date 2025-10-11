@@ -121,7 +121,7 @@ def get_dynamic_database_url():
     try:
         # First try Apple Container CLI
         container_cmd = "container"
-        if subprocess.run(["which", "container"], capture_output=True).returncode != 0:
+        if subprocess.run(["which", "container"], capture_output=True).returncode != 0:  # nosec B607
             # Fallback to Docker if container CLI not available
             container_cmd = "docker"
 

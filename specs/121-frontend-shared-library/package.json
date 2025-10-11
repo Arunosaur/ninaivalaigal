@@ -1,0 +1,60 @@
+{
+  "name": "@ninaivalaigal/ui-components",
+  "version": "1.0.0",
+  "description": "Shared UI component library for Ninaivalaigal customer and admin apps",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    "./components/*": "./components/*.tsx",
+    "./state/*": "./state/*.ts",
+    "./hooks/*": "./hooks/*.ts",
+    "./lib/*": "./lib/*.ts",
+    "./styles/*": "./styles/*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "chromatic": "chromatic --exit-zero-on-changes"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "next": "^15.0.0",
+    "tailwindcss": "^3.4.0"
+  },
+  "dependencies": {
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.2.0",
+    "zustand": "^4.5.0",
+    "zod": "^3.22.0",
+    "@tanstack/react-query": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@storybook/react": "^7.6.0",
+    "@storybook/addon-essentials": "^7.6.0",
+    "chromatic": "^10.0.0",
+    "jest": "^29.7.0",
+    "@testing-library/react": "^14.1.0",
+    "typescript": "^5.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/medhasys/ninaivalaigal.git",
+    "directory": "frontend-shared"
+  },
+  "keywords": [
+    "react",
+    "nextjs",
+    "ui-components",
+    "design-system"
+  ],
+  "author": "Medhasys",
+  "license": "MIT"
+}

@@ -35,8 +35,8 @@ class RedisKeyStore:
                 return json.loads(data)
             return None
 
-        except Exception:
-            # Fallback: treat as cache miss
+        except Exception:  # nosec B110
+            # Idempotency is best-effort - fail silently (treat as cache miss)
             return None
 
     async def set(self, key: str, response_data: dict[str, Any], ttl: int = 3600) -> None:
@@ -47,7 +47,7 @@ class RedisKeyStore:
 
             await self.redis.setex(full_key, ttl, serialized_data)
 
-        except Exception:
+        except Exception:  # nosec B110
             # Fail silently - idempotency is best-effort
             pass
 
@@ -90,8 +90,8 @@ class RedisKeyStore:
             processing_key = f"{self.key_prefix}processing:{key}"
             await self.redis.delete(processing_key)
 
-        except Exception:
-            pass
+        except Exception:  # nosec B110
+            pass  # Cleanup is best-effort - fail silently
 
     async def is_processing(self, key: str) -> bool:
         """Check if key is currently being processed."""

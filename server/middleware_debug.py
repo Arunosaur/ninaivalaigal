@@ -217,8 +217,8 @@ class RedisCallTracker:
                     import redis.asyncio as redis_async
 
                     redis_async.Redis.get = original_redis_get
-                except Exception:
-                    pass
+                except Exception:  # nosec B110
+                    pass  # Cleanup - fail silently
 
 
 # Pre-configured debug middleware instances

@@ -8,6 +8,9 @@ import { SentimentTrendGraph } from '@/components/dashboard/SentimentTrendGraph'
 import { BadgeDisplay } from '@/components/gamification/BadgeDisplay';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
+import { FullPageLoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ErrorMessage } from '@/components/ui/ErrorBoundary';
+import { getDashboardAnalytics, getMemories, checkHealth, getErrorMessage } from '@/utils/api';
 
 // Mock data for dashboard (will be replaced with API calls)
 const mockMemories = [
@@ -130,27 +133,59 @@ const mockCloseBadges = [
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [backendConnected, setBackendConnected] = useState(false);
   const [userRole] = useState<'user' | 'team_admin' | 'org_admin'>('user');
 
-  useEffect(() => {
-    // Simulate data loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+  // State for real data (when available)
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [memoriesData, setMemoriesData] = useState<any>(null);
 
-    return () => clearTimeout(timer);
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // First check if backend is available
+        const health = await checkHealth();
+        setBackendConnected(health.status === 'ok');
+
+        // Try to load real data
+        // Note: These calls may fail with 401 if auth is not implemented yet
+        try {
+          const [analytics, memories] = await Promise.all([
+            getDashboardAnalytics('7d'),
+            getMemories(1, 10),
+          ]);
+          setAnalyticsData(analytics);
+          setMemoriesData(memories);
+        } catch (apiError: any) {
+          // If we get 401, backend is working but needs auth
+          if (apiError.status === 401) {
+            console.log('Backend requires authentication - using mock data for now');
+            setBackendConnected(true);
+          } else {
+            throw apiError;
+          }
+        }
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err);
+        setError(getErrorMessage(err));
+        setIsLoading(false);
+        // Use mock data as fallback
+      }
+    }
+
+    loadData();
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary-50">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-secondary-700">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
+    return <FullPageLoadingSpinner message="Loading your dashboard..." />;
   }
+
+  // Use real data if available, otherwise fall back to mock data
+  const memories = memoriesData?.memories || mockMemories;
+  const totalMemories = analyticsData?.totalMemories || 127;
 
   return (
     <div className="min-h-screen bg-secondary-50">
@@ -160,7 +195,14 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center py-4">
             <div>
               <h1 className="text-2xl font-bold text-secondary-900">Dashboard</h1>
-              <p className="text-sm text-secondary-600">Welcome back! Here's your overview.</p>
+              <p className="text-sm text-secondary-600">
+                Welcome back! Here's your overview.
+                {backendConnected && (
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-100 text-success-800">
+                    ✓ Connected
+                  </span>
+                )}
+              </p>
             </div>
             <div className="flex gap-3">
               <Button variant="ghost" size="sm">
@@ -174,6 +216,17 @@ export default function DashboardPage() {
         </div>
       </header>
 
+      {/* Connection Status Banner */}
+      {error && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <ErrorMessage
+            title="Connection Issue"
+            message={`${error}. Showing cached data.`}
+            onRetry={() => window.location.reload()}
+          />
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -181,12 +234,12 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Top Memories */}
             <TopMemoryCard
-              memories={mockMemories}
-              totalMemories={127}
-              avgScore={0.87}
-              trendingTopics={mockTrendingTopics}
-              aiInsights={mockAIInsights}
-              alerts={mockAlerts}
+              memories={memories}
+              totalMemories={totalMemories}
+              avgScore={analyticsData?.avgScore || 0.87}
+              trendingTopics={analyticsData?.trendingTopics || mockTrendingTopics}
+              aiInsights={analyticsData?.aiInsights || mockAIInsights}
+              alerts={analyticsData?.alerts || mockAlerts}
             />
 
             {/* Sentiment Trend */}

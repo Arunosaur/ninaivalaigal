@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 # Clone and build Apache AGE
 RUN git clone https://github.com/apache/age.git /tmp/age \
     && cd /tmp/age \
-    && git checkout PG15/stable \
+    && git checkout PG15 \
     && make install \
     && rm -rf /tmp/age
 

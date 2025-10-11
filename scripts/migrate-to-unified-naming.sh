@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Migration Script: Unified Container Naming Convention
-# Migrates from inconsistent naming to: ninaivalaigal-{env}-{service}-{runtime}
+# Migrates from inconsistent naming to: ninaivalaigal-{env}-{service}
+# Note: Runtime suffix removed as of v1.1.0 (Oct 10, 2025)
 
 set -euo pipefail
 
@@ -21,17 +22,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Migration mapping for existing containers
+# Updated Oct 10, 2025: No runtime suffix
 declare -A CONTAINER_MIGRATIONS=(
     # Legacy NV containers (no env suffix)
-    ["nv-db"]="ninaivalaigal-dev-db-apple"
-    ["nv-redis"]="ninaivalaigal-dev-redis-apple"
-    ["nv-api"]="ninaivalaigal-dev-api-apple"
-    ["nv-ui"]="ninaivalaigal-dev-ui-apple"
-    ["nv-pgbouncer"]="ninaivalaigal-dev-pgbouncer-apple"
+    ["nv-db"]="ninaivalaigal-dev-db"
+    ["nv-redis"]="ninaivalaigal-dev-redis"
+    ["nv-api"]="ninaivalaigal-dev-api"
+    ["nv-ui"]="ninaivalaigal-dev-ui-customer"
+    ["nv-pgbouncer"]="ninaivalaigal-dev-pgbouncer"
 
     # Nina Intelligence containers (no env suffix)
-    ["nina-intelligence-db"]="ninaivalaigal-dev-db-apple"
-    ["nina-intelligence-cache"]="ninaivalaigal-dev-redis-apple"
+    ["nina-intelligence-db"]="ninaivalaigal-dev-db"
+    ["nina-intelligence-cache"]="ninaivalaigal-dev-redis"
 )
 
 # Check what containers are currently running
@@ -170,7 +172,8 @@ EOF
 # Main migration flow
 main() {
     log "🚀 Starting Unified Naming Migration"
-    log "Target convention: ninaivalaigal-{env}-{service}-{runtime}"
+    log "Target convention: ninaivalaigal-{env}-{service}"
+    log "Note: Runtime suffix removed as of v1.1.0"
     echo
 
     # Safety check

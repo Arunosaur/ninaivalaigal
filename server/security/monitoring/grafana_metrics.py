@@ -544,13 +544,13 @@ def generate_test_metrics():
 
     # Simulate various security events
     for _ in range(100):
-        record_redaction_applied("aws_key", random.randint(1, 5))
-        record_rbac_decision(random.choice([True, False]), "memory", "read")
+        record_redaction_applied("aws_key", random.randint(1, 5))  # nosec B311
+        record_rbac_decision(random.choice([True, False]), "memory", "read")  # nosec B311
 
-        if random.random() < 0.1:  # 10% failure rate
-            record_redaction_failure("detector_error", random.randint(3, 5))
+        if random.random() < 0.1:  # 10% failure rate  # nosec B311
+            record_redaction_failure("detector_error", random.randint(3, 5))  # nosec B311
 
-        if random.random() < 0.05:  # 5% policy violations
-            record_security_policy_violation("tier_threshold", random.randint(3, 5))
+        if random.random() < 0.05:  # 5% policy violations  # nosec B311
+            record_security_policy_violation("tier_threshold", random.randint(3, 5))  # nosec B311
 
     return get_all_metrics()

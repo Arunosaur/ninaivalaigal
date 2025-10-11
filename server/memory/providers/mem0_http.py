@@ -21,8 +21,8 @@ from ..interfaces import (
 class Mem0HttpMemoryProvider:
     """HTTP-based memory provider that forwards to mem0 sidecar"""
 
-    def __init__(self, base_url: str, auth_secret: str = "", **kwargs):
-        """Initialize mem0 HTTP memory provider."""
+    def __init__(self, base_url: str, auth_secret: str = "", **kwargs):  # nosec B107
+        """Initialize mem0 HTTP memory provider (auth_secret optional for dev)."""
         self.base_url = base_url.rstrip("/")
         self.auth_secret = auth_secret
         self.timeout = kwargs.get("timeout", 30.0)

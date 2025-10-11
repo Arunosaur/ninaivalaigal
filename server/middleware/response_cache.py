@@ -267,7 +267,7 @@ class CacheManager:
             info = await self.redis.info("memory")
             stats["memory_usage_bytes"] = info.get("used_memory", 0)
             stats["memory_usage_human"] = info.get("used_memory_human", "0B")
-        except Exception:
-            pass
+        except Exception:  # nosec B110
+            pass  # Redis memory stats are optional - fail silently
 
         return stats

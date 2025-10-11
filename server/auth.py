@@ -34,8 +34,8 @@ def load_config():
                 user_config = json.load(f)
                 if "storage" in user_config and "database_url" in user_config["storage"]:
                     return user_config["storage"]["database_url"]
-    except Exception:
-        pass
+    except Exception:  # nosec B110
+        pass  # Config file parsing is optional - fail silently
 
     # PRIORITY 3: Fallback (should not be used in container)
     return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret

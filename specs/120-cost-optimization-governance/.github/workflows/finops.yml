@@ -1,0 +1,13 @@
+name: FinOps Guard
+on:
+  pull_request:
+    paths: ["**/*.yaml","**/*.yml"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if memory limit > 1Gi
+        run: |
+          if grep -R "memory: \"[2-9][0-9]*Gi\"" -n .; then
+            echo "Memory limit too high"; exit 1; fi

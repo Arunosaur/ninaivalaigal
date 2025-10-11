@@ -214,7 +214,7 @@ class ScopedRedisStore:
             serialized_data = json.dumps(enriched_data, default=str)
             await self.redis.setex(full_key, ttl, serialized_data)
 
-        except Exception:
+        except Exception:  # nosec B110
             pass  # Fail silently for idempotency
 
     async def exists_scoped(self, key: str, scope: IdempotencyScope) -> bool:

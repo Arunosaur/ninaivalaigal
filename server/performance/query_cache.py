@@ -280,8 +280,8 @@ class QueryCache:
                     "used_memory_human": info.get("used_memory_human", "0B"),
                     "used_memory_peak_human": info.get("used_memory_peak_human", "0B"),
                 }
-            except Exception:
-                pass
+            except Exception:  # nosec B110
+                pass  # Redis info is optional - fail silently
 
             return stats
 

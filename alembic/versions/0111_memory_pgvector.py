@@ -2,15 +2,16 @@
 
 from alembic import op
 
+# revision identifiers, used by Alembic.
 revision = "0111_memory_pgvector"
-down_revision = None
+down_revision = "0003_core_tables"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
-    op.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+    """Add memory_records table with pgvector support."""
+    # Extensions already installed in 0001, just create table
     op.execute(
         """
     CREATE TABLE IF NOT EXISTS memory_records (
@@ -30,4 +31,5 @@ def upgrade():
 
 
 def downgrade():
+    """Remove memory_records table."""
     op.execute("DROP TABLE IF EXISTS memory_records;")

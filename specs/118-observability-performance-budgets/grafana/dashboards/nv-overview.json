@@ -1,0 +1,1 @@
+{"title":"Ninaivalaigal Overview","panels":[{"type":"graph","title":"API p95","targets":[{"expr":"histogram_quantile(0.95, sum(rate(nv_request_latency_seconds_bucket[5m])) by (le))"}]}]}

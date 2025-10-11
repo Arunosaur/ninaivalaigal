@@ -8,6 +8,7 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from database import Base
+from database.models import Organization, Team, User
 from sqlalchemy import (
     Boolean,
     Column,
@@ -21,8 +22,6 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from ..database.models import Organization, Team, User
 
 
 class TeamInvitation(Base):

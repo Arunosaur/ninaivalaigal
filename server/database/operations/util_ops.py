@@ -37,14 +37,14 @@ class DatabaseUtilities(DatabaseManager):
         """Safely rollback database transaction."""
         try:
             session.rollback()
-        except Exception:
+        except Exception:  # nosec B110
             pass  # Rollback failures are typically not critical
 
     def close_session_safely(self, session: Session) -> None:
         """Safely close database session."""
         try:
             session.close()
-        except Exception:
+        except Exception:  # nosec B110
             pass  # Session close failures are typically not critical
 
     def execute_with_session(self, operation_func: Callable, *args: Any, **kwargs: Any) -> Any:

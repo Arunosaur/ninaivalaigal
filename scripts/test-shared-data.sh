@@ -102,10 +102,10 @@ echo ""
 echo "═══════════════════════════════════════════════════════════"
 echo "  Checking if Apple CLI sees Docker's data..."
 echo "═══════════════════════════════════════════════════════════"
-verify_test_data "apple-cli" "ninaivalaigal-apple-dev-db" "ninaivalaigal-apple-dev-redis"
+verify_test_data "apple-cli" "ninaivalaigal-dev-db" "ninaivalaigal-dev-redis"
 
 # Add more data in Apple CLI
-create_test_data "apple-cli" "ninaivalaigal-apple-dev-db" "ninaivalaigal-apple-dev-redis"
+create_test_data "apple-cli" "ninaivalaigal-dev-db" "ninaivalaigal-dev-redis"
 
 # Stop Apple CLI
 echo ""

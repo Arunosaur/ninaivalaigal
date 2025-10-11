@@ -118,6 +118,7 @@ Access the complete platform at **http://localhost:8081** after running `make ni
 ### **Core Documentation**
 - **[Nina Intelligence Stack Complete](docs/NINA_INTELLIGENCE_STACK_COMPLETE.md)** - Complete implementation guide
 - **[SPEC Audit 2024](SPEC_AUDIT_2024.md)** - Comprehensive platform status
+- **[Frontend Documentation](frontend-nextjs/README.md)** - Next.js 15 frontend baseline (SPEC-103)
 - **[API Documentation](docs/api/)** - API guides and references
 - **[Architecture Documentation](docs/architecture/)** - System design documents
 
