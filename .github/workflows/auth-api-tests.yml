@@ -96,7 +96,7 @@ jobs:
           --cov-fail-under=10
 
     - name: 📊 Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         file: ./server/coverage.xml
         flags: unittests

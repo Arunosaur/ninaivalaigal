@@ -107,7 +107,7 @@ jobs:
           -k "test_${{ matrix.test-suite }}_no_auth"
 
     - name: 📊 Upload Coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         file: ./server/coverage.xml
         flags: ${{ matrix.auth-mode }}-${{ matrix.test-suite }}
@@ -219,7 +219,7 @@ jobs:
         safety check --json --output safety-report.json || true
 
     - name: 📊 Upload E2E Coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         file: ./server/coverage.xml
         flags: e2e-auth-flow
