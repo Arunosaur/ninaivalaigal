@@ -1,7 +1,7 @@
 # Ninaivalaigal SPEC Index
 
-  **Last Updated:** October 11, 2025
-  **Total SPECs:** 125 specifications (106-116 + 118-125 complete, 117 in progress)
+  **Last Updated:** October 12, 2025
+  **Total SPECs:** 126 specifications (106-116 + 118-125 complete, 117 in progress, 126 planned)
 
   ## Overview
 
@@ -122,8 +122,8 @@
   | 081 | Progressive Web App | Planned | Phase 4 |
   | 082 | Analytics and ROI Dashboard | In Progress | Q4 2024 |
   | 083 | Predictive Analytics | Planned | Phase 3 |
-  | 084 | ML Model Training Pipeline | Planned | Phase 3 |
-  | 085 | AutoML Integration | Planned | Phase 4 |
+  | 084 | Agentic UI Testing Framework | Complete | Phase 2B |
+  | 085 | Staff Management | Complete | Phase 2B |
   | 086 | Multi-Runtime Port Allocation | Complete | Phase 2B |
   | 087 | API Surface Contracts | Complete | Phase 2B |
   | 088 | API Versioning Strategy | Planned | Phase 3 |
@@ -178,6 +178,7 @@
 | 123 | Admin Frontend Rollout (Internal) | **Complete** | Phase 5 | VPN + RBAC + PM2 + Nginx |
 | 124 | Unified Workspace & CI/CD Pipelines | **Complete** | Phase 5 | Turborepo + GitHub Actions |
 | 125 | Frontend Documentation & Monitoring | **Complete** | Phase 5 | Docs + Grafana + Runbooks |
+| 126 | ML Model Training & Fine-Tuning Pipeline | **Planned** | Phase 4 | MLOps + Kubeflow + MLflow |
 
   ## Reference (999)
 
