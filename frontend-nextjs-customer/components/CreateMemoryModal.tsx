@@ -1,13 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, Button, Input } from '@ninaivalaigal/ui-components';
+import { Modal, Button, Input, Select } from '@ninaivalaigal/ui-components';
+import type { SelectOption } from '@ninaivalaigal/ui-components';
 import { useMemories } from '../hooks/useMemories';
 
 interface CreateMemoryModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const CATEGORY_OPTIONS: Array<SelectOption<'personal' | 'work' | 'shared'>> = [
+  { value: 'personal', label: 'Personal', description: 'Private memories only you can see' },
+  { value: 'work', label: 'Work', description: 'Work-related memories' },
+  { value: 'shared', label: 'Shared', description: 'Memories shared with your team' },
+];
 
 export function CreateMemoryModal({ isOpen, onClose }: CreateMemoryModalProps) {
   const { createMemory } = useMemories();
@@ -107,23 +114,17 @@ export function CreateMemoryModal({ isOpen, onClose }: CreateMemoryModalProps) {
               </p>
             </div>
 
-            {/* Category Select - Placeholder until Select component ready */}
-            <div>
-              <label htmlFor="memory-category" className="block text-sm font-medium text-gray-700">
-                Category
-              </label>
-              <select
-                id="memory-category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value as 'personal' | 'work' | 'shared')}
-                disabled={isLoading}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-              >
-                <option value="personal">Personal</option>
-                <option value="work">Work</option>
-                <option value="shared">Shared</option>
-              </select>
-            </div>
+            {/* Category Select */}
+            <Select
+              id="memory-category"
+              label="Category"
+              value={category}
+              onChange={(value) => setCategory(value as 'personal' | 'work' | 'shared')}
+              options={CATEGORY_OPTIONS}
+              disabled={isLoading}
+              variant="custom"
+              searchable={false}
+            />
 
             {/* Tags Input */}
             <div>
