@@ -1,17 +1,29 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoginForm } from '@ninaivalaigal/ui-components';
+import { Button, Input } from '@ninaivalaigal/ui-components';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, isLoading } = useAuth();
 
-  const handleSuccess = () => {
-    router.push('/dashboard');
-  };
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const handleError = (error: Error) => {
-    console.error('Login failed:', error);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    const result = await login({ email, password });
+
+    if (result.error) {
+      setError(result.error);
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   return (
@@ -26,9 +38,69 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="mt-8">
-          <LoginForm onSuccess={handleSuccess} onError={handleError} />
-        </div>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="you@example.com"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                Remember me
+              </label>
+            </div>
+
+            <div className="text-sm">
+              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                Forgot password?
+              </a>
+            </div>
+          </div>
+
+          <Button type="submit" isLoading={isLoading} className="w-full">
+            Sign in
+          </Button>
+        </form>
 
         <div className="text-center text-sm text-gray-600">
           Don't have an account?{' '}

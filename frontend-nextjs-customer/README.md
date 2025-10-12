@@ -129,17 +129,80 @@ npm run build  # Verify
 - Custom components in `components/`
 - Responsive mobile-first design
 
+## API Integration
+
+### Environment Variables
+Create a `.env.local` file with:
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:13370
+```
+
+### Architecture
+
+**API Client** (`utils/api-client.ts`)
+- Centralized HTTP client with authentication
+- Automatic token management (localStorage)
+- Request/response formatting
+- Error handling
+
+**Services Layer**
+- `services/auth.service.ts` - Login, signup, token refresh
+- `services/memory.service.ts` - Memory CRUD operations
+
+**State Management**
+- `contexts/AuthContext.tsx` - Global auth state
+- React Context API for user session
+
+**Custom Hooks**
+- `hooks/useMemories.ts` - Memory list with CRUD
+- `hooks/useMemory.ts` - Single memory operations
+- Built-in optimistic updates
+
+### Usage Example
+
+```tsx
+'use client';
+
+import { useAuth } from '../contexts/AuthContext';
+import { useMemories } from '../hooks/useMemories';
+
+export default function MyPage() {
+  const { user, isAuthenticated, logout } = useAuth();
+  const { memories, isLoading, createMemory } = useMemories();
+
+  const handleCreate = async () => {
+    const { memory, error } = await createMemory({
+      title: 'New Memory',
+      content: 'Memory content',
+      category: 'personal',
+    });
+
+    if (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <div>
+      <h1>Welcome {user?.email}</h1>
+      <button onClick={handleCreate}>Create Memory</button>
+      {/* ... */}
+    </div>
+  );
+}
+```
+
 ## Next Steps
 
-- [ ] Implement memory creation flow
+- [x] Integrate with backend API ✅
+- [x] Add authentication state management ✅
+- [ ] Implement memory creation modal (waiting for Modal component from Developer A)
 - [ ] Add memory detail view
-- [ ] Integrate with backend API
-- [ ] Add authentication state management
-- [ ] Implement real-time search
-- [ ] Add loading states
+- [ ] Implement real-time search with backend
+- [ ] Add loading states and skeletons
 - [ ] Expand test coverage
 - [ ] Add error boundaries
-- [ ] Implement optimistic UI updates
+- [ ] Protected route middleware
 
 ## Related Documentation
 
