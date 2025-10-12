@@ -1,0 +1,10 @@
+Found error
+Error: No packages found in this path..
+    at /Users/swami/.npm/_npx/8705791c07954bd1/node_modules/license-checker/lib/index.js:354:19
+    at /Users/swami/.npm/_npx/8705791c07954bd1/node_modules/read-installed/read-installed.js:142:5
+    at /Users/swami/.npm/_npx/8705791c07954bd1/node_modules/read-installed/read-installed.js:263:14
+    at asyncMap (/Users/swami/.npm/_npx/8705791c07954bd1/node_modules/slide/lib/async-map.js:27:18)
+    at next (/Users/swami/.npm/_npx/8705791c07954bd1/node_modules/read-installed/read-installed.js:234:5)
+    at /Users/swami/.npm/_npx/8705791c07954bd1/node_modules/read-installed/read-installed.js:179:7
+    at LOOP (node:fs:2901:14)
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
