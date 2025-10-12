@@ -1,4 +1,4 @@
-import { Card } from '@ninaivalaigal/ui-components';
+import { Badge, Card } from '@ninaivalaigal/ui-components';
 import type { Memory } from '../types/api';
 
 type MemoryCardProps = {
@@ -9,11 +9,11 @@ type MemoryCardProps = {
 };
 
 export function MemoryCard({ memory, onClick, onShare, onEdit }: MemoryCardProps) {
-  const categoryColors = {
-    personal: 'bg-blue-100 text-blue-800',
-    work: 'bg-purple-100 text-purple-800',
-    shared: 'bg-green-100 text-green-800',
-  };
+  const categoryVariants = {
+    personal: 'info',
+    work: 'accent',
+    shared: 'success',
+  } as const;
 
   const handleClick = () => {
     onClick?.(memory);
@@ -41,13 +41,13 @@ export function MemoryCard({ memory, onClick, onShare, onEdit }: MemoryCardProps
             {memory.title || 'Untitled Memory'}
           </h3>
           {memory.category && (
-            <span
-              className={`ml-2 flex-shrink-0 rounded-full px-2 py-1 text-xs font-medium ${
-                categoryColors[memory.category]
-              }`}
+            <Badge
+              className="ml-2 flex-shrink-0"
+              variant={categoryVariants[memory.category] ?? 'neutral'}
+              pill
             >
               {memory.category}
-            </span>
+            </Badge>
           )}
         </div>
 
@@ -58,17 +58,12 @@ export function MemoryCard({ memory, onClick, onShare, onEdit }: MemoryCardProps
         {memory.tags && memory.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {memory.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-700"
-              >
+              <Badge key={tag} variant="neutral">
                 #{tag}
-              </span>
+              </Badge>
             ))}
             {memory.tags.length > 3 && (
-              <span className="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-700">
-                +{memory.tags.length - 3}
-              </span>
+              <Badge variant="neutral">+{memory.tags.length - 3}</Badge>
             )}
           </div>
         )}

@@ -117,7 +117,7 @@ Access the complete platform at **http://localhost:8081** after running `make ni
 
 ### **Core Documentation**
 - **[Nina Intelligence Stack Complete](docs/NINA_INTELLIGENCE_STACK_COMPLETE.md)** - Complete implementation guide
-- **[SPEC Audit 2024](SPEC_AUDIT_2024.md)** - Comprehensive platform status
+- **[SPEC Audit 2025](SPEC_AUDIT_2025.md)** - Comprehensive platform status
 - **[Frontend Documentation](frontend-nextjs/README.md)** - Next.js 15 frontend baseline (SPEC-103)
 - **[API Documentation](docs/api/)** - API guides and references
 - **[Architecture Documentation](docs/architecture/)** - System design documents
@@ -673,7 +673,7 @@ Different components are licensed under different terms to balance openness and 
 
 📄 **Visual guide**: [Licensing Map (PDF)](Ninaivalaigal_Licensing_Map.pdf) | [SVG](Ninaivalaigal_Licensing_Map.svg)
 
-Copyright © 2024 Medhasys LLC. Different components available under different licenses.
+Copyright © 2025 Medhasys LLC. Different components available under different licenses.
 
 ## 📚 Documentation
 
@@ -687,6 +687,6 @@ Complete documentation is available in the [`docs/`](docs/) directory:
 - **[Testing](docs/testing/README.md)** - Testing strategy and tools
 
 ### 🎯 Quick Links
-- [SPEC Status](SPEC_AUDIT_2024.md) - Complete feature roadmap (61 SPECs)
+- [SPEC Status](SPEC_AUDIT_2025.md) - Complete feature roadmap (61 SPECs)
 - [Contributing](CONTRIBUTING.md) - How to contribute
 - [Security Policy](SECURITY.md) - Security guidelines
