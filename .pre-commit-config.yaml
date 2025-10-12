@@ -86,3 +86,23 @@ repos:
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
+
+  # SPDX License Header Validation
+  - repo: local
+    hooks:
+      - id: check-spdx-headers
+        name: Check SPDX License Headers
+        entry: .pre-commit-hooks/check-spdx-headers.sh
+        language: script
+        types: [text]
+        files: \.(py|ts|tsx|js|jsx|sh|yml|yaml)$
+        exclude: |
+          (?x)^(
+            node_modules/.*|
+            \.venv/.*|
+            venv/.*|
+            __pycache__/.*|
+            dist/.*|
+            build/.*|
+            .*\.min\.(js|css)$
+          )$
