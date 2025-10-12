@@ -80,6 +80,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   };
 
   const helperOrError = errorText ?? helperText;
+  const descriptionId = helperOrError ? `${textareaId}-description` : undefined;
+  const counterId = typeof maxLength === "number" ? `${textareaId}-counter` : undefined;
 
   return (
     <div className="flex flex-col gap-2">
@@ -108,13 +110,20 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         onChange={handleChange}
         defaultValue={defaultValue}
         value={value}
+        aria-invalid={isInvalid || undefined}
+        aria-describedby={[descriptionId, counterId].filter(Boolean).join(" ") || undefined}
         {...props}
       />
       {(helperOrError || typeof maxLength === "number") && (
         <div className="flex items-start justify-between text-xs">
-          <span className={cn("text-secondary/70", errorText && "text-danger")}>{helperOrError}</span>
+          <span
+            id={descriptionId}
+            className={cn("text-secondary/70", errorText && "text-danger")}
+          >
+            {helperOrError}
+          </span>
           {typeof maxLength === "number" ? (
-            <span className="text-secondary/60">{currentLength} / {maxLength}</span>
+            <span id={counterId} className="text-secondary/60">{currentLength} / {maxLength}</span>
           ) : null}
         </div>
       )}

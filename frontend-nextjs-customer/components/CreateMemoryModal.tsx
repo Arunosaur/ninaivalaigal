@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, Button, Input, Select } from '@ninaivalaigal/ui-components';
+import { Modal, Button, Input, Select, Textarea } from '@ninaivalaigal/ui-components';
 import type { SelectOption } from '@ninaivalaigal/ui-components';
 import { useMemories } from '../hooks/useMemories';
 
@@ -94,25 +94,20 @@ export function CreateMemoryModal({ isOpen, onClose }: CreateMemoryModalProps) {
               />
             </div>
 
-            {/* Content Textarea - Placeholder until Textarea component ready */}
-            <div>
-              <label htmlFor="memory-content" className="block text-sm font-medium text-gray-700">
-                Content <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="memory-content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your memory here..."
-                rows={6}
-                required
-                disabled={isLoading}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                {content.length} characters
-              </p>
-            </div>
+            {/* Content Textarea */}
+            <Textarea
+              id="memory-content"
+              label="Content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your memory here..."
+              rows={6}
+              required
+              disabled={isLoading}
+              autoResize={true}
+              maxLength={5000}
+              helperText="Share your thoughts, ideas, or important information"
+            />
 
             {/* Category Select */}
             <Select

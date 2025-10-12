@@ -62,4 +62,21 @@ describe("Textarea", () => {
 
     expect(textarea.style.height).toBe("180px");
   });
+
+  it("wires helper text and counter to aria-describedby", () => {
+    render(
+      <Textarea
+        label="Summary"
+        helperText="Visible to all team members"
+        maxLength={12}
+        defaultValue="ready"
+      />
+    );
+
+    const textarea = screen.getByLabelText("Summary");
+    const helper = screen.getByText("Visible to all team members");
+    const counter = screen.getByText("5 / 12");
+
+    expect(textarea).toHaveAttribute("aria-describedby", `${helper.id} ${counter.id}`);
+  });
 });
