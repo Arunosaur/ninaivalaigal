@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, Input, useDebounce } from '@ninaivalaigal/ui-components';
 import { CreateMemoryModal } from '../../components/CreateMemoryModal';
 import { MemoryCard } from '../../components/MemoryCard';
@@ -9,6 +10,7 @@ import { useMemories } from '../../hooks/useMemories';
 type FilterType = 'all' | 'personal' | 'work' | 'shared';
 
 export default function MemoriesPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -29,8 +31,7 @@ export default function MemoriesPage() {
   };
 
   const handleMemoryClick = (id: string) => {
-    console.log('View memory:', id);
-    // TODO: Navigate to memory detail page
+    router.push(`/memories/${id}`);
   };
 
   const handleMemoryShare = (id: string) => {

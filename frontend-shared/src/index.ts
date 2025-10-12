@@ -3,6 +3,7 @@ export * from "./components/ui/Input";
 export * from "./components/ui/Card";
 export * from "./components/ui/Modal";
 export * from "./components/ui/Select";
+export * from "./components/ui/Textarea";
 export * from "./components/forms/LoginForm";
 export * from "./components/dashboard/DashboardContainer";
 export * from "./hooks/useAuth";
