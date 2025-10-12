@@ -1,4 +1,28 @@
+'use client';
+
+import { useState } from 'react';
+import { Button, Input, useDebounce } from '@ninaivalaigal/ui-components';
+
+type FilterType = 'all' | 'personal' | 'work' | 'shared';
+
 export default function MemoriesPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const handleNewMemory = () => {
+    console.log('Create new memory');
+    // TODO: Navigate to memory creation
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Effect will trigger when debouncedSearch changes
+  // TODO: Implement actual search API call
+  console.log('Searching for:', debouncedSearch);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -7,16 +31,17 @@ export default function MemoriesPage() {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">My Memories</h1>
             <div className="flex items-center space-x-4">
-              <div className="relative">
-                <input
+              <div className="relative w-64">
+                <Input
                   type="search"
                   placeholder="Search memories..."
-                  className="w-64 rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  value={searchQuery}
+                  onChange={handleSearch}
                 />
               </div>
-              <button className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+              <Button onClick={handleNewMemory} size="sm">
                 New Memory
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -26,18 +51,34 @@ export default function MemoriesPage() {
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Filters */}
         <div className="mb-6 flex items-center space-x-4">
-          <button className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <Button
+            variant={activeFilter === 'all' ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveFilter('all')}
+          >
             All
-          </button>
-          <button className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          </Button>
+          <Button
+            variant={activeFilter === 'personal' ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveFilter('personal')}
+          >
             Personal
-          </button>
-          <button className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          </Button>
+          <Button
+            variant={activeFilter === 'work' ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveFilter('work')}
+          >
             Work
-          </button>
-          <button className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          </Button>
+          <Button
+            variant={activeFilter === 'shared' ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveFilter('shared')}
+          >
             Shared
-          </button>
+          </Button>
         </div>
 
         {/* Memories Grid */}
@@ -64,7 +105,7 @@ export default function MemoriesPage() {
               Get started by creating a new memory.
             </p>
             <div className="mt-6">
-              <button className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+              <Button onClick={handleNewMemory} size="sm">
                 <svg
                   className="-ml-0.5 mr-1.5 h-5 w-5"
                   fill="currentColor"
@@ -77,7 +118,7 @@ export default function MemoriesPage() {
                   />
                 </svg>
                 New Memory
-              </button>
+              </Button>
             </div>
           </div>
         </div>

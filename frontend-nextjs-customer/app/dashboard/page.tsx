@@ -1,4 +1,13 @@
+'use client';
+
+import { Button, Card } from '@ninaivalaigal/ui-components';
+
 export default function DashboardPage() {
+  const handleNewMemory = () => {
+    console.log('Create new memory');
+    // TODO: Navigate to memory creation page
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -7,9 +16,9 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             <div className="flex items-center space-x-4">
-              <button className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
+              <Button onClick={handleNewMemory} size="sm">
                 New Memory
-              </button>
+              </Button>
               <div className="h-8 w-8 rounded-full bg-gray-300" />
             </div>
           </div>
@@ -20,48 +29,38 @@ export default function DashboardPage() {
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Stats Grid */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg bg-white p-6 shadow">
+          <Card className="bg-white">
             <div className="text-sm font-medium text-gray-500">
               Total Memories
             </div>
             <div className="mt-2 text-3xl font-bold text-gray-900">0</div>
-          </div>
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="text-sm font-medium text-gray-500">
-              This Week
-            </div>
+          </Card>
+          <Card className="bg-white">
+            <div className="text-sm font-medium text-gray-500">This Week</div>
             <div className="mt-2 text-3xl font-bold text-gray-900">0</div>
-          </div>
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="text-sm font-medium text-gray-500">
-              Categories
-            </div>
+          </Card>
+          <Card className="bg-white">
+            <div className="text-sm font-medium text-gray-500">Categories</div>
             <div className="mt-2 text-3xl font-bold text-gray-900">0</div>
-          </div>
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="text-sm font-medium text-gray-500">
-              Shared
-            </div>
+          </Card>
+          <Card className="bg-white">
+            <div className="text-sm font-medium text-gray-500">Shared</div>
             <div className="mt-2 text-3xl font-bold text-gray-900">0</div>
-          </div>
+          </Card>
         </div>
 
         {/* Recent Memories */}
-        <div className="rounded-lg bg-white shadow">
-          <div className="border-b border-gray-200 px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Recent Memories
-            </h2>
-          </div>
-          <div className="p-6">
-            <div className="text-center text-gray-500">
-              <p className="text-sm">No memories yet</p>
-              <p className="mt-1 text-xs">
-                Create your first memory to get started
-              </p>
+        <Card className="bg-white" title="Recent Memories">
+          <div className="text-center text-gray-500">
+            <p className="text-sm">No memories yet</p>
+            <p className="mt-1 text-xs">Create your first memory to get started</p>
+            <div className="mt-4">
+              <Button onClick={handleNewMemory} variant="secondary" size="sm">
+                Create First Memory
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
       </main>
     </div>
   );
