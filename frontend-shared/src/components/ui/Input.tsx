@@ -9,12 +9,27 @@ import type { ForwardedRef, InputHTMLAttributes } from "react";
 import { forwardRef } from "react";
 import { cn } from "../../lib/utils";
 
+type InputVariant = "subtle" | "default";
+
 type InputProps = {
   isInvalid?: boolean;
+  variant?: InputVariant;
 } & InputHTMLAttributes<HTMLInputElement>;
 
+const baseStyles = "flex h-10 w-full rounded-md px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60";
+
+const variantStyles: Record<InputVariant, string> = {
+  subtle: "border border-transparent bg-secondary/20 text-white placeholder:text-secondary/60 focus-visible:ring-primary focus-visible:ring-offset-2",
+  default: "border border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 focus-visible:ring-primary focus-visible:ring-offset-0",
+};
+
+const invalidStyles: Record<InputVariant, string> = {
+  subtle: "border-danger focus-visible:ring-danger focus-visible:ring-offset-2",
+  default: "border-danger focus-visible:ring-danger focus-visible:ring-offset-0",
+};
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { className, type = "text", isInvalid = false, ...props },
+  { className, type = "text", isInvalid = false, variant = "subtle", ...props },
   ref: ForwardedRef<HTMLInputElement>
 ) {
   return (
@@ -22,8 +37,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       ref={ref}
       type={type}
       className={cn(
-        "flex h-10 w-full rounded-md border border-transparent bg-secondary/20 px-3 py-2 text-sm text-white placeholder:text-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        isInvalid ? "border-danger" : "border-transparent",
+        baseStyles,
+        variantStyles[variant],
+        isInvalid ? invalidStyles[variant] : undefined,
         className
       )}
       {...props}
