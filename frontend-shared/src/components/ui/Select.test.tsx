@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { useState } from "react";
@@ -20,10 +20,14 @@ describe("Select", () => {
 
     render(<Select<OptionValue> label="Category" value={null} onChange={onChange} options={options} />);
 
-    await user.click(screen.getByRole("button", { name: /category/i }));
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /category/i }));
+    });
 
     const listbox = await screen.findByRole("listbox");
-    await user.click(within(listbox).getByText("Work"));
+    await act(async () => {
+      await user.click(within(listbox).getByText("Work"));
+    });
 
     expect(onChange).toHaveBeenLastCalledWith("work");
   });
@@ -51,10 +55,16 @@ describe("Select", () => {
     const onChange = vi.fn();
     render(<MultiHarness onChange={onChange} />);
 
-    await user.click(screen.getByRole("button", { name: /tags/i }));
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /tags/i }));
+    });
     const listbox = await screen.findByRole("listbox");
-    await user.click(within(listbox).getByText("Work"));
-    await user.click(within(listbox).getByText("Personal"));
+    await act(async () => {
+      await user.click(within(listbox).getByText("Work"));
+    });
+    await act(async () => {
+      await user.click(within(listbox).getByText("Personal"));
+    });
 
     expect(onChange.mock.calls[0][0]).toEqual(["personal", "work"]);
     expect(onChange.mock.calls[1][0]).toEqual(["work"]);
@@ -74,10 +84,14 @@ describe("Select", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: /filter/i }));
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /filter/i }));
+    });
     const searchInput = await screen.findByPlaceholderText(/search/i);
 
-    await user.type(searchInput, "sha");
+    await act(async () => {
+      await user.type(searchInput, "sha");
+    });
 
     expect(await screen.findByText("Shared")).toBeInTheDocument();
     expect(screen.queryByText("Work")).not.toBeInTheDocument();
@@ -91,16 +105,20 @@ describe("Select", () => {
 
     const trigger = screen.getByRole("button", { name: /keyboard/i });
     await act(async () => {
-      trigger.focus();
+      await user.click(trigger);
     });
-
-    await user.keyboard("{ArrowDown}");
-    await user.keyboard("{ArrowDown}");
     await act(async () => {
-      await Promise.resolve();
+      await user.keyboard("{ArrowDown}");
     });
-    await user.keyboard("{Enter}");
+    await act(async () => {
+      await user.keyboard("{ArrowDown}");
+    });
+    await act(async () => {
+      await user.keyboard("{Enter}");
+    });
 
-    expect(onChange).toHaveBeenLastCalledWith("work");
+    await waitFor(() => {
+      expect(onChange).toHaveBeenLastCalledWith("work");
+    });
   });
 });

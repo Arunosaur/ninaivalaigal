@@ -221,7 +221,7 @@ export function Select<TValue extends string | number>({
     return <span>{option.label}</span>;
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (disabled) {
       return;
     }
@@ -389,6 +389,7 @@ export function Select<TValue extends string | number>({
                       onSearchChange?.(event.target.value);
                     }}
                     placeholder={searchPlaceholder}
+                    onKeyDown={handleKeyDown}
                     className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   />
                 </div>
