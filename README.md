@@ -649,9 +649,31 @@ The system is designed with three key principles:
 3. **From UI to CLI**: API-first design with thin client interfaces
 4. **From Personal to Enterprise**: Multi-level sharing with proper security
 
-## License
+## 📜 License
 
-[Add your license information here]
+**Ninaivalaigal follows an Open-Core licensing model.**
+
+Different components are licensed under different terms to balance openness and commercial sustainability:
+
+| Component | License | Use Case |
+|-----------|---------|----------|
+| 🎨 **Public Frontends** | MIT | Free for all uses |
+| 🛠️ **CLI & SDKs** | Apache 2.0 | Open developer tools |
+| 🔒 **Core Algorithms** | Proprietary | Commercial license required |
+| 🏗️ **Infrastructure** | Elastic License 2.0 | Source-available |
+
+### Quick Reference
+
+- **Want to use the UI?** → [MIT License](frontend-nextjs-customer/LICENSE)
+- **Building integrations?** → Apache 2.0 (SDKs & Public APIs)
+- **Need commercial features?** → Contact [licensing@medhasys.com](mailto:licensing@medhasys.com)
+- **Curious about infrastructure?** → [Elastic License 2.0](containers/LICENSE)
+
+📋 **Complete licensing breakdown**: See [LICENSE-MATRIX.md](LICENSE-MATRIX.md)
+
+📄 **Visual guide**: [Licensing Map (PDF)](Ninaivalaigal_Licensing_Map.pdf) | [SVG](Ninaivalaigal_Licensing_Map.svg)
+
+Copyright © 2024 Medhasys LLC. Different components available under different licenses.
 
 ## 📚 Documentation
 

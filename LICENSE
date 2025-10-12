@@ -1,0 +1,60 @@
+# Ninaivalaigal Open-Core License
+
+Ninaivalaigal follows an **Open-Core** licensing model. Different components of this repository are licensed under different terms to balance openness, collaboration, and commercial sustainability.
+
+## Licensing Overview
+
+This repository contains multiple components licensed under different terms:
+
+- **Public Components** (MIT, Apache 2.0): Core building blocks available for community use
+- **Proprietary Components**: Competitive differentiators reserved for commercial offerings
+- **Source-Available Components** (Elastic License 2.0): Infrastructure code viewable but with usage restrictions
+
+See **LICENSE-MATRIX.md** for the complete component-by-component breakdown.
+
+## Quick Reference
+
+| Component Type | License | Use Case |
+|---------------|---------|----------|
+| Public Frontends (`frontend-nextjs-customer/`, `frontend-nextjs-admin/`) | MIT | Free to use, modify, distribute |
+| CLI & SDKs (`cli/`, `sdk/`) | Apache 2.0 | Developer tools, open ecosystem |
+| Public APIs (`server/api/public_routes/`) | Apache 2.0 | Integration endpoints |
+| Core Algorithms (`server/memory_core/`, `server/graph/`, `server/feedback/`) | Proprietary | Commercial use only |
+| Infrastructure (`infra/`) | Elastic License 2.0 | Source-available, restricted use |
+| Scripts (`scripts/`) | MIT | Utility scripts, free to use |
+
+## How to Use This Code
+
+### For Developers & Integrators
+- Use **MIT** and **Apache 2.0** components freely
+- Build integrations with public APIs
+- Contribute to open components via pull requests
+
+### For Commercial Use
+- **Proprietary components** require a commercial license from Medhasys LLC
+- Contact: licensing@medhasys.com
+
+### For Infrastructure Deployment
+- **Elastic License 2.0** components are source-available
+- You may view and modify for your own use
+- You cannot provide as a managed service to third parties
+
+## Component-Specific Licenses
+
+Each directory contains its own LICENSE file specifying the applicable terms. When in doubt, check the LICENSE file in the specific component directory.
+
+## Copyright
+
+Copyright © 2024 Medhasys LLC. All rights reserved.
+
+Different components are made available under different licenses. See individual LICENSE files and LICENSE-MATRIX.md for details.
+
+## Questions?
+
+- **General inquiries**: contact@medhasys.com
+- **Commercial licensing**: licensing@medhasys.com
+- **Community support**: https://github.com/Arunosaur/ninaivalaigal/discussions
+
+---
+
+**SPDX-License-Identifier: SEE-LICENSE-IN-LICENSE-MATRIX.md**
