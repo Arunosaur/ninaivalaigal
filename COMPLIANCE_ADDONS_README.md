@@ -10,8 +10,9 @@ This document describes the additional compliance files created to complete the 
 
 ## 📦 **What's Included**
 
-### 1. **TECHNICAL_DEBT.md**
+### 1. **technical-debt/README.md**
 **Purpose**: Track and manage code quality technical debt
+**Location**: `technical-debt/` folder (consolidated documentation)
 
 **Contents**:
 - **TD-001**: Flake8 violations (30 issues across 19 files)
@@ -212,10 +213,11 @@ pre-commit install
 ### Step 1: Review Files
 ```bash
 # Check all new files
-ls -lh TECHNICAL_DEBT.md NOTICE.md compliance/exceptions.md .pre-commit-hooks/check-spdx-headers.sh
+ls -lh technical-debt/ NOTICE.md compliance/exceptions.md .pre-commit-hooks/check-spdx-headers.sh
 
 # Review contents
-cat TECHNICAL_DEBT.md
+cat technical-debt/README.md
+cat technical-debt/INDEX.md
 cat NOTICE.md
 cat compliance/exceptions.md
 ```
@@ -239,7 +241,7 @@ pre-commit run check-spdx-headers --files NOTICE.md
 ### Step 3: Commit Everything
 ```bash
 # Stage all new compliance files
-git add TECHNICAL_DEBT.md \
+git add technical-debt/ \
         NOTICE.md \
         compliance/exceptions.md \
         .pre-commit-hooks/check-spdx-headers.sh \
@@ -250,7 +252,10 @@ git add TECHNICAL_DEBT.md \
 git commit -m "chore: Add compliance add-ons (NOTICE, exceptions, tech debt tracking)
 
 Compliance Files Added:
-- TECHNICAL_DEBT.md: Track code quality issues (30 flake8 violations)
+- technical-debt/: Centralized technical debt tracking (5 documents)
+  - README.md: Main tracker (30 flake8 violations)
+  - INDEX.md: Documentation index
+  - historical-debt.md, progress.md, session-summary.md, fix-plan.md
 - NOTICE.md: Third-party attributions (11 LGPL packages)
 - compliance/exceptions.md: Document approved license exceptions
 - .pre-commit-hooks/check-spdx-headers.sh: Automated SPDX validation
@@ -302,15 +307,15 @@ git push origin v1.0.1-compliance
 ## 📊 **Impact Analysis**
 
 ### What Changed:
-| File | LOC | Purpose |
-|------|-----|---------|
-| `TECHNICAL_DEBT.md` | 250 | Technical debt tracking |
+| File/Folder | LOC | Purpose |
+|-------------|-----|---------|
+| `technical-debt/` | 500+ | Technical debt tracking (6 files) |
 | `NOTICE.md` | 280 | Third-party attributions |
 | `compliance/exceptions.md` | 320 | License exception tracking |
 | `.pre-commit-hooks/check-spdx-headers.sh` | 120 | SPDX validation hook |
 | `.pre-commit-config.yaml` | +18 | Hook integration |
 | `COMPLIANCE_ADDONS_README.md` | 450 | This document |
-| **Total** | **~1,438 LOC** | **Compliance infrastructure** |
+| **Total** | **~1,688 LOC** | **Compliance infrastructure** |
 
 ### Benefits:
 1. ✅ **Complete compliance documentation** (NOTICE + exceptions)
