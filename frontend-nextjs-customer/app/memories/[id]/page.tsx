@@ -87,7 +87,7 @@ export default function MemoryDetailPage({ params }: MemoryDetailPageProps) {
             <div className="text-6xl mb-4">🔍</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Memory Not Found</h2>
             <p className="text-gray-600 mb-6">
-              The memory you're looking for doesn't exist or has been deleted.
+              The memory you&apos;re looking for doesn&apos;t exist or has been deleted.
             </p>
             <Button onClick={() => router.push('/memories')}>
               Back to Memories

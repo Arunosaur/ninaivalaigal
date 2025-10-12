@@ -23,12 +23,14 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/login"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="text-sm font-semibold text-gray-900 hover:text-blue-600"
               >
                 Sign in
               </Link>
-              <Link href="/login">
-                <Button size="sm">Get started</Button>
+              <Link href="/signup">
+                <Button size="sm" variant="primary">
+                  Get started
+                </Button>
               </Link>
             </div>
           </div>
@@ -49,7 +51,7 @@ export default function Home() {
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <Link
-                href="/login"
+                href="/signup"
                 className="rounded-md bg-blue-600 px-6 py-3 text-base font-semibold text-white hover:bg-blue-500"
               >
                 Start for free

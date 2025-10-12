@@ -45,7 +45,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+  <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -59,6 +59,7 @@ export default function LoginPage() {
                 required
                 placeholder="you@example.com"
                 className="mt-1"
+                variant="default"
               />
             </div>
 
@@ -74,6 +75,7 @@ export default function LoginPage() {
                 required
                 placeholder="••••••••"
                 className="mt-1"
+                variant="default"
               />
             </div>
           </div>
@@ -104,14 +106,14 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <Button type="submit" isLoading={isLoading} className="w-full">
+          <Button type="submit" isLoading={isLoading} className="w-full" variant="primary">
             Sign in
           </Button>
         </form>
 
         <div className="text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+          Don&apos;t have an account?{' '}
+          <a href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
             Sign up
           </a>
         </div>

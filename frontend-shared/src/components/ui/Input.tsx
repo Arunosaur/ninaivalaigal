@@ -29,7 +29,7 @@ const invalidStyles: Record<InputVariant, string> = {
 };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { className, type = "text", isInvalid = false, variant = "subtle", ...props },
+  { className, type = "text", isInvalid = false, variant = "default", ...props },
   ref: ForwardedRef<HTMLInputElement>
 ) {
   return (

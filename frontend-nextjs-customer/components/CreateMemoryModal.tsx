@@ -98,6 +98,7 @@ export function CreateMemoryModal({ isOpen, onClose }: CreateMemoryModalProps) {
                 placeholder="Give your memory a title..."
                 className="mt-1"
                 disabled={isLoading}
+                variant="default"
               />
             </div>
 
@@ -141,6 +142,7 @@ export function CreateMemoryModal({ isOpen, onClose }: CreateMemoryModalProps) {
                 placeholder="meetings, planning, ideas (comma-separated)"
                 className="mt-1"
                 disabled={isLoading}
+                variant="default"
               />
               <p className="mt-1 text-xs text-gray-500">
                 Separate tags with commas

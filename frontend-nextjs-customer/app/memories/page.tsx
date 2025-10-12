@@ -87,6 +87,7 @@ export default function MemoriesPage() {
                   placeholder="Search memories..."
                   value={searchQuery}
                   onChange={handleSearch}
+                    variant="default"
                 />
               </div>
               <Button onClick={handleNewMemory} size="sm">
