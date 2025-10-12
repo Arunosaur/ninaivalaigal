@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Complete Ninaivalaigal Stack Startup Script
 # Version: 2.0.0 - Day 3 COMPLETE Stack with PgBouncer Mandate
 # Components: PostgreSQL → PgBouncer → Redis → API → Customer UI → Admin UI

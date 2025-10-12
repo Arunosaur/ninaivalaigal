@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """Database models and operations for mem0."""
 
 import json
@@ -29,6 +37,7 @@ class User(Base):
     Supports individual users, team members, and organization admins
     with RBAC integration and subscription tiers.
     """
+
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -71,6 +80,7 @@ class Memory(Base):
     Stores user memories with context association, type classification,
     and source tracking for retrieval and analytics.
     """
+
     __tablename__ = "memories"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -89,6 +99,7 @@ class Organization(Base):
     Represents companies or groups with multiple teams, custom settings,
     and domain-based user management.
     """
+
     __tablename__ = "organizations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -112,6 +123,7 @@ class Team(Base):
     Groups users within or across organizations for shared context access
     and collaborative memory management.
     """
+
     __tablename__ = "teams"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -138,6 +150,7 @@ class TeamMember(Base):
     Links users to teams with role-based permissions (owner, admin, member, viewer)
     and tracks join timestamps.
     """
+
     __tablename__ = "team_members"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -157,6 +170,7 @@ class ContextPermission(Base):
     Manages granular permissions (owner, admin, write, read) for users, teams,
     and organizations to access specific contexts.
     """
+
     __tablename__ = "context_permissions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -185,6 +199,7 @@ class OrganizationRegistration(Base):
     Tracks organization signup data, billing details, company metadata,
     and subscription status for multi-tenant SaaS management.
     """
+
     __tablename__ = "organization_registrations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -209,6 +224,7 @@ class UserInvitation(Base):
     Manages email invitations with secure tokens, role assignment,
     expiration tracking, and invitation status lifecycle.
     """
+
     __tablename__ = "user_invitations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -238,6 +254,7 @@ class Context(Base):
     Groups related memories with ownership (user/team/org), visibility controls,
     and permission management for collaborative access.
     """
+
     __tablename__ = "contexts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -267,6 +284,7 @@ class DatabaseManager:
     Handles PostgreSQL connections, session lifecycle, and provides
     context managers for safe database operations.
     """
+
     def __init__(self, config="postgresql://mem0user:mem0pass@localhost:5432/mem0db"):
         """Initialize instance."""
         # Handle both string URL and config dict

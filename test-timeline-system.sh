@@ -1,4 +1,11 @@
 #!/bin/bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 
 # Timeline System Test Script
 # Tests knowledge evolution timeline with D3.js visualization data

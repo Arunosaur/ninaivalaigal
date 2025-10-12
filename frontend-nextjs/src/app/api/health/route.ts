@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: Proprietary
+// Copyright (c) 2025 Medhasys LLC
+//
+// This file contains proprietary code owned by Medhasys LLC.
+// Unauthorized copying, modification, or distribution is prohibited.
+// See LICENSE file in the server/ directory for details.
+//
 import { NextResponse } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:13390';

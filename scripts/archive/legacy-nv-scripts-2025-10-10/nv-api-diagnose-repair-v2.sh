@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # nv-api-diagnose-repair-v2.sh
 # One-shot diagnostic + repair for ninaivalaigal API container/image
 # - Uses Apple CLI first, then auto-fallbacks to Docker if hang detected (>90s)

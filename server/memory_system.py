@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """
 Memory System Integration with Team-Based Access Control
 The heart of Ninaivalaigal - user and team memory management
@@ -20,6 +28,7 @@ class Memory:
     Lightweight representation of memories for read operations
     without full database ORM overhead.
     """
+
     def __init__(
         self,
         id: int,

@@ -1,4 +1,11 @@
 #!/bin/bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Environment-specific test runner for mem0
 # Usage: ./run_environment_tests.sh [development|docker|production|all]
 

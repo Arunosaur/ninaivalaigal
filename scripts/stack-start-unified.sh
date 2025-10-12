@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Unified Stack Startup - Works with ANY runtime/environment
 # Usage: ./stack-start-unified.sh [runtime] [environment]
 #   runtime: docker|colima|apple (default: apple)

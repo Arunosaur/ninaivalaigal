@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: Proprietary
+// Copyright (c) 2025 Medhasys LLC
+//
+// This file contains proprietary code owned by Medhasys LLC.
+// Unauthorized copying, modification, or distribution is prohibited.
+// See LICENSE file in the server/ directory for details.
+//
 import type { StorybookConfig } from '@storybook/react-webpack5';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
