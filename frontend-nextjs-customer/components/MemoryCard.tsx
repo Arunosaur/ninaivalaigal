@@ -1,20 +1,14 @@
 import { Card } from '@ninaivalaigal/ui-components';
-
-export type Memory = {
-  id: string;
-  title: string;
-  content: string;
-  category: 'personal' | 'work' | 'shared';
-  createdAt: string;
-  tags?: string[];
-};
+import type { Memory } from '../types/api';
 
 type MemoryCardProps = {
   memory: Memory;
   onClick?: (memory: Memory) => void;
+  onShare?: (id: string) => void;
+  onEdit?: (id: string) => void;
 };
 
-export function MemoryCard({ memory, onClick }: MemoryCardProps) {
+export function MemoryCard({ memory, onClick, onShare, onEdit }: MemoryCardProps) {
   const categoryColors = {
     personal: 'bg-blue-100 text-blue-800',
     work: 'bg-purple-100 text-purple-800',
@@ -23,6 +17,16 @@ export function MemoryCard({ memory, onClick }: MemoryCardProps) {
 
   const handleClick = () => {
     onClick?.(memory);
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onShare?.(memory.id);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.(memory.id);
   };
 
   return (
@@ -34,15 +38,17 @@ export function MemoryCard({ memory, onClick }: MemoryCardProps) {
         {/* Header */}
         <div className="flex items-start justify-between">
           <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">
-            {memory.title}
+            {memory.title || 'Untitled Memory'}
           </h3>
-          <span
-            className={`ml-2 flex-shrink-0 rounded-full px-2 py-1 text-xs font-medium ${
-              categoryColors[memory.category]
-            }`}
-          >
-            {memory.category}
-          </span>
+          {memory.category && (
+            <span
+              className={`ml-2 flex-shrink-0 rounded-full px-2 py-1 text-xs font-medium ${
+                categoryColors[memory.category]
+              }`}
+            >
+              {memory.category}
+            </span>
+          )}
         </div>
 
         {/* Content Preview */}
@@ -69,14 +75,12 @@ export function MemoryCard({ memory, onClick }: MemoryCardProps) {
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-gray-100 pt-3 text-xs text-gray-500">
-          <span>{new Date(memory.createdAt).toLocaleDateString()}</span>
+          <span>{new Date(memory.created_at).toLocaleDateString()}</span>
           <div className="flex items-center space-x-2">
             <button
               className="text-gray-400 hover:text-gray-600"
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log('Share memory:', memory.id);
-              }}
+              onClick={handleShare}
+              title="Share memory"
             >
               <svg
                 className="h-4 w-4"
@@ -94,10 +98,8 @@ export function MemoryCard({ memory, onClick }: MemoryCardProps) {
             </button>
             <button
               className="text-gray-400 hover:text-gray-600"
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log('Edit memory:', memory.id);
-              }}
+              onClick={handleEdit}
+              title="Edit memory"
             >
               <svg
                 className="h-4 w-4"
