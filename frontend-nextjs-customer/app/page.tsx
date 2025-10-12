@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { Button } from '@ninaivalaigal/ui-components';
 
 export default function Home() {
   return (
@@ -17,11 +20,8 @@ export default function Home() {
               >
                 Sign in
               </Link>
-              <Link
-                href="/login"
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
-              >
-                Get started
+              <Link href="/login">
+                <Button size="sm">Get started</Button>
               </Link>
             </div>
           </div>

@@ -11,6 +11,7 @@
     "test": "echo \"Tests not yet implemented\" && exit 0"
   },
   "dependencies": {
+    "@ninaivalaigal/ui-components": "file:../frontend-shared",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "next": "15.5.4"
