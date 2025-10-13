@@ -21,10 +21,10 @@ type ButtonProps = {
 const baseStyles = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60";
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: "bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary",
-  secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90 focus-visible:ring-secondary",
-  ghost: "bg-transparent text-primary hover:bg-primary/10 focus-visible:ring-primary",
-  danger: "bg-danger text-white hover:bg-danger/90 focus-visible:ring-danger"
+  primary: "bg-blue-600 text-white hover:bg-blue-500 focus-visible:ring-blue-500",
+  secondary: "bg-gray-900 text-white hover:bg-gray-800 focus-visible:ring-gray-900",
+  ghost: "bg-transparent text-blue-600 hover:bg-blue-50 focus-visible:ring-blue-500",
+  danger: "bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-600"
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

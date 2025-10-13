@@ -14,8 +14,10 @@ export interface User {
   id: string;
   email: string;
   username?: string;
-  created_at: string;
-  is_active: boolean;
+  name?: string;
+  emailVerified?: boolean;
+  created_at?: string;
+  is_active?: boolean;
 }
 
 export interface Memory {
@@ -35,6 +37,21 @@ export interface AuthTokens {
   access_token: string;
   token_type: string;
   expires_in?: number;
+  refresh_token?: string;
+  refresh_expires_in?: number;
+  expires_at?: number;
+  refresh_expires_at?: number;
+}
+
+export interface ActiveSession {
+  id: string;
+  created_at: string;
+  last_active_at: string;
+  ip_address?: string;
+  user_agent?: string;
+  is_current?: boolean;
+  location?: string;
+  device?: string;
 }
 
 export interface LoginRequest {

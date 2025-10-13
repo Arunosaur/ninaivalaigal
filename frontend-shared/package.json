@@ -2,6 +2,7 @@
   "name": "@ninaivalaigal/ui-components",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Shared UI component and state library for Ninaivalaigal frontends",
   "main": "./dist/index.cjs",

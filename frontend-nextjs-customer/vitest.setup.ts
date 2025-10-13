@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2025 Medhasys LLC
 
-import '@testing-library/jest-dom';
-import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 
-// Cleanup after each test
-afterEach(() => {
-  cleanup();
-});
+// Additional test setup hooks can be added here as the suite grows.

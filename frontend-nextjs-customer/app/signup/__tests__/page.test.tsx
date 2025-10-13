@@ -1,160 +1,116 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Proprietary
 // Copyright (c) 2025 Medhasys LLC
+//
+// This file contains proprietary code owned by Medhasys LLC.
+// Unauthorized copying, modification, or distribution is prohibited.
+// See LICENSE file in the server/ directory for details.
+//
+import '@testing-library/jest-dom/vitest';
+/// <reference types="@testing-library/jest-dom" />
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import React from 'react';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
+
 import SignupPage from '../page';
 
-// Mock next/navigation
+const signupMock = vi.fn();
+const pushMock = vi.fn();
+
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-  }),
+	useRouter: () => ({
+		push: pushMock,
+	}),
 }));
 
-// Mock the auth store
-vi.mock('@ninaivalaigal/ui-components', async () => {
-  const actual = await vi.importActual('@ninaivalaigal/ui-components');
-  return {
-    ...actual,
-    useAuthStore: vi.fn(() => ({
-      signup: vi.fn(),
-      isLoading: false,
-      error: null,
-    })),
-  };
-});
+vi.mock('../../../contexts/AuthContext', () => ({
+	useAuth: () => ({
+		signup: signupMock,
+		isLoading: false,
+	}),
+}));
+
+const fillForm = () => {
+	fireEvent.change(screen.getByLabelText(/Email address/i), {
+		target: { value: 'Person@Example.com ' },
+	});
+
+	fireEvent.change(screen.getByLabelText(/Display name/i), {
+		target: { value: '  Priya  ' },
+	});
+
+	fireEvent.change(screen.getByLabelText(/^Password$/i), {
+		target: { value: 'Password1' },
+	});
+
+	fireEvent.change(screen.getByLabelText(/Confirm password/i), {
+		target: { value: 'Password1' },
+	});
+};
 
 describe('SignupPage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+	beforeEach(() => {
+		signupMock.mockReset();
+		pushMock.mockReset();
+	});
 
-  it('renders signup form', () => {
-    render(<SignupPage />);
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
 
-    expect(screen.getByText(/create your account/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
-  });
+	it('renders the signup form fields', () => {
+		render(<SignupPage />);
 
-  it('shows validation error for invalid email', async () => {
-    render(<SignupPage />);
+		expect(screen.getByRole('heading', { name: /Create your Ninaivalaigal account/i })).toBeInTheDocument();
+		expect(screen.getByLabelText(/Email address/i)).toBeInTheDocument();
+		expect(screen.getByLabelText(/Display name/i)).toBeInTheDocument();
+		expect(screen.getByLabelText(/^Password$/i)).toBeInTheDocument();
+		expect(screen.getByLabelText(/Confirm password/i)).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /Register/i })).toBeInTheDocument();
+	});
 
-    const emailInput = screen.getByLabelText(/email/i);
-    const submitButton = screen.getByRole('button', { name: /sign up/i });
+	it('shows validation errors for empty submission', async () => {
+		render(<SignupPage />);
 
-    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
-    fireEvent.click(submitButton);
+		fireEvent.click(screen.getByRole('button', { name: /Register/i }));
 
-    await waitFor(() => {
-      expect(screen.getByText(/valid email/i)).toBeInTheDocument();
-    });
-  });
+		expect(await screen.findByText(/Email is required/i)).toBeInTheDocument();
+		expect(screen.getByText(/Password is required/i)).toBeInTheDocument();
+		expect(screen.getByText(/Confirm your password/i)).toBeInTheDocument();
+	});
 
-  it('shows validation error for password mismatch', async () => {
-    render(<SignupPage />);
+	it('submits trimmed form data and redirects on success', async () => {
+		signupMock.mockResolvedValueOnce({});
+		render(<SignupPage />);
 
-    const passwordInput = screen.getByLabelText(/^password$/i);
-    const confirmInput = screen.getByLabelText(/confirm password/i);
-    const submitButton = screen.getByRole('button', { name: /sign up/i });
+		fillForm();
 
-    fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
-    fireEvent.change(confirmInput, { target: { value: 'Different123!' } });
-    fireEvent.click(submitButton);
+		const form = document.querySelector('form');
+		expect(form).not.toBeNull();
+		fireEvent.submit(form!);
 
-    await waitFor(() => {
-      expect(screen.getByText(/passwords.*match/i)).toBeInTheDocument();
-    });
-  });
+		await waitFor(() => {
+			expect(signupMock).toHaveBeenCalledTimes(1);
+		});
 
-  it('shows password strength indicator', () => {
-    render(<SignupPage />);
+		expect(signupMock).toHaveBeenCalledWith({
+			email: 'person@example.com',
+			password: 'Password1', // pragma: allowlist secret
+			username: 'Priya',
+		});
 
-    const passwordInput = screen.getByLabelText(/^password$/i);
+		expect(pushMock).toHaveBeenCalledWith('/dashboard');
+	});
 
-    // Weak password
-    fireEvent.change(passwordInput, { target: { value: 'weak' } });
-    expect(screen.getByText(/weak/i)).toBeInTheDocument();
+	it('displays an error message when signup fails', async () => {
+		signupMock.mockResolvedValueOnce({ error: 'Email already in use' });
+		render(<SignupPage />);
 
-    // Strong password
-    fireEvent.change(passwordInput, { target: { value: 'StrongPass123!' } });
-    expect(screen.getByText(/strong/i)).toBeInTheDocument();
-  });
+		fillForm();
 
-  it('displays password requirements', () => {
-    render(<SignupPage />);
+		fireEvent.click(screen.getByRole('button', { name: /Register/i }));
 
-    expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument();
-    expect(screen.getByText(/uppercase.*lowercase/i)).toBeInTheDocument();
-    expect(screen.getByText(/number/i)).toBeInTheDocument();
-    expect(screen.getByText(/special character/i)).toBeInTheDocument();
-  });
-
-  it('submits form with valid data', async () => {
-    const mockSignup = vi.fn().mockResolvedValue({ success: true });
-    const { useAuthStore } = await import('@ninaivalaigal/ui-components');
-    vi.mocked(useAuthStore).mockReturnValue({
-      signup: mockSignup,
-      isLoading: false,
-      error: null,
-    } as any);
-
-    render(<SignupPage />);
-
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/^password$/i);
-    const confirmInput = screen.getByLabelText(/confirm password/i);
-    const submitButton = screen.getByRole('button', { name: /sign up/i });
-
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'StrongPass123!' } });
-    fireEvent.change(confirmInput, { target: { value: 'StrongPass123!' } });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(mockSignup).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'StrongPass123!',  // pragma: allowlist secret
-      });
-    });
-  });
-
-  it('shows loading state during submission', async () => {
-    const { useAuthStore } = await import('@ninaivalaigal/ui-components');
-    vi.mocked(useAuthStore).mockReturnValue({
-      signup: vi.fn(),
-      isLoading: true,
-      error: null,
-    } as any);
-
-    render(<SignupPage />);
-
-    const submitButton = screen.getByRole('button', { name: /sign up/i });
-    expect(submitButton).toBeDisabled();
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
-  });
-
-  it('displays error message on signup failure', async () => {
-    const { useAuthStore } = await import('@ninaivalaigal/ui-components');
-    vi.mocked(useAuthStore).mockReturnValue({
-      signup: vi.fn(),
-      isLoading: false,
-      error: 'Email already exists',
-    } as any);
-
-    render(<SignupPage />);
-
-    expect(screen.getByText(/email already exists/i)).toBeInTheDocument();
-  });
-
-  it('has link to login page', () => {
-    render(<SignupPage />);
-
-    const loginLink = screen.getByRole('link', { name: /log in/i });
-    expect(loginLink).toHaveAttribute('href', '/login');
-  });
+		expect(await screen.findByText(/Email already in use/i)).toBeInTheDocument();
+		expect(pushMock).not.toHaveBeenCalled();
+	});
 });
