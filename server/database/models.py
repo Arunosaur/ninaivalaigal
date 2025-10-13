@@ -54,6 +54,8 @@ class User(Base):
     created_via = Column(String(50), nullable=False, default="signup")  # signup, invite, admin
     email_verified = Column(Boolean, default=False)
     verification_token = Column(String(255), nullable=True)
+    password_reset_token = Column(String(255), nullable=True)
+    password_reset_expires = Column(DateTime, nullable=True)
     last_login = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -72,9 +74,30 @@ class User(Base):
         back_populates="granted_by_user",
     )
     user_permissions = relationship("ContextPermission", foreign_keys="[ContextPermission.user_id]")
+    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
 
     # RBAC relationships (defined in rbac_models.py)
     # These are added dynamically by rbac_models.py to avoid circular imports
+
+
+class RefreshToken(Base):
+    """Refresh token model for JWT token refresh"""
+
+    __tablename__ = "refresh_tokens"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token_hash = Column(String(255), nullable=False, unique=True, index=True)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    revoked_at = Column(DateTime, nullable=True)
+    revoked_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    device_info = Column(JSON, nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id], back_populates="refresh_tokens")
 
 
 class Memory(Base):

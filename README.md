@@ -21,6 +21,32 @@ Ninaivalaigal has evolved into a comprehensive **Enterprise AI Memory Management
 
 ## 🚀 Quick Start
 
+## Quick Start: Authentication
+
+### 1. Signup
+```bash
+curl -X POST http://localhost:13390/auth/signup/individual \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"SecurePass123!","name":"Your Name"}' # pragma: allowlist secret
+```
+
+### 2. Login
+```bash
+curl -X POST http://localhost:13390/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"SecurePass123!"}' # pragma: allowlist secret
+```
+
+### 3. Use JWT Token
+```bash
+export JWT_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+curl -X GET http://localhost:13390/memory/list \
+  -H "Authorization: Bearer $JWT_TOKEN"
+```
+
+**See:** `/docs/JWT_TOKEN_USAGE.md` for complete guide
+
 ### One-Line Installation (Recommended)
 
 ```bash

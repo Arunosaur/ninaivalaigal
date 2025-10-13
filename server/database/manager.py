@@ -21,7 +21,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .models import Base, Context, Memory
+from .models import Base, Context, Memory, User
 
 
 class DatabaseManager:
@@ -132,3 +132,106 @@ class DatabaseManager:
         import bcrypt
 
         return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+
+    # User management methods
+    def get_user_by_email(self, email: str):
+        """Get user by email"""
+        session = self.get_session()
+        try:
+            return session.query(User).filter(User.email == email).first()
+        finally:
+            session.close()
+
+    def get_user_by_id(self, user_id):
+        """Get user by ID"""
+        session = self.get_session()
+        try:
+            return session.query(User).filter(User.id == user_id).first()
+        finally:
+            session.close()
+
+    def create_user(self, **kwargs):
+        """Create a new user"""
+        session = self.get_session()
+        try:
+            user = User(**kwargs)
+            session.add(user)
+            session.commit()
+            session.refresh(user)  # Refresh to get generated ID
+            return user
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+
+    def create_user_simple(self, email: str, name: str, password_hash: str, **kwargs):
+        """Create a user using raw SQL to avoid ORM relationship loading issues"""
+        import uuid
+        from datetime import datetime
+
+        from sqlalchemy import text
+
+        session = self.get_session()
+        try:
+            user_id = str(uuid.uuid4())
+            created_at = datetime.utcnow()
+
+            # Use raw SQL to insert user
+            insert_sql = text(
+                """
+                INSERT INTO users (
+                    id, email, name, password_hash, account_type, subscription_tier,
+                    role, created_via, email_verified, verification_token, created_at, updated_at, is_active
+                )
+                VALUES (
+                    :id, :email, :name, :password_hash, :account_type, :subscription_tier,
+                    :role, :created_via, :email_verified, :verification_token, :created_at, :updated_at, :is_active
+                )
+                RETURNING id, email, name, account_type, role, created_at
+            """
+            )
+
+            result = session.execute(
+                insert_sql,
+                {
+                    "id": user_id,
+                    "email": email,
+                    "name": name,
+                    "password_hash": password_hash,
+                    "account_type": kwargs.get("account_type", "individual"),
+                    "subscription_tier": kwargs.get("subscription_tier", "free"),
+                    "role": kwargs.get("role", "user"),
+                    "created_via": kwargs.get("created_via", "signup"),
+                    "email_verified": kwargs.get("email_verified", False),
+                    "verification_token": kwargs.get("verification_token", None),
+                    "created_at": created_at,
+                    "updated_at": created_at,
+                    "is_active": True,
+                },
+            )
+
+            session.commit()
+            user_data = result.fetchone()
+
+            # Return a dict with user data
+            return {
+                "id": str(user_data[0]),
+                "email": user_data[1],
+                "name": user_data[2],
+                "account_type": user_data[3],
+                "role": user_data[4],
+                "created_at": user_data[5].isoformat() if user_data[5] else None,
+            }
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+
+    def authenticate_user(self, email: str, password_hash: str):
+        """Authenticate user by email and password hash"""
+        user = self.get_user_by_email(email)
+        if user and user.password_hash == password_hash:
+            return user
+        return None

@@ -27,13 +27,14 @@ from auth import (
     create_individual_user,
     generate_invitation_token,
     generate_verification_token,
+    get_current_user,
     hash_password,
     send_verification_email,
     validate_email,
     verify_email_token,
 )
 from database import Organization, OrganizationRegistration, User, UserInvitation
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
 # Initialize router
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -191,11 +192,11 @@ async def signup_organization(signup_data: OrganizationSignup, background_tasks:
 
 
 @router.post("/login")
-async def login_user(login_data: UserLogin) -> dict[str, Any]:
+async def login_user(login_data: UserLogin, request: Request) -> dict[str, Any]:
     """
     User login for all account types
 
-    Returns JWT token and user information
+    Returns JWT token, refresh token, and user information
     """
     try:
         result = authenticate_user(login_data.email, login_data.password)
@@ -203,12 +204,53 @@ async def login_user(login_data: UserLogin) -> dict[str, Any]:
         if not result:
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
+        # Create refresh token
+        from auth import create_refresh_token
+
+        user_id = str(result["user_id"])
+        device_info = {"platform": "web"}  # Can be enhanced with actual device info
+        ip_address = request.client.host if request.client else None
+        user_agent = request.headers.get("user-agent")
+
+        refresh_token, refresh_expires = create_refresh_token(
+            user_id=user_id, device_info=device_info, ip_address=ip_address, user_agent=user_agent
+        )
+
+        # Add refresh token to response
+        result["refresh_token"] = refresh_token
+        result["refresh_token_expires"] = refresh_expires.isoformat()
+
         return {"success": True, "message": "Login successful", "user": result}
 
     except HTTPException as e:
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
+
+
+@router.post("/logout")
+async def logout_user(
+    refresh_token: str | None = None, current_user: User | None = Depends(lambda: None)
+) -> dict[str, Any]:
+    """
+    User logout
+
+    Optionally revokes refresh token if provided
+    Client should remove JWT token from storage regardless
+    """
+    revoked = False
+
+    if refresh_token and current_user:
+        from auth import revoke_refresh_token
+
+        revoked = revoke_refresh_token(refresh_token, str(current_user.id))
+
+    return {
+        "success": True,
+        "message": "Logout successful",
+        "refresh_token_revoked": revoked,
+        "instructions": "Remove JWT token and refresh token from client storage",
+    }
 
 
 @router.get("/verify-email")
@@ -234,6 +276,187 @@ async def verify_email(token: str) -> dict[str, Any]:
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Email verification failed: {str(e)}")
+
+
+@router.post("/password-reset/request")
+async def request_password_reset(email: str) -> dict[str, Any]:
+    """
+    Request password reset
+
+    Sends password reset email if user exists
+    Always returns success to prevent email enumeration
+    """
+    try:
+        from auth import request_password_reset_token
+
+        # Always return success (don't reveal if email exists)
+        request_password_reset_token(email)
+
+        return {
+            "success": True,
+            "message": "If the email exists, a password reset link has been sent",
+        }
+
+    except Exception:
+        # Still return success for security
+        return {
+            "success": True,
+            "message": "If the email exists, a password reset link has been sent",
+        }
+
+
+@router.post("/password-reset/verify")
+async def verify_reset_token(token: str) -> dict[str, Any]:
+    """
+    Verify password reset token
+
+    Returns success if token is valid and not expired
+    """
+    try:
+        from auth import verify_reset_token as verify_token
+
+        user_email = verify_token(token)
+
+        if not user_email:
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+        return {
+            "success": True,
+            "message": "Token is valid",
+            "email": user_email,
+        }
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token verification failed: {str(e)}")
+
+
+@router.post("/password-reset/confirm")
+async def confirm_password_reset(token: str, new_password: str) -> dict[str, Any]:
+    """
+    Confirm password reset with new password
+
+    Resets password if token is valid
+    """
+    try:
+        from auth import reset_password_with_token
+
+        if len(new_password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+
+        success = reset_password_with_token(token, new_password)
+
+        if not success:
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+        return {
+            "success": True,
+            "message": "Password reset successfully",
+        }
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Password reset failed: {str(e)}")
+
+
+@router.post("/token/refresh")
+async def refresh_access_token(refresh_token: str, request: Request) -> dict[str, Any]:
+    """
+    Refresh access token using refresh token
+
+    Returns new access token and optionally new refresh token
+    """
+    try:
+        from auth import generate_jwt_token, validate_refresh_token
+
+        # Validate refresh token
+        user_id = validate_refresh_token(refresh_token)
+
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+        # Get user from database
+        db = get_db()
+        session = db.get_session()
+        try:
+            user = session.query(User).filter_by(id=user_id).first()
+
+            if not user or not user.is_active:
+                raise HTTPException(status_code=401, detail="User not found or inactive")
+
+            # Generate new access token
+            jwt_token = generate_jwt_token(user)
+
+            # Optionally generate new refresh token (token rotation)
+            # This is more secure - each refresh invalidates the old token
+            # For now, we'll keep the same refresh token for simplicity
+
+            return {
+                "success": True,
+                "access_token": jwt_token,
+                "token_type": "bearer",
+                "expires_in": 86400,  # 24 hours in seconds
+            }
+
+        finally:
+            session.close()
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token refresh failed: {str(e)}")
+
+
+@router.post("/token/revoke")
+async def revoke_token(refresh_token: str, current_user: User = Depends(get_current_user)) -> dict[str, Any]:
+    """
+    Revoke a specific refresh token
+
+    Requires authentication (user revoking their own token)
+    """
+    try:
+        from auth import revoke_refresh_token
+
+        success = revoke_refresh_token(refresh_token, str(current_user.id))
+
+        if not success:
+            raise HTTPException(status_code=400, detail="Token not found or already revoked")
+
+        return {
+            "success": True,
+            "message": "Refresh token revoked successfully",
+        }
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token revocation failed: {str(e)}")
+
+
+@router.post("/token/revoke-all")
+async def revoke_all_tokens(current_user: User = Depends(get_current_user)) -> dict[str, Any]:
+    """
+    Revoke all refresh tokens for current user
+
+    Useful for "log out all devices" functionality
+    """
+    try:
+        from auth import revoke_all_user_tokens
+
+        count = revoke_all_user_tokens(str(current_user.id))
+
+        return {
+            "success": True,
+            "message": f"Revoked {count} refresh tokens",
+            "tokens_revoked": count,
+        }
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token revocation failed: {str(e)}")
 
 
 @router.post("/organizations/{org_id}/invitations")

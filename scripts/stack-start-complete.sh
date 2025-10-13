@@ -97,7 +97,7 @@ wait_for_container() {
 # Get container IP
 get_container_ip() {
     local container_name=$1
-    container list | grep "$container_name" | awk '{print $(NF)}'
+    container list | grep "$container_name" | awk '{print $6}'
 }
 
 # 1. START POSTGRESQL
@@ -161,8 +161,8 @@ start_pgbouncer() {
 
     log_info "Starting $PGBOUNCER_CONTAINER on port $PGBOUNCER_PORT..."
 
-    # Use bitnami multi-arch image (recommended) or custom build
-    local pgb_image="${NINA_PGBOUNCER_IMAGE:-bitnami/pgbouncer:1.22.1}"
+    # Use custom nina-pgbouncer image (proven working)
+    local pgb_image="${NINA_PGBOUNCER_IMAGE:-nina-pgbouncer:arm64}"
 
     # For bitnami image, use standard env vars
     if [[ "$pgb_image" == *"bitnami"* ]]; then

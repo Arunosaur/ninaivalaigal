@@ -61,44 +61,57 @@
 
 ## 🟡 **Medium Priority**
 
-### TD-002: GPL v3 Contamination
-**Status**: Investigating
-**Impact**: Open-source licensing risk
+### TD-002: GPL v3 Contamination - ✅ RESOLVED
+**Status**: ✅ Resolved - All 4 GPL packages safe
+**Impact**: None - Not shipped to production
 **Discovered**: Dependency audit 2025-Q4
+**Resolved**: October 12, 2025
 
 **Affected Packages**:
-- PyQt5 (5.15.10) - GPL v3
-- PyQtWebEngine (5.15.6) - GPL v3
+1. PyQt5 (5.15.10) - GPL v3 (required by Spyder IDE)
+2. PyQtWebEngine (5.15.6) - GPL v3 (required by Spyder IDE)
+3. docutils (0.21.2) - Dual-licensed (BSD/GPL) - using BSD
+4. text-unidecode (1.3) - Dual-licensed (Artistic/GPL) - using Artistic
 
-**Next Steps**:
-1. `grep -r "PyQt" server/ frontend-* packages/`
-2. Determine if used in MIT/Apache code (CRITICAL) or proprietary server/ (OK)
-3. Replace with PySide6 (LGPL) if in public code
-4. Document exception if only in proprietary code
+**Resolution**:
+1. Verified ALL packages NOT imported in production code
+2. Confirmed NOT in requirements.txt (development environment only)
+3. Identified dependencies:
+   - PyQt5/PyQtWebEngine: Spyder IDE (development tool)
+   - docutils: Sphinx documentation generator → Spyder
+   - text-unidecode: python-slugify → cookiecutter (project templates)
+4. Dual-licensed packages: Using BSD/Artistic instead of GPL
+5. NO ACTION NEEDED - Development dependencies don't contaminate shipped code
 
-**Target Resolution**: Sprint 2025-Q4
-**Owner**: TBD
+**Conclusion**: All GPL packages are safe - dev-only tools + dual-licensing options.
+
+**Target Resolution**: Sprint 2025-Q4 ✅
+**Owner**: Resolved by verification
 
 ---
 
 ## 🟢 **Low Priority**
 
-### TD-003: UNLICENSED JavaScript Packages
-**Status**: Documented
-**Impact**: License compliance gap
+### TD-003: UNLICENSED JavaScript Packages - ✅ RESOLVED
+**Status**: ✅ Resolved - License fields added
+**Impact**: None - Own packages, now properly licensed
 **Discovered**: JavaScript dependency audit 2025-Q4
+**Resolved**: October 12, 2025
 
 **Affected Packages**:
-- 2 npm packages showing as "UNLICENSED"
+1. `@ninaivalaigal/ui-components@0.1.0` (frontend-shared)
+2. `frontend-nextjs-customer@0.1.0`
 
-**Next Steps**:
-1. Identify exact package names
-2. Check package.json for missing license field
-3. Verify actual license from source repository
-4. Update or replace packages
+**Resolution**:
+1. Identified packages were ninaivalaigal's own frontend packages
+2. Added `"license": "MIT"` field to both package.json files
+3. MIT license chosen for frontend (permissive, compatible with MIT/Apache dual-license)
+4. License field now properly declared for npm compliance
 
-**Target Resolution**: Sprint 2025-Q4
-**Owner**: TBD
+**Conclusion**: Own packages now properly licensed under MIT.
+
+**Target Resolution**: Sprint 2025-Q4 ✅
+**Owner**: Resolved by adding license fields
 
 ---
 
@@ -120,14 +133,18 @@
 
 ## 📊 **Technical Debt Metrics**
 
-| Category | Count | Priority | Estimated Hours |
-|----------|-------|----------|-----------------|
-| Flake8 Violations | 30 | High | 1-2 |
-| GPL Contamination | 2 pkgs | High | 2-4 |
-| Unlicensed Packages | 2 pkgs | Medium | 1 |
-| **Total** | **34 items** | **Mixed** | **4-7 hours** |
+| Category | Count | Priority | Estimated Hours | Status |
+|----------|-------|----------|-----------------|--------|
+| Flake8 Violations | 30 | High | 1-2 | ⏳ Pending |
+| ~~GPL Contamination~~ | ~~4 pkgs~~ | ~~High~~ | ~~2-4~~ | ✅ Resolved |
+| ~~Unlicensed Packages~~ | ~~2 pkgs~~ | ~~Medium~~ | ~~1~~ | ✅ Resolved |
+| **Total Active** | **30 items** | **High** | **1-2 hours** | **6 items Resolved** |
 
 **Target**: Resolve all High priority items by end of Q4 2025
+**Progress**: 1/2 High-priority categories resolved (50%)
+**Recent Resolutions**:
+- GPL: All 4 packages verified safe (dev-only + dual-licensed)
+- UNLICENSED: 2 frontend packages now properly licensed (MIT)
 
 ---
 

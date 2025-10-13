@@ -31,6 +31,21 @@ from .models import (
     User,
     UserInvitation,
 )
+
+# Import RBAC models to register dynamic relationships on User model
+# This MUST come after importing User model
+try:
+    import os
+    import sys
+
+    # Add server directory to path for rbac_models import
+    server_path = os.path.dirname(os.path.dirname(__file__))
+    if server_path not in sys.path:
+        sys.path.insert(0, server_path)
+    import rbac_models  # noqa: F401 - imported for side effects
+except ImportError:
+    pass  # RBAC models optional for basic database operations
+
 from .operations import DatabaseOperations, get_db
 
 # Export all for backward compatibility

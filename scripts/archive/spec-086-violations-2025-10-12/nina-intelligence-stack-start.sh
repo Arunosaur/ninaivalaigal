@@ -149,8 +149,8 @@ if ! $SKIP_API; then
   container delete ninaivalaigal-dev-api >/dev/null 2>&1 || true
 
   container run -d --name ninaivalaigal-dev-api -p 13370:8000 \
-    -e DATABASE_URL=postgresql://nina:secure_nina_password@${DB_IP}:5432/ninaivalaigal \
-    -e NINAIVALAIGAL_DATABASE_URL=postgresql://nina:secure_nina_password@${DB_IP}:5432/ninaivalaigal \
+    -e DATABASE_URL=postgresql://nina:secure_nina_password@${DB_IP}:5432/ninaivalaigal `# pragma: allowlist secret` \
+    -e NINAIVALAIGAL_DATABASE_URL=postgresql://nina:secure_nina_password@${DB_IP}:5432/ninaivalaigal `# pragma: allowlist secret` \
     -e REDIS_HOST=${CACHE_IP} \
     -e REDIS_PORT=6379 \
     -e NINAIVALAIGAL_JWT_SECRET=test-jwt-secret-for-ci \
