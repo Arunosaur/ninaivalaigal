@@ -71,13 +71,13 @@ class TestInfrastructureSmoke:
                 "-U",
                 "nina",
                 "-d",
-                "nina",  # Database name through PgBouncer
+                "ninaivalaigal_dev",  # Database name through PgBouncer
                 "-c",
                 "SELECT 1;",
             ],
             env={
                 **os.environ,
-                "PGPASSWORD": "change_me_securely",  # pragma: allowlist secret
+                "PGPASSWORD": "dev_password_change_in_production",  # pragma: allowlist secret
             },
             capture_output=True,
             timeout=5,
@@ -133,9 +133,7 @@ class TestDatabaseSchema:
             pytest.skip("PgBouncer container not running (ninaivalaigal-dev-pgbouncer)")
 
         # Connect through PgBouncer on port 6432
-        db_url = (
-            f"postgresql://nina:change_me_securely@{pgbouncer_ip}:6432/nina"  # pragma: allowlist secret  # noqa: E501
-        )
+        db_url = f"postgresql://nina:dev_password_change_in_production@{pgbouncer_ip}:6432/ninaivalaigal_dev"  # pragma: allowlist secret  # noqa: E501
         result = subprocess.run(
             ["alembic", "current"],
             cwd="/Users/swami/WorkSpace/ninaivalaigal",  # pragma: allowlist secret
