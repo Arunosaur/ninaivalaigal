@@ -21,7 +21,7 @@
   | 000 | Vision and Scope | Complete | Foundation |
   | 000 | Template | Reference | - |
   | 001 | Core Memory System | Complete | Foundation |
-  | 002 | Multi-User Authentication | Complete | Phase 1 |
+| 002 | User Management & Authentication | 95% Complete | Phase 1 |
   | 003 | Core API Architecture | Complete | Foundation |
   | 004 | Team Collaboration | Complete | Phase 1 |
   | 005 | Admin Dashboard | Complete | Phase 1 |
@@ -122,7 +122,7 @@
   | 081 | Progressive Web App | Planned | Phase 4 |
   | 082 | Analytics and ROI Dashboard | In Progress | Q4 2024 |
   | 083 | Predictive Analytics | Planned | Phase 3 |
-  | 084 | Agentic UI Testing Framework | Complete | Phase 2B |
+| 084 | Agentic UI Testing Framework | ENHANCED | Phase 2B |
   | 085 | Staff Management | Complete | Phase 2B |
   | 086 | Multi-Runtime Port Allocation | Complete | Phase 2B |
   | 087 | API Surface Contracts | Complete | Phase 2B |
@@ -205,7 +205,24 @@
   - **Phase 4**: Advanced integrations
   - **Q4 2024**: Current priority initiatives
 
-  ## Recent Changes (October 2025)
+## Recent Changes (October 2025)
+
+### October 12, 2025 - SPEC-002 and SPEC-084 Enhanced ✅
+- **SPEC-002**: **User Management & Authentication** - **95% implemented**
+  - ✅ Signup working (ORM-based, proper RBAC)
+  - ✅ Login working (UUID serialization fixed)
+  - ✅ Logout endpoint added
+  - ✅ JWT tokens generated
+  - ⏳ Email verification (endpoint exists, needs testing)
+  - ⏳ Password reset (planned)
+
+- **SPEC-084**: **Agentic UI Testing Framework** - **ENHANCED**
+  - ✅ Original OpenAI implementation
+  - ✅ Hybrid OpenAI/Ollama framework
+  - ✅ Shared Ollama container
+  - ✅ Makefile targets added
+  - ✅ Cost optimization strategy
+  - ✅ CI/CD ready
 
   ### October 10, 2025 - SPEC-103 Finalized + SPEC-105 Complete ✅
   - **SPEC-103**: **Next.js 15 Bootstrap & Component Port** - **FINALIZED**

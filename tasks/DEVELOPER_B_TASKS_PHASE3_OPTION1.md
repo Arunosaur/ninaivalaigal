@@ -1,4 +1,105 @@
-# SPEC-045: Session Timeout / Token Expiry Management
+# Developer B - Phase 3 Option 1: Update SPEC-045
+
+**Task:** Update SPEC-045 with Refresh Token Implementation
+**Difficulty:** High
+**Time:** 2-3 hours
+**File:** `specs/045-session-timeout-token-expiry/README.md`
+
+---
+
+## ⚠️ **IMPORTANT: UPDATE Existing SPEC, Don't Create New One**
+
+**SPEC-045 already exists** at `specs/045-session-timeout-token-expiry/`
+
+This SPEC covers:
+- Intelligent session timeouts
+- Redis-backed sessions
+- Adaptive timeout calculations
+
+**Your task:** ADD refresh token documentation to this existing SPEC.
+
+---
+
+## 🎯 Objective
+
+Update SPEC-045 to document the refresh token system implemented by:
+- **Developer C** (Phase 5): Backend refresh tokens, database, API endpoints
+- **Developer A**: Frontend token storage, expiration tracking
+
+**What you're adding:**
+- Refresh token architecture section
+- Security design for refresh tokens
+- All 3 new API endpoints
+- Frontend integration (Developer A's work)
+- How refresh tokens integrate with intelligent sessions
+
+**Why update SPEC-045 instead of new SPEC:**
+- Refresh tokens ARE part of session management
+- Avoids SPEC proliferation
+- More cohesive architecture
+- SPEC-045 already covers session/token lifecycle
+
+---
+
+## 📚 Reference Materials
+
+### **Existing SPEC-045:**
+
+**Files to read first:**
+- `specs/045-session-timeout-token-expiry/README.md` (current state)
+- `specs/045-session-timeout-token-expiry/SPEC-045-intelligent-session-management.md` (detailed spec)
+
+### **Backend Code (Developer C - Phase 5):**
+
+1. **Backend Functions** (`server/auth.py` lines 613-769):
+   - `generate_refresh_token()` - Creates secure token
+   - `hash_token()` - SHA256 hashing
+   - `create_refresh_token()` - Store in database
+   - `validate_refresh_token()` - Validate and return user
+   - `revoke_refresh_token()` - Revoke single token
+   - `revoke_all_user_tokens()` - Logout all devices
+
+2. **API Endpoints** (`server/signup_api.py` lines 340-435):
+   - `POST /auth/token/refresh` - Get new access token
+   - `POST /auth/token/revoke` - Revoke single token
+   - `POST /auth/token/revoke-all` - Logout all devices
+
+3. **Database Schema** (`alembic/versions/0114_refresh_tokens.py`):
+   - `refresh_tokens` table structure
+
+4. **Database Model** (`server/database/models.py` lines 83-100):
+   - `RefreshToken` class
+
+### **Frontend Code (Developer A):**
+
+1. **Token Storage** (`frontend-nextjs-customer/utils/tokenStorage.ts`):
+   - JWT persistence
+   - Expiration tracking
+   - `hasValidToken()` helper
+
+2. **API Client** (`frontend-nextjs-customer/services/api-client.ts`):
+   - Token integration
+
+3. **Auth Service** (`frontend-nextjs-customer/services/auth.service.ts`):
+   - `isAuthenticated()` using TokenStorage
+
+### **Summary Documents:**
+
+- Developer C: `tasks/DEVELOPER_C_PHASE5_COMPLETE.md`
+- Developer A: Recent commit message (token handling)
+
+---
+
+## ✅ What to Add to SPEC-045
+
+Update: `specs/045-session-timeout-token-expiry/README.md`
+
+### **New Section to Add:**
+
+```markdown
+# SPEC-045: Intelligent Session Management
+
+[KEEP all existing content - don't delete anything]
 
 ---
 
@@ -481,3 +582,51 @@ User can view and manage all logged-in devices:
 
 **Last Updated:** October 12, 2025
 **Status:** ✅ IMPLEMENTED
+```
+
+---
+
+## ✅ Completion Checklist
+
+- [ ] Read existing SPEC-045 content thoroughly
+- [ ] Added "Part 2: Refresh Token Implementation" section
+- [ ] Documented database schema
+- [ ] Documented all 3 new API endpoints
+- [ ] Documented enhanced /auth/login endpoint
+- [ ] Added frontend integration (Developer A's code)
+- [ ] Added backend implementation (Developer C's code)
+- [ ] Explained integration with intelligent sessions
+- [ ] Added testing section
+- [ ] Added monitoring recommendations
+- [ ] Credited both developers
+- [ ] Cross-referenced related SPECs
+
+---
+
+## 💡 Tips
+
+1. **Keep existing content** - Don't delete anything from current SPEC-045
+2. **Show integration** - Explain how refresh tokens work WITH intelligent sessions
+3. **Credit developers** - Acknowledge Developer C & A's work
+4. **Test examples** - Verify curl commands work
+5. **Be comprehensive** - This updates an existing SPEC, make it complete
+
+---
+
+## 🎯 Success Criteria
+
+- [ ] Existing SPEC-045 content preserved
+- [ ] Refresh token implementation fully documented
+- [ ] Integration between Part 1 & Part 2 explained
+- [ ] Both developers' work acknowledged
+- [ ] Can be used as reference for future work
+
+---
+
+**This updates an existing SPEC - preserve what's there, enhance it!**
+
+**Estimated time:** 2-3 hours
+**Difficulty:** High
+**Value:** Exceptional (integrates 2 developers' work into existing architecture)
+
+**You've got this! 📝**

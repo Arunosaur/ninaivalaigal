@@ -193,6 +193,132 @@ const ADMIN_API_URL = process.env.ADMIN_API_URL || 'http://localhost:13370';
 
 ---
 
+## 🌐 Dynamic IP Resolution (Apple Container CLI)
+
+### **Apple Container CLI Networking**
+
+Unlike Docker Compose which provides DNS resolution, **Apple Container CLI does not support hostname-based networking**. All inter-container communication must use **dynamically resolved IP addresses**.
+
+### **Container IP Detection Function**
+
+```bash
+# Correct IP extraction from container list output
+get_container_ip() {
+    local container_name=$1
+    container list | grep "$container_name" | awk '{print $6}'
+}
+
+# Example usage
+DB_IP=$(get_container_ip "ninaivalaigal-dev-db")
+PGBOUNCER_IP=$(get_container_ip "ninaivalaigal-dev-pgbouncer")
+REDIS_IP=$(get_container_ip "ninaivalaigal-dev-redis")
+```
+
+**⚠️ Critical Bug to Avoid:**
+```bash
+# ❌ WRONG: Extracts last field ("MB" from memory column)
+awk '{print $(NF)}'  # Returns "MB" not the IP!
+
+# ✅ CORRECT: Extracts IP from column 6
+awk '{print $6}'     # Returns actual IP like "192.168.64.135"
+```
+
+### **Container List Output Format**
+
+```
+NAME                    IMAGE                             OS     ARCH   STATE   IP              CPUS  MEMORY
+ninaivalaigal-dev-db    nina-intelligence-db:arm64       linux  arm64  running 192.168.64.135  4     1024 MB
+                                                                                 ↑ Column 6           ↑ Last column
+```
+
+### **Dynamic Connection URLs**
+
+#### **Database Connection (via PgBouncer):**
+
+```bash
+# 1. Resolve PgBouncer IP dynamically
+PGBOUNCER_IP=$(get_container_ip "ninaivalaigal-${ENV}-pgbouncer")
+
+# 2. Construct DATABASE_URL with dynamic IP
+DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${PGBOUNCER_IP}:6432/${DB_NAME}"
+
+# 3. Pass to API container
+container run -d --name "ninaivalaigal-${ENV}-api" \
+    -e DATABASE_URL="${DATABASE_URL}" \
+    -e NINAIVALAIGAL_DATABASE_URL="${DATABASE_URL}" \
+    nina-api:arm64
+```
+
+#### **Redis Connection:**
+
+```bash
+# 1. Resolve Redis IP dynamically
+REDIS_IP=$(get_container_ip "ninaivalaigal-${ENV}-redis")
+
+# 2. Construct REDIS_URL with dynamic IP
+REDIS_URL="redis://:${REDIS_PASSWORD}@${REDIS_IP}:6379/0"
+
+# 3. Pass to API container
+container run -d --name "ninaivalaigal-${ENV}-api" \
+    -e REDIS_URL="${REDIS_URL}" \
+    -e NINAIVALAIGAL_REDIS_URL="${REDIS_URL}" \
+    nina-api:arm64
+```
+
+### **PgBouncer Dynamic Configuration**
+
+PgBouncer must be configured with the **database container's IP** at startup:
+
+```bash
+# 1. Get database IP
+DB_IP=$(get_container_ip "ninaivalaigal-${ENV}-db")
+
+# 2. Get SCRAM password from database
+SCRAM_PASSWORD=$(PGPASSWORD="${DB_PASSWORD}" psql \
+    -h localhost -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t \
+    -c "SELECT rolpassword FROM pg_authid WHERE rolname = '${DB_USER}';" | tr -d ' ')
+
+# 3. Start PgBouncer with dynamic DB_HOST
+container run -d --name "ninaivalaigal-${ENV}-pgbouncer" \
+    -p ${PGBOUNCER_PORT}:6432 \
+    -e DB_HOST="${DB_IP}" \
+    -e SCRAM_PASSWORD="${SCRAM_PASSWORD}" \
+    nina-pgbouncer:arm64
+```
+
+### **Why IPs Change**
+
+- Container IPs are assigned dynamically by Apple Container CLI on each start
+- IPs are not guaranteed to be the same across container restarts
+- Container names are stable, IPs are not
+- This is by design for container isolation and portability
+
+### **Validation Commands**
+
+```bash
+# Test database connectivity through PgBouncer
+PGPASSWORD="${DB_PASSWORD}" psql \
+    -h localhost -p ${PGBOUNCER_PORT} \
+    -U ${DB_USER} -d ${DB_NAME} \
+    -c "SELECT 'PgBouncer → DB: CONNECTED ✅' AS status;"
+
+# Test Redis connectivity with dynamic IP
+REDIS_IP=$(get_container_ip "ninaivalaigal-${ENV}-redis")
+redis-cli -h ${REDIS_IP} -p 6379 -a "${REDIS_PASSWORD}" PING
+# Expected: PONG
+
+# Verify API container environment
+container exec ninaivalaigal-${ENV}-api env | grep -E "DATABASE_URL|REDIS_URL"
+# Should show dynamic IPs, not hostnames
+```
+
+### **Documentation Reference**
+
+For complete operational guide on API container requirements with dynamic IPs:
+- `docs/deployment/API_CONTAINER_REQUIREMENTS.md`
+
+---
+
 ## 🛡️ Security Architecture
 
 ### **UI Split Strategy:**
@@ -447,6 +573,14 @@ curl http://localhost:13370/health
 
 ## 🔄 Changelog
 
+### **v1.2.0 - October 12, 2025**
+- **Added Dynamic IP Resolution section:** Complete guide for Apple Container CLI networking
+- **Fixed critical bug:** Corrected `get_container_ip()` function to use `awk '{print $6}'` instead of `$(NF)`
+- **Documented PgBouncer mandate:** All database connections MUST go through PgBouncer (port 6432)
+- **Redis authentication requirements:** Documented password requirements and connection URL format
+- **Created operational guide:** Added `docs/deployment/API_CONTAINER_REQUIREMENTS.md`
+- **Archived SPEC-086 violations:** Moved scripts with runtime suffixes to `scripts/archive/spec-086-violations-2025-10-12/`
+
 ### **v1.1.0 - October 10, 2025**
 - **Simplified naming convention:** Removed `-{runtime}` suffix from container names
 - **Containers now use:** `ninaivalaigal-{env}-{service}` (not `ninaivalaigal-{env}-{service}-{runtime}`)
@@ -497,10 +631,12 @@ curl http://localhost:13370/health
 ## 📖 References
 
 ### **Documentation:**
+- [API Container Requirements](../../docs/deployment/API_CONTAINER_REQUIREMENTS.md) - **NEW: Dynamic IP & PgBouncer guide**
 - [Architecture Diagrams](../docs/ARCHITECTURE_DIAGRAM.md)
 - [Diagrams Index](../docs/DIAGRAMS_INDEX.md)
 - [Database Image Management](../docs/DATABASE_IMAGE_MANAGEMENT.md)
 - [Docker Compose Configuration](../compose.docker.yml)
+- [Stack Startup Script](../../scripts/stack-start-complete.sh) - Reference implementation
 
 ### **External Resources:**
 - [PgBouncer Documentation](https://www.pgbouncer.org/usage.html)

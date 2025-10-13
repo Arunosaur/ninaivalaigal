@@ -1,6 +1,7 @@
 # SPEC-084: Agentic UI Testing Framework
 
-**Status:** ✅ IMPLEMENTED
+**Status:** ✅ ENHANCED - Hybrid OpenAI/Ollama Strategy
+**Updated:** October 12, 2025
 **Owner:** QA Lead + Platform Engineering
 **Effective:** Immediate (tests/agentic/ operational)
 **Related:** SPEC-052 (Comprehensive Test Coverage), SPEC-068 (UI Suite), SPEC-075 (Frontend Architecture)
@@ -38,6 +39,69 @@ Add **agent-driven Playwright tests** to validate real user flows robustly, redu
 - **DOM snapshot reasoning:** agent parses simplified DOM, decides actions
 - **Retry/backoff** + step caps for determinism
 - **Secrets via GitHub Actions OIDC/Env**
+
+## Hybrid LLM Strategy
+
+### Overview
+Intelligent LLM provider selection for cost optimization:
+
+| Environment | Provider | Cost | Use Case |
+|-------------|----------|------|----------|
+| Development | OpenAI API | ~$0.005/test | Fast feedback, reliable |
+| CI Nightly | Ollama | FREE | Scheduled tests, no API cost |
+| Fallback | Ollama | FREE | Budget exhausted |
+
+### Infrastructure
+
+**Shared Ollama Container:**
+```bash
+# Shared across all projects (not ninaivalaigal-specific)
+container: ollama
+port: 11434
+model: llama3.2 (2GB)
+```
+
+**Benefits:**
+- ✅ Cost-effective: Free for CI, cheap for dev
+- ✅ Reusable: One Ollama serves all projects
+- ✅ Flexible: Auto-detects or force specific LLM
+
+### Test Files
+
+**Hybrid Implementation:**
+- `tests/agentic/test_signup_hybrid.py` - Auto-detects OpenAI vs Ollama
+- `tests/agentic/test_signup_flow.py` - Original OpenAI-only version
+
+**Usage:**
+```bash
+# Auto-detect (OpenAI if key set, else Ollama)
+make test-agentic
+
+# Force OpenAI
+make test-agentic-openai
+
+# Force Ollama (free)
+make test-agentic-ollama
+```
+
+### Cost Analysis
+
+**OpenAI (gpt-4o-mini):**
+- Input: $0.15 per 1M tokens
+- Output: $0.60 per 1M tokens
+- Per test: ~$0.005
+- Monthly (10 tests/day): ~$1.50
+
+**Ollama:**
+- All tests: FREE
+- Initial download: 2GB (one-time)
+- Uses local compute
+
+### CI/CD Integration
+
+**Nightly Tests:** Use Ollama (free)
+**Pre-release:** Use OpenAI (reliable)
+**On-demand:** Developer choice
 
 ### File Structure
 ```
