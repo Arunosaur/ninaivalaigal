@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """
 Spec-Kit Framework for Ninaivalaigal
 Standardized interfaces and implementations for all system components
@@ -17,6 +25,7 @@ class ContextScope(Enum):
 
     Defines whether a context is personal, team-shared, or organization-wide.
     """
+
     PERSONAL = "personal"
     TEAM = "team"
     ORGANIZATION = "organization"
@@ -27,6 +36,7 @@ class PermissionLevel(Enum):
 
     Hierarchical permissions from read-only to full ownership.
     """
+
     READ = "read"
     WRITE = "write"
     ADMIN = "admin"
@@ -38,6 +48,7 @@ class EntityType(Enum):
 
     Represents grouping entities that can own contexts and manage permissions.
     """
+
     TEAM = "team"
     ORGANIZATION = "organization"
 
@@ -47,6 +58,7 @@ class OwnershipRole(Enum):
 
     Defines hierarchical roles for access control and permission management.
     """
+
     OWNER = "owner"
     ADMIN = "admin"
     MEMBER = "member"

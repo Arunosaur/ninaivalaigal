@@ -1,4 +1,11 @@
 #!/opt/homebrew/anaconda3/bin/python
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """
 Ninaivalaigal MCP Server - Model Context Protocol implementation
 Provides e^M (exponential Memory) management capabilities as MCP tools, resources, and prompts

@@ -1,4 +1,11 @@
 #!/bin/bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Validate all 9 runtime combinations (3 runtimes × 3 environments)
 # Part of SPEC-999: Regression Prevention & Production Stability Framework
 

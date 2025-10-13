@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """JWT token resolver for RBAC."""
 from __future__ import annotations
 
@@ -28,6 +36,7 @@ class Backoff:
     Implements exponential backoff with configurable base delay and maximum cap
     for retry logic in JWKS fetching and other network operations.
     """
+
     def __init__(self, base=0.2, cap=5.0):
         """Initialize instance."""
         self.base, self.cap = base, cap
@@ -53,6 +62,7 @@ class NegativeKidCache:
     Temporarily caches kid values that failed JWKS lookup to avoid
     hammering the JWKS endpoint for non-existent keys.
     """
+
     def __init__(self, ttl_seconds: int = 600):
         """Initialize instance."""
         self.ttl = ttl_seconds
@@ -82,6 +92,7 @@ class JWTClaimsResolver:
     Supports multiple verification methods: HMAC secret, JWKS endpoints,
     with caching, backoff handling, and configurable claim requirements.
     """
+
     def __init__(
         self,
         secret: str | None = None,

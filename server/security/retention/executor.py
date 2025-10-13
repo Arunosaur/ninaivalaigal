@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """Data retention policy executor."""
 from __future__ import annotations
 
@@ -12,6 +20,7 @@ class RetentionPolicy:
 
     Defines retention period in days; 0 means immediate discard.
     """
+
     days: int  # 0 for immediate discard
 
 
@@ -21,6 +30,7 @@ class RetentionExecutor:
     Queries expired records, performs batch deletion with pagination,
     and emits metrics for monitoring retention operations.
     """
+
     def __init__(
         self,
         tier_policy: dict[int, RetentionPolicy],

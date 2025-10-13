@@ -1,0 +1,101 @@
+name: Auth Tests
+
+on:
+  push:
+    branches: [main, develop, feat/*, docs/*]
+    paths:
+      - 'server/auth.py'
+      - 'server/signup_api.py'
+      - 'server/database/**'
+      - 'tests/test_signup.py'
+      - 'tests/test_email_verification.py'
+      - '.github/workflows/test-auth.yml'
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  test-auth:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: ninaivalaigal_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r server/requirements.txt
+          pip install pytest pytest-cov pytest-asyncio
+
+      - name: Create database tables
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/ninaivalaigal_test  # pragma: allowlist secret
+        run: |
+          python -c "
+          from sqlalchemy import create_engine
+          from database.models import Base
+          engine = create_engine('$DATABASE_URL')
+          Base.metadata.create_all(engine)
+          "
+        working-directory: server
+
+      - name: Run auth tests
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/ninaivalaigal_test  # pragma: allowlist secret
+          REDIS_URL: redis://localhost:6379/0
+          NINAIVALAIGAL_JWT_SECRET: test_jwt_secret_for_ci  # pragma: allowlist secret
+          PYTHONPATH: ${{ github.workspace }}/server
+        run: |
+          pytest tests/test_signup.py -v --cov=server.auth --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: auth
+          name: auth-coverage
+        if: always()
+
+      - name: Generate coverage badge
+        run: |
+          coverage-badge -o coverage-auth.svg
+        if: always()
+
+      - name: Upload coverage badge
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-auth-badge
+          path: coverage-auth.svg
+        if: always()

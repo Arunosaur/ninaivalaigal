@@ -1,0 +1,12 @@
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+<rect x="50" y="50" width="500" height="60" fill="#d0f0c0" stroke="black"/>
+<text x="60" y="90" font-size="16">🌐 Open Source: Frontend, SDKs, CLI (MIT / Apache 2.0)</text>
+
+<rect x="50" y="150" width="500" height="60" fill="#fff4b0" stroke="black"/>
+<text x="60" y="190" font-size="16">⚖️ Hybrid: Infra, Docker, IaC (Elastic License 2.0)</text>
+
+<rect x="50" y="250" width="500" height="60" fill="#f8caca" stroke="black"/>
+<text x="60" y="290" font-size="16">🔒 Proprietary: Memory Core, Graph, Monetization</text>
+
+<text x="50" y="350" font-size="14" fill="gray">Ninaivalaigal Open-Core Licensing Map (Medhasys © 2025)</text>
+</svg>

@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Migration Script: Unified Container Naming Convention
 # Migrates from inconsistent naming to: ninaivalaigal-{env}-{service}
 # Note: Runtime suffix removed as of v1.1.0 (Oct 10, 2025)

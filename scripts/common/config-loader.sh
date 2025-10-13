@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Unified Configuration Loader - The Right Way™
 # Loads config in proper hierarchy: defaults → runtime → env → secrets
 # Version: 1.0.0 - Day 4 Uniform Architecture

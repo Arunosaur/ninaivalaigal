@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: Proprietary
+// Copyright (c) 2025 Medhasys LLC
+//
+// This file contains proprietary code owned by Medhasys LLC.
+// Unauthorized copying, modification, or distribution is prohibited.
+// See LICENSE file in the server/ directory for details.
+//
 import axios from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:13380'

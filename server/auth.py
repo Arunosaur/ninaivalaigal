@@ -1,8 +1,17 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """
 Authentication and user management for Ninaivalaigal
 Supports individual users, team members, and organization creators
 """
 
+import hashlib
 import json
 import os
 import re
@@ -43,7 +52,7 @@ def load_config():
 
 # Database helper to avoid circular imports
 def get_db():
-    """Get database instance"""
+    """Get database instance with user operations"""
     from database import DatabaseManager
 
     database_url = load_config()  # load_config returns string directly
@@ -257,17 +266,17 @@ def get_user_roles_for_token(db, user_id: int) -> dict:
 
         for assignment in role_assignments:
             scope_key = (
-                f"{assignment.scope_type}:{assignment.scope_id}" if assignment.scope_id else assignment.scope_type
+                f"{assignment.scope_type}:{str(assignment.scope_id)}" if assignment.scope_id else assignment.scope_type
             )
             roles[scope_key] = assignment.role.name
 
-            # Track team memberships
+            # Track team memberships (convert UUID to string)
             if assignment.scope_type == "team" and assignment.scope_id:
-                teams[assignment.scope_id] = assignment.role.name
+                teams[str(assignment.scope_id)] = assignment.role.name
 
-            # Track organization membership
+            # Track organization membership (convert UUID to string)
             if assignment.scope_type == "org" and assignment.scope_id:
-                org_id = assignment.scope_id
+                org_id = str(assignment.scope_id)
 
         return {"roles": roles, "teams": teams, "org_id": org_id}
     except Exception:
@@ -349,43 +358,24 @@ def create_individual_user(signup_data: IndividualUserSignup):
         # Hash password
         hashed_password = hash_password(validated_data["password"])
 
-        # Create user in database
-        from database import User
-
-        new_user = User(
-            username=None,
+        # Create user in database using proper ORM
+        new_user = db.create_user(
+            username=None,  # Optional for email-only signup
             email=validated_data["email"],
             name=validated_data["name"],
             password_hash=hashed_password,
-            verification_token=verification_token,
             account_type=validated_data["account_type"],
+            verification_token=verification_token,
+            created_via="signup",
+            email_verified=False,
+            subscription_tier="free",
+            role="user",
+            is_active=True,
         )
-
-        session.add(new_user)
-        session.commit()
-
-        # Create default RBAC role assignment
-        try:
-            from rbac_models import RoleAssignment
-
-            from rbac.permissions import Role
-
-            role_assignment = RoleAssignment(
-                user_id=new_user.id,
-                role=Role.MEMBER,
-                scope_type="global",
-                scope_id=None,
-                assigned_by=new_user.id,
-                is_active=True,
-            )
-            session.add(role_assignment)
-            session.commit()
-        except Exception as rbac_error:
-            print(f"Warning: Failed to create RBAC role assignment: {rbac_error}")
 
         # Generate JWT token
         jwt_payload = {
-            "user_id": new_user.id,
+            "user_id": str(new_user.id),
             "email": new_user.email,
             "account_type": new_user.account_type,
             "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
@@ -393,13 +383,13 @@ def create_individual_user(signup_data: IndividualUserSignup):
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
         return {
-            "user_id": new_user.id,
+            "user_id": str(new_user.id),
             "email": new_user.email,
             "name": new_user.name,
             "account_type": new_user.account_type,
-            "personal_contexts_limit": new_user.personal_contexts_limit,
+            "personal_contexts_limit": new_user.personal_contexts_limit or 10,
             "jwt_token": jwt_token,
-            "email_verified": False,
+            "email_verified": new_user.email_verified,
             "verification_token": verification_token,
         }
 
@@ -434,7 +424,7 @@ def authenticate_user(email: str, password: str):
 
         # Generate JWT token with RBAC roles
         jwt_payload = {
-            "user_id": user.id,
+            "user_id": str(user.id),  # Convert UUID to string for JSON serialization
             "email": user.email,
             "account_type": user.account_type,
             "role": user.role,
@@ -444,7 +434,7 @@ def authenticate_user(email: str, password: str):
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
         return {
-            "user_id": user.id,
+            "user_id": str(user.id),  # Convert UUID to string for JSON serialization
             "email": user.email,
             "name": user.name,
             "account_type": user.account_type,
@@ -517,3 +507,262 @@ def require_admin_role(current_user: dict, required_role: str = "admin") -> None
         status_code=403,
         detail=f"Insufficient permissions. Required role: {required_role}",
     )
+
+
+def request_password_reset_token(email: str) -> bool:
+    """
+    Request password reset token
+
+    Generates reset token and sends email if user exists
+    Returns True if successful, False otherwise
+    """
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database import User
+
+        user = session.query(User).filter_by(email=email, is_active=True).first()
+
+        if not user:
+            # Don't reveal if user exists (security)
+            return True
+
+        # Generate reset token (valid for 1 hour)
+        reset_token = generate_verification_token()
+        user.password_reset_token = reset_token
+        user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
+        session.commit()
+
+        # Send password reset email
+        reset_url = f"http://localhost:8000/reset-password?token={reset_token}"
+        print(f"Password reset URL for {email}: {reset_url}")
+        # TODO: Implement actual email sending
+
+        return True
+
+    except Exception as e:
+        session.rollback()
+        print(f"Password reset request error: {e}")
+        return False
+    finally:
+        session.close()
+
+
+def verify_reset_token(token: str) -> str | None:
+    """
+    Verify password reset token
+
+    Returns user email if valid, None otherwise
+    """
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database import User
+
+        user = session.query(User).filter_by(password_reset_token=token).first()
+
+        if not user:
+            return None
+
+        # Check if token expired
+        if user.password_reset_expires < datetime.utcnow():
+            return None
+
+        return user.email
+
+    finally:
+        session.close()
+
+
+def reset_password_with_token(token: str, new_password: str) -> bool:
+    """
+    Reset password with token
+
+    Returns True if successful, False otherwise
+    """
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database import User
+
+        user = session.query(User).filter_by(password_reset_token=token).first()
+
+        if not user:
+            return False
+
+        # Check if token expired
+        if user.password_reset_expires < datetime.utcnow():
+            return False
+
+        # Update password
+        user.password_hash = hash_password(new_password)
+        user.password_reset_token = None
+        user.password_reset_expires = None
+        session.commit()
+
+        return True
+
+    except Exception as e:
+        session.rollback()
+        print(f"Password reset error: {e}")
+        return False
+    finally:
+        session.close()
+
+
+def generate_refresh_token() -> str:
+    """
+    Generate cryptographically secure refresh token
+
+    Returns 64-character random token
+    """
+    return secrets.token_urlsafe(48)
+
+
+def hash_token(token: str) -> str:
+    """
+    Hash token using SHA256 for storage
+
+    Returns hex digest of token hash
+    """
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def create_refresh_token(
+    user_id: str, device_info: dict | None = None, ip_address: str | None = None, user_agent: str | None = None
+) -> tuple[str, datetime]:
+    """
+    Create and store refresh token
+
+    Returns tuple of (token, expiration_datetime)
+    Refresh tokens valid for 30 days
+    """
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database.models import RefreshToken
+
+        # Generate token
+        token = generate_refresh_token()
+        token_hash = hash_token(token)
+
+        # Calculate expiration (30 days)
+        expires_at = datetime.utcnow() + timedelta(days=30)
+
+        # Store in database
+        refresh_token = RefreshToken(
+            user_id=user_id,
+            token_hash=token_hash,
+            expires_at=expires_at,
+            device_info=device_info,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+        session.add(refresh_token)
+        session.commit()
+
+        return token, expires_at
+
+    except Exception as e:
+        session.rollback()
+        print(f"Create refresh token error: {e}")
+        raise
+    finally:
+        session.close()
+
+
+def validate_refresh_token(token: str) -> str | None:
+    """
+    Validate refresh token and return user_id
+
+    Returns user_id if valid, None if invalid/expired/revoked
+    """
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database.models import RefreshToken
+
+        token_hash = hash_token(token)
+
+        refresh_token = session.query(RefreshToken).filter_by(token_hash=token_hash).first()
+
+        if not refresh_token:
+            return None
+
+        # Check if revoked
+        if refresh_token.revoked_at is not None:
+            return None
+
+        # Check if expired
+        if refresh_token.expires_at < datetime.utcnow():
+            return None
+
+        return str(refresh_token.user_id)
+
+    finally:
+        session.close()
+
+
+def revoke_refresh_token(token: str, revoked_by_user_id: str | None = None) -> bool:
+    """
+    Revoke a refresh token
+
+    Returns True if successful, False otherwise
+    """
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database.models import RefreshToken
+
+        token_hash = hash_token(token)
+
+        refresh_token = session.query(RefreshToken).filter_by(token_hash=token_hash).first()
+
+        if not refresh_token:
+            return False
+
+        # Mark as revoked
+        refresh_token.revoked_at = datetime.utcnow()
+        if revoked_by_user_id:
+            refresh_token.revoked_by = revoked_by_user_id
+        session.commit()
+
+        return True
+
+    except Exception as e:
+        session.rollback()
+        print(f"Revoke refresh token error: {e}")
+        return False
+    finally:
+        session.close()
+
+
+def revoke_all_user_tokens(user_id: str) -> int:
+    """
+    Revoke all refresh tokens for a user
+
+    Returns number of tokens revoked
+    """
+    db = get_db()
+    session = db.get_session()
+    try:
+        from database.models import RefreshToken
+
+        # Get all non-revoked tokens for user
+        tokens = session.query(RefreshToken).filter_by(user_id=user_id, revoked_at=None).all()
+
+        count = 0
+        for token in tokens:
+            token.revoked_at = datetime.utcnow()
+            token.revoked_by = user_id
+            count += 1
+
+        session.commit()
+        return count
+
+    except Exception as e:
+        session.rollback()
+        print(f"Revoke all tokens error: {e}")
+        return 0
+    finally:
+        session.close()

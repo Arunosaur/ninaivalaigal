@@ -21,6 +21,32 @@ Ninaivalaigal has evolved into a comprehensive **Enterprise AI Memory Management
 
 ## 🚀 Quick Start
 
+## Quick Start: Authentication
+
+### 1. Signup
+```bash
+curl -X POST http://localhost:13390/auth/signup/individual \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"SecurePass123!","name":"Your Name"}' # pragma: allowlist secret
+```
+
+### 2. Login
+```bash
+curl -X POST http://localhost:13390/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"SecurePass123!"}' # pragma: allowlist secret
+```
+
+### 3. Use JWT Token
+```bash
+export JWT_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+curl -X GET http://localhost:13390/memory/list \
+  -H "Authorization: Bearer $JWT_TOKEN"
+```
+
+**See:** `/docs/JWT_TOKEN_USAGE.md` for complete guide
+
 ### One-Line Installation (Recommended)
 
 ```bash
@@ -117,7 +143,7 @@ Access the complete platform at **http://localhost:8081** after running `make ni
 
 ### **Core Documentation**
 - **[Nina Intelligence Stack Complete](docs/NINA_INTELLIGENCE_STACK_COMPLETE.md)** - Complete implementation guide
-- **[SPEC Audit 2024](SPEC_AUDIT_2024.md)** - Comprehensive platform status
+- **[SPEC Audit 2025](SPEC_AUDIT_2025.md)** - Comprehensive platform status
 - **[Frontend Documentation](frontend-nextjs/README.md)** - Next.js 15 frontend baseline (SPEC-103)
 - **[API Documentation](docs/api/)** - API guides and references
 - **[Architecture Documentation](docs/architecture/)** - System design documents
@@ -649,9 +675,31 @@ The system is designed with three key principles:
 3. **From UI to CLI**: API-first design with thin client interfaces
 4. **From Personal to Enterprise**: Multi-level sharing with proper security
 
-## License
+## 📜 License
 
-[Add your license information here]
+**Ninaivalaigal follows an Open-Core licensing model.**
+
+Different components are licensed under different terms to balance openness and commercial sustainability:
+
+| Component | License | Use Case |
+|-----------|---------|----------|
+| 🎨 **Public Frontends** | MIT | Free for all uses |
+| 🛠️ **CLI & SDKs** | Apache 2.0 | Open developer tools |
+| 🔒 **Core Algorithms** | Proprietary | Commercial license required |
+| 🏗️ **Infrastructure** | Elastic License 2.0 | Source-available |
+
+### Quick Reference
+
+- **Want to use the UI?** → [MIT License](frontend-nextjs-customer/LICENSE)
+- **Building integrations?** → Apache 2.0 (SDKs & Public APIs)
+- **Need commercial features?** → Contact [licensing@medhasys.com](mailto:licensing@medhasys.com)
+- **Curious about infrastructure?** → [Elastic License 2.0](containers/LICENSE)
+
+📋 **Complete licensing breakdown**: See [LICENSE-MATRIX.md](LICENSE-MATRIX.md)
+
+📄 **Visual guide**: [Licensing Map (PDF)](Ninaivalaigal_Licensing_Map.pdf) | [SVG](Ninaivalaigal_Licensing_Map.svg)
+
+Copyright © 2025 Medhasys LLC. Different components available under different licenses.
 
 ## 📚 Documentation
 
@@ -665,6 +713,6 @@ Complete documentation is available in the [`docs/`](docs/) directory:
 - **[Testing](docs/testing/README.md)** - Testing strategy and tools
 
 ### 🎯 Quick Links
-- [SPEC Status](SPEC_AUDIT_2024.md) - Complete feature roadmap (61 SPECs)
+- [SPEC Status](SPEC_AUDIT_2025.md) - Complete feature roadmap (61 SPECs)
 - [Contributing](CONTRIBUTING.md) - How to contribute
 - [Security Policy](SECURITY.md) - Security guidelines

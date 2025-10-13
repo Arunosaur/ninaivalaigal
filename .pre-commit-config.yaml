@@ -1,3 +1,10 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 default_language_version:
   python: python3
 
@@ -79,3 +86,23 @@ repos:
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
+
+  # SPDX License Header Validation
+  - repo: local
+    hooks:
+      - id: check-spdx-headers
+        name: Check SPDX License Headers
+        entry: .pre-commit-hooks/check-spdx-headers.sh
+        language: script
+        types: [text]
+        files: \.(py|ts|tsx|js|jsx|sh|yml|yaml)$
+        exclude: |
+          (?x)^(
+            node_modules/.*|
+            \.venv/.*|
+            venv/.*|
+            __pycache__/.*|
+            dist/.*|
+            build/.*|
+            .*\.min\.(js|css)$
+          )$

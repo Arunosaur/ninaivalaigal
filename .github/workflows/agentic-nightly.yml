@@ -1,0 +1,108 @@
+name: Agentic Tests (Nightly)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC daily
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  agentic-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r server/requirements.txt
+          pip install playwright pytest pytest-asyncio httpx
+          playwright install chromium
+
+      - name: Start Ollama
+        run: |
+          docker run -d --name ollama \
+            -p 11434:11434 \
+            ollama/ollama:latest
+
+          # Wait for Ollama to be ready
+          sleep 10
+
+          # Pull llama3.2 model
+          docker exec ollama ollama pull llama3.2
+
+      - name: Verify Ollama
+        run: |
+          curl http://localhost:11434/api/tags
+
+      - name: Start database services
+        run: |
+          docker-compose -f docker-compose.ci.yml up -d postgres redis
+          sleep 10
+
+      - name: Start API server
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/ninaivalaigal_test  # pragma: allowlist secret
+          REDIS_URL: redis://localhost:6379/0
+          NINAIVALAIGAL_JWT_SECRET: test_jwt_secret_for_ci  # pragma: allowlist secret
+        run: |
+          docker-compose -f docker-compose.ci.yml up -d api
+          sleep 15
+
+          # Wait for API to be healthy
+          timeout 60 bash -c 'until curl -f http://localhost:13390/health; do sleep 2; done'
+
+      - name: Run agentic tests with Ollama
+        env:
+          USE_OLLAMA: true
+          OLLAMA_URL: http://localhost:11434
+          PYTHONPATH: ${{ github.workspace }}/server:${{ github.workspace }}/tests
+        run: |
+          pytest tests/agentic/test_signup_hybrid.py -v --tb=short
+
+      - name: Generate test report
+        if: always()
+        run: |
+          pytest tests/agentic/test_signup_hybrid.py \
+            --html=agentic-test-report.html \
+            --self-contained-html
+        env:
+          USE_OLLAMA: true
+          OLLAMA_URL: http://localhost:11434
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agentic-test-results
+          path: |
+            agentic-test-report.html
+            test-results/
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '❌ Nightly Agentic Tests Failed',
+              body: `Agentic tests failed in nightly run.\n\nWorkflow: ${context.workflow}\nRun: ${context.runNumber}\n\nCheck artifacts for detailed report.`,
+              labels: ['testing', 'agentic', 'automated']
+            })
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose -f docker-compose.ci.yml down -v
+          docker stop ollama
+          docker rm ollama

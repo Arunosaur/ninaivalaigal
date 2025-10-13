@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """
 Configuration Management Module
 Extracted from main.py for better code organization
@@ -158,6 +166,79 @@ def get_dynamic_database_url() -> str:
     fallback_url = f"postgresql://{db_user}:{db_password}@localhost:{postgres_port}/{db_name}"
     print(f"⚠️ Using fallback connection: localhost:{postgres_port}/{db_name}")
     return fallback_url
+
+
+def get_dynamic_redis_config() -> dict[str, Any]:
+    """
+    Get Redis configuration with dynamic container IP resolution
+    Returns dict with host, port, password, db
+    """
+    # Check if we have environment override first
+    env_redis_url = os.getenv("NINAIVALAIGAL_REDIS_URL") or os.getenv("REDIS_URL")
+    if env_redis_url:
+        # Parse redis://[:password@]host:port/db format
+        import re
+
+        match = re.match(r"redis://(?::(.+)@)?([^:]+):(\d+)/(\d+)", env_redis_url)
+        if match:
+            password, host, port, db = match.groups()
+            return {
+                "host": host,
+                "port": int(port),
+                "password": password or "secure_nina_password",
+                "db": int(db),
+            }
+
+    # Get environment and runtime for dynamic discovery
+    nina_env = os.getenv("NINA_ENV", "dev")
+    redis_password = os.getenv("REDIS_PASSWORD", "secure_nina_password")
+    redis_db = int(os.getenv("REDIS_DB", "0"))
+    redis_port = 6379  # Redis standard port
+
+    # Try to get dynamic container IP
+    try:
+        import subprocess
+
+        # First try Apple Container CLI
+        container_cmd = "container"
+        if subprocess.run(["which", "container"], capture_output=True).returncode != 0:  # nosec B607
+            # Fallback to Docker if container CLI not available
+            container_cmd = "docker"
+
+        # Try to get Redis container IP
+        redis_container = f"ninaivalaigal-{nina_env}-redis"
+        try:
+            redis_result = subprocess.run(
+                [container_cmd, "inspect", redis_container],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if redis_result.returncode == 0:
+                redis_data = json.loads(redis_result.stdout)
+                if redis_data and len(redis_data) > 0:
+                    redis_ip = redis_data[0]["networks"][0]["address"].split("/")[0]
+                    print(f"🔗 Using Redis at {redis_ip}:{redis_port} for {nina_env}")
+                    return {
+                        "host": redis_ip,
+                        "port": redis_port,
+                        "password": redis_password,
+                        "db": redis_db,
+                    }
+        except (subprocess.TimeoutExpired, json.JSONDecodeError, KeyError, IndexError):
+            pass
+
+    except subprocess.TimeoutExpired:
+        pass
+
+    # Fallback to localhost
+    print(f"⚠️ Using fallback Redis connection: localhost:{redis_port}")
+    return {
+        "host": "localhost",
+        "port": redis_port,
+        "password": redis_password,
+        "db": redis_db,
+    }
 
 
 def get_database_url() -> str:

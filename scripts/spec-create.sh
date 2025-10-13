@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 set -euo pipefail
 ID="${ID:?Usage: ID=013 NAME='memory-v2' scripts/spec-create.sh}"
 NAME="${NAME:?Usage: ID=013 NAME='memory-v2' scripts/spec-create.sh}"

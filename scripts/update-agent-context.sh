@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Incrementally update agent context files based on new feature plan
 # Supports: CLAUDE.md, GEMINI.md, and .github/copilot-instructions.md
 # O(1) operation - only reads current context file and new plan.md

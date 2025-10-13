@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """
 Redis Client for Ninaivalaigal - SPEC-033 Implementation
 Provides Redis connection management, caching, and session storage
@@ -30,11 +38,14 @@ class RedisClient:
             redis_url = os.getenv("REDIS_URL") or os.getenv("NINAIVALAIGAL_REDIS_URL")
 
             if not redis_url:
-                # Fallback to individual components
-                host = os.getenv("REDIS_HOST", "localhost")
-                port = int(os.getenv("REDIS_PORT", "6379"))
-                password = os.getenv("REDIS_PASSWORD", "secure_nina_password")
-                db = int(os.getenv("REDIS_DB", "0"))
+                # Use dynamic discovery from config module
+                from config import get_dynamic_redis_config
+
+                redis_config = get_dynamic_redis_config()
+                host = redis_config["host"]
+                port = redis_config["port"]
+                password = redis_config["password"]
+                db = redis_config["db"]
 
                 redis_url = f"redis://:{password}@{host}:{port}/{db}"
 

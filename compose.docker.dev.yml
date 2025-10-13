@@ -1,3 +1,10 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Docker + Dev Environment (Port Matrix)
 # Database: 5432, PgBouncer: 6432, Redis: 6379, API: 13370, UI: 8081
 # Uses GHCR multi-arch images (x86_64 + ARM64)

@@ -889,6 +889,39 @@ test-database:
 	@echo "🗄️ Running database tests..."
 	pytest tests/ -k "database" -v --tb=short
 
+# Agentic Testing (SPEC-084) - Hybrid OpenAI/Ollama
+.PHONY: test-agentic test-agentic-openai test-agentic-ollama test-signup test-ollama-status
+
+test-agentic:
+	@echo "🤖 Running hybrid agentic tests (auto-detect LLM)..."
+	@if [ -n "$$OPENAI_API_KEY" ]; then \
+		echo "   Using: OpenAI API (gpt-4o-mini)"; \
+	else \
+		echo "   Using: Ollama (local LLM)"; \
+	fi
+	@conda run -n nina pytest tests/agentic/test_signup_hybrid.py -v --tb=short
+
+test-agentic-openai:
+	@echo "🔵 Running agentic tests with OpenAI API..."
+	@if [ -z "$$OPENAI_API_KEY" ]; then \
+		echo "❌ OPENAI_API_KEY not set"; \
+		exit 1; \
+	fi
+	@conda run -n nina pytest tests/agentic/test_signup_hybrid.py -v --tb=short
+
+test-agentic-ollama:
+	@echo "🟢 Running agentic tests with Ollama (local)..."
+	@USE_OLLAMA=true conda run -n nina pytest tests/agentic/test_signup_hybrid.py -v --tb=short
+
+test-signup:
+	@echo "🔐 Running signup/login/logout tests..."
+	@conda run -n nina pytest tests/test_signup.py -v --tb=short
+
+test-ollama-status:
+	@echo "🟢 Checking Ollama status..."
+	@container list | grep ollama && echo "✅ Ollama container running" || echo "❌ Ollama container not running"
+	@curl -s http://localhost:11434/api/tags | jq -r '.models[].name' 2>/dev/null && echo "✅ Ollama API responding" || echo "❌ Ollama API not responding"
+
 test-redis:
 	@echo "🔴 Running Redis tests..."
 	pytest tests/ -k "redis" -v --tb=short

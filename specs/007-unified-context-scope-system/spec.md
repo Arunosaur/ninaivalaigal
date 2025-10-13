@@ -1,7 +1,21 @@
 # Spec 007: Unified Context Scope System
 
+**Status:** In Progress
+**Owner:** Platform Engineering
+
 ## Overview
 Unified context management system with personal, team, and organizational scopes integrated through spec-kit framework. Removes all backward compatibility and ensures FastAPI and MCP server parity.
+
+## Relationship to SPEC-001 (Core Memory System)
+
+This specification directly extends **SPEC-001 (Core Memory System)** by introducing a structured and hierarchical context scoping model. While SPEC-001 defines the fundamental mechanics of creating and recalling memories, SPEC-007 provides the organizational layer on top of it.
+
+Key extensions include:
+- **Scoped Storage:** Memories created are now explicitly tied to a `personal`, `team`, or `organization` scope, determining their visibility and ownership.
+- **Access Control:** Builds on the basic memory access defined in SPEC-001 by adding granular, scope-based permissions.
+- **Contextualization:** It enriches the "context" of a memory, making it a formal, shareable entity rather than just a loose grouping.
+
+In short, if SPEC-001 is the "what" (the memory itself), SPEC-007 is the "who" and "where" (who can access it and within what organizational boundary).
 
 ## Objectives
 - Implement unified context scope differentiation (personal/team/organization)
@@ -95,31 +109,67 @@ Priority order for ambiguous context names:
 - **Sharing**: Only owners/admins can share contexts
 - **Transfer**: Only owners can transfer ownership
 
-## Implementation Tasks
+## Implementation Status (Updated Oct 2025)
 
-### Phase 1: Remove Backward Compatibility
-- [ ] Remove legacy context command structures from CLI
-- [ ] Remove RecordingContext model references
-- [ ] Clean up deprecated API endpoints
-- [ ] Remove SQLite fallback code
+### ✅ Completed Features
+- Personal/team/organization context scopes
+- Context permissions (read/write/admin/owner)
+- Context sharing and transfer
+- FastAPI endpoints fully operational
+- MCP server parity achieved
+- Database schema complete with constraints
+- Context resolution by name with scope priority
 
-### Phase 2: Spec-Kit Integration
-- [ ] Define context scope interfaces in spec-kit
-- [ ] Implement context resolution through spec-kit
-- [ ] Standardize error handling and responses
-- [ ] Create spec-kit validators for context operations
+### Database Implementation
+- ✅ `contexts` table with scope validation
+- ✅ `context_permissions` table for fine-grained access
+- ✅ Ownership constraints (personal/team/org)
+- ✅ CASCADE deletion for cleanup
 
-### Phase 3: FastAPI/MCP Parity
-- [ ] Audit all FastAPI endpoints
-- [ ] Implement identical MCP server methods
-- [ ] Create shared validation logic
-- [ ] Ensure consistent error responses
+### API Implementation
+**FastAPI Endpoints:** (in `routers/contexts_unified.py`)
+- POST `/contexts` - Create context with scope
+- GET `/contexts` - List user-accessible contexts
+- GET `/contexts/{id}` - Get specific context
+- PUT `/contexts/{id}` - Update context
+- DELETE `/contexts/{id}` - Delete context
+- POST `/contexts/{id}/share` - Share with permissions
+- POST `/contexts/{id}/transfer` - Transfer ownership
+- POST `/contexts/{id}/activate` - Set active
+- GET `/contexts/resolve/{name}` - Resolve by name
 
-### Phase 4: Documentation and Testing
-- [ ] Update all documentation
-- [ ] Create comprehensive test suite
-- [ ] Validate end-to-end workflows
-- [ ] Performance testing for context resolution
+**Backend Operations:** (in `database/operations/context_ops.py`)
+- ✅ `ContextOps` class with full CRUD
+- ✅ Permission validation
+- ✅ Scope resolution logic
+- ✅ Transfer and sharing logic
+
+### Integration with SPEC-001
+SPEC-007 extends SPEC-001 (Core Memory System) by adding:
+- Multi-user context support (SPEC-001 was single-user)
+- Team and organization scopes (beyond personal)
+- Permission sharing system
+- Context transfer capabilities
+
+**Architecture:**
+```
+SPEC-001 (Core Memory System)
+    ↓ provides foundation
+SPEC-007 (Unified Context Scope)
+    ↓ adds multi-user features
+SPEC-002 (User Management)
+    ↓ secures everything
+```
+
+### Testing Status
+- ✅ Manual testing complete
+- ⏳ Automated tests needed
+- ⏳ Load testing planned
+
+### Next Steps
+- Add comprehensive unit tests
+- Performance benchmarking
+- MCP server integration tests
 
 ## Success Criteria
 - All context operations work identically through FastAPI and MCP

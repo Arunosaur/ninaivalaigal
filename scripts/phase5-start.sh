@@ -1,4 +1,11 @@
 #!/bin/bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Phase-5 Kickoff Script: Frontend Split Initialization
 # Run this on Monday, October 13, 2025 to begin Phase-5 execution
 set -euo pipefail

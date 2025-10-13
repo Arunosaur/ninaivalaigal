@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # nv-api-diagnose-repair-v3.sh
 # Build (Docker by default) → optional image transfer → run → full-stack validation
 # - Rebuilds ONLY if the image's /app/run_server.py mismatches local or lacks sys.path fix
