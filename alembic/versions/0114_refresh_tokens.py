@@ -3,8 +3,8 @@
 
 """Add refresh tokens table
 
-Revision ID: 0114
-Revises: 0113
+Revision ID: 0114_refresh_tokens
+Revises: 0113_vector_embeddings_on_graph
 Create Date: 2025-10-12 18:40:00
 
 """
@@ -17,8 +17,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "0114"
-down_revision = "0113"
+revision = "0114_refresh_tokens"
+down_revision = "0113_vector_embeddings_on_graph"
 branch_labels = None
 depends_on = None
 
