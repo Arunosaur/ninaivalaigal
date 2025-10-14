@@ -14,8 +14,8 @@ export default function SpecDashboard() {
   }, [specDashboardUrl]);
 
   if (!data) return (
-    <Layout title=\"SPEC Dashboard\">
-      <div className=\"container margin-vert--lg\">
+    <Layout title="SPEC Dashboard">
+      <div className="container margin-vert--lg">
         <p>Loading dashboard...</p>
       </div>
     </Layout>
@@ -24,8 +24,8 @@ export default function SpecDashboard() {
   const { summary, spec_count, generated_at, project } = data;
 
   return (
-    <Layout title=\"SPEC Dashboard\">
-      <div className=\"container margin-vert--lg\">
+    <Layout title="SPEC Dashboard">
+      <div className="container margin-vert--lg">
         <h1>📊 SPEC Dashboard - {project}</h1>
         <p style={{ color: '#666', fontSize: '0.9em' }}>
           Generated: {new Date(generated_at).toLocaleString()}
@@ -40,8 +40,8 @@ export default function SpecDashboard() {
           <h2 style={{ marginTop: 0 }}>Total SPECs: <strong>{spec_count}</strong></h2>
         </div>
 
-        <div className=\"row\">
-          <div className=\"col col--6\">
+        <div className="row">
+          <div className="col col--6">
             <h2>📈 By Phase</h2>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -76,7 +76,7 @@ export default function SpecDashboard() {
             </table>
           </div>
 
-          <div className=\"col col--6\">
+          <div className="col col--6">
             <h2>🎯 By Status</h2>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {Object.entries(summary.by_status || {})
