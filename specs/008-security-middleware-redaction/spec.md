@@ -388,7 +388,7 @@ REDACTION_FEATURES = {
 
 ### Functional Requirements
 - [ ] 99.9% secret detection accuracy on test dataset
-- [ ] <50ms redaction latency for typical payloads
+- [ ] &lt;50ms redaction latency for typical payloads
 - [ ] Complete audit trail for all redaction events
 - [ ] Zero false positives on business context preservation
 - [ ] Consistent redaction across all platform interfaces
@@ -401,7 +401,7 @@ REDACTION_FEATURES = {
 - [ ] Compliance with GDPR/HIPAA redaction requirements
 
 ### Performance Requirements
-- [ ] <10% performance impact on API response times
+- [ ] &lt;10% performance impact on API response times
 - [ ] Redaction scales to 1000+ concurrent requests
 - [ ] Memory usage remains under 100MB per worker
 - [ ] Audit log storage optimized for long-term retention

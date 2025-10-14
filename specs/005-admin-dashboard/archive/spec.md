@@ -362,15 +362,15 @@ location /api/admin {
 
 ### Functional Success
 - [ ] Admin can create/manage users without database access
-- [ ] Team management workflows complete in <2 minutes
+- [ ] Team management workflows complete in &lt;2 minutes
 - [ ] Context ownership transfers work correctly
 - [ ] All admin actions are properly logged
 
 ### Performance Success
-- [ ] Admin UI loads in <2 seconds
-- [ ] User list with 1000+ users loads in <1 second
-- [ ] Search results appear in <200ms
-- [ ] Bulk operations complete in <5 seconds
+- [ ] Admin UI loads in &lt;2 seconds
+- [ ] User list with 1000+ users loads in &lt;1 second
+- [ ] Search results appear in &lt;200ms
+- [ ] Bulk operations complete in &lt;5 seconds
 
 ### User Experience Success
 - [ ] Non-technical admins can use the system

@@ -180,7 +180,7 @@ Quality Assurance Pipeline:
 - [x] Automated release management
 
 ### **Non-Functional Requirements**
-- [x] Fast feedback loops (<10 minutes for most workflows)
+- [x] Fast feedback loops (&lt;10 minutes for most workflows)
 - [x] High reliability with proper error handling
 - [x] Scalable architecture supporting multiple runners
 - [x] Comprehensive logging and monitoring

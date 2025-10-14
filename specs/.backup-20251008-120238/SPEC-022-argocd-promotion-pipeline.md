@@ -62,7 +62,7 @@ Since SPEC-021 is complete, we can leverage existing infrastructure:
 
 - **Deployment Pipeline**: Dev → Staging → Prod automated
 - **Approval Gate**: Manual production approval working
-- **Rollback Time**: <2 minutes (one-click revert)
+- **Rollback Time**: &lt;2 minutes (one-click revert)
 - **Notification**: Slack integration for all deployments
 - **Environment Parity**: 100% configuration consistency
 

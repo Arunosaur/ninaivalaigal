@@ -425,7 +425,7 @@ echo "✅ Stability check passed!"
 
 ### **Success Criteria**
 
-- ✅ API stable under sequence load (no crashes, <1s responses)
+- ✅ API stable under sequence load (no crashes, &lt;1s responses)
 - ✅ `/memory/tokenize` endpoint implemented + tested
 - ✅ Test suite resilient: retries + pacing prevent false failures
 - ✅ All smoke tests pass **consistently** → zero skips

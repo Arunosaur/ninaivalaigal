@@ -151,7 +151,7 @@ Demonstrate the Visual Narrative Layer by enhancing the Memory Browser (SPEC-031
 
 ## Success Criteria
 
-- [ ] Interactive narrative creation in <5 minutes
+- [ ] Interactive narrative creation in &lt;5 minutes
 - [ ] Support for 10+ narrative templates
 - [ ] Real-time collaboration for up to 20 users
 - [ ] Export to 5+ formats (PDF, HTML, JSON, etc.)

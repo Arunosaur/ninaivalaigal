@@ -121,7 +121,7 @@ try {
 3. **Database Connectivity** - Verifies database access via API
 4. **Analytics Endpoint** - Tests analytics data fetch
 5. **Error Handling** - Validates graceful error handling
-6. **Performance** - Measures API response times (P95 <200ms)
+6. **Performance** - Measures API response times (P95 &lt;200ms)
 7. **Full Stack Smoke Test** - End-to-end connectivity validation
 
 **Test Coverage**:
@@ -220,7 +220,7 @@ npm run test:coverage     # Run with coverage
 ### Health Check Test
 ```bash
 ✓ Backend health endpoint responding
-✓ Response time <200ms
+✓ Response time &lt;200ms
 ✓ Status: "ok"
 ```
 
@@ -234,7 +234,7 @@ npm run test:coverage     # Run with coverage
 
 ### Performance
 ```bash
-✓ P95 response time: <200ms (target met)
+✓ P95 response time: &lt;200ms (target met)
 ✓ Average response time: ~50ms
 ✓ No timeouts or network errors
 ```
@@ -279,7 +279,7 @@ npm run test:coverage     # Run with coverage
 
 ### 4. Performance Optimization
 **Implemented**: Parallel API calls using `Promise.all()`
-**Result**: Reduced dashboard load time from 2s to <500ms
+**Result**: Reduced dashboard load time from 2s to &lt;500ms
 
 ### 5. Testing Strategy
 **Philosophy**: Test connectivity, not implementation
@@ -323,7 +323,7 @@ npm run test:integration
 | **API Routes Created** | 4+ | 5 | ✅ Exceeds |
 | **Components Updated** | Dashboard | Dashboard | ✅ Complete |
 | **Integration Tests** | 5+ test suites | 7 | ✅ Exceeds |
-| **API Response Time** | <200ms P95 | ~50ms avg | ✅ Exceeds |
+| **API Response Time** | &lt;200ms P95 | ~50ms avg | ✅ Exceeds |
 | **Error Handling** | All paths | Complete | ✅ Complete |
 | **Type Safety** | No `any` | All typed | ✅ Complete |
 
@@ -415,7 +415,7 @@ With SPEC-105 complete, these SPECs can proceed:
 2. **Graceful Degradation**: System remains functional even if backend unavailable
 3. **Type Safety**: End-to-end TypeScript interfaces prevent runtime errors
 4. **Error Handling**: Comprehensive error handling at all layers
-5. **Performance**: Exceeds target (<200ms P95, achieved ~50ms average)
+5. **Performance**: Exceeds target (&lt;200ms P95, achieved ~50ms average)
 6. **Testing**: Integration tests validate connectivity automatically
 7. **Documentation**: Complete implementation guide and architecture docs
 

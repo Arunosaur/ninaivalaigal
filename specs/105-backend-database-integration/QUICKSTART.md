@@ -141,10 +141,10 @@ describe('API Connectivity', () => {
 - [ ] No secrets in Git
 
 ### Quality Gates
-- [ ] API response times <200ms P95
+- [ ] API response times &lt;200ms P95
 - [ ] Integration tests 100% pass rate
 - [ ] TypeScript compiles with no errors
-- [ ] ESLint passes with <20 issues
+- [ ] ESLint passes with &lt;20 issues
 
 ---
 

@@ -112,7 +112,7 @@ class SecurityScenarioEngine:
 
 #### Success Metrics:
 - Concurrent auth testing for 50+ users simultaneously
-- Role-based user creation <1s per user
+- Role-based user creation &lt;1s per user
 - JWT token lifecycle validation 100% coverage
 - Session isolation tests passing with zero conflicts
 
@@ -128,7 +128,7 @@ class SecurityScenarioEngine:
 #### Success Metrics:
 - RBAC coverage >95% across all API endpoints
 - Permission boundary tests 100% pass rate
-- Role switching validation <500ms per switch
+- Role switching validation &lt;500ms per switch
 - Cross-team isolation 100% enforced
 
 ### Milestone 3: Security Scenario Testing (Week 3)
@@ -152,7 +152,7 @@ class SecurityScenarioEngine:
 **Scenario**: 50 users from different teams accessing system simultaneously
 - **Validation**: No session conflicts, proper isolation, performance maintained
 - **Security Check**: User data isolation, no cross-contamination
-- **Performance**: <200ms auth response time under load
+- **Performance**: &lt;200ms auth response time under load
 
 ### 2. Role-Based Permission Enforcement
 **Scenario**: Users attempting actions outside their role permissions
@@ -164,7 +164,7 @@ class SecurityScenarioEngine:
 **Scenario**: Token manipulation, expiry, and refresh testing
 - **Validation**: Tampered tokens rejected, expiry enforced, refresh secure
 - **Security Check**: No token replay attacks possible
-- **Performance**: Token validation <50ms per request
+- **Performance**: Token validation &lt;50ms per request
 
 ### 4. Cross-Team Data Isolation
 **Scenario**: Team A user attempting to access Team B data
@@ -182,7 +182,7 @@ class SecurityScenarioEngine:
 **Scenario**: Mock SAML/OIDC provider integration testing
 - **Validation**: SSO flow secure and properly validated
 - **Security Check**: Provider verification enforced
-- **Performance**: SSO auth <2s end-to-end
+- **Performance**: SSO auth &lt;2s end-to-end
 
 ## 📊 Enterprise Readiness Validation
 
@@ -195,8 +195,8 @@ class SecurityScenarioEngine:
 ### Performance Under Auth Load
 - **Concurrent Users**: 100+ simultaneous authenticated users
 - **Auth Throughput**: 1000+ auth requests/second
-- **Token Validation**: <50ms per validation
-- **Session Management**: <100ms session operations
+- **Token Validation**: &lt;50ms per validation
+- **Session Management**: &lt;100ms session operations
 
 ### Enterprise Integration Scenarios
 - **Multi-Tenant Isolation**: Complete data separation validation
@@ -224,7 +224,7 @@ class SecurityScenarioEngine:
 - **Auth Test Coverage**: >95% of all authenticated endpoints
 - **Multi-User Simulation**: 100+ concurrent users without conflicts
 - **Security Test Pass Rate**: 100% for all attack prevention scenarios
-- **Performance Under Load**: <200ms auth response time
+- **Performance Under Load**: &lt;200ms auth response time
 
 ### Enterprise Readiness
 - **Compliance Coverage**: SOC2, GDPR, ISO 27001 validation

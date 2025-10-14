@@ -24,7 +24,7 @@ Context A ←————————————→ Context B
 - Simple sharing patterns
 
 **Characteristics**:
-- Lowest latency (<50ms)
+- Lowest latency (&lt;50ms)
 - Simple routing
 - No central point of failure
 - Scales to ~100 peer connections
@@ -80,8 +80,8 @@ Context C ←direct→ Context D
 - Large-scale deployments
 
 **Characteristics**:
-- Fast paths: <50ms (direct)
-- Slow paths: <200ms (via hub)
+- Fast paths: &lt;50ms (direct)
+- Slow paths: &lt;200ms (via hub)
 - Hub caches frequently accessed bridges
 - Automatic promotion to direct edge
 
@@ -127,9 +127,9 @@ LIMIT 1
 
 | Topology | Latency (p95) | Scalability | Complexity | Cost |
 |----------|---------------|-------------|------------|------|
-| **Peer-to-Peer** | <50ms | ~100 contexts | Low | Low |
-| **Hub** | <200ms | 10,000+ contexts | Medium | Medium |
-| **Hybrid** | <50ms (hot), <200ms (cold) | 10,000+ contexts | High | Medium |
+| **Peer-to-Peer** | &lt;50ms | ~100 contexts | Low | Low |
+| **Hub** | &lt;200ms | 10,000+ contexts | Medium | Medium |
+| **Hybrid** | &lt;50ms (hot), &lt;200ms (cold) | 10,000+ contexts | High | Medium |
 
 ---
 

@@ -12,7 +12,7 @@
 - ✅ **Stakeholder Demo** (done: 60-second walkthrough)
 - 📊 **Prepare extended demo deck**:
   - Before/after workflows
-  - Performance metrics (<200ms, 5x faster)
+  - Performance metrics (&lt;200ms, 5x faster)
   - AI confidence levels (92% with feedback loop)
   - ROI (60% engagement increase, 40% bounce reduction)
 - 🎥 **Record a demo video** for asynchronous sharing
@@ -41,7 +41,7 @@
 
 - **Prepare investment deck** highlighting:
   - **Differentiator**: first platform to *narrate* memories, not just store them
-  - **Moats**: Technical (<200ms), AI (feedback loop), UX (branching), Enterprise (compliance)
+  - **Moats**: Technical (&lt;200ms), AI (feedback loop), UX (branching), Enterprise (compliance)
   - **Metrics**: ROI figures (engagement, performance, confidence)
 - **Tie SPEC-076 achievement** into overall Ninaivalaigal roadmap (e.g., SPEC-080 Trust Scores, SPEC-081 Alert Layer)
 
@@ -95,7 +95,7 @@ class NarrativeAnalytics {
 ### Phase 2: Metrics Collection (Week 2-3)
 - **Engagement Database**: Store step completion, timing, paths
 - **Feedback Aggregation**: Collect AI annotation ratings
-- **Performance Monitoring**: Track <200ms compliance
+- **Performance Monitoring**: Track &lt;200ms compliance
 - **User Journey Mapping**: Complete narrative flows
 
 ### Phase 3: Predictive Models (Week 4-5)
@@ -115,9 +115,9 @@ class NarrativeAnalytics {
 ## 🏆 Expected Outcomes
 
 ### Technical Excellence
-- **Complete narrative telemetry** with <5ms overhead
+- **Complete narrative telemetry** with &lt;5ms overhead
 - **Predictive accuracy ≥80%** for user path recommendations
-- **Real-time dashboard** with <1-second refresh rates
+- **Real-time dashboard** with &lt;1-second refresh rates
 - **Enterprise reporting** with automated generation
 
 ### Business Impact

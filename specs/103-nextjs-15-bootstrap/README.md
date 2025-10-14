@@ -48,7 +48,7 @@ Next.js 15 provides:
 
 - Next.js 15 project created with App Router
 - 17 keeper files successfully ported
-- ESLint shows <20 issues (vs 201 in legacy)
+- ESLint shows &lt;20 issues (vs 201 in legacy)
 - Pre-commit hooks operational
 - CI/CD pipeline green
 - Storybook integrated for component development
@@ -635,7 +635,7 @@ jobs:
 ```bash
 # 1. ESLint check
 npm run lint
-# Expected: <20 issues (vs 201 in legacy)
+# Expected: &lt;20 issues (vs 201 in legacy)
 
 # 2. Type checking
 npm run type-check
@@ -692,7 +692,7 @@ npx lighthouse http://localhost:3000 --view
 - [ ] Lighthouse scores 90+
 
 ### Overall Success
-- [ ] ESLint <20 issues (vs 201)
+- [ ] ESLint &lt;20 issues (vs 201)
 - [ ] Zero TypeScript errors
 - [ ] 80%+ test coverage
 - [ ] Production build successful
@@ -744,7 +744,7 @@ npx lighthouse http://localhost:3000 --view
 
 ### Upstream Dependencies
 - **SPEC-102**: Frontend Migration Preparation (Required)
-  - Clean keeper files (<35 issues)
+  - Clean keeper files (&lt;35 issues)
   - KEEPERS.md documentation
   - Migration readiness tag
 

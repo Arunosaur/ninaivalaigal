@@ -135,10 +135,10 @@ Individual User → Standalone Team → Organization
 - **Enables**: SPEC-026/027 (Billing), SPEC-049/050 (Collaboration)
 
 ## Performance Requirements:
-- Team creation: <500ms response time
-- Team invitation: <200ms email sending
-- Team member lookup: <100ms for team-scoped queries
-- Upgrade process: <2 seconds end-to-end
+- Team creation: &lt;500ms response time
+- Team invitation: &lt;200ms email sending
+- Team member lookup: &lt;100ms for team-scoped queries
+- Upgrade process: &lt;2 seconds end-to-end
 
 ## Security Considerations:
 - Team invitation tokens expire in 7 days

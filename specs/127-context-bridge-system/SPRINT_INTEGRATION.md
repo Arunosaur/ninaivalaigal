@@ -64,7 +64,7 @@ Based on the Grade A+ feedback, we added:
 
 #### **✅ Success Criteria Additions**
 - **File**: `implementation-guide.md`
-- ✅ <50ms traversal latency per bridge edge (measurable)
+- ✅ &lt;50ms traversal latency per bridge edge (measurable)
 - ✅ Full audit via /context-bridge/audit endpoint
 - SQL queries provided for measurement
 
@@ -167,7 +167,7 @@ Based on the Grade A+ feedback, we added:
 3. ✅ Trust model expanded (multi-factor formula)
 4. ✅ Embedding-level federation (federated embedding search)
 5. ✅ Implementation hooks (e^M, nv-api integration)
-6. ✅ Success criteria measurable (<50ms, full audit)
+6. ✅ Success criteria measurable (&lt;50ms, full audit)
 
 ---
 
@@ -186,7 +186,7 @@ Based on the Grade A+ feedback, we added:
 
 ### **Long-term** (8 weeks):
 1. Implement all 5 phases
-2. Achieve performance targets (<50ms, <200ms)
+2. Achieve performance targets (&lt;50ms, &lt;200ms)
 3. Deploy to production
 4. Migrate from SPEC-050/049/101
 

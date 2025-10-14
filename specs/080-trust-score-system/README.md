@@ -97,7 +97,7 @@ Advanced trust and reliability scoring system for memory data that evaluates the
 ## Success Criteria
 
 - [ ] 95% accuracy in identifying unreliable memories
-- [ ] <200ms trust score calculation time
+- [ ] &lt;200ms trust score calculation time
 - [ ] 90% user satisfaction with trust indicators
 - [ ] Integration with 5+ external fact-checking services
 - [ ] Measurable reduction in decision errors based on memory trust

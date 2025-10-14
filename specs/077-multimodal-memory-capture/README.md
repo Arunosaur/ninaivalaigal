@@ -73,7 +73,7 @@ Advanced memory capture system that supports audio, video, image, and document i
 ## Success Criteria
 
 - [ ] Support for 15+ media formats
-- [ ] <30-second processing time for standard files
+- [ ] &lt;30-second processing time for standard files
 - [ ] 95% accuracy in content extraction
 - [ ] Real-time processing for live streams
 - [ ] Automatic cross-modal relationship detection

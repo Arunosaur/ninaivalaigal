@@ -274,7 +274,7 @@ class ContextBridgeGraph:
 
 ### Performance Targets:
 
-1. **<50ms traversal latency per bridge edge** (target)
+1. **&lt;50ms traversal latency per bridge edge** (target)
    - Measure: `SELECT AVG(response_time_ms) FROM bridge_access_history`
    
 2. **Full audit via /context-bridge/audit endpoint**
@@ -353,6 +353,6 @@ Performance is a critical success factor for the Context Bridge system. The foll
 - [ ] API routes registered
 - [ ] Trust score calculator deployed
 - [ ] Audit logging enabled
-- [ ] Performance monitoring active (<50ms target)
+- [ ] Performance monitoring active (&lt;50ms target)
 - [ ] Documentation deployed
 

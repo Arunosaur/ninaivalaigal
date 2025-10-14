@@ -106,8 +106,8 @@
 
 | Category | Metric | Target | Measurement |
 |----------|--------|--------|-------------|
-| **Performance** | API Response Time | <200ms P95 | Backend logs |
-| **Performance** | Database Queries | <50ms avg | PostgreSQL logs |
+| **Performance** | API Response Time | &lt;200ms P95 | Backend logs |
+| **Performance** | Database Queries | &lt;50ms avg | PostgreSQL logs |
 | **Performance** | Cache Hit Rate | >80% | Redis INFO |
 | **Quality** | Test Pass Rate | 100% | CI/CD pipeline |
 | **Quality** | Type Safety | No `any` types | TypeScript |
@@ -226,7 +226,7 @@ Session 2 (2 hours):
 ### Should Have (Important)
 - [ ] Error handling for all API failures
 - [ ] Loading states during data fetches
-- [ ] API response times <200ms P95
+- [ ] API response times &lt;200ms P95
 - [ ] Integration guide complete
 - [ ] TypeScript types for all responses
 

@@ -54,7 +54,7 @@ Transform Ninaivalaigal from a memory platform into an **intelligent graph intel
 ├─────────────────────────────────────────────────────────────────┤
 │  Memory-Graph Integration │  Self-Heal Infrastructure │  GitOps  │
 │  • Unified testbed        │  • Automated recovery     │  • K8s   │
-│  • <400ms performance     │  • 24/7 monitoring        │  • ArgoCD│
+│  • &lt;400ms performance     │  • 24/7 monitoring        │  • ArgoCD│
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -105,7 +105,7 @@ class GraphAnalyticsEngine:
 - **Privacy Boundaries**: Team-level and user-level access controls
 
 #### Success Metrics:
-- Cross-team memory discovery <100ms
+- Cross-team memory discovery &lt;100ms
 - Privacy policy enforcement 100% accurate
 - Sharing value scoring >85% relevance
 - Federation dashboard real-time updates
@@ -123,7 +123,7 @@ class GraphAnalyticsEngine:
 - Relationship prediction accuracy >90%
 - Context ranking relevance >85% user satisfaction
 - Embedding optimization 20% improvement in recall
-- Feedback adaptation <24 hours to model updates
+- Feedback adaptation &lt;24 hours to model updates
 
 ### Milestone 3: Real-Time Intelligence Dashboard (Week 3)
 **Objective**: Showcase live graph analytics and insights
@@ -135,7 +135,7 @@ class GraphAnalyticsEngine:
 - **Team Insights Generator**: Automated intelligence reports
 
 #### Success Metrics:
-- Dashboard updates <5 seconds latency
+- Dashboard updates &lt;5 seconds latency
 - Knowledge gap detection >80% accuracy
 - Trending topic identification within 1 hour
 - Team insights generation automated daily
@@ -183,10 +183,10 @@ class GraphAnalyticsEngine:
 ## 📈 Success Metrics & KPIs
 
 ### Technical Performance
-- **Memory Federation**: <100ms cross-team discovery
+- **Memory Federation**: &lt;100ms cross-team discovery
 - **Graph ML Accuracy**: >90% relationship prediction
 - **Context Ranking**: >85% user satisfaction
-- **Real-time Analytics**: <5s dashboard updates
+- **Real-time Analytics**: &lt;5s dashboard updates
 
 ### Business Impact
 - **Knowledge Discovery**: 50% increase in cross-team insights
@@ -205,7 +205,7 @@ class GraphAnalyticsEngine:
 ### Leveraging Phase 2B Infrastructure
 - **Memory-Graph Integration**: Build on unified testbed architecture
 - **Self-Healing Monitoring**: Extend to ML pipeline health checks
-- **Performance Optimization**: Maintain <400ms targets for intelligence features
+- **Performance Optimization**: Maintain &lt;400ms targets for intelligence features
 - **GitOps Deployment**: Deploy ML models through established pipeline
 
 ### Extending SPEC-021/022 Operations

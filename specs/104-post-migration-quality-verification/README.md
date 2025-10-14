@@ -13,12 +13,12 @@ Post-migration validation must confirm:
 
 ```
 Migration Success Criteria:
-├── Code Quality: <20 ESLint issues (vs 201 in legacy)
+├── Code Quality: &lt;20 ESLint issues (vs 201 in legacy)
 ├── Type Safety: 0 TypeScript errors (strict mode)
 ├── Test Coverage: 80%+ (matching SPEC-096 standards)
 ├── Performance: Lighthouse 90+ (all categories)
 ├── Accessibility: WCAG 2.1 AA compliance
-├── Bundle Size: Optimized (<300KB initial)
+├── Bundle Size: Optimized (&lt;300KB initial)
 └── Security: Zero high/medium vulnerabilities
 ```
 
@@ -36,7 +36,7 @@ Executive-level reporting must demonstrate:
 
 ### Primary Objectives
 
-1. **Comprehensive Lint Verification** - Confirm <20 total issues
+1. **Comprehensive Lint Verification** - Confirm &lt;20 total issues
 2. **Type Safety Validation** - Zero TypeScript errors (strict)
 3. **Test Coverage Audit** - Maintain 80%+ coverage threshold
 4. **Performance Benchmarking** - Lighthouse 90+ across all pages
@@ -47,12 +47,12 @@ Executive-level reporting must demonstrate:
 
 ### Success Metrics
 
-- ESLint: <10 issues (stretch goal: 0)
+- ESLint: &lt;10 issues (stretch goal: 0)
 - TypeScript: 0 errors in strict mode
 - Test coverage: 80%+ (all categories)
 - Lighthouse Performance: 90+
 - Lighthouse Accessibility: 95+
-- Bundle size: <300KB gzipped initial
+- Bundle size: &lt;300KB gzipped initial
 - Security: 0 high/medium vulnerabilities
 - Documentation: 100% complete
 
@@ -106,12 +106,12 @@ graph TD
 
 | Gate | Tool | Threshold | Blocking |
 |------|------|-----------|----------|
-| ESLint | `npm run lint` | <10 issues | Yes |
+| ESLint | `npm run lint` | &lt;10 issues | Yes |
 | TypeScript | `tsc --noEmit` | 0 errors | Yes |
 | Unit Tests | Jest | 80% coverage | Yes |
 | Performance | Lighthouse | 90+ score | No |
 | Accessibility | Lighthouse | 95+ score | Yes |
-| Bundle Size | `@next/bundle-analyzer` | <300KB | No |
+| Bundle Size | `@next/bundle-analyzer` | &lt;300KB | No |
 | Security | `npm audit` | 0 high/medium | Yes |
 
 ---
@@ -216,7 +216,7 @@ Uncovered: 19 symbols (all in test files)
 ```bash
 # Find remaining `any` usages
 grep -r ": any" src/ --include="*.ts" --include="*.tsx" | wc -l
-# Expected: <5 (with justification comments)
+# Expected: &lt;5 (with justification comments)
 
 # Ensure all anys have justification
 grep -B2 ": any" src/ --include="*.ts" --include="*.tsx" | grep "// @ts-expect-error" | wc -l
@@ -336,9 +336,9 @@ npm install -g crux
 crux https://your-domain.com
 
 # Expected:
-# LCP (Largest Contentful Paint): <2.5s (Good)
-# FID (First Input Delay): <100ms (Good)
-# CLS (Cumulative Layout Shift): <0.1 (Good)
+# LCP (Largest Contentful Paint): &lt;2.5s (Good)
+# FID (First Input Delay): &lt;100ms (Good)
+# CLS (Cumulative Layout Shift): &lt;0.1 (Good)
 ```
 
 **4.3 Bundle Size Analysis**
@@ -357,7 +357,7 @@ open .next/analyze/client.html
 **Expected Metrics**:
 ```
 Initial Bundle Sizes:
-  First Load JS:     245 KB (target: <300 KB) ✅
+  First Load JS:     245 KB (target: &lt;300 KB) ✅
 
 Page Sizes:
   /_app:             85 KB
@@ -494,7 +494,7 @@ Create comprehensive comparison:
 | Metric | Legacy | Next.js | Improvement |
 |--------|--------|---------|-------------|
 | Build Time | 45s | 12s | 73% faster ✅ |
-| Hot Reload | 3-5s | <1s | 80% faster ✅ |
+| Hot Reload | 3-5s | &lt;1s | 80% faster ✅ |
 | TypeScript Errors | Manual check | Automatic | DX improved ✅ |
 ```
 
@@ -527,7 +527,7 @@ Successfully migrated legacy React frontend to Next.js 15, achieving:
 
 ## Quality Achievements
 
-✅ Code Quality: <10 ESLint issues (stretch goal achieved)
+✅ Code Quality: &lt;10 ESLint issues (stretch goal achieved)
 ✅ Type Safety: 0 TypeScript errors (strict mode)
 ✅ Test Coverage: 87% (exceeds 80% threshold)
 ✅ Performance: 94 avg Lighthouse score
@@ -546,7 +546,7 @@ All quality gates passed. Next.js application ready for production deployment.
 
 ### Required Deliverables
 
-1. ✅ **Lint Verification Report** - <10 issues confirmed
+1. ✅ **Lint Verification Report** - &lt;10 issues confirmed
 2. ✅ **Type Safety Report** - 0 errors confirmed
 3. ✅ **Test Coverage Report** - 87% achieved
 4. ✅ **Lighthouse Audit Reports** - All pages 90+
@@ -598,7 +598,7 @@ npm run quality-check
 ## Success Criteria
 
 ### Code Quality ✅
-- [ ] <10 ESLint issues (stretch goal: 0)
+- [ ] &lt;10 ESLint issues (stretch goal: 0)
 - [ ] 0 TypeScript errors in strict mode
 - [ ] 0 Prettier formatting issues
 - [ ] 0 SonarJS code smells
@@ -614,7 +614,7 @@ npm run quality-check
 - [ ] Lighthouse Accessibility: 95+ (all pages)
 - [ ] Lighthouse Best Practices: 95+
 - [ ] Lighthouse SEO: 90+
-- [ ] Bundle size <300KB gzipped
+- [ ] Bundle size &lt;300KB gzipped
 - [ ] Core Web Vitals: All "Good"
 
 ### Security ✅

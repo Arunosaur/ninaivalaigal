@@ -106,10 +106,10 @@ AI follows established CVA patterns → type-safe, maintainable components.
 - **Visual Regression**: Chromatic integration for design consistency
 
 ### **Performance Standards**
-- **Bundle Size**: <200kb per screen target
+- **Bundle Size**: &lt;200kb per screen target
 - **Lighthouse Scores**: 90+ performance, accessibility, best practices
 - **API Integration**: 100% contract test coverage prevents drift
-- **Load Time**: <3s initial load, <1s subsequent navigation
+- **Load Time**: &lt;3s initial load, &lt;1s subsequent navigation
 
 ---
 
@@ -202,7 +202,7 @@ make frontend-demo         # 🚀 30-second demonstration
 ```
 
 ### **Performance Metrics**
-- **Bundle Size**: <10kb Button component (tree-shaking optimized)
+- **Bundle Size**: &lt;10kb Button component (tree-shaking optimized)
 - **Type Coverage**: 100% TypeScript strict mode
 - **Accessibility**: WCAG AA compliant (automated testing)
 - **Documentation**: 15+ interactive Storybook examples

@@ -20,7 +20,7 @@
 - ✅ **TypeScript**: Strict mode with 0 compilation errors
 - ✅ **Test Coverage**: 87% (exceeds 80% target)
 - ✅ **Accessibility**: WCAG 2.1 AA compliant
-- ✅ **Build Performance**: <5s production builds
+- ✅ **Build Performance**: &lt;5s production builds
 
 ---
 
@@ -76,7 +76,7 @@
 - Pre-commit hooks with Husky + lint-staged
 
 **Quality Gates**:
-- ESLint: <20 issues allowed
+- ESLint: &lt;20 issues allowed
 - TypeScript: 0 compilation errors
 - Test Coverage: 80%+ required
 - Lighthouse: Performance 90+, Accessibility 100
@@ -126,7 +126,7 @@ frontend-nextjs/
 ### Code Quality
 | Metric | Target | Achieved | Status |
 |--------|--------|----------|--------|
-| ESLint Issues | <20 | 8 | ✅ 96% reduction |
+| ESLint Issues | &lt;20 | 8 | ✅ 96% reduction |
 | TypeScript Errors | 0 | 0 | ✅ Strict mode |
 | Test Coverage | 80%+ | 87% | ✅ Exceeds target |
 | Accessibility | WCAG 2.1 AA | 100% | ✅ Compliant |
@@ -135,10 +135,10 @@ frontend-nextjs/
 ### Build Performance
 | Metric | Target | Achieved | Status |
 |--------|--------|----------|--------|
-| Production Build | <10s | <5s | ✅ Excellent |
-| Dev Server Start | <5s | <3s | ✅ Fast |
-| Hot Reload | <1s | <500ms | ✅ Instant |
-| Bundle Size | <500KB | <350KB | ✅ Optimized |
+| Production Build | &lt;10s | &lt;5s | ✅ Excellent |
+| Dev Server Start | &lt;5s | &lt;3s | ✅ Fast |
+| Hot Reload | &lt;1s | &lt;500ms | ✅ Instant |
+| Bundle Size | &lt;500KB | &lt;350KB | ✅ Optimized |
 
 ---
 

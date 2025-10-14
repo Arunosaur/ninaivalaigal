@@ -123,20 +123,20 @@ ProviderPermissions = {
 ### **Health Monitoring Performance**
 - **Health Check Frequency**: 30 seconds (configurable)
 - **Response Time Tracking**: Sub-millisecond precision
-- **Alert Generation**: <100ms for threshold violations
+- **Alert Generation**: &lt;100ms for threshold violations
 - **Metrics Retention**: 7 days default (configurable)
 
 ### **Failover Performance**
-- **Failover Detection**: <5 seconds for provider failures
-- **Strategy Execution**: <50ms for routing decisions
+- **Failover Detection**: &lt;5 seconds for provider failures
+- **Strategy Execution**: &lt;50ms for routing decisions
 - **Circuit Breaker Response**: Immediate isolation on threshold breach
 - **Recovery Time**: Automatic retry after 5-minute cooldown
 
 ### **Security Performance**
-- **API Key Validation**: <10ms for key verification
-- **RBAC Permission Check**: <20ms for role validation
+- **API Key Validation**: &lt;10ms for key verification
+- **RBAC Permission Check**: &lt;20ms for role validation
 - **Audit Log Writing**: Asynchronous, non-blocking
-- **Security Policy Evaluation**: <5ms for access decisions
+- **Security Policy Evaluation**: &lt;5ms for access decisions
 
 ## 🔧 **OPERATIONAL FEATURES**
 

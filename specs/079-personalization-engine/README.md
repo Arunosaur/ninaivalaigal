@@ -86,7 +86,7 @@ Intelligent personalization system that adapts the user experience based on beha
 
 - [ ] 25% improvement in task completion time
 - [ ] 90% user satisfaction with personalized experience
-- [ ] <100ms response time for personalization decisions
+- [ ] &lt;100ms response time for personalization decisions
 - [ ] 95% accuracy in preference prediction
 - [ ] Zero privacy violations or data breaches
 

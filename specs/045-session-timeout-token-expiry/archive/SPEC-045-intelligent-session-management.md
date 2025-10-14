@@ -136,7 +136,7 @@ intelligent_timeout = base_timeout * (
 ## 📈 Success Metrics
 - Session timeout satisfaction: >90% (users don't get logged out unexpectedly)
 - Renewal acceptance rate: >80% (users accept renewal recommendations)
-- Performance: <2ms for session operations
+- Performance: &lt;2ms for session operations
 - Security: 0 session hijacking incidents
 
 ---

@@ -112,8 +112,8 @@ Data Layer
 ### Technical Metrics
 | Metric | Target | Achieved | Status |
 |--------|--------|----------|--------|
-| API Response Time | <200ms P95 | ~50ms avg | ✅ **2.5x better** |
-| Database Queries | <50ms avg | Verified | ✅ Met |
+| API Response Time | &lt;200ms P95 | ~50ms avg | ✅ **2.5x better** |
+| Database Queries | &lt;50ms avg | Verified | ✅ Met |
 | Cache Hit Rate | >80% | Operational | ✅ Met |
 | Integration Tests | 100% pass | 100% pass | ✅ Met |
 | Type Safety | No `any` | All typed | ✅ Met |
@@ -257,11 +257,11 @@ Memories List:
   P99: 150ms
 ```
 
-**All targets met or exceeded** (Target: <200ms P95)
+**All targets met or exceeded** (Target: &lt;200ms P95)
 
 ### Resource Utilization
-- Frontend bundle size: <350KB (target: <500KB)
-- API route overhead: <5ms per request
+- Frontend bundle size: &lt;350KB (target: &lt;500KB)
+- API route overhead: &lt;5ms per request
 - Memory usage: Stable, no leaks detected
 - Network efficiency: Parallel requests reduce total time
 
@@ -362,7 +362,7 @@ Memories List:
 ### Should Have (All Complete)
 - ✅ Error handling for all API failures
 - ✅ Loading states during data fetches
-- ✅ API response times <200ms P95
+- ✅ API response times &lt;200ms P95
 - ✅ Integration guide complete
 - ✅ TypeScript types for all responses
 

@@ -50,7 +50,7 @@ Add **agent-driven Playwright tests** to validate real user flows robustly, redu
 
 ### Run cadence
 - **Nightly** or **pre-release gate**; keep unit/integration tests on every PR
-- **Minimal flakes** (<1% over week)
+- **Minimal flakes** (&lt;1% over week)
 
 ---
 
@@ -158,7 +158,7 @@ for step in range(max_steps):
 ### Tests
 - ✅ Agentic tests run green in CI nightly
 - ✅ Red/yellow reports fail the release job
-- ✅ Minimal flakes (<1% over week)
+- ✅ Minimal flakes (&lt;1% over week)
 
 ### Documentation
 - ✅ `tests/agentic/README.md` for local run
@@ -218,7 +218,7 @@ for step in range(max_steps):
 | Risk | Mitigation |
 |------|------------|
 | LLM API costs | Use local LLM fallback; run nightly only |
-| Flakiness | Retry/backoff + step caps; <1% flake target |
+| Flakiness | Retry/backoff + step caps; &lt;1% flake target |
 | Slow tests | Run nightly, not on every PR; parallel execution |
 | API key security | GitHub Actions OIDC/Env; never commit keys |
 
@@ -236,7 +236,7 @@ for step in range(max_steps):
 ## 10) Success Metrics
 
 - ✅ Agentic tests run green in CI nightly
-- ✅ <1% flake rate over week
+- ✅ &lt;1% flake rate over week
 - ✅ Customer signup flow validated
 - ✅ Admin login flow validated
 - ✅ Zero false positives blocking releases

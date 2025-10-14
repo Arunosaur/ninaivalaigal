@@ -27,10 +27,10 @@ Implement production-grade GitOps deployment using ArgoCD and Kubernetes, transi
 - **R8**: Persistent volume management
 
 ### Performance Requirements
-- **P1**: Deployment time <5 minutes
-- **P2**: Rollback time <2 minutes
+- **P1**: Deployment time &lt;5 minutes
+- **P2**: Rollback time &lt;2 minutes
 - **P3**: Zero-downtime deployments
-- **P4**: Health check response <30 seconds
+- **P4**: Health check response &lt;30 seconds
 
 ## 🏗️ Architecture
 
@@ -118,11 +118,11 @@ k8s/
 
 ## 📊 Success Metrics
 
-- **Deployment Speed**: <5 minutes end-to-end
-- **Rollback Speed**: <2 minutes to previous version
+- **Deployment Speed**: &lt;5 minutes end-to-end
+- **Rollback Speed**: &lt;2 minutes to previous version
 - **Uptime**: 99.9% availability during deployments
 - **Environment Parity**: 100% configuration consistency
-- **GitOps Sync**: <30 seconds from git push to deployment
+- **GitOps Sync**: &lt;30 seconds from git push to deployment
 
 ## 🔄 Next Steps
 

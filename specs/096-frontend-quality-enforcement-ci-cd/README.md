@@ -292,7 +292,7 @@
 | **Test Coverage** | ~0% | 80%+ | 🎯 |
 | **Lighthouse Performance** | Unknown | 90+ | 🎯 |
 | **Lighthouse Accessibility** | Unknown | 100 | 🎯 |
-| **Bundle Size** | Unknown | <500KB | 🎯 |
+| **Bundle Size** | Unknown | &lt;500KB | 🎯 |
 | **Pre-commit Bypasses** | Required | 0 | 🎯 |
 
 ---

@@ -403,7 +403,7 @@ SPEC-096 (Quality) ──→ SPEC-034 (Auth Tests) ──→ SPEC-106 (E2E) ─�
 - ✅ Compliance documentation complete
 - ✅ Real-time features operational
 - ✅ Beta launch successful
-- ✅ <100ms API response times
+- ✅ &lt;100ms API response times
 
 ---
 

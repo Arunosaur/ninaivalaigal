@@ -70,7 +70,7 @@ Meta-governance system for managing the SPEC lifecycle, ensuring consistency, tr
 ## Success Criteria
 
 - [ ] 100% SPEC compliance with governance standards
-- [ ] <24-hour review cycle for standard SPECs
+- [ ] &lt;24-hour review cycle for standard SPECs
 - [ ] Automated dependency conflict detection
 - [ ] Real-time status tracking for all SPECs
 - [ ] 50% reduction in SPEC management overhead

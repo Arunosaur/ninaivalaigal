@@ -141,7 +141,7 @@
 - [ ] Add hub-mediated routing (if needed)
 - [ ] Implement hybrid routing (optimization)
 - [ ] Add routing metrics
-- [ ] Performance testing (<200ms p95)
+- [ ] Performance testing (&lt;200ms p95)
 
 **Deliverable**: Routing optimized
 
@@ -304,7 +304,7 @@ Phase 5 (API & Testing)
 |-----------|------|-------------|
 | **M1: Foundation Complete** | Week 2 | Reference mode working, audit logging |
 | **M2: All Modes Operational** | Week 4 | Clone, Hybrid, Mode switching |
-| **M3: GraphOps Integration** | Week 6 | Federated queries, <200ms p95 |
+| **M3: GraphOps Integration** | Week 6 | Federated queries, &lt;200ms p95 |
 | **M4: Trust System Complete** | Week 7 | Dynamic trust, ACL integration |
 | **M5: Production Ready** | Week 8 | All tests pass, docs complete |
 
@@ -325,10 +325,10 @@ Phase 5 (API & Testing)
 ## 📈 Success Metrics
 
 ### **Performance**:
-- [ ] <50ms traversal latency per bridge edge (target)
-- [ ] <200ms federated query latency (p95)
+- [ ] &lt;50ms traversal latency per bridge edge (target)
+- [ ] &lt;200ms federated query latency (p95)
 - [ ] Support 1000+ concurrent bridges
-- [ ] Trust score calculation <50ms
+- [ ] Trust score calculation &lt;50ms
 
 ### **Quality**:
 - [ ] >90% test coverage
@@ -358,7 +358,7 @@ Phase 5 (API & Testing)
 
 ### **Sprint 5-6** (Phase 3):
 - Focus: GraphOps
-- Goal: Federated queries <200ms
+- Goal: Federated queries &lt;200ms
 - Demo: Cross-context graph traversal
 
 ### **Sprint 7** (Phase 4):

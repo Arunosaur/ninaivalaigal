@@ -225,7 +225,7 @@ def training_pipeline(
 | Metric | Baseline | Target | Measurement |
 |---------|----------|---------|-------------|
 | Memory relevance improvement | Current scoring | ≥15% increase | A/B test (SPEC-117) |
-| Retraining latency | Manual (days) | <6 hours | Pipeline execution time |
+| Retraining latency | Manual (days) | &lt;6 hours | Pipeline execution time |
 | Model accuracy (validation) | N/A | ≥85% | Hold-out test set |
 | Rollback safety | Manual intervention | 100% automated | Incident count |
 | Compliance pass rate | N/A | 100% | License scan pass rate |

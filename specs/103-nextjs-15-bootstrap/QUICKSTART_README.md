@@ -34,7 +34,7 @@ npm run test
 | `npm run dev` | Start development server (http://localhost:3000) |
 | `npm run build` | Create production build |
 | `npm run start` | Start production server |
-| `npm run lint` | Run ESLint (<20 issues expected) |
+| `npm run lint` | Run ESLint (&lt;20 issues expected) |
 | `npm run lint:fix` | Auto-fix ESLint issues |
 | `npm run type-check` | Run TypeScript type checking |
 | `npm run test` | Run Jest unit tests |
@@ -212,7 +212,7 @@ Automatically run before each commit:
 
 ### Quality Standards
 
-- **ESLint**: <20 issues (current: 8)
+- **ESLint**: &lt;20 issues (current: 8)
 - **TypeScript**: 0 errors (strict mode)
 - **Test Coverage**: 80%+ (current: 87%)
 - **Accessibility**: WCAG 2.1 AA compliant

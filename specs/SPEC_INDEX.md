@@ -290,7 +290,7 @@
   - Clean Next.js 15 project with App Router
   - Port 17 keeper components (zero legacy baggage)
   - Server Components + Server Actions
-  - Expected: <20 ESLint issues (vs 201 in legacy)
+  - Expected: &lt;20 ESLint issues (vs 201 in legacy)
 
 - **SPEC-104**: **Post-Migration Quality Verification** - **PROPOSED**
   - Comprehensive quality audit and benchmarking
@@ -367,7 +367,7 @@
 
 **Expected Outcomes**:
 - ✅ Avoid 60+ hours of wasted cleanup effort
-- ✅ Achieve <20 ESLint issues (vs 201 in legacy)
+- ✅ Achieve &lt;20 ESLint issues (vs 201 in legacy)
 - ✅ Lighthouse scores 90+ across all pages
 - ✅ Modern Next.js 15 stack with App Router
 
@@ -390,7 +390,7 @@
 - Dashboard displays real backend data
 - Authentication flow end-to-end
 - All smoke tests passing in CI/CD
-- API response times <200ms P95
+- API response times &lt;200ms P95
 
 **Release Tags**:
 - `migration-trilogy-v1-integrated` - Phase B complete (full-stack operational)

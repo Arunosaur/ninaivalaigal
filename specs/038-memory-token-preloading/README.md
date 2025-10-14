@@ -50,7 +50,7 @@ Advanced memory token preloading system with integrated AI middleware for intell
 - **SPEC-033**: Redis Integration (caching infrastructure)
 
 ## Success Criteria
-- [x] <500ms average memory access time
+- [x] &lt;500ms average memory access time
 - [x] 40% reduction in AI token usage
 - [x] 99.9% context preservation accuracy
 - [x] Seamless integration with existing systems

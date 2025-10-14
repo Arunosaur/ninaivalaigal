@@ -105,7 +105,7 @@ Intelligent notification system that proactively surfaces relevant memories and 
 
 - [ ] 85% user satisfaction with alert relevance and timing
 - [ ] 40% reduction in time spent searching for information
-- [ ] <5% false positive rate for critical alerts
+- [ ] &lt;5% false positive rate for critical alerts
 - [ ] 90% accuracy in predicting information needs
 - [ ] Measurable improvement in decision-making speed and quality
 

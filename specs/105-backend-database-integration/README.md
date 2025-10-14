@@ -292,11 +292,11 @@ describe('API Connectivity', () => {
 ### Technical Metrics
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| **API Response Time** | <200ms P95 | Backend logs + Lighthouse |
-| **Database Query Time** | <50ms average | PostgreSQL query logs |
+| **API Response Time** | &lt;200ms P95 | Backend logs + Lighthouse |
+| **Database Query Time** | &lt;50ms average | PostgreSQL query logs |
 | **Cache Hit Rate** | >80% | Redis INFO stats |
 | **Integration Test Pass Rate** | 100% | CI/CD pipeline |
-| **Error Rate** | <1% | Application logs |
+| **Error Rate** | &lt;1% | Application logs |
 
 ### Quality Metrics
 | Metric | Target | Measurement |
@@ -383,7 +383,7 @@ describe('API Connectivity', () => {
 ### Should Have (Important)
 - [ ] Error handling for all API failures
 - [ ] Loading states during data fetches
-- [ ] API response times meet P95 target (<200ms)
+- [ ] API response times meet P95 target (&lt;200ms)
 - [ ] Integration guide complete and tested
 - [ ] TypeScript types for all API responses
 
@@ -585,7 +585,7 @@ npm run dev
 ### Quality Gates
 - [ ] All smoke tests green in CI/CD
 - [ ] TypeScript compilation with no errors
-- [ ] ESLint passes with <20 issues
+- [ ] ESLint passes with &lt;20 issues
 - [ ] Test coverage >80%
 - [ ] Security scan clean (no exposed secrets)
 

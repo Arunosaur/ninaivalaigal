@@ -122,8 +122,8 @@ PRELOAD_CONFIG = {
 ## 📈 Success Metrics
 - Initial memory retrieval latency reduction: >80%
 - Cache hit rate for preloaded memories: >90%
-- Background preloading completion time: <30 seconds
-- Memory usage efficiency: <50MB per 1000 preloaded memories
+- Background preloading completion time: &lt;30 seconds
+- Memory usage efficiency: &lt;50MB per 1000 preloaded memories
 
 ---
 

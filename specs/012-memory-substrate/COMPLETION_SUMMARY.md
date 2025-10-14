@@ -167,12 +167,12 @@
 ### **Provider Operations**
 - **Memory Creation**: Sub-50ms with healthy providers
 - **Memory Search**: Sub-100ms similarity search
-- **Memory Listing**: Paginated results with <200ms response
-- **Health Checks**: <10ms provider status checks
+- **Memory Listing**: Paginated results with &lt;200ms response
+- **Health Checks**: &lt;10ms provider status checks
 
 ### **Failover Performance**
-- **Detection Time**: <5 seconds for provider failures
-- **Failover Time**: <2 seconds to switch providers
+- **Detection Time**: &lt;5 seconds for provider failures
+- **Failover Time**: &lt;2 seconds to switch providers
 - **Recovery Time**: Automatic recovery on provider restoration
 - **Zero Downtime**: Seamless provider switching
 

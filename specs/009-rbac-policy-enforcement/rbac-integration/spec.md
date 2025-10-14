@@ -335,7 +335,7 @@ async def get_user_permissions(request: Request, user_id: int):
 ### Performance
 - **Permission Caching**: Cache frequently accessed permissions
 - **Efficient Queries**: Optimize database queries for role resolution
-- **Minimal Overhead**: <10ms permission check latency
+- **Minimal Overhead**: &lt;10ms permission check latency
 - **Scalable Design**: Support for large numbers of users/teams
 
 ### Compliance
@@ -373,8 +373,8 @@ async def get_user_permissions(request: Request, user_id: int):
 - **Backward Compatibility**: Existing APIs continue to work
 
 ### Performance Metrics
-- **Permission Check Latency**: <10ms average
-- **API Response Time**: <5% increase from baseline
+- **Permission Check Latency**: &lt;10ms average
+- **API Response Time**: &lt;5% increase from baseline
 - **Database Performance**: Optimized role queries
 - **Memory Usage**: Minimal RBAC overhead
 

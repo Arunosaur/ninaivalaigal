@@ -264,7 +264,7 @@ See: [`database-schema.md`](./database-schema.md)
 
 ### **Functional**:
 - ✅ Zero memory duplication for reference mode
-- ✅ <100ms cross-context query performance
+- ✅ &lt;100ms cross-context query performance
 - ✅ Complete audit trail for all access
 - ✅ Reference/Clone mode switching works
 
@@ -275,8 +275,8 @@ See: [`database-schema.md`](./database-schema.md)
 - ✅ Compliance requirements met
 
 ### **Performance**:
-- ✅ Federated queries <200ms (p95)
-- ✅ Trust score calculation <50ms
+- ✅ Federated queries &lt;200ms (p95)
+- ✅ Trust score calculation &lt;50ms
 - ✅ Support 1000+ concurrent bridges
 - ✅ GraphOps queries optimized
 

@@ -150,7 +150,7 @@ API Health:
 └─ 🚀 API Server (nv-api): ✅ HEALTHY (localhost:13370)
 
 📈 PERFORMANCE METRICS
-├─ API Response Time: 45ms (target: <100ms)
+├─ API Response Time: 45ms (target: &lt;100ms)
 ├─ Database Connections: 3/100 active
 └─ Memory Usage: 256MB/512MB allocated
 
