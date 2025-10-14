@@ -237,7 +237,7 @@ def training_pipeline(
 | Pipeline uptime | ≥99.5% |
 | Training job success rate | ≥95% |
 | GPU utilization | 70-85% |
-| Cost per model training | <$50 |
+| Cost per model training | &lt;$50 |
 
 ---
 

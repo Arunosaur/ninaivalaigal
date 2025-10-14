@@ -130,7 +130,7 @@ Data Layer
 | Metric | Target | Status |
 |--------|--------|--------|
 | Dashboard Loads Real Data | Yes | ✅ Working |
-| Backend Health Check | Passing | ✅ {"status":"ok"} |
+| Backend Health Check | Passing | ✅ `{"status":"ok"}` |
 | Database Operations | Functional | ✅ Via API |
 | Error Recovery | Graceful | ✅ Falls back to mock |
 
