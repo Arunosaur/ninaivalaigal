@@ -13,6 +13,7 @@ Provides basic and detailed health checks with SLO-aware metrics.
 """
 
 import time
+from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter
@@ -52,7 +53,7 @@ async def health():
 async def liveness():
     """
     Kubernetes liveness probe.
-    
+
     Returns 200 if application is running (even if degraded).
     Used by K8s to restart pods that are completely unresponsive.
     """
@@ -63,24 +64,25 @@ async def liveness():
 async def readiness():
     """
     Kubernetes readiness probe.
-    
+
     Returns 200 only if application can handle requests.
     K8s will not send traffic to pods that fail this check.
-    
+
     Checks database connectivity as minimum requirement.
     """
     # Check database connectivity
     db_status = await _check_database()
-    
+
     if not db_status.get("connected", False):
         # Return 503 if not ready
         from fastapi import HTTPException, status
+
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={"status": "unhealthy", "reason": "database_unavailable"},
         )
-    
-    return HealthResponse(status="ok")
+
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
 
 @router.get("/health/detailed", response_model=DetailedHealthResponse)

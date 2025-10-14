@@ -116,7 +116,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_rate_limiting_enforcement(
         self,
-    stubbed_http,
+        stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         load_test_scenarios: Dict,
@@ -146,7 +146,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_injection_attack_prevention(
         self,
-    stubbed_http,
+        stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         malicious_payloads: Dict,
@@ -234,7 +234,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_concurrent_security_attacks(
         self,
-    stubbed_http,
+        stubbed_http,
         security_engine: SecurityScenarioEngine,
         multi_team_users: List,
         security_test_matrix: Dict,
@@ -291,7 +291,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_security_performance_under_attack(
         self,
-    stubbed_http,
+        stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         performance_thresholds: Dict,
@@ -327,7 +327,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_cross_site_scripting_prevention(
         self,
-    stubbed_http,
+        stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         malicious_payloads: Dict,
@@ -352,7 +352,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_command_injection_prevention(
         self,
-    stubbed_http,
+        stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         malicious_payloads: Dict,
@@ -377,7 +377,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_path_traversal_prevention(
         self,
-    stubbed_http,
+        stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         malicious_payloads: Dict,

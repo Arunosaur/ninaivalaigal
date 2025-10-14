@@ -18,15 +18,20 @@ import pytest
 # Optional imports for API surface testing
 try:
     from api_exposure import PUBLIC_TAGS, is_public_endpoint
+
     API_EXPOSURE_AVAILABLE = True
 except ImportError:
     API_EXPOSURE_AVAILABLE = False
     PUBLIC_TAGS = []
-    is_public_endpoint = lambda x: False
+
+    def is_public_endpoint(x):
+        return False
+
 
 try:
     from fastapi.testclient import TestClient
     from main import app
+
     FASTAPI_AVAILABLE = True
 except ImportError:
     FASTAPI_AVAILABLE = False
@@ -35,6 +40,7 @@ except ImportError:
 
 try:
     from openapi_filter import get_endpoint_count, get_filtered_openapi
+
     OPENAPI_FILTER_AVAILABLE = True
 except ImportError:
     OPENAPI_FILTER_AVAILABLE = False
@@ -43,6 +49,7 @@ except ImportError:
 
 try:
     from rbac.permissions import Role
+
     RBAC_AVAILABLE = True
 except ImportError:
     RBAC_AVAILABLE = False
@@ -51,7 +58,7 @@ except ImportError:
 
 @pytest.mark.skipif(
     not API_EXPOSURE_AVAILABLE or not FASTAPI_AVAILABLE or not OPENAPI_FILTER_AVAILABLE,
-    reason="Requires api_exposure, fastapi, and openapi_filter modules"
+    reason="Requires api_exposure, fastapi, and openapi_filter modules",
 )
 class TestPublicAPISurface:
     """Test suite for public API surface validation."""

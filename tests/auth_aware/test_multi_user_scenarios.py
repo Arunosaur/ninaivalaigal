@@ -91,8 +91,7 @@ class TestMultiUserScenarios:
         for role in UserRole:
             base_user = role_fixtures.user(role)
             role_users[role] = [
-                _variant_user(base_user, suffix=f"batch-{i}", team_prefix=f"{role.value}-squad")
-                for i in range(5)
+                _variant_user(base_user, suffix=f"batch-{i}", team_prefix=f"{role.value}-squad") for i in range(5)
             ]
 
         # Flatten all users
@@ -162,7 +161,7 @@ class TestMultiUserScenarios:
     @pytest.mark.asyncio
     async def test_user_authentication_performance(
         self,
-    stubbed_http,
+        stubbed_http,
         multi_user_manager: MultiUserTestManager,
         performance_thresholds: dict,
         role_fixtures: RoleFixtures,
@@ -171,10 +170,7 @@ class TestMultiUserScenarios:
 
         # Create performance test users derived from the canonical member fixture
         member_user = role_fixtures.user(UserRole.MEMBER)
-        perf_users = [
-            _variant_user(member_user, suffix=f"perf-{i}", team_prefix="performance")
-            for i in range(100)
-        ]
+        perf_users = [_variant_user(member_user, suffix=f"perf-{i}", team_prefix="performance") for i in range(100)]
 
         # Measure authentication performance
         start_time = datetime.utcnow()
@@ -240,7 +236,7 @@ class TestMultiUserScenarios:
             team_groups[user.team_id].append(user)
 
         # Test concurrent operations within teams
-        for team_id, team_users in team_groups.items():
+        for _team_id, team_users in team_groups.items():
             if len(team_users) >= 2:
                 conflict_results = await multi_user_manager.test_session_conflicts(team_users[:2])
 
@@ -309,14 +305,10 @@ class TestMultiUserScenarios:
 
         # Create mix of valid and invalid users
         member_user = role_fixtures.user(UserRole.MEMBER)
-        valid_users = [
-            _variant_user(member_user, suffix=f"valid-{i}", team_prefix="valid-squad")
-            for i in range(5)
-        ]
+        valid_users = [_variant_user(member_user, suffix=f"valid-{i}", team_prefix="valid-squad") for i in range(5)]
 
         invalid_users = [
-            _variant_user(member_user, suffix=f"invalid-{i}", team_prefix="invalid-squad")
-            for i in range(5)
+            _variant_user(member_user, suffix=f"invalid-{i}", team_prefix="invalid-squad") for i in range(5)
         ]
 
         # Modify invalid users to have wrong passwords

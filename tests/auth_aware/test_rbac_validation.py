@@ -17,7 +17,12 @@ from typing import List
 
 import pytest
 
-from .fixtures import RbacScenario, RoleFixtures, build_rbac_scenarios, build_role_fixtures
+from .fixtures import (
+    RbacScenario,
+    RoleFixtures,
+    build_rbac_scenarios,
+    build_role_fixtures,
+)
 from .helpers import switch_user_role, verify_permission_matrix
 from .models import AuthTestResult, UserRole
 from .rbac_engine import RBACTestEngine
@@ -335,7 +340,7 @@ class TestRBACValidation:
         # Get users from different teams
         teams = list(set(user.team_id for user in multi_team_users))
 
-        for i, user in enumerate(multi_team_users[:5]):  # Test first 5 users
+        for _i, user in enumerate(multi_team_users[:5]):  # Test first 5 users
             # Get a different team ID
             other_teams = [t for t in teams if t != user.team_id]
             if other_teams:
@@ -426,7 +431,7 @@ class TestRBACValidation:
     @pytest.mark.asyncio
     async def test_rbac_performance_validation(
         self,
-    stubbed_http,
+        stubbed_http,
         rbac_engine: RBACTestEngine,
         performance_thresholds: dict,
         role_fixtures: RoleFixtures,
@@ -532,9 +537,7 @@ class TestRBACValidation:
         """Test RBAC error handling for edge cases"""
 
         # Test with invalid user
-        invalid_user = replace(
-            role_fixtures.user(UserRole.MEMBER), password="wrong_password"
-        )
+        invalid_user = replace(role_fixtures.user(UserRole.MEMBER), password="wrong_password")
 
         permission_results = await rbac_engine.test_role_permissions(invalid_user)
 
