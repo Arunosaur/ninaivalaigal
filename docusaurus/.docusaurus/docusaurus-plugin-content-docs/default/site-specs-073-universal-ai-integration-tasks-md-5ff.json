@@ -1,0 +1,17 @@
+{
+  "id": "universal-ai-integration/tasks",
+  "title": "Universal AI Integration - Implementation Tasks",
+  "description": "Specification: 005-universal-ai-integration",
+  "source": "@site/../specs/073-universal-ai-integration/tasks.md",
+  "sourceDirName": "073-universal-ai-integration",
+  "slug": "/universal-ai-integration/tasks",
+  "permalink": "/ninaivalaigal/specs/universal-ai-integration/tasks",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/073-universal-ai-integration/tasks.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

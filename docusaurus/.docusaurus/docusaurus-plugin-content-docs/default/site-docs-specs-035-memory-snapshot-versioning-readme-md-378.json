@@ -1,0 +1,17 @@
+{
+  "id": "memory-snapshot-versioning/README",
+  "title": "SPEC-035: Memory Snapshot & Versioning",
+  "description": "Status",
+  "source": "@site/docs/specs/035-memory-snapshot-versioning/README.md",
+  "sourceDirName": "035-memory-snapshot-versioning",
+  "slug": "/memory-snapshot-versioning/",
+  "permalink": "/ninaivalaigal/specs/memory-snapshot-versioning/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/035-memory-snapshot-versioning/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

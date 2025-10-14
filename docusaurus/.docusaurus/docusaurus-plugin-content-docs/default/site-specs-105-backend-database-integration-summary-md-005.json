@@ -1,0 +1,17 @@
+{
+  "id": "backend-database-integration/SUMMARY",
+  "title": "SPEC-105: Backend Integration & Database Connectivity - Summary",
+  "description": "Status: 📋 Proposed & Ready for Implementation",
+  "source": "@site/../specs/105-backend-database-integration/SUMMARY.md",
+  "sourceDirName": "105-backend-database-integration",
+  "slug": "/backend-database-integration/SUMMARY",
+  "permalink": "/ninaivalaigal/specs/backend-database-integration/SUMMARY",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/105-backend-database-integration/SUMMARY.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

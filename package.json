@@ -76,5 +76,8 @@
       "backup_verification": "Automated restore rehearsal",
       "slo_targets": "99.9% availability, p95 <250ms"
     }
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
   }
 }

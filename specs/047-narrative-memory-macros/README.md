@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-047: Narrative Memory Macros (Screen + Voice Capture)
 
 ## 🎯 Purpose

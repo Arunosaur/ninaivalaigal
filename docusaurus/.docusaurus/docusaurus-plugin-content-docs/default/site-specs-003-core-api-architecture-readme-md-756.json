@@ -1,0 +1,48 @@
+{
+  "id": "core-api-architecture/SPEC-003",
+  "title": "Core API Architecture",
+  "description": "Status: ✅ COMPLETE",
+  "source": "@site/../specs/003-core-api-architecture/README.md",
+  "sourceDirName": "003-core-api-architecture",
+  "slug": "/core-api-architecture/",
+  "permalink": "/ninaivalaigal/specs/core-api-architecture/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/003-core-api-architecture/README.md",
+  "tags": [
+    {
+      "inline": true,
+      "label": "API",
+      "permalink": "/ninaivalaigal/specs/tags/api"
+    },
+    {
+      "inline": true,
+      "label": "FastAPI",
+      "permalink": "/ninaivalaigal/specs/tags/fast-api"
+    },
+    {
+      "inline": true,
+      "label": "Infrastructure",
+      "permalink": "/ninaivalaigal/specs/tags/infrastructure"
+    }
+  ],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "id": "SPEC-003",
+    "owner": "medhasys",
+    "phase": "Infrastructure",
+    "sidebar_position": 3,
+    "start_date": "2025-08-15T00:00:00.000Z",
+    "status": "Complete",
+    "tags": [
+      "API",
+      "FastAPI",
+      "Infrastructure"
+    ],
+    "title": "Core API Architecture",
+    "updated": "2025-10-12T00:00:00.000Z"
+  }
+}

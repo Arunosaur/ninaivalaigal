@@ -1,0 +1,17 @@
+{
+  "id": "usage-analytics-reporting/README",
+  "title": "SPEC-029: Usage Analytics & Reporting",
+  "description": "Status: ✅ COMPLETE",
+  "source": "@site/../specs/029-usage-analytics-reporting/README.md",
+  "sourceDirName": "029-usage-analytics-reporting",
+  "slug": "/usage-analytics-reporting/",
+  "permalink": "/ninaivalaigal/specs/usage-analytics-reporting/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/029-usage-analytics-reporting/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

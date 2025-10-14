@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # 📦 SPEC-032: Memory Attachment & Artifact Enrichment
 
 ## 🎯 Objective

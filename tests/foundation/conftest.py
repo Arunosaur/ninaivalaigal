@@ -20,8 +20,8 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-# Configure pytest-asyncio
-pytest_plugins = ("pytest_asyncio",)
+# Note: pytest-asyncio is configured in root pytest.ini with asyncio_mode = auto
+# No need to configure pytest_plugins here (causes "non-top-level" error)
 
 
 @pytest.fixture(scope="session")

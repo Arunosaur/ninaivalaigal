@@ -1,23 +1,9 @@
-# SPEC-121: Frontend Shared Library Implementation
-**Project:** Medhasys / Ninaivalaigal
-**Status:** Draft
-**Owner:** Frontend Engineering
-**Last Updated:** 2025-10-11
-**Phase:** 5 - Frontend Decomposition
-
+---
+{}
 ---
 
-## 1) Problem
 
-We need a production-grade shared component library that both `customer` and `admin` apps can import without code duplication. Current monolith has no formalized component sharing strategy.
 
-**Key Issues:**
-- No reusable state management (auth, cache, session)
-- Duplicate UI components across potential splits
-- No visual regression testing (Storybook/Chromatic)
-- No versioned component library
-
----
 
 ## 2) Solution
 

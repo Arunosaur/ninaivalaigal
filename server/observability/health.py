@@ -48,6 +48,41 @@ async def health():
     return HealthResponse(status="ok")
 
 
+@router.get("/health/live", response_model=HealthResponse)
+async def liveness():
+    """
+    Kubernetes liveness probe.
+    
+    Returns 200 if application is running (even if degraded).
+    Used by K8s to restart pods that are completely unresponsive.
+    """
+    return HealthResponse(status="ok")
+
+
+@router.get("/health/ready", response_model=HealthResponse)
+async def readiness():
+    """
+    Kubernetes readiness probe.
+    
+    Returns 200 only if application can handle requests.
+    K8s will not send traffic to pods that fail this check.
+    
+    Checks database connectivity as minimum requirement.
+    """
+    # Check database connectivity
+    db_status = await _check_database()
+    
+    if not db_status.get("connected", False):
+        # Return 503 if not ready
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"status": "unhealthy", "reason": "database_unavailable"},
+        )
+    
+    return HealthResponse(status="ok")
+
+
 @router.get("/health/detailed", response_model=DetailedHealthResponse)
 async def health_detailed():
     """Detailed health check with SLO metrics and component status"""

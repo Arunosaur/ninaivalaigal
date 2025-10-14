@@ -1,0 +1,48 @@
+{
+  "id": "vision-and-scope/SPEC-000",
+  "title": "Vision & Scope",
+  "description": "Title",
+  "source": "@site/../specs/000-vision-and-scope/README.md",
+  "sourceDirName": "000-vision-and-scope",
+  "slug": "/vision-and-scope/",
+  "permalink": "/ninaivalaigal/specs/vision-and-scope/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/000-vision-and-scope/README.md",
+  "tags": [
+    {
+      "inline": true,
+      "label": "Architecture",
+      "permalink": "/ninaivalaigal/specs/tags/architecture"
+    },
+    {
+      "inline": true,
+      "label": "Vision",
+      "permalink": "/ninaivalaigal/specs/tags/vision"
+    },
+    {
+      "inline": true,
+      "label": "Foundation",
+      "permalink": "/ninaivalaigal/specs/tags/foundation"
+    }
+  ],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 0,
+  "frontMatter": {
+    "id": "SPEC-000",
+    "owner": "medhasys",
+    "phase": "Foundation",
+    "sidebar_position": 0,
+    "start_date": "2025-08-01T00:00:00.000Z",
+    "status": "Complete",
+    "tags": [
+      "Architecture",
+      "Vision",
+      "Foundation"
+    ],
+    "title": "Vision & Scope",
+    "updated": "2025-10-13T00:00:00.000Z"
+  }
+}

@@ -1,0 +1,173 @@
+# Kubernetes Health Probes Configuration
+# Add this to your deployment manifest
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ninaivalaigal-api
+  namespace: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ninaivalaigal-api
+  template:
+    metadata:
+      labels:
+        app: ninaivalaigal-api
+    spec:
+      containers:
+      - name: api
+        image: ninaivalaigal-api:latest
+        ports:
+        - containerPort: 13390
+          name: http
+        
+        # ========================================
+        # HEALTH PROBES
+        # ========================================
+        
+        # Liveness Probe
+        # Restarts container if this fails (application completely dead)
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 13390
+            scheme: HTTP
+          initialDelaySeconds: 30    # Wait 30s after container starts
+          periodSeconds: 10           # Check every 10s
+          timeoutSeconds: 5           # Timeout after 5s
+          successThreshold: 1         # Consider healthy after 1 success
+          failureThreshold: 3         # Restart after 3 failures (30s)
+        
+        # Readiness Probe
+        # Removes from load balancer if this fails (can't handle traffic)
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 13390
+            scheme: HTTP
+          initialDelaySeconds: 10    # Wait 10s after container starts
+          periodSeconds: 5            # Check every 5s
+          timeoutSeconds: 3           # Timeout after 3s
+          successThreshold: 1         # Add to LB after 1 success
+          failureThreshold: 2         # Remove from LB after 2 failures (10s)
+        
+        # Startup Probe (optional but recommended)
+        # Gives slow-starting apps more time before liveness kicks in
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: 13390
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 30        # Allow 150s for startup (30 * 5s)
+        
+        # ========================================
+        # RESOURCE LIMITS
+        # ========================================
+        
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        
+        # ========================================
+        # ENVIRONMENT VARIABLES
+        # ========================================
+        
+        env:
+        - name: APP_VERSION
+          value: "v1.0.0"
+        - name: NINAIVALAIGAL_ENV
+          value: "production"
+        
+        # Database connection
+        - name: NINAIVALAIGAL_DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: connection-string
+        
+        # Redis connection
+        - name: NINAIVALAIGAL_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: redis-credentials
+              key: url
+
+---
+
+# ========================================
+# SERVICE DEFINITION
+# ========================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ninaivalaigal-api
+  namespace: production
+spec:
+  selector:
+    app: ninaivalaigal-api
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 13390
+  type: ClusterIP
+
+---
+
+# ========================================
+# HORIZONTAL POD AUTOSCALER
+# ========================================
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ninaivalaigal-api-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ninaivalaigal-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # Wait 5 min before scaling down
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0    # Scale up immediately
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 2
+        periodSeconds: 15
+      selectPolicy: Max

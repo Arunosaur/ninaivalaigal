@@ -1,21 +1,9 @@
-# SPEC-125: Frontend Documentation & Monitoring
-**Project:** Medhasys / Ninaivalaigal
-**Status:** Draft
-**Owner:** Engineering
-**Last Updated:** 2025-10-11
-**Phase:** 5 - Frontend Decomposition
-
+---
+{}
 ---
 
-## 1) Problem
 
-Split frontend architecture needs:
-- **Architecture documentation** (diagrams, data flow, state management)
-- **Deployment guides** (customer vs admin procedures)
-- **Testing guides** (E2E, integration, visual regression)
-- **Production monitoring** (performance, errors, analytics)
 
----
 
 ## 2) Solution
 

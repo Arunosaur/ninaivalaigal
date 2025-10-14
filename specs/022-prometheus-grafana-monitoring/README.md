@@ -1,3 +1,8 @@
+---
+title: 'SPEC-022: Kubernetes Monitoring with Prometheus + Grafana'
+---
+
+
 # SPEC-022: Kubernetes Monitoring with Prometheus + Grafana
 
 ## Title

@@ -1,3 +1,25 @@
+---
+depends_on:
+- SPEC-052
+- SPEC-068
+- SPEC-075
+id: SPEC-084
+owner: medhasys
+phase: Testing
+sidebar_position: 84
+start_date: 2025-09-25
+status: Complete
+tags:
+- Testing
+- AI
+- Playwright
+- QA
+title: Agentic UI Testing Framework
+updated: 2025-10-12
+---
+
+
+
 # SPEC-084: Agentic UI Testing Framework
 
 **Status:** ✅ ENHANCED - Hybrid OpenAI/Ollama Strategy

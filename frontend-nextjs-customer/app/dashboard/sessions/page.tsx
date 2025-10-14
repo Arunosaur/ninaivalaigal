@@ -108,6 +108,7 @@ export default function SessionsPage() {
                   <Button
                     size="sm"
                     variant="secondary"
+                    data-testid={`logout-session-${session.id}`}
                     onClick={() => handleLogoutSession(session.id)}
                     disabled={isCurrent || pendingSessionId === session.id}
                   >

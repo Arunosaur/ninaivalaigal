@@ -1,0 +1,17 @@
+{
+  "id": "documentation-expansion/README",
+  "title": "SPEC-058: Documentation Expansion",
+  "description": "Objective",
+  "source": "@site/docs/specs/058-documentation-expansion/README.md",
+  "sourceDirName": "058-documentation-expansion",
+  "slug": "/documentation-expansion/",
+  "permalink": "/ninaivalaigal/specs/documentation-expansion/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/058-documentation-expansion/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

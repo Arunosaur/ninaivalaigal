@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-108: Image Backup & Disaster Recovery (Enhanced)
 **Status:** Complete (Enhanced Oct 11, 2025)
 **Owner:** Platform SRE

@@ -1,0 +1,17 @@
+{
+  "id": "memory-substrate/README",
+  "title": "SPEC-012: Memory Substrate",
+  "description": "Status: ✅ COMPLETE with Redis Integration",
+  "source": "@site/../specs/012-memory-substrate/README.md",
+  "sourceDirName": "012-memory-substrate",
+  "slug": "/memory-substrate/",
+  "permalink": "/ninaivalaigal/specs/memory-substrate/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/012-memory-substrate/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

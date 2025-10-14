@@ -1,0 +1,48 @@
+{
+  "id": "api-versioning-strategy/SPEC-088",
+  "title": "API Versioning Strategy",
+  "description": "Overview and Rationale",
+  "source": "@site/docs/specs/088-api-versioning-strategy/README.md",
+  "sourceDirName": "088-api-versioning-strategy",
+  "slug": "/api-versioning-strategy/",
+  "permalink": "/ninaivalaigal/specs/api-versioning-strategy/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/088-api-versioning-strategy/README.md",
+  "tags": [
+    {
+      "inline": true,
+      "label": "API",
+      "permalink": "/ninaivalaigal/specs/tags/api"
+    },
+    {
+      "inline": true,
+      "label": "Versioning",
+      "permalink": "/ninaivalaigal/specs/tags/versioning"
+    },
+    {
+      "inline": true,
+      "label": "Documentation",
+      "permalink": "/ninaivalaigal/specs/tags/documentation"
+    }
+  ],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 88,
+  "frontMatter": {
+    "id": "SPEC-088",
+    "title": "API Versioning Strategy",
+    "status": "Complete",
+    "phase": "Infrastructure",
+    "owner": "developer-b",
+    "updated": "2025-10-13T00:00:00.000Z",
+    "start_date": "2025-10-08T00:00:00.000Z",
+    "tags": [
+      "API",
+      "Versioning",
+      "Documentation"
+    ],
+    "sidebar_position": 88
+  }
+}

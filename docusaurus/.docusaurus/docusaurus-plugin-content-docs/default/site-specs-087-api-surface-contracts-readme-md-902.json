@@ -1,0 +1,20 @@
+{
+  "id": "api-surface-contracts/spec-087-api-surface-contracts",
+  "title": "spec-087-api-surface-contracts",
+  "description": "2) Goals",
+  "source": "@site/../specs/087-api-surface-contracts/README.md",
+  "sourceDirName": "087-api-surface-contracts",
+  "slug": "/specs/087-api-surface-contracts",
+  "permalink": "/ninaivalaigal/specs/specs/087-api-surface-contracts",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/087-api-surface-contracts/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {
+    "id": "spec-087-api-surface-contracts",
+    "slug": "/specs/087-api-surface-contracts"
+  }
+}

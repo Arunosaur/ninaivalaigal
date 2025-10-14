@@ -1,3 +1,7 @@
+---
+title: Untitled SPEC
+---
+
 # SPEC-045: Memory Export + Import + Merge
 
 ## 📌 Overview

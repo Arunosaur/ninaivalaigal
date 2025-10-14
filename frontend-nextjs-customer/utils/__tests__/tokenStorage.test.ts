@@ -132,4 +132,63 @@ describe('TokenStorage', () => {
     expect(mockStorage.getItem('auth_refresh_token')).toBeNull();
     expect(mockStorage.getItem('auth_refresh_token_expires')).toBeNull();
   });
+
+  it('handles malformed tokens without throwing', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const token = `${base64UrlEncode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))}.${base64UrlEncode('{malformed')}.signature`;
+
+    expect(() => TokenStorage.saveToken(token)).not.toThrow();
+    expect(TokenStorage.getToken()).toBe(token);
+    expect(mockStorage.getItem('auth_access_token_expires')).toBeNull();
+
+    warnSpy.mockRestore();
+  });
+
+  it('swallows localStorage failures gracefully', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const setItemSpy = vi.spyOn(mockStorage, 'setItem');
+    setItemSpy.mockImplementation(() => {
+      throw new Error('quota exceeded');
+    });
+
+    const exp = Math.floor(Date.now() / 1000) + 60;
+    const token = createToken({ exp });
+
+    expect(() => TokenStorage.saveToken(token)).not.toThrow();
+    expect(TokenStorage.getToken()).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('TokenStorage: Failed to set auth_access_token'),
+      expect.any(Error)
+    );
+
+    setItemSpy.mockRestore();
+    warnSpy.mockRestore();
+  });
+
+  it('ignores invalid stored expiry values', () => {
+    const token = createToken({});
+    mockStorage.setItem('auth_access_token', token);
+    mockStorage.setItem('auth_access_token_expires', 'not-a-number');
+
+    expect(TokenStorage.getToken()).toBe(token);
+  });
+
+  it('derives expirations from provided durations', () => {
+    const now = Date.now();
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(now);
+    const accessToken = createToken({});
+    const refreshToken = createToken({});
+
+    TokenStorage.saveTokens({
+      accessToken,
+      accessTokenExpiresIn: 120,
+      refreshToken,
+      refreshTokenExpiresIn: 240,
+    });
+
+    expect(TokenStorage.getAccessTokenExpiry()).toBe(Math.floor(now / 1000) + 120);
+    expect(TokenStorage.getRefreshTokenExpiry()).toBe(Math.floor(now / 1000) + 240);
+
+    nowSpy.mockRestore();
+  });
 });

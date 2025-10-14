@@ -1,15 +1,9 @@
-# SPEC-115: Real-Time Features (WebSockets + Redis)
-**Phase:** C
-**Status:** Planned
-**Depends On:** SPEC-108 (Auth), SPEC-033 (Redis)
-
+---
+{}
 ---
 
-## 🎯 Objective
 
-Enable real-time notifications and live dashboards using Redis pub/sub and WebSockets.
 
----
 
 ## 🏗️ Architecture
 

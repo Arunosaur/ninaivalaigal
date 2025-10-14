@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-110: Release Workflow — Multi-Arch Build & Publish to GHCR
 **Status:** Draft
 **Owner:** CI/CD Engineering

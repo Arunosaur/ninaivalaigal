@@ -1,0 +1,17 @@
+{
+  "id": "observability-and-telemetry/archive/acceptance",
+  "title": "SPEC 010: observability-and-telemetry - Acceptance Criteria",
+  "description": "Test Scenarios",
+  "source": "@site/docs/specs/010-observability-and-telemetry/archive/acceptance.md",
+  "sourceDirName": "010-observability-and-telemetry/archive",
+  "slug": "/observability-and-telemetry/archive/acceptance",
+  "permalink": "/ninaivalaigal/specs/observability-and-telemetry/archive/acceptance",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/010-observability-and-telemetry/archive/acceptance.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

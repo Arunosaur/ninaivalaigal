@@ -13,7 +13,7 @@ Data models for enterprise authentication testing
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -135,14 +135,24 @@ class TestSession:
     @property
     def is_expired(self) -> bool:
         """Check if session is expired"""
-        return datetime.utcnow() > self.expires_at
+        now = datetime.now(timezone.utc)
+        return now >= self._as_utc(self.expires_at)
 
     @property
     def time_remaining(self) -> timedelta:
         """Get remaining session time"""
-        if self.is_expired:
+        expires_at = self._as_utc(self.expires_at)
+        now = datetime.now(timezone.utc)
+        if now >= expires_at:
             return timedelta(0)
-        return self.expires_at - datetime.utcnow()
+        return expires_at - now
+
+    @staticmethod
+    def _as_utc(value: datetime) -> datetime:
+        """Normalize ``value`` to a timezone-aware UTC datetime."""
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
 
 
 @dataclass

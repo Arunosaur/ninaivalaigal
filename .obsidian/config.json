@@ -1,0 +1,9 @@
+{
+  "baseFontSize": 15,
+  "theme": "moonstone",
+  "vimMode": false,
+  "showInlineTitle": true,
+  "newFileLocation": "current",
+  "promptDelete": false,
+  "spellcheck": true
+}

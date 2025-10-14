@@ -12,14 +12,37 @@ Enterprise-grade concurrent authentication and session testing
 """
 
 import asyncio
+from dataclasses import replace
 from datetime import datetime, timedelta
-from typing import List
+from typing import Dict, List
 
 import pytest
 
-from .models import AuthTestResult, TestUserStatus, UserRole
+from .fixtures import RoleFixtures, build_role_fixtures
+from .models import AuthTestResult, TestUser, TestUserStatus, UserRole
 from .multi_user_manager import MultiUserTestManager
-from .test_fixtures import AuthTestHelper
+
+
+@pytest.fixture
+def role_fixtures() -> RoleFixtures:
+    """Canonical role fixtures shared across multi-user scenarios."""
+
+    return build_role_fixtures()
+
+
+def _variant_user(base: TestUser, suffix: str, *, team_prefix: str | None = None) -> TestUser:
+    """Return a shallow copy of ``base`` with unique identifiers for concurrency tests."""
+
+    team_id = f"{team_prefix}-{suffix}" if team_prefix else f"{base.team_id}-{suffix}"
+    return replace(
+        base,
+        user_id=f"{base.user_id}-{suffix}",
+        username=f"{base.username}-{suffix}",
+        email=f"{base.username}-{suffix}@{base.organization_id}.example.com",
+        team_id=team_id,
+        permissions=list(base.permissions),
+        session_data=dict(base.session_data),
+    )
 
 
 class TestMultiUserScenarios:
@@ -28,6 +51,7 @@ class TestMultiUserScenarios:
     @pytest.mark.asyncio
     async def test_concurrent_user_authentication(
         self,
+        stubbed_http,
         multi_user_manager: MultiUserTestManager,
         concurrent_users: List,
         performance_thresholds: dict,
@@ -56,21 +80,23 @@ class TestMultiUserScenarios:
     @pytest.mark.asyncio
     async def test_role_based_concurrent_access(
         self,
+        stubbed_http,
         multi_user_manager: MultiUserTestManager,
-        all_role_users: List,
-        auth_helper: AuthTestHelper,
+        role_fixtures: RoleFixtures,
     ):
         """Test concurrent access with different user roles"""
 
-        # Create multiple users for each role
-        role_users = {}
+        # Create multiple users for each role by cloning canonical fixtures
+        role_users: Dict[UserRole, List[TestUser]] = {}
         for role in UserRole:
-            role_users[role] = [auth_helper.generate_test_user(role, f"team_{role.value}_{i}") for i in range(5)]
+            base_user = role_fixtures.user(role)
+            role_users[role] = [
+                _variant_user(base_user, suffix=f"batch-{i}", team_prefix=f"{role.value}-squad")
+                for i in range(5)
+            ]
 
         # Flatten all users
-        all_users = []
-        for users in role_users.values():
-            all_users.extend(users)
+        all_users = [user for users in role_users.values() for user in users]
 
         # Test concurrent authentication
         auth_results = await multi_user_manager.simulate_concurrent_auth(users=all_users, concurrent_limit=20)
@@ -80,12 +106,16 @@ class TestMultiUserScenarios:
         assert auth_results.result == AuthTestResult.PASS
 
         # Validate role-specific behavior
-        for role, users in role_users.items():
-            role_success_count = sum(1 for user in users if user.status == TestUserStatus.ACTIVE)
-            assert role_success_count == len(users)  # All users should be active
+        for users in role_users.values():
+            assert all(user.status == TestUserStatus.ACTIVE for user in users)
 
     @pytest.mark.asyncio
-    async def test_session_conflict_detection(self, multi_user_manager: MultiUserTestManager, multi_team_users: List):
+    async def test_session_conflict_detection(
+        self,
+        stubbed_http,
+        multi_user_manager: MultiUserTestManager,
+        multi_team_users: List,
+    ):
         """Test session conflict detection between concurrent users"""
 
         # Use users from different teams
@@ -105,7 +135,12 @@ class TestMultiUserScenarios:
         assert conflict_results.resolution_time_ms <= 5000  # Max 5 seconds
 
     @pytest.mark.asyncio
-    async def test_cross_team_user_isolation(self, multi_user_manager: MultiUserTestManager, multi_team_users: List):
+    async def test_cross_team_user_isolation(
+        self,
+        stubbed_http,
+        multi_user_manager: MultiUserTestManager,
+        multi_team_users: List,
+    ):
         """Test user isolation between different teams"""
 
         # Select users from different teams
@@ -127,14 +162,19 @@ class TestMultiUserScenarios:
     @pytest.mark.asyncio
     async def test_user_authentication_performance(
         self,
+    stubbed_http,
         multi_user_manager: MultiUserTestManager,
         performance_thresholds: dict,
-        auth_helper: AuthTestHelper,
+        role_fixtures: RoleFixtures,
     ):
         """Test authentication performance under load"""
 
-        # Create performance test users
-        perf_users = [auth_helper.generate_test_user(UserRole.MEMBER, f"perf_team_{i}") for i in range(100)]
+        # Create performance test users derived from the canonical member fixture
+        member_user = role_fixtures.user(UserRole.MEMBER)
+        perf_users = [
+            _variant_user(member_user, suffix=f"perf-{i}", team_prefix="performance")
+            for i in range(100)
+        ]
 
         # Measure authentication performance
         start_time = datetime.utcnow()
@@ -160,7 +200,11 @@ class TestMultiUserScenarios:
 
     @pytest.mark.asyncio
     async def test_session_timeout_enforcement(
-        self, multi_user_manager: MultiUserTestManager, member_user, expired_session
+        self,
+        stubbed_http,
+        multi_user_manager: MultiUserTestManager,
+        member_user,
+        expired_session,
     ):
         """Test session timeout enforcement"""
 
@@ -180,7 +224,12 @@ class TestMultiUserScenarios:
             assert new_session != expired_session.token
 
     @pytest.mark.asyncio
-    async def test_concurrent_team_operations(self, multi_user_manager: MultiUserTestManager, multi_team_users: List):
+    async def test_concurrent_team_operations(
+        self,
+        stubbed_http,
+        multi_user_manager: MultiUserTestManager,
+        multi_team_users: List,
+    ):
         """Test concurrent operations within and across teams"""
 
         # Group users by team
@@ -200,7 +249,12 @@ class TestMultiUserScenarios:
                 assert conflict_results.conflicts_resolved
 
     @pytest.mark.asyncio
-    async def test_user_role_consistency(self, multi_user_manager: MultiUserTestManager, all_role_users: List):
+    async def test_user_role_consistency(
+        self,
+        stubbed_http,
+        multi_user_manager: MultiUserTestManager,
+        all_role_users: List,
+    ):
         """Test user role consistency across concurrent operations"""
 
         # Authenticate all role users
@@ -218,7 +272,10 @@ class TestMultiUserScenarios:
 
     @pytest.mark.asyncio
     async def test_memory_isolation_concurrent_access(
-        self, multi_user_manager: MultiUserTestManager, multi_team_users: List
+        self,
+        stubbed_http,
+        multi_user_manager: MultiUserTestManager,
+        multi_team_users: List,
     ):
         """Test memory isolation during concurrent access"""
 
@@ -243,14 +300,24 @@ class TestMultiUserScenarios:
 
     @pytest.mark.asyncio
     async def test_authentication_failure_handling(
-        self, multi_user_manager: MultiUserTestManager, auth_helper: AuthTestHelper
+        self,
+        stubbed_http,
+        multi_user_manager: MultiUserTestManager,
+        role_fixtures: RoleFixtures,
     ):
         """Test authentication failure handling in concurrent scenarios"""
 
         # Create mix of valid and invalid users
-        valid_users = [auth_helper.generate_test_user(UserRole.MEMBER, f"valid_team_{i}") for i in range(5)]
+        member_user = role_fixtures.user(UserRole.MEMBER)
+        valid_users = [
+            _variant_user(member_user, suffix=f"valid-{i}", team_prefix="valid-squad")
+            for i in range(5)
+        ]
 
-        invalid_users = [auth_helper.generate_test_user(UserRole.MEMBER, f"invalid_team_{i}") for i in range(5)]
+        invalid_users = [
+            _variant_user(member_user, suffix=f"invalid-{i}", team_prefix="invalid-squad")
+            for i in range(5)
+        ]
 
         # Modify invalid users to have wrong passwords
         for user in invalid_users:
@@ -272,7 +339,10 @@ class TestMultiUserScenarios:
 
     @pytest.mark.asyncio
     async def test_concurrent_session_management(
-        self, multi_user_manager: MultiUserTestManager, concurrent_users: List
+        self,
+        stubbed_http,
+        multi_user_manager: MultiUserTestManager,
+        concurrent_users: List,
     ):
         """Test concurrent session management operations"""
 

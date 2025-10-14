@@ -1,0 +1,17 @@
+{
+  "id": "memory-injection-rules/README",
+  "title": "SPEC-036: Memory Injection Rules",
+  "description": "Status",
+  "source": "@site/docs/specs/036-memory-injection-rules/README.md",
+  "sourceDirName": "036-memory-injection-rules",
+  "slug": "/memory-injection-rules/",
+  "permalink": "/ninaivalaigal/specs/memory-injection-rules/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/036-memory-injection-rules/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

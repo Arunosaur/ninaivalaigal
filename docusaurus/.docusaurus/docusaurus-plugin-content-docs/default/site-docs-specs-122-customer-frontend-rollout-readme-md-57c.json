@@ -1,0 +1,17 @@
+{
+  "id": "customer-frontend-rollout/README",
+  "title": "SPEC-122: Customer Frontend Rollout (Vercel + Auth Integration)",
+  "description": "Project: Medhasys / Ninaivalaigal",
+  "source": "@site/docs/specs/122-customer-frontend-rollout/README.md",
+  "sourceDirName": "122-customer-frontend-rollout",
+  "slug": "/customer-frontend-rollout/",
+  "permalink": "/ninaivalaigal/specs/customer-frontend-rollout/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/122-customer-frontend-rollout/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

@@ -1,0 +1,17 @@
+{
+  "id": "memory-access-control-acl/README",
+  "title": "SPEC-043: Memory Access Control (ACL) Per Token",
+  "description": "Status",
+  "source": "@site/docs/specs/043-memory-access-control-acl/README.md",
+  "sourceDirName": "043-memory-access-control-acl",
+  "slug": "/memory-access-control-acl/",
+  "permalink": "/ninaivalaigal/specs/memory-access-control-acl/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/043-memory-access-control-acl/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

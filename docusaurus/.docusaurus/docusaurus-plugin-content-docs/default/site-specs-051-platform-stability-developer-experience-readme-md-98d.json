@@ -1,0 +1,17 @@
+{
+  "id": "platform-stability-developer-experience/README",
+  "title": "README",
+  "description": "🔧 PART A: Technical Debt & Bug Tracking",
+  "source": "@site/../specs/051-platform-stability-developer-experience/README.md",
+  "sourceDirName": "051-platform-stability-developer-experience",
+  "slug": "/platform-stability-developer-experience/",
+  "permalink": "/ninaivalaigal/specs/platform-stability-developer-experience/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/051-platform-stability-developer-experience/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

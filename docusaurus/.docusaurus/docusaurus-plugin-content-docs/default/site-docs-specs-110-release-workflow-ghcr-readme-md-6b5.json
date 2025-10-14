@@ -1,0 +1,17 @@
+{
+  "id": "release-workflow-ghcr/README",
+  "title": "SPEC-110: Release Workflow — Multi-Arch Build & Publish to GHCR",
+  "description": "Status: Draft",
+  "source": "@site/docs/specs/110-release-workflow-ghcr/README.md",
+  "sourceDirName": "110-release-workflow-ghcr",
+  "slug": "/release-workflow-ghcr/",
+  "permalink": "/ninaivalaigal/specs/release-workflow-ghcr/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/110-release-workflow-ghcr/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

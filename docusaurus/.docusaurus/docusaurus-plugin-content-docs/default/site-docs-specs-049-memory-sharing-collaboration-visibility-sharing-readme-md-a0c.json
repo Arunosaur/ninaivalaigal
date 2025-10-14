@@ -1,0 +1,17 @@
+{
+  "id": "memory-sharing-collaboration/visibility-sharing/README",
+  "title": "SPEC-041: User-Controlled Memory Visibility and Sharing",
+  "description": "📌 Overview",
+  "source": "@site/docs/specs/049-memory-sharing-collaboration/visibility-sharing/README.md",
+  "sourceDirName": "049-memory-sharing-collaboration/visibility-sharing",
+  "slug": "/memory-sharing-collaboration/visibility-sharing/",
+  "permalink": "/ninaivalaigal/specs/memory-sharing-collaboration/visibility-sharing/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/049-memory-sharing-collaboration/visibility-sharing/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

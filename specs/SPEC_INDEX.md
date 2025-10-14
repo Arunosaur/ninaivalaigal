@@ -1,7 +1,7 @@
 # Ninaivalaigal SPEC Index
 
-  **Last Updated:** October 12, 2025
-  **Total SPECs:** 126 specifications (106-116 + 118-125 complete, 117 in progress, 126 planned)
+  **Last Updated:** October 13, 2025
+  **Total SPECs:** 130 specifications (128-130 renumbered from conflicts)
 
   ## Overview
 
@@ -179,6 +179,10 @@
 | 124 | Unified Workspace & CI/CD Pipelines | **Complete** | Phase 5 | Turborepo + GitHub Actions |
 | 125 | Frontend Documentation & Monitoring | **Complete** | Phase 5 | Docs + Grafana + Runbooks |
 | 126 | ML Model Training & Fine-Tuning Pipeline | **Planned** | Phase 4 | MLOps + Kubeflow + MLflow |
+| 127 | Context Bridge & Memory Federation System | **Active Development** | Phase 3 | Unified inter-context sharing |
+| 128 | Memory Sharing & Transfer Architecture | Proposed | Phase 3 | Cross-entity memory sharing (renumbered from conflict) |
+| 129 | External AI Memory API Integration | Planned | Phase 3 | External AI system integration (renumbered from conflict) |
+| 130 | Terminal/CLI Auto Context Capture | Planned | Phase 3 | Automated CLI context capture (renumbered from conflict) |
 
   ## Reference (999)
 
@@ -206,6 +210,15 @@
   - **Q4 2024**: Current priority initiatives
 
 ## Recent Changes (October 2025)
+
+### October 13, 2025 - SPEC Renumbering (Conflict Resolution) ✅
+- **Resolved duplicate SPEC numbers**:
+  - 088-memory-sharing (was SPEC-084) → **128-memory-sharing** (now SPEC-128)
+  - 089-external-ai-memory (was SPEC-085) → **129-external-ai-memory** (now SPEC-129)
+  - 096-terminal-cli-auto-context (was SPEC-096) → **130-terminal-cli-auto-context** (now SPEC-130)
+- **SPEC-088 now FREE** for API Versioning Strategy (Developer B task)
+- **Backup created**: BACKUP_PRE_RENUMBER_20251013.md
+- **Zero data loss**, all files preserved
 
 ### October 12, 2025 - SPEC-002 and SPEC-084 Enhanced ✅
 - **SPEC-002**: **User Management & Authentication** - **95% implemented**

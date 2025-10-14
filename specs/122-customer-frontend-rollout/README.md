@@ -1,21 +1,9 @@
-# SPEC-122: Customer Frontend Rollout (Vercel + Auth Integration)
-**Project:** Medhasys / Ninaivalaigal
-**Status:** Draft
-**Owner:** Frontend Engineering
-**Last Updated:** 2025-10-11
-**Phase:** 5 - Frontend Decomposition
-
+---
+{}
 ---
 
-## 1) Problem
 
-Customer-facing frontend needs public deployment with:
-- **Zero-downtime deployments** (Vercel auto-deploy)
-- **Secure authentication** (NextAuth.js + JWT from backend)
-- **Performance budgets** enforced (Lighthouse CI)
-- **Analytics** for user behavior tracking
 
----
 
 ## 2) Solution
 

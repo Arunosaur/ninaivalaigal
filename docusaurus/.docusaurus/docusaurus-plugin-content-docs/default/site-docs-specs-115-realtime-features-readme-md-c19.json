@@ -1,0 +1,17 @@
+{
+  "id": "realtime-features/README",
+  "title": "SPEC-115: Real-Time Features (WebSockets + Redis)",
+  "description": "Phase: C",
+  "source": "@site/docs/specs/115-realtime-features/README.md",
+  "sourceDirName": "115-realtime-features",
+  "slug": "/realtime-features/",
+  "permalink": "/ninaivalaigal/specs/realtime-features/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/115-realtime-features/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

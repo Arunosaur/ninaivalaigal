@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-021: GitOps with ArgoCD + Kubernetes Deployment
 
 **Status**: 🚧 In Progress

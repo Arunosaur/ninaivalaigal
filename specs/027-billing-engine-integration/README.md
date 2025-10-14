@@ -1,3 +1,12 @@
+---
+title: Untitled SPEC
+---
+
+
+---
+title: "SPEC-027: Billing Engine Integration"
+---
+
 # SPEC-027: Billing Engine Integration
 
 **Status**: ✅ COMPLETE

@@ -1,0 +1,17 @@
+{
+  "id": "custom-embedding-integration/README",
+  "title": "SPEC-039: Custom Embedding Integration Hooks",
+  "description": "Status",
+  "source": "@site/docs/specs/039-custom-embedding-integration/README.md",
+  "sourceDirName": "039-custom-embedding-integration",
+  "slug": "/custom-embedding-integration/",
+  "permalink": "/ninaivalaigal/specs/custom-embedding-integration/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/039-custom-embedding-integration/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

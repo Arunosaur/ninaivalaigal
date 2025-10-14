@@ -6,6 +6,9 @@
 
 ## 🧪 **Testing Strategy Overview**
 
+### Testing Philosophy
+Our testing philosophy is built on the principle of the "Testing Pyramid." We focus on a strong foundation of fast, reliable unit tests, complemented by broader integration and end-to-end tests to ensure all parts of the system work together correctly. Quality is a shared responsibility, and developers are expected to write tests for the code they produce.
+
 Ninaivalaigal employs a comprehensive testing strategy with multiple layers of validation to ensure enterprise-grade reliability and performance. Our testing approach covers unit tests, integration tests, functional tests, chaos testing, and comprehensive coverage validation.
 
 ## 🏗️ **Testing Architecture**
@@ -25,6 +28,11 @@ Ninaivalaigal employs a comprehensive testing strategy with multiple layers of v
         │         Static Analysis                 │  ← Code quality & security
         │    (Linting + Type Checking)            │
     └─────────────────────────────────────────────┘
+
+### When to Write Each Type of Test
+- **Unit Tests**: Write these for all new functions and classes. They should cover business logic, edge cases, and error conditions for a single unit of code in isolation.
+- **Integration Tests**: Write these when your feature involves interaction between multiple components, like an API endpoint and the database, or communication between two microservices.
+- **E2E (Functional) Tests**: Write these for critical user workflows. They simulate a real user journey from start to finish and are essential for validating the entire application stack. Use them sparingly as they are slower and more brittle than unit or integration tests.
 ```
 
 ### **Coverage Targets**
@@ -531,6 +539,12 @@ def test_temporal_access_expiration_workflow():
 def test_database_connection_loss_recovery():
 def test_redis_memory_pressure_graceful_degradation():
 ```
+
+### **3. Assertion Best Practices**
+- Be specific in your assertions. `assert user.name == "John"` is better than `assert user is not None`.
+- Use helper functions for complex assertions (e.g., `assert_memory_equal` in the example below).
+- Provide clear failure messages in assertions where the meaning isn't obvious: `assert user.is_active, "User should be active after creation"`.
+- Assert one logical condition per test function, unless testing a sequence of state changes.
 
 ### **3. Test Fixtures & Utilities**
 

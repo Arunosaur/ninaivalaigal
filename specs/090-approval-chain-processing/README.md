@@ -1,3 +1,10 @@
+---
+id: spec-090-approval-chain-processing
+slug: /specs/090-approval-chain-processing
+title: Untitled SPEC
+---
+
+
 # SPEC-090: Approval Chain Processing (ACP)
 
 ## 🎯 Objective

@@ -104,5 +104,16 @@ repos:
             __pycache__/.*|
             dist/.*|
             build/.*|
-            .*\.min\.(js|css)$
+            .*\\.min\\.(js|css)$
           )$
+
+  # API Version Validation
+  - repo: local
+    hooks:
+      - id: validate-api-version
+        name: Validate API Version
+        entry: python scripts/validate-api-version.py
+        language: system
+        types: [python]
+        files: ^(specs/|server/).*\.py$
+        stages: [commit]

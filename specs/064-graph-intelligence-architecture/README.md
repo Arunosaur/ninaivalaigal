@@ -1,29 +1,9 @@
-# SPEC-064: Graph Intelligence Architecture Blueprint
+---
+{}
+---
 
-**Status**: ✅ APPROVED / IMPLEMENTED
-**Date**: September 23, 2024
-**Purpose**: Establish scalable, modular architecture for Graph Intelligence
 
-## 🎯 **Purpose**
-
-Establish a scalable, modular architecture for Graph Intelligence by separating core graph services from the main memory API. This allows independent scaling, performance tuning, and feature evolution of graph components without impacting core system logic.
-
-## 🧱 **Motivation**
-
-Graph operations such as relationship analysis, reasoning, and traversal differ drastically from memory CRUD operations. Integrating them directly into the main API creates performance bottlenecks, tight coupling, and reduced maintainability. By decoupling graph services, we:
-
-- Improve deployment and development flexibility
-- Enable technology-specific optimization (Apache AGE, Redis Graph)
-- Allow isolated scaling of graph features
-- Maintain separation of concerns
-- Support graceful degradation when graph infra is unavailable
-
-## 🧩 **Core Architecture**
-
-### **Services Breakdown**
-
-| Component | Description |
-|-----------|-------------|
+-----|-------------|
 | Main API | Exposes Memory, Feedback, and Suggestion APIs (Port 13370) |
 | Graph Service | Hosts Graph Intel, Reasoner API, and Analytics (Port 8001) |
 | Graph DB | Apache AGE + Redis Graph Cache |

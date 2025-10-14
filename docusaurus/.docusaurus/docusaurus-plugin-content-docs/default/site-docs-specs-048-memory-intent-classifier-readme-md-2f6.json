@@ -1,0 +1,17 @@
+{
+  "id": "memory-intent-classifier/README",
+  "title": "SPEC-048: Memory Intent Classifier",
+  "description": "🔍 Purpose",
+  "source": "@site/docs/specs/048-memory-intent-classifier/README.md",
+  "sourceDirName": "048-memory-intent-classifier",
+  "slug": "/memory-intent-classifier/",
+  "permalink": "/ninaivalaigal/specs/memory-intent-classifier/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/048-memory-intent-classifier/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

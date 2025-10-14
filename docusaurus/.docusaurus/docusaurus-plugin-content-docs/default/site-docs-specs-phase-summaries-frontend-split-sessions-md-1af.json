@@ -1,0 +1,17 @@
+{
+  "id": "PHASE_SUMMARIES/FRONTEND_SPLIT_SESSIONS",
+  "title": "Frontend Split: 30 Implementation Sessions",
+  "description": "Duration: 6 weeks (30 sessions × 4 hours each = 120 hours)",
+  "source": "@site/docs/specs/PHASE_SUMMARIES/FRONTEND_SPLIT_SESSIONS.md",
+  "sourceDirName": "PHASE_SUMMARIES",
+  "slug": "/PHASE_SUMMARIES/FRONTEND_SPLIT_SESSIONS",
+  "permalink": "/ninaivalaigal/specs/PHASE_SUMMARIES/FRONTEND_SPLIT_SESSIONS",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/PHASE_SUMMARIES/FRONTEND_SPLIT_SESSIONS.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

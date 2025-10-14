@@ -1,3 +1,7 @@
+---
+title: Untitled SPEC
+---
+
 # SPEC-044: Memory Drift & Diff Detection
 
 ## Status

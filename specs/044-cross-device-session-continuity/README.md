@@ -1,4 +1,13 @@
-# SPEC-044: Cross-Device Memory Session Continuity
+---
+title: Untitled SPEC
+---
+
+
+---
+title: "SPEC-044: Cross-Device Session Continuity"
+---
+
+# SPEC-044: Cross-Device Session Continuity
 
 ## 📌 Overview
 This SPEC enables memory continuity across multiple user devices (e.g., desktop, mobile, tablet). It ensures seamless session handover and sync of active memory tokens.

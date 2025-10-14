@@ -1,0 +1,17 @@
+{
+  "id": "context-bridge-system/implementation-guide",
+  "title": "Implementation Guide",
+  "description": "Implementation Hooks",
+  "source": "@site/docs/specs/127-context-bridge-system/implementation-guide.md",
+  "sourceDirName": "127-context-bridge-system",
+  "slug": "/context-bridge-system/implementation-guide",
+  "permalink": "/ninaivalaigal/specs/context-bridge-system/implementation-guide",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/127-context-bridge-system/implementation-guide.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

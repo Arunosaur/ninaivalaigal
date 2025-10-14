@@ -1,24 +1,9 @@
-# SPEC-045: Session Timeout / Token Expiry Management
-
+---
+{}
 ---
 
-## Part 2: Refresh Token Implementation (October 2025 Update)
 
-**Status:** ✅ IMPLEMENTED
-**Developers:** Developer C (backend), Developer A (frontend)
 
-### Overview
-
-Refresh tokens provide seamless session renewal without requiring users to re-login every 24 hours (access token expiry).
-
-**Key Features:**
-- 30-day refresh token lifespan
-- Database-backed (revocable)
-- Device tracking for security
-- SHA256 token hashing
-- Supports "logout all devices"
-
----
 
 ### Refresh Token vs Access Token
 
@@ -450,34 +435,3 @@ User can view and manage all logged-in devices:
 
 ---
 
-### Implementation Credits
-
-**Backend (Developer C - Phase 5):**
-- Database migration and RefreshToken model
-- Auth functions (generate, hash, create, validate, revoke)
-- API endpoints (refresh, revoke, revoke-all)
-- Security measures (SHA256, expiration, device tracking)
-
-**Frontend (Developer A):**
-- TokenStorage utility with expiration tracking
-- `hasValidToken()` helper
-- API client integration
-- Button theme fixes
-
-**Documentation (Developer B - Phase 3):**
-- This SPEC update
-- Integration with existing intelligent sessions
-- Security architecture documentation
-
----
-
-### Related SPECs
-
-- **SPEC-002:** User Management & Authentication (foundation)
-- **SPEC-033:** Redis Integration (caching layer)
-- **SPEC-045 Part 1:** Intelligent Session Timeouts (works with refresh tokens)
-
----
-
-**Last Updated:** October 12, 2025
-**Status:** ✅ IMPLEMENTED

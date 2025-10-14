@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-028: Invoice Management System
 
 **Status**: 🔄 PARTIAL

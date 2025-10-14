@@ -1,20 +1,9 @@
-# SPEC-103: Next.js 15 Bootstrap & Component Port
-
-**Status**: PROPOSED
-**Created**: October 9, 2025
-**Phase**: Phase 2B → Phase 3
-**Dependencies**: SPEC-102 (Frontend Migration Preparation)
-**Related SPECs**: SPEC-102, SPEC-104
-
+---
+{}
 ---
 
-## Executive Summary
 
-SPEC-103 formalizes the creation of a clean Next.js 15 application and the migration of 17 keeper files from the legacy React codebase. This SPEC eliminates 70% of technical debt by starting fresh and porting only production-ready components.
 
-**Key Achievement**: Transforms 201-issue legacy codebase into <20-issue modern Next.js application with zero legacy baggage.
-
----
 
 ## Problem Statement
 

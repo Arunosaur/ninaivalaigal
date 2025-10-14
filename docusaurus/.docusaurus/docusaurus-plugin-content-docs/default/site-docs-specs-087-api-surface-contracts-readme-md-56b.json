@@ -1,0 +1,17 @@
+{
+  "id": "api-surface-contracts/README",
+  "title": "SPEC-087: API Surface Contracts (Public vs Internal OpenAPI)",
+  "description": "Status: 🔄 PARTIAL (role-scoped docs implemented, CI gates pending)",
+  "source": "@site/docs/specs/087-api-surface-contracts/README.md",
+  "sourceDirName": "087-api-surface-contracts",
+  "slug": "/api-surface-contracts/",
+  "permalink": "/ninaivalaigal/specs/api-surface-contracts/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/087-api-surface-contracts/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

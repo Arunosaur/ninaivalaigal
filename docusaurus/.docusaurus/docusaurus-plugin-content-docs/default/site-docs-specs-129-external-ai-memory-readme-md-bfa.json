@@ -1,0 +1,17 @@
+{
+  "id": "external-ai-memory/README",
+  "title": "SPEC-129: External AI Memory API Integration",
+  "description": "Status: 📋 Planned",
+  "source": "@site/docs/specs/129-external-ai-memory/README.md",
+  "sourceDirName": "129-external-ai-memory",
+  "slug": "/external-ai-memory/",
+  "permalink": "/ninaivalaigal/specs/external-ai-memory/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/129-external-ai-memory/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

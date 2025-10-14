@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-120: Cost Optimization & Resource Governance
 **Project:** Medhasys / Ninaivalaigal
 **Status:** Draft

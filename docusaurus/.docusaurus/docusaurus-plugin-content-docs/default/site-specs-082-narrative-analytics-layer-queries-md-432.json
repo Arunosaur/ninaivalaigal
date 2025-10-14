@@ -1,0 +1,17 @@
+{
+  "id": "narrative-analytics-layer/queries",
+  "title": "Aggregation Queries for Analytics ROI Dashboard",
+  "description": "Daily Aggregation Queries",
+  "source": "@site/../specs/082-narrative-analytics-layer/queries.md",
+  "sourceDirName": "082-narrative-analytics-layer",
+  "slug": "/narrative-analytics-layer/queries",
+  "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/queries",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/082-narrative-analytics-layer/queries.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

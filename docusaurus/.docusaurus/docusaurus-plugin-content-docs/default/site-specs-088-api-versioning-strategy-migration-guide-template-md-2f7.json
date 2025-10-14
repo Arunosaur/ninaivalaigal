@@ -1,0 +1,17 @@
+{
+  "id": "api-versioning-strategy/migration-guide-template",
+  "title": "Migration Guide Template",
+  "description": "Template for Migration Guides",
+  "source": "@site/../specs/088-api-versioning-strategy/migration-guide-template.md",
+  "sourceDirName": "088-api-versioning-strategy",
+  "slug": "/api-versioning-strategy/migration-guide-template",
+  "permalink": "/ninaivalaigal/specs/api-versioning-strategy/migration-guide-template",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/088-api-versioning-strategy/migration-guide-template.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

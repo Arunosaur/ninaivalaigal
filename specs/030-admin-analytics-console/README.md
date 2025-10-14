@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-030: Admin Analytics Console
 
 **Status**: ✅ COMPLETE

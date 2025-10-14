@@ -16,7 +16,8 @@ exclude =
     venv,
     build,
     dist,
-    *.egg-info
+    *.egg-info,
+    server/main_monolithic_backup.py
 per-file-ignores =
     tests/*:F401,F403,F841,B007,B017,D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
     test_*.py:D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403

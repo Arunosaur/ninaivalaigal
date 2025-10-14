@@ -1,0 +1,17 @@
+{
+  "id": "environment-naming-tagging/README",
+  "title": "SPEC-109: Environment Naming, Tagging & Versioning",
+  "description": "Status: Draft",
+  "source": "@site/docs/specs/109-environment-naming-tagging/README.md",
+  "sourceDirName": "109-environment-naming-tagging",
+  "slug": "/environment-naming-tagging/",
+  "permalink": "/ninaivalaigal/specs/environment-naming-tagging/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/109-environment-naming-tagging/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

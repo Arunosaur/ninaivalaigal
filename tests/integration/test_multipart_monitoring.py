@@ -103,7 +103,7 @@ class TestMultipartMonitoring:
         """Test alert threshold conditions with simulated traffic."""
         # Simulate spike in rejections (>50 in 10 minutes)
         for i in range(55):
-            record_multipart_rejection("archive_blocked", f"/api/endpoint-{i%3}", f"tenant-{i%10}")
+            record_multipart_rejection("archive_blocked", f"/api/endpoint-{i % 3}", f"tenant-{i % 10}")
 
         metrics = get_all_metrics()
 

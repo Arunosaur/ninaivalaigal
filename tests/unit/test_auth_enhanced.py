@@ -37,8 +37,8 @@ class TestAuthModule:
 
             # Test token creation if function exists
             if hasattr(auth, "create_access_token"):
-                # Mock user data
-                _user_data = {"user_id": 1, "username": "testuser"}
+                # Mock user data (would be used if token creation was tested)
+                # user_data = {"user_id": 1, "username": "testuser"}
 
                 # This would test actual token creation logic
                 # token = auth.create_access_token(user_data)

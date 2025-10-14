@@ -1,12 +1,14 @@
 ---
-title: SPEC-062: GraphOps Stack Deployment Architecture
-status: Implemented
-stage: Production
-owner: Arun Rajagopalan
 author: ChatGPT-4o
 created: 2025-09-21
+owner: Arun Rajagopalan
+stage: Production
+status: Implemented
+title: 'SPEC-062: GraphOps Stack Deployment Architecture'
 updated: 2025-09-21
 ---
+
+
 
 # SPEC-062: GraphOps Stack Deployment Architecture
 

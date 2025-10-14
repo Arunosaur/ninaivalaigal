@@ -1,0 +1,943 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/ninaivalaigal/specs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/ninaivalaigal/specs",
+          "mainDocId": "admin-analytics-console/README",
+          "docs": [
+            {
+              "id": "admin-analytics-console/README",
+              "path": "/ninaivalaigal/specs/admin-analytics-console/"
+            },
+            {
+              "id": "admin-dashboard/archive/plan",
+              "path": "/ninaivalaigal/specs/admin-dashboard/archive/plan"
+            },
+            {
+              "id": "admin-dashboard/archive/spec",
+              "path": "/ninaivalaigal/specs/admin-dashboard/archive/spec"
+            },
+            {
+              "id": "admin-dashboard/archive/tasks",
+              "path": "/ninaivalaigal/specs/admin-dashboard/archive/tasks"
+            },
+            {
+              "id": "admin-dashboard/spec",
+              "path": "/ninaivalaigal/specs/admin-dashboard/spec"
+            },
+            {
+              "id": "admin-frontend-rollout/README",
+              "path": "/ninaivalaigal/specs/admin-frontend-rollout/"
+            },
+            {
+              "id": "advanced-security-compliance/README",
+              "path": "/ninaivalaigal/specs/advanced-security-compliance/"
+            },
+            {
+              "id": "agent-to-agent-context-propagation/README",
+              "path": "/ninaivalaigal/specs/agent-to-agent-context-propagation/"
+            },
+            {
+              "id": "agentic-core-execution/README",
+              "path": "/ninaivalaigal/specs/agentic-core-execution/"
+            },
+            {
+              "id": "agentic-core-execution/README.loose-20251008",
+              "path": "/ninaivalaigal/specs/agentic-core-execution/README.loose-20251008"
+            },
+            {
+              "id": "agentic-ui-testing/SPEC-084",
+              "path": "/ninaivalaigal/specs/agentic-ui-testing/"
+            },
+            {
+              "id": "api-health-monitoring/archive/spec",
+              "path": "/ninaivalaigal/specs/api-health-monitoring/archive/spec"
+            },
+            {
+              "id": "api-health-monitoring/spec",
+              "path": "/ninaivalaigal/specs/api-health-monitoring/spec"
+            },
+            {
+              "id": "api-health-regression-tracking/README",
+              "path": "/ninaivalaigal/specs/api-health-regression-tracking/"
+            },
+            {
+              "id": "api-surface-contracts/spec-087-api-surface-contracts",
+              "path": "/ninaivalaigal/specs/specs/087-api-surface-contracts"
+            },
+            {
+              "id": "api-surface-contracts/spec-100-api-surface-contracts",
+              "path": "/ninaivalaigal/specs/specs/100-api-surface-contracts"
+            },
+            {
+              "id": "api-versioning-strategy/breaking-changes",
+              "path": "/ninaivalaigal/specs/api-versioning-strategy/breaking-changes"
+            },
+            {
+              "id": "api-versioning-strategy/CHANGELOG-template",
+              "path": "/ninaivalaigal/specs/api-versioning-strategy/CHANGELOG-template"
+            },
+            {
+              "id": "api-versioning-strategy/deprecation-policy",
+              "path": "/ninaivalaigal/specs/api-versioning-strategy/deprecation-policy"
+            },
+            {
+              "id": "api-versioning-strategy/format",
+              "path": "/ninaivalaigal/specs/api-versioning-strategy/format"
+            },
+            {
+              "id": "api-versioning-strategy/migration-guide-template",
+              "path": "/ninaivalaigal/specs/api-versioning-strategy/migration-guide-template"
+            },
+            {
+              "id": "api-versioning-strategy/SPEC-088",
+              "path": "/ninaivalaigal/specs/api-versioning-strategy/"
+            },
+            {
+              "id": "apple-container-cli-integration/README",
+              "path": "/ninaivalaigal/specs/apple-container-cli-integration/"
+            },
+            {
+              "id": "approval-chain-processing/spec-090-approval-chain-processing",
+              "path": "/ninaivalaigal/specs/specs/090-approval-chain-processing"
+            },
+            {
+              "id": "approval-chain-processing/spec-099-approval-chain-processing",
+              "path": "/ninaivalaigal/specs/specs/099-approval-chain-processing"
+            },
+            {
+              "id": "auth-security-integration/README",
+              "path": "/ninaivalaigal/specs/auth-security-integration/"
+            },
+            {
+              "id": "authentication-middleware-refactor/archive/COMPLETION_SUMMARY",
+              "path": "/ninaivalaigal/specs/authentication-middleware-refactor/archive/COMPLETION_SUMMARY"
+            },
+            {
+              "id": "authentication-middleware-refactor/archive/IMPLEMENTATION",
+              "path": "/ninaivalaigal/specs/authentication-middleware-refactor/archive/IMPLEMENTATION"
+            },
+            {
+              "id": "authentication-middleware-refactor/COMPLETION_SUMMARY",
+              "path": "/ninaivalaigal/specs/authentication-middleware-refactor/COMPLETION_SUMMARY"
+            },
+            {
+              "id": "authentication-middleware-refactor/IMPLEMENTATION",
+              "path": "/ninaivalaigal/specs/authentication-middleware-refactor/IMPLEMENTATION"
+            },
+            {
+              "id": "authentication-middleware-refactor/README",
+              "path": "/ninaivalaigal/specs/authentication-middleware-refactor/"
+            },
+            {
+              "id": "auto-healing-health-system/README",
+              "path": "/ninaivalaigal/specs/auto-healing-health-system/"
+            },
+            {
+              "id": "automated-slo-enforcement/README",
+              "path": "/ninaivalaigal/specs/automated-slo-enforcement/"
+            },
+            {
+              "id": "backend-database-integration/PHASE_SEQUENCING",
+              "path": "/ninaivalaigal/specs/backend-database-integration/PHASE_SEQUENCING"
+            },
+            {
+              "id": "backend-database-integration/QUICKSTART",
+              "path": "/ninaivalaigal/specs/backend-database-integration/QUICKSTART"
+            },
+            {
+              "id": "backend-database-integration/README",
+              "path": "/ninaivalaigal/specs/backend-database-integration/"
+            },
+            {
+              "id": "backend-database-integration/SESSION_1_COMPLETE",
+              "path": "/ninaivalaigal/specs/backend-database-integration/SESSION_1_COMPLETE"
+            },
+            {
+              "id": "backend-database-integration/SESSION_2_COMPLETE",
+              "path": "/ninaivalaigal/specs/backend-database-integration/SESSION_2_COMPLETE"
+            },
+            {
+              "id": "backend-database-integration/SPEC_105_COMPLETE",
+              "path": "/ninaivalaigal/specs/backend-database-integration/SPEC_105_COMPLETE"
+            },
+            {
+              "id": "backend-database-integration/SUMMARY",
+              "path": "/ninaivalaigal/specs/backend-database-integration/SUMMARY"
+            },
+            {
+              "id": "BACKUP_PRE_RENUMBER_20251013",
+              "path": "/ninaivalaigal/specs/BACKUP_PRE_RENUMBER_20251013"
+            },
+            {
+              "id": "billing-engine-integration/README",
+              "path": "/ninaivalaigal/specs/billing-engine-integration/"
+            },
+            {
+              "id": "centralized-secrets-management/README",
+              "path": "/ninaivalaigal/specs/centralized-secrets-management/"
+            },
+            {
+              "id": "cicd-pipeline-architecture/archive/spec",
+              "path": "/ninaivalaigal/specs/cicd-pipeline-architecture/archive/spec"
+            },
+            {
+              "id": "cicd-pipeline-architecture/COMPLETION_SUMMARY",
+              "path": "/ninaivalaigal/specs/cicd-pipeline-architecture/COMPLETION_SUMMARY"
+            },
+            {
+              "id": "cicd-pipeline-architecture/spec",
+              "path": "/ninaivalaigal/specs/cicd-pipeline-architecture/spec"
+            },
+            {
+              "id": "cicd-security-baseline/README",
+              "path": "/ninaivalaigal/specs/cicd-security-baseline/"
+            },
+            {
+              "id": "codebase-refactor-modularization/README",
+              "path": "/ninaivalaigal/specs/codebase-refactor-modularization/"
+            },
+            {
+              "id": "comprehensive-test-coverage/COMPLETION_SUMMARY",
+              "path": "/ninaivalaigal/specs/comprehensive-test-coverage/COMPLETION_SUMMARY"
+            },
+            {
+              "id": "comprehensive-test-coverage/README",
+              "path": "/ninaivalaigal/specs/comprehensive-test-coverage/"
+            },
+            {
+              "id": "comprehensive-ui-suite/README",
+              "path": "/ninaivalaigal/specs/comprehensive-ui-suite/"
+            },
+            {
+              "id": "container-build-recovery-apple-cli-integration/README",
+              "path": "/ninaivalaigal/specs/container-build-recovery-apple-cli-integration/"
+            },
+            {
+              "id": "context-bridge-system/api-contracts",
+              "path": "/ninaivalaigal/specs/context-bridge-system/api-contracts"
+            },
+            {
+              "id": "context-bridge-system/CREATED",
+              "path": "/ninaivalaigal/specs/context-bridge-system/CREATED"
+            },
+            {
+              "id": "context-bridge-system/federation-topology",
+              "path": "/ninaivalaigal/specs/context-bridge-system/federation-topology"
+            },
+            {
+              "id": "context-bridge-system/IMPLEMENTATION_TASKS",
+              "path": "/ninaivalaigal/specs/context-bridge-system/IMPLEMENTATION_TASKS"
+            },
+            {
+              "id": "context-bridge-system/implementation-guide",
+              "path": "/ninaivalaigal/specs/context-bridge-system/implementation-guide"
+            },
+            {
+              "id": "context-bridge-system/modes",
+              "path": "/ninaivalaigal/specs/context-bridge-system/modes"
+            },
+            {
+              "id": "context-bridge-system/SPEC-127",
+              "path": "/ninaivalaigal/specs/context-bridge-system/"
+            },
+            {
+              "id": "context-bridge-system/SPRINT_INTEGRATION",
+              "path": "/ninaivalaigal/specs/context-bridge-system/SPRINT_INTEGRATION"
+            },
+            {
+              "id": "context-bridge-system/trust-scoring",
+              "path": "/ninaivalaigal/specs/context-bridge-system/trust-scoring"
+            },
+            {
+              "id": "core-api-architecture/SPEC-003",
+              "path": "/ninaivalaigal/specs/core-api-architecture/"
+            },
+            {
+              "id": "core-memory-system/archive/spec",
+              "path": "/ninaivalaigal/specs/core-memory-system/archive/spec"
+            },
+            {
+              "id": "core-memory-system/spec",
+              "path": "/ninaivalaigal/specs/core-memory-system/spec"
+            },
+            {
+              "id": "cost-optimization-governance/README",
+              "path": "/ninaivalaigal/specs/cost-optimization-governance/"
+            },
+            {
+              "id": "cross-device-session-continuity/README",
+              "path": "/ninaivalaigal/specs/cross-device-session-continuity/"
+            },
+            {
+              "id": "cross-org-memory-sharing/README",
+              "path": "/ninaivalaigal/specs/cross-org-memory-sharing/"
+            },
+            {
+              "id": "custom-embedding-integration/README",
+              "path": "/ninaivalaigal/specs/custom-embedding-integration/"
+            },
+            {
+              "id": "customer-frontend-rollout/README",
+              "path": "/ninaivalaigal/specs/customer-frontend-rollout/"
+            },
+            {
+              "id": "data-lifecycle-management/archive/ENHANCEMENT",
+              "path": "/ninaivalaigal/specs/data-lifecycle-management/archive/ENHANCEMENT"
+            },
+            {
+              "id": "data-lifecycle-management/archive/spec",
+              "path": "/ninaivalaigal/specs/data-lifecycle-management/archive/spec"
+            },
+            {
+              "id": "data-lifecycle-management/ENHANCEMENT",
+              "path": "/ninaivalaigal/specs/data-lifecycle-management/ENHANCEMENT"
+            },
+            {
+              "id": "data-lifecycle-management/spec",
+              "path": "/ninaivalaigal/specs/data-lifecycle-management/spec"
+            },
+            {
+              "id": "database-management-migration/archive/spec",
+              "path": "/ninaivalaigal/specs/database-management-migration/archive/spec"
+            },
+            {
+              "id": "database-management-migration/spec",
+              "path": "/ninaivalaigal/specs/database-management-migration/spec"
+            },
+            {
+              "id": "dependency-testing-improvements/README",
+              "path": "/ninaivalaigal/specs/dependency-testing-improvements/"
+            },
+            {
+              "id": "development-environment-management/archive/spec",
+              "path": "/ninaivalaigal/specs/development-environment-management/archive/spec"
+            },
+            {
+              "id": "development-environment-management/spec",
+              "path": "/ninaivalaigal/specs/development-environment-management/spec"
+            },
+            {
+              "id": "documentation-expansion/COMPLETION_SUMMARY",
+              "path": "/ninaivalaigal/specs/documentation-expansion/COMPLETION_SUMMARY"
+            },
+            {
+              "id": "documentation-expansion/README",
+              "path": "/ninaivalaigal/specs/documentation-expansion/"
+            },
+            {
+              "id": "e2e-tests-playwright/README",
+              "path": "/ninaivalaigal/specs/e2e-tests-playwright/"
+            },
+            {
+              "id": "enterprise-roadmap/archive/spec",
+              "path": "/ninaivalaigal/specs/enterprise-roadmap/archive/spec"
+            },
+            {
+              "id": "enterprise-roadmap/archive/tasks",
+              "path": "/ninaivalaigal/specs/enterprise-roadmap/archive/tasks"
+            },
+            {
+              "id": "enterprise-roadmap/spec",
+              "path": "/ninaivalaigal/specs/enterprise-roadmap/spec"
+            },
+            {
+              "id": "enterprise-roadmap/tasks",
+              "path": "/ninaivalaigal/specs/enterprise-roadmap/tasks"
+            },
+            {
+              "id": "environment-naming-tagging/README",
+              "path": "/ninaivalaigal/specs/environment-naming-tagging/"
+            },
+            {
+              "id": "external-ai-memory/README",
+              "path": "/ninaivalaigal/specs/external-ai-memory/"
+            },
+            {
+              "id": "feedback-loop-ai-context/README",
+              "path": "/ninaivalaigal/specs/feedback-loop-ai-context/"
+            },
+            {
+              "id": "feedback-loop-system/README",
+              "path": "/ninaivalaigal/specs/feedback-loop-system/"
+            },
+            {
+              "id": "frontend-documentation-monitoring/README",
+              "path": "/ninaivalaigal/specs/frontend-documentation-monitoring/"
+            },
+            {
+              "id": "frontend-linting-formatting/README",
+              "path": "/ninaivalaigal/specs/frontend-linting-formatting/"
+            },
+            {
+              "id": "frontend-migration-preparation/README",
+              "path": "/ninaivalaigal/specs/frontend-migration-preparation/"
+            },
+            {
+              "id": "frontend-quality-enforcement-ci-cd/README",
+              "path": "/ninaivalaigal/specs/frontend-quality-enforcement-ci-cd/"
+            },
+            {
+              "id": "frontend-shared-library/README",
+              "path": "/ninaivalaigal/specs/frontend-shared-library/"
+            },
+            {
+              "id": "gitops-argocd/README",
+              "path": "/ninaivalaigal/specs/gitops-argocd/"
+            },
+            {
+              "id": "gitops-argocd/README.old-20251008",
+              "path": "/ninaivalaigal/specs/gitops-argocd/README.old-20251008"
+            },
+            {
+              "id": "graph-intelligence-architecture/README",
+              "path": "/ninaivalaigal/specs/graph-intelligence-architecture/"
+            },
+            {
+              "id": "graph-reasoner/README",
+              "path": "/ninaivalaigal/specs/graph-reasoner/"
+            },
+            {
+              "id": "graphops-deployment/README",
+              "path": "/ninaivalaigal/specs/graphops-deployment/"
+            },
+            {
+              "id": "image-backup-disaster-recovery/README",
+              "path": "/ninaivalaigal/specs/image-backup-disaster-recovery/"
+            },
+            {
+              "id": "infrastructure-as-code/archive/spec",
+              "path": "/ninaivalaigal/specs/infrastructure-as-code/archive/spec"
+            },
+            {
+              "id": "infrastructure-as-code/spec",
+              "path": "/ninaivalaigal/specs/infrastructure-as-code/spec"
+            },
+            {
+              "id": "ingress-gateway-tls/README",
+              "path": "/ninaivalaigal/specs/ingress-gateway-tls/"
+            },
+            {
+              "id": "intelligent-related-memory/README",
+              "path": "/ninaivalaigal/specs/intelligent-related-memory/"
+            },
+            {
+              "id": "internal-frontend-migration/README",
+              "path": "/ninaivalaigal/specs/internal-frontend-migration/"
+            },
+            {
+              "id": "invoice-management-system/README",
+              "path": "/ninaivalaigal/specs/invoice-management-system/"
+            },
+            {
+              "id": "kubernetes-deployment-strategy/archive/spec",
+              "path": "/ninaivalaigal/specs/kubernetes-deployment-strategy/archive/spec"
+            },
+            {
+              "id": "kubernetes-deployment-strategy/spec",
+              "path": "/ninaivalaigal/specs/kubernetes-deployment-strategy/spec"
+            },
+            {
+              "id": "memory-access-control-acl/README",
+              "path": "/ninaivalaigal/specs/memory-access-control-acl/"
+            },
+            {
+              "id": "memory-attachments/README",
+              "path": "/ninaivalaigal/specs/memory-attachments/"
+            },
+            {
+              "id": "memory-graph-state-reconciliation/README",
+              "path": "/ninaivalaigal/specs/memory-graph-state-reconciliation/"
+            },
+            {
+              "id": "memory-health-orphaned-tokens/README",
+              "path": "/ninaivalaigal/specs/memory-health-orphaned-tokens/"
+            },
+            {
+              "id": "memory-injection-rules/README",
+              "path": "/ninaivalaigal/specs/memory-injection-rules/"
+            },
+            {
+              "id": "memory-intent-classifier/README",
+              "path": "/ninaivalaigal/specs/memory-intent-classifier/"
+            },
+            {
+              "id": "memory-provider-architecture/archive/spec",
+              "path": "/ninaivalaigal/specs/memory-provider-architecture/archive/spec"
+            },
+            {
+              "id": "memory-provider-architecture/COMPLETION_SUMMARY",
+              "path": "/ninaivalaigal/specs/memory-provider-architecture/COMPLETION_SUMMARY"
+            },
+            {
+              "id": "memory-provider-architecture/spec",
+              "path": "/ninaivalaigal/specs/memory-provider-architecture/spec"
+            },
+            {
+              "id": "memory-relevance-ranking/archive/SPEC-031-memory-relevance-ranking",
+              "path": "/ninaivalaigal/specs/memory-relevance-ranking/archive/SPEC-031-memory-relevance-ranking"
+            },
+            {
+              "id": "memory-relevance-ranking/SPEC-031-memory-relevance-ranking",
+              "path": "/ninaivalaigal/specs/memory-relevance-ranking/SPEC-031-memory-relevance-ranking"
+            },
+            {
+              "id": "memory-sharing-collaboration/README",
+              "path": "/ninaivalaigal/specs/memory-sharing-collaboration/"
+            },
+            {
+              "id": "memory-sharing-collaboration/visibility-sharing/README",
+              "path": "/ninaivalaigal/specs/memory-sharing-collaboration/visibility-sharing/"
+            },
+            {
+              "id": "memory-sharing/spec-101-memory-sharing",
+              "path": "/ninaivalaigal/specs/specs/101-memory-sharing"
+            },
+            {
+              "id": "memory-sharing/spec-128-memory-sharing",
+              "path": "/ninaivalaigal/specs/specs/128-memory-sharing"
+            },
+            {
+              "id": "memory-snapshot-versioning/drift-detection/README",
+              "path": "/ninaivalaigal/specs/memory-snapshot-versioning/drift-detection/"
+            },
+            {
+              "id": "memory-snapshot-versioning/export-import/README",
+              "path": "/ninaivalaigal/specs/memory-snapshot-versioning/export-import/"
+            },
+            {
+              "id": "memory-snapshot-versioning/offline-capture/README",
+              "path": "/ninaivalaigal/specs/memory-snapshot-versioning/offline-capture/"
+            },
+            {
+              "id": "memory-snapshot-versioning/README",
+              "path": "/ninaivalaigal/specs/memory-snapshot-versioning/"
+            },
+            {
+              "id": "memory-substrate/acceptance",
+              "path": "/ninaivalaigal/specs/memory-substrate/acceptance"
+            },
+            {
+              "id": "memory-substrate/archive/acceptance",
+              "path": "/ninaivalaigal/specs/memory-substrate/archive/acceptance"
+            },
+            {
+              "id": "memory-substrate/archive/spec",
+              "path": "/ninaivalaigal/specs/memory-substrate/archive/spec"
+            },
+            {
+              "id": "memory-substrate/COMPLETION_SUMMARY",
+              "path": "/ninaivalaigal/specs/memory-substrate/COMPLETION_SUMMARY"
+            },
+            {
+              "id": "memory-substrate/README",
+              "path": "/ninaivalaigal/specs/memory-substrate/"
+            },
+            {
+              "id": "memory-substrate/spec",
+              "path": "/ninaivalaigal/specs/memory-substrate/spec"
+            },
+            {
+              "id": "memory-sync-users-teams/README",
+              "path": "/ninaivalaigal/specs/memory-sync-users-teams/"
+            },
+            {
+              "id": "memory-tags-search-labels/README",
+              "path": "/ninaivalaigal/specs/memory-tags-search-labels/"
+            },
+            {
+              "id": "memory-token-preloading/ai-middleware-integration",
+              "path": "/ninaivalaigal/specs/memory-token-preloading/ai-middleware-integration"
+            },
+            {
+              "id": "memory-token-preloading/archive/SPEC-038-memory-preloading",
+              "path": "/ninaivalaigal/specs/memory-token-preloading/archive/SPEC-038-memory-preloading"
+            },
+            {
+              "id": "memory-token-preloading/README",
+              "path": "/ninaivalaigal/specs/memory-token-preloading/"
+            },
+            {
+              "id": "memory-token-preloading/SPEC-038-memory-preloading",
+              "path": "/ninaivalaigal/specs/memory-token-preloading/SPEC-038-memory-preloading"
+            },
+            {
+              "id": "microservice-config-architecture/README",
+              "path": "/ninaivalaigal/specs/microservice-config-architecture/"
+            },
+            {
+              "id": "middleware-resilience-follow-up/README",
+              "path": "/ninaivalaigal/specs/middleware-resilience-follow-up/"
+            },
+            {
+              "id": "ml-model-training-pipeline/README",
+              "path": "/ninaivalaigal/specs/ml-model-training-pipeline/"
+            },
+            {
+              "id": "multi-architecture-container-strategy/archive/spec",
+              "path": "/ninaivalaigal/specs/multi-architecture-container-strategy/archive/spec"
+            },
+            {
+              "id": "multi-architecture-container-strategy/spec",
+              "path": "/ninaivalaigal/specs/multi-architecture-container-strategy/spec"
+            },
+            {
+              "id": "multi-runtime-port-allocation/README",
+              "path": "/ninaivalaigal/specs/multi-runtime-port-allocation/"
+            },
+            {
+              "id": "multi-user-authentication/archive/spec",
+              "path": "/ninaivalaigal/specs/multi-user-authentication/archive/spec"
+            },
+            {
+              "id": "multi-user-authentication/spec",
+              "path": "/ninaivalaigal/specs/multi-user-authentication/spec"
+            },
+            {
+              "id": "multimodal-memory-capture/README",
+              "path": "/ninaivalaigal/specs/multimodal-memory-capture/"
+            },
+            {
+              "id": "narrative-analytics-layer/api-contracts",
+              "path": "/ninaivalaigal/specs/narrative-analytics-layer/api-contracts"
+            },
+            {
+              "id": "narrative-analytics-layer/architecture",
+              "path": "/ninaivalaigal/specs/narrative-analytics-layer/architecture"
+            },
+            {
+              "id": "narrative-analytics-layer/caching",
+              "path": "/ninaivalaigal/specs/narrative-analytics-layer/caching"
+            },
+            {
+              "id": "narrative-analytics-layer/data-model",
+              "path": "/ninaivalaigal/specs/narrative-analytics-layer/data-model"
+            },
+            {
+              "id": "narrative-analytics-layer/database-migrations",
+              "path": "/ninaivalaigal/specs/narrative-analytics-layer/database-migrations"
+            },
+            {
+              "id": "narrative-analytics-layer/implementation-plan",
+              "path": "/ninaivalaigal/specs/narrative-analytics-layer/implementation-plan"
+            },
+            {
+              "id": "narrative-analytics-layer/queries",
+              "path": "/ninaivalaigal/specs/narrative-analytics-layer/queries"
+            },
+            {
+              "id": "narrative-analytics-layer/README",
+              "path": "/ninaivalaigal/specs/narrative-analytics-layer/"
+            },
+            {
+              "id": "narrative-memory-macros/README",
+              "path": "/ninaivalaigal/specs/narrative-memory-macros/"
+            },
+            {
+              "id": "nextjs-15-bootstrap/COMPLETION_SUMMARY",
+              "path": "/ninaivalaigal/specs/nextjs-15-bootstrap/COMPLETION_SUMMARY"
+            },
+            {
+              "id": "nextjs-15-bootstrap/PHASE_A_COMPLETE",
+              "path": "/ninaivalaigal/specs/nextjs-15-bootstrap/PHASE_A_COMPLETE"
+            },
+            {
+              "id": "nextjs-15-bootstrap/QUICKSTART_README",
+              "path": "/ninaivalaigal/specs/nextjs-15-bootstrap/QUICKSTART_README"
+            },
+            {
+              "id": "nextjs-15-bootstrap/README",
+              "path": "/ninaivalaigal/specs/nextjs-15-bootstrap/"
+            },
+            {
+              "id": "nina-intelligence-stack/README",
+              "path": "/ninaivalaigal/specs/nina-intelligence-stack/"
+            },
+            {
+              "id": "observability-and-telemetry/acceptance",
+              "path": "/ninaivalaigal/specs/observability-and-telemetry/acceptance"
+            },
+            {
+              "id": "observability-and-telemetry/archive/acceptance",
+              "path": "/ninaivalaigal/specs/observability-and-telemetry/archive/acceptance"
+            },
+            {
+              "id": "observability-and-telemetry/archive/spec",
+              "path": "/ninaivalaigal/specs/observability-and-telemetry/archive/spec"
+            },
+            {
+              "id": "observability-and-telemetry/spec",
+              "path": "/ninaivalaigal/specs/observability-and-telemetry/spec"
+            },
+            {
+              "id": "observability-performance-budgets/README",
+              "path": "/ninaivalaigal/specs/observability-performance-budgets/"
+            },
+            {
+              "id": "performance-optimization-suite/README",
+              "path": "/ninaivalaigal/specs/performance-optimization-suite/"
+            },
+            {
+              "id": "personalization-engine/README",
+              "path": "/ninaivalaigal/specs/personalization-engine/"
+            },
+            {
+              "id": "platform-stability-developer-experience/README",
+              "path": "/ninaivalaigal/specs/platform-stability-developer-experience/"
+            },
+            {
+              "id": "post-migration-quality-verification/README",
+              "path": "/ninaivalaigal/specs/post-migration-quality-verification/"
+            },
+            {
+              "id": "proactive-memory-alert-layer/README",
+              "path": "/ninaivalaigal/specs/proactive-memory-alert-layer/"
+            },
+            {
+              "id": "procedural-macro-system/README",
+              "path": "/ninaivalaigal/specs/procedural-macro-system/"
+            },
+            {
+              "id": "product-surface-split-and-naming/README",
+              "path": "/ninaivalaigal/specs/product-surface-split-and-naming/"
+            },
+            {
+              "id": "profile-settings-pages/README",
+              "path": "/ninaivalaigal/specs/profile-settings-pages/"
+            },
+            {
+              "id": "prometheus-grafana-monitoring/README",
+              "path": "/ninaivalaigal/specs/prometheus-grafana-monitoring/"
+            },
+            {
+              "id": "prometheus-grafana-monitoring/README.loose-20251008",
+              "path": "/ninaivalaigal/specs/prometheus-grafana-monitoring/README.loose-20251008"
+            },
+            {
+              "id": "property-graph-memory-model/archive/SPEC-060-apache-age-deployment",
+              "path": "/ninaivalaigal/specs/property-graph-memory-model/archive/SPEC-060-apache-age-deployment"
+            },
+            {
+              "id": "property-graph-memory-model/archive/SPEC-061-property-graph-intelligence",
+              "path": "/ninaivalaigal/specs/property-graph-memory-model/archive/SPEC-061-property-graph-intelligence"
+            },
+            {
+              "id": "property-graph-memory-model/README",
+              "path": "/ninaivalaigal/specs/property-graph-memory-model/"
+            },
+            {
+              "id": "property-graph-memory-model/SPEC-060-apache-age-deployment",
+              "path": "/ninaivalaigal/specs/property-graph-memory-model/SPEC-060-apache-age-deployment"
+            },
+            {
+              "id": "property-graph-memory-model/SPEC-061-property-graph-intelligence",
+              "path": "/ninaivalaigal/specs/property-graph-memory-model/SPEC-061-property-graph-intelligence"
+            },
+            {
+              "id": "rbac-policy-enforcement/archive/spec",
+              "path": "/ninaivalaigal/specs/rbac-policy-enforcement/archive/spec"
+            },
+            {
+              "id": "rbac-policy-enforcement/rbac-integration/spec",
+              "path": "/ninaivalaigal/specs/rbac-policy-enforcement/rbac-integration/spec"
+            },
+            {
+              "id": "rbac-policy-enforcement/spec",
+              "path": "/ninaivalaigal/specs/rbac-policy-enforcement/spec"
+            },
+            {
+              "id": "real-time-monitoring-dashboard/README",
+              "path": "/ninaivalaigal/specs/real-time-monitoring-dashboard/"
+            },
+            {
+              "id": "realtime-features/README",
+              "path": "/ninaivalaigal/specs/realtime-features/"
+            },
+            {
+              "id": "redis-integration/README",
+              "path": "/ninaivalaigal/specs/redis-integration/"
+            },
+            {
+              "id": "regression-prevention-and-stability/README",
+              "path": "/ninaivalaigal/specs/regression-prevention-and-stability/"
+            },
+            {
+              "id": "release-workflow-ghcr/README",
+              "path": "/ninaivalaigal/specs/release-workflow-ghcr/"
+            },
+            {
+              "id": "secret-management-environment-hygiene/README",
+              "path": "/ninaivalaigal/specs/secret-management-environment-hygiene/"
+            },
+            {
+              "id": "security-middleware-redaction/archive/spec",
+              "path": "/ninaivalaigal/specs/security-middleware-redaction/archive/spec"
+            },
+            {
+              "id": "security-middleware-redaction/spec",
+              "path": "/ninaivalaigal/specs/security-middleware-redaction/spec"
+            },
+            {
+              "id": "session-timeout-token-expiry/archive/SPEC-045-intelligent-session-management",
+              "path": "/ninaivalaigal/specs/session-timeout-token-expiry/archive/SPEC-045-intelligent-session-management"
+            },
+            {
+              "id": "session-timeout-token-expiry/README",
+              "path": "/ninaivalaigal/specs/session-timeout-token-expiry/"
+            },
+            {
+              "id": "session-timeout-token-expiry/SPEC-045-intelligent-session-management",
+              "path": "/ninaivalaigal/specs/session-timeout-token-expiry/SPEC-045-intelligent-session-management"
+            },
+            {
+              "id": "SPEC_AUDIT_RECONCILIATION",
+              "path": "/ninaivalaigal/specs/SPEC_AUDIT_RECONCILIATION"
+            },
+            {
+              "id": "SPEC_HEALTH_REPORT",
+              "path": "/ninaivalaigal/specs/SPEC_HEALTH_REPORT"
+            },
+            {
+              "id": "SPEC_RENUMBER_COMPLETE_20251013",
+              "path": "/ninaivalaigal/specs/SPEC_RENUMBER_COMPLETE_20251013"
+            },
+            {
+              "id": "spec-governance/README",
+              "path": "/ninaivalaigal/specs/spec-governance/"
+            },
+            {
+              "id": "staff-management/README",
+              "path": "/ninaivalaigal/specs/staff-management/"
+            },
+            {
+              "id": "standalone-team-accounts/README",
+              "path": "/ninaivalaigal/specs/standalone-team-accounts/"
+            },
+            {
+              "id": "standalone-teams-billing/README",
+              "path": "/ninaivalaigal/specs/standalone-teams-billing/"
+            },
+            {
+              "id": "team-collaboration/archive/spec",
+              "path": "/ninaivalaigal/specs/team-collaboration/archive/spec"
+            },
+            {
+              "id": "team-collaboration/archive/tasks",
+              "path": "/ninaivalaigal/specs/team-collaboration/archive/tasks"
+            },
+            {
+              "id": "team-collaboration/spec",
+              "path": "/ninaivalaigal/specs/team-collaboration/spec"
+            },
+            {
+              "id": "team-collaboration/team-organization/spec",
+              "path": "/ninaivalaigal/specs/team-collaboration/team-organization/spec"
+            },
+            {
+              "id": "team-collaboration/team-organization/tasks",
+              "path": "/ninaivalaigal/specs/team-collaboration/team-organization/tasks"
+            },
+            {
+              "id": "terminal-cli-auto-context/README",
+              "path": "/ninaivalaigal/specs/terminal-cli-auto-context/"
+            },
+            {
+              "id": "terminal-cli-auto-context/vs-code-integration/spec",
+              "path": "/ninaivalaigal/specs/terminal-cli-auto-context/vs-code-integration/spec"
+            },
+            {
+              "id": "trust-score-system/README",
+              "path": "/ninaivalaigal/specs/trust-score-system/"
+            },
+            {
+              "id": "unified-context-scope-system/archive/spec",
+              "path": "/ninaivalaigal/specs/unified-context-scope-system/archive/spec"
+            },
+            {
+              "id": "unified-context-scope-system/archive/tasks",
+              "path": "/ninaivalaigal/specs/unified-context-scope-system/archive/tasks"
+            },
+            {
+              "id": "unified-context-scope-system/COMPLETION_SUMMARY",
+              "path": "/ninaivalaigal/specs/unified-context-scope-system/COMPLETION_SUMMARY"
+            },
+            {
+              "id": "unified-context-scope-system/spec",
+              "path": "/ninaivalaigal/specs/unified-context-scope-system/spec"
+            },
+            {
+              "id": "unified-context-scope-system/tasks",
+              "path": "/ninaivalaigal/specs/unified-context-scope-system/tasks"
+            },
+            {
+              "id": "unified-frontend-architecture/ADDENDUM",
+              "path": "/ninaivalaigal/specs/unified-frontend-architecture/ADDENDUM"
+            },
+            {
+              "id": "unified-frontend-architecture/README",
+              "path": "/ninaivalaigal/specs/unified-frontend-architecture/"
+            },
+            {
+              "id": "unified-macro-intelligence/README",
+              "path": "/ninaivalaigal/specs/unified-macro-intelligence/"
+            },
+            {
+              "id": "unified-runtime-parity/README",
+              "path": "/ninaivalaigal/specs/unified-runtime-parity/"
+            },
+            {
+              "id": "unified-workspace-cicd/README",
+              "path": "/ninaivalaigal/specs/unified-workspace-cicd/"
+            },
+            {
+              "id": "universal-ai-integration/plan",
+              "path": "/ninaivalaigal/specs/universal-ai-integration/plan"
+            },
+            {
+              "id": "universal-ai-integration/spec",
+              "path": "/ninaivalaigal/specs/universal-ai-integration/spec"
+            },
+            {
+              "id": "universal-ai-integration/tasks",
+              "path": "/ninaivalaigal/specs/universal-ai-integration/tasks"
+            },
+            {
+              "id": "usage-analytics-reporting/README",
+              "path": "/ninaivalaigal/specs/usage-analytics-reporting/"
+            },
+            {
+              "id": "user-management/README",
+              "path": "/ninaivalaigal/specs/user-management/"
+            },
+            {
+              "id": "user-signup-system/spec",
+              "path": "/ninaivalaigal/specs/user-signup-system/spec"
+            },
+            {
+              "id": "vendor-admin-console/README",
+              "path": "/ninaivalaigal/specs/vendor-admin-console/"
+            },
+            {
+              "id": "vision-and-scope/SPEC-000",
+              "path": "/ninaivalaigal/specs/vision-and-scope/"
+            },
+            {
+              "id": "visual-narrative-layer/README",
+              "path": "/ninaivalaigal/specs/visual-narrative-layer/"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "specSidebar": {}
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

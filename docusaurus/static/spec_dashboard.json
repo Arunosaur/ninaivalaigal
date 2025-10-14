@@ -1,0 +1,768 @@
+{
+  "generated_at": "2025-10-13T19:18:48.596950",
+  "project": "ninaivalaigal",
+  "spec_count": 66,
+  "summary": {
+    "phase_completion": {
+      "AI": {
+        "total": 1,
+        "complete": 1,
+        "percent_complete": 100.0
+      },
+      "Unspecified": {
+        "total": 61,
+        "complete": 0,
+        "percent_complete": 0.0
+      },
+      "Infrastructure": {
+        "total": 2,
+        "complete": 2,
+        "percent_complete": 100.0
+      },
+      "Foundation": {
+        "total": 1,
+        "complete": 1,
+        "percent_complete": 100.0
+      },
+      "Testing": {
+        "total": 1,
+        "complete": 1,
+        "percent_complete": 100.0
+      }
+    },
+    "by_status": {
+      "Complete": 5,
+      "Implemented": 1,
+      "Unknown": 59,
+      "\u2705 COMPLETE": 1
+    },
+    "by_owner": {
+      "developer-b": 2,
+      "Arun Rajagopalan": 1,
+      "unassigned": 60,
+      "medhasys": 3
+    },
+    "latest_updates": [
+      {
+        "id": "SPEC-127",
+        "updated": "2025-10-13T00:00:00",
+        "title": "Context Bridge & Memory Federation System"
+      },
+      {
+        "id": "SPEC-000",
+        "updated": "2025-10-13T00:00:00",
+        "title": "Vision & Scope"
+      },
+      {
+        "id": "SPEC-088",
+        "updated": "2025-10-13T00:00:00",
+        "title": "API Versioning Strategy"
+      },
+      {
+        "id": "SPEC-003",
+        "updated": "2025-10-12T00:00:00",
+        "title": "Core API Architecture"
+      },
+      {
+        "id": "SPEC-084",
+        "updated": "2025-10-12T00:00:00",
+        "title": "Agentic UI Testing Framework"
+      },
+      {
+        "id": "062-graphops-deployment",
+        "updated": "2025-09-21T00:00:00",
+        "title": "SPEC-062: GraphOps Stack Deployment Architecture"
+      }
+    ]
+  },
+  "timeline": [
+    {
+      "date": "2025-09-21T00:00:00",
+      "id": "062-graphops-deployment",
+      "phase": "Unspecified",
+      "status": "Implemented",
+      "title": "SPEC-062: GraphOps Stack Deployment Architecture"
+    },
+    {
+      "date": "2025-10-12T00:00:00",
+      "id": "SPEC-003",
+      "phase": "Infrastructure",
+      "status": "Complete",
+      "title": "Core API Architecture"
+    },
+    {
+      "date": "2025-10-12T00:00:00",
+      "id": "SPEC-084",
+      "phase": "Testing",
+      "status": "Complete",
+      "title": "Agentic UI Testing Framework"
+    },
+    {
+      "date": "2025-10-13T00:00:00",
+      "id": "SPEC-127",
+      "phase": "AI",
+      "status": "Complete",
+      "title": "Context Bridge & Memory Federation System"
+    },
+    {
+      "date": "2025-10-13T00:00:00",
+      "id": "SPEC-000",
+      "phase": "Foundation",
+      "status": "Complete",
+      "title": "Vision & Scope"
+    },
+    {
+      "date": "2025-10-13T00:00:00",
+      "id": "SPEC-088",
+      "phase": "Infrastructure",
+      "status": "Complete",
+      "title": "API Versioning Strategy"
+    }
+  ],
+  "gantt": [
+    {
+      "id": "SPEC-127",
+      "title": "Context Bridge & Memory Federation System",
+      "phase": "AI",
+      "status": "Complete",
+      "start": "2025-10-01T00:00:00",
+      "end": "2025-10-13T00:00:00"
+    },
+    {
+      "id": "062-graphops-deployment",
+      "title": "SPEC-062: GraphOps Stack Deployment Architecture",
+      "phase": "Unspecified",
+      "status": "Implemented",
+      "start": "2025-09-06T00:00:00",
+      "end": "2025-09-21T00:00:00"
+    },
+    {
+      "id": "SPEC-003",
+      "title": "Core API Architecture",
+      "phase": "Infrastructure",
+      "status": "Complete",
+      "start": "2025-08-15T00:00:00",
+      "end": "2025-10-12T00:00:00"
+    },
+    {
+      "id": "SPEC-000",
+      "title": "Vision & Scope",
+      "phase": "Foundation",
+      "status": "Complete",
+      "start": "2025-08-01T00:00:00",
+      "end": "2025-10-13T00:00:00"
+    },
+    {
+      "id": "SPEC-088",
+      "title": "API Versioning Strategy",
+      "phase": "Infrastructure",
+      "status": "Complete",
+      "start": "2025-10-08T00:00:00",
+      "end": "2025-10-13T00:00:00"
+    },
+    {
+      "id": "SPEC-084",
+      "title": "Agentic UI Testing Framework",
+      "phase": "Testing",
+      "status": "Complete",
+      "start": "2025-09-25T00:00:00",
+      "end": "2025-10-12T00:00:00"
+    }
+  ],
+  "specs": [
+    {
+      "id": "SPEC-127",
+      "title": "Context Bridge & Memory Federation System",
+      "phase": "AI",
+      "status": "Complete",
+      "owner": "developer-b",
+      "updated": "2025-10-13T00:00:00",
+      "start": "2025-10-01T00:00:00"
+    },
+    {
+      "id": "062-graphops-deployment",
+      "title": "SPEC-062: GraphOps Stack Deployment Architecture",
+      "phase": "Unspecified",
+      "status": "Implemented",
+      "owner": "Arun Rajagopalan",
+      "updated": "2025-09-21T00:00:00",
+      "start": "2025-09-06T00:00:00"
+    },
+    {
+      "id": "spec-099-approval-chain-processing",
+      "title": "Untitled",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "spec-101-memory-sharing",
+      "title": "Untitled",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "022-prometheus-grafana-monitoring",
+      "title": "SPEC-022: Kubernetes Monitoring with Prometheus + Grafana",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "075-unified-frontend-architecture",
+      "title": "SPEC-075: Unified Frontend Architecture",
+      "phase": "Unspecified",
+      "status": "\u2705 COMPLETE",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "058-documentation-expansion",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "SPEC-003",
+      "title": "Core API Architecture",
+      "phase": "Infrastructure",
+      "status": "Complete",
+      "owner": "medhasys",
+      "updated": "2025-10-12T00:00:00",
+      "start": "2025-08-15T00:00:00"
+    },
+    {
+      "id": "071-auto-healing-health-system",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "046-procedural-macro-system",
+      "title": "SPEC-046: Procedural Macro System",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "048-memory-intent-classifier",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "049-memory-sharing-collaboration",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "visibility-sharing",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "050-cross-org-memory-sharing",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "027-billing-engine-integration",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "063-agentic-core-execution",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "044-cross-device-session-continuity",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "043-memory-access-control-acl",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "078-spec-governance",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "119-automated-slo-enforcement",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "001-user-management",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "041-intelligent-related-memory",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "028-invoice-management-system",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "023-centralized-secrets-management",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "109-environment-naming-tagging",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "spec-087-api-surface-contracts",
+      "title": "Untitled",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "072-apple-container-cli-integration",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "130-terminal-cli-auto-context",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "091-agent-to-agent-context-propagation",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "SPEC-000",
+      "title": "Vision & Scope",
+      "phase": "Foundation",
+      "status": "Complete",
+      "owner": "medhasys",
+      "updated": "2025-10-13T00:00:00",
+      "start": "2025-08-01T00:00:00"
+    },
+    {
+      "id": "097-feedback-loop-ai-context",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "spec-100-api-surface-contracts",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "065-advanced-security-compliance",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "059-unified-macro-intelligence",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "069-performance-optimization-suite",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "095-memory-graph-state-reconciliation",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "036-memory-injection-rules",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "081-proactive-memory-alert-layer",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "030-admin-analytics-console",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "093-container-build-recovery-apple-cli-integration",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "068-comprehensive-ui-suite",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "060-property-graph-memory-model",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "PHASE_SUMMARIES",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "024-ingress-gateway-tls",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "054-secret-management-environment-hygiene",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "120-cost-optimization-governance",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "055-codebase-refactor-modularization",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "SPEC-088",
+      "title": "API Versioning Strategy",
+      "phase": "Infrastructure",
+      "status": "Complete",
+      "owner": "developer-b",
+      "updated": "2025-10-13T00:00:00",
+      "start": "2025-10-08T00:00:00"
+    },
+    {
+      "id": "SPEC-084",
+      "title": "Agentic UI Testing Framework",
+      "phase": "Testing",
+      "status": "Complete",
+      "owner": "medhasys",
+      "updated": "2025-10-12T00:00:00",
+      "start": "2025-09-25T00:00:00"
+    },
+    {
+      "id": "056-dependency-testing-improvements",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "035-memory-snapshot-versioning",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "drift-detection",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "export-import",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "offline-capture",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "098-memory-health-orphaned-tokens",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "spec-128-memory-sharing",
+      "title": "Untitled",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "021-gitops-argocd",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "076-visual-narrative-layer",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "034-memory-tags-search-labels",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "039-custom-embedding-integration",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "spec-090-approval-chain-processing",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "110-release-workflow-ghcr",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "092-middleware-resilience-follow-up",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "040-feedback-loop-system",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "080-trust-score-system",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    },
+    {
+      "id": "047-narrative-memory-macros",
+      "title": "Untitled SPEC",
+      "phase": "Unspecified",
+      "status": "Unknown",
+      "owner": "unassigned",
+      "updated": null,
+      "start": null
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "unified-frontend-architecture/README",
+  "title": "SPEC-075: Unified Frontend Architecture",
+  "description": "Priority: High",
+  "source": "@site/../specs/075-unified-frontend-architecture/README.md",
+  "sourceDirName": "075-unified-frontend-architecture",
+  "slug": "/unified-frontend-architecture/",
+  "permalink": "/ninaivalaigal/specs/unified-frontend-architecture/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/075-unified-frontend-architecture/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {
+    "status": "✅ COMPLETE",
+    "title": "SPEC-075: Unified Frontend Architecture"
+  }
+}

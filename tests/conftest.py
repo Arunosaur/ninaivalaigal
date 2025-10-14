@@ -9,34 +9,74 @@
 """Test configuration and fixtures."""
 
 import asyncio
+import os
 import time
-from typing import AsyncGenerator, Generator
+from typing import AsyncGenerator, Dict, Generator
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+
+# Optional imports for integration tests
+try:
+    from fastapi.testclient import TestClient
+except ImportError:
+    TestClient = None
+
+try:
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool import StaticPool
+except ImportError:
+    create_engine = None
+    sessionmaker = None
+    StaticPool = None
 
 # Import SPEC-056 fixtures
 try:
     from .fixtures import *
 except ImportError:
     # Fallback for when running from different contexts
-    import os
     import sys
 
     sys.path.append(os.path.dirname(__file__))
     from fixtures import *
 
-# Test database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# ========================================
+# CENTRALIZED TEST CONFIGURATION
+# Single source of truth for API endpoints
+# ========================================
+
+@pytest.fixture(scope="session")
+def api_config() -> Dict:
+    """
+    Centralized API configuration for all tests.
+    
+    Uses environment variables with sensible defaults:
+    - TEST_API_BASE_URL: Backend API URL (default: http://localhost:13390)
+    - TEST_API_TIMEOUT: Request timeout in seconds (default: 30)
+    - TEST_CONCURRENT_LIMIT: Max concurrent requests (default: 50)
+    """
+    return {
+        "base_url": os.getenv("TEST_API_BASE_URL", "http://localhost:13390"),
+        "concurrent_limit": int(os.getenv("TEST_CONCURRENT_LIMIT", "50")),
+        "test_timeout": int(os.getenv("TEST_API_TIMEOUT", "30")),
+        "rate_limit_threshold": 100,
+        "session_timeout_minutes": 30,
+    }
+
+
+# Test database setup (only if SQLAlchemy available)
+if create_engine is not None:
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+else:
+    engine = None
+    TestingSessionLocal = None
 
 
 @pytest.fixture(scope="session")
@@ -50,6 +90,9 @@ def event_loop() -> Generator:
 @pytest.fixture
 def db_session():
     """Create a test database session."""
+    if engine is None:
+        pytest.skip("SQLAlchemy not available")
+    
     connection = engine.connect()
     transaction = connection.begin()
     session = TestingSessionLocal(bind=connection)
@@ -64,6 +107,9 @@ def db_session():
 @pytest.fixture
 def client(db_session):
     """Create a test client."""
+    if TestClient is None:
+        pytest.skip("FastAPI not available")
+    
     from server.database import get_db
     from server.main import app
 

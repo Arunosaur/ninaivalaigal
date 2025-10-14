@@ -103,15 +103,8 @@ class TestAgenticCore:
     def test_agent_lifecycle_management(self, mock_agent_runtime, sample_agent_definitions):
         """Test SPEC-063: Agent lifecycle management"""
 
-        # Test agent lifecycle states
-        _lifecycle_states = [
-            "created",
-            "initialized",
-            "active",
-            "paused",
-            "stopped",
-            "error",
-        ]
+        # Test agent lifecycle states (not currently used)
+        # lifecycle_states = ["created", "initialized", "active", "paused", "stopped", "error"]
 
         for agent in sample_agent_definitions:
             # Test agent creation

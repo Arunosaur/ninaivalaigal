@@ -1,0 +1,17 @@
+{
+  "id": "team-collaboration/archive/tasks",
+  "title": "Tasks for Spec 008: Team and Organization Ownership Management",
+  "description": "Phase 1: Database Schema Updates ⚡ HIGH PRIORITY",
+  "source": "@site/../specs/004-team-collaboration/archive/tasks.md",
+  "sourceDirName": "004-team-collaboration/archive",
+  "slug": "/team-collaboration/archive/tasks",
+  "permalink": "/ninaivalaigal/specs/team-collaboration/archive/tasks",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/004-team-collaboration/archive/tasks.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

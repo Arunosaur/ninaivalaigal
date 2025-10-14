@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-060: Apache AGE Property Graph Memory Model
 
 ## Summary

@@ -1,0 +1,17 @@
+{
+  "id": "api-versioning-strategy/format",
+  "title": "API Versioning Format",
+  "description": "URL Versioning",
+  "source": "@site/../specs/088-api-versioning-strategy/format.md",
+  "sourceDirName": "088-api-versioning-strategy",
+  "slug": "/api-versioning-strategy/format",
+  "permalink": "/ninaivalaigal/specs/api-versioning-strategy/format",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/088-api-versioning-strategy/format.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

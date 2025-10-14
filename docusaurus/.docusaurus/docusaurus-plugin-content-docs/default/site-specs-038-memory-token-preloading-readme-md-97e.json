@@ -1,0 +1,17 @@
+{
+  "id": "memory-token-preloading/README",
+  "title": "SPEC-038: Memory Token Preloading System + AI Middleware",
+  "description": "Status",
+  "source": "@site/../specs/038-memory-token-preloading/README.md",
+  "sourceDirName": "038-memory-token-preloading",
+  "slug": "/memory-token-preloading/",
+  "permalink": "/ninaivalaigal/specs/memory-token-preloading/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/038-memory-token-preloading/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

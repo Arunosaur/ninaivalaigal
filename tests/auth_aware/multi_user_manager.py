@@ -504,8 +504,8 @@ class MultiUserTestManager:
                     timeout=5.0,
                 )
 
-                # Should be blocked unless admin
-                access_blocked = response.status_code in [403, 404] or user.role != UserRole.ADMIN
+                # Evaluate based on actual response for admins as well to detect isolation issues
+                access_blocked = response.status_code in [403, 404]
 
                 return {
                     "access_blocked": access_blocked,

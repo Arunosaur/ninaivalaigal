@@ -1,3 +1,7 @@
+---
+title: Untitled SPEC
+---
+
 # Phase Summaries & Implementation Reports
 
 This directory contains high-level summaries and completion reports for multi-SPEC implementation phases.

@@ -344,12 +344,8 @@ class TestBillingIntegration(TestTeamWorkflowsE2E):
         team_id = team_data["team"]["id"]
         jwt_token = team_data["user"]["jwt_token"]
 
-        # Simulate subscription creation
-        _billing_data = {
-            "plan": "team_pro",
-            "payment_method_id": "pm_test123",
-            "billing_email": "billing@company.com",
-        }
+        # Simulate subscription creation (will be implemented in SPEC-026)
+        # billing_data = {"plan": "team_pro", "payment_method_id": "pm_test123", "billing_email": "billing@company.com"}
 
         # This would be implemented in SPEC-026 billing API
         # For now, test the upgrade path that leads to billing

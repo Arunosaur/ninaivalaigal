@@ -1,0 +1,17 @@
+{
+  "id": "cross-device-session-continuity/README",
+  "title": "SPEC-044: Cross-Device Memory Session Continuity",
+  "description": "📌 Overview",
+  "source": "@site/docs/specs/044-cross-device-session-continuity/README.md",
+  "sourceDirName": "044-cross-device-session-continuity",
+  "slug": "/cross-device-session-continuity/",
+  "permalink": "/ninaivalaigal/specs/cross-device-session-continuity/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/044-cross-device-session-continuity/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

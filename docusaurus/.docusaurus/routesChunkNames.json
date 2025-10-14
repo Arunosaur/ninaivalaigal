@@ -1,0 +1,1063 @@
+{
+  "/ninaivalaigal/__docusaurus/debug-988": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-docusaurus-debugb-38-9e7"
+    }
+  },
+  "/ninaivalaigal/__docusaurus/debug/config-86e": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-docusaurus-debugb-38-9e7"
+    }
+  },
+  "/ninaivalaigal/__docusaurus/debug/content-b9c": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-docusaurus-debugb-38-9e7"
+    },
+    "__props": "__props---ninaivalaigal-docusaurus-debug-content-3-c-3-be7"
+  },
+  "/ninaivalaigal/__docusaurus/debug/globalData-f09": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-docusaurus-debugb-38-9e7"
+    }
+  },
+  "/ninaivalaigal/__docusaurus/debug/metadata-dcf": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-docusaurus-debugb-38-9e7"
+    }
+  },
+  "/ninaivalaigal/__docusaurus/debug/registry-57f": {
+    "__comp": "__comp---theme-debug-registry-679-501",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-docusaurus-debugb-38-9e7"
+    }
+  },
+  "/ninaivalaigal/__docusaurus/debug/routes-79b": {
+    "__comp": "__comp---theme-debug-routes-946-699",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-docusaurus-debugb-38-9e7"
+    }
+  },
+  "/ninaivalaigal/dashboard-7f6": {
+    "__comp": "__comp---site-src-pages-dashboard-jsde-3-f66",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-dashboarda-74-902"
+    },
+    "config": "config---ninaivalaigal-dashboard-5-e-9-bc8"
+  },
+  "/ninaivalaigal/timeline-677": {
+    "__comp": "__comp---site-src-pages-timeline-js-9-a-4-39e",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-dashboarda-74-902"
+    },
+    "config": "config---ninaivalaigal-dashboard-5-e-9-bc8"
+  },
+  "/ninaivalaigal/timeline-gantt-237": {
+    "__comp": "__comp---site-src-pages-timeline-gantt-jsab-1-f60",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-dashboarda-74-902"
+    },
+    "config": "config---ninaivalaigal-dashboard-5-e-9-bc8"
+  },
+  "/ninaivalaigal/specs-671": {
+    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
+    "__context": {
+      "plugin": "plugin---ninaivalaigal-specsaba-9f0"
+    }
+  },
+  "/ninaivalaigal/specs-eff": {
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---ninaivalaigal-specs-253-3bf"
+  },
+  "/ninaivalaigal/specs/tags-93a": {
+    "__comp": "__comp---theme-doc-tags-list-page-372-89e",
+    "__props": "__props---ninaivalaigal-specs-tags-0-df-9bd"
+  },
+  "/ninaivalaigal/specs/tags/ai-d3b": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-ai-541-ed6"
+  },
+  "/ninaivalaigal/specs/tags/api-eb0": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-api-17-a-461"
+  },
+  "/ninaivalaigal/specs/tags/architecture-15c": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-architecture-8-f-5-525"
+  },
+  "/ninaivalaigal/specs/tags/documentation-527": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-documentation-312-469"
+  },
+  "/ninaivalaigal/specs/tags/fast-api-661": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-fast-api-48-d-e13"
+  },
+  "/ninaivalaigal/specs/tags/federation-b9d": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-federation-0-ce-e2c"
+  },
+  "/ninaivalaigal/specs/tags/foundation-f84": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-foundation-95-f-ab0"
+  },
+  "/ninaivalaigal/specs/tags/graph-ops-c0e": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-graph-ops-0-d-2-eba"
+  },
+  "/ninaivalaigal/specs/tags/infrastructure-236": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-infrastructure-502-168"
+  },
+  "/ninaivalaigal/specs/tags/memory-553": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-memory-7-e-3-fad"
+  },
+  "/ninaivalaigal/specs/tags/playwright-269": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-playwright-4-c-0-49d"
+  },
+  "/ninaivalaigal/specs/tags/qa-dd6": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-qab-66-708"
+  },
+  "/ninaivalaigal/specs/tags/testing-6a7": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-testingc-6-f-933"
+  },
+  "/ninaivalaigal/specs/tags/versioning-43a": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-versioninga-17-47f"
+  },
+  "/ninaivalaigal/specs/tags/vision-3ac": {
+    "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
+    "__props": "__props---ninaivalaigal-specs-tags-vision-828-d0a"
+  },
+  "/ninaivalaigal/specs-f2f": {
+    "__comp": "__comp---theme-doc-roota-94-67a"
+  },
+  "/ninaivalaigal/specs/admin-analytics-console/-a34": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-admin-analytics-console-3-ac-85e"
+  },
+  "/ninaivalaigal/specs/admin-dashboard/archive/plan-90a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-admin-dashboard-archive-plan-7-ed-f0c"
+  },
+  "/ninaivalaigal/specs/admin-dashboard/archive/spec-eca": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-admin-dashboard-archive-spec-25-a-6ca"
+  },
+  "/ninaivalaigal/specs/admin-dashboard/archive/tasks-6cd": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-admin-dashboard-archive-tasks-74-d-58b"
+  },
+  "/ninaivalaigal/specs/admin-dashboard/spec-cfc": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-admin-dashboard-specc-6-e-72c"
+  },
+  "/ninaivalaigal/specs/admin-frontend-rollout/-6b4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-admin-frontend-rollout-2-a-8-5d9"
+  },
+  "/ninaivalaigal/specs/advanced-security-compliance/-e62": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-advanced-security-compliance-d-6-a-243"
+  },
+  "/ninaivalaigal/specs/agent-to-agent-context-propagation/-f95": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-agent-to-agent-context-propagation-7-e-8-bd6"
+  },
+  "/ninaivalaigal/specs/agentic-core-execution/-d53": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-agentic-core-execution-9-b-9-99a"
+  },
+  "/ninaivalaigal/specs/agentic-core-execution/README.loose-20251008-36e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-agentic-core-execution-readme-loose-20251008444-1ca"
+  },
+  "/ninaivalaigal/specs/agentic-ui-testing/-faf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-agentic-ui-testing-0-ce-80c"
+  },
+  "/ninaivalaigal/specs/api-health-monitoring/archive/spec-975": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-health-monitoring-archive-spec-394-fa9"
+  },
+  "/ninaivalaigal/specs/api-health-monitoring/spec-c54": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-health-monitoring-specb-7-b-284"
+  },
+  "/ninaivalaigal/specs/api-health-regression-tracking/-b2e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-health-regression-tracking-845-6c5"
+  },
+  "/ninaivalaigal/specs/api-versioning-strategy/-29f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-versioning-strategy-c-61-ce7"
+  },
+  "/ninaivalaigal/specs/api-versioning-strategy/breaking-changes-c46": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-versioning-strategy-breaking-changeseed-6f7"
+  },
+  "/ninaivalaigal/specs/api-versioning-strategy/CHANGELOG-template-27b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-versioning-strategy-changelog-template-31-a-7f4"
+  },
+  "/ninaivalaigal/specs/api-versioning-strategy/deprecation-policy-450": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-versioning-strategy-deprecation-policy-938-1a7"
+  },
+  "/ninaivalaigal/specs/api-versioning-strategy/format-400": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-versioning-strategy-format-4-d-4-8d6"
+  },
+  "/ninaivalaigal/specs/api-versioning-strategy/migration-guide-template-290": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-versioning-strategy-migration-guide-template-2-f-7-060"
+  },
+  "/ninaivalaigal/specs/apple-container-cli-integration/-df8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-apple-container-cli-integration-1-eb-a33"
+  },
+  "/ninaivalaigal/specs/auth-security-integration/-377": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-auth-security-integration-9-be-d63"
+  },
+  "/ninaivalaigal/specs/authentication-middleware-refactor/-dad": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-authentication-middleware-refactor-cec-bbc"
+  },
+  "/ninaivalaigal/specs/authentication-middleware-refactor/archive/COMPLETION_SUMMARY-c46": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-authentication-middleware-refactor-archive-completion-summar-ya-38-609"
+  },
+  "/ninaivalaigal/specs/authentication-middleware-refactor/archive/IMPLEMENTATION-04f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-authentication-middleware-refactor-archive-implementatio-nfc-4-303"
+  },
+  "/ninaivalaigal/specs/authentication-middleware-refactor/COMPLETION_SUMMARY-c1b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-authentication-middleware-refactor-completion-summary-1-b-0-760"
+  },
+  "/ninaivalaigal/specs/authentication-middleware-refactor/IMPLEMENTATION-c80": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-authentication-middleware-refactor-implementation-17-b-b34"
+  },
+  "/ninaivalaigal/specs/auto-healing-health-system/-0b5": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-auto-healing-health-system-04-a-73a"
+  },
+  "/ninaivalaigal/specs/automated-slo-enforcement/-7c3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-automated-slo-enforcement-93-b-0f2"
+  },
+  "/ninaivalaigal/specs/backend-database-integration/-8a3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-backend-database-integration-525-f76"
+  },
+  "/ninaivalaigal/specs/backend-database-integration/PHASE_SEQUENCING-646": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-backend-database-integration-phase-sequencing-4-d-8-2d6"
+  },
+  "/ninaivalaigal/specs/backend-database-integration/QUICKSTART-190": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-backend-database-integration-quickstar-tbfe-751"
+  },
+  "/ninaivalaigal/specs/backend-database-integration/SESSION_1_COMPLETE-238": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-backend-database-integration-session-1-complete-253-620"
+  },
+  "/ninaivalaigal/specs/backend-database-integration/SESSION_2_COMPLETE-d6f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-backend-database-integration-session-2-complet-efea-f19"
+  },
+  "/ninaivalaigal/specs/backend-database-integration/SPEC_105_COMPLETE-170": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-backend-database-integration-spec-105-complete-444-617"
+  },
+  "/ninaivalaigal/specs/backend-database-integration/SUMMARY-950": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-backend-database-integration-summary-005-b11"
+  },
+  "/ninaivalaigal/specs/BACKUP_PRE_RENUMBER_20251013-de7": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-backup-pre-renumber-202510130-cc-9b1"
+  },
+  "/ninaivalaigal/specs/billing-engine-integration/-a5c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-billing-engine-integration-2-b-0-a7f"
+  },
+  "/ninaivalaigal/specs/centralized-secrets-management/-c44": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-centralized-secrets-management-798-47e"
+  },
+  "/ninaivalaigal/specs/cicd-pipeline-architecture/archive/spec-401": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-cicd-pipeline-architecture-archive-spec-6-c-6-f06"
+  },
+  "/ninaivalaigal/specs/cicd-pipeline-architecture/COMPLETION_SUMMARY-f9a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-cicd-pipeline-architecture-completion-summary-45-c-27d"
+  },
+  "/ninaivalaigal/specs/cicd-pipeline-architecture/spec-f3c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-cicd-pipeline-architecture-spec-623-a30"
+  },
+  "/ninaivalaigal/specs/cicd-security-baseline/-633": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-cicd-security-baseline-676-380"
+  },
+  "/ninaivalaigal/specs/codebase-refactor-modularization/-93d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-codebase-refactor-modularization-2-c-1-2a9"
+  },
+  "/ninaivalaigal/specs/comprehensive-test-coverage/-7f8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-comprehensive-test-coverage-965-bde"
+  },
+  "/ninaivalaigal/specs/comprehensive-test-coverage/COMPLETION_SUMMARY-db4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-comprehensive-test-coverage-completion-summar-yf-02-270"
+  },
+  "/ninaivalaigal/specs/comprehensive-ui-suite/-986": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-comprehensive-ui-suite-955-98c"
+  },
+  "/ninaivalaigal/specs/container-build-recovery-apple-cli-integration/-72d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-container-build-recovery-apple-cli-integration-3-cf-ad8"
+  },
+  "/ninaivalaigal/specs/context-bridge-system/-149": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-context-bridge-system-12-f-d05"
+  },
+  "/ninaivalaigal/specs/context-bridge-system/api-contracts-1bf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-context-bridge-system-api-contractseb-8-830"
+  },
+  "/ninaivalaigal/specs/context-bridge-system/CREATED-066": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-context-bridge-system-create-dc-06-96e"
+  },
+  "/ninaivalaigal/specs/context-bridge-system/federation-topology-bb9": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-context-bridge-system-federation-topologydd-8-ef0"
+  },
+  "/ninaivalaigal/specs/context-bridge-system/IMPLEMENTATION_TASKS-809": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-context-bridge-system-implementation-tasks-919-f55"
+  },
+  "/ninaivalaigal/specs/context-bridge-system/implementation-guide-dde": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-context-bridge-system-implementation-guide-061-03e"
+  },
+  "/ninaivalaigal/specs/context-bridge-system/modes-1c8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-context-bridge-system-modes-6-c-5-5d0"
+  },
+  "/ninaivalaigal/specs/context-bridge-system/SPRINT_INTEGRATION-0d1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-context-bridge-system-sprint-integration-482-377"
+  },
+  "/ninaivalaigal/specs/context-bridge-system/trust-scoring-391": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-context-bridge-system-trust-scoring-572-346"
+  },
+  "/ninaivalaigal/specs/core-api-architecture/-9c0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-core-api-architecture-756-21d"
+  },
+  "/ninaivalaigal/specs/core-memory-system/archive/spec-afe": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-core-memory-system-archive-specfdd-1fd"
+  },
+  "/ninaivalaigal/specs/core-memory-system/spec-b58": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-core-memory-system-spec-74-d-526"
+  },
+  "/ninaivalaigal/specs/cost-optimization-governance/-926": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-cost-optimization-governance-ee-6-2fd"
+  },
+  "/ninaivalaigal/specs/cross-device-session-continuity/-b74": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-cross-device-session-continuity-988-09c"
+  },
+  "/ninaivalaigal/specs/cross-org-memory-sharing/-174": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-cross-org-memory-sharing-97-e-720"
+  },
+  "/ninaivalaigal/specs/custom-embedding-integration/-14c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-custom-embedding-integration-afb-f9e"
+  },
+  "/ninaivalaigal/specs/customer-frontend-rollout/-c43": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-customer-frontend-rollout-aa-0-569"
+  },
+  "/ninaivalaigal/specs/data-lifecycle-management/archive/ENHANCEMENT-ae5": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-data-lifecycle-management-archive-enhancemen-tc-07-bd4"
+  },
+  "/ninaivalaigal/specs/data-lifecycle-management/archive/spec-54a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-data-lifecycle-management-archive-spec-637-733"
+  },
+  "/ninaivalaigal/specs/data-lifecycle-management/ENHANCEMENT-e55": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-data-lifecycle-management-enhancement-938-134"
+  },
+  "/ninaivalaigal/specs/data-lifecycle-management/spec-405": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-data-lifecycle-management-spece-52-b1a"
+  },
+  "/ninaivalaigal/specs/database-management-migration/archive/spec-b8a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-database-management-migration-archive-spec-934-dc5"
+  },
+  "/ninaivalaigal/specs/database-management-migration/spec-deb": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-database-management-migration-specd-9-b-9fd"
+  },
+  "/ninaivalaigal/specs/dependency-testing-improvements/-fcf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-dependency-testing-improvements-616-0da"
+  },
+  "/ninaivalaigal/specs/development-environment-management/archive/spec-aec": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-development-environment-management-archive-spec-960-7a9"
+  },
+  "/ninaivalaigal/specs/development-environment-management/spec-03c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-development-environment-management-spec-0-d-8-4dc"
+  },
+  "/ninaivalaigal/specs/documentation-expansion/-a37": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-documentation-expansion-a-1-a-b99"
+  },
+  "/ninaivalaigal/specs/documentation-expansion/COMPLETION_SUMMARY-80b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-documentation-expansion-completion-summary-223-b47"
+  },
+  "/ninaivalaigal/specs/e2e-tests-playwright/-347": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-e-2-e-tests-playwright-a-68-411"
+  },
+  "/ninaivalaigal/specs/enterprise-roadmap/archive/spec-2c0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-enterprise-roadmap-archive-spececb-159"
+  },
+  "/ninaivalaigal/specs/enterprise-roadmap/archive/tasks-d96": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-enterprise-roadmap-archive-tasksa-20-0ba"
+  },
+  "/ninaivalaigal/specs/enterprise-roadmap/spec-394": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-enterprise-roadmap-specebe-4e5"
+  },
+  "/ninaivalaigal/specs/enterprise-roadmap/tasks-2d8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-enterprise-roadmap-tasks-0-ac-ca6"
+  },
+  "/ninaivalaigal/specs/environment-naming-tagging/-220": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-environment-naming-tagging-037-d51"
+  },
+  "/ninaivalaigal/specs/external-ai-memory/-b34": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-external-ai-memory-9-e-1-433"
+  },
+  "/ninaivalaigal/specs/feedback-loop-ai-context/-6f6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-feedback-loop-ai-context-eb-8-1ae"
+  },
+  "/ninaivalaigal/specs/feedback-loop-system/-b86": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-feedback-loop-system-bac-884"
+  },
+  "/ninaivalaigal/specs/frontend-documentation-monitoring/-339": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-frontend-documentation-monitoring-f-65-087"
+  },
+  "/ninaivalaigal/specs/frontend-linting-formatting/-be6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-frontend-linting-formatting-d-8-c-21c"
+  },
+  "/ninaivalaigal/specs/frontend-migration-preparation/-fc2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-frontend-migration-preparation-0-a-9-221"
+  },
+  "/ninaivalaigal/specs/frontend-quality-enforcement-ci-cd/-0ae": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-frontend-quality-enforcement-ci-cd-0-c-3-778"
+  },
+  "/ninaivalaigal/specs/frontend-shared-library/-9aa": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-frontend-shared-library-87-d-856"
+  },
+  "/ninaivalaigal/specs/gitops-argocd/-803": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-gitops-argocd-aa-0-e4b"
+  },
+  "/ninaivalaigal/specs/gitops-argocd/README.old-20251008-3df": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-gitops-argocd-readme-old-20251008-fbe-bd8"
+  },
+  "/ninaivalaigal/specs/graph-intelligence-architecture/-a95": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-graph-intelligence-architecture-7-ea-cda"
+  },
+  "/ninaivalaigal/specs/graph-reasoner/-3c1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-graph-reasoner-7-a-5-d50"
+  },
+  "/ninaivalaigal/specs/graphops-deployment/-0a1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-graphops-deployment-16-b-128"
+  },
+  "/ninaivalaigal/specs/image-backup-disaster-recovery/-ee0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-image-backup-disaster-recovery-b-1-e-d6c"
+  },
+  "/ninaivalaigal/specs/infrastructure-as-code/archive/spec-987": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-infrastructure-as-code-archive-specd-38-acd"
+  },
+  "/ninaivalaigal/specs/infrastructure-as-code/spec-18c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-infrastructure-as-code-spec-935-f63"
+  },
+  "/ninaivalaigal/specs/ingress-gateway-tls/-1dd": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-ingress-gateway-tls-180-c35"
+  },
+  "/ninaivalaigal/specs/intelligent-related-memory/-112": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-intelligent-related-memory-634-ee7"
+  },
+  "/ninaivalaigal/specs/internal-frontend-migration/-ca2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-internal-frontend-migration-752-6c8"
+  },
+  "/ninaivalaigal/specs/invoice-management-system/-315": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-invoice-management-system-af-3-acd"
+  },
+  "/ninaivalaigal/specs/kubernetes-deployment-strategy/archive/spec-f46": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-kubernetes-deployment-strategy-archive-spec-0-c-5-a83"
+  },
+  "/ninaivalaigal/specs/kubernetes-deployment-strategy/spec-1b1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-kubernetes-deployment-strategy-spec-15-e-c90"
+  },
+  "/ninaivalaigal/specs/memory-access-control-acl/-37c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-access-control-acl-5-ab-0cc"
+  },
+  "/ninaivalaigal/specs/memory-attachments/-8bc": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-attachments-c-9-e-ef4"
+  },
+  "/ninaivalaigal/specs/memory-graph-state-reconciliation/-270": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-graph-state-reconciliation-7-bb-216"
+  },
+  "/ninaivalaigal/specs/memory-health-orphaned-tokens/-c1a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-health-orphaned-tokens-a-57-4c0"
+  },
+  "/ninaivalaigal/specs/memory-injection-rules/-0cc": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-injection-rules-1-dc-483"
+  },
+  "/ninaivalaigal/specs/memory-intent-classifier/-472": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-intent-classifier-f-55-a8f"
+  },
+  "/ninaivalaigal/specs/memory-provider-architecture/archive/spec-4ad": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-provider-architecture-archive-spec-080-435"
+  },
+  "/ninaivalaigal/specs/memory-provider-architecture/COMPLETION_SUMMARY-22f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-provider-architecture-completion-summar-yc-2-b-022"
+  },
+  "/ninaivalaigal/specs/memory-provider-architecture/spec-512": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-provider-architecture-specb-78-0e1"
+  },
+  "/ninaivalaigal/specs/memory-relevance-ranking/archive/SPEC-031-memory-relevance-ranking-b4d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-relevance-ranking-archive-spec-031-memory-relevance-ranking-30-a-2f2"
+  },
+  "/ninaivalaigal/specs/memory-relevance-ranking/SPEC-031-memory-relevance-ranking-4fb": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-relevance-ranking-spec-031-memory-relevance-ranking-7-eb-c36"
+  },
+  "/ninaivalaigal/specs/memory-sharing-collaboration/-b5e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-sharing-collaboration-628-b67"
+  },
+  "/ninaivalaigal/specs/memory-sharing-collaboration/visibility-sharing/-089": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-sharing-collaboration-visibility-sharing-a-68-eb4"
+  },
+  "/ninaivalaigal/specs/memory-snapshot-versioning/-e9c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-snapshot-versioning-152-f63"
+  },
+  "/ninaivalaigal/specs/memory-snapshot-versioning/drift-detection/-46f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-snapshot-versioning-drift-detection-749-28f"
+  },
+  "/ninaivalaigal/specs/memory-snapshot-versioning/export-import/-4f6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-snapshot-versioning-export-import-3-d-9-85b"
+  },
+  "/ninaivalaigal/specs/memory-snapshot-versioning/offline-capture/-f90": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-snapshot-versioning-offline-capture-753-50f"
+  },
+  "/ninaivalaigal/specs/memory-substrate/-7a0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-substrate-fd-5-7dd"
+  },
+  "/ninaivalaigal/specs/memory-substrate/acceptance-6ae": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-substrate-acceptance-38-b-efb"
+  },
+  "/ninaivalaigal/specs/memory-substrate/archive/acceptance-f5b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-substrate-archive-acceptanced-8-a-78f"
+  },
+  "/ninaivalaigal/specs/memory-substrate/archive/spec-9cf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-substrate-archive-spec-0-d-1-5fa"
+  },
+  "/ninaivalaigal/specs/memory-substrate/COMPLETION_SUMMARY-46d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-substrate-completion-summary-7-e-6-bda"
+  },
+  "/ninaivalaigal/specs/memory-substrate/spec-61a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-substrate-spec-105-da1"
+  },
+  "/ninaivalaigal/specs/memory-sync-users-teams/-ca3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-sync-users-teams-92-d-27a"
+  },
+  "/ninaivalaigal/specs/memory-tags-search-labels/-c10": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-tags-search-labels-7-df-d5c"
+  },
+  "/ninaivalaigal/specs/memory-token-preloading/-39c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-token-preloading-97-e-1c1"
+  },
+  "/ninaivalaigal/specs/memory-token-preloading/ai-middleware-integration-cdf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-token-preloading-ai-middleware-integration-455-d77"
+  },
+  "/ninaivalaigal/specs/memory-token-preloading/archive/SPEC-038-memory-preloading-751": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-token-preloading-archive-spec-038-memory-preloadinga-0-d-384"
+  },
+  "/ninaivalaigal/specs/memory-token-preloading/SPEC-038-memory-preloading-c68": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-memory-token-preloading-spec-038-memory-preloading-55-f-c3a"
+  },
+  "/ninaivalaigal/specs/microservice-config-architecture/-8a6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-microservice-config-architecture-87-a-227"
+  },
+  "/ninaivalaigal/specs/middleware-resilience-follow-up/-4c9": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-middleware-resilience-follow-up-bc-8-52f"
+  },
+  "/ninaivalaigal/specs/ml-model-training-pipeline/-030": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-ml-model-training-pipeline-15-b-eae"
+  },
+  "/ninaivalaigal/specs/multi-architecture-container-strategy/archive/spec-931": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-multi-architecture-container-strategy-archive-spece-5-b-78f"
+  },
+  "/ninaivalaigal/specs/multi-architecture-container-strategy/spec-b83": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-multi-architecture-container-strategy-spec-9-ee-b50"
+  },
+  "/ninaivalaigal/specs/multi-runtime-port-allocation/-599": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-multi-runtime-port-allocation-deb-a1a"
+  },
+  "/ninaivalaigal/specs/multi-user-authentication/archive/spec-3c3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-multi-user-authentication-archive-specbbc-a5c"
+  },
+  "/ninaivalaigal/specs/multi-user-authentication/spec-f60": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-multi-user-authentication-specffa-cad"
+  },
+  "/ninaivalaigal/specs/multimodal-memory-capture/-a60": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-multimodal-memory-capture-b-8-d-fa9"
+  },
+  "/ninaivalaigal/specs/narrative-analytics-layer/-24d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-narrative-analytics-layer-aa-9-c73"
+  },
+  "/ninaivalaigal/specs/narrative-analytics-layer/api-contracts-797": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-narrative-analytics-layer-api-contractscb-2-cac"
+  },
+  "/ninaivalaigal/specs/narrative-analytics-layer/architecture-c95": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-narrative-analytics-layer-architecture-5-d-6-14c"
+  },
+  "/ninaivalaigal/specs/narrative-analytics-layer/caching-117": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-narrative-analytics-layer-caching-43-e-28b"
+  },
+  "/ninaivalaigal/specs/narrative-analytics-layer/data-model-bcc": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-narrative-analytics-layer-data-modelbd-7-e3f"
+  },
+  "/ninaivalaigal/specs/narrative-analytics-layer/database-migrations-19a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-narrative-analytics-layer-database-migrations-27-b-3f7"
+  },
+  "/ninaivalaigal/specs/narrative-analytics-layer/implementation-plan-c29": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-narrative-analytics-layer-implementation-plan-161-11e"
+  },
+  "/ninaivalaigal/specs/narrative-analytics-layer/queries-0f8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-narrative-analytics-layer-queries-432-536"
+  },
+  "/ninaivalaigal/specs/narrative-memory-macros/-2c4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-narrative-memory-macros-3-f-4-c7b"
+  },
+  "/ninaivalaigal/specs/nextjs-15-bootstrap/-797": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-nextjs-15-bootstrap-7-f-7-611"
+  },
+  "/ninaivalaigal/specs/nextjs-15-bootstrap/COMPLETION_SUMMARY-4eb": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-nextjs-15-bootstrap-completion-summary-0-dc-e6d"
+  },
+  "/ninaivalaigal/specs/nextjs-15-bootstrap/PHASE_A_COMPLETE-91b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-nextjs-15-bootstrap-phase-a-complet-eb-41-864"
+  },
+  "/ninaivalaigal/specs/nextjs-15-bootstrap/QUICKSTART_README-4c3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-nextjs-15-bootstrap-quickstart-readme-6-c-9-a7b"
+  },
+  "/ninaivalaigal/specs/nina-intelligence-stack/-bb3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-nina-intelligence-stack-21-d-74c"
+  },
+  "/ninaivalaigal/specs/observability-and-telemetry/acceptance-db2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-observability-and-telemetry-acceptance-49-b-95f"
+  },
+  "/ninaivalaigal/specs/observability-and-telemetry/archive/acceptance-c3c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-observability-and-telemetry-archive-acceptance-2-e-1-b75"
+  },
+  "/ninaivalaigal/specs/observability-and-telemetry/archive/spec-167": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-observability-and-telemetry-archive-specd-1-c-0b9"
+  },
+  "/ninaivalaigal/specs/observability-and-telemetry/spec-bdc": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-observability-and-telemetry-spec-8-e-6-930"
+  },
+  "/ninaivalaigal/specs/observability-performance-budgets/-43d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-observability-performance-budgets-311-39a"
+  },
+  "/ninaivalaigal/specs/performance-optimization-suite/-ab6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-performance-optimization-suite-de-5-fbd"
+  },
+  "/ninaivalaigal/specs/personalization-engine/-a5d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-personalization-engine-013-ec4"
+  },
+  "/ninaivalaigal/specs/platform-stability-developer-experience/-d44": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-platform-stability-developer-experience-98-d-902"
+  },
+  "/ninaivalaigal/specs/post-migration-quality-verification/-d2a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-post-migration-quality-verification-429-c59"
+  },
+  "/ninaivalaigal/specs/proactive-memory-alert-layer/-a87": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-proactive-memory-alert-layer-b-3-c-c67"
+  },
+  "/ninaivalaigal/specs/procedural-macro-system/-219": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-procedural-macro-system-b-5-e-334"
+  },
+  "/ninaivalaigal/specs/product-surface-split-and-naming/-ebd": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-product-surface-split-and-naming-f-61-5fb"
+  },
+  "/ninaivalaigal/specs/profile-settings-pages/-19b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-profile-settings-pages-225-897"
+  },
+  "/ninaivalaigal/specs/prometheus-grafana-monitoring/-9eb": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-prometheus-grafana-monitoring-148-f29"
+  },
+  "/ninaivalaigal/specs/prometheus-grafana-monitoring/README.loose-20251008-5b0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-prometheus-grafana-monitoring-readme-loose-20251008-a-53-839"
+  },
+  "/ninaivalaigal/specs/property-graph-memory-model/-217": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-property-graph-memory-model-370-cf3"
+  },
+  "/ninaivalaigal/specs/property-graph-memory-model/archive/SPEC-060-apache-age-deployment-075": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-property-graph-memory-model-archive-spec-060-apache-age-deploymentdc-8-b57"
+  },
+  "/ninaivalaigal/specs/property-graph-memory-model/archive/SPEC-061-property-graph-intelligence-47c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-property-graph-memory-model-archive-spec-061-property-graph-intelligence-2-f-5-e9a"
+  },
+  "/ninaivalaigal/specs/property-graph-memory-model/SPEC-060-apache-age-deployment-996": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-property-graph-memory-model-spec-060-apache-age-deployment-8-c-5-a44"
+  },
+  "/ninaivalaigal/specs/property-graph-memory-model/SPEC-061-property-graph-intelligence-8ef": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-property-graph-memory-model-spec-061-property-graph-intelligence-273-80e"
+  },
+  "/ninaivalaigal/specs/rbac-policy-enforcement/archive/spec-216": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-rbac-policy-enforcement-archive-spec-5-d-8-0d8"
+  },
+  "/ninaivalaigal/specs/rbac-policy-enforcement/rbac-integration/spec-7b7": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-rbac-policy-enforcement-rbac-integration-spece-0-b-4cb"
+  },
+  "/ninaivalaigal/specs/rbac-policy-enforcement/spec-998": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-rbac-policy-enforcement-spec-624-646"
+  },
+  "/ninaivalaigal/specs/real-time-monitoring-dashboard/-610": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-real-time-monitoring-dashboard-488-169"
+  },
+  "/ninaivalaigal/specs/realtime-features/-b8b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-realtime-features-1-c-4-876"
+  },
+  "/ninaivalaigal/specs/redis-integration/-c5f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-redis-integration-f-10-b07"
+  },
+  "/ninaivalaigal/specs/regression-prevention-and-stability/-b5f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-regression-prevention-and-stability-200-198"
+  },
+  "/ninaivalaigal/specs/release-workflow-ghcr/-250": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-release-workflow-ghcr-cc-6-5bd"
+  },
+  "/ninaivalaigal/specs/secret-management-environment-hygiene/-d8c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-secret-management-environment-hygiene-f-3-b-0db"
+  },
+  "/ninaivalaigal/specs/security-middleware-redaction/archive/spec-3dc": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-security-middleware-redaction-archive-spec-74-b-1a9"
+  },
+  "/ninaivalaigal/specs/security-middleware-redaction/spec-b6b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-security-middleware-redaction-spec-6-dd-2a7"
+  },
+  "/ninaivalaigal/specs/session-timeout-token-expiry/-ffb": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-session-timeout-token-expiry-d-0-d-c8c"
+  },
+  "/ninaivalaigal/specs/session-timeout-token-expiry/archive/SPEC-045-intelligent-session-management-1d1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-session-timeout-token-expiry-archive-spec-045-intelligent-session-management-0-e-9-96f"
+  },
+  "/ninaivalaigal/specs/session-timeout-token-expiry/SPEC-045-intelligent-session-management-71a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-session-timeout-token-expiry-spec-045-intelligent-session-managementdde-b14"
+  },
+  "/ninaivalaigal/specs/SPEC_AUDIT_RECONCILIATION-55e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-spec-audit-reconciliation-6-cc-f86"
+  },
+  "/ninaivalaigal/specs/SPEC_HEALTH_REPORT-0dc": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-spec-health-report-7-cb-67b"
+  },
+  "/ninaivalaigal/specs/SPEC_RENUMBER_COMPLETE_20251013-a83": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-spec-renumber-complete-202510134-ad-f15"
+  },
+  "/ninaivalaigal/specs/spec-governance/-9cf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-spec-governance-002-099"
+  },
+  "/ninaivalaigal/specs/specs/087-api-surface-contracts-2d7": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-specs-087-api-surface-contracts-902-fc3"
+  },
+  "/ninaivalaigal/specs/specs/090-approval-chain-processing-4cf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-specs-090-approval-chain-processing-953-c65"
+  },
+  "/ninaivalaigal/specs/specs/099-approval-chain-processing-323": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-specs-099-approval-chain-processing-740-1ac"
+  },
+  "/ninaivalaigal/specs/specs/100-api-surface-contracts-8e4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-specs-100-api-surface-contracts-7-f-3-df8"
+  },
+  "/ninaivalaigal/specs/specs/101-memory-sharing-4aa": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-specs-101-memory-sharingad-1-386"
+  },
+  "/ninaivalaigal/specs/specs/128-memory-sharing-f22": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-specs-128-memory-sharing-926-071"
+  },
+  "/ninaivalaigal/specs/staff-management/-432": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-staff-management-03-c-7a9"
+  },
+  "/ninaivalaigal/specs/standalone-team-accounts/-51b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-standalone-team-accounts-f-65-4d2"
+  },
+  "/ninaivalaigal/specs/standalone-teams-billing/-72e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-standalone-teams-billing-d-29-78a"
+  },
+  "/ninaivalaigal/specs/team-collaboration/archive/spec-fe2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-team-collaboration-archive-spec-59-d-d96"
+  },
+  "/ninaivalaigal/specs/team-collaboration/archive/tasks-da4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-team-collaboration-archive-tasksf-12-8f8"
+  },
+  "/ninaivalaigal/specs/team-collaboration/spec-57b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-team-collaboration-spec-866-5d6"
+  },
+  "/ninaivalaigal/specs/team-collaboration/team-organization/spec-535": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-team-collaboration-team-organization-spec-13-a-622"
+  },
+  "/ninaivalaigal/specs/team-collaboration/team-organization/tasks-b0d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-team-collaboration-team-organization-tasks-0-e-8-0be"
+  },
+  "/ninaivalaigal/specs/terminal-cli-auto-context/-054": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-terminal-cli-auto-context-010-1bd"
+  },
+  "/ninaivalaigal/specs/terminal-cli-auto-context/vs-code-integration/spec-f55": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-terminal-cli-auto-context-vs-code-integration-specd-2-b-988"
+  },
+  "/ninaivalaigal/specs/trust-score-system/-8de": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-trust-score-system-bcc-93f"
+  },
+  "/ninaivalaigal/specs/unified-context-scope-system/archive/spec-de6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-context-scope-system-archive-specd-30-df2"
+  },
+  "/ninaivalaigal/specs/unified-context-scope-system/archive/tasks-3e5": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-context-scope-system-archive-tasks-0-e-5-d4b"
+  },
+  "/ninaivalaigal/specs/unified-context-scope-system/COMPLETION_SUMMARY-fb2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-context-scope-system-completion-summar-yd-97-849"
+  },
+  "/ninaivalaigal/specs/unified-context-scope-system/spec-fdf": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-context-scope-system-spec-931-f40"
+  },
+  "/ninaivalaigal/specs/unified-context-scope-system/tasks-8a9": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-context-scope-system-tasks-80-a-ae3"
+  },
+  "/ninaivalaigal/specs/unified-frontend-architecture/-d56": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-frontend-architecture-26-f-033"
+  },
+  "/ninaivalaigal/specs/unified-frontend-architecture/ADDENDUM-2a2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-frontend-architecture-addendum-2-ba-a19"
+  },
+  "/ninaivalaigal/specs/unified-macro-intelligence/-86b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-macro-intelligence-2-fc-c99"
+  },
+  "/ninaivalaigal/specs/unified-runtime-parity/-63c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-runtime-parity-f-98-f25"
+  },
+  "/ninaivalaigal/specs/unified-workspace-cicd/-dad": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-workspace-cicd-1-b-9-8c0"
+  },
+  "/ninaivalaigal/specs/universal-ai-integration/plan-69b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-universal-ai-integration-plan-0-a-4-9e4"
+  },
+  "/ninaivalaigal/specs/universal-ai-integration/spec-e31": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-universal-ai-integration-spec-9-a-7-688"
+  },
+  "/ninaivalaigal/specs/universal-ai-integration/tasks-f31": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-universal-ai-integration-tasks-5-ff-1e4"
+  },
+  "/ninaivalaigal/specs/usage-analytics-reporting/-ec4": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-usage-analytics-reporting-044-3a9"
+  },
+  "/ninaivalaigal/specs/user-management/-340": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-user-management-739-b5f"
+  },
+  "/ninaivalaigal/specs/user-signup-system/spec-993": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-user-signup-system-spec-956-fef"
+  },
+  "/ninaivalaigal/specs/vendor-admin-console/-e4c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-vendor-admin-console-c-59-32c"
+  },
+  "/ninaivalaigal/specs/vision-and-scope/-fd5": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-vision-and-scope-258-c3d"
+  },
+  "/ninaivalaigal/specs/visual-narrative-layer/-000": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-visual-narrative-layer-318-599"
+  }
+}

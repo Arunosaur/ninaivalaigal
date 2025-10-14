@@ -1,0 +1,17 @@
+{
+  "id": "admin-frontend-rollout/README",
+  "title": "README",
+  "description": "2) Solution",
+  "source": "@site/../specs/123-admin-frontend-rollout/README.md",
+  "sourceDirName": "123-admin-frontend-rollout",
+  "slug": "/admin-frontend-rollout/",
+  "permalink": "/ninaivalaigal/specs/admin-frontend-rollout/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/123-admin-frontend-rollout/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

@@ -1,6 +1,10 @@
-# SPEC-075: Unified Frontend Architecture
+---
+status: "\u2705 COMPLETE"
+title: 'SPEC-075: Unified Frontend Architecture'
+---
 
-**Status**: ✅ COMPLETE
+
+# SPEC-075: Unified Frontend Architecture
 **Priority**: High
 **Category**: Frontend Architecture
 

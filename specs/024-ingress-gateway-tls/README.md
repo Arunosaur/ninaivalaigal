@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-024: Ingress Gateway and TLS Automation
 
 ## Title

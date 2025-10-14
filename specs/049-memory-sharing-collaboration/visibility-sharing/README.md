@@ -1,3 +1,7 @@
+---
+title: Untitled SPEC
+---
+
 # SPEC-041: User-Controlled Memory Visibility and Sharing
 
 ## 📌 Overview

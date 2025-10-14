@@ -1,17 +1,9 @@
-# SPEC-085: Staff Management System
-
-**Status:** Approved
-**Owner:** Platform Security & Operations Team
-**Effective:** Immediate
-**Related:** SPEC-083 (Product Surface Split), SPEC-002 (Multi-User Auth)
-
+---
+{}
 ---
 
-## 1) Purpose
 
-Establish secure staff account management separate from customer accounts, with role-based access control for platform operations.
 
----
 
 ## 2) Core Concepts
 

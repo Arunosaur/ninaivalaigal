@@ -1,0 +1,17 @@
+{
+  "id": "enterprise-roadmap/archive/tasks",
+  "title": "Enterprise Roadmap - Implementation Tasks",
+  "description": "Specification: 006-enterprise-roadmap",
+  "source": "@site/../specs/074-enterprise-roadmap/archive/tasks.md",
+  "sourceDirName": "074-enterprise-roadmap/archive",
+  "slug": "/enterprise-roadmap/archive/tasks",
+  "permalink": "/ninaivalaigal/specs/enterprise-roadmap/archive/tasks",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/074-enterprise-roadmap/archive/tasks.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

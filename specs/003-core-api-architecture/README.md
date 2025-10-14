@@ -1,3 +1,20 @@
+---
+id: SPEC-003
+owner: medhasys
+phase: Infrastructure
+sidebar_position: 3
+start_date: 2025-08-15
+status: Complete
+tags:
+- API
+- FastAPI
+- Infrastructure
+title: Core API Architecture
+updated: 2025-10-12
+---
+
+
+
 # SPEC-003: Core API Architecture
 
 **Status**: ✅ COMPLETE

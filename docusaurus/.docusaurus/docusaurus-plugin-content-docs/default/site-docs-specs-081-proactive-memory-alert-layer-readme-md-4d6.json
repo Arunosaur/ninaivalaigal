@@ -1,0 +1,17 @@
+{
+  "id": "proactive-memory-alert-layer/README",
+  "title": "SPEC-081: Proactive Memory Alert Layer",
+  "description": "Status: 📋 PLANNED",
+  "source": "@site/docs/specs/081-proactive-memory-alert-layer/README.md",
+  "sourceDirName": "081-proactive-memory-alert-layer",
+  "slug": "/proactive-memory-alert-layer/",
+  "permalink": "/ninaivalaigal/specs/proactive-memory-alert-layer/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/081-proactive-memory-alert-layer/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

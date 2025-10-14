@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-066: Standalone Team Accounts
 
 **Status**: 📋 **PLANNED** - Ready for Implementation

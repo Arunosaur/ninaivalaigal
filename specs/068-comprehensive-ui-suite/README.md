@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-068: Comprehensive UI Suite
 
 **Status**: ✅ COMPLETE

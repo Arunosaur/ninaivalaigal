@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-065: Advanced Security & Compliance
 
 **Status**: 🔄 PARTIAL

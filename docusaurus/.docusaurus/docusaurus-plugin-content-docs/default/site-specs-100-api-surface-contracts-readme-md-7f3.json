@@ -1,0 +1,21 @@
+{
+  "id": "api-surface-contracts/spec-100-api-surface-contracts",
+  "title": "Untitled SPEC",
+  "description": "Status: ✅ Complete",
+  "source": "@site/../specs/100-api-surface-contracts/README.md",
+  "sourceDirName": "100-api-surface-contracts",
+  "slug": "/specs/100-api-surface-contracts",
+  "permalink": "/ninaivalaigal/specs/specs/100-api-surface-contracts",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/100-api-surface-contracts/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {
+    "id": "spec-100-api-surface-contracts",
+    "slug": "/specs/100-api-surface-contracts",
+    "title": "Untitled SPEC"
+  }
+}

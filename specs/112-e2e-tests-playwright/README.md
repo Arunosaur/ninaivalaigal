@@ -1,15 +1,9 @@
-# SPEC-112: E2E Tests with Playwright
-**Phase:** C
-**Status:** Complete
-**Depends On:** SPEC-105 (Frontend Baseline), SPEC-111 (Runtime Parity)
-
+---
+{}
 ---
 
-## 🎯 Objective
 
-Implement Playwright-based end-to-end testing for the unified Next.js frontend and backend APIs. Ensures parity between local, CI, and test environments.
 
----
 
 ## 🏗️ Architecture
 

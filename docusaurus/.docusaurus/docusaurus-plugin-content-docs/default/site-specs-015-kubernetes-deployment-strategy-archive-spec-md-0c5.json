@@ -1,0 +1,17 @@
+{
+  "id": "kubernetes-deployment-strategy/archive/spec",
+  "title": "SPEC-015: Kubernetes Deployment Strategy",
+  "description": "Overview",
+  "source": "@site/../specs/015-kubernetes-deployment-strategy/archive/spec.md",
+  "sourceDirName": "015-kubernetes-deployment-strategy/archive",
+  "slug": "/kubernetes-deployment-strategy/archive/spec",
+  "permalink": "/ninaivalaigal/specs/kubernetes-deployment-strategy/archive/spec",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/015-kubernetes-deployment-strategy/archive/spec.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

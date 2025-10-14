@@ -1,0 +1,17 @@
+{
+  "id": "cross-org-memory-sharing/README",
+  "title": "SPEC-050: Cross-Organizational Memory Sharing System",
+  "description": "Status: ✅ DRAFT COMPLETE",
+  "source": "@site/docs/specs/050-cross-org-memory-sharing/README.md",
+  "sourceDirName": "050-cross-org-memory-sharing",
+  "slug": "/cross-org-memory-sharing/",
+  "permalink": "/ninaivalaigal/specs/cross-org-memory-sharing/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/050-cross-org-memory-sharing/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

@@ -1,4 +1,13 @@
-# SPEC-050: Cross-Organizational Memory Sharing System
+---
+title: Untitled SPEC
+---
+
+
+---
+title: "SPEC-050: Cross-Org Memory Sharing"
+---
+
+# SPEC-050: Cross-Organization Memory Sharing
 
 ## Status: ✅ DRAFT COMPLETE
 

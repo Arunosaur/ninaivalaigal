@@ -203,73 +203,6 @@ curl -X POST http://localhost:13390/auth/signup/team \
   }'
 ```
 
-### POST /auth/signup/team
-
-**Description:** Register a new team account.
-
-**Authentication:** None
-
-**Rate Limit:** 5 requests/minute
-
-**Request:**
-```http
-POST /auth/signup/team HTTP/1.1
-Host: localhost:13390
-Content-Type: application/json
-
-{
-  "email": "admin@team.com",
-  "password": "SecurePass123!",
-  "name": "Admin User",
-  "team_name": "My Awesome Team"
-}
-```
-
-**Request Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| email | string | Yes | Admin's email address |
-| password | string | Yes | Admin's password (min 8 characters) |
-| name | string | Yes | Admin's full name |
-| team_name | string | Yes | Name of the new team |
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "user": {
-    "id": "uuid-goes-here",
-    "email": "admin@team.com",
-    "name": "Admin User",
-    "jwt_token": "...",
-    "refresh_token": "..."
-  },
-  "team": {
-    "id": "team-uuid-goes-here",
-    "name": "My Awesome Team"
-  }
-}
-```
-
-**Error Responses:**
-
-| Code | Description | Example |
-|------|-------------|---------|
-| 400 | Bad Request | Invalid input |
-| 409 | Conflict | Team name already taken |
-
-**Example:**
-```bash
-curl -X POST http://localhost:13390/auth/signup/team \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@team.com",
-    "password": "SecurePass123!",
-    "name": "Admin User",
-    "team_name": "My Awesome Team"
-  }'
-```
 
 ### POST /auth/login
 
@@ -328,62 +261,6 @@ curl -X POST http://localhost:13390/auth/login \
   }'
 ```
 
-### POST /auth/login
-
-**Description:** Log in an existing user.
-
-**Authentication:** None
-
-**Rate Limit:** 10 requests/minute
-
-**Request:**
-```http
-POST /auth/login HTTP/1.1
-Host: localhost:13390
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "SecurePass123!"
-}
-```
-
-**Request Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| email | string | Yes | User's email address |
-| password | string | Yes | User's password |
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "user": {
-    "id": "uuid-goes-here",
-    "email": "user@example.com",
-    "name": "Test User",
-    "jwt_token": "...",
-    "refresh_token": "..."
-  }
-}
-```
-
-**Error Responses:**
-
-| Code | Description | Example |
-|------|-------------|---------|
-| 401 | Unauthorized | Incorrect email or password |
-
-**Example:**
-```bash
-curl -X POST http://localhost:13390/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "SecurePass123!"
-  }'
-```
 
 ### POST /auth/logout
 
@@ -747,35 +624,26 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 **Example:**
 ```bash
-curl -X POST http://localhost:13390/auth/token/revoke-all \
+curl -X POST http://localhost:13390/auth/token/revoke-all \\
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
----
+### POST /auth/verify-email
 
-## Memory Endpoints
+**Description:** Verify a user's email address using a verification token.
 
-### POST /memory/remember
+**Authentication:** None
 
-**Description:** Store a new memory.
-
-**Authentication:** Required
-
-**Rate Limit:** 60 requests/minute
+**Rate Limit:** 10 requests/minute
 
 **Request:**
 ```http
-POST /memory/remember HTTP/1.1
+POST /auth/verify-email HTTP/1.1
 Host: localhost:13390
-Authorization: Bearer YOUR_JWT_TOKEN
 Content-Type: application/json
 
 {
-  "text": "This is a test memory",
-  "context_id": "my-test-project",
-  "meta": {
-    "source": "API"
-  }
+  "token": "VERIFICATION_TOKEN"
 }
 ```
 
@@ -783,19 +651,13 @@ Content-Type: application/json
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| text | string | Yes | The content of the memory. |
-| context_id | string | No | The ID of the context to associate the memory with. |
-| meta | object | No | A JSON object for storing arbitrary metadata. |
+| token | string | Yes | The email verification token. |
 
 **Response (200 OK):**
 ```json
 {
   "success": true,
-  "memory": {
-    "id": "memory-uuid-goes-here",
-    "text": "This is a test memory",
-    "context_id": "my-test-project"
-  }
+  "message": "Email verified successfully"
 }
 ```
 
@@ -803,17 +665,211 @@ Content-Type: application/json
 
 | Code | Description | Example |
 |------|-------------|---------|
-| 400 | Bad Request | Missing `text` field. |
-| 404 | Not Found | `context_id` not found. |
+| 400 | Bad Request | Invalid or expired token. |
 
 **Example:**
 ```bash
-curl -X POST http://localhost:13390/memory/remember \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:13390/auth/verify-email \\
+  -H "Content-Type: application/json" \\
   -d '{
-    "text": "This is a test memory",
-    "context_id": "my-test-project"
+    "token": "VERIFICATION_TOKEN"
+  }'
+```
+
+### POST /auth/password-reset/request
+
+**Description:** Request a password reset for a user.
+
+**Authentication:** None
+
+**Rate Limit:** 5 requests/minute
+
+**Request:**
+```http
+POST /auth/password-reset/request HTTP/1.1
+Host: localhost:13390
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+```
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| email | string | Yes | The user's email address. |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Password reset email sent"
+}
+```
+
+**Error Responses:**
+
+| Code | Description | Example |
+|------|-------------|---------|
+| 404 | Not Found | Email address not found. |
+
+**Example:**
+```bash
+curl -X POST http://localhost:13390/auth/password-reset/request \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "email": "user@example.com"
+  }'
+```
+
+### POST /auth/password-reset/verify
+
+**Description:** Verify a password reset token.
+
+**Authentication:** None
+
+**Rate Limit:** 10 requests/minute
+
+**Request:**
+```http
+POST /auth/password-reset/verify HTTP/1.1
+Host: localhost:13390
+Content-Type: application/json
+
+{
+  "token": "PASSWORD_RESET_TOKEN"
+}
+```
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| token | string | Yes | The password reset token. |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Token is valid"
+}
+```
+
+**Error Responses:**
+
+| Code | Description | Example |
+|------|-------------|---------|
+| 400 | Bad Request | Invalid or expired token. |
+
+**Example:**
+```bash
+curl -X POST http://localhost:13390/auth/password-reset/verify \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "token": "PASSWORD_RESET_TOKEN"
+  }'
+```
+
+### POST /auth/password-reset/confirm
+
+**Description:** Confirm a password reset with a new password.
+
+**Authentication:** None
+
+**Rate Limit:** 10 requests/minute
+
+**Request:**
+```http
+POST /auth/password-reset/confirm HTTP/1.1
+Host: localhost:13390
+Content-Type: application/json
+
+{
+  "token": "PASSWORD_RESET_TOKEN",
+  "new_password": "NewSecurePassword123!"
+}
+```
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| token | string | Yes | The password reset token. |
+| new_password | string | Yes | The user's new password. |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Password has been reset successfully"
+}
+```
+
+**Error Responses:**
+
+| Code | Description | Example |
+|------|-------------|---------|
+| 400 | Bad Request | Invalid or expired token, or weak password. |
+
+**Example:**
+```bash
+curl -X POST http://localhost:13390/auth/password-reset/confirm \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "token": "PASSWORD_RESET_TOKEN",
+    "new_password": "NewSecurePassword123!"
+  }'
+```
+
+### POST /auth/logout
+
+**Description:** Log out the current user by revoking the refresh token.
+
+**Authentication:** Required
+
+**Rate Limit:** 10 requests/minute
+
+**Request:**
+```http
+POST /auth/logout HTTP/1.1
+Host: localhost:13390
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "refresh_token": "YOUR_REFRESH_TOKEN"
+}
+```
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| refresh_token | string | Yes | The refresh token to revoke. |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Successfully logged out"
+}
+```
+
+**Error Responses:**
+
+| Code | Description | Example |
+|------|-------------|---------|
+| 401 | Unauthorized | Invalid token |
+
+**Example:**
+```bash
+curl -X POST http://localhost:13390/auth/logout \\
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "refresh_token": "YOUR_REFRESH_TOKEN"
   }'
 ```
 
@@ -882,6 +938,11 @@ curl -X POST http://localhost:13390/memory/remember \
     "context_id": "my-test-project"
   }'
 ```
+
+---
+
+## Memory Endpoints
+
 
 ### GET /memory/recall
 
@@ -1093,42 +1154,6 @@ curl -X PUT http://localhost:13390/memory/memories/memory-uuid-goes-here \
   }'
 ```
 
-### DELETE /memory/memories/{id}
-
-**Description:** Delete a memory by its ID.
-
-**Authentication:** Required
-
-**Rate Limit:** 60 requests/minute
-
-**Request:**
-```http
-DELETE /memory/memories/memory-uuid-goes-here HTTP/1.1
-Host: localhost:13390
-Authorization: Bearer YOUR_JWT_TOKEN
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| id | string | The UUID of the memory to delete. |
-
-**Response (204 No Content):**
-
-**Error Responses:**
-
-| Code | Description | Example |
-|------|-------------|---------|
-| 404 | Not Found | No memory found with the specified ID. |
-
-**Example:**
-```bash
-curl -X DELETE http://localhost:13390/memory/memories/memory-uuid-goes-here \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
----
 
 ## Context Endpoints
 
@@ -1184,9 +1209,9 @@ Content-Type: application/json
 
 **Example:**
 ```bash
-curl -X POST http://localhost:13390/contexts \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:13390/contexts \\
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \\
+  -H "Content-Type: application/json" \\
   -d '{
     "name": "my-new-context",
     "description": "A new context for my project"
@@ -1231,7 +1256,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 **Example:**
 ```bash
-curl -X GET http://localhost:13390/contexts \
+curl -X GET http://localhost:13390/contexts \\
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -1277,7 +1302,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 **Example:**
 ```bash
-curl -X GET http://localhost:13390/contexts/context-uuid-goes-here \
+curl -X GET http://localhost:13390/contexts/context-uuid-goes-here \\
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -1337,9 +1362,9 @@ Content-Type: application/json
 
 **Example:**
 ```bash
-curl -X PUT http://localhost:13390/contexts/context-uuid-goes-here \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
+curl -X PUT http://localhost:13390/contexts/context-uuid-goes-here \\
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \\
+  -H "Content-Type: application/json" \\
   -d '{
     "name": "my-updated-context-name"
   }'
@@ -1376,7 +1401,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 
 **Example:**
 ```bash
-curl -X DELETE http://localhost:13390/contexts/context-uuid-goes-here \
+curl -X DELETE http://localhost:13390/contexts/context-uuid-goes-here \\
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -1434,9 +1459,9 @@ Content-Type: application/json
 
 **Example:**
 ```bash
-curl -X POST http://localhost:13390/contexts/context-uuid-goes-here/share \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:13390/contexts/context-uuid-goes-here/share \\
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \\
+  -H "Content-Type: application/json" \\
   -d '{
     "target_type": "user",
     "target_id": "user-uuid-to-share-with",
@@ -1444,221 +1469,254 @@ curl -X POST http://localhost:13390/contexts/context-uuid-goes-here/share \
   }'
 ```
 
-### GET /memory/recall
+---
 
-**Description:** Search for memories using semantic similarity.
+## RBAC Endpoints
 
-**Authentication:** Required
+Role-Based Access Control (RBAC) in ninaivalaigal is managed through a set of endpoints that allow for the creation, management, and assignment of roles and permissions.
 
-**Rate Limit:** 60 requests/minute
+### Roles
 
-**Request:**
-```http
-GET /memory/recall?query=user%20preferences&k=5 HTTP/1.1
-Host: localhost:13390
-Authorization: Bearer YOUR_JWT_TOKEN
-```
+Roles are collections of permissions that can be assigned to users or teams. The available roles are:
 
-**Query Parameters:**
+- **admin**: Full access to all resources.
+- **editor**: Can create, edit, and delete memories and contexts.
+- **viewer**: Can only view memories and contexts.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| query | string | Yes | The search query. |
-| k | integer | No | The number of results to return (default: 10). |
-| context_id | string | No | The ID of the context to search within. |
+### Permissions
 
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "memories": [
-    {
-      "id": "memory-uuid-goes-here",
-      "text": "User prefers dark mode",
-      "context_id": "user-preferences",
-      "relevance_score": 0.95
-    }
-  ]
-}
-```
+Permissions are granular actions that can be allowed or denied for a role. Examples of permissions include:
 
-**Error Responses:**
+- `memory:create`
+- `memory:read`
+- `memory:update`
+- `memory:delete`
+- `context:create`
+- `context:read`
+- `context:update`
+- `context:delete`
 
-| Code | Description | Example |
-|------|-------------|---------|
-| 400 | Bad Request | Missing `query` parameter. |
+### POST /roles
 
-**Example:**
-```bash
-curl -X GET "http://localhost:13390/memory/recall?query=user%20preferences&k=5" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
+**Description:** Create a new role.
 
-### GET /memory/memories
+**Authentication:** Required (admin)
 
-**Description:** Retrieve a list of memories, with optional filters.
-
-**Authentication:** Required
-
-**Rate Limit:** 60 requests/minute
+**Rate Limit:** 30 requests/minute
 
 **Request:**
 ```http
-GET /memory/memories?context_id=my-test-project&limit=20 HTTP/1.1
+POST /roles HTTP/1.1
 Host: localhost:13390
-Authorization: Bearer YOUR_JWT_TOKEN
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| context_id| string | No | Filter memories by a specific context ID. |
-| limit | integer| No | Number of memories to return (default: 50). |
-| offset | integer| No | Offset for pagination. |
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "memories": [
-    {
-      "id": "memory-uuid-1",
-      "text": "This is the first memory.",
-      "context_id": "my-test-project"
-    },
-    {
-      "id": "memory-uuid-2",
-      "text": "This is the second memory.",
-      "context_id": "my-test-project"
-    }
-  ]
-}
-```
-
-**Error Responses:**
-
-| Code | Description | Example |
-|------|-------------|---------|
-| 404 | Not Found | `context_id` does not exist. |
-
-**Example:**
-```bash
-curl -X GET "http://localhost:13390/memory/memories?limit=5" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### GET /memory/memories/{id}
-
-**Description:** Retrieve a single memory by its ID.
-
-**Authentication:** Required
-
-**Rate Limit:** 120 requests/minute
-
-**Request:**
-```http
-GET /memory/memories/memory-uuid-goes-here HTTP/1.1
-Host: localhost:13390
-Authorization: Bearer YOUR_JWT_TOKEN
-```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| id | string | The UUID of the memory to retrieve. |
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "memory": {
-    "id": "memory-uuid-goes-here",
-    "text": "This is the first memory.",
-    "context_id": "my-test-project"
-  }
-}
-```
-
-**Error Responses:**
-
-| Code | Description | Example |
-|------|-------------|---------|
-| 404 | Not Found | No memory found with the specified ID. |
-
-**Example:**
-```bash
-curl -X GET http://localhost:13390/memory/memories/memory-uuid-goes-here \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### PUT /memory/memories/{id}
-
-**Description:** Update the content of an existing memory.
-
-**Authentication:** Required
-
-**Rate Limit:** 60 requests/minute
-
-**Request:**
-```http
-PUT /memory/memories/memory-uuid-goes-here HTTP/1.1
-Host: localhost:13390
-Authorization: Bearer YOUR_JWT_TOKEN
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
 Content-Type: application/json
 
 {
-  "text": "This is the updated memory content."
+  "name": "new-role-name",
+  "permissions": [
+    "memory:read",
+    "context:read"
+  ]
 }
 ```
-
-**Path Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| id | string | The UUID of the memory to update. |
 
 **Request Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| text | string | Yes | The new content for the memory. |
+| name | string | Yes | The name of the new role. |
+| permissions | array | Yes | A list of permissions to assign to the role. |
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "role": {
+    "id": "role-uuid-goes-here",
+    "name": "new-role-name",
+    "permissions": [
+      "memory:read",
+      "context:read"
+    ]
+  }
+}
+```
+
+### GET /roles
+
+**Description:** Retrieve a list of all roles.
+
+**Authentication:** Required
+
+**Rate Limit:** 60 requests/minute
 
 **Response (200 OK):**
 ```json
 {
   "success": true,
-  "memory": {
-    "id": "memory-uuid-goes-here",
-    "text": "This is the updated memory content.",
-    "context_id": "my-test-project"
+  "roles": [
+    {
+      "id": "role-uuid-1",
+      "name": "admin",
+      "permissions": ["*"]
+    },
+    {
+      "id": "role-uuid-2",
+      "name": "editor",
+      "permissions": [
+        "memory:create",
+        "memory:read",
+        "memory:update",
+        "memory:delete",
+        "context:create",
+        "context:read",
+        "context:update",
+        "context:delete"
+      ]
+    }
+  ]
+}
+```
+
+### GET /roles/{id}
+
+**Description:** Retrieve a single role by its ID.
+
+**Authentication:** Required
+
+**Rate Limit:** 120 requests/minute
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| id | string | The UUID of the role to retrieve. |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "role": {
+    "id": "role-uuid-goes-here",
+    "name": "editor",
+    "permissions": [
+      "memory:create",
+      "memory:read"
+    ]
   }
 }
 ```
 
-**Error Responses:**
+### PUT /roles/{id}
 
-| Code | Description | Example |
-|------|-------------|---------|
-| 400 | Bad Request | Missing `text` field. |
-| 404 | Not Found | No memory found with the specified ID. |
+**Description:** Update a role's name or permissions.
 
-**Example:**
-```bash
-curl -X PUT http://localhost:13390/memory/memories/memory-uuid-goes-here \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "This is the updated memory content."
-  }'
+**Authentication:** Required (admin)
+
+**Rate Limit:** 60 requests/minute
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| id | string | The UUID of the role to update. |
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | No | The new name for the role. |
+| permissions | array | No | The new list of permissions for the role. |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "role": {
+    "id": "role-uuid-goes-here",
+    "name": "updated-role-name",
+    "permissions": [
+      "memory:read"
+    ]
+  }
+}
 ```
 
-### DELETE /memory/memories/{id}
+### DELETE /roles/{id}
 
-**Description:** Delete a memory by its ID.
+**Description:** Delete a role by its ID.
 
-**Authentication:** Required
+**Authentication:** Required (admin)
+
+**Rate Limit:** 30 requests/minute
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| id | string | The UUID of the role to delete. |
+
+**Response (204 No Content):**
+
+### POST /users/{user_id}/roles
+
+**Description:** Assign a role to a user.
+
+**Authentication:** Required (admin)
+
+**Rate Limit:** 60 requests/minute
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| user_id | string | The UUID of the user. |
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| role_id | string | Yes | The UUID of the role to assign. |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Role assigned successfully"
+}
+```
+
+### DELETE /users/{user_id}/roles
+
+**Description:** Unassign a role from a user.
+
+**Authentication:** Required (admin)
+
+**Rate Limit:** 60 requests/minute
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| user_id | string | The UUID of the user. |
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| role_id | string | Yes | The UUID of the role to unassign. |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Role unassigned successfully"
+}
+```
+
+---
+
+## Webhooks
 
 **Rate Limit:** 60 requests/minute
 

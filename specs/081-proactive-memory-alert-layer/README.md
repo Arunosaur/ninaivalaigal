@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-081: Proactive Memory Alert Layer
 
 **Status**: 📋 PLANNED

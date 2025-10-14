@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-039: Custom Embedding Integration Hooks
 
 ## Status

@@ -1,0 +1,17 @@
+{
+  "id": "vendor-admin-console/README",
+  "title": "README",
+  "description": "|---------|",
+  "source": "@site/../specs/025-vendor-admin-console/README.md",
+  "sourceDirName": "025-vendor-admin-console",
+  "slug": "/vendor-admin-console/",
+  "permalink": "/ninaivalaigal/specs/vendor-admin-console/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/025-vendor-admin-console/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

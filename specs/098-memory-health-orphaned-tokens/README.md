@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-098: Memory Health & Orphaned Token Report
 
 ## Status

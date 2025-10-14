@@ -1,39 +1,9 @@
-# SPEC-111: CI/CD Security Baseline & Secret Management (Enhanced)
-**Status:** Complete (Enhanced Oct 11, 2025)
-**Owner:** Security Engineering
-**Last Updated:** 2025-10-11
-
-> **Purpose:** Address external code review (Priority 1) findings and establish production-grade secret management with audit logging, encryption-at-rest, and zero-trust principles.
-
+---
+{}
 ---
 
-## 1. Security Controls
 
-### 1.1 No Plaintext Secrets in VCS
-**Enforcement:**
-- ✅ Pre-commit hook: `detect-secrets` scans all commits
-- ✅ GitHub secret scanning: Required status check
-- ✅ Gitleaks in CI/CD: Fails build on detection
-- ✅ `.env.example` checked in, real `.env` git-ignored
 
-**Pre-commit configuration:**
-```yaml
-# .pre-commit-config.yaml
-repos:
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
-    hooks:
-      - id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
-        exclude: package-lock.json
-
-  - repo: https://github.com/zricethezav/gitleaks
-    rev: v8.18.0
-    hooks:
-      - id: gitleaks
-```
-
----
 
 ### 1.2 Environment-Based Secret Injection
 **GitHub Environments** (Development/Test):

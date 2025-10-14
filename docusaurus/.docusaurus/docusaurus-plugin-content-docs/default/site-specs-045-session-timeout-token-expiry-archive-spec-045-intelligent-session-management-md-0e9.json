@@ -1,0 +1,17 @@
+{
+  "id": "session-timeout-token-expiry/archive/SPEC-045-intelligent-session-management",
+  "title": "SPEC-045: Intelligent Session Management with Redis",
+  "description": "📌 Overview",
+  "source": "@site/../specs/045-session-timeout-token-expiry/archive/SPEC-045-intelligent-session-management.md",
+  "sourceDirName": "045-session-timeout-token-expiry/archive",
+  "slug": "/session-timeout-token-expiry/archive/SPEC-045-intelligent-session-management",
+  "permalink": "/ninaivalaigal/specs/session-timeout-token-expiry/archive/SPEC-045-intelligent-session-management",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/045-session-timeout-token-expiry/archive/SPEC-045-intelligent-session-management.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

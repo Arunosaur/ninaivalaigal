@@ -1,0 +1,17 @@
+{
+  "id": "memory-relevance-ranking/SPEC-031-memory-relevance-ranking",
+  "title": "SPEC-031: Memory Relevance Ranking (Redis-Enabled)",
+  "description": "📌 Overview",
+  "source": "@site/docs/specs/031-memory-relevance-ranking/SPEC-031-memory-relevance-ranking.md",
+  "sourceDirName": "031-memory-relevance-ranking",
+  "slug": "/memory-relevance-ranking/SPEC-031-memory-relevance-ranking",
+  "permalink": "/ninaivalaigal/specs/memory-relevance-ranking/SPEC-031-memory-relevance-ranking",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/031-memory-relevance-ranking/SPEC-031-memory-relevance-ranking.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-040: Feedback Loop System (Memory Accuracy + Relevance Signals)
 
 ## Status

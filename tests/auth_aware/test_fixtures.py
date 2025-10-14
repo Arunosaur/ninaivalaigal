@@ -24,33 +24,21 @@ from .security_scenarios import SecurityScenarioEngine
 
 
 @pytest.fixture
-def auth_test_config() -> Dict:
-    """Configuration for auth-aware testing"""
-    return {
-        "base_url": "http://localhost:8080",
-        "concurrent_limit": 50,
-        "test_timeout": 30,
-        "rate_limit_threshold": 100,
-        "session_timeout_minutes": 30,
-    }
-
-
-@pytest.fixture
-def multi_user_manager(auth_test_config) -> MultiUserTestManager:
+def multi_user_manager(stubbed_http, api_config) -> MultiUserTestManager:
     """Multi-user test manager instance"""
-    return MultiUserTestManager(auth_test_config)
+    return MultiUserTestManager(api_config)
 
 
 @pytest.fixture
-def rbac_engine(auth_test_config) -> RBACTestEngine:
+def rbac_engine(stubbed_http, api_config) -> RBACTestEngine:
     """RBAC test engine instance"""
-    return RBACTestEngine(auth_test_config)
+    return RBACTestEngine(api_config)
 
 
 @pytest.fixture
-def security_engine(auth_test_config) -> SecurityScenarioEngine:
+def security_engine(stubbed_http, api_config) -> SecurityScenarioEngine:
     """Security scenario engine instance"""
-    return SecurityScenarioEngine(auth_test_config)
+    return SecurityScenarioEngine(api_config)
 
 
 @pytest.fixture

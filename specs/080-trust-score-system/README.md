@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-080: Trust Score System for Memories
 
 **Status**: 📋 PLANNED

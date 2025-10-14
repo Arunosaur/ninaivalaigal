@@ -16,11 +16,25 @@ Agent decides actions dynamically based on DOM state and goal.
 import asyncio
 import os
 
-from openai import OpenAI
-from playwright.async_api import async_playwright
+import pytest
+
+# Optional imports for agentic testing
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    OpenAI = None
+
+try:
+    from playwright.async_api import async_playwright
+    PLAYWRIGHT_AVAILABLE = True
+except ImportError:
+    PLAYWRIGHT_AVAILABLE = False
+    async_playwright = None
 
 # Set up LLM client (uses OpenAI API; can replace with local LLM)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY")) if OPENAI_AVAILABLE else None
 
 
 async def agent_decide(dom_snapshot: str, goal: str) -> dict:
@@ -94,6 +108,16 @@ async def run_agentic_signup():
                 break
 
         await browser.close()
+
+
+@pytest.mark.skipif(
+    not OPENAI_AVAILABLE or not PLAYWRIGHT_AVAILABLE,
+    reason="Requires openai and playwright packages for agentic testing"
+)
+@pytest.mark.asyncio
+async def test_agentic_signup():
+    """Pytest wrapper for agentic signup test."""
+    await run_agentic_signup()
 
 
 if __name__ == "__main__":

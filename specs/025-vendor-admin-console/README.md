@@ -1,70 +1,9 @@
-# SPEC-025: Vendor Admin Console (Medhasys Control Panel)
+---
+{}
+---
 
-## Title
-Vendor Administrative Console for Multi-Tenant Management
 
-## Objective
-Provide Medhasys platform vendor with comprehensive administrative capabilities to monitor, manage, and maintain the Ninaivalaigal memory system across all tenants.
-
-## Overview
-
-This SPEC defines the administrative console used by the Medhasys platform vendor to monitor, manage, and maintain the Ninaivalaigal memory system across all tenants (individuals, teams, organizations).
-
-## Purpose
-
-To provide Medhasys with a secure, role-isolated UI and API set for:
-
-- Managing system-wide tenants
-- Monitoring platform health and usage
-- Enforcing usage quotas and rate limits
-- Viewing API logs and memory metrics
-- Overseeing JWT and token lifecycles
-
-## Key Features
-
-### 🏢 Tenant Management
-- View all registered orgs, teams, and users
-- Deactivate / suspend accounts
-- Edit quotas (memory, contexts, rate limits)
-- Resend/expire invitations
-- Reset org/team relationships if corrupted
-
-### 📊 Usage & Stats
-- Memory count by org/team/user
-- Number of active contexts
-- Tokenized vs raw memory size
-- Session durations (per user)
-- AI prompt injection counts
-
-### 🚦 Rate Limiting
-- Configure per-org or per-user limits:
-  - Max requests/hour
-  - Max memory entries/month
-  - Concurrent sessions allowed
-- Real-time usage against quotas
-
-### 📈 System Health
-- Container/service status (FastAPI, MCP, PgBouncer, etc.)
-- DB connection health
-- Queue backlogs (if async workers exist)
-
-### 🔐 Token Oversight
-- View active JWTs per user
-- Force logout / invalidate tokens
-- Scope override or limit TTL
-
-### 🧾 Audit Logs
-- API call logs by endpoint/org
-- JWT errors, expired sessions
-- Memory write/read traces
-- Optional: exportable CSV reports
-
-## Technical Requirements
-
-### Vendor UI Pages
-
-| Page | Purpose |
-|------|---------|
+|---------|
 | `vendor/dashboard.html` | Global stats and system health |
 | `vendor/orgs.html` | List/search orgs → drill-down into teams/users |
 | `vendor/usage.html` | Memory usage graphs per org/team/user |

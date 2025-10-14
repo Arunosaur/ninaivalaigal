@@ -1,21 +1,9 @@
-# 🧠 SPEC-126: ML Model Training & Fine-Tuning Pipeline
-
-**SPEC Number:** 126
-**Title:** ML Model Training & Fine-Tuning Pipeline
-**Phase:** 4 – Extended Intelligence
-**Category:** AI / MLOps / Enterprise Scale
-**Status:** Planned (Implementation 2025 Q3–Q4)
-**Owner:** Medhasys AI Core Team
-**Parent SPECs:** 031, 040, 041, 082, 085
-
+---
+{}
 ---
 
-## 1. Purpose
 
-SPEC-126 defines the **Machine Learning Model Training and Fine-Tuning Pipeline** for the *Ninaivalaigal* platform.
-It provides the infrastructure, workflow, and governance to train, evaluate, version, and deploy ML models that continuously improve **contextual memory relevance**, **user behavior prediction**, and **semantic embedding quality**.
 
----
 
 ## 2. Objectives
 

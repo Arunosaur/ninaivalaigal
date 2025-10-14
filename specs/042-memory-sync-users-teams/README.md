@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-042: Auth-Aware Test Harness (Enterprise Readiness)
 
 **Status**: 🚧 In Progress

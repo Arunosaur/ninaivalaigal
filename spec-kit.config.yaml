@@ -1,0 +1,72 @@
+# ===============================
+# SPEC Kit Hybrid Configuration
+# ===============================
+
+project:
+  name: Ninaivalaigal
+  organization: Medhasys
+  default_owner: medhasys
+  default_phase: Research
+  default_status: Draft
+  numbering:
+    start: 0
+    pad: 3
+    format: "SPEC-%03d"
+
+paths:
+  specs_root: "./specs"
+  templates_root: "./templates"
+  index_file: "./specs/SPEC_INDEX.md"
+  backup_dir: "./specs"
+  docs_output: "./docusaurus/docs/specs"
+
+template:
+  readme: "./templates/spec-template.md"
+  metadata: "./templates/spec.yaml"
+
+frontmatter:
+  enabled: true
+  keys:
+    - id
+    - title
+    - status
+    - phase
+    - owner
+    - depends_on
+    - tags
+    - updated
+    - sidebar_position
+
+commands:
+  create:
+    auto_number: true
+    generate_metadata: true
+    generate_readme: true
+    add_to_index: true
+  index:
+    include_status: true
+    include_phase: true
+    sort_by: "id"
+  serve_docs:
+    docs_path: "./docusaurus"
+    command: "npx docusaurus start"
+  validate:
+    check_duplicates: true
+    check_alignment: true
+    check_metadata: true
+    fix_index: true
+
+backup:
+  enabled: true
+  pre_action: "backup_pre_renumber"
+  post_action: "backup_post_commit"
+  format: "markdown"
+
+integration:
+  obsidian:
+    vault_root: "./"
+    enabled: true
+  docusaurus:
+    enabled: true
+    index_json: "./docusaurus/static/spec_index.json"
+    sidebar_autogen: true

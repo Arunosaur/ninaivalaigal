@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-078: SPEC Governance
 
 **Status**: 📋 PLANNED

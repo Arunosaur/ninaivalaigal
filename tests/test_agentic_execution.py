@@ -222,7 +222,7 @@ class TestAgentCore:
         with patch.object(agent_core, "_execute_mode", new_callable=AsyncMock) as mock_execute:
             mock_execute.return_value = {"result": "test"}
 
-            _result = await agent_core.execute(
+            await agent_core.execute(
                 user_prompt="test prompt",
                 user_id="test_user",
                 execution_mode=ExecutionMode.INFERENCE,

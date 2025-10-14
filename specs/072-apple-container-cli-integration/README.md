@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-072: Apple Container CLI Integration
 
 **Status**: ✅ COMPLETE

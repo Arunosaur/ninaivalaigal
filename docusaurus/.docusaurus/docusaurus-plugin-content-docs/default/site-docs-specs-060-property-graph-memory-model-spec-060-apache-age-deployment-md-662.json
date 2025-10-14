@@ -1,0 +1,17 @@
+{
+  "id": "property-graph-memory-model/SPEC-060-apache-age-deployment",
+  "title": "SPEC-060: Apache AGE Dual Architecture Deployment",
+  "description": "Objective",
+  "source": "@site/docs/specs/060-property-graph-memory-model/SPEC-060-apache-age-deployment.md",
+  "sourceDirName": "060-property-graph-memory-model",
+  "slug": "/property-graph-memory-model/SPEC-060-apache-age-deployment",
+  "permalink": "/ninaivalaigal/specs/property-graph-memory-model/SPEC-060-apache-age-deployment",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/060-property-graph-memory-model/SPEC-060-apache-age-deployment.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

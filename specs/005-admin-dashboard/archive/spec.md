@@ -52,9 +52,9 @@ Currently, mem0 has:
 ### Non-Functional Requirements
 
 #### Performance
-- **Response Time**: <500ms for all admin operations
+- **Response Time**: &lt;500ms for all admin operations
 - **Pagination**: Handle 10,000+ users efficiently
-- **Search**: Real-time search with <200ms response
+- **Search**: Real-time search with &lt;200ms response
 - **Caching**: Cache frequently accessed data
 
 #### Security

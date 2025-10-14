@@ -17,6 +17,28 @@ const ACCESS_TOKEN_EXPIRES_KEY = 'auth_access_token_expires';
 const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 const REFRESH_TOKEN_EXPIRES_KEY = 'auth_refresh_token_expires';
 
+const safeStorageCall = <T>(operation: () => T, label: string): T | undefined => {
+  try {
+    return operation();
+  } catch (error) {
+    console.warn(`TokenStorage: Failed to ${label}`, error);
+    return undefined;
+  }
+};
+
+const safeGetItem = (key: string): string | null => {
+  const value = safeStorageCall<string | null>(() => localStorage.getItem(key), `read ${key}`);
+  return value ?? null;
+};
+
+const safeSetItem = (key: string, value: string) => {
+  safeStorageCall(() => localStorage.setItem(key, value), `set ${key}`);
+};
+
+const safeRemoveItem = (key: string) => {
+  safeStorageCall(() => localStorage.removeItem(key), `remove ${key}`);
+};
+
 const decodeBase64Url = (segment: string): string => {
   const normalized = segment.replace(/-/g, "+").replace(/_/g, "/");
   const padding = normalized.length % 4;
@@ -96,26 +118,26 @@ export const TokenStorage = {
     if (!isBrowser) return;
 
     if (accessToken) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+      safeSetItem(ACCESS_TOKEN_KEY, accessToken);
       const decoded = decodeToken(accessToken);
       const expires = resolveExpiry(accessToken, accessTokenExpiresAt, accessTokenExpiresIn, decoded);
       if (expires) {
-        localStorage.setItem(ACCESS_TOKEN_EXPIRES_KEY, expires.toString());
+        safeSetItem(ACCESS_TOKEN_EXPIRES_KEY, expires.toString());
       } else {
-        localStorage.removeItem(ACCESS_TOKEN_EXPIRES_KEY);
+        safeRemoveItem(ACCESS_TOKEN_EXPIRES_KEY);
       }
     } else if (accessToken === null) {
       this.clearAccessToken();
     }
 
     if (refreshToken) {
-      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      safeSetItem(REFRESH_TOKEN_KEY, refreshToken);
       const decoded = decodeToken(refreshToken);
       const expires = resolveExpiry(refreshToken, refreshTokenExpiresAt, refreshTokenExpiresIn, decoded);
       if (expires) {
-        localStorage.setItem(REFRESH_TOKEN_EXPIRES_KEY, expires.toString());
+        safeSetItem(REFRESH_TOKEN_EXPIRES_KEY, expires.toString());
       } else {
-        localStorage.removeItem(REFRESH_TOKEN_EXPIRES_KEY);
+        safeRemoveItem(REFRESH_TOKEN_EXPIRES_KEY);
       }
     } else if (refreshToken === null) {
       this.clearRefreshToken();
@@ -125,12 +147,12 @@ export const TokenStorage = {
   getToken(): string | null {
     if (!isBrowser) return null;
 
-    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+    const token = safeGetItem(ACCESS_TOKEN_KEY);
     if (!token) {
       return null;
     }
 
-    const expires = localStorage.getItem(ACCESS_TOKEN_EXPIRES_KEY);
+    const expires = safeGetItem(ACCESS_TOKEN_EXPIRES_KEY);
     if (expires) {
       const expiresAt = Number.parseInt(expires, 10);
       if (Number.isFinite(expiresAt) && Date.now() / 1000 > expiresAt) {
@@ -145,12 +167,12 @@ export const TokenStorage = {
   getRefreshToken(): string | null {
     if (!isBrowser) return null;
 
-    const token = localStorage.getItem(REFRESH_TOKEN_KEY);
+    const token = safeGetItem(REFRESH_TOKEN_KEY);
     if (!token) {
       return null;
     }
 
-    const expires = localStorage.getItem(REFRESH_TOKEN_EXPIRES_KEY);
+    const expires = safeGetItem(REFRESH_TOKEN_EXPIRES_KEY);
     if (expires) {
       const expiresAt = Number.parseInt(expires, 10);
       if (Number.isFinite(expiresAt) && Date.now() / 1000 > expiresAt) {
@@ -170,20 +192,20 @@ export const TokenStorage = {
   clearAccessToken() {
     if (!isBrowser) return;
 
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(ACCESS_TOKEN_EXPIRES_KEY);
+    safeRemoveItem(ACCESS_TOKEN_KEY);
+    safeRemoveItem(ACCESS_TOKEN_EXPIRES_KEY);
   },
 
   clearRefreshToken() {
     if (!isBrowser) return;
 
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_EXPIRES_KEY);
+    safeRemoveItem(REFRESH_TOKEN_KEY);
+    safeRemoveItem(REFRESH_TOKEN_EXPIRES_KEY);
   },
 
   getAccessTokenExpiry(): number | null {
     if (!isBrowser) return null;
-    const expires = localStorage.getItem(ACCESS_TOKEN_EXPIRES_KEY);
+    const expires = safeGetItem(ACCESS_TOKEN_EXPIRES_KEY);
     if (!expires) return null;
     const timestamp = Number.parseInt(expires, 10);
     return Number.isFinite(timestamp) ? timestamp : null;
@@ -191,7 +213,7 @@ export const TokenStorage = {
 
   getRefreshTokenExpiry(): number | null {
     if (!isBrowser) return null;
-    const expires = localStorage.getItem(REFRESH_TOKEN_EXPIRES_KEY);
+    const expires = safeGetItem(REFRESH_TOKEN_EXPIRES_KEY);
     if (!expires) return null;
     const timestamp = Number.parseInt(expires, 10);
     return Number.isFinite(timestamp) ? timestamp : null;

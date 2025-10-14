@@ -1,0 +1,17 @@
+{
+  "id": "post-migration-quality-verification/README",
+  "title": "SPEC-104: Post-Migration Quality Verification",
+  "description": "Status: PROPOSED",
+  "source": "@site/docs/specs/104-post-migration-quality-verification/README.md",
+  "sourceDirName": "104-post-migration-quality-verification",
+  "slug": "/post-migration-quality-verification/",
+  "permalink": "/ninaivalaigal/specs/post-migration-quality-verification/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/104-post-migration-quality-verification/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

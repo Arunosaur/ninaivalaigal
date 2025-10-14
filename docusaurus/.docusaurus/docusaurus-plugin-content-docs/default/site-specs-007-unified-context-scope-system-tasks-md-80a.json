@@ -1,0 +1,17 @@
+{
+  "id": "unified-context-scope-system/tasks",
+  "title": "Tasks for Spec 007: Unified Context Scope System",
+  "description": "Phase 1: Remove Backward Compatibility ⚡ HIGH PRIORITY",
+  "source": "@site/../specs/007-unified-context-scope-system/tasks.md",
+  "sourceDirName": "007-unified-context-scope-system",
+  "slug": "/unified-context-scope-system/tasks",
+  "permalink": "/ninaivalaigal/specs/unified-context-scope-system/tasks",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/007-unified-context-scope-system/tasks.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

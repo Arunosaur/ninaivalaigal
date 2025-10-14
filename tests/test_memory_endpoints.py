@@ -52,12 +52,8 @@ class TestMemoryAPIEndpoints:
         app.include_router(router)
         TestClient(app)
 
-        # Test data
-        _remember_data = {
-            "text": "Test memory content",
-            "meta": {"source": "api"},
-            "context_id": "ctx_123",
-        }
+        # Test data (defined inline below)
+        # remember_data = {"text": "Test memory content", "meta": {"source": "api"}, "context_id": "ctx_123"}
 
         # Make request (this will test the endpoint logic)
         # Note: We're testing the function logic, not the HTTP layer

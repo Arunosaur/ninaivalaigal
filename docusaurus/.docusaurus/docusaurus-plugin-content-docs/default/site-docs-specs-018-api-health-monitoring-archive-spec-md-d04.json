@@ -1,0 +1,17 @@
+{
+  "id": "api-health-monitoring/archive/spec",
+  "title": "SPEC-018: API Health & Monitoring",
+  "description": "Overview",
+  "source": "@site/docs/specs/018-api-health-monitoring/archive/spec.md",
+  "sourceDirName": "018-api-health-monitoring/archive",
+  "slug": "/api-health-monitoring/archive/spec",
+  "permalink": "/ninaivalaigal/specs/api-health-monitoring/archive/spec",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/018-api-health-monitoring/archive/spec.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

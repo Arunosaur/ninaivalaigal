@@ -1,21 +1,9 @@
-# SPEC-124: Unified Workspace & CI/CD Pipelines (Turbo + Tests)
-**Project:** Medhasys / Ninaivalaigal
-**Status:** Draft
-**Owner:** DevOps
-**Last Updated:** 2025-10-11
-**Phase:** 5 - Frontend Decomposition
-
+---
+{}
 ---
 
-## 1) Problem
 
-Three separate frontend packages need:
-- **Monorepo orchestration** (shared dependencies, coordinated builds)
-- **Fast builds** (incremental, cached)
-- **Automated testing** (E2E, integration, unit)
-- **Separate deployments** (customer to Vercel, admin to internal)
 
----
 
 ## 2) Solution
 

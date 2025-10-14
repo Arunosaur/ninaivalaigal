@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-054: Secret Management & Environment Hygiene
 
 ## Objective

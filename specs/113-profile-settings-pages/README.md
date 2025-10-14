@@ -1,15 +1,9 @@
-# SPEC-113: Profile & Settings Pages
-**Phase:** C
-**Status:** Planned
-**Depends On:** SPEC-108 (Auth)
-
+---
+{}
 ---
 
-## 🎯 Objective
 
-Provide user profile management and account-settings persistence using Next.js App Router.
 
----
 
 ## 🏗️ Architecture
 

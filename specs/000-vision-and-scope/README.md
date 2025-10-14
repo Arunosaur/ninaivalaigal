@@ -1,3 +1,20 @@
+---
+id: SPEC-000
+owner: medhasys
+phase: Foundation
+sidebar_position: 0
+start_date: 2025-08-01
+status: Complete
+tags:
+- Architecture
+- Vision
+- Foundation
+title: Vision & Scope
+updated: 2025-10-13
+---
+
+
+
 # SPEC-000: Vision & Scope
 
 ## Title

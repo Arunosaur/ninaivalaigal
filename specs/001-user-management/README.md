@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-002: User Management & Authentication
 
 **Note:** This was originally numbered 001 but is now SPEC-002. SPEC-001 is Core Memory System (platform foundation).

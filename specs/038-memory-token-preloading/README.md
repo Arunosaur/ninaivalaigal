@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-038: Memory Token Preloading System + AI Middleware
 
 ## Status

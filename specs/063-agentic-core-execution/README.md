@@ -1,4 +1,13 @@
-# SPEC-063: Agentic Core Execution Framework
+---
+title: Untitled SPEC
+---
+
+
+---
+title: "SPEC-063: Agentic Core Execution"
+---
+
+# SPEC-063: Agentic Core Execution
 
 **Status**: ✅ COMPLETE
 **Priority**: Critical

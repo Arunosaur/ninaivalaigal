@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-041: Graph Intelligence Extensions (Innovation Showcase)
 
 **Status**: 🚧 In Progress

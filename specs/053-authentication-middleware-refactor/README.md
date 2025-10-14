@@ -1,30 +1,9 @@
-# SPEC-053: Authentication Middleware Refactor
-
-**Title:** Authentication Middleware Refactor
-**Status:** DRAFT
-**Created On:** 2025-09-21
-**Category:** Security & Platform Reliability
-**Author:** ninaivalaigal/core
-**Related SPECs:** SPEC-052 (Comprehensive Test Coverage)
-
+---
+{}
 ---
 
-## 🎯 Purpose
 
-Refactor the RBAC authentication middleware to resolve critical issues in token validation, role injection, and downstream security enforcement, unblocking all API-based intelligence and memory features.
 
-## 🧩 Motivation
-
-SPEC-052 diagnostics confirmed that:
-- All 32 auth-related tests failed with 500 Internal Server Error
-- RBAC middleware is rejecting valid tokens and crashing on invalid ones
-- Signup/login routes crash with 500 Internal Server Error
-- Downstream APIs (memory, intelligence) are completely blocked
-- Health endpoints are incorrectly requiring authentication
-
-**Root Cause Identified:** The `rbac_middleware.py` raises HTTPExceptions for invalid tokens instead of gracefully handling unauthenticated requests, causing 500 errors for all requests.
-
----
 
 ## 📌 Goals
 

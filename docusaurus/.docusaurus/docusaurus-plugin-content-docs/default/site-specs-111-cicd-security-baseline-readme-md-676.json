@@ -1,0 +1,17 @@
+{
+  "id": "cicd-security-baseline/README",
+  "title": "README",
+  "description": "1.2 Environment-Based Secret Injection",
+  "source": "@site/../specs/111-cicd-security-baseline/README.md",
+  "sourceDirName": "111-cicd-security-baseline",
+  "slug": "/cicd-security-baseline/",
+  "permalink": "/ninaivalaigal/specs/cicd-security-baseline/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/111-cicd-security-baseline/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

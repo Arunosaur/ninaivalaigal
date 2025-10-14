@@ -1,0 +1,17 @@
+{
+  "id": "template/acceptance",
+  "title": "Acceptance for SPEC <ID>",
+  "description": "1. Health:",
+  "source": "@site/docs/specs/000-template/acceptance.md",
+  "sourceDirName": "000-template",
+  "slug": "/template/acceptance",
+  "permalink": "/ninaivalaigal/specs/template/acceptance",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/000-template/acceptance.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

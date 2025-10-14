@@ -1,0 +1,17 @@
+{
+  "id": "SPEC_HEALTH_REPORT",
+  "title": "SPEC Documentation Health Report",
+  "description": "Audit Date: October 13, 2025",
+  "source": "@site/../specs/SPEC_HEALTH_REPORT.md",
+  "sourceDirName": ".",
+  "slug": "/SPEC_HEALTH_REPORT",
+  "permalink": "/ninaivalaigal/specs/SPEC_HEALTH_REPORT",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/SPEC_HEALTH_REPORT.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

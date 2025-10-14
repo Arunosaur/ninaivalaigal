@@ -1,21 +1,9 @@
-# SPEC-123: Admin Frontend Rollout (Internal Network + RBAC)
-**Project:** Medhasys / Ninaivalaigal
-**Status:** Draft
-**Owner:** Platform SRE
-**Last Updated:** 2025-10-11
-**Phase:** 5 - Frontend Decomposition
-
+---
+{}
 ---
 
-## 1) Problem
 
-Admin console needs secure internal deployment with:
-- **VPN-only access** (Tailscale or WireGuard)
-- **IP whitelist** enforcement
-- **Admin + Staff roles** only (RBAC)
-- **Isolated from public internet**
 
----
 
 ## 2) Solution
 

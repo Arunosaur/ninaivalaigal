@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-057: Microservice & Config Architecture
 
 ## Objective

@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-106: Frontend Linting & Formatting Standard
 **Status:** Draft
 **Owner:** Medhasys / Ninaivalaigal FE Guild

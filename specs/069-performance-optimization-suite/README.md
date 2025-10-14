@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-069: Performance Optimization Suite
 
 **Status**: ✅ COMPLETE

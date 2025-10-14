@@ -1,0 +1,17 @@
+{
+  "id": "observability-and-telemetry/spec",
+  "title": "Feature Specification: observability-and-telemetry",
+  "description": "Feature Branch: 010-observability-and-telemetry",
+  "source": "@site/../specs/010-observability-and-telemetry/spec.md",
+  "sourceDirName": "010-observability-and-telemetry",
+  "slug": "/observability-and-telemetry/spec",
+  "permalink": "/ninaivalaigal/specs/observability-and-telemetry/spec",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/010-observability-and-telemetry/spec.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

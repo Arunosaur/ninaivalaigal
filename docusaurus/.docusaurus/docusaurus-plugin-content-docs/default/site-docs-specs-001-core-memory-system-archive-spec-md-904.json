@@ -1,0 +1,17 @@
+{
+  "id": "core-memory-system/archive/spec",
+  "title": "Feature Specification: Core Memory System",
+  "description": "Feature Branch: 001-core-memory-system",
+  "source": "@site/docs/specs/001-core-memory-system/archive/spec.md",
+  "sourceDirName": "001-core-memory-system/archive",
+  "slug": "/core-memory-system/archive/spec",
+  "permalink": "/ninaivalaigal/specs/core-memory-system/archive/spec",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/001-core-memory-system/archive/spec.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

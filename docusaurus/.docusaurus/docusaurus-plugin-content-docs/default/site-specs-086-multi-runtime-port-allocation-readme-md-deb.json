@@ -1,0 +1,17 @@
+{
+  "id": "multi-runtime-port-allocation/README",
+  "title": "README",
+  "description": "🎯 Objectives",
+  "source": "@site/../specs/086-multi-runtime-port-allocation/README.md",
+  "sourceDirName": "086-multi-runtime-port-allocation",
+  "slug": "/multi-runtime-port-allocation/",
+  "permalink": "/ninaivalaigal/specs/multi-runtime-port-allocation/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/086-multi-runtime-port-allocation/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

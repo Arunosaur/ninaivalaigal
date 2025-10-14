@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-114: Auth & Security Integration
 **Phase:** C
 **Status:** Planned

@@ -23,11 +23,32 @@ import json
 import os
 
 import pytest
-from openai import OpenAI
-from playwright.async_api import async_playwright
 
-from .utils.playwright_helpers import get_simplified_dom, wait_for_navigation_or_change
-from .utils.prompts import SYSTEM_PROMPT, get_user_prompt
+# Optional imports for agentic testing
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    OpenAI = None
+
+try:
+    from playwright.async_api import async_playwright
+    PLAYWRIGHT_AVAILABLE = True
+except ImportError:
+    PLAYWRIGHT_AVAILABLE = False
+    async_playwright = None
+
+try:
+    from .utils.playwright_helpers import get_simplified_dom, wait_for_navigation_or_change
+    from .utils.prompts import SYSTEM_PROMPT, get_user_prompt
+    UTILS_AVAILABLE = True
+except ImportError:
+    UTILS_AVAILABLE = False
+    get_simplified_dom = None
+    wait_for_navigation_or_change = None
+    SYSTEM_PROMPT = None
+    get_user_prompt = None
 
 
 class AgenticSignupTest:
@@ -35,7 +56,10 @@ class AgenticSignupTest:
 
     def __init__(self):
         """Initialize the agentic test."""
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        if OPENAI_AVAILABLE:
+            self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        else:
+            self.client = None
         self.max_steps = 10
 
     async def agent_decide(self, dom_snapshot: str, goal: str) -> dict:
@@ -115,8 +139,8 @@ class AgenticSignupTest:
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    not os.getenv("OPENAI_API_KEY"),
-    reason="OPENAI_API_KEY not set - skipping agentic test",
+    not OPENAI_AVAILABLE or not PLAYWRIGHT_AVAILABLE or not UTILS_AVAILABLE or not os.getenv("OPENAI_API_KEY"),
+    reason="Requires openai, playwright packages and OPENAI_API_KEY for agentic testing",
 )
 async def test_signup_flow_agentic():
     """

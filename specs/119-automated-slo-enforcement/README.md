@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-119: Automated SLO Enforcement & Incident Feedback Loops
 **Project:** Medhasys / Ninaivalaigal
 **Status:** Draft

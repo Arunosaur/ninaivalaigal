@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-056: Dependency & Testing Improvements
 
 ## Objective

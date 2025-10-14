@@ -1,0 +1,17 @@
+{
+  "id": "memory-sync-users-teams/README",
+  "title": "SPEC-042: Auth-Aware Test Harness (Enterprise Readiness)",
+  "description": "Status: 🚧 In Progress",
+  "source": "@site/docs/specs/042-memory-sync-users-teams/README.md",
+  "sourceDirName": "042-memory-sync-users-teams",
+  "slug": "/memory-sync-users-teams/",
+  "permalink": "/ninaivalaigal/specs/memory-sync-users-teams/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/042-memory-sync-users-teams/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

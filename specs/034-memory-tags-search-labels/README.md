@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-034: Memory Tags and Search Labels
 
 ## Status

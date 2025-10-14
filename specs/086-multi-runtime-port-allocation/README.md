@@ -1,18 +1,9 @@
-# SPEC-086: Multi-Runtime Port Allocation & Network Architecture
-
-**Status:** ✅ COMPLETE
-**Created:** October 4, 2025
-**Updated:** October 4, 2025
-**Owner:** Infrastructure Team
-**Priority:** P0 - Critical Infrastructure
-
+---
+{}
 ---
 
-## 📋 Overview
 
-Defines the standardized port allocation strategy, network architecture, and connection patterns for ninaivalaigal across Docker, Colima, and Apple Container CLI runtimes. Ensures no port collisions, enables parallel development, and maintains production parity across all environments.
 
----
 
 ## 🎯 Objectives
 

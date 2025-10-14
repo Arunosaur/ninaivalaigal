@@ -1,20 +1,9 @@
-# SPEC-102: Frontend Migration Preparation
-
-**Status**: PROPOSED
-**Created**: October 9, 2025
-**Phase**: Phase 2B
-**Dependencies**: SPEC-096 (Frontend Quality Enforcement)
-**Related SPECs**: SPEC-103, SPEC-104
-
+---
+{}
 ---
 
-## Executive Summary
 
-SPEC-102 formalizes the strategic freeze of legacy frontend code and preparation for Next.js 15 migration. This SPEC prevents wasted effort by identifying and isolating 145 lint issues in legacy files that will be deleted, allowing focused effort on 81 keeper issues that will survive migration.
 
-**Key Achievement**: Converts potential 60+ hours of wasted cleanup into 15 hours of high-leverage migration preparation.
-
----
 
 ## Problem Statement
 

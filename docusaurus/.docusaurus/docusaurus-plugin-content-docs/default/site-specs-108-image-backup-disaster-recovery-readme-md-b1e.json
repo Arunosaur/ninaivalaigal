@@ -1,0 +1,17 @@
+{
+  "id": "image-backup-disaster-recovery/README",
+  "title": "SPEC-108: Image Backup & Disaster Recovery (Enhanced)",
+  "description": "Status: Complete (Enhanced Oct 11, 2025)",
+  "source": "@site/../specs/108-image-backup-disaster-recovery/README.md",
+  "sourceDirName": "108-image-backup-disaster-recovery",
+  "slug": "/image-backup-disaster-recovery/",
+  "permalink": "/ninaivalaigal/specs/image-backup-disaster-recovery/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/108-image-backup-disaster-recovery/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

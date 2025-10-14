@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-012: Memory Substrate
 
 **Status:** ✅ COMPLETE with Redis Integration

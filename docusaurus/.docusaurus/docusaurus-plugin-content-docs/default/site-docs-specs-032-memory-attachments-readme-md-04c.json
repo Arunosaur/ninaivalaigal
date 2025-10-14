@@ -1,0 +1,17 @@
+{
+  "id": "memory-attachments/README",
+  "title": "📦 SPEC-032: Memory Attachment & Artifact Enrichment",
+  "description": "🎯 Objective",
+  "source": "@site/docs/specs/032-memory-attachments/README.md",
+  "sourceDirName": "032-memory-attachments",
+  "slug": "/memory-attachments/",
+  "permalink": "/ninaivalaigal/specs/memory-attachments/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/032-memory-attachments/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

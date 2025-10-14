@@ -1,0 +1,25 @@
+{
+  "id": "graphops-deployment/README",
+  "title": "SPEC-062: GraphOps Stack Deployment Architecture",
+  "description": "🎯 Purpose",
+  "source": "@site/../specs/062-graphops-deployment/README.md",
+  "sourceDirName": "062-graphops-deployment",
+  "slug": "/graphops-deployment/",
+  "permalink": "/ninaivalaigal/specs/graphops-deployment/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/062-graphops-deployment/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {
+    "author": "ChatGPT-4o",
+    "created": "2025-09-21T00:00:00.000Z",
+    "owner": "Arun Rajagopalan",
+    "stage": "Production",
+    "status": "Implemented",
+    "title": "SPEC-062: GraphOps Stack Deployment Architecture",
+    "updated": "2025-09-21T00:00:00.000Z"
+  }
+}

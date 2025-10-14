@@ -1,0 +1,17 @@
+{
+  "id": "memory-provider-architecture/spec",
+  "title": "SPEC-020: Memory Provider Architecture",
+  "description": "Overview",
+  "source": "@site/docs/specs/020-memory-provider-architecture/spec.md",
+  "sourceDirName": "020-memory-provider-architecture",
+  "slug": "/memory-provider-architecture/spec",
+  "permalink": "/ninaivalaigal/specs/memory-provider-architecture/spec",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/020-memory-provider-architecture/spec.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

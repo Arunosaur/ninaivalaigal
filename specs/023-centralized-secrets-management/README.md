@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-023: Centralized Secrets Management
 
 ## Title

@@ -1,0 +1,17 @@
+{
+  "id": "backend-database-integration/PHASE_SEQUENCING",
+  "title": "SPEC-105: Phase Sequencing & Execution Flow",
+  "description": "Visual Roadmap for implementing Backend Integration & Database Connectivity",
+  "source": "@site/docs/specs/105-backend-database-integration/PHASE_SEQUENCING.md",
+  "sourceDirName": "105-backend-database-integration",
+  "slug": "/backend-database-integration/PHASE_SEQUENCING",
+  "permalink": "/ninaivalaigal/specs/backend-database-integration/PHASE_SEQUENCING",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/105-backend-database-integration/PHASE_SEQUENCING.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

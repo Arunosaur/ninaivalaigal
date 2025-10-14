@@ -1,47 +1,9 @@
-# SPEC-033: Redis Integration for Caching, Session & Performance
-
-## 📌 Status
-**Planned** – Redis has been discussed previously but not yet formalized in implementation or documentation.
-
-## 🎯 Objective
-Integrate Redis as a cross-cutting infrastructure layer to boost performance, ensure scalable session handling, and enable advanced memory management features.
-
+---
+{}
 ---
 
-## 🔧 Intended Use Cases
 
-### 1. 🔁 Memory Token Caching
-- **Purpose**: Reduce latency for frequently accessed memory tokens.
-- **Key**: `memory:<memory_id>`
-- **TTL**: 1 hour (configurable)
-- **Eviction**: LRU-based eviction for expired/stale items.
 
-### 2. 🧠 Relevance Score Caching
-- **Purpose**: Cache computed relevance ranking scores (SPEC-031)
-- **Key**: `score:<user_id>:<context_id>:<token_id>`
-- **TTL**: 15 minutes (for freshness)
-- **Used By**: Relevance ranking system for e^M.
-
-### 3. 🔐 Session / Auth Cache
-- **Purpose**: Support JWT session states, CSRF protection, and temporary auth data.
-- **Key**: `session:<user_id>`
-- **TTL**: 30 minutes or configurable session length.
-- **Integration**: FastAPI middleware for sessions & CSRF.
-
-### 4. 🚦 API Rate Limiting
-- **Purpose**: Enforce fair usage with token bucket or leaky bucket model.
-- **Key**: `rate:<user_id>:<endpoint>`
-- **Policy**: 100 requests / min (configurable by tier)
-- **Integration**: Gateway/Proxy middleware.
-
-### 5. 📬 Queue for Asynchronous Tasks (optional)
-- **Purpose**: Redis Queue (RQ) for background processing
-- **Examples**:
-  - Memory token indexing
-  - Notification triggers (SPEC-028)
-  - Archival jobs (SPEC-011)
-
----
 
 ## 📦 Architecture & Deployment
 

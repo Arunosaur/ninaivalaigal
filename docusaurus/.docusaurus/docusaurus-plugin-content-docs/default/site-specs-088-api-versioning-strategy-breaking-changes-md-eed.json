@@ -1,0 +1,17 @@
+{
+  "id": "api-versioning-strategy/breaking-changes",
+  "title": "Breaking Changes",
+  "description": "Definition of a Breaking Change",
+  "source": "@site/../specs/088-api-versioning-strategy/breaking-changes.md",
+  "sourceDirName": "088-api-versioning-strategy",
+  "slug": "/api-versioning-strategy/breaking-changes",
+  "permalink": "/ninaivalaigal/specs/api-versioning-strategy/breaking-changes",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/088-api-versioning-strategy/breaking-changes.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

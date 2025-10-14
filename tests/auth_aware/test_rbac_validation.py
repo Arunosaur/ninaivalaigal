@@ -12,24 +12,66 @@ Role-based access control testing for enterprise security validation
 """
 
 import asyncio
+from dataclasses import replace
 from typing import List
 
 import pytest
 
+from .fixtures import RbacScenario, RoleFixtures, build_rbac_scenarios, build_role_fixtures
+from .helpers import switch_user_role, verify_permission_matrix
 from .models import AuthTestResult, UserRole
 from .rbac_engine import RBACTestEngine
-from .test_fixtures import AuthTestHelper
+
+
+@pytest.fixture
+def rbac_engine(stubbed_http, api_config) -> RBACTestEngine:
+    """RBAC test engine instance"""
+    return RBACTestEngine(api_config)
+
+
+@pytest.fixture
+def role_fixtures() -> RoleFixtures:
+    """Canonical role fixtures for RBAC validation."""
+
+    return build_role_fixtures()
+
+
+@pytest.fixture
+def rbac_scenarios(role_fixtures: RoleFixtures) -> dict[UserRole, RbacScenario]:
+    """Role-to-scenario mapping derived from canonical fixtures."""
+
+    return build_rbac_scenarios(role_fixtures)
 
 
 class TestRBACValidation:
     """Test suite for RBAC validation scenarios"""
 
     @pytest.mark.asyncio
-    async def test_admin_role_permissions(self, rbac_engine: RBACTestEngine, admin_user):
+    async def test_admin_role_permissions(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        role_fixtures: RoleFixtures,
+        rbac_scenarios: dict[UserRole, RbacScenario],
+    ):
         """Test admin role has all required permissions"""
+
+        admin_user = role_fixtures.user(UserRole.ADMIN)
 
         # Test admin permissions
         permission_results = await rbac_engine.test_role_permissions(admin_user)
+        scenario = rbac_scenarios[UserRole.ADMIN]
+
+        verify_permission_matrix(
+            permission_results,
+            expected_allow=scenario.allowed_endpoints,
+            expected_deny=scenario.denied_endpoints,
+            format_kwargs={
+                "id": admin_user.user_id,
+                "user_id": admin_user.user_id,
+                "team_id": admin_user.team_id,
+            },
+        )
 
         # Admin should have access to all endpoints
         admin_endpoints = [result for result in permission_results if result.expected_result == "allow"]
@@ -50,10 +92,29 @@ class TestRBACValidation:
         assert any("/admin/audit" in endpoint for endpoint, method in admin_endpoint_methods)
 
     @pytest.mark.asyncio
-    async def test_team_lead_role_permissions(self, rbac_engine: RBACTestEngine, team_lead_user):
+    async def test_team_lead_role_permissions(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        role_fixtures: RoleFixtures,
+        rbac_scenarios: dict[UserRole, RbacScenario],
+    ):
         """Test team lead role permissions"""
 
+        team_lead_user = role_fixtures.user(UserRole.TEAM_LEAD)
         permission_results = await rbac_engine.test_role_permissions(team_lead_user)
+        scenario = rbac_scenarios[UserRole.TEAM_LEAD]
+
+        verify_permission_matrix(
+            permission_results,
+            expected_allow=scenario.allowed_endpoints,
+            expected_deny=scenario.denied_endpoints,
+            format_kwargs={
+                "id": team_lead_user.user_id,
+                "user_id": team_lead_user.user_id,
+                "team_id": team_lead_user.team_id,
+            },
+        )
 
         # Separate allowed and forbidden results
         allowed_results = [r for r in permission_results if r.expected_result == "allow"]
@@ -76,10 +137,29 @@ class TestRBACValidation:
         assert any("/admin/" in endpoint for endpoint in forbidden_endpoints)
 
     @pytest.mark.asyncio
-    async def test_member_role_permissions(self, rbac_engine: RBACTestEngine, member_user):
+    async def test_member_role_permissions(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        role_fixtures: RoleFixtures,
+        rbac_scenarios: dict[UserRole, RbacScenario],
+    ):
         """Test member role permissions"""
 
+        member_user = role_fixtures.user(UserRole.MEMBER)
         permission_results = await rbac_engine.test_role_permissions(member_user)
+        scenario = rbac_scenarios[UserRole.MEMBER]
+
+        verify_permission_matrix(
+            permission_results,
+            expected_allow=scenario.allowed_endpoints,
+            expected_deny=scenario.denied_endpoints,
+            format_kwargs={
+                "id": member_user.user_id,
+                "user_id": member_user.user_id,
+                "team_id": member_user.team_id,
+            },
+        )
 
         allowed_results = [r for r in permission_results if r.expected_result == "allow"]
         forbidden_results = [r for r in permission_results if r.expected_result == "deny"]
@@ -101,10 +181,29 @@ class TestRBACValidation:
         assert any("DELETE" in r.method for r in forbidden_results if "memories" in r.endpoint)
 
     @pytest.mark.asyncio
-    async def test_viewer_role_permissions(self, rbac_engine: RBACTestEngine, viewer_user):
+    async def test_viewer_role_permissions(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        role_fixtures: RoleFixtures,
+        rbac_scenarios: dict[UserRole, RbacScenario],
+    ):
         """Test viewer role permissions (read-only)"""
 
+        viewer_user = role_fixtures.user(UserRole.VIEWER)
         permission_results = await rbac_engine.test_role_permissions(viewer_user)
+        scenario = rbac_scenarios[UserRole.VIEWER]
+
+        verify_permission_matrix(
+            permission_results,
+            expected_allow=scenario.allowed_endpoints,
+            expected_deny=scenario.denied_endpoints,
+            format_kwargs={
+                "id": viewer_user.user_id,
+                "user_id": viewer_user.user_id,
+                "team_id": viewer_user.team_id,
+            },
+        )
 
         allowed_results = [r for r in permission_results if r.expected_result == "allow"]
         forbidden_results = [r for r in permission_results if r.expected_result == "deny"]
@@ -125,10 +224,29 @@ class TestRBACValidation:
         assert any(method in ["POST", "PUT", "DELETE"] for method in forbidden_methods)
 
     @pytest.mark.asyncio
-    async def test_guest_role_permissions(self, rbac_engine: RBACTestEngine, guest_user):
+    async def test_guest_role_permissions(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        role_fixtures: RoleFixtures,
+        rbac_scenarios: dict[UserRole, RbacScenario],
+    ):
         """Test guest role permissions (minimal access)"""
 
+        guest_user = role_fixtures.user(UserRole.GUEST)
         permission_results = await rbac_engine.test_role_permissions(guest_user)
+        scenario = rbac_scenarios[UserRole.GUEST]
+
+        verify_permission_matrix(
+            permission_results,
+            expected_allow=scenario.allowed_endpoints,
+            expected_deny=scenario.denied_endpoints,
+            format_kwargs={
+                "id": guest_user.user_id,
+                "user_id": guest_user.user_id,
+                "team_id": guest_user.team_id,
+            },
+        )
 
         allowed_results = [r for r in permission_results if r.expected_result == "allow"]
         forbidden_results = [r for r in permission_results if r.expected_result == "deny"]
@@ -149,7 +267,12 @@ class TestRBACValidation:
         assert all("memories" in endpoint for endpoint in allowed_endpoints)
 
     @pytest.mark.asyncio
-    async def test_permission_boundary_enforcement(self, rbac_engine: RBACTestEngine, all_role_users: List):
+    async def test_permission_boundary_enforcement(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        all_role_users: List,
+    ):
         """Test permission boundaries are enforced for all roles"""
 
         for user in all_role_users:
@@ -171,8 +294,16 @@ class TestRBACValidation:
                 assert attempt.response_code in [401, 403, 404]
 
     @pytest.mark.asyncio
-    async def test_role_switching_validation(self, rbac_engine: RBACTestEngine, member_user, team_lead_user):
+    async def test_role_switching_validation(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        role_fixtures: RoleFixtures,
+    ):
         """Test role switching functionality and validation"""
+
+        member_user = role_fixtures.user(UserRole.MEMBER)
+        team_lead_user = role_fixtures.user(UserRole.TEAM_LEAD)
 
         # Test member trying to switch to team lead
         member_switch_result = await rbac_engine.test_role_switching(member_user, UserRole.TEAM_LEAD)
@@ -182,7 +313,8 @@ class TestRBACValidation:
         assert not member_switch_result.details.get("switch_successful", True)
 
         # Test team lead trying to switch to member (downgrade)
-        lead_switch_result = await rbac_engine.test_role_switching(team_lead_user, UserRole.MEMBER)
+        downgraded_user = switch_user_role(team_lead_user, UserRole.MEMBER)
+        lead_switch_result = await rbac_engine.test_role_switching(downgraded_user, UserRole.MEMBER)
 
         # Team lead should be able to switch to member (if allowed by policy)
         switch_allowed = lead_switch_result.details.get("switch_allowed", False)
@@ -192,7 +324,12 @@ class TestRBACValidation:
         assert switch_successful == switch_allowed
 
     @pytest.mark.asyncio
-    async def test_cross_team_access_control(self, rbac_engine: RBACTestEngine, multi_team_users: List):
+    async def test_cross_team_access_control(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        multi_team_users: List,
+    ):
         """Test cross-team access control validation"""
 
         # Get users from different teams
@@ -218,13 +355,18 @@ class TestRBACValidation:
                         assert result.actual_result == "allow"
 
     @pytest.mark.asyncio
-    async def test_role_permission_matrix_validation(self, rbac_engine: RBACTestEngine, auth_helper: AuthTestHelper):
+    async def test_role_permission_matrix_validation(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        role_fixtures: RoleFixtures,
+    ):
         """Test complete role permission matrix"""
 
         # Create users for each role
         role_users = {}
         for role in UserRole:
-            role_users[role] = auth_helper.generate_test_user(role)
+            role_users[role] = replace(role_fixtures.user(role))
 
         # Test permission matrix for each role
         role_results = {}
@@ -247,7 +389,12 @@ class TestRBACValidation:
         assert viewer_allowed >= guest_allowed
 
     @pytest.mark.asyncio
-    async def test_concurrent_rbac_validation(self, rbac_engine: RBACTestEngine, all_role_users: List):
+    async def test_concurrent_rbac_validation(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        all_role_users: List,
+    ):
         """Test RBAC validation under concurrent access"""
 
         # Test concurrent permission validation
@@ -279,14 +426,15 @@ class TestRBACValidation:
     @pytest.mark.asyncio
     async def test_rbac_performance_validation(
         self,
+    stubbed_http,
         rbac_engine: RBACTestEngine,
         performance_thresholds: dict,
-        auth_helper: AuthTestHelper,
+        role_fixtures: RoleFixtures,
     ):
         """Test RBAC performance under load"""
 
         # Create test user
-        test_user = auth_helper.generate_test_user(UserRole.MEMBER)
+        test_user = replace(role_fixtures.user(UserRole.MEMBER))
 
         # Measure RBAC validation performance
         import time
@@ -347,7 +495,13 @@ class TestRBACValidation:
         return base_forbidden
 
     @pytest.mark.asyncio
-    async def test_rbac_audit_logging(self, rbac_engine: RBACTestEngine, admin_user, member_user):
+    async def test_rbac_audit_logging(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        admin_user,
+        member_user,
+    ):
         """Test RBAC audit logging functionality"""
 
         # Test admin access (should be logged)
@@ -369,12 +523,18 @@ class TestRBACValidation:
         assert len(admin_allowed) > len(member_allowed)
 
     @pytest.mark.asyncio
-    async def test_rbac_error_handling(self, rbac_engine: RBACTestEngine, auth_helper: AuthTestHelper):
+    async def test_rbac_error_handling(
+        self,
+        stubbed_http,
+        rbac_engine: RBACTestEngine,
+        role_fixtures: RoleFixtures,
+    ):
         """Test RBAC error handling for edge cases"""
 
         # Test with invalid user
-        invalid_user = auth_helper.generate_test_user(UserRole.MEMBER)
-        invalid_user.password = "wrong_password"
+        invalid_user = replace(
+            role_fixtures.user(UserRole.MEMBER), password="wrong_password"
+        )
 
         permission_results = await rbac_engine.test_role_permissions(invalid_user)
 

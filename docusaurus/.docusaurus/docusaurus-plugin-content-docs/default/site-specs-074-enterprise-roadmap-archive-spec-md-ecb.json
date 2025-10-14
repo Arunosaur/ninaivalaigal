@@ -1,0 +1,17 @@
+{
+  "id": "enterprise-roadmap/archive/spec",
+  "title": "Enterprise Roadmap - Multi-Organization & Cloud Integration",
+  "description": "Specification: 006-enterprise-roadmap",
+  "source": "@site/../specs/074-enterprise-roadmap/archive/spec.md",
+  "sourceDirName": "074-enterprise-roadmap/archive",
+  "slug": "/enterprise-roadmap/archive/spec",
+  "permalink": "/ninaivalaigal/specs/enterprise-roadmap/archive/spec",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/074-enterprise-roadmap/archive/spec.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

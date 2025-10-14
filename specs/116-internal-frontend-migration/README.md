@@ -1,15 +1,9 @@
-# SPEC-116: Internal Frontend Migration (Admin & Ops Console)
-**Phase:** C
-**Status:** Planned
-**Depends On:** SPEC-105 (Frontend Baseline)
-
+---
+{}
 ---
 
-## 🎯 Objective
 
-Migrate Admin and Ops UIs to Next.js 15 with shared component library.
 
----
 
 ## 🏗️ Architecture
 

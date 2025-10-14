@@ -1,3 +1,12 @@
+---
+title: Untitled SPEC
+---
+
+
+---
+title: "SPEC-043: Memory Access Control (ACL) Per Token"
+---
+
 # SPEC-043: Memory Access Control (ACL) Per Token
 
 ## Status

@@ -1,0 +1,17 @@
+{
+  "id": "profile-settings-pages/README",
+  "title": "README",
+  "description": "🏗️ Architecture",
+  "source": "@site/../specs/113-profile-settings-pages/README.md",
+  "sourceDirName": "113-profile-settings-pages",
+  "slug": "/profile-settings-pages/",
+  "permalink": "/ninaivalaigal/specs/profile-settings-pages/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/113-profile-settings-pages/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

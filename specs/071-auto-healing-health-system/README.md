@@ -1,3 +1,12 @@
+---
+title: Untitled SPEC
+---
+
+
+---
+title: "SPEC-071: Auto-Healing Health System"
+---
+
 # SPEC-071: Auto-Healing Health System
 
 **Status**: ✅ COMPLETE

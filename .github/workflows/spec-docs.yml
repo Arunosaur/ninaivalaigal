@@ -1,0 +1,45 @@
+name: Build & Deploy SPEC Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'specs/**'
+      - 'docusaurus/**'
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip3 install pyyaml
+
+      - name: Generate SPEC Dashboard
+        run: python3 ~/WorkSpace/dev-tools/spec-dashboard-generator/spec-dashboard-generator.py .
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Docusaurus dependencies
+        working-directory: docusaurus
+        run: npm ci
+
+      - name: Build Docusaurus
+        working-directory: docusaurus
+        run: npm run build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docusaurus/build

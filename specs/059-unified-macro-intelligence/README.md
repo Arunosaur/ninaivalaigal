@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-059: Unified Macro Intelligence
 
 ## Summary

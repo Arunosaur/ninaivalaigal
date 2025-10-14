@@ -1,0 +1,17 @@
+{
+  "id": "frontend-documentation-monitoring/README",
+  "title": "SPEC-125: Frontend Documentation & Monitoring",
+  "description": "Project: Medhasys / Ninaivalaigal",
+  "source": "@site/docs/specs/125-frontend-documentation-monitoring/README.md",
+  "sourceDirName": "125-frontend-documentation-monitoring",
+  "slug": "/frontend-documentation-monitoring/",
+  "permalink": "/ninaivalaigal/specs/frontend-documentation-monitoring/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/125-frontend-documentation-monitoring/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

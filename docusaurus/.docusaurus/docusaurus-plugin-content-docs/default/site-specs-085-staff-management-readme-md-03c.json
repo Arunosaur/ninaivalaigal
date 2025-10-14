@@ -1,0 +1,17 @@
+{
+  "id": "staff-management/README",
+  "title": "README",
+  "description": "2) Core Concepts",
+  "source": "@site/../specs/085-staff-management/README.md",
+  "sourceDirName": "085-staff-management",
+  "slug": "/staff-management/",
+  "permalink": "/ninaivalaigal/specs/staff-management/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/085-staff-management/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

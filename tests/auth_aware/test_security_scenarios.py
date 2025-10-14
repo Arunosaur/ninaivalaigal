@@ -26,6 +26,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_privilege_escalation_prevention(
         self,
+        stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         viewer_user,
@@ -57,7 +58,12 @@ class TestSecurityScenarios:
                 assert expected_attack in attack_types
 
     @pytest.mark.asyncio
-    async def test_jwt_token_manipulation_attacks(self, security_engine: SecurityScenarioEngine, member_user):
+    async def test_jwt_token_manipulation_attacks(
+        self,
+        stubbed_http,
+        security_engine: SecurityScenarioEngine,
+        member_user,
+    ):
         """Test JWT token manipulation attack prevention"""
 
         # Get valid token for manipulation tests
@@ -85,7 +91,12 @@ class TestSecurityScenarios:
             assert expected_attack in attack_types
 
     @pytest.mark.asyncio
-    async def test_session_hijacking_prevention(self, security_engine: SecurityScenarioEngine, test_session):
+    async def test_session_hijacking_prevention(
+        self,
+        stubbed_http,
+        security_engine: SecurityScenarioEngine,
+        test_session,
+    ):
         """Test session hijacking prevention mechanisms"""
 
         hijacking_result = await security_engine.test_session_hijacking_prevention(test_session)
@@ -105,6 +116,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_rate_limiting_enforcement(
         self,
+    stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         load_test_scenarios: Dict,
@@ -134,6 +146,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_injection_attack_prevention(
         self,
+    stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         malicious_payloads: Dict,
@@ -167,7 +180,10 @@ class TestSecurityScenarios:
 
     @pytest.mark.asyncio
     async def test_soc2_compliance_validation(
-        self, security_engine: SecurityScenarioEngine, compliance_test_scenarios: Dict
+        self,
+        stubbed_http,
+        security_engine: SecurityScenarioEngine,
+        compliance_test_scenarios: Dict,
     ):
         """Test SOC2 compliance requirements"""
 
@@ -192,7 +208,10 @@ class TestSecurityScenarios:
 
     @pytest.mark.asyncio
     async def test_gdpr_compliance_validation(
-        self, security_engine: SecurityScenarioEngine, compliance_test_scenarios: Dict
+        self,
+        stubbed_http,
+        security_engine: SecurityScenarioEngine,
+        compliance_test_scenarios: Dict,
     ):
         """Test GDPR compliance requirements"""
 
@@ -215,6 +234,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_concurrent_security_attacks(
         self,
+    stubbed_http,
         security_engine: SecurityScenarioEngine,
         multi_team_users: List,
         security_test_matrix: Dict,
@@ -246,7 +266,13 @@ class TestSecurityScenarios:
                     assert result.user_id == user.user_id
 
     @pytest.mark.asyncio
-    async def test_security_audit_trail(self, security_engine: SecurityScenarioEngine, admin_user, member_user):
+    async def test_security_audit_trail(
+        self,
+        stubbed_http,
+        security_engine: SecurityScenarioEngine,
+        admin_user,
+        member_user,
+    ):
         """Test security audit trail generation"""
 
         # Perform security tests that should generate audit logs
@@ -265,6 +291,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_security_performance_under_attack(
         self,
+    stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         performance_thresholds: Dict,
@@ -300,6 +327,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_cross_site_scripting_prevention(
         self,
+    stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         malicious_payloads: Dict,
@@ -324,6 +352,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_command_injection_prevention(
         self,
+    stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         malicious_payloads: Dict,
@@ -348,6 +377,7 @@ class TestSecurityScenarios:
     @pytest.mark.asyncio
     async def test_path_traversal_prevention(
         self,
+    stubbed_http,
         security_engine: SecurityScenarioEngine,
         member_user,
         malicious_payloads: Dict,

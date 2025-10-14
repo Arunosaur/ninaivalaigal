@@ -1,0 +1,17 @@
+{
+  "id": "realtime-features/README",
+  "title": "README",
+  "description": "🏗️ Architecture",
+  "source": "@site/../specs/115-realtime-features/README.md",
+  "sourceDirName": "115-realtime-features",
+  "slug": "/realtime-features/",
+  "permalink": "/ninaivalaigal/specs/realtime-features/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/115-realtime-features/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

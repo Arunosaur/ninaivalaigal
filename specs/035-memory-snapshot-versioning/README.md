@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-035: Memory Snapshot & Versioning
 
 ## Status

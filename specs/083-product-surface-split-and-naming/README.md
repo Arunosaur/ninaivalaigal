@@ -1,17 +1,9 @@
-# SPEC-083: Product Surface Split & Naming (Customer App + Admin Console)
-
-**Status:** Proposed
-**Owner:** Platform PM + UI Lead
-**Effective:** Upon merge
-**Related:** SPEC-068 (UI Suite), SPEC-075 (Frontend Architecture), SPEC-025 (Vendor Admin Console → renamed), SPEC-087 (API Surface Contracts)
-
+---
+{}
 ---
 
-## 1) Purpose
 
-Establish clear, consistent naming and a structural split between the **end-user app** and the **internal/operational app**, with cohesive branding but zero mixing of surfaces.
 
----
 
 ## 2) Canonical Names
 

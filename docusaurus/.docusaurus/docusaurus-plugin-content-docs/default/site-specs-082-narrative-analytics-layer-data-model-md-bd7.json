@@ -1,0 +1,17 @@
+{
+  "id": "narrative-analytics-layer/data-model",
+  "title": "Data Model for Analytics ROI Dashboard",
+  "description": "Analytics Events Schema",
+  "source": "@site/../specs/082-narrative-analytics-layer/data-model.md",
+  "sourceDirName": "082-narrative-analytics-layer",
+  "slug": "/narrative-analytics-layer/data-model",
+  "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/data-model",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/082-narrative-analytics-layer/data-model.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

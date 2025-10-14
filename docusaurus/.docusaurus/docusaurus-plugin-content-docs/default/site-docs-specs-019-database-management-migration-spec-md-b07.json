@@ -1,0 +1,17 @@
+{
+  "id": "database-management-migration/spec",
+  "title": "SPEC-019: Database Management & Migration",
+  "description": "Overview",
+  "source": "@site/docs/specs/019-database-management-migration/spec.md",
+  "sourceDirName": "019-database-management-migration",
+  "slug": "/database-management-migration/spec",
+  "permalink": "/ninaivalaigal/specs/database-management-migration/spec",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/019-database-management-migration/spec.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-077: Multimodal Memory Capture
 
 **Status**: 📋 PLANNED

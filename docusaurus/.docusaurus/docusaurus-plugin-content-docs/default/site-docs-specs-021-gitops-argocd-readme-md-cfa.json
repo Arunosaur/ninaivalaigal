@@ -1,0 +1,17 @@
+{
+  "id": "gitops-argocd/README",
+  "title": "SPEC-021: GitOps with ArgoCD + Kubernetes Deployment",
+  "description": "Status: 🚧 In Progress",
+  "source": "@site/docs/specs/021-gitops-argocd/README.md",
+  "sourceDirName": "021-gitops-argocd",
+  "slug": "/gitops-argocd/",
+  "permalink": "/ninaivalaigal/specs/gitops-argocd/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/021-gitops-argocd/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

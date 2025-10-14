@@ -15,7 +15,9 @@
 6. [Rate Limits](#rate-limits)
 7. [Error Handling](#error-handling)
 8. [Best Practices](#best-practices)
-9. [Support](#support)
+9. [Webhook Integration](#webhook-integration)
+10. [SDKs and Client Libraries](#sdks-and-client-libraries)
+11. [Support](#support)
 
 ---
 
@@ -315,7 +317,19 @@ GET /contexts/{id}
 
 ---
 
-## 9. Support
+## 9. Webhook Integration
+
+*Not yet available.* Stay tuned for updates on webhook support for real-time event notifications.
+
+---
+
+## 10. SDKs and Client Libraries
+
+*Coming soon.* We are developing official Python and JavaScript/TypeScript SDKs to simplify integration.
+
+---
+
+## 11. Support
 
 ### Documentation
 

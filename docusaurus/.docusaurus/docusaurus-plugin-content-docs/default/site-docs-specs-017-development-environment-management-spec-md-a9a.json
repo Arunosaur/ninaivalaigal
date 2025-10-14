@@ -1,0 +1,17 @@
+{
+  "id": "development-environment-management/spec",
+  "title": "SPEC-017: Development Environment Management",
+  "description": "Overview",
+  "source": "@site/docs/specs/017-development-environment-management/spec.md",
+  "sourceDirName": "017-development-environment-management",
+  "slug": "/development-environment-management/spec",
+  "permalink": "/ninaivalaigal/specs/development-environment-management/spec",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/017-development-environment-management/spec.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

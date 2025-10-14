@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-055: Codebase Refactor & Modularization
 
 ## Objective

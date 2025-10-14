@@ -1,3 +1,7 @@
+---
+title: Untitled SPEC
+---
+
 # SPEC-043: Offline Memory Capture and Deferred Sync
 
 ## 📌 Overview

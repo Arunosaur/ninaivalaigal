@@ -1,0 +1,17 @@
+{
+  "id": "real-time-monitoring-dashboard/README",
+  "title": "SPEC-070: Real-Time Monitoring Dashboard",
+  "description": "Status: ✅ COMPLETE",
+  "source": "@site/../specs/070-real-time-monitoring-dashboard/README.md",
+  "sourceDirName": "070-real-time-monitoring-dashboard",
+  "slug": "/real-time-monitoring-dashboard/",
+  "permalink": "/ninaivalaigal/specs/real-time-monitoring-dashboard/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/070-real-time-monitoring-dashboard/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

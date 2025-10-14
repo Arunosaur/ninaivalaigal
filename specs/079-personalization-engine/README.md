@@ -1,3 +1,10 @@
+---
+{}
+---
+
+
+
+
 # SPEC-079: Personalization Engine
 
 **Status**: 📋 PLANNED

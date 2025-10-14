@@ -1,3 +1,12 @@
+---
+title: Untitled SPEC
+---
+
+
+---
+title: "SPEC-058: Documentation Expansion"
+---
+
 # SPEC-058: Documentation Expansion
 
 ## Objective

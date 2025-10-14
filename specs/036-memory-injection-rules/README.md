@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-036: Memory Injection Rules
 
 ## Status

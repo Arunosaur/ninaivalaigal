@@ -1,0 +1,19 @@
+{
+  "id": "ingress-gateway-tls/README",
+  "title": "Untitled SPEC",
+  "description": "Title",
+  "source": "@site/../specs/024-ingress-gateway-tls/README.md",
+  "sourceDirName": "024-ingress-gateway-tls",
+  "slug": "/ingress-gateway-tls/",
+  "permalink": "/ninaivalaigal/specs/ingress-gateway-tls/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/024-ingress-gateway-tls/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {
+    "title": "Untitled SPEC"
+  }
+}

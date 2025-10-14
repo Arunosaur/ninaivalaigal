@@ -1,0 +1,17 @@
+{
+  "id": "personalization-engine/README",
+  "title": "SPEC-079: Personalization Engine",
+  "description": "Status: 📋 PLANNED",
+  "source": "@site/docs/specs/079-personalization-engine/README.md",
+  "sourceDirName": "079-personalization-engine",
+  "slug": "/personalization-engine/",
+  "permalink": "/ninaivalaigal/specs/personalization-engine/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/079-personalization-engine/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

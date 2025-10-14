@@ -1,3 +1,8 @@
+---
+title: 'SPEC-046: Procedural Macro System'
+---
+
+
 # SPEC-046: Procedural Memory System (Macro Recording via e^M Agent & Plugin)
 
 ## 🧠 Purpose

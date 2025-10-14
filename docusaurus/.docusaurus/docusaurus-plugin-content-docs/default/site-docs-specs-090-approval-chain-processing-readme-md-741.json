@@ -1,0 +1,17 @@
+{
+  "id": "approval-chain-processing/README",
+  "title": "SPEC-090: Approval Chain Processing (ACP)",
+  "description": "🎯 Objective",
+  "source": "@site/docs/specs/090-approval-chain-processing/README.md",
+  "sourceDirName": "090-approval-chain-processing",
+  "slug": "/approval-chain-processing/",
+  "permalink": "/ninaivalaigal/specs/approval-chain-processing/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/090-approval-chain-processing/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

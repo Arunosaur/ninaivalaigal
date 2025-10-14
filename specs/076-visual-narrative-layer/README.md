@@ -1,3 +1,8 @@
+---
+title: Untitled SPEC
+---
+
+
 # SPEC-076: Visual Narrative Layer
 
 **Status**: 📋 PLANNED

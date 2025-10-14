@@ -1,0 +1,17 @@
+{
+  "id": "narrative-analytics-layer/api-contracts",
+  "title": "API Contracts for Analytics ROI Dashboard",
+  "description": "Endpoints",
+  "source": "@site/../specs/082-narrative-analytics-layer/api-contracts.md",
+  "sourceDirName": "082-narrative-analytics-layer",
+  "slug": "/narrative-analytics-layer/api-contracts",
+  "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/api-contracts",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/082-narrative-analytics-layer/api-contracts.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

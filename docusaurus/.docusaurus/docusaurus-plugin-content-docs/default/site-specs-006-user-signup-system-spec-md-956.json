@@ -1,0 +1,17 @@
+{
+  "id": "user-signup-system/spec",
+  "title": "Spec 006: User Signup and Organization Registration System",
+  "description": "Overview",
+  "source": "@site/../specs/006-user-signup-system/spec.md",
+  "sourceDirName": "006-user-signup-system",
+  "slug": "/user-signup-system/spec",
+  "permalink": "/ninaivalaigal/specs/user-signup-system/spec",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/006-user-signup-system/spec.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

@@ -1,5 +1,15 @@
-# SPEC-049: Memory Sharing & Collaboration System
+---
+title: Untitled SPEC
+---
 
+
+---
+title: "SPEC-049: Memory Sharing and Collaboration"
+---
+title: "SPEC-049: Memory Sharing and Collaboration"
+---
+
+# SPEC-049: Memory Sharing & Collaboration
 ## Status: ✅ DRAFT COMPLETE
 
 ## Objective:

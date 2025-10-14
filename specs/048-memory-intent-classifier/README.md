@@ -1,3 +1,12 @@
+---
+title: Untitled SPEC
+---
+
+
+---
+title: "SPEC-048: Memory Intent Classifier"
+---
+
 # SPEC-048: Memory Intent Classifier
 
 ## 🔍 Purpose

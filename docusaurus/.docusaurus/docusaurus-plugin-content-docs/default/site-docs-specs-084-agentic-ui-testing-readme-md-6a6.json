@@ -1,0 +1,59 @@
+{
+  "id": "agentic-ui-testing/SPEC-084",
+  "title": "Agentic UI Testing Framework",
+  "description": "Status: ✅ ENHANCED - Hybrid OpenAI/Ollama Strategy",
+  "source": "@site/docs/specs/084-agentic-ui-testing/README.md",
+  "sourceDirName": "084-agentic-ui-testing",
+  "slug": "/agentic-ui-testing/",
+  "permalink": "/ninaivalaigal/specs/agentic-ui-testing/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/084-agentic-ui-testing/README.md",
+  "tags": [
+    {
+      "inline": true,
+      "label": "Testing",
+      "permalink": "/ninaivalaigal/specs/tags/testing"
+    },
+    {
+      "inline": true,
+      "label": "AI",
+      "permalink": "/ninaivalaigal/specs/tags/ai"
+    },
+    {
+      "inline": true,
+      "label": "Playwright",
+      "permalink": "/ninaivalaigal/specs/tags/playwright"
+    },
+    {
+      "inline": true,
+      "label": "QA",
+      "permalink": "/ninaivalaigal/specs/tags/qa"
+    }
+  ],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 84,
+  "frontMatter": {
+    "id": "SPEC-084",
+    "title": "Agentic UI Testing Framework",
+    "status": "Complete",
+    "phase": "Testing",
+    "owner": "medhasys",
+    "updated": "2025-10-12T00:00:00.000Z",
+    "start_date": "2025-09-25T00:00:00.000Z",
+    "depends_on": [
+      "SPEC-052",
+      "SPEC-068",
+      "SPEC-075"
+    ],
+    "tags": [
+      "Testing",
+      "AI",
+      "Playwright",
+      "QA"
+    ],
+    "sidebar_position": 84
+  }
+}

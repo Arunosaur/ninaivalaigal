@@ -1,0 +1,19 @@
+{
+  "id": "prometheus-grafana-monitoring/README",
+  "title": "SPEC-022: Kubernetes Monitoring with Prometheus + Grafana",
+  "description": "Title",
+  "source": "@site/../specs/022-prometheus-grafana-monitoring/README.md",
+  "sourceDirName": "022-prometheus-grafana-monitoring",
+  "slug": "/prometheus-grafana-monitoring/",
+  "permalink": "/ninaivalaigal/specs/prometheus-grafana-monitoring/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/022-prometheus-grafana-monitoring/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {
+    "title": "SPEC-022: Kubernetes Monitoring with Prometheus + Grafana"
+  }
+}

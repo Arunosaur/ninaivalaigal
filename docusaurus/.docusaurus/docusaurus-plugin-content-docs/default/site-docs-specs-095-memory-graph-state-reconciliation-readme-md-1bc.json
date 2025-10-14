@@ -1,0 +1,17 @@
+{
+  "id": "memory-graph-state-reconciliation/README",
+  "title": "SPEC-095: Memory-Graph State Reconciliation",
+  "description": "Status: Reserved for future expansion.",
+  "source": "@site/docs/specs/095-memory-graph-state-reconciliation/README.md",
+  "sourceDirName": "095-memory-graph-state-reconciliation",
+  "slug": "/memory-graph-state-reconciliation/",
+  "permalink": "/ninaivalaigal/specs/memory-graph-state-reconciliation/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/docs/specs/095-memory-graph-state-reconciliation/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {}
+}

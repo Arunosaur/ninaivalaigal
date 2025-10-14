@@ -57,9 +57,9 @@ class BaseNode:
 
     id: str
     label: str
-    properties: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime | None = field(default=None)
-    updated_at: datetime | None = field(default=None)
+    properties: dict[str, Any] = field(default_factory=dict, kw_only=True)
+    created_at: datetime | None = field(default=None, kw_only=True)
+    updated_at: datetime | None = field(default=None, kw_only=True)
 
     def __post_init__(self):
         """__post_init__ function."""
