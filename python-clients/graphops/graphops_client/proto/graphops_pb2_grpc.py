@@ -29,12 +29,8 @@ if _version_not_supported:
     )
 
 
-class GraphOpsServiceStub(object):
-    """GraphOps Service - High-performance Apache AGE query execution
-
-    This service provides a unified interface for executing Cypher queries
-    against Apache AGE graphs, supporting both Python and Rust runtimes.
-    """
+class GraphOpsStub(object):
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -43,100 +39,39 @@ class GraphOpsServiceStub(object):
             channel: A grpc.Channel.
         """
         self.ExecuteQuery = channel.unary_unary(
-            "/ninaivalaigal.graphops.v1.GraphOpsService/ExecuteQuery",
-            request_serializer=graphops__pb2.CypherRequest.SerializeToString,
-            response_deserializer=graphops__pb2.CypherResponse.FromString,
-            _registered_method=True,
-        )
-        self.ExecuteQueryBatch = channel.unary_unary(
-            "/ninaivalaigal.graphops.v1.GraphOpsService/ExecuteQueryBatch",
-            request_serializer=graphops__pb2.CypherBatchRequest.SerializeToString,
-            response_deserializer=graphops__pb2.CypherBatchResponse.FromString,
-            _registered_method=True,
-        )
-        self.HealthCheck = channel.unary_unary(
-            "/ninaivalaigal.graphops.v1.GraphOpsService/HealthCheck",
-            request_serializer=graphops__pb2.HealthCheckRequest.SerializeToString,
-            response_deserializer=graphops__pb2.HealthCheckResponse.FromString,
-            _registered_method=True,
-        )
-        self.GetMetrics = channel.unary_unary(
-            "/ninaivalaigal.graphops.v1.GraphOpsService/GetMetrics",
-            request_serializer=graphops__pb2.MetricsRequest.SerializeToString,
-            response_deserializer=graphops__pb2.MetricsResponse.FromString,
+            "/graphops.v1.GraphOps/ExecuteQuery",
+            request_serializer=graphops__pb2.ExecuteQueryRequest.SerializeToString,
+            response_deserializer=graphops__pb2.ExecuteQueryResponse.FromString,
             _registered_method=True,
         )
 
 
-class GraphOpsServiceServicer(object):
-    """GraphOps Service - High-performance Apache AGE query execution
-
-    This service provides a unified interface for executing Cypher queries
-    against Apache AGE graphs, supporting both Python and Rust runtimes.
-    """
+class GraphOpsServicer(object):
+    """Missing associated documentation comment in .proto file."""
 
     def ExecuteQuery(self, request, context):
-        """Execute a Cypher query against the configured graph"""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Method not implemented!")
-        raise NotImplementedError("Method not implemented!")
-
-    def ExecuteQueryBatch(self, request, context):
-        """Execute a batch of Cypher queries (optimized for multiple operations)"""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Method not implemented!")
-        raise NotImplementedError("Method not implemented!")
-
-    def HealthCheck(self, request, context):
-        """Health check endpoint for service monitoring"""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Method not implemented!")
-        raise NotImplementedError("Method not implemented!")
-
-    def GetMetrics(self, request, context):
-        """Get service performance metrics"""
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
         raise NotImplementedError("Method not implemented!")
 
 
-def add_GraphOpsServiceServicer_to_server(servicer, server):
+def add_GraphOpsServicer_to_server(servicer, server):
     rpc_method_handlers = {
         "ExecuteQuery": grpc.unary_unary_rpc_method_handler(
             servicer.ExecuteQuery,
-            request_deserializer=graphops__pb2.CypherRequest.FromString,
-            response_serializer=graphops__pb2.CypherResponse.SerializeToString,
-        ),
-        "ExecuteQueryBatch": grpc.unary_unary_rpc_method_handler(
-            servicer.ExecuteQueryBatch,
-            request_deserializer=graphops__pb2.CypherBatchRequest.FromString,
-            response_serializer=graphops__pb2.CypherBatchResponse.SerializeToString,
-        ),
-        "HealthCheck": grpc.unary_unary_rpc_method_handler(
-            servicer.HealthCheck,
-            request_deserializer=graphops__pb2.HealthCheckRequest.FromString,
-            response_serializer=graphops__pb2.HealthCheckResponse.SerializeToString,
-        ),
-        "GetMetrics": grpc.unary_unary_rpc_method_handler(
-            servicer.GetMetrics,
-            request_deserializer=graphops__pb2.MetricsRequest.FromString,
-            response_serializer=graphops__pb2.MetricsResponse.SerializeToString,
+            request_deserializer=graphops__pb2.ExecuteQueryRequest.FromString,
+            response_serializer=graphops__pb2.ExecuteQueryResponse.SerializeToString,
         ),
     }
-    generic_handler = grpc.method_handlers_generic_handler(
-        "ninaivalaigal.graphops.v1.GraphOpsService", rpc_method_handlers
-    )
+    generic_handler = grpc.method_handlers_generic_handler("graphops.v1.GraphOps", rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers("ninaivalaigal.graphops.v1.GraphOpsService", rpc_method_handlers)
+    server.add_registered_method_handlers("graphops.v1.GraphOps", rpc_method_handlers)
 
 
 # This class is part of an EXPERIMENTAL API.
-class GraphOpsService(object):
-    """GraphOps Service - High-performance Apache AGE query execution
-
-    This service provides a unified interface for executing Cypher queries
-    against Apache AGE graphs, supporting both Python and Rust runtimes.
-    """
+class GraphOps(object):
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def ExecuteQuery(
@@ -154,99 +89,9 @@ class GraphOpsService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/ninaivalaigal.graphops.v1.GraphOpsService/ExecuteQuery",
-            graphops__pb2.CypherRequest.SerializeToString,
-            graphops__pb2.CypherResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True,
-        )
-
-    @staticmethod
-    def ExecuteQueryBatch(
-        request,
-        target,
-        options=(),
-        channel_credentials=None,
-        call_credentials=None,
-        insecure=False,
-        compression=None,
-        wait_for_ready=None,
-        timeout=None,
-        metadata=None,
-    ):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            "/ninaivalaigal.graphops.v1.GraphOpsService/ExecuteQueryBatch",
-            graphops__pb2.CypherBatchRequest.SerializeToString,
-            graphops__pb2.CypherBatchResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True,
-        )
-
-    @staticmethod
-    def HealthCheck(
-        request,
-        target,
-        options=(),
-        channel_credentials=None,
-        call_credentials=None,
-        insecure=False,
-        compression=None,
-        wait_for_ready=None,
-        timeout=None,
-        metadata=None,
-    ):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            "/ninaivalaigal.graphops.v1.GraphOpsService/HealthCheck",
-            graphops__pb2.HealthCheckRequest.SerializeToString,
-            graphops__pb2.HealthCheckResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True,
-        )
-
-    @staticmethod
-    def GetMetrics(
-        request,
-        target,
-        options=(),
-        channel_credentials=None,
-        call_credentials=None,
-        insecure=False,
-        compression=None,
-        wait_for_ready=None,
-        timeout=None,
-        metadata=None,
-    ):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            "/ninaivalaigal.graphops.v1.GraphOpsService/GetMetrics",
-            graphops__pb2.MetricsRequest.SerializeToString,
-            graphops__pb2.MetricsResponse.FromString,
+            "/graphops.v1.GraphOps/ExecuteQuery",
+            graphops__pb2.ExecuteQueryRequest.SerializeToString,
+            graphops__pb2.ExecuteQueryResponse.FromString,
             options,
             channel_credentials,
             insecure,

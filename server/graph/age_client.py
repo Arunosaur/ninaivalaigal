@@ -113,7 +113,7 @@ class ApacheAGEClient:
             try:
                 # Check if graph exists
                 graph_exists = await conn.fetchval(
-                    f"SELECT count(*) FROM ag_catalog.ag_graph WHERE name = '{self.graph_name}'"
+                    "SELECT count(*) FROM ag_catalog.ag_graph WHERE name = $1", self.graph_name
                 )
                 if graph_exists > 0:
                     logger.debug("Property graph already exists", graph_name=self.graph_name)
@@ -164,15 +164,11 @@ class ApacheAGEClient:
         async with self.connection_pool.acquire() as conn:
             try:
                 # Prepare AGE query with graph context
-                age_query = f"""
-                SELECT * FROM cypher('{self.graph_name}', $$
-                {cypher_query}
-                $$) as (result agtype);
-                """
+                age_query = "SELECT * FROM cypher($1, $$ {cypher_query} $$) as (result agtype);"
 
                 # Execute query
                 start_time = datetime.utcnow()
-                rows = await conn.fetch(age_query)
+                rows = await conn.fetch(age_query, self.graph_name)
                 execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
 
                 # Process results

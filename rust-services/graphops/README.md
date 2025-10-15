@@ -59,7 +59,15 @@ cp .env.example .env
 cargo test -- --nocapture
 ```
 
-### 3. Run Benchmarks
+### 3. Run the gRPC Service
+
+```bash
+cargo run --release --bin graphops-service
+```
+
+The server binds to `0.0.0.0:50051` for gRPC and `0.0.0.0:9090` for Prometheus metrics by default.
+
+### 4. Run Benchmarks
 
 ```bash
 # Rust benchmarks
@@ -92,11 +100,15 @@ graphops/
 ├── env.sh                # Shell script to source
 ├── src/
 │   ├── lib.rs            # Public API exports
-│   ├── main.rs           # gRPC server (future)
+│   ├── main.rs           # gRPC + metrics entrypoint
+│   ├── service.rs        # tonic service implementation
+│   ├── metrics.rs        # Prometheus registry helpers
 │   ├── db/
-│   │   └── connection.rs # PgBouncer-aware connection pool
-│   └── handlers/
-│       └── cypher.rs     # Apache AGE Cypher executor
+│   │   └── connection.rs # PgBouncer-aware connection factory
+│   ├── handlers/
+│   │   └── cypher.rs     # Apache AGE Cypher executor
+│   └── bin/
+│       └── graphops_cli.rs  # CLI client exercising all RPCs
 ├── benches/
 │   └── graphops_benchmark.rs  # Criterion benchmarks
 └── benchmarks/
@@ -184,10 +196,39 @@ conda run -n nina python benchmarks/python_graphops_baseline.py
 1. ✅ Basic Cypher executor
 2. ✅ Benchmark suite
 3. ✅ Python baseline comparison
-4. 🚧 gRPC service layer
-5. 🚧 Contract integration (Protocol Buffers)
+4. ✅ gRPC service layer
+5. ✅ Contract integration (Protocol Buffers)
 6. 🚧 Production deployment
 
 ---
 
 **Part of SPEC-099: Rust Migration Strategy & ROI Analysis**
+
+## 🔌 gRPC Endpoint Guide
+
+Use the generated CLI or `grpcurl` to exercise the service.
+
+```bash
+# Health check
+grpcurl -plaintext -import-path shared/contracts -proto graphops/v1/graphops.proto \
+    localhost:50051 ninaivalaigal.graphops.v1.GraphOpsService/HealthCheck
+
+# Execute a simple query
+grpcurl -plaintext -d '{"query":"MATCH (n) RETURN n LIMIT 1"}' \
+    localhost:50051 ninaivalaigal.graphops.v1.GraphOpsService/ExecuteQuery
+```
+
+`cargo run --bin graphops_cli -- --help` lists pre-baked flows that hit every RPC in one command.
+
+## 📊 Metrics & Monitoring
+
+- Scrape Prometheus metrics: `curl -s http://localhost:9090/metrics | grep graphops_`
+- Live monitoring loop: `./scripts/monitor-query-performance.sh`
+- Metrics include latency histogram, request totals, cache warmers, DB connection gauge, and memory usage.
+
+Health probe is available at `http://localhost:9090/health` for container orchestration checks.
+
+## 📘 Further Reading
+
+- `ARCHITECTURE.md` — service topology, data flow, and observability design.
+- `PERFORMANCE_FIXES.md` — current optimization state and benchmark methodology.

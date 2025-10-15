@@ -221,3 +221,27 @@ conda run -n nina python benchmarks/python_graphops_baseline.py
 **Expected:** 5-10× faster than Python (SPEC-099 target met)
 **Author:** Developer A
 **Date:** 2025-10-15
+
+## 🔭 Phase 1 Research Notes (2025-10-15)
+
+### Connection Pool Tuning
+- PgBouncer is running in transaction pooling mode; confirm `server_reset_query` preserves the AGE search_path so we can tighten pool recycling for short-lived clients.
+- Load-test bursts of 25, 50, and 100 concurrent gRPC calls to right-size `default_pool_size` ahead of production.
+- Experiment with `connect_timeout` and `client_idle_timeout` to reduce occasional disconnect warnings during monitoring loops.
+
+### Query Caching Strategies
+- AGE currently replans every Cypher call; investigate whether `EXPLAIN ANALYZE` output can surface reusable patterns for Phase 1.
+- Prototype a read-through cache for metadata queries (labels, relationship counts) with eviction based on Prometheus counters.
+- Evaluate Postgres `pg_prewarm` for hot vertex sets so cold restarts do not spike latency.
+
+### Batch Query Optimization
+- Present implementation executes items sequentially; benchmark using `tokio::task::JoinSet` with a concurrency guard.
+- Record per-item metrics inside batch responses to highlight the slowest members and feed retry logic.
+- Define clearer semantics for `failFast` so clients can request partial data without rerunning the entire batch.
+
+### Emerging Bottlenecks
+- Large JSON payloads dominate gRPC serialization time; consider response streaming or protobuf `Any` wrappers in Phase 2.
+- Metrics gathering allocates fresh buffers per scrape; profile under a 5s scrape interval before shipping to production.
+- Cold starts require a few warmup calls before histograms emit buckets; add an optional warmup loop to the service bootstrap.
+
+Document owner: Developer A — feed into 2025-10-16 optimization planning.
