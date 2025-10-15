@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/billing-engine-integration/"
+  },
+  "next": {
+    "title": "SPEC-029: Usage Analytics & Reporting",
+    "permalink": "/ninaivalaigal/specs/usage-analytics-reporting/"
   }
 }

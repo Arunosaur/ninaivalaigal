@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-052: Comprehensive Test Coverage - COMPLETION SUMMARY",
+    "permalink": "/ninaivalaigal/specs/comprehensive-test-coverage/COMPLETION_SUMMARY"
+  },
+  "next": {
+    "title": "✅ SPEC-053: Authentication Middleware Refactor - COMPLETION SUMMARY",
+    "permalink": "/ninaivalaigal/specs/authentication-middleware-refactor/COMPLETION_SUMMARY"
+  }
 }

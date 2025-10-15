@@ -16,5 +16,14 @@
   "frontMatter": {
     "status": "✅ COMPLETE",
     "title": "SPEC-075: Unified Frontend Architecture"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Enterprise Roadmap - Implementation Tasks",
+    "permalink": "/ninaivalaigal/specs/enterprise-roadmap/tasks"
+  },
+  "next": {
+    "title": "SPEC-075 Summary Addendum: AI-First Frontend Acceleration",
+    "permalink": "/ninaivalaigal/specs/unified-frontend-architecture/ADDENDUM"
   }
 }

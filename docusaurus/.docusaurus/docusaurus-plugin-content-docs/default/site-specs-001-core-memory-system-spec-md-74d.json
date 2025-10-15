@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Feature Specification: Core Memory System",
+    "permalink": "/ninaivalaigal/specs/core-memory-system/archive/spec"
+  },
+  "next": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/user-management/"
+  }
 }

@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-058: Documentation Expansion - COMPLETION SUMMARY",
+    "permalink": "/ninaivalaigal/specs/documentation-expansion/COMPLETION_SUMMARY"
+  },
+  "next": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/property-graph-memory-model/"
   }
 }

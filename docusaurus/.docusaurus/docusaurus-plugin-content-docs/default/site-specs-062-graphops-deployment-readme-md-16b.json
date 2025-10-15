@@ -21,5 +21,14 @@
     "status": "Implemented",
     "title": "SPEC-062: GraphOps Stack Deployment Architecture",
     "updated": "2025-09-21T00:00:00.000Z"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-061: Property Graph Intelligence Framework",
+    "permalink": "/ninaivalaigal/specs/graph-reasoner/"
+  },
+  "next": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/agentic-core-execution/"
   }
 }

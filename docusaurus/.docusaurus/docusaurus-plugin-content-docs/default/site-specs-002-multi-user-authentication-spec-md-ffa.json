@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Feature Specification: Multi-User Authentication & Authorization",
+    "permalink": "/ninaivalaigal/specs/multi-user-authentication/archive/spec"
+  },
+  "next": {
+    "title": "Core API Architecture",
+    "permalink": "/ninaivalaigal/specs/core-api-architecture/"
+  }
 }

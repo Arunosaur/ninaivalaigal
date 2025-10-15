@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-075 Summary Addendum: AI-First Frontend Acceleration",
+    "permalink": "/ninaivalaigal/specs/unified-frontend-architecture/ADDENDUM"
+  },
+  "next": {
+    "title": "SPEC-077: Multimodal Memory Capture",
+    "permalink": "/ninaivalaigal/specs/multimodal-memory-capture/"
   }
 }

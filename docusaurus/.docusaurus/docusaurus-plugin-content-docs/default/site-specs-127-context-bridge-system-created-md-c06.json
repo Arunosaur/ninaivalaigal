@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Context Bridge & Memory Federation System",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/"
+  },
+  "next": {
+    "title": "SPEC-127 Implementation Task Breakdown",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/IMPLEMENTATION_TASKS"
+  }
 }

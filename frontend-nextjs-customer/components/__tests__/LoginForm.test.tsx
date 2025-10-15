@@ -68,7 +68,7 @@ describe('LoginForm', () => {
     await waitFor(() =>
       expect(state.login).toHaveBeenCalledWith({
         email: 'user@example.com',
-        password: 'strong-password', // pragma: allowlist secret
+        password: 'strong-password',  // pragma: allowlist secret
       }),
     );
     expect(onSuccess).toHaveBeenCalledTimes(1);

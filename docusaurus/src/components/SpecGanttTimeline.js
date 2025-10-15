@@ -19,15 +19,15 @@ import {
 
 // Define colors by phase
 const PHASE_COLORS = {
-  Infrastructure: '#60a5fa',
-  Frontend: '#f59e0b',
-  AI: '#a78bfa',
-  Research: '#34d399',
-  Security: '#f87171',
+  'Phase 1: Foundation': '#60a5fa',
+  'Phase 2: Core Features': '#f59e0b',
+  'Phase 3: Advanced Features': '#a78bfa',
+  'Phase 4: Enterprise': '#34d399',
+  'Phase 5: Scale & Polish': '#f87171',
   Default: '#cbd5e1',
 };
 
-// Define milestone SPECs (IDs or keywords)
+// Define milestone SPECs
 const MILESTONES = [
   { id: 'SPEC-000', label: 'Vision & Scope' },
   { id: 'SPEC-040', label: 'AI Feedback System' },
@@ -38,7 +38,7 @@ const MILESTONES = [
 
 export default function SpecGanttTimeline() {
   const [data, setData] = useState(null);
-
+  const [filters, setFilters] = useState({ phase: 'all', status: 'all' });
   const specDashboardUrl = useBaseUrl('/spec_dashboard.json');
 
   useEffect(() => {
@@ -48,36 +48,57 @@ export default function SpecGanttTimeline() {
       .catch((err) => console.error('Failed to load Gantt data:', err));
   }, [specDashboardUrl]);
 
-  if (!data) return <p>Loading Gantt timeline...</p>;
+  if (!data) {
+    return (
+      <Layout title="SPEC Gantt Timeline">
+        <div className="container margin-vert--lg">
+          <p>Loading Gantt timeline...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   const gantt = data.gantt || [];
-  // Parse date ranges and durations
-  const chartData = gantt.map((item) => {
-    const start = new Date(item.start).getTime();
-    const end = new Date(item.end).getTime();
-    const duration = (end - start) / (1000 * 60 * 60 * 24);
-    return {
+
+  const validGanttData = gantt
+    .map(item => ({
       ...item,
-      start,
-      end,
-      duration,
-    };
+      start: new Date(item.start),
+      end: new Date(item.end),
+    }))
+    .filter(item => item.start instanceof Date && !isNaN(item.start) && item.end instanceof Date && !isNaN(item.end));
+
+  validGanttData.sort((a, b) => {
+    const phaseA = a.phase || 'ZZZ';
+    const phaseB = b.phase || 'ZZZ';
+    if (phaseA < phaseB) return -1;
+    if (phaseA > phaseB) return 1;
+    if (a.start < b.start) return -1;
+    if (a.start > b.start) return 1;
+    return 0;
   });
 
-  // Determine overall time span
-  const minDate = Math.min(...chartData.map((d) => d.start));
-  const maxDate = Math.max(...chartData.map((d) => d.end));
-
-  // Extract unique phases in order
-  const phases = [...new Set(chartData.map((d) => d.phase))];
-
-  // Create grouped background regions per phase
-  const PHASE_BOUNDARIES = phases.map((phase, idx) => ({
-    phase,
-    color: PHASE_COLORS[phase] || PHASE_COLORS.Default,
-    startY: idx * 25,
-    endY: (idx + 1) * 25,
+  const chartData = validGanttData.map(item => ({
+    ...item,
+    title: item.title.replace(/^SPEC-\d+:\s*/, ''),
+    duration: [item.start.getTime(), item.end.getTime()],
   }));
+
+  if (chartData.length === 0) {
+    return <p>No valid Gantt data to display.</p>;
+  }
+
+
+  const filteredData = chartData.filter(item => {
+    const { phase, status } = filters;
+    return (phase === 'all' || item.phase === phase) && (status === 'all' || item.status === status);
+  });
+
+  const phases = [...new Set(chartData.map(d => d.phase))];
+  const statuses = [...new Set(chartData.map(d => d.status))];
+
+  const minDate = Math.min(...filteredData.map(d => d.duration[0]));
+  const maxDate = Math.max(...filteredData.map(d => d.duration[1]));
 
   return (
     <Layout title="SPEC Gantt Timeline with Milestones">
@@ -88,74 +109,112 @@ export default function SpecGanttTimeline() {
           <strong>{phases.length}</strong> phases.
         </p>
 
-        <ResponsiveContainer width="100%" height={600}>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="phase-filter" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Phase:</label>
+            <select
+              id="phase-filter"
+              value={filters.phase}
+              onChange={e => setFilters(f => ({ ...f, phase: e.target.value }))}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+            >
+              <option value="all">All</option>
+              {phases.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="status-filter" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Status:</label>
+            <select
+              id="status-filter"
+              value={filters.status}
+              onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}
+              style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+            >
+              <option value="all">All</option>
+              {statuses.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <ResponsiveContainer width="100%" height={filteredData.length * 30 + 100}>
           <BarChart
-            data={chartData}
+            data={filteredData}
             layout="vertical"
-            margin={{ top: 20, right: 50, left: 200, bottom: 20 }}
+            margin={{ top: 20, right: 50, left: 350, bottom: 20 }}
+            barCategoryGap={5}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               type="number"
               domain={[minDate, maxDate]}
               tickFormatter={(tick) => new Date(tick).toLocaleDateString()}
+              scale="time"
             />
             <YAxis
               dataKey="title"
               type="category"
-              width={250}
-              tick={{ fontSize: 12 }}
+              width={300}
+              tick={{ fontSize: 11 }}
             />
             <Tooltip
-              labelFormatter={(label) => `SPEC: ${label}`}
-              formatter={(value, name) =>
-                name === 'duration'
-                  ? `${Math.round(value)} days` 
-                  : new Date(value).toLocaleDateString()
-              }
+              labelFormatter={(label, payload) => payload[0]?.payload.title || label}
+              formatter={(value, name, props) => {
+                if (name === 'duration') {
+                  const [start, end] = value;
+                  const durationDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
+                  return [`${durationDays} days`, `Duration`];
+                }
+                return [value, name];
+              }}
             />
             <Legend />
 
-            {/* === PHASE BACKGROUND SHADING === */}
-            {phases.map((phase, idx) => (
-              <ReferenceArea
-                key={phase}
-                y1={idx - 0.5}
-                y2={idx + 0.5}
-                fill={PHASE_COLORS[phase] || PHASE_COLORS.Default}
-                fillOpacity={0.07}
-                ifOverflow="extendDomain"
-              />
-            ))}
+            {phases.map((phase) => {
+              const phaseStartIndex = chartData.findIndex(d => d.phase === phase);
+              const phaseEndIndex = chartData.findLastIndex(d => d.phase === phase);
+              if (phaseStartIndex === -1) return null;
 
-            {/* === MILESTONES === */}
-            {MILESTONES.map((m) => {
-              const milestone = chartData.find((d) => d.id === m.id);
+              return (
+                <ReferenceArea
+                  key={`bg-${phase}`}
+                  y1={phaseStartIndex - 0.5}
+                  y2={phaseEndIndex + 0.5}
+                  stroke="transparent"
+                  fill={PHASE_COLORS[phase] || PHASE_COLORS.Default}
+                  fillOpacity={0.1}
+                  ifOverflow="hidden"
+                />
+              );
+            })}
+
+            {MILESTONES.map((m, index) => {
+              const milestone = filteredData.find((d) => d.id === m.id);
               if (!milestone) return null;
+
               return (
                 <ReferenceLine
                   key={m.id}
-                  x={milestone.end}
+                  x={milestone.duration[1]}
                   stroke="#ef4444"
                   strokeDasharray="3 3"
                   label={{
                     value: m.label,
                     position: 'top',
+                    angle: -45,
                     fill: '#ef4444',
-                    fontSize: 12,
+                    fontSize: 11,
+                    dy: -10,
+                    dx: 15,
                   }}
                 />
               );
             })}
 
-            {/* === DURATION BARS === */}
-            <Bar
-              dataKey="duration"
-              barSize={20}
-              name="Duration (days)"
-              fill="#4ade80"
-              background={{ fill: '#f3f4f6' }}
-            />
+            <Bar dataKey="duration" name="Duration">
+              {chartData.map((entry, index) => (
+                <div key={`cell-${index}`} fill={PHASE_COLORS[entry.phase] || PHASE_COLORS.Default} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
 

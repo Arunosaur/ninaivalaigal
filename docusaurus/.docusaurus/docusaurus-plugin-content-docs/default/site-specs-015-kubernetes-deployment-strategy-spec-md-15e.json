@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-015: Kubernetes Deployment Strategy",
+    "permalink": "/ninaivalaigal/specs/kubernetes-deployment-strategy/archive/spec"
+  },
+  "next": {
+    "title": "SPEC-016: CI/CD Pipeline Architecture - COMPLETION SUMMARY",
+    "permalink": "/ninaivalaigal/specs/cicd-pipeline-architecture/COMPLETION_SUMMARY"
+  }
 }

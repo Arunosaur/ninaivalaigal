@@ -7,13 +7,21 @@
 //
 'use client';
 
-import { useState } from 'react';
-import { Button, Card, Callout } from '@ninaivalaigal/ui-components';
+import { useCallback, useState } from 'react';
+import { Button, Callout } from '@ninaivalaigal/ui-components';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useSessions } from '../../../hooks/useSessions';
+import { SessionCard } from '../../../components/SessionCard';
+import { TokenDisplay } from '../../../components/TokenDisplay';
+import { useTokenDetails } from '../../../hooks/useTokenDetails';
 
 interface StatusMessage {
+  type: 'success' | 'error';
+  text: string;
+}
+
+interface TokenStatusMessage {
   type: 'success' | 'error';
   text: string;
 }
@@ -22,9 +30,17 @@ export default function SessionsPage() {
   const router = useRouter();
   const { sessions, isLoading, error, refetch, logoutSession } = useSessions();
   const { logoutAllDevices } = useAuth();
+  const {
+    accessToken,
+    refreshToken,
+    accessTokenExpiresAt,
+    refreshTokenExpiresAt,
+    refresh: refreshTokens,
+  } = useTokenDetails();
   const [status, setStatus] = useState<StatusMessage | null>(null);
   const [isLogoutAllLoading, setIsLogoutAllLoading] = useState(false);
   const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
+  const [tokenStatus, setTokenStatus] = useState<TokenStatusMessage | null>(null);
 
   const handleLogoutSession = async (sessionId: string) => {
     setStatus(null);
@@ -42,6 +58,7 @@ export default function SessionsPage() {
 
   const handleLogoutAll = async () => {
     setStatus(null);
+    setTokenStatus(null);
     setIsLogoutAllLoading(true);
     const { error: logoutError } = await logoutAllDevices();
     setIsLogoutAllLoading(false);
@@ -51,6 +68,7 @@ export default function SessionsPage() {
       return;
     }
 
+    refreshTokens();
     setStatus({ type: 'success', text: 'All sessions logged out. Redirecting to login…' });
     router.push('/login');
   };
@@ -59,6 +77,29 @@ export default function SessionsPage() {
     setStatus(null);
     await refetch();
   };
+
+  const handleTokenCopy = useCallback(
+    async (type: 'access' | 'refresh', token: string) => {
+      if (!token) {
+        return;
+      }
+
+      try {
+        if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+          setTokenStatus({ type: 'error', text: 'Copy is unavailable in this browser context.' });
+          return;
+        }
+
+        await navigator.clipboard.writeText(token);
+        const label = type === 'access' ? 'Access token copied to clipboard.' : 'Refresh token copied to clipboard.';
+        setTokenStatus({ type: 'success', text: label });
+      } catch (copyError) {
+        console.warn('SessionsPage: Failed to copy token', copyError);
+        setTokenStatus({ type: 'error', text: 'Unable to copy token. Please try again.' });
+      }
+    },
+    [setTokenStatus],
+  );
 
   const renderSessionInfo = () => {
     if (isLoading) {
@@ -86,39 +127,15 @@ export default function SessionsPage() {
 
     return (
       <div className="space-y-4">
-        {sessions.map((session) => {
-          const isCurrent = Boolean(session.is_current);
-          const lastActive = session.last_active_at
-            ? new Date(session.last_active_at).toLocaleString()
-            : 'Last active time unavailable';
-          return (
-            <Card key={session.id} className={`bg-white ${isCurrent ? 'border-blue-200 shadow-sm' : ''}`}>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {session.device || 'Unknown device'}
-                    {isCurrent && <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Current device</span>}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {session.location || 'Location unavailable'} • {session.ip_address || 'IP hidden'}
-                  </p>
-                  <p className="text-xs text-gray-400">{lastActive}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    data-testid={`logout-session-${session.id}`}
-                    onClick={() => handleLogoutSession(session.id)}
-                    disabled={isCurrent || pendingSessionId === session.id}
-                  >
-                    {pendingSessionId === session.id ? 'Logging out…' : 'Logout session'}
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+        {sessions.map((session) => (
+          <SessionCard
+            key={session.id}
+            session={session}
+            onLogout={handleLogoutSession}
+            isPending={pendingSessionId === session.id}
+            logoutButtonTestId={`logout-session-${session.id}`}
+          />
+        ))}
       </div>
     );
   };
@@ -152,6 +169,26 @@ export default function SessionsPage() {
             <p className="text-sm text-gray-700">{status.text}</p>
           </Callout>
         )}
+
+        {tokenStatus && (
+          <Callout
+            variant={tokenStatus.type === 'error' ? 'error' : 'success'}
+            title={tokenStatus.type === 'error' ? 'Clipboard issue' : 'Copied'}
+            className="mb-6"
+          >
+            <p className="text-sm text-gray-700">{tokenStatus.text}</p>
+          </Callout>
+        )}
+
+        <section className="mb-8">
+          <TokenDisplay
+            accessToken={accessToken}
+            refreshToken={refreshToken}
+            accessTokenExpiresAt={accessTokenExpiresAt}
+            refreshTokenExpiresAt={refreshTokenExpiresAt}
+            onCopy={handleTokenCopy}
+          />
+        </section>
 
         {renderSessionInfo()}
       </main>

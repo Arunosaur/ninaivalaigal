@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Next.js Frontend - Quick Start Guide",
+    "permalink": "/ninaivalaigal/specs/nextjs-15-bootstrap/QUICKSTART_README"
+  },
+  "next": {
+    "title": "SPEC-105: Backend Integration & Database Connectivity",
+    "permalink": "/ninaivalaigal/specs/backend-database-integration/"
+  }
 }

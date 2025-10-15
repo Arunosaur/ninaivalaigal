@@ -44,5 +44,10 @@
     ],
     "title": "Vision & Scope",
     "updated": "2025-10-13T00:00:00.000Z"
+  },
+  "sidebar": "specSidebar",
+  "next": {
+    "title": "Feature Specification: Core Memory System",
+    "permalink": "/ninaivalaigal/specs/core-memory-system/archive/spec"
   }
 }

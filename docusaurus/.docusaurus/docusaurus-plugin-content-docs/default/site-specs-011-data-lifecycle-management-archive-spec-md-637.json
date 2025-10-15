@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-011: Data Lifecycle Management (Enhanced)",
+    "permalink": "/ninaivalaigal/specs/data-lifecycle-management/archive/ENHANCEMENT"
+  },
+  "next": {
+    "title": "Spec 011: Data Lifecycle Management",
+    "permalink": "/ninaivalaigal/specs/data-lifecycle-management/spec"
+  }
 }

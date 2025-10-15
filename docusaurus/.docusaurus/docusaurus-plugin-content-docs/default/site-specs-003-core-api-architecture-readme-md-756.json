@@ -44,5 +44,14 @@
     ],
     "title": "Core API Architecture",
     "updated": "2025-10-12T00:00:00.000Z"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Feature Specification: Multi-User Authentication & Authorization",
+    "permalink": "/ninaivalaigal/specs/multi-user-authentication/spec"
+  },
+  "next": {
+    "title": "Spec 008: Team and Organization Ownership Management",
+    "permalink": "/ninaivalaigal/specs/team-collaboration/archive/spec"
   }
 }

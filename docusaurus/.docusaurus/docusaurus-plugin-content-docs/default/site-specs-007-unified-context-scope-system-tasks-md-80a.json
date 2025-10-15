@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Spec 007: Unified Context Scope System",
+    "permalink": "/ninaivalaigal/specs/unified-context-scope-system/spec"
+  },
+  "next": {
+    "title": "Spec 008: Security Middleware & Redaction Pipeline",
+    "permalink": "/ninaivalaigal/specs/security-middleware-redaction/archive/spec"
+  }
 }

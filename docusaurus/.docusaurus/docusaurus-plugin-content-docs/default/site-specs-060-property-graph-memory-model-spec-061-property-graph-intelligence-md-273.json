@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-060: Apache AGE Dual Architecture Deployment",
+    "permalink": "/ninaivalaigal/specs/property-graph-memory-model/SPEC-060-apache-age-deployment"
+  },
+  "next": {
+    "title": "SPEC-060: Apache AGE Dual Architecture Deployment",
+    "permalink": "/ninaivalaigal/specs/property-graph-memory-model/archive/SPEC-060-apache-age-deployment"
+  }
 }

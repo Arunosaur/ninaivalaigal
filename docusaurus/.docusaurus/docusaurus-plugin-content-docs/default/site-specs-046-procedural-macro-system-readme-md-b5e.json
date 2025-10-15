@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "SPEC-046: Procedural Macro System"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-045: Intelligent Session Management with Redis",
+    "permalink": "/ninaivalaigal/specs/session-timeout-token-expiry/archive/SPEC-045-intelligent-session-management"
+  },
+  "next": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/narrative-memory-macros/"
   }
 }

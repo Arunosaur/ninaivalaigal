@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Spec 008: Team and Organization Ownership Management",
+    "permalink": "/ninaivalaigal/specs/team-collaboration/archive/spec"
+  },
+  "next": {
+    "title": "Feature Specification: Team Collaboration & Context Sharing",
+    "permalink": "/ninaivalaigal/specs/team-collaboration/spec"
+  }
 }

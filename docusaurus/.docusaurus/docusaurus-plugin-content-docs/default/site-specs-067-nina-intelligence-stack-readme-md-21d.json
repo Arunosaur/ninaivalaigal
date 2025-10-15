@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-066: Standalone Team Accounts",
+    "permalink": "/ninaivalaigal/specs/standalone-team-accounts/"
+  },
+  "next": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/comprehensive-ui-suite/"
+  }
 }

@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC 012: memory-substrate - Acceptance Criteria",
+    "permalink": "/ninaivalaigal/specs/memory-substrate/acceptance"
+  },
+  "next": {
+    "title": "Feature Specification: memory-substrate",
+    "permalink": "/ninaivalaigal/specs/memory-substrate/archive/spec"
+  }
 }

@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Tasks for Spec 008: Team and Organization Ownership Management",
+    "permalink": "/ninaivalaigal/specs/team-collaboration/archive/tasks"
+  },
+  "next": {
+    "title": "Spec 008: Team and Organization Ownership Management",
+    "permalink": "/ninaivalaigal/specs/team-collaboration/team-organization/spec"
+  }
 }

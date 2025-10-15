@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Spec 011: Data Lifecycle Management",
+    "permalink": "/ninaivalaigal/specs/data-lifecycle-management/archive/spec"
+  },
+  "next": {
+    "title": "SPEC-012: Memory Substrate",
+    "permalink": "/ninaivalaigal/specs/memory-substrate/"
+  }
 }

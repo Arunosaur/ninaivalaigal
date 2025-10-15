@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Medhasys LLC
+//
 import { themes as prismThemes } from 'prism-react-renderer';
 
 export default {
@@ -36,7 +39,22 @@ presets: [
     ],
   ],
 
-plugins: [],
+plugins: [
+    () => ({
+      name: 'routes-plugin',
+      configureRoutes(routes, utils) {
+        return [
+          {
+            path: '/timeline-gantt',
+            component: utils.normalizeComponentPath(
+              '@site/src/components/SpecGanttTimeline.js'
+            ),
+          },
+          ...routes,
+        ];
+      },
+    }),
+  ],
 
   themeConfig: {
     prism: { theme: prismThemes.github },

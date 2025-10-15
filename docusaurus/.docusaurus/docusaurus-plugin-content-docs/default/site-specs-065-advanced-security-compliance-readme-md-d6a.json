@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/graph-intelligence-architecture/"
+  },
+  "next": {
+    "title": "SPEC-066: Standalone Team Accounts",
+    "permalink": "/ninaivalaigal/specs/standalone-team-accounts/"
   }
 }

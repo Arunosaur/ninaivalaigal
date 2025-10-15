@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Spec 009: RBAC Policy Enforcement Enhancement",
+    "permalink": "/ninaivalaigal/specs/rbac-policy-enforcement/spec"
+  },
+  "next": {
+    "title": "SPEC 010: observability-and-telemetry - Acceptance Criteria",
+    "permalink": "/ninaivalaigal/specs/observability-and-telemetry/archive/acceptance"
+  }
 }

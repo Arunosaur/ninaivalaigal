@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Enterprise Roadmap - Multi-Organization & Cloud Integration",
+    "permalink": "/ninaivalaigal/specs/enterprise-roadmap/archive/spec"
+  },
+  "next": {
+    "title": "Enterprise Roadmap - Multi-Organization & Cloud Integration",
+    "permalink": "/ninaivalaigal/specs/enterprise-roadmap/spec"
+  }
 }

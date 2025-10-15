@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-061: Property Graph Intelligence Framework",
+    "permalink": "/ninaivalaigal/specs/property-graph-memory-model/archive/SPEC-061-property-graph-intelligence"
+  },
+  "next": {
+    "title": "SPEC-062: GraphOps Stack Deployment Architecture",
+    "permalink": "/ninaivalaigal/specs/graphops-deployment/"
+  }
 }

@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Deprecation Policy",
+    "permalink": "/ninaivalaigal/specs/api-versioning-strategy/deprecation-policy"
+  },
+  "next": {
+    "title": "Migration Guide Template",
+    "permalink": "/ninaivalaigal/specs/api-versioning-strategy/migration-guide-template"
+  }
 }

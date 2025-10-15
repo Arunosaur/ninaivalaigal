@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-020: Memory Provider Architecture - COMPLETION SUMMARY",
+    "permalink": "/ninaivalaigal/specs/memory-provider-architecture/COMPLETION_SUMMARY"
+  },
+  "next": {
+    "title": "SPEC-020: Memory Provider Architecture",
+    "permalink": "/ninaivalaigal/specs/memory-provider-architecture/spec"
+  }
 }

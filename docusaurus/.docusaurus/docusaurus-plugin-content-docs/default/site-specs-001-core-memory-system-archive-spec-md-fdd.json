@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Vision & Scope",
+    "permalink": "/ninaivalaigal/specs/vision-and-scope/"
+  },
+  "next": {
+    "title": "Feature Specification: Core Memory System",
+    "permalink": "/ninaivalaigal/specs/core-memory-system/spec"
+  }
 }

@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/post-migration-quality-verification/"
+  },
+  "next": {
+    "title": "SPEC-105: Phase Sequencing & Execution Flow",
+    "permalink": "/ninaivalaigal/specs/backend-database-integration/PHASE_SEQUENCING"
+  }
 }

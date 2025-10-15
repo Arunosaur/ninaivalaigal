@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Federation Topology",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/federation-topology"
+  },
+  "next": {
+    "title": "Reference vs Clone vs Hybrid Modes",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/modes"
+  }
 }

@@ -1,7 +1,7 @@
 {
   "id": "narrative-analytics-layer/api-contracts",
-  "title": "API Contracts for Analytics ROI Dashboard",
-  "description": "Endpoints",
+  "title": "SPEC-082: Narrative Analytics API Contracts",
+  "description": "This document defines the API endpoints for retrieving narrative analytics data.",
   "source": "@site/../specs/082-narrative-analytics-layer/api-contracts.md",
   "sourceDirName": "082-narrative-analytics-layer",
   "slug": "/narrative-analytics-layer/api-contracts",
@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/"
+  },
+  "next": {
+    "title": "SPEC-082: Narrative Analytics Architecture",
+    "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/architecture"
+  }
 }

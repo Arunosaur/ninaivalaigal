@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-094: API Health Regression Tracking",
+    "permalink": "/ninaivalaigal/specs/api-health-regression-tracking/"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/frontend-quality-enforcement-ci-cd/"
   }
 }

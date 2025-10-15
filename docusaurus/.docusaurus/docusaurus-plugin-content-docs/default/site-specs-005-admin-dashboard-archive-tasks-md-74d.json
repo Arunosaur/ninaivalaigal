@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Spec 005: Admin Dashboard for User/Team/Organization Management",
+    "permalink": "/ninaivalaigal/specs/admin-dashboard/archive/spec"
+  },
+  "next": {
+    "title": "Spec 005: Admin Dashboard for User/Team/Organization Management",
+    "permalink": "/ninaivalaigal/specs/admin-dashboard/spec"
+  }
 }

@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Implementation Guide",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/implementation-guide"
+  },
+  "next": {
+    "title": "Trust Scoring System",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/trust-scoring"
+  }
 }

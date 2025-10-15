@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Feature Specification: memory-substrate",
+    "permalink": "/ninaivalaigal/specs/memory-substrate/spec"
+  },
+  "next": {
+    "title": "SPEC-013: Multi-Architecture Container Strategy",
+    "permalink": "/ninaivalaigal/specs/multi-architecture-container-strategy/spec"
+  }
 }

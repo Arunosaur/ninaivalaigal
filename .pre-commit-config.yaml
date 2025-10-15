@@ -56,6 +56,13 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: [flake8-docstrings, flake8-bugbear]
+        exclude: |
+          (?x)^(
+            client-tools/vendor/.*|
+            external/spec-013/.*|
+            vscode-client/.*|
+            node_modules/.*
+          )$
 
   # - repo: https://github.com/pre-commit/mirrors-mypy
   #   rev: v1.7.1
@@ -74,18 +81,21 @@ repos:
         args: ["-c", ".bandit", "-r", "server/"]
         files: ^server/.*\.py$
 
-  - repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.11.0
+  - repo: local
     hooks:
       - id: shellcheck
+        name: ShellCheck
+        entry: shellcheck
+        language: system
         files: ^scripts/.*\.sh$
-        args: ["--severity=warning"]  # Only fail on warnings and errors, not info
+        args: ["--severity=warning"]
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
+        exclude: scripts/restart-api-with-latest-code.sh
 
   # SPDX License Header Validation
   - repo: local

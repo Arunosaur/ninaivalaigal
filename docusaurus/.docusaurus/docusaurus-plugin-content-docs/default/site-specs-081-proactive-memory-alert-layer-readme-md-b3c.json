@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/trust-score-system/"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/"
   }
 }

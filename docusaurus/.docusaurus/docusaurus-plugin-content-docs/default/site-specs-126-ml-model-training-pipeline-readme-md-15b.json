@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/frontend-documentation-monitoring/"
+  },
+  "next": {
+    "title": "Context Bridge & Memory Federation System",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/"
+  }
 }

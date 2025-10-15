@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Medhasys LLC
+//
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');

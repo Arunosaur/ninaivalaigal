@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Feature Specification: Core Memory System",
+    "permalink": "/ninaivalaigal/specs/core-memory-system/spec"
+  },
+  "next": {
+    "title": "Ninaivalaigal SPECs",
+    "permalink": "/ninaivalaigal/specs/"
   }
 }

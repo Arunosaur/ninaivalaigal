@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-103: Next.js 15 Bootstrap & Component Port - COMPLETION SUMMARY",
+    "permalink": "/ninaivalaigal/specs/nextjs-15-bootstrap/COMPLETION_SUMMARY"
+  },
+  "next": {
+    "title": "Next.js Frontend - Quick Start Guide",
+    "permalink": "/ninaivalaigal/specs/nextjs-15-bootstrap/QUICKSTART_README"
+  }
 }

@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Agentic UI Testing Framework",
+    "permalink": "/ninaivalaigal/specs/agentic-ui-testing/"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/multi-runtime-port-allocation/"
+  }
 }

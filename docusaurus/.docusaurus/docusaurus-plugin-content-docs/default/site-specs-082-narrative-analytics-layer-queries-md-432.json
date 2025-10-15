@@ -1,7 +1,7 @@
 {
   "id": "narrative-analytics-layer/queries",
-  "title": "Aggregation Queries for Analytics ROI Dashboard",
-  "description": "Daily Aggregation Queries",
+  "title": "SPEC-082: Narrative Analytics Queries",
+  "description": "This document provides example aggregation queries for the Narrative Analytics Layer.",
   "source": "@site/../specs/082-narrative-analytics-layer/queries.md",
   "sourceDirName": "082-narrative-analytics-layer",
   "slug": "/narrative-analytics-layer/queries",
@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Implementation Plan for Analytics ROI Dashboard",
+    "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/implementation-plan"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/product-surface-split-and-naming/"
+  }
 }

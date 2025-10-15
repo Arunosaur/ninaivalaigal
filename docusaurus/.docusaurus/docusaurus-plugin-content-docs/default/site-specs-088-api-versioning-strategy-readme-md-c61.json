@@ -44,5 +44,14 @@
     ],
     "title": "API Versioning Strategy",
     "updated": "2025-10-13T00:00:00.000Z"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-087: API Surface Contracts (Public vs Internal OpenAPI)",
+    "permalink": "/ninaivalaigal/specs/api-surface-contracts/"
+  },
+  "next": {
+    "title": "Changelog",
+    "permalink": "/ninaivalaigal/specs/api-versioning-strategy/CHANGELOG-template"
   }
 }

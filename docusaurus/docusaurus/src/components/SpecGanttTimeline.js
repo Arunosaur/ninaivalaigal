@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Medhasys LLC
+//
 import React, { useEffect, useState } from 'react';
 import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
@@ -48,16 +51,18 @@ export default function SpecGanttTimeline() {
 
   const gantt = data.gantt || [];
   // Parse date ranges and durations
-  const chartData = gantt.map((item) => {
-    const start = new Date(item.start).getTime();
-    const end = new Date(item.end).getTime();
-    const duration = (end - start) / (1000 * 60 * 60 * 24);
-    return {
-      ...item,
-      start,
-      end,
-      duration,
-    };
+  const chartData = gantt
+    .filter(item => item.start && item.end)
+    .map((item) => {
+      const start = new Date(item.start).getTime();
+      const end = new Date(item.end).getTime();
+      const duration = (end - start) / (1000 * 60 * 60 * 24);
+      return {
+        ...item,
+        start,
+        end,
+        duration,
+      };
   });
 
   // Determine overall time span
@@ -106,7 +111,7 @@ export default function SpecGanttTimeline() {
               labelFormatter={(label) => `SPEC: ${label}`}
               formatter={(value, name) =>
                 name === 'duration'
-                  ? `${Math.round(value)} days` 
+                  ? `${Math.round(value)} days`
                   : new Date(value).toLocaleDateString()
               }
             />

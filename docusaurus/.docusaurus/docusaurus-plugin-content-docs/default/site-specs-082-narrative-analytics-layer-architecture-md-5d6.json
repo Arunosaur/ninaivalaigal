@@ -1,7 +1,7 @@
 {
   "id": "narrative-analytics-layer/architecture",
-  "title": "Architecture for Analytics ROI Dashboard",
-  "description": "Data Flow Diagram",
+  "title": "SPEC-082: Narrative Analytics Architecture",
+  "description": "This document outlines the architecture for collecting and processing narrative analytics events, integrating with the Visual Narrative Layer (SPEC-076).",
   "source": "@site/../specs/082-narrative-analytics-layer/architecture.md",
   "sourceDirName": "082-narrative-analytics-layer",
   "slug": "/narrative-analytics-layer/architecture",
@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-082: Narrative Analytics API Contracts",
+    "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/api-contracts"
+  },
+  "next": {
+    "title": "Caching Strategy for Analytics ROI Dashboard",
+    "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/caching"
+  }
 }

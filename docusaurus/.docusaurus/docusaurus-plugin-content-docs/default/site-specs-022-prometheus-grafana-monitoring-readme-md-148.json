@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "SPEC-022: Kubernetes Monitoring with Prometheus + Grafana"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-021: GitOps Deployment via ArgoCD",
+    "permalink": "/ninaivalaigal/specs/gitops-argocd/README.old-20251008"
+  },
+  "next": {
+    "title": "SPEC-022: ArgoCD Promotion Pipeline (Quick Win)",
+    "permalink": "/ninaivalaigal/specs/prometheus-grafana-monitoring/README.loose-20251008"
   }
 }

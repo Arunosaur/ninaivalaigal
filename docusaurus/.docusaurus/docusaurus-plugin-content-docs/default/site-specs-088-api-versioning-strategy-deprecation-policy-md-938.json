@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Breaking Changes",
+    "permalink": "/ninaivalaigal/specs/api-versioning-strategy/breaking-changes"
+  },
+  "next": {
+    "title": "API Versioning Format",
+    "permalink": "/ninaivalaigal/specs/api-versioning-strategy/format"
+  }
 }

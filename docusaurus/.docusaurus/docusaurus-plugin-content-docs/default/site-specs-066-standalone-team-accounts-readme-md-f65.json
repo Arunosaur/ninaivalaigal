@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/advanced-security-compliance/"
+  },
+  "next": {
+    "title": "SPEC-067: Advanced D3.js Visualizations - \"Make Intelligence Visible\"",
+    "permalink": "/ninaivalaigal/specs/nina-intelligence-stack/"
+  }
 }

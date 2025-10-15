@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-127 Created - October 13, 2025",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/CREATED"
+  },
+  "next": {
+    "title": "SPEC-127 Sprint Integration Summary",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/SPRINT_INTEGRATION"
+  }
 }

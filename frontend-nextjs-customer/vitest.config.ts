@@ -18,8 +18,12 @@ export default defineConfig({
 			include: [
 				'app/login/page.tsx',
 				'app/signup/page.tsx',
+				'components/LoginForm.tsx',
+				'components/SessionCard.tsx',
+				'components/TokenDisplay.tsx',
 				'components/SessionStatusOverlay.tsx',
 				'hooks/useSessions.ts',
+				'hooks/useTokenDetails.ts',
 				'utils/tokenStorage.ts',
 			],
 			exclude: ['**/__tests__/**', '**/*.d.ts'],

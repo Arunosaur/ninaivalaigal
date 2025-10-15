@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-007: Unified Context Scope System - COMPLETION SUMMARY",
+    "permalink": "/ninaivalaigal/specs/unified-context-scope-system/COMPLETION_SUMMARY"
+  },
+  "next": {
+    "title": "Tasks for Spec 007: Unified Context Scope System",
+    "permalink": "/ninaivalaigal/specs/unified-context-scope-system/archive/tasks"
+  }
 }

@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-105: Backend Integration & Database Connectivity - COMPLETE ✅",
+    "permalink": "/ninaivalaigal/specs/backend-database-integration/SPEC_105_COMPLETE"
+  },
+  "next": {
+    "title": "SPEC-106: Frontend Linting & Formatting Standard",
+    "permalink": "/ninaivalaigal/specs/frontend-linting-formatting/"
+  }
 }

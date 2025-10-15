@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-105 Session 1: Backend Layer Verification - COMPLETE ✅",
+    "permalink": "/ninaivalaigal/specs/backend-database-integration/SESSION_1_COMPLETE"
+  },
+  "next": {
+    "title": "SPEC-105: Backend Integration & Database Connectivity - COMPLETE ✅",
+    "permalink": "/ninaivalaigal/specs/backend-database-integration/SPEC_105_COMPLETE"
+  }
 }

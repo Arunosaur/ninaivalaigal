@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Ninaivalaigal SPECs",
+    "permalink": "/ninaivalaigal/specs/"
+  },
+  "next": {
+    "title": "Feature Specification: Multi-User Authentication & Authorization",
+    "permalink": "/ninaivalaigal/specs/multi-user-authentication/spec"
+  }
 }

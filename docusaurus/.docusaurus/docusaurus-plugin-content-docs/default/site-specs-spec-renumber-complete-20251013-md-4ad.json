@@ -13,5 +13,10 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC Documentation Health Report",
+    "permalink": "/ninaivalaigal/specs/SPEC_HEALTH_REPORT"
+  }
 }

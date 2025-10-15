@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-020: Memory Provider Architecture",
+    "permalink": "/ninaivalaigal/specs/memory-provider-architecture/spec"
+  },
+  "next": {
+    "title": "SPEC-021: GitOps Deployment via ArgoCD",
+    "permalink": "/ninaivalaigal/specs/gitops-argocd/README.old-20251008"
   }
 }

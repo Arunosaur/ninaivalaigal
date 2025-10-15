@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/feedback-loop-system/"
+  },
+  "next": {
+    "title": "SPEC-042: Auth-Aware Test Harness (Enterprise Readiness)",
+    "permalink": "/ninaivalaigal/specs/memory-sync-users-teams/"
   }
 }

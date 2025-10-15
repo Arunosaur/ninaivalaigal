@@ -49,5 +49,14 @@
     ],
     "title": "Context Bridge & Memory Federation System",
     "updated": "2025-10-13T00:00:00.000Z"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/ml-model-training-pipeline/"
+  },
+  "next": {
+    "title": "SPEC-127 Created - October 13, 2025",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/CREATED"
   }
 }

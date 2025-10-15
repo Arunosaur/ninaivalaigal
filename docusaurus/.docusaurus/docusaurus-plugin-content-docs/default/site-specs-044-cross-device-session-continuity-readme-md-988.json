@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/memory-access-control-acl/"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/session-timeout-token-expiry/"
   }
 }

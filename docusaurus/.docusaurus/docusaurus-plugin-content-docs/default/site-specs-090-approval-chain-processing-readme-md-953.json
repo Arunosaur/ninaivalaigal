@@ -17,5 +17,14 @@
     "id": "spec-090-approval-chain-processing",
     "slug": "/specs/090-approval-chain-processing",
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Migration Guide Template",
+    "permalink": "/ninaivalaigal/specs/api-versioning-strategy/migration-guide-template"
+  },
+  "next": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/agent-to-agent-context-propagation/"
   }
 }

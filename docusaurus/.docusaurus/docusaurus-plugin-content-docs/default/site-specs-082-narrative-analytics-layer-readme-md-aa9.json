@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/proactive-memory-alert-layer/"
+  },
+  "next": {
+    "title": "SPEC-082: Narrative Analytics API Contracts",
+    "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/api-contracts"
+  }
 }

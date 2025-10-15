@@ -39,7 +39,9 @@ export default {
       }
     ]
   ],
-  "plugins": [],
+  "plugins": [
+    null
+  ],
   "themeConfig": {
     "prism": {
       "theme": {

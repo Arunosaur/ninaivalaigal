@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-031: Memory Relevance Ranking (Redis-Enabled)",
+    "permalink": "/ninaivalaigal/specs/memory-relevance-ranking/archive/SPEC-031-memory-relevance-ranking"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/redis-integration/"
+  }
 }

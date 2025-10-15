@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Feature Specification: observability-and-telemetry",
+    "permalink": "/ninaivalaigal/specs/observability-and-telemetry/spec"
+  },
+  "next": {
+    "title": "SPEC-011: Data Lifecycle Management (Enhanced)",
+    "permalink": "/ninaivalaigal/specs/data-lifecycle-management/archive/ENHANCEMENT"
+  }
 }

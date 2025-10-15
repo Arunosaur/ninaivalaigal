@@ -55,5 +55,14 @@
     ],
     "title": "Agentic UI Testing Framework",
     "updated": "2025-10-12T00:00:00.000Z"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/product-surface-split-and-naming/"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/staff-management/"
   }
 }

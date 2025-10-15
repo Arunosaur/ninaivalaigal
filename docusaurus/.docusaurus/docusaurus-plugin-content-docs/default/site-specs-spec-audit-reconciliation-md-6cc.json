@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC Directory Backup - Pre-Renumbering",
+    "permalink": "/ninaivalaigal/specs/BACKUP_PRE_RENUMBER_20251013"
+  },
+  "next": {
+    "title": "SPEC Documentation Health Report",
+    "permalink": "/ninaivalaigal/specs/SPEC_HEALTH_REPORT"
+  }
 }

@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/external-ai-memory/"
+  },
+  "next": {
+    "title": "Feature Specification: VS Code IDE Integration",
+    "permalink": "/ninaivalaigal/specs/terminal-cli-auto-context/vs-code-integration/spec"
   }
 }

@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Universal AI Integration - Implementation Tasks",
+    "permalink": "/ninaivalaigal/specs/universal-ai-integration/tasks"
+  },
+  "next": {
+    "title": "Enterprise Roadmap - Implementation Tasks",
+    "permalink": "/ninaivalaigal/specs/enterprise-roadmap/archive/tasks"
+  }
 }

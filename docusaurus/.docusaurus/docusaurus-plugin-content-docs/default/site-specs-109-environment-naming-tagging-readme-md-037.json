@@ -15,5 +15,14 @@
   "lastUpdatedAt": 1539502055000,
   "frontMatter": {
     "title": "Untitled SPEC"
+  },
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-108: Image Backup & Disaster Recovery (Enhanced)",
+    "permalink": "/ninaivalaigal/specs/image-backup-disaster-recovery/"
+  },
+  "next": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/release-workflow-ghcr/"
   }
 }

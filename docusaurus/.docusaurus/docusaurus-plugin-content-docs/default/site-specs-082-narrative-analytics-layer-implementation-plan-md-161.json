@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Database Migration Plan for Analytics ROI Dashboard",
+    "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/database-migrations"
+  },
+  "next": {
+    "title": "SPEC-082: Narrative Analytics Queries",
+    "permalink": "/ninaivalaigal/specs/narrative-analytics-layer/queries"
+  }
 }

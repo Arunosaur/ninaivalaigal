@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-017: Development Environment Management",
+    "permalink": "/ninaivalaigal/specs/development-environment-management/archive/spec"
+  },
+  "next": {
+    "title": "SPEC-018: API Health & Monitoring",
+    "permalink": "/ninaivalaigal/specs/api-health-monitoring/archive/spec"
+  }
 }

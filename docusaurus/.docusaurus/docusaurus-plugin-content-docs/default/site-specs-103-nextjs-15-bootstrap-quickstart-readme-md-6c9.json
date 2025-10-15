@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Phase A: SPEC-103 Finalization - COMPLETE ✅",
+    "permalink": "/ninaivalaigal/specs/nextjs-15-bootstrap/PHASE_A_COMPLETE"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/post-migration-quality-verification/"
+  }
 }

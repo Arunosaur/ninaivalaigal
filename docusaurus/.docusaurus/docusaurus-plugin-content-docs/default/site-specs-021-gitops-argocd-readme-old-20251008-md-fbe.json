@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/gitops-argocd/"
+  },
+  "next": {
+    "title": "SPEC-022: Kubernetes Monitoring with Prometheus + Grafana",
+    "permalink": "/ninaivalaigal/specs/prometheus-grafana-monitoring/"
+  }
 }

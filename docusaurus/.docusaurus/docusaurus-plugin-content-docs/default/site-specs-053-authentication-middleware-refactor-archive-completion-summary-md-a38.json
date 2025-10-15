@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-053: Authentication Middleware Refactor - IMPLEMENTATION COMPLETE",
+    "permalink": "/ninaivalaigal/specs/authentication-middleware-refactor/IMPLEMENTATION"
+  },
+  "next": {
+    "title": "SPEC-053: Authentication Middleware Refactor - IMPLEMENTATION COMPLETE",
+    "permalink": "/ninaivalaigal/specs/authentication-middleware-refactor/archive/IMPLEMENTATION"
+  }
 }

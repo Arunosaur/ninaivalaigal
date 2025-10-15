@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-105: Backend Integration & Database Connectivity - Summary",
+    "permalink": "/ninaivalaigal/specs/backend-database-integration/SUMMARY"
+  },
+  "next": {
+    "title": "SPEC-107: Unified Runtime Parity & Deployment Standard",
+    "permalink": "/ninaivalaigal/specs/unified-runtime-parity/"
+  }
 }

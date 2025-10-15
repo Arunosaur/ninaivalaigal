@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Reference vs Clone vs Hybrid Modes",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/modes"
+  },
+  "next": {
+    "title": "SPEC-084: Memory Sharing & Transfer Architecture",
+    "permalink": "/ninaivalaigal/specs/memory-sharing/"
+  }
 }

@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-038: Memory Token Preloading System",
+    "permalink": "/ninaivalaigal/specs/memory-token-preloading/SPEC-038-memory-preloading"
+  },
+  "next": {
+    "title": "SPEC-038: Memory Token Preloading System",
+    "permalink": "/ninaivalaigal/specs/memory-token-preloading/archive/SPEC-038-memory-preloading"
+  }
 }

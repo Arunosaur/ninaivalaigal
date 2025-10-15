@@ -13,5 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {}
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/cross-org-memory-sharing/"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/comprehensive-test-coverage/"
+  }
 }

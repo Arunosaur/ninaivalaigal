@@ -1,11 +1,11 @@
 {
-  "id": "memory-sharing/spec-128-memory-sharing",
-  "title": "spec-128-memory-sharing",
-  "description": "2) Core Concepts",
+  "id": "memory-sharing/README",
+  "title": "SPEC-084: Memory Sharing & Transfer Architecture",
+  "description": "Status: Proposed",
   "source": "@site/../specs/128-memory-sharing/README.md",
   "sourceDirName": "128-memory-sharing",
-  "slug": "/specs/128-memory-sharing",
-  "permalink": "/ninaivalaigal/specs/specs/128-memory-sharing",
+  "slug": "/memory-sharing/",
+  "permalink": "/ninaivalaigal/specs/memory-sharing/",
   "draft": false,
   "unlisted": false,
   "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/128-memory-sharing/README.md",
@@ -13,8 +13,14 @@
   "version": "current",
   "lastUpdatedBy": "Author",
   "lastUpdatedAt": 1539502055000,
-  "frontMatter": {
-    "id": "spec-128-memory-sharing",
-    "slug": "/specs/128-memory-sharing"
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Trust Scoring System",
+    "permalink": "/ninaivalaigal/specs/context-bridge-system/trust-scoring"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/external-ai-memory/"
   }
 }
