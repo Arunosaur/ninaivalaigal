@@ -5,7 +5,7 @@
 // Unauthorized copying, modification, or distribution is prohibited.
 // See LICENSE file in the server/ directory for details.
 
-use crate::handlers::CypherExecutor;
+use crate::handlers::{CachedResponse, CypherExecutor, QueryCache};
 use crate::metrics::{
     self, RequestTimer, CACHE_HITS_TOTAL, DB_CONNECTIONS_ACTIVE, ERRORS_TOTAL, REQUESTS_TOTAL,
 };
@@ -28,6 +28,7 @@ pub struct GraphOpsService {
     pool: DbPool,
     graph_name: String,
     service_start_time: SystemTime,
+    query_cache: QueryCache,
 }
 
 impl GraphOpsService {
@@ -36,6 +37,7 @@ impl GraphOpsService {
             pool,
             graph_name,
             service_start_time: SystemTime::now(),
+            query_cache: QueryCache::new(300, 1000),
         }
     }
 
@@ -75,6 +77,37 @@ impl GraphOpsService {
             ));
         }
 
+        // Check cache first
+        if self.query_cache.should_cache(&trimmed_query) {
+            if let Some(cached) = self.query_cache.get(&trimmed_query).await {
+                CACHE_HITS_TOTAL
+                    .with_label_values(&[RUNTIME_LABEL, "plan_cache"])
+                    .inc();
+                REQUESTS_TOTAL
+                    .with_label_values(&[RUNTIME_LABEL, operation, "success"])
+                    .inc();
+                if let Some(metric_timer) = timer.take() {
+                    metric_timer.observe();
+                }
+                return Ok(CypherResponse {
+                    status: ExecutionStatus::Success.into(),
+                    results: cached.results,
+                    error: None,
+                    execution_time_ms: cached.execution_time_ms,
+                    row_count: cached.row_count,
+                    metrics: Some(QueryMetrics {
+                        parse_time_ms: 0.0,
+                        plan_time_ms: 0.0,
+                        execution_time_ms: cached.execution_time_ms as f64,
+                        rows_scanned: 0,
+                        rows_returned: cached.row_count as i64,
+                        memory_used_bytes: 0,
+                        cache_hit: true,
+                    }),
+                });
+            }
+        }
+
         let gauge = DB_CONNECTIONS_ACTIVE.with_label_values(&[RUNTIME_LABEL, "primary"]);
 
         let client = match self.pool.get_client().await {
@@ -108,6 +141,21 @@ impl GraphOpsService {
             Ok(rows) => {
                 let execution_time_ms = query_start.elapsed().as_millis() as i32;
                 let results: Vec<String> = rows.iter().map(|value| value.to_string()).collect();
+                let row_count = rows.len() as i32;
+
+                // Store in cache if cacheable
+                if self.query_cache.should_cache(&trimmed_query) {
+                    self.query_cache
+                        .set(
+                            trimmed_query,
+                            CachedResponse {
+                                results: results.clone(),
+                                execution_time_ms,
+                                row_count,
+                            },
+                        )
+                        .await;
+                }
 
                 REQUESTS_TOTAL
                     .with_label_values(&[RUNTIME_LABEL, operation, "success"])
@@ -123,14 +171,14 @@ impl GraphOpsService {
                     status: ExecutionStatus::Success as i32,
                     results,
                     execution_time_ms,
-                    row_count: rows.len() as i32,
+                    row_count,
                     error: None,
                     metrics: Some(QueryMetrics {
                         parse_time_ms: 0.0, // populated once EXPLAIN integration lands
                         plan_time_ms: 0.0,
                         execution_time_ms: execution_time_ms as f64,
                         rows_scanned: 0,
-                        rows_returned: rows.len() as i64,
+                        rows_returned: row_count as i64,
                         memory_used_bytes: 0,
                         cache_hit: false,
                     }),

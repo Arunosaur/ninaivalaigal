@@ -7,4 +7,4 @@
 
 pub mod cypher;
 
-pub use cypher::CypherExecutor;
+pub use cypher::{CachedResponse, CypherExecutor, QueryCache};

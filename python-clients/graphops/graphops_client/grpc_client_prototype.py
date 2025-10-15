@@ -187,18 +187,17 @@ class GraphOpsGrpcClientPrototype:
             raise RuntimeError("Not connected - call connect() first")
 
         try:
-            request = graphops_pb2.GetMetricsRequest(window_seconds=window_seconds)
+            request = graphops_pb2.MetricsRequest(window_seconds=window_seconds)
             response = await self._stub.GetMetrics(request)
 
             return {
                 "total_queries": response.total_queries,
                 "successful_queries": response.successful_queries,
                 "failed_queries": response.failed_queries,
-                "average_latency_ms": response.average_latency_ms,
+                "p50_latency_ms": response.p50_latency_ms,
                 "p95_latency_ms": response.p95_latency_ms,
                 "p99_latency_ms": response.p99_latency_ms,
-                "memory_usage_bytes": response.memory_usage_bytes,
-                "active_connections": response.active_connections,
+                "avg_execution_time_ms": response.avg_execution_time_ms,
             }
 
         except grpc.aio.AioRpcError as e:
@@ -232,7 +231,8 @@ async def test_connection():
         metrics = await client.get_metrics()
         print("\n📊 Service Metrics:")
         print(f"   Total queries: {metrics.get('total_queries', 'N/A')}")
-        print(f"   Memory usage: {metrics.get('memory_usage_bytes', 0) / 1024 / 1024:.2f} MB")
+        print(f"   Successful: {metrics.get('successful_queries', 'N/A')}")
+        print(f"   P50 latency: {metrics.get('p50_latency_ms', 'N/A')}ms")
 
         await client.close()
         return True

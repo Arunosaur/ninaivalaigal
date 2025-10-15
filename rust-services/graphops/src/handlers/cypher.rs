@@ -5,10 +5,89 @@
 // Unauthorized copying, modification, or distribution is prohibited.
 // See LICENSE file in the server/ directory for details.
 
+use std::collections::HashMap;
 use std::error::Error;
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 use serde_json::Value;
+use tokio::sync::RwLock;
 use tokio_postgres::{Client, SimpleQueryMessage};
+
+#[derive(Clone, Debug)]
+pub struct CachedResponse {
+    pub results: Vec<String>,
+    pub execution_time_ms: i32,
+    pub row_count: i32,
+}
+
+#[derive(Clone)]
+pub struct QueryCache {
+    cache: Arc<RwLock<HashMap<String, CacheEntry>>>,
+    ttl: Duration,
+    max_entries: usize,
+}
+
+#[derive(Clone)]
+struct CacheEntry {
+    stored_at: Instant,
+    response: CachedResponse,
+}
+
+impl QueryCache {
+    pub fn new(ttl_seconds: u64, max_entries: usize) -> Self {
+        Self {
+            cache: Arc::new(RwLock::new(HashMap::new())),
+            ttl: Duration::from_secs(ttl_seconds.max(1)),
+            max_entries: max_entries.max(1),
+        }
+    }
+
+    pub fn should_cache(&self, query: &str) -> bool {
+        let first_token = query
+            .split_whitespace()
+            .next()
+            .map(|token| token.to_ascii_lowercase())
+            .unwrap_or_default();
+
+        matches!(first_token.as_str(), "match" | "return" | "with")
+    }
+
+    pub async fn get(&self, query: &str) -> Option<CachedResponse> {
+        let mut cache = self.cache.write().await;
+
+        match cache.get(query) {
+            Some(entry) if entry.stored_at.elapsed() <= self.ttl => Some(entry.response.clone()),
+            Some(_) => {
+                cache.remove(query);
+                None
+            }
+            None => None,
+        }
+    }
+
+    pub async fn set(&self, query: String, response: CachedResponse) {
+        let mut cache = self.cache.write().await;
+
+        if cache.len() >= self.max_entries {
+            if let Some(oldest_key) = cache
+                .iter()
+                .min_by_key(|(_, entry)| entry.stored_at)
+                .map(|(key, _)| key.clone())
+            {
+                cache.remove(&oldest_key);
+            }
+        }
+
+        cache.insert(
+            query,
+            CacheEntry {
+                stored_at: Instant::now(),
+                response,
+            },
+        );
+    }
+}
 
 /// Thin wrapper around Apache AGE Cypher execution.
 ///
@@ -84,5 +163,30 @@ mod tests {
         // We only assert the call succeeds without panicking. This mirrors a smoke-test against
         // the AGE extension and PgBouncer plumbing.
         let _ = executor.execute_query("MATCH (n) RETURN n LIMIT 1").await;
+    }
+
+    #[tokio::test]
+    async fn query_cache_expires_entries() {
+        let cache = QueryCache::new(1, 4);
+        let query = "MATCH (n) RETURN n".to_string();
+
+        assert!(cache.should_cache(&query));
+
+        cache
+            .set(
+                query.clone(),
+                CachedResponse {
+                    results: vec!["ok".to_string()],
+                    execution_time_ms: 10,
+                    row_count: 1,
+                },
+            )
+            .await;
+
+        assert!(cache.get(&query).await.is_some());
+
+        tokio::time::sleep(Duration::from_secs(2)).await;
+
+        assert!(cache.get(&query).await.is_none());
     }
 }

@@ -6,9 +6,13 @@
 // See LICENSE file in the server/ directory for details.
 
 use std::env;
+use std::sync::Arc;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use graphops_service::{CypherExecutor, DbPool};
+use graphops_service::proto::graphops::v1::graph_ops_service_server::GraphOpsService as GraphOpsServiceTrait;
+use graphops_service::proto::graphops::v1::CypherRequest;
+use graphops_service::{CypherExecutor, DbPool, GraphOpsService};
+use tonic::Request;
 
 fn benchmark_cypher_execution(c: &mut Criterion) {
     // Load .env file if present (silently ignore if missing)
@@ -77,6 +81,47 @@ fn benchmark_cypher_execution(c: &mut Criterion) {
                 .await
                 .expect("cypher traversal");
             black_box(result);
+        });
+    });
+
+    // CACHE COVERAGE: Bench the GraphOpsService path to ensure cache hits are measured.
+    let service = Arc::new(GraphOpsService::new(pool.clone(), graph_name.clone()));
+    runtime.block_on(async {
+        let warmup_request = CypherRequest {
+            query: "MATCH (n) RETURN n LIMIT 10".to_string(),
+            parameters: Default::default(),
+            timeout_ms: 0,
+            trace_id: "benchmark-warmup".to_string(),
+            span_id: "cache-warmup".to_string(),
+        };
+        let _ = service
+            .execute_query(Request::new(warmup_request))
+            .await
+            .expect("cache warmup")
+            .into_inner();
+    });
+
+    c.bench_function("cypher_cached_match", |b| {
+        let service = service.clone();
+
+        b.to_async(&runtime).iter(|| {
+            let service = service.clone();
+            async move {
+                let request = CypherRequest {
+                    query: "MATCH (n) RETURN n LIMIT 10".to_string(),
+                    parameters: Default::default(),
+                    timeout_ms: 0,
+                    trace_id: "benchmark-cached".to_string(),
+                    span_id: "cache-hit".to_string(),
+                };
+
+                let response = service
+                    .execute_query(Request::new(request))
+                    .await
+                    .expect("cached cypher query")
+                    .into_inner();
+                black_box(response);
+            }
         });
     });
 }
