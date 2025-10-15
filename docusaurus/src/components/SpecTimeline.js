@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Medhasys LLC
+
 import React, { useEffect, useState } from 'react';
 import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
@@ -15,8 +18,8 @@ export default function SpecTimeline() {
   }, [specDashboardUrl]);
 
   if (!data) return (
-    <Layout title=\"SPEC Progress Timeline\">
-      <div className=\"container margin-vert--lg\">
+    <Layout title="SPEC Progress Timeline">
+      <div className="container margin-vert--lg">
         <p>Loading timeline...</p>
       </div>
     </Layout>
@@ -30,22 +33,22 @@ export default function SpecTimeline() {
   }));
 
   return (
-    <Layout title=\"SPEC Progress Timeline\">
-      <div className=\"container margin-vert--lg\">
+    <Layout title="SPEC Progress Timeline">
+      <div className="container margin-vert--lg">
         <h1>📈 SPEC Phase Progress</h1>
         <p>Completion percentage by phase across all SPECs</p>
         
         <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
-          <ResponsiveContainer width=\"100%\" height={400}>
-            <BarChart data={phases} layout=\"vertical\" margin={{ left: 100, right: 30 }}>
-              <CartesianGrid strokeDasharray=\"3 3\" />
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={phases} layout="vertical" margin={{ left: 100, right: 30 }}>
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
-                type=\"number\" 
+                type="number" 
                 domain={[0, 100]} 
                 tickFormatter={(v) => `${v}%`}
                 label={{ value: 'Completion %', position: 'insideBottom', offset: -5 }}
               />
-              <YAxis dataKey=\"phase\" type=\"category\" width={150} />
+              <YAxis dataKey="phase" type="category" width={150} />
               <Tooltip 
                 formatter={(value, name) => {
                   if (name === 'percent') return `${value}%`;
@@ -54,15 +57,15 @@ export default function SpecTimeline() {
                 labelFormatter={(label) => `Phase: ${label}`}
               />
               <Legend />
-              <Bar dataKey=\"percent\" fill=\"#4ade80\" name=\"% Complete\" />
+              <Bar dataKey="percent" fill="#4ade80" name="% Complete" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         <h2>Phase Details</h2>
-        <div className=\"row\" style={{ marginTop: '1.5rem' }}>
+        <div className="row" style={{ marginTop: '1.5rem' }}>
           {phases.map((phase) => (
-            <div key={phase.phase} className=\"col col--4\" style={{ marginBottom: '1.5rem' }}>
+            <div key={phase.phase} className="col col--4" style={{ marginBottom: '1.5rem' }}>
               <div style={{
                 border: '1px solid #e5e7eb',
                 borderRadius: '8px',
