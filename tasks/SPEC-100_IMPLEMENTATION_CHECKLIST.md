@@ -5,11 +5,15 @@
 **Target Completion:** October 22, 2025 (1 week)
 **Owner:** Architecture Team
 
+> **📖 Full Specification:** See [specs/100-api-container-modularization/README.md](../specs/100-api-container-modularization/README.md)
+
 ---
 
 ## 📋 Overview
 
 Transform monolithic API (49K lines, 54 routers, 30+ min build) into 5 independent microservices with <10 min aggregate build time.
+
+This checklist tracks the **implementation tasks** for SPEC-100. For the complete architectural specification including orchestration, communication model, and future enhancements, refer to the main README.
 
 **Success Criteria:**
 - ⏱ Aggregate build time < 10 minutes
