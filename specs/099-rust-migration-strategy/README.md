@@ -96,7 +96,31 @@ Performance and cost benefits validated through load-test POC:
 
 ---
 
-## 3. 🌿 Visual Transition Map — What to Replace
+## 3. 🏗️ Architecture Overview
+
+### System Architecture Diagram
+
+```mermaid
+flowchart TD
+    A[Python Core API] -->|REST/gRPC| B[GraphOps Runtime - Rust]
+    A --> C[Memory Engine - Rust]
+    B --> D[Feedback Loop - Rust]
+    C --> D
+    D --> E[Redis/NATS Event Bus]
+    E --> F[Python Dashboards]
+```
+
+**Architecture Layers:**
+- **A (Python Core API):** FastAPI orchestration, CRUD operations, business logic glue
+- **B (GraphOps Runtime):** Rust microservice for graph traversal and Cypher parsing
+- **C (Memory Engine):** Rust service for tokenization and pattern matching
+- **D (Feedback Loop):** Rust async service for event processing
+- **E (Event Bus):** Redis Streams or NATS for service decoupling
+- **F (Python Dashboards):** Next.js/React frontends (stay in Python/JS ecosystem)
+
+---
+
+## 4. 🌿 Visual Transition Map — What to Replace
 
 ```mermaid
 graph TD
@@ -157,27 +181,154 @@ graph TD
 
 ## 6. 🚀 Dependency and Risk Checkpoints
 
-Include a "migration guardrail" section:
+### Migration Guardrails
 
 | Risk | Mitigation |
 |------|------------|
-| **Schema divergence between Python ↔ Rust services** | Centralize OpenAPI + JSON schemas in `shared/contracts/`; automated CI diff check |
-| **Build tool fragmentation** | Use unified container spec (SERVICE_ROLE + PORT) and same health endpoints |
-| **Dev-tool unfamiliarity** | Maintain Python stubs and post-merge benchmarking harness |
-| **Library gaps (ORM, SDKs)** | Delay rewrite of billing/auth until SeaORM + PyO3 mature |
+| **Schema drift between languages** | Automated contract diff check in CI |
+| **Build tool fragmentation** | Unified container template and health endpoint policy |
+| **Dev skill gap** | Pair Rust POC team with Python mentors and shared test harness |
+| **SDK dependency lock-in** | Defer billing/auth rewrite until tooling matures |
+
+### Detailed Risk Analysis
+
+#### 1. **Schema Divergence Between Python ↔ Rust Services**
+- **Impact:** HIGH - Could break API contracts, cause runtime errors
+- **Probability:** MEDIUM - Easy to drift without automation
+- **Mitigation:**
+  - Centralize OpenAPI + JSON schemas in `shared/contracts/`
+  - Automated CI diff check (fail build on schema mismatch)
+  - Contract testing (Pact or similar) in CI/CD
+  - Weekly schema review meetings (Phase 1-2)
+
+#### 2. **Build Tool Fragmentation**
+- **Impact:** MEDIUM - Slower builds, deployment complexity
+- **Probability:** MEDIUM - Different toolchains for Python vs Rust
+- **Mitigation:**
+  - Use unified container spec (SERVICE_ROLE + PORT)
+  - Same health endpoint structure (`/health`, `/metrics`)
+  - Shared Makefile targets across all services
+  - Document build patterns in developer guide
+
+#### 3. **Developer Skill Gap**
+- **Impact:** HIGH - Could slow velocity, introduce bugs
+- **Probability:** HIGH - Rust learning curve is steep
+- **Mitigation:**
+  - Pair Rust POC team with Python mentors
+  - Shared test harness (same patterns across languages)
+  - Weekly code review sessions (Rust-focused)
+  - Rust training budget allocated ($5K/developer)
+  - Maintain Python stubs for all Rust services
+
+#### 4. **SDK Dependency Lock-In**
+- **Impact:** HIGH - Could force premature Rust rewrite
+- **Probability:** LOW - We control migration timeline
+- **Mitigation:**
+  - Defer billing/auth rewrite until SeaORM + PyO3 mature
+  - Evaluate Rust SDK ecosystem quarterly
+  - Consider Python → Rust bindings via PyO3 as bridge
+  - Keep SDK-heavy services in Python indefinitely if needed
 
 ---
 
-## 7. 📈 Roadmap Timeline (Executive View)
+## 6a. 🧩 Additional Enhancements (Infrastructure Maturity)
 
-End with a one-liner timeline:
+These architectural enhancements strengthen the hybrid Python-Rust platform:
 
-```
-Q4 2025 → GraphOps pilot (SPEC-062)
-Q1 2026 → Memory + Feedback engines (SPEC-040)
-Q2 2026 → Telemetry + Crypto runtime modules
-Q3 2026 → Evaluate wider adoption based on metrics
-```
+### 1. **Shared Contracts Layer** (SPEC-100)
+- **Purpose:** Centralize OpenAPI/Pydantic models in `shared/contracts/`
+- **Benefit:** Enforce schema consistency across Python ↔ Rust services
+- **Implementation:** Automated CI diff check prevents contract drift
+- **Timeline:** Phase 0 (before any Rust implementation)
+
+### 2. **Internal Service Mesh** (Optional - Phase 4+)
+- **Purpose:** Linkerd/Istio-lite for mTLS and intelligent routing
+- **Benefit:** Zero-trust security between microservices, automatic retries
+- **Implementation:** Sidecar proxies for all Rust services
+- **Timeline:** Q3 2026 (after core Rust services proven)
+
+### 3. **Event Bus or Async Broker**
+- **Purpose:** Redis Streams or NATS for Core↔Graph↔Memory decoupling
+- **Benefit:** Eliminates tight coupling, enables event-driven architecture
+- **Implementation:** Replace direct gRPC calls with pub/sub for async operations
+- **Timeline:** Phase 2 (Memory + Feedback engines)
+
+### 4. **Deployment Optimization**
+- **Purpose:** Parallel Docker buildx bake + independent CI workflows
+- **Benefit:** Faster builds, independent deployment of Rust services
+- **Implementation:** Multi-stage Dockerfiles, layer caching, parallel builds
+- **Timeline:** Phase 1 (GraphOps pilot)
+
+### 5. **Database Strategy Evolution**
+- **Purpose:** Evolve from shared schema → separate schemas → federated composition
+- **Benefit:** Service independence, easier scaling, failure isolation
+- **Implementation:**
+  - **Phase 1:** Shared PostgreSQL with namespace isolation
+  - **Phase 2:** Separate schemas per service
+  - **Phase 3:** Federated GraphQL composition (optional)
+- **Timeline:** Progressive across all phases
+
+---
+
+## 6b. 🔮 Optional Future Layer (Post-Phase 4)
+
+These capabilities can be added **after** the core Rust migration proves successful:
+
+### 1. **API Gateway** (Kong or Traefik)
+- **Purpose:** Centralized rate limiting, authentication, routing
+- **Benefit:** Unified ingress point, traffic shaping, API versioning
+- **Decision Point:** Q3 2026 (if we have 5+ microservices)
+
+### 2. **OpenTelemetry Tracing**
+- **Purpose:** Distributed tracing across Python and Rust services
+- **Benefit:** End-to-end request visibility, performance bottleneck detection
+- **Implementation:** OTEL SDKs in both Python and Rust
+- **Decision Point:** Phase 2 (if latency SLOs not met)
+
+### 3. **Polyglot Executors**
+- **Purpose:** Enable Rust GraphOps micro-executor pattern
+- **Benefit:** Run Rust functions inside Python processes via PyO3/FFI
+- **Use Case:** Hot paths within monolith without full microservice extraction
+- **Decision Point:** Phase 4 (if microservice overhead too high)
+
+---
+
+## 7. 📅 Rollout Timeline (Phased Approach)
+
+### Executive Timeline
+
+| Phase | Scope | Target Quarter |
+|-------|-------|----------------|
+| **1** | GraphOps Pilot (SPEC-062) | Q4 2025 |
+| **2** | Memory + Feedback Engines (SPEC-040) | Q1 2026 |
+| **3** | Telemetry + Crypto Modules | Q2 2026 |
+| **4** | Optional Expansion + Cost Review | Q3 2026 |
+
+### Phase Details
+
+#### Phase 1: GraphOps Pilot (Q4 2025)
+- **Scope:** Rust microservice for graph traversal and Cypher parsing
+- **Success Criteria:** 90% latency reduction, 10x throughput increase
+- **Resources:** Developer A (80%), Developer B (30%), Developer C (60%)
+- **Deliverables:** Production-ready GraphOps service, contract layer (SPEC-100)
+
+#### Phase 2: Memory + Feedback Engines (Q1 2026)
+- **Scope:** Tokenization engine + event-driven feedback loop
+- **Success Criteria:** 83% latency reduction, 5-6x throughput increase
+- **Resources:** Developer A (80%), Developer B (30%), Developer C (40%)
+- **Deliverables:** Two Rust services with Redis Streams integration
+
+#### Phase 3: Telemetry + Crypto Modules (Q2 2026)
+- **Scope:** Real-time monitoring daemon + security middleware
+- **Success Criteria:** 88% latency reduction on crypto operations
+- **Resources:** Developer A (70%), Developer B (20%), Developer C (40%)
+- **Deliverables:** Observability infrastructure + JWT/HMAC in Rust
+
+#### Phase 4: Optional Expansion + Cost Review (Q3 2026)
+- **Scope:** Evaluate ROI, decide on background workers migration
+- **Success Criteria:** 30-60% infrastructure cost reduction achieved
+- **Resources:** Engineering Leadership + Finance
+- **Deliverables:** Go/no-go decision on wider Rust adoption
 
 **That keeps it measurable and safe.**
 
@@ -198,20 +349,39 @@ Q3 2026 → Evaluate wider adoption based on metrics
 
 ---
 
-## 9. 📊 Success Metrics
+## 9. ✅ Success Metrics (Board-Level KPIs)
 
-Track these KPIs to validate Rust migration ROI:
+### Critical Success Indicators
 
-### Performance Metrics
-- **P50/P95/P99 Latency:** Target <50ms for graph operations
-- **Throughput:** Requests per second per container
-- **Memory Usage:** Peak and average memory consumption
-- **CPU Efficiency:** CPU time per request
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| **p95 latency < 50 ms on GraphOps queries** | <50ms | Prometheus P95 histogram |
+| **≥ 5x throughput gain on memory lookups** | 5-10x | Load test RPS comparison |
+| **≥ 60% infra cost vs baseline** | -30% to -60% | Monthly cloud bill analysis |
+| **0 API schema mismatches across runtimes** | 0 breaks | CI contract validation |
 
-### Business Metrics
-- **Infrastructure Cost:** Monthly cloud spend reduction
-- **User Experience:** Time-to-first-result improvements
-- **Scalability:** Concurrent users supported per dollar
+### Detailed Performance Metrics
+
+#### Latency Targets
+- **P50 Latency:** <15ms (GraphOps), <20ms (Memory), <10ms (Crypto)
+- **P95 Latency:** <50ms (GraphOps), <50ms (Memory), <30ms (Crypto)
+- **P99 Latency:** <100ms (GraphOps), <80ms (Memory), <50ms (Crypto)
+
+#### Throughput Targets
+- **GraphOps:** 500+ req/sec per container (vs 50 baseline)
+- **Memory Engine:** 300+ req/sec per container (vs 50 baseline)
+- **Feedback Loop:** 1000+ events/sec per container
+
+#### Resource Efficiency
+- **Memory Usage:** <200MB per Rust service (vs 500MB Python)
+- **CPU Efficiency:** <50ms CPU time per request
+- **Container Startup:** <5 seconds (vs 15-30s Python)
+
+### Business Impact Metrics
+- **Infrastructure Cost:** 30-60% reduction in monthly cloud spend
+- **User Experience:** <100ms p99 latency for all graph queries
+- **Scalability:** 6-10x more concurrent users per server
+- **Reliability:** 99.9% uptime SLO maintained or exceeded
 - **Developer Velocity:** Lines of code per sprint (should not decrease)
 
 ### Risk Indicators
@@ -269,6 +439,57 @@ service GraphOpsService {
 - SPEC-062: GraphOps Stack Deployment
 - SPEC-040: Graph Intelligence Integration
 - SPEC-100: Runtime-Agnostic Contract Layer
+
+---
+
+## 📜 Conclusion
+
+### The Hybrid Architecture Vision
+
+**The Rust migration will extend the existing Python architecture—not replace it.**
+
+This hybrid design maintains developer velocity while introducing a high-performance, deterministic tier for compute-bound workloads.
+
+### Key Takeaways for the Board
+
+1. **Strategic Investment, Not Technical Rewrite**
+   - Selective Rust adoption for 4 high-impact modules
+   - Python remains for 80% of the codebase (UI, business logic, SDKs)
+   - Incremental rollout with clear go/no-go gates at each phase
+
+2. **Quantified Business Value**
+   - **50-90% latency reduction** on performance-critical paths
+   - **30-60% infrastructure cost savings** from improved efficiency
+   - **6-10x scalability** without proportional cost increase
+   - **ROI payback period: <12 months** based on projected savings
+
+3. **Risk-Managed Approach**
+   - Contract layer (SPEC-100) ensures language-agnostic integration
+   - Phased rollout with rollback capability at each stage
+   - Automated testing and contract validation prevent breaking changes
+   - Developer training and pair programming minimize skill gap
+
+4. **Proven Technology Stack**
+   - Rust is production-ready at Discord, Cloudflare, AWS, Microsoft
+   - Strong ecosystem for async I/O, gRPC, and systems programming
+   - Memory safety eliminates entire classes of security vulnerabilities
+   - Growing talent pool with increasing industry adoption
+
+5. **Preserves Innovation Velocity**
+   - Python development continues uninterrupted
+   - Rust team operates independently with clear contracts
+   - Event bus architecture enables loose coupling
+   - No "big bang" cutover—continuous delivery maintained
+
+### Recommendation
+
+**Approve Phase 0 (POC validation) to gather empirical performance data and validate ROI projections before committing to full migration.**
+
+- **Investment:** 2-3 weeks, Developer A + Developer C
+- **Deliverable:** SPEC-062 GraphOps POC with benchmark results
+- **Decision Point:** Q4 2025 W3 (go/no-go based on actual metrics)
+
+This approach de-risks the investment while providing concrete data for informed decision-making.
 
 ---
 
