@@ -15,7 +15,7 @@ from typing import Any, Dict, Optional
 import grpc
 
 # Import generated stubs
-from graphops_client.proto import graphops_pb2, graphops_pb2_grpc
+from .proto import graphops_pb2, graphops_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
