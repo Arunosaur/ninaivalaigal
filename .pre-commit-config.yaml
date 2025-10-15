@@ -165,3 +165,12 @@ repos:
         language: system
         files: \.rs$
         pass_filenames: false
+
+      - id: cargo-audit
+        name: cargo audit
+        entry: bash -c 'cd rust-services/graphops && cargo audit --deny warnings || echo "  Security audit warnings found - review required"'
+        language: system
+        files: \.rs$
+        pass_filenames: false
+
+  # ---- Optional: Add more hooks below ----

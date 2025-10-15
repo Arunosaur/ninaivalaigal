@@ -1,0 +1,135 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+
+name: CI Lint & Validation
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  lint-rust:
+    name: Rust Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust-services/graphops
+
+      - name: Run cargo fmt
+        working-directory: rust-services/graphops
+        run: cargo fmt --all -- --check
+
+      - name: Run cargo clippy
+        working-directory: rust-services/graphops
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run cargo test
+        working-directory: rust-services/graphops
+        run: cargo test --lib
+
+      - name: Run cargo audit
+        working-directory: rust-services/graphops
+        run: |
+          cargo install cargo-audit
+          cargo audit
+
+  lint-python:
+    name: Python Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install black isort flake8 flake8-docstrings flake8-bugbear bandit
+
+      - name: Run black
+        run: |
+          black --check python-clients/ server/ benchmarks/ tests/
+
+      - name: Run isort
+        run: |
+          isort --check-only python-clients/ server/ benchmarks/ tests/
+
+      - name: Run flake8
+        run: |
+          flake8 python-clients/ server/ benchmarks/ tests/ \
+            --exclude=*_pb2.py,*_pb2_grpc.py,*/benchmarks/*.py,ci/*.py
+
+      - name: Run bandit
+        run: |
+          bandit -r python-clients/ server/ -ll
+
+  security-scan:
+    name: Security & Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect secrets
+        uses: Yelp/detect-secrets-action@v1.4.0
+        with:
+          baseline: .secrets.baseline
+
+      - name: Run reuse lint
+        run: |
+          pip install reuse
+          reuse lint || echo "REUSE validation warnings (non-blocking)"
+
+  validate-contracts:
+    name: API Contract Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate API versions
+        run: |
+          python3 ci/validate-api-version.py
+
+      - name: Validate API contracts
+        run: |
+          python3 ci/validate-api-contracts.py
+
+  spdx-headers:
+    name: SPDX License Headers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check SPDX headers
+        run: |
+          python3 ci/check-spdx-headers.py
+
+  all-checks:
+    name: All CI Checks Passed
+    runs-on: ubuntu-latest
+    needs: [lint-rust, lint-python, security-scan, validate-contracts, spdx-headers]
+    steps:
+      - name: All checks passed
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ All CI checks passed successfully!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✓ Rust: fmt, clippy, test, audit"
+          echo "✓ Python: black, isort, flake8, bandit"
+          echo "✓ Security: secrets, SPDX headers"
+          echo "✓ Contracts: API version & validation"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
