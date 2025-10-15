@@ -1,0 +1,26 @@
+{
+  "id": "rust-migration-strategy/README",
+  "title": "SPEC-099: Rust Migration Strategy & ROI Analysis",
+  "description": "Status: PLANNED",
+  "source": "@site/../specs/099-rust-migration-strategy/README.md",
+  "sourceDirName": "099-rust-migration-strategy",
+  "slug": "/rust-migration-strategy/",
+  "permalink": "/ninaivalaigal/specs/rust-migration-strategy/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/099-rust-migration-strategy/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "Untitled SPEC",
+    "permalink": "/ninaivalaigal/specs/memory-health-orphaned-tokens/"
+  },
+  "next": {
+    "title": "SPEC-099: Rust Migration Strategy - Acceptance Criteria",
+    "permalink": "/ninaivalaigal/specs/rust-migration-strategy/ACCEPTANCE"
+  }
+}

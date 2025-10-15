@@ -199,13 +199,13 @@ groups:
   - name: performance_slos
     rules:
       - alert: GraphOpsLatencyHigh
-        expr: histogram_quantile(0.95, rate(graphops_query_latency_seconds_bucket[5m])) > 0.05
+        expr: histogram_quantile(0.95, rate(graphops_query_latency_seconds_bucket[5m])) &gt; 0.05
         for: 5m
         annotations:
           summary: "GraphOps P95 latency exceeds 50ms SLO"
 
       - alert: HighErrorRate
-        expr: (sum(rate(service_requests_total{status=~"5.."}[5m])) / sum(rate(service_requests_total[5m]))) > 0.01
+        expr: (sum(rate(service_requests_total{status=~"5.."}[5m])) / sum(rate(service_requests_total[5m]))) &gt; 0.01
         for: 5m
         annotations:
           summary: "Service error rate exceeds 1%"
@@ -222,7 +222,7 @@ groups:
           summary: "API contract validation failed"
 
       - alert: BreakingChangeDetected
-        expr: contract_breaking_changes_total > 0
+        expr: contract_breaking_changes_total &gt; 0
         annotations:
           summary: "Breaking API change detected"
 ```
@@ -286,8 +286,8 @@ services:
 |--------|--------|
 | **Trace coverage** | 100% of services emit OTLP traces |
 | **Metrics export** | 100% of services expose `/metrics` |
-| **Dashboard availability** | >99.9% uptime |
-| **Alert response time** | <5 minutes to detect SLO violations |
+| **Dashboard availability** | &gt;99.9% uptime |
+| **Alert response time** | &lt;5 minutes to detect SLO violations |
 | **Contract validation** | 100% validated in CI before merge |
 | **Log retention** | 7 days in Loki |
 

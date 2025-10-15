@@ -30,7 +30,7 @@ Performance and cost benefits validated through load-test POC:
 **Note:** Derive actual numbers from load-test POC before final approval.
 
 ### Business Impact
-- **User Experience:** Near-instantaneous graph queries (<50ms p99)
+- **User Experience:** Near-instantaneous graph queries (&lt;50ms p99)
 - **Scalability:** 6-10x more concurrent users per server
 - **Cost Reduction:** 30-60% lower cloud infrastructure costs
 - **Competitive Advantage:** Performance becomes platform differentiator
@@ -355,17 +355,17 @@ These capabilities can be added **after** the core Rust migration proves success
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| **p95 latency < 50 ms on GraphOps queries** | <50ms | Prometheus P95 histogram |
-| **≥ 5x throughput gain on memory lookups** | 5-10x | Load test RPS comparison |
-| **≥ 60% infra cost vs baseline** | -30% to -60% | Monthly cloud bill analysis |
+| **p95 latency &lt; 50 ms on GraphOps queries** | &lt;50ms | Prometheus P95 histogram |
+| **&ge; 5x throughput gain on memory lookups** | 5-10x | Load test RPS comparison |
+| **&ge; 60% infra cost vs baseline** | -30% to -60% | Monthly cloud bill analysis |
 | **0 API schema mismatches across runtimes** | 0 breaks | CI contract validation |
 
 ### Detailed Performance Metrics
 
 #### Latency Targets
-- **P50 Latency:** <15ms (GraphOps), <20ms (Memory), <10ms (Crypto)
-- **P95 Latency:** <50ms (GraphOps), <50ms (Memory), <30ms (Crypto)
-- **P99 Latency:** <100ms (GraphOps), <80ms (Memory), <50ms (Crypto)
+- **P50 Latency:** &lt;15ms (GraphOps), &lt;20ms (Memory), &lt;10ms (Crypto)
+- **P95 Latency:** &lt;50ms (GraphOps), &lt;50ms (Memory), &lt;30ms (Crypto)
+- **P99 Latency:** &lt;100ms (GraphOps), &lt;80ms (Memory), &lt;50ms (Crypto)
 
 #### Throughput Targets
 - **GraphOps:** 500+ req/sec per container (vs 50 baseline)
@@ -373,13 +373,13 @@ These capabilities can be added **after** the core Rust migration proves success
 - **Feedback Loop:** 1000+ events/sec per container
 
 #### Resource Efficiency
-- **Memory Usage:** <200MB per Rust service (vs 500MB Python)
-- **CPU Efficiency:** <50ms CPU time per request
-- **Container Startup:** <5 seconds (vs 15-30s Python)
+- **Memory Usage:** &lt;200MB per Rust service (vs 500MB Python)
+- **CPU Efficiency:** &lt;50ms CPU time per request
+- **Container Startup:** &lt;5 seconds (vs 15-30s Python)
 
 ### Business Impact Metrics
 - **Infrastructure Cost:** 30-60% reduction in monthly cloud spend
-- **User Experience:** <100ms p99 latency for all graph queries
+- **User Experience:** &lt;100ms p99 latency for all graph queries
 - **Scalability:** 6-10x more concurrent users per server
 - **Reliability:** 99.9% uptime SLO maintained or exceeded
 - **Developer Velocity:** Lines of code per sprint (should not decrease)
@@ -416,14 +416,14 @@ service GraphOpsService {
 ## 11. 🚦 Go/No-Go Decision Criteria
 
 ### Proceed with Rust Migration If:
-- ✅ SPEC-062 POC shows >5x performance improvement
+- ✅ SPEC-062 POC shows &gt;5x performance improvement
 - ✅ Developer A has strong Rust expertise
 - ✅ SPEC-100 contracts defined and validated
 - ✅ Business committed to 6-month timeline
 - ✅ Budget allocated for potential third developer
 
 ### Pause Migration If:
-- ❌ POC shows <3x improvement (diminishing returns)
+- ❌ POC shows &lt;3x improvement (diminishing returns)
 - ❌ Team lacks Rust expertise (hiring/training needed)
 - ❌ Business priorities shift to feature velocity
 - ❌ SPEC-100 contract layer proves too complex
@@ -461,7 +461,7 @@ This hybrid design maintains developer velocity while introducing a high-perform
    - **50-90% latency reduction** on performance-critical paths
    - **30-60% infrastructure cost savings** from improved efficiency
    - **6-10x scalability** without proportional cost increase
-   - **ROI payback period: <12 months** based on projected savings
+- **ROI payback period: &lt;12 months** based on projected savings
 
 3. **Risk-Managed Approach**
    - Contract layer (SPEC-100) ensures language-agnostic integration

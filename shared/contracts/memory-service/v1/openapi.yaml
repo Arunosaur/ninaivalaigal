@@ -1,0 +1,502 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+
+openapi: 3.0.3
+info:
+  title: Memory Service
+  version: 1.0.0
+  description: |
+    Memory substrate and context management service
+
+    Handles:
+    - Memory CRUD operations
+    - Context management and scoping
+    - Recording sessions
+    - Memory substrate
+    - Timeline views
+    - Memory access control (ACL)
+  contact:
+    name: Ninaivalaigal API Team
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8001
+    description: Local development
+  - url: https://memory-dev.ninaivalaigal.com
+    description: Development
+  - url: https://memory.ninaivalaigal.com
+    description: Production
+
+tags:
+  - name: Memory
+    description: Memory operations
+  - name: Context
+    description: Context management
+  - name: Recording
+    description: Recording sessions
+  - name: Timeline
+    description: Timeline views
+
+paths:
+  /memory:
+    get:
+      tags:
+        - Memory
+      summary: List memories
+      operationId: listMemories
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: context_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of memories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryList'
+
+    post:
+      tags:
+        - Memory
+      summary: Create memory
+      operationId: createMemory
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryCreate'
+      responses:
+        '201':
+          description: Memory created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+
+  /memory/{memory_id}:
+    get:
+      tags:
+        - Memory
+      summary: Get memory
+      operationId: getMemory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: memory_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Memory details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+        '404':
+          description: Memory not found
+
+    put:
+      tags:
+        - Memory
+      summary: Update memory
+      operationId: updateMemory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: memory_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryUpdate'
+      responses:
+        '200':
+          description: Memory updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+
+    delete:
+      tags:
+        - Memory
+      summary: Delete memory
+      operationId: deleteMemory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: memory_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Memory deleted
+
+  /context:
+    get:
+      tags:
+        - Context
+      summary: List contexts
+      operationId: listContexts
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of contexts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Context'
+
+    post:
+      tags:
+        - Context
+      summary: Create context
+      operationId: createContext
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextCreate'
+      responses:
+        '201':
+          description: Context created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Context'
+
+  /context/{context_id}:
+    get:
+      tags:
+        - Context
+      summary: Get context
+      operationId: getContext
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: context_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Context details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Context'
+
+  /recording/start:
+    post:
+      tags:
+        - Recording
+      summary: Start recording session
+      operationId: startRecording
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                context_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Recording started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordingSession'
+
+  /recording/{session_id}/stop:
+    post:
+      tags:
+        - Recording
+      summary: Stop recording session
+      operationId: stopRecording
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Recording stopped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordingSession'
+
+  /timeline:
+    get:
+      tags:
+        - Timeline
+      summary: Get timeline
+      operationId: getTimeline
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: context_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Timeline events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimelineEvent'
+
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Memory:
+      type: object
+      required:
+        - id
+        - content
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        context_id:
+          type: string
+          format: uuid
+        tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    MemoryCreate:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+        context_id:
+          type: string
+          format: uuid
+        tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+
+    MemoryUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+
+    MemoryList:
+      type: object
+      required:
+        - items
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Memory'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    Context:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    ContextCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        team_id:
+          type: string
+          format: uuid
+
+    RecordingSession:
+      type: object
+      required:
+        - id
+        - status
+        - started_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        context_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, stopped, paused]
+        started_at:
+          type: string
+          format: date-time
+        stopped_at:
+          type: string
+          format: date-time
+        memory_count:
+          type: integer
+
+    TimelineEvent:
+      type: object
+      required:
+        - id
+        - type
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [memory_created, memory_updated, context_created, recording_started]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - service
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        service:
+          type: string
+        version:
+          type: string
+        database_connected:
+          type: boolean

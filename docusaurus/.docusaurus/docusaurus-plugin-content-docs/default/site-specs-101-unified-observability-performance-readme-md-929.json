@@ -1,0 +1,26 @@
+{
+  "id": "unified-observability-performance/README",
+  "title": "SPEC-101: Unified Observability and Performance Governance",
+  "description": "Status: 📋 PLANNED (Follow-up to SPEC-100)",
+  "source": "@site/../specs/101-unified-observability-performance/README.md",
+  "sourceDirName": "101-unified-observability-performance",
+  "slug": "/unified-observability-performance/",
+  "permalink": "/ninaivalaigal/specs/unified-observability-performance/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/101-unified-observability-performance/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-100: API Container Modularization & Runtime-Agnostic Federation",
+    "permalink": "/ninaivalaigal/specs/api-container-modularization/"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/frontend-migration-preparation/"
+  }
+}

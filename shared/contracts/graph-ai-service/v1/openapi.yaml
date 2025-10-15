@@ -1,0 +1,375 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+
+openapi: 3.0.3
+info:
+  title: Graph AI Service
+  version: 1.0.0
+  description: |
+    Graph intelligence and AI integrations service
+
+    Handles:
+    - Graph intelligence and analytics
+    - AI integrations
+    - Insights generation
+    - Feedback processing
+    - Suggestions and recommendations
+  contact:
+    name: Ninaivalaigal API Team
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8002
+    description: Local development
+  - url: https://graph-dev.ninaivalaigal.com
+    description: Development
+  - url: https://graph.ninaivalaigal.com
+    description: Production
+
+tags:
+  - name: Intelligence
+    description: AI intelligence operations
+  - name: Insights
+    description: Insight generation
+  - name: Feedback
+    description: Feedback processing
+  - name: Suggestions
+    description: Recommendations
+
+paths:
+  /intelligence/analyze:
+    post:
+      tags:
+        - Intelligence
+      summary: Analyze content
+      operationId: analyzeContent
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                context_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+
+  /insights:
+    get:
+      tags:
+        - Insights
+      summary: List insights
+      operationId: listInsights
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: context_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of insights
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Insight'
+
+  /insights/{insight_id}:
+    get:
+      tags:
+        - Insights
+      summary: Get insight
+      operationId: getInsight
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: insight_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Insight details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Insight'
+
+  /feedback:
+    post:
+      tags:
+        - Feedback
+      summary: Submit feedback
+      operationId: submitFeedback
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackCreate'
+      responses:
+        '201':
+          description: Feedback recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+
+  /suggestions:
+    get:
+      tags:
+        - Suggestions
+      summary: Get suggestions
+      operationId: getSuggestions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: context_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [tag, content, connection]
+      responses:
+        '200':
+          description: List of suggestions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Suggestion'
+
+  /graph/query:
+    post:
+      tags:
+        - Intelligence
+      summary: Execute graph query
+      description: Execute Cypher query via GraphOps service
+      operationId: graphQuery
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GraphQueryRequest'
+      responses:
+        '200':
+          description: Query results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphQueryResult'
+
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AnalysisResult:
+      type: object
+      required:
+        - content
+        - analysis
+      properties:
+        content:
+          type: string
+        analysis:
+          type: object
+          properties:
+            sentiment:
+              type: string
+              enum: [positive, negative, neutral]
+            entities:
+              type: array
+              items:
+                type: object
+            topics:
+              type: array
+              items:
+                type: string
+            confidence:
+              type: number
+              format: float
+
+    Insight:
+      type: object
+      required:
+        - id
+        - type
+        - content
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [pattern, connection, recommendation]
+        content:
+          type: string
+        context_id:
+          type: string
+          format: uuid
+        confidence:
+          type: number
+          format: float
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    Feedback:
+      type: object
+      required:
+        - id
+        - type
+        - rating
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [suggestion, insight, analysis]
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        insight_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    FeedbackCreate:
+      type: object
+      required:
+        - type
+        - rating
+      properties:
+        type:
+          type: string
+          enum: [suggestion, insight, analysis]
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        insight_id:
+          type: string
+          format: uuid
+
+    Suggestion:
+      type: object
+      required:
+        - id
+        - type
+        - content
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [tag, content, connection]
+        content:
+          type: string
+        confidence:
+          type: number
+          format: float
+        metadata:
+          type: object
+
+    GraphQueryRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Cypher query
+        parameters:
+          type: object
+          description: Query parameters
+        timeout_ms:
+          type: integer
+          default: 5000
+
+    GraphQueryResult:
+      type: object
+      required:
+        - results
+      properties:
+        results:
+          type: array
+          items:
+            type: string
+        execution_time_ms:
+          type: integer
+        row_count:
+          type: integer
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - service
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        service:
+          type: string
+        version:
+          type: string
+        graphops_connected:
+          type: boolean

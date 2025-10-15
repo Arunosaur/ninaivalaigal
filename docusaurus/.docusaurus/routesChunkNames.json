@@ -63,13 +63,13 @@
     },
     "config": "config---ninaivalaigal-dashboard-5-e-9-bc8"
   },
-  "/ninaivalaigal/specs-d0a": {
+  "/ninaivalaigal/specs-015": {
     "__comp": "__comp---theme-docs-root-5-e-9-0b6",
     "__context": {
       "plugin": "plugin---ninaivalaigal-specsaba-9f0"
     }
   },
-  "/ninaivalaigal/specs-911": {
+  "/ninaivalaigal/specs-94b": {
     "__comp": "__comp---theme-doc-version-roota-7-b-5de",
     "__props": "__props---ninaivalaigal-specs-253-3bf"
   },
@@ -137,7 +137,7 @@
     "__comp": "__comp---theme-doc-tag-doc-list-pagedf-2-9f0",
     "__props": "__props---ninaivalaigal-specs-tags-vision-828-d0a"
   },
-  "/ninaivalaigal/specs-660": {
+  "/ninaivalaigal/specs-f8d": {
     "__comp": "__comp---theme-doc-roota-94-67a"
   },
   "/ninaivalaigal/specs/-f4a": {
@@ -187,6 +187,10 @@
   "/ninaivalaigal/specs/agentic-ui-testing/-154": {
     "__comp": "__comp---theme-doc-item-178-a40",
     "content": "content---ninaivalaigal-specs-agentic-ui-testing-0-ce-80c"
+  },
+  "/ninaivalaigal/specs/api-container-modularization/-4b8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-api-container-modularization-c-54-f77"
   },
   "/ninaivalaigal/specs/api-health-monitoring/archive/spec-185": {
     "__comp": "__comp---theme-doc-item-178-a40",
@@ -888,6 +892,18 @@
     "__comp": "__comp---theme-doc-item-178-a40",
     "content": "content---ninaivalaigal-specs-release-workflow-ghcr-cc-6-5bd"
   },
+  "/ninaivalaigal/specs/rust-migration-strategy/-b91": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-rust-migration-strategy-957-d7a"
+  },
+  "/ninaivalaigal/specs/rust-migration-strategy/ACCEPTANCE-290": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-rust-migration-strategy-acceptance-7-bb-94f"
+  },
+  "/ninaivalaigal/specs/rust-migration-strategy/TASKS-356": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-rust-migration-strategy-task-sd-86-c5b"
+  },
   "/ninaivalaigal/specs/secret-management-environment-hygiene/-bd6": {
     "__comp": "__comp---theme-doc-item-178-a40",
     "content": "content---ninaivalaigal-specs-secret-management-environment-hygiene-f-3-b-0db"
@@ -1007,6 +1023,10 @@
   "/ninaivalaigal/specs/unified-macro-intelligence/-525": {
     "__comp": "__comp---theme-doc-item-178-a40",
     "content": "content---ninaivalaigal-specs-unified-macro-intelligence-2-fc-c99"
+  },
+  "/ninaivalaigal/specs/unified-observability-performance/-3a8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---ninaivalaigal-specs-unified-observability-performance-929-eed"
   },
   "/ninaivalaigal/specs/unified-runtime-parity/-b1e": {
     "__comp": "__comp---theme-doc-item-178-a40",

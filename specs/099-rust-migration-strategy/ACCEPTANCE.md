@@ -13,7 +13,7 @@
   - Infrastructure cost projections verified
   - Cloud provider pricing validated
   - ROI calculation reviewed by finance team
-  - Payback period calculated (<12 months target)
+  - Payback period calculated (&lt;12 months target)
 
 ### Team Assessment
 - [ ] **Rust Expertise Evaluation**
@@ -24,7 +24,7 @@
 
 - [ ] **Capacity Planning**
   - Developer A bandwidth allocated (50%+ for Q4 2025)
-  - Developer B integration work scoped (<20% time)
+  - Developer B integration work scoped (&lt;20% time)
   - Developer C role defined (if hired)
   - Contingency plan if Rust migration stalls
 
@@ -54,10 +54,10 @@
 
 ### Performance Validation
 - [ ] **Benchmark Targets Met**
-  - P50 latency: <15ms (target <25ms)
-  - P99 latency: <50ms (target <100ms)
-  - Throughput: >500 req/sec per container
-  - Memory usage: <200MB per container
+  - P50 latency: &lt;15ms (target &lt;25ms)
+  - P99 latency: &lt;50ms (target &lt;100ms)
+  - Throughput: &gt;500 req/sec per container
+  - Memory usage: &lt;200MB per container
 
 - [ ] **Load Testing Passed**
   - 1000+ concurrent requests handled
@@ -144,7 +144,7 @@
   - Overall API latency reduced 40%+ from baseline
   - Infrastructure cost reduced 30%+ from baseline
   - Concurrent user capacity increased 5x+
-  - P99 latency <100ms across all endpoints
+  - P99 latency &lt;100ms across all endpoints
 
 ---
 
@@ -165,8 +165,8 @@
 
 ### Go/No-Go Decision
 - [ ] **Expansion Criteria Evaluated**
-  - Performance targets met (>5x improvement)
-  - Cost savings achieved (>30% reduction)
+  - Performance targets met (&gt;5x improvement)
+  - Cost savings achieved (&gt;30% reduction)
   - Team velocity maintained or improved
   - No major operational issues
 
@@ -183,7 +183,7 @@
 ### Quality Gates
 - [ ] **Code Quality Maintained**
   - Rust code passes clippy lints (strict mode)
-  - Test coverage >80% per module
+  - Test coverage &gt;80% per module
   - No unsafe blocks without documentation
   - Performance benchmarks in CI
 
@@ -216,9 +216,9 @@ Track these continuously:
 ### Performance Metrics
 | Metric | Baseline (Python) | Target (Rust) | Actual |
 |--------|-------------------|---------------|--------|
-| GraphOps P99 Latency | 250ms | <50ms | _TBD_ |
-| Memory Engine P99 | 180ms | <50ms | _TBD_ |
-| Feedback Loop P99 | 120ms | <30ms | _TBD_ |
+| GraphOps P99 Latency | 250ms | &lt;50ms | _TBD_ |
+| Memory Engine P99 | 180ms | &lt;50ms | _TBD_ |
+| Feedback Loop P99 | 120ms | &lt;30ms | _TBD_ |
 | Throughput (req/sec) | 50 | 500+ | _TBD_ |
 
 ### Cost Metrics
@@ -231,7 +231,7 @@ Track these continuously:
 | Metric | Baseline | Target | Actual |
 |--------|----------|--------|--------|
 | Test Coverage | 65% | 80% | _TBD_ |
-| Build Time (CI) | 8 min | <10 min | _TBD_ |
+| Build Time (CI) | 8 min | &lt;10 min | _TBD_ |
 | Deployment Frequency | 2/week | 3+/week | _TBD_ |
 
 ---

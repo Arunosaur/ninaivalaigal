@@ -54,24 +54,26 @@ class ApacheAGEClient:
     Provides property graph operations with performance optimization
     """
 
-    def __init__(self, database_url: str, graph_name: str = "ninaivalaigal_graph"):
+    def __init__(self, database_url: str, graph_name: str = "ninaivalaigal_graph", use_cache: bool = True):
         """Initialize instance."""
         self.database_url = database_url
         self.graph_name = graph_name
         self.connection_pool: asyncpg.Pool | None = None
         self.relevance_cache: RelevanceScoreCache | None = None
         self._initialized = False
+        self.use_cache = use_cache
 
     async def initialize(self) -> None:
         """Initialize Apache AGE client and Redis cache"""
         try:
             # Initialize database connection pool
             self.connection_pool = await asyncpg.create_pool(
-                self.database_url, min_size=5, max_size=20, command_timeout=30
+                self.database_url, min_size=5, max_size=20, command_timeout=30, statement_cache_size=0
             )
 
             # Initialize Redis cache for graph operations
-            self.relevance_cache = await get_relevance_cache()
+            if self.use_cache:
+                self.relevance_cache = await get_relevance_cache()
 
             # Create AGE extension and graph if not exists
             await self._setup_age_extension()
@@ -109,6 +111,14 @@ class ApacheAGEClient:
         """Create the property graph if it doesn't exist"""
         async with self.connection_pool.acquire() as conn:
             try:
+                # Check if graph exists
+                graph_exists = await conn.fetchval(
+                    f"SELECT count(*) FROM ag_catalog.ag_graph WHERE name = '{self.graph_name}'"
+                )
+                if graph_exists > 0:
+                    logger.debug("Property graph already exists", graph_name=self.graph_name)
+                    return
+
                 # Create graph using AGE function
                 query = f"SELECT create_graph('{self.graph_name}');"
                 await conn.execute(query)
@@ -142,7 +152,7 @@ class ApacheAGEClient:
             await self.initialize()
 
         # Check Redis cache first if cache_key provided
-        if cache_key and self.relevance_cache:
+        if cache_key and self.relevance_cache and self.use_cache:
             try:
                 cached_result = await self.relevance_cache.redis.redis.get(f"cypher:{cache_key}")
                 if cached_result:
@@ -181,7 +191,7 @@ class ApacheAGEClient:
                 )
 
                 # Cache result if cache_key provided
-                if cache_key and self.relevance_cache and results:
+                if cache_key and self.relevance_cache and self.use_cache and results:
                     try:
                         await self.relevance_cache.redis.redis.setex(
                             f"cypher:{cache_key}", cache_ttl, json.dumps(results)
@@ -399,7 +409,7 @@ class ApacheAGEClient:
 age_client: ApacheAGEClient | None = None
 
 
-async def get_age_client() -> ApacheAGEClient:
+async def get_age_client(use_cache: bool = True) -> ApacheAGEClient:
     """Dependency injection for Apache AGE client"""
     global age_client
 
@@ -412,7 +422,7 @@ async def get_age_client() -> ApacheAGEClient:
             "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret
         )
 
-        age_client = ApacheAGEClient(database_url)
+        age_client = ApacheAGEClient(database_url, use_cache=use_cache)
         await age_client.initialize()
 
     return age_client

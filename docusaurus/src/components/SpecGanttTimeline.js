@@ -94,8 +94,12 @@ export default function SpecGanttTimeline() {
     return (phase === 'all' || item.phase === phase) && (status === 'all' || item.status === status);
   });
 
-  const phases = [...new Set(chartData.map(d => d.phase))];
-  const statuses = [...new Set(chartData.map(d => d.status))];
+  // Correctly extract unique, non-empty phases and statuses, handling comma-separated values
+  const allPhases = chartData.flatMap(d => d.phase ? String(d.phase).split(',').map(s => s.trim()) : []);
+  const phases = [...new Set(allPhases)].filter(p => p);
+
+  const allStatuses = chartData.flatMap(d => d.status ? String(d.status).split(',').map(s => s.trim()) : []);
+  const statuses = [...new Set(allStatuses)].filter(s => s);
 
   const minDate = Math.min(...filteredData.map(d => d.duration[0]));
   const maxDate = Math.max(...filteredData.map(d => d.duration[1]));

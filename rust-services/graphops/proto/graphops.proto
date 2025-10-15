@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package graphops.v1;
+
+service GraphOps {
+  rpc ExecuteQuery(ExecuteQueryRequest) returns (ExecuteQueryResponse);
+}
+
+message ExecuteQueryRequest {
+  string query = 1;
+}
+
+message ExecuteQueryResponse {
+  repeated string rows = 1;
+}

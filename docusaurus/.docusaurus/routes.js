@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2025 Medhasys LLC
-//
+
 import React from 'react';
 import ComponentCreator from '@docusaurus/ComponentCreator';
 
@@ -57,11 +57,11 @@ export default [
   },
   {
     path: '/ninaivalaigal/specs',
-    component: ComponentCreator('/ninaivalaigal/specs', 'd0a'),
+    component: ComponentCreator('/ninaivalaigal/specs', '015'),
     routes: [
       {
         path: '/ninaivalaigal/specs',
-        component: ComponentCreator('/ninaivalaigal/specs', '911'),
+        component: ComponentCreator('/ninaivalaigal/specs', '94b'),
         routes: [
           {
             path: '/ninaivalaigal/specs/tags',
@@ -145,7 +145,7 @@ export default [
           },
           {
             path: '/ninaivalaigal/specs',
-            component: ComponentCreator('/ninaivalaigal/specs', '660'),
+            component: ComponentCreator('/ninaivalaigal/specs', 'f8d'),
             routes: [
               {
                 path: '/ninaivalaigal/specs/',
@@ -216,6 +216,12 @@ export default [
               {
                 path: '/ninaivalaigal/specs/agentic-ui-testing/',
                 component: ComponentCreator('/ninaivalaigal/specs/agentic-ui-testing/', '154'),
+                exact: true,
+                sidebar: "specSidebar"
+              },
+              {
+                path: '/ninaivalaigal/specs/api-container-modularization/',
+                component: ComponentCreator('/ninaivalaigal/specs/api-container-modularization/', '4b8'),
                 exact: true,
                 sidebar: "specSidebar"
               },
@@ -1270,6 +1276,24 @@ export default [
                 sidebar: "specSidebar"
               },
               {
+                path: '/ninaivalaigal/specs/rust-migration-strategy/',
+                component: ComponentCreator('/ninaivalaigal/specs/rust-migration-strategy/', 'b91'),
+                exact: true,
+                sidebar: "specSidebar"
+              },
+              {
+                path: '/ninaivalaigal/specs/rust-migration-strategy/ACCEPTANCE',
+                component: ComponentCreator('/ninaivalaigal/specs/rust-migration-strategy/ACCEPTANCE', '290'),
+                exact: true,
+                sidebar: "specSidebar"
+              },
+              {
+                path: '/ninaivalaigal/specs/rust-migration-strategy/TASKS',
+                component: ComponentCreator('/ninaivalaigal/specs/rust-migration-strategy/TASKS', '356'),
+                exact: true,
+                sidebar: "specSidebar"
+              },
+              {
                 path: '/ninaivalaigal/specs/secret-management-environment-hygiene/',
                 component: ComponentCreator('/ninaivalaigal/specs/secret-management-environment-hygiene/', 'bd6'),
                 exact: true,
@@ -1446,6 +1470,12 @@ export default [
               {
                 path: '/ninaivalaigal/specs/unified-macro-intelligence/',
                 component: ComponentCreator('/ninaivalaigal/specs/unified-macro-intelligence/', '525'),
+                exact: true,
+                sidebar: "specSidebar"
+              },
+              {
+                path: '/ninaivalaigal/specs/unified-observability-performance/',
+                component: ComponentCreator('/ninaivalaigal/specs/unified-observability-performance/', '3a8'),
                 exact: true,
                 sidebar: "specSidebar"
               },

@@ -31,7 +31,7 @@ def extract_spec_metadata(readme_path: Path):
 
         # Extract status
         status_match = re.search(r"\*\*Status\*\*:\s*(.+?)(?:\n|$)", content)
-        status_raw = status_match.group(1).strip() if status_match else "Unknown"
+        status_raw = status_match.group(1).strip().split(",")[0] if status_match else "Unknown"
         status_raw = re.sub(r"[🚧✅📝⚠️]", "", status_raw).strip()
 
         # Normalize status to standard categories
@@ -84,9 +84,8 @@ def extract_spec_metadata(readme_path: Path):
         }
 
         # Clean and map phase - extract just the code part
-        phase = phase_raw
-        # Extract phase code (e.g., "3A" from "3A - Operational Maturity")
-        phase_code_match = re.match(r"^(\d[AB]?)", phase_raw)
+        phase = phase_raw.split(",")[0].strip()
+        phase_code_match = re.match(r"^(\d[AB]?)", phase)
         if phase_code_match:
             phase_code = phase_code_match.group(1)
             if phase_code in phase_map:
@@ -94,7 +93,7 @@ def extract_spec_metadata(readme_path: Path):
         else:
             # Try direct match
             for key, full_name in phase_map.items():
-                if key in phase_raw or key == phase_raw:
+                if key in phase or key == phase:
                     phase = full_name
                     break
 

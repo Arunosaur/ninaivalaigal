@@ -31,7 +31,7 @@ Transition the monolithic Ninaivalaigal API (≈ 49K lines, 54 routers) into a *
 
 | Area | Problem |
 |------|---------|
-| **Build Time** | > 30 min monolithic container build |
+| **Build Time** | &gt; 30 min monolithic container build |
 | **Coupling** | 54 routers in one image, shared dependency graph |
 | **Reliability** | Single point of failure across ML + Core logic |
 | **Scalability** | Can't scale individual functional domains |
@@ -262,7 +262,7 @@ Each service has its own GitHub Actions workflow:
 ```
 
 **Benefits:**
-- Parallel builds (< 10 minutes aggregate)
+- Parallel builds (&lt; 10 minutes aggregate)
 - Deploy only changed services
 - Independent rollback per service
 
@@ -504,7 +504,7 @@ docker buildx bake --push --provenance=true --sbom=true
 **Independent CI Workflows:**
 - Each service triggers only on relevant file changes
 - Avoids cross-service rebuild cascades
-- Reduces CI time from 30+ min to < 10 min aggregate
+- Reduces CI time from 30+ min to &lt; 10 min aggregate
 
 ---
 
@@ -707,7 +707,7 @@ ninaivalaigal/
 
 ## 10. ✅ Success Criteria
 
-- ⏱️ **Aggregate build time < 10 minutes**
+- ⏱️ **Aggregate build time &lt; 10 minutes**
 - 🚀 **Independent deployments per service**
 - 🔒 **Fault isolation verified in test clusters**
 - 📝 **Strict contract validation in CI**
@@ -729,13 +729,13 @@ ninaivalaigal/
 
 **Build Time Reduction:**
 - Before: 30+ minutes monolithic build
-- After: < 10 minutes aggregate (parallel builds)
+- After: &lt; 10 minutes aggregate (parallel builds)
 - Improvement: **~70% faster CI/CD**
 
 **Deployment Speed:**
 - Before: Deploy entire monolith for any change
 - After: Deploy only changed service
-- Improvement: **Per-service rollouts in <5 minutes**
+- Improvement: **Per-service rollouts in &lt;5 minutes**
 
 **Infrastructure Efficiency:**
 - Reference SPEC-099 ROI matrix for runtime optimizations

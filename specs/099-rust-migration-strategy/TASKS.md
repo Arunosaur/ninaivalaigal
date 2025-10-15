@@ -124,7 +124,7 @@
 **Week 5-6: Infrastructure & Deployment**
 - [ ] **Task 6.1:** Docker image optimization
   - Create multi-stage Dockerfile
-  - Minimize image size (<50MB)
+  - Minimize image size (&lt;50MB)
   - Add security scanning (Trivy)
   - **Owner:** Developer C
   - **Estimate:** 2 days

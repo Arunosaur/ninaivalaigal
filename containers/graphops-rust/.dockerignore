@@ -1,0 +1,9 @@
+target/
+Cargo.lock
+*.swp
+*.swo
+.git/
+node_modules/
+.env
+.env.*
+*.log

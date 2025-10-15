@@ -1,0 +1,255 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# GraphOps Performance Testing Workflow
+# SPEC-099 Phase 1: Continuous Performance Validation
+
+name: GraphOps Performance
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'rust-services/graphops/**'
+      - 'shared/contracts/graphops/**'
+      - 'benchmarks/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'rust-services/graphops/**'
+      - 'shared/contracts/graphops/**'
+      - 'benchmarks/**'
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+
+jobs:
+  benchmark:
+    name: Run Performance Benchmarks
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: nina
+          POSTGRES_PASSWORD: test_password  # pragma: allowlist secret
+          POSTGRES_DB: ninaivalaigal_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust-services/graphops
+
+      - name: Install Apache AGE extension
+        run: |  # pragma: allowlist secret
+          sudo apt-get update
+          sudo apt-get install -y postgresql-15-age
+          PGPASSWORD=test_password psql -h localhost -U nina -d ninaivalaigal_test -c "CREATE EXTENSION IF NOT EXISTS age;"  # pragma: allowlist secret
+
+      - name: Setup database schema
+        run: |  # pragma: allowlist secret
+          # TODO: Developer A - Add schema initialization
+          # PGPASSWORD=test_password psql -h localhost -U nina -d ninaivalaigal_test -f scripts/init-graph-schema.sql  # pragma: allowlist secret
+          echo "Schema setup placeholder"
+
+      - name: Run Rust benchmarks
+        working-directory: rust-services/graphops
+        env:
+          DATABASE_URL: postgresql://nina:test_password@localhost:5432/ninaivalaigal_test  # pragma: allowlist secret
+          RUST_LOG: info
+        run: |
+          # TODO: Developer A - Fill in benchmark command
+          # cargo bench --bench graphops_benchmark -- --save-baseline main
+          echo "Benchmark execution placeholder"
+
+      - name: Capture benchmark results
+        id: benchmark_results
+        run: |
+          # TODO: Developer A - Extract metrics from Criterion output
+          # Parse target/criterion/* for p50/p95/p99
+          echo "Results parsing placeholder"
+
+      - name: Check performance regression
+        run: |
+          # TODO: Developer C will create ci/check-performance-regression.py
+          # python ci/check-performance-regression.py \
+          #   --current target/criterion/main/estimates.json \
+          #   --baseline target/criterion/baseline/estimates.json \
+          #   --threshold 10  # 10% regression threshold
+          echo "Regression check placeholder"
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            rust-services/graphops/target/criterion/
+            benchmarks/results/
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // TODO: Developer A - Format and post benchmark summary
+            // const results = require('./benchmark-results.json');
+            // github.rest.issues.createComment({
+            //   issue_number: context.issue.number,
+            //   owner: context.repo.owner,
+            //   repo: context.repo.repo,
+            //   body: `## 📊 Performance Benchmark Results\n\n${formatResults(results)}`
+            // });
+            console.log('PR comment placeholder');
+
+  throughput_test:
+    name: Throughput Testing (wrk)
+    runs-on: ubuntu-latest
+    needs: benchmark
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: nina
+          POSTGRES_PASSWORD: test_password  # pragma: allowlist secret
+          POSTGRES_DB: ninaivalaigal_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install wrk
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wrk
+
+      - name: Setup Rust and build service
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Build GraphOps service
+        working-directory: rust-services/graphops
+        env:
+          DATABASE_URL: postgresql://nina:test_password@localhost:5432/ninaivalaigal_test  # pragma: allowlist secret
+        run: |
+          # TODO: Developer A - Build and start gRPC service with HTTP bridge
+          # cargo build --release
+          # ./target/release/graphops-service &
+          # sleep 5  # Wait for service to start
+          echo "Service build placeholder"
+
+      - name: Run wrk load test
+        run: |
+          # TODO: Developer A - Integrate wrk with Lua script
+          # wrk -t4 -c40 -d30s --latency \
+          #   --script benchmarks/wrk_graphops.lua \
+          #   http://localhost:8080 | tee wrk-results.txt
+          echo "wrk test placeholder"
+
+      - name: Parse wrk results
+        run: |
+          # TODO: Developer C will create parser
+          # python ci/parse-wrk-results.py wrk-results.txt > throughput-metrics.json
+          echo "Results parsing placeholder"
+
+      - name: Validate throughput SLA
+        run: |
+          # TODO: Check >500 req/s sustained
+          echo "SLA validation placeholder"
+
+  memory_profile:
+    name: Memory Profiling
+    runs-on: ubuntu-latest
+    needs: benchmark
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Run memory benchmarks
+        working-directory: rust-services/graphops
+        run: |
+          # TODO: Developer A - Add RSS tracking to benchmarks
+          # cargo bench --bench memory_benchmark
+          echo "Memory profiling placeholder"
+
+      - name: Check memory SLA (<200MB)
+        run: |
+          # TODO: Parse memory metrics and validate
+          echo "Memory SLA check placeholder"
+
+  publish_metrics:
+    name: Publish Performance Metrics
+    runs-on: ubuntu-latest
+    needs: [benchmark, throughput_test, memory_profile]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate performance report
+        run: |
+          # TODO: Developer C - Create report generator
+          # python ci/generate-performance-report.py \
+          #   --benchmarks benchmark-results/ \
+          #   --output docs/performance/latest.md
+          echo "Report generation placeholder"
+
+      - name: Commit performance report
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          # git add docs/performance/latest.md
+          # git commit -m "chore: update performance metrics [skip ci]" || true
+          # git push
+          echo "Commit placeholder"
+
+      - name: Update performance badge
+        run: |
+          # TODO: Update shields.io badge or similar
+          echo "Badge update placeholder"

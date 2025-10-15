@@ -39,7 +39,7 @@ class RedisClient:
 
             if not redis_url:
                 # Use dynamic discovery from config module
-                from config import get_dynamic_redis_config
+                from server.config import get_dynamic_redis_config
 
                 redis_config = get_dynamic_redis_config()
                 host = redis_config["host"]

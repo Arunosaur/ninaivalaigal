@@ -1,0 +1,598 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+
+openapi: 3.0.3
+info:
+  title: Business Service
+  version: 1.0.0
+  description: |
+    Billing, usage analytics, and business operations service
+
+    Handles:
+    - Billing console and invoices
+    - Usage analytics and tracking
+    - Performance monitoring
+    - Gamification
+    - Partner ecosystem
+    - Provider management
+  contact:
+    name: Ninaivalaigal API Team
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8003
+    description: Local development
+  - url: https://business-dev.ninaivalaigal.com
+    description: Development
+  - url: https://business.ninaivalaigal.com
+    description: Production
+
+tags:
+  - name: Billing
+    description: Billing operations
+  - name: Usage
+    description: Usage analytics
+  - name: Invoices
+    description: Invoice management
+  - name: Providers
+    description: Provider management
+  - name: Analytics
+    description: Business analytics
+
+paths:
+  /billing/subscription:
+    get:
+      tags:
+        - Billing
+      summary: Get subscription
+      operationId: getSubscription
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Subscription details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+
+    post:
+      tags:
+        - Billing
+      summary: Create subscription
+      operationId: createSubscription
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionCreate'
+      responses:
+        '201':
+          description: Subscription created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+
+  /billing/subscription/{subscription_id}/cancel:
+    post:
+      tags:
+        - Billing
+      summary: Cancel subscription
+      operationId: cancelSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Subscription cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+
+  /billing/payment-method:
+    get:
+      tags:
+        - Billing
+      summary: List payment methods
+      operationId: listPaymentMethods
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Payment methods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentMethod'
+
+    post:
+      tags:
+        - Billing
+      summary: Add payment method
+      operationId: addPaymentMethod
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentMethodCreate'
+      responses:
+        '201':
+          description: Payment method added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+
+  /invoices:
+    get:
+      tags:
+        - Invoices
+      summary: List invoices
+      operationId: listInvoices
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceList'
+
+  /invoices/{invoice_id}:
+    get:
+      tags:
+        - Invoices
+      summary: Get invoice
+      operationId: getInvoice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+
+  /invoices/{invoice_id}/download:
+    get:
+      tags:
+        - Invoices
+      summary: Download invoice PDF
+      operationId: downloadInvoice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /usage/summary:
+    get:
+      tags:
+        - Usage
+      summary: Get usage summary
+      operationId: getUsageSummary
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Usage summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageSummary'
+
+  /usage/metrics:
+    get:
+      tags:
+        - Usage
+      summary: Get usage metrics
+      operationId: getUsageMetrics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: metric_type
+          in: query
+          schema:
+            type: string
+            enum: [api_calls, storage, compute, bandwidth]
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, monthly]
+            default: daily
+      responses:
+        '200':
+          description: Usage metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageMetrics'
+
+  /providers:
+    get:
+      tags:
+        - Providers
+      summary: List providers
+      operationId: listProviders
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Provider'
+
+    post:
+      tags:
+        - Providers
+      summary: Add provider
+      operationId: addProvider
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderCreate'
+      responses:
+        '201':
+          description: Provider added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Provider'
+
+  /analytics/revenue:
+    get:
+      tags:
+        - Analytics
+      summary: Get revenue analytics
+      operationId: getRevenueAnalytics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [monthly, quarterly, yearly]
+      responses:
+        '200':
+          description: Revenue analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevenueAnalytics'
+
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Subscription:
+      type: object
+      required:
+        - id
+        - plan
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        plan:
+          type: string
+          enum: [free, starter, professional, enterprise]
+        status:
+          type: string
+          enum: [active, cancelled, past_due, trialing]
+        current_period_start:
+          type: string
+          format: date-time
+        current_period_end:
+          type: string
+          format: date-time
+        cancel_at_period_end:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    SubscriptionCreate:
+      type: object
+      required:
+        - plan
+        - payment_method_id
+      properties:
+        plan:
+          type: string
+          enum: [starter, professional, enterprise]
+        payment_method_id:
+          type: string
+
+    PaymentMethod:
+      type: object
+      required:
+        - id
+        - type
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [card, bank_account]
+        last4:
+          type: string
+        brand:
+          type: string
+        is_default:
+          type: boolean
+
+    PaymentMethodCreate:
+      type: object
+      required:
+        - type
+        - token
+      properties:
+        type:
+          type: string
+          enum: [card, bank_account]
+        token:
+          type: string
+        set_as_default:
+          type: boolean
+
+    Invoice:
+      type: object
+      required:
+        - id
+        - number
+        - amount
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+        number:
+          type: string
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+          default: USD
+        status:
+          type: string
+          enum: [draft, open, paid, void, uncollectible]
+        due_date:
+          type: string
+          format: date
+        pdf_url:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+
+    InvoiceList:
+      type: object
+      required:
+        - items
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    UsageSummary:
+      type: object
+      required:
+        - period
+        - metrics
+      properties:
+        period:
+          type: object
+          properties:
+            start_date:
+              type: string
+              format: date
+            end_date:
+              type: string
+              format: date
+        metrics:
+          type: object
+          properties:
+            api_calls:
+              type: integer
+            storage_bytes:
+              type: integer
+            compute_hours:
+              type: number
+            bandwidth_bytes:
+              type: integer
+        costs:
+          type: object
+          properties:
+            total:
+              type: number
+            breakdown:
+              type: object
+
+    UsageMetrics:
+      type: object
+      required:
+        - metric_type
+        - data_points
+      properties:
+        metric_type:
+          type: string
+        period:
+          type: string
+        data_points:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              value:
+                type: number
+
+    Provider:
+      type: object
+      required:
+        - id
+        - name
+        - type
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+          enum: [ai, storage, compute, database]
+        status:
+          type: string
+          enum: [active, inactive]
+        config:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    ProviderCreate:
+      type: object
+      required:
+        - name
+        - type
+        - config
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [ai, storage, compute, database]
+        config:
+          type: object
+
+    RevenueAnalytics:
+      type: object
+      required:
+        - period
+        - total_revenue
+      properties:
+        period:
+          type: string
+        total_revenue:
+          type: number
+        revenue_by_plan:
+          type: object
+        growth_rate:
+          type: number
+        customer_count:
+          type: integer
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - service
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        service:
+          type: string
+        version:
+          type: string
+        billing_provider_connected:
+          type: boolean

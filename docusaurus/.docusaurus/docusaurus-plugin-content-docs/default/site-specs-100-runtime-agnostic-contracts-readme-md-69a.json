@@ -1,0 +1,26 @@
+{
+  "id": "runtime-agnostic-contracts/README",
+  "title": "SPEC-100: Runtime-Agnostic Contract Layer",
+  "description": "Status: PLANNED (Critical for SPEC-099)",
+  "source": "@site/../specs/100-runtime-agnostic-contracts/README.md",
+  "sourceDirName": "100-runtime-agnostic-contracts",
+  "slug": "/runtime-agnostic-contracts/",
+  "permalink": "/ninaivalaigal/specs/runtime-agnostic-contracts/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Medhasys/Ninaivalaigal/edit/main/../specs/100-runtime-agnostic-contracts/README.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "frontMatter": {},
+  "sidebar": "specSidebar",
+  "previous": {
+    "title": "SPEC-100: API Container Modularization & Runtime-Agnostic Federation",
+    "permalink": "/ninaivalaigal/specs/api-container-modularization/"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/ninaivalaigal/specs/frontend-migration-preparation/"
+  }
+}

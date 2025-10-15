@@ -61,7 +61,11 @@ repos:
             client-tools/vendor/.*|
             external/spec-013/.*|
             vscode-client/.*|
-            node_modules/.*
+            node_modules/.*|
+            .*_pb2\.py$|
+            .*_pb2_grpc\.py$|
+            .*/benchmarks/.*\.py$|
+            ci/.*\.py$
           )$
 
   # - repo: https://github.com/pre-commit/mirrors-mypy
@@ -127,3 +131,37 @@ repos:
         types: [python]
         files: ^(specs/|server/).*\.py$
         stages: [commit]
+
+  # API Contract Validation
+  - repo: local
+    hooks:
+      - id: validate-api-contracts
+        name: Validate API Contracts
+        entry: python ci/validate-api-contracts.py
+        language: system
+        pass_filenames: false
+        files: '^shared/contracts/.*\.proto$'
+
+  # ---- Rust toolchain hygiene ----
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: bash -c 'cd rust-services/graphops && cargo fmt --all -- --check'
+        language: system
+        files: \.rs$
+        pass_filenames: false
+
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: bash -c 'cd rust-services/graphops && cargo clippy --all-targets --all-features -- -D warnings'
+        language: system
+        files: \.rs$
+        pass_filenames: false
+
+      - id: cargo-test
+        name: cargo test
+        entry: bash -c 'cd rust-services/graphops && cargo test --lib --quiet'
+        language: system
+        files: \.rs$
+        pass_filenames: false

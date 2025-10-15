@@ -264,6 +264,7 @@ from graph_intelligence_integration_api import (  # noqa: E402
 from graph_rank import router as graph_router  # noqa: E402
 from graph_usage_analytics import router as graph_usage_analytics_router  # noqa: E402
 from graph_validation_checklist import router as graph_validation_router  # noqa: E402
+from graphops_integration import router as graphops_router  # noqa: E402
 from insights_api import router as insights_router  # noqa: E402
 from invoice_management_api import router as invoice_management_router  # noqa: E402
 from memory_health_api import router as memory_health_router  # noqa: E402
@@ -318,6 +319,7 @@ app.include_router(memory_system_router)  # MEMORY SYSTEM - THE HEART OF NINAIVA
 app.include_router(timeline_router)  # TIMELINE API - KNOWLEDGE EVOLUTION VIEW
 app.include_router(discussion_router)  # DISCUSSION API - THE PLATFORM'S VOICE
 app.include_router(graph_router)  # GRAPH RANKING - PAGERANK INTELLIGENCE
+app.include_router(graphops_router)  # Mock GraphOps Client
 app.include_router(tag_router)  # TAG SUGGESTER - GPT-POWERED AUTO-TAGGING
 app.include_router(insights_router)  # INSIGHTS API - DASHBOARD INTELLIGENCE
 app.include_router(dashboard_router)  # DASHBOARD WIDGETS - REAL-TIME AI INSIGHTS

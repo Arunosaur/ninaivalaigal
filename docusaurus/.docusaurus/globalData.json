@@ -66,6 +66,11 @@
               "sidebar": "specSidebar"
             },
             {
+              "id": "api-container-modularization/README",
+              "path": "/ninaivalaigal/specs/api-container-modularization/",
+              "sidebar": "specSidebar"
+            },
+            {
               "id": "api-health-monitoring/archive/spec",
               "path": "/ninaivalaigal/specs/api-health-monitoring/archive/spec",
               "sidebar": "specSidebar"
@@ -951,6 +956,21 @@
               "sidebar": "specSidebar"
             },
             {
+              "id": "rust-migration-strategy/ACCEPTANCE",
+              "path": "/ninaivalaigal/specs/rust-migration-strategy/ACCEPTANCE",
+              "sidebar": "specSidebar"
+            },
+            {
+              "id": "rust-migration-strategy/README",
+              "path": "/ninaivalaigal/specs/rust-migration-strategy/",
+              "sidebar": "specSidebar"
+            },
+            {
+              "id": "rust-migration-strategy/TASKS",
+              "path": "/ninaivalaigal/specs/rust-migration-strategy/TASKS",
+              "sidebar": "specSidebar"
+            },
+            {
               "id": "secret-management-environment-hygiene/README",
               "path": "/ninaivalaigal/specs/secret-management-environment-hygiene/",
               "sidebar": "specSidebar"
@@ -1093,6 +1113,11 @@
             {
               "id": "unified-macro-intelligence/README",
               "path": "/ninaivalaigal/specs/unified-macro-intelligence/",
+              "sidebar": "specSidebar"
+            },
+            {
+              "id": "unified-observability-performance/README",
+              "path": "/ninaivalaigal/specs/unified-observability-performance/",
               "sidebar": "specSidebar"
             },
             {

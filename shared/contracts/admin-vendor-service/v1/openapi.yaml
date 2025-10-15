@@ -1,0 +1,687 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+
+openapi: 3.0.3
+info:
+  title: Admin Vendor Service
+  version: 1.0.0
+  description: |
+    Admin and vendor portal service
+
+    Handles:
+    - Admin analytics and dashboards
+    - Vendor management
+    - Discussion forums
+    - Approval workflows
+    - Spec management
+    - Demo endpoints
+  contact:
+    name: Ninaivalaigal API Team
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8004
+    description: Local development
+  - url: https://admin-dev.ninaivalaigal.com
+    description: Development
+  - url: https://admin.ninaivalaigal.com
+    description: Production
+
+tags:
+  - name: Analytics
+    description: Admin analytics
+  - name: Dashboard
+    description: Dashboard widgets
+  - name: Vendor
+    description: Vendor management
+  - name: Discussion
+    description: Discussion forums
+  - name: Approval
+    description: Approval workflows
+
+paths:
+  /analytics/overview:
+    get:
+      tags:
+        - Analytics
+      summary: Get analytics overview
+      operationId: getAnalyticsOverview
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month, year]
+            default: week
+      responses:
+        '200':
+          description: Analytics overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsOverview'
+
+  /analytics/users:
+    get:
+      tags:
+        - Analytics
+      summary: Get user analytics
+      operationId: getUserAnalytics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: User analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAnalytics'
+
+  /analytics/activity:
+    get:
+      tags:
+        - Analytics
+      summary: Get activity analytics
+      operationId: getActivityAnalytics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: metric
+          in: query
+          schema:
+            type: string
+            enum: [api_calls, memory_operations, graph_queries]
+      responses:
+        '200':
+          description: Activity analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityAnalytics'
+
+  /dashboard/widgets:
+    get:
+      tags:
+        - Dashboard
+      summary: List dashboard widgets
+      operationId: listDashboardWidgets
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of widgets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DashboardWidget'
+
+    post:
+      tags:
+        - Dashboard
+      summary: Create dashboard widget
+      operationId: createDashboardWidget
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardWidgetCreate'
+      responses:
+        '201':
+          description: Widget created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardWidget'
+
+  /dashboard/widgets/{widget_id}:
+    delete:
+      tags:
+        - Dashboard
+      summary: Delete dashboard widget
+      operationId: deleteDashboardWidget
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: widget_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Widget deleted
+
+  /vendor/list:
+    get:
+      tags:
+        - Vendor
+      summary: List vendors
+      operationId: listVendors
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of vendors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vendor'
+
+  /vendor/{vendor_id}:
+    get:
+      tags:
+        - Vendor
+      summary: Get vendor
+      operationId: getVendor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Vendor details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+
+    put:
+      tags:
+        - Vendor
+      summary: Update vendor
+      operationId: updateVendor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorUpdate'
+      responses:
+        '200':
+          description: Vendor updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+
+  /vendor/{vendor_id}/approve:
+    post:
+      tags:
+        - Vendor
+      summary: Approve vendor
+      operationId: approveVendor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Vendor approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+
+  /discussion/forums:
+    get:
+      tags:
+        - Discussion
+      summary: List discussion forums
+      operationId: listForums
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of forums
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Forum'
+
+  /discussion/forums/{forum_id}/threads:
+    get:
+      tags:
+        - Discussion
+      summary: List forum threads
+      operationId: listThreads
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: forum_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of threads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Thread'
+
+    post:
+      tags:
+        - Discussion
+      summary: Create thread
+      operationId: createThread
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: forum_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreadCreate'
+      responses:
+        '201':
+          description: Thread created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thread'
+
+  /approval/workflows:
+    get:
+      tags:
+        - Approval
+      summary: List approval workflows
+      operationId: listApprovalWorkflows
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of workflows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApprovalWorkflow'
+
+  /approval/workflows/{workflow_id}/approve:
+    post:
+      tags:
+        - Approval
+      summary: Approve workflow item
+      operationId: approveWorkflowItem
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workflow_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Item approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalWorkflow'
+
+  /approval/workflows/{workflow_id}/reject:
+    post:
+      tags:
+        - Approval
+      summary: Reject workflow item
+      operationId: rejectWorkflowItem
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: workflow_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Item rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalWorkflow'
+
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AnalyticsOverview:
+      type: object
+      required:
+        - period
+        - total_users
+        - active_users
+      properties:
+        period:
+          type: string
+        total_users:
+          type: integer
+        active_users:
+          type: integer
+        new_users:
+          type: integer
+        total_memories:
+          type: integer
+        total_contexts:
+          type: integer
+        api_calls:
+          type: integer
+
+    UserAnalytics:
+      type: object
+      required:
+        - total_users
+        - growth_rate
+      properties:
+        total_users:
+          type: integer
+        active_users:
+          type: integer
+        growth_rate:
+          type: number
+          format: float
+        user_distribution:
+          type: object
+        retention_rate:
+          type: number
+
+    ActivityAnalytics:
+      type: object
+      required:
+        - metric
+        - data_points
+      properties:
+        metric:
+          type: string
+        data_points:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              value:
+                type: integer
+
+    DashboardWidget:
+      type: object
+      required:
+        - id
+        - type
+        - position
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [chart, table, metric, list]
+        title:
+          type: string
+        position:
+          type: object
+          properties:
+            x:
+              type: integer
+            y:
+              type: integer
+            width:
+              type: integer
+            height:
+              type: integer
+        config:
+          type: object
+
+    DashboardWidgetCreate:
+      type: object
+      required:
+        - type
+        - title
+      properties:
+        type:
+          type: string
+          enum: [chart, table, metric, list]
+        title:
+          type: string
+        position:
+          type: object
+        config:
+          type: object
+
+    Vendor:
+      type: object
+      required:
+        - id
+        - name
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        status:
+          type: string
+          enum: [pending, approved, rejected, suspended]
+        category:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    VendorUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        category:
+          type: string
+        notes:
+          type: string
+
+    Forum:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        thread_count:
+          type: integer
+        post_count:
+          type: integer
+
+    Thread:
+      type: object
+      required:
+        - id
+        - title
+        - author_id
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        content:
+          type: string
+        author_id:
+          type: string
+          format: uuid
+        forum_id:
+          type: string
+          format: uuid
+        reply_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    ThreadCreate:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          type: string
+          minLength: 1
+
+    ApprovalWorkflow:
+      type: object
+      required:
+        - id
+        - type
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [vendor_approval, content_moderation, feature_request]
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        requester_id:
+          type: string
+          format: uuid
+        approver_id:
+          type: string
+          format: uuid
+        data:
+          type: object
+        comment:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - service
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        service:
+          type: string
+        version:
+          type: string

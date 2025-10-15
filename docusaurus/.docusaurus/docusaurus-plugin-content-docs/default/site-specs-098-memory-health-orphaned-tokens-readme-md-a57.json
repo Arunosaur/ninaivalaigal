@@ -22,7 +22,7 @@
     "permalink": "/ninaivalaigal/specs/feedback-loop-ai-context/"
   },
   "next": {
-    "title": "README",
-    "permalink": "/ninaivalaigal/specs/frontend-migration-preparation/"
+    "title": "SPEC-099: Rust Migration Strategy & ROI Analysis",
+    "permalink": "/ninaivalaigal/specs/rust-migration-strategy/"
   }
 }
