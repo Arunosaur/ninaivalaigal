@@ -1,0 +1,200 @@
+# SPDX-License-Identifier: Elastic-2.0
+# Copyright (c) 2025 Medhasys LLC
+
+# Development Docker Compose Configuration
+# Usage: docker-compose -f docker/docker-compose.dev.yml up
+
+version: '3.9'
+
+services:
+  # ============================================================================
+  # GraphOps Rust Service
+  # ============================================================================
+  graphops:
+    build:
+      context: ..
+      dockerfile: docker/templates/rust-service.Dockerfile
+    container_name: graphops-service
+    ports:
+      - "50051:50051"  # gRPC
+      - "9090:9090"    # Prometheus metrics
+    environment:
+      DATABASE_URL: postgresql://nina:${DB_PASSWORD:-dev_password}@postgres:5432/ninaivalaigal_dev
+      RUST_LOG: ${RUST_LOG:-info}
+      GRAPHOPS_GRPC_ADDR: 0.0.0.0:50051
+      GRAPHOPS_METRICS_ADDR: 0.0.0.0:9090
+      GRAPH_NAME: ninaivalaigal_intelligence
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ninaivalaigal
+    restart: unless-stopped
+    healthcheck:
+      test: ["/app/graphops-service", "--health-check"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # ============================================================================
+  # Core API (Python FastAPI)
+  # ============================================================================
+  core-api:
+    build:
+      context: ..
+      dockerfile: docker/templates/python-service.Dockerfile
+    container_name: core-api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://nina:${DB_PASSWORD:-dev_password}@postgres:5432/ninaivalaigal_dev
+      REDIS_URL: redis://redis:6379/0
+      GRAPHOPS_URL: graphops:50051
+      ENVIRONMENT: development
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      # Mount code for hot-reload in development
+      - ../server:/app/server
+      - ../shared:/app/shared
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      graphops:
+        condition: service_healthy
+    networks:
+      - ninaivalaigal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password}
+      POSTGRES_DB: ninaivalaigal_dev
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../server/database/schemas:/docker-entrypoint-initdb.d
+    networks:
+      - ninaivalaigal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nina -d ninaivalaigal_dev"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # ============================================================================
+  # Redis Cache
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ninaivalaigal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    command: redis-server --appendonly yes
+
+  # ============================================================================
+  # PgBouncer (Connection Pooler)
+  # ============================================================================
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: pgbouncer
+    environment:
+      DATABASE_URL: postgresql://nina:${DB_PASSWORD:-dev_password}@postgres:5432/ninaivalaigal_dev
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 20
+    ports:
+      - "6432:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ninaivalaigal
+    restart: unless-stopped
+
+  # ============================================================================
+  # Prometheus (Metrics Collection)
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - ninaivalaigal
+    restart: unless-stopped
+
+  # ============================================================================
+  # Grafana (Metrics Visualization)
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ../monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - ninaivalaigal
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  ninaivalaigal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

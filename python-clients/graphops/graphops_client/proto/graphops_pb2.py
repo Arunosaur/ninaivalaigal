@@ -20,7 +20,7 @@ _sym_db = _symbol_database.Default()
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\x0egraphops.proto\x12\x0bgraphops.v1"$\n\x13\x45xecuteQueryRequest\x12\r\n\x05query\x18\x01 \x01(\t"$\n\x14\x45xecuteQueryResponse\x12\x0c\n\x04rows\x18\x01 \x03(\t2_\n\x08GraphOps\x12S\n\x0c\x45xecuteQuery\x12 .graphops.v1.ExecuteQueryRequest\x1a!.graphops.v1.ExecuteQueryResponseb\x06proto3'
+    b'\n\x0egraphops.proto\x12\x19ninaivalaigal.graphops.v1"\xd6\x01\n\rCypherRequest\x12\r\n\x05query\x18\x01 \x01(\t\x12L\n\nparameters\x18\x02 \x03(\x0b\x32\x38.ninaivalaigal.graphops.v1.CypherRequest.ParametersEntry\x12\x12\n\ntimeout_ms\x18\x03 \x01(\x05\x12\x10\n\x08trace_id\x18\x04 \x01(\t\x12\x0f\n\x07span_id\x18\x05 \x01(\t\x1a\x31\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"\xfd\x01\n\x0e\x43ypherResponse\x12:\n\x06status\x18\x01 \x01(\x0e\x32*.ninaivalaigal.graphops.v1.ExecutionStatus\x12\x0f\n\x07results\x18\x02 \x03(\t\x12\x19\n\x11\x65xecution_time_ms\x18\x03 \x01(\x05\x12\x11\n\trow_count\x18\x04 \x01(\x05\x12\x36\n\x05\x65rror\x18\x05 \x01(\x0b\x32\'.ninaivalaigal.graphops.v1.ErrorDetails\x12\x38\n\x07metrics\x18\x06 \x01(\x0b\x32\'.ninaivalaigal.graphops.v1.QueryMetrics"t\n\x12\x43ypherBatchRequest\x12\x39\n\x07queries\x18\x01 \x03(\x0b\x32(.ninaivalaigal.graphops.v1.CypherRequest\x12\x11\n\tfail_fast\x18\x02 \x01(\x08\x12\x10\n\x08trace_id\x18\x03 \x01(\t"\xe4\x01\n\x13\x43ypherBatchResponse\x12<\n\tresponses\x18\x01 \x03(\x0b\x32).ninaivalaigal.graphops.v1.CypherResponse\x12@\n\x0c\x62\x61tch_status\x18\x02 \x01(\x0e\x32*.ninaivalaigal.graphops.v1.ExecutionStatus\x12\x1f\n\x17total_execution_time_ms\x18\x03 \x01(\x05\x12\x15\n\rsuccess_count\x18\x04 \x01(\x05\x12\x15\n\rfailure_count\x18\x05 \x01(\x05"%\n\x12HealthCheckRequest\x12\x0f\n\x07service\x18\x01 \x01(\t"\xf6\x02\n\x13HealthCheckResponse\x12\x37\n\x06status\x18\x01 \x01(\x0e\x32\'.ninaivalaigal.graphops.v1.HealthStatus\x12<\n\x08\x64\x61tabase\x18\x02 \x01(\x0b\x32*.ninaivalaigal.graphops.v1.ComponentStatus\x12\x41\n\rage_extension\x18\x03 \x01(\x0b\x32*.ninaivalaigal.graphops.v1.ComponentStatus\x12\x16\n\x0euptime_seconds\x18\x04 \x01(\x03\x12\x0f\n\x07version\x18\x05 \x01(\t\x12L\n\x07\x64\x65tails\x18\x06 \x03(\x0b\x32;.ninaivalaigal.graphops.v1.HealthCheckResponse.DetailsEntry\x1a.\n\x0c\x44\x65tailsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"(\n\x0eMetricsRequest\x12\x16\n\x0ewindow_seconds\x18\x01 \x01(\x05"\xfb\x01\n\x0fMetricsResponse\x12\x15\n\rtotal_queries\x18\x01 \x01(\x03\x12\x1a\n\x12successful_queries\x18\x02 \x01(\x03\x12\x16\n\x0e\x66\x61iled_queries\x18\x03 \x01(\x03\x12\x16\n\x0ep50_latency_ms\x18\x04 \x01(\x01\x12\x16\n\x0ep95_latency_ms\x18\x05 \x01(\x01\x12\x16\n\x0ep99_latency_ms\x18\x06 \x01(\x01\x12\x1d\n\x15\x61vg_execution_time_ms\x18\x07 \x01(\x01\x12\x1a\n\x12memory_usage_bytes\x18\x08 \x01(\x03\x12\x1a\n\x12\x61\x63tive_connections\x18\t \x01(\x05"\x8d\x01\n\x0f\x43omponentStatus\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x06status\x18\x02 \x01(\x0e\x32\'.ninaivalaigal.graphops.v1.HealthStatus\x12\x15\n\rerror_message\x18\x03 \x01(\t\x12\x1c\n\x14last_check_timestamp\x18\x04 \x01(\x03"\xcc\x01\n\x0c\x45rrorDetails\x12\x0c\n\x04\x63ode\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x13\n\x0bstack_trace\x18\x03 \x01(\t\x12\x11\n\tsql_state\x18\x04 \x01(\t\x12\x45\n\x07\x63ontext\x18\x05 \x03(\x0b\x32\x34.ninaivalaigal.graphops.v1.ErrorDetails.ContextEntry\x1a.\n\x0c\x43ontextEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"\xb1\x01\n\x0cQueryMetrics\x12\x15\n\rparse_time_ms\x18\x01 \x01(\x01\x12\x14\n\x0cplan_time_ms\x18\x02 \x01(\x01\x12\x19\n\x11\x65xecution_time_ms\x18\x03 \x01(\x01\x12\x14\n\x0crows_scanned\x18\x04 \x01(\x03\x12\x15\n\rrows_returned\x18\x05 \x01(\x03\x12\x19\n\x11memory_used_bytes\x18\x06 \x01(\x03\x12\x11\n\tcache_hit\x18\x07 \x01(\x08*\xa9\x01\n\x0f\x45xecutionStatus\x12 \n\x1c\x45XECUTION_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n\x18\x45XECUTION_STATUS_SUCCESS\x10\x01\x12\x1a\n\x16\x45XECUTION_STATUS_ERROR\x10\x02\x12\x1c\n\x18\x45XECUTION_STATUS_TIMEOUT\x10\x03\x12\x1c\n\x18\x45XECUTION_STATUS_PARTIAL\x10\x04*\x81\x01\n\x0cHealthStatus\x12\x1d\n\x19HEALTH_STATUS_UNSPECIFIED\x10\x00\x12\x19\n\x15HEALTH_STATUS_HEALTHY\x10\x01\x12\x1a\n\x16HEALTH_STATUS_DEGRADED\x10\x02\x12\x1b\n\x17HEALTH_STATUS_UNHEALTHY\x10\x03\x32\xbd\x03\n\x0fGraphOpsService\x12\x63\n\x0c\x45xecuteQuery\x12(.ninaivalaigal.graphops.v1.CypherRequest\x1a).ninaivalaigal.graphops.v1.CypherResponse\x12r\n\x11\x45xecuteQueryBatch\x12-.ninaivalaigal.graphops.v1.CypherBatchRequest\x1a..ninaivalaigal.graphops.v1.CypherBatchResponse\x12l\n\x0bHealthCheck\x12-.ninaivalaigal.graphops.v1.HealthCheckRequest\x1a..ninaivalaigal.graphops.v1.HealthCheckResponse\x12\x63\n\nGetMetrics\x12).ninaivalaigal.graphops.v1.MetricsRequest\x1a*.ninaivalaigal.graphops.v1.MetricsResponseb\x06proto3'
 )
 
 _globals = globals()
@@ -28,10 +28,44 @@ _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "graphops_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
     DESCRIPTOR._loaded_options = None
-    _globals["_EXECUTEQUERYREQUEST"]._serialized_start = 31
-    _globals["_EXECUTEQUERYREQUEST"]._serialized_end = 67
-    _globals["_EXECUTEQUERYRESPONSE"]._serialized_start = 69
-    _globals["_EXECUTEQUERYRESPONSE"]._serialized_end = 105
-    _globals["_GRAPHOPS"]._serialized_start = 107
-    _globals["_GRAPHOPS"]._serialized_end = 202
+    _globals["_CYPHERREQUEST_PARAMETERSENTRY"]._loaded_options = None
+    _globals["_CYPHERREQUEST_PARAMETERSENTRY"]._serialized_options = b"8\001"
+    _globals["_HEALTHCHECKRESPONSE_DETAILSENTRY"]._loaded_options = None
+    _globals["_HEALTHCHECKRESPONSE_DETAILSENTRY"]._serialized_options = b"8\001"
+    _globals["_ERRORDETAILS_CONTEXTENTRY"]._loaded_options = None
+    _globals["_ERRORDETAILS_CONTEXTENTRY"]._serialized_options = b"8\001"
+    _globals["_EXECUTIONSTATUS"]._serialized_start = 2111
+    _globals["_EXECUTIONSTATUS"]._serialized_end = 2280
+    _globals["_HEALTHSTATUS"]._serialized_start = 2283
+    _globals["_HEALTHSTATUS"]._serialized_end = 2412
+    _globals["_CYPHERREQUEST"]._serialized_start = 46
+    _globals["_CYPHERREQUEST"]._serialized_end = 260
+    _globals["_CYPHERREQUEST_PARAMETERSENTRY"]._serialized_start = 211
+    _globals["_CYPHERREQUEST_PARAMETERSENTRY"]._serialized_end = 260
+    _globals["_CYPHERRESPONSE"]._serialized_start = 263
+    _globals["_CYPHERRESPONSE"]._serialized_end = 516
+    _globals["_CYPHERBATCHREQUEST"]._serialized_start = 518
+    _globals["_CYPHERBATCHREQUEST"]._serialized_end = 634
+    _globals["_CYPHERBATCHRESPONSE"]._serialized_start = 637
+    _globals["_CYPHERBATCHRESPONSE"]._serialized_end = 865
+    _globals["_HEALTHCHECKREQUEST"]._serialized_start = 867
+    _globals["_HEALTHCHECKREQUEST"]._serialized_end = 904
+    _globals["_HEALTHCHECKRESPONSE"]._serialized_start = 907
+    _globals["_HEALTHCHECKRESPONSE"]._serialized_end = 1281
+    _globals["_HEALTHCHECKRESPONSE_DETAILSENTRY"]._serialized_start = 1235
+    _globals["_HEALTHCHECKRESPONSE_DETAILSENTRY"]._serialized_end = 1281
+    _globals["_METRICSREQUEST"]._serialized_start = 1283
+    _globals["_METRICSREQUEST"]._serialized_end = 1323
+    _globals["_METRICSRESPONSE"]._serialized_start = 1326
+    _globals["_METRICSRESPONSE"]._serialized_end = 1577
+    _globals["_COMPONENTSTATUS"]._serialized_start = 1580
+    _globals["_COMPONENTSTATUS"]._serialized_end = 1721
+    _globals["_ERRORDETAILS"]._serialized_start = 1724
+    _globals["_ERRORDETAILS"]._serialized_end = 1928
+    _globals["_ERRORDETAILS_CONTEXTENTRY"]._serialized_start = 1882
+    _globals["_ERRORDETAILS_CONTEXTENTRY"]._serialized_end = 1928
+    _globals["_QUERYMETRICS"]._serialized_start = 1931
+    _globals["_QUERYMETRICS"]._serialized_end = 2108
+    _globals["_GRAPHOPSSERVICE"]._serialized_start = 2415
+    _globals["_GRAPHOPSSERVICE"]._serialized_end = 2860
 # @@protoc_insertion_point(module_scope)
