@@ -1,0 +1,3 @@
+# HELP graphops_memory_bytes Current memory usage
+# TYPE graphops_memory_bytes gauge
+graphops_memory_bytes{runtime="rust",type="rss"} 19185664

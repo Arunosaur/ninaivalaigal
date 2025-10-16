@@ -1,0 +1,27 @@
+# HELP graphops_cache_hits_total GraphOps cache hits
+# TYPE graphops_cache_hits_total counter
+graphops_cache_hits_total{cache_type="plan_cache",runtime="rust"} 1009
+# HELP graphops_db_connections_active Active database connections
+# TYPE graphops_db_connections_active gauge
+graphops_db_connections_active{pool="primary",runtime="rust"} 0
+# HELP graphops_memory_bytes Current memory usage
+# TYPE graphops_memory_bytes gauge
+graphops_memory_bytes{runtime="rust",type="rss"} 21299200
+# HELP graphops_request_duration_seconds GraphOps request latency in seconds
+# TYPE graphops_request_duration_seconds histogram
+graphops_request_duration_seconds_bucket{le="0.001"} 1008
+graphops_request_duration_seconds_bucket{le="0.0025"} 1008
+graphops_request_duration_seconds_bucket{le="0.005"} 1008
+graphops_request_duration_seconds_bucket{le="0.01"} 1008
+graphops_request_duration_seconds_bucket{le="0.025"} 1009
+graphops_request_duration_seconds_bucket{le="0.05"} 1009
+graphops_request_duration_seconds_bucket{le="0.1"} 1010
+graphops_request_duration_seconds_bucket{le="0.25"} 1010
+graphops_request_duration_seconds_bucket{le="0.5"} 1010
+graphops_request_duration_seconds_bucket{le="1"} 1010
+graphops_request_duration_seconds_bucket{le="+Inf"} 1010
+graphops_request_duration_seconds_sum 0.12782772000000034
+graphops_request_duration_seconds_count 1010
+# HELP graphops_requests_total Total GraphOps requests
+# TYPE graphops_requests_total counter
+graphops_requests_total{operation="ExecuteQuery",runtime="rust",status="success"} 1010

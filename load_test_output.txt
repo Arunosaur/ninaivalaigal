@@ -1,0 +1,9 @@
+Starting cache warm-up load test against 127.0.0.1:50051 (ninaivalaigal.graphops.v1.GraphOpsService/ExecuteQuery)
+Total requests: 1000; concurrency: 10
+
+Warming up cache...
+Cache warm-up complete.
+
+Executing parallel load test...
+
+✅ Load test complete.
