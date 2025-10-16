@@ -86,48 +86,44 @@ check_container_health() {
 monitor_stack() {
     log "🔍 Starting comprehensive health monitoring (interval: ${MONITOR_INTERVAL}s)"
     log "🛠️ Using self-healing container recreation logic"
+    log "📦 Monitoring ONLY ninaivalaigal-dev-* containers"
 
     while true; do
         local issues=0
 
-        # Check Database
-        if ! container list | grep -q "nv-db.*running"; then
+        # Check Database (NEW NAME)
+        if ! container list | grep -q "ninaivalaigal-dev-db.*running"; then
             ((issues++))
-            log "🚨 DATABASE ISSUE DETECTED - Attempting recreation..."
-            safe_container_restart "nv-db" "nv-db-start.sh" || ((issues++))
+            log "⚠️ Database (ninaivalaigal-dev-db) not running"
+            log "   Manual start required: ./start-apple-container-stack.sh"
         fi
 
-        # Check PgBouncer
-        if ! container list | grep -q "nv-pgbouncer.*running"; then
+        # Check PgBouncer (NEW NAME)
+        if ! container list | grep -q "ninaivalaigal-dev-pgbouncer.*running"; then
             ((issues++))
-            log "🚨 PGBOUNCER ISSUE DETECTED - Attempting recreation..."
-            safe_container_restart "nv-pgbouncer" "nv-pgbouncer-start.sh" || ((issues++))
+            log "⚠️ PgBouncer (ninaivalaigal-dev-pgbouncer) not running"
+            log "   Manual start required: ./start-apple-container-stack.sh"
         fi
 
-        # Check Redis
-        if ! container list | grep -q "nv-redis.*running"; then
+        # Check Redis (NEW NAME)
+        if ! container list | grep -q "ninaivalaigal-dev-redis.*running"; then
             ((issues++))
-            log "🚨 REDIS ISSUE DETECTED - Attempting recreation..."
-            safe_container_restart "nv-redis" "nv-redis-start.sh" || ((issues++))
+            log "⚠️ Redis (ninaivalaigal-dev-redis) not running"
+            log "   Manual start required: ./start-apple-container-stack.sh"
         fi
 
-        # Check API with health endpoint
-        if ! check_container_health "nv-api" "13370" "nv-api-start.sh"; then
+        # Check Core API (NEW NAME)
+        if ! container list | grep -q "ninaivalaigal-dev-core-api.*running"; then
             ((issues++))
-        fi
-
-        # Check UI
-        if ! container list | grep -q "nv-ui.*running"; then
-            ((issues++))
-            log "⚠️ UI ISSUE DETECTED - Attempting recreation..."
-            safe_container_restart "nv-ui" "nv-ui-start.sh" || ((issues++))
+            log "⚠️ Core API (ninaivalaigal-dev-core-api) not running"
         fi
 
         # Overall health summary
         if [ $issues -eq 0 ]; then
-            log "✅ All systems healthy and running"
+            log "✅ All ninaivalaigal-dev-* containers healthy and running"
         else
-            log "⚠️ $issues issues detected and addressed"
+            log "⚠️ $issues issues detected - manual intervention required"
+            log "   OLD containers (nv-*) are DEPRECATED and should NOT be running"
         fi
 
         sleep "$MONITOR_INTERVAL"

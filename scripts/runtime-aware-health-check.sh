@@ -52,7 +52,7 @@ case "$ACTIVE_RUNTIME" in
         ;;
     apple)
         CONTAINER_CMD="container"
-        CONTAINER_LIST_CMD="container list | grep -E 'nv-db|nv-api|nv-redis|nv-pgbouncer'"
+        CONTAINER_LIST_CMD="container list | grep -E 'ninaivalaigal-dev'"
         ;;
     *)
         die "Unknown runtime: $ACTIVE_RUNTIME. Valid: docker, colima, apple"
