@@ -1,6 +1,6 @@
 # SPEC Corruption Analysis - URGENT
 
-**Time:** October 13, 2025, 7:50 PM  
+**Time:** October 13, 2025, 7:50 PM
 **Severity:** 🚨 **CRITICAL - Data Loss Detected**
 
 ---
@@ -32,7 +32,7 @@ When Developer B added Docusaurus front-matter to SPECs, **content was deleted**
 **Lost Content:**
 - Title section
 - Purpose/Status metadata
-- Section 1: Purpose  
+- Section 1: Purpose
 
 **Current State:** Missing first ~10 lines of content
 
@@ -48,7 +48,7 @@ When Developer B added Docusaurus front-matter to SPECs, **content was deleted**
 - Conflicts with real SPEC-087
 
 #### **4. specs/099-approval-chain-processing/**
-- 29 lines of empty placeholder  
+- 29 lines of empty placeholder
 - Conflicts with real SPEC-090
 
 #### **5. specs/101-memory-sharing/**
@@ -118,7 +118,7 @@ mv specs/087-api-surface-contracts/README.md.recovered specs/087-api-surface-con
 ```bash
 # These are empty and conflict with real SPECs
 rm -rf specs/100-api-surface-contracts
-rm -rf specs/099-approval-chain-processing  
+rm -rf specs/099-approval-chain-processing
 rm -rf specs/101-memory-sharing
 ```
 
@@ -135,17 +135,17 @@ Create script to **prepend** front-matter without destroying content:
 for spec_dir in specs/[0-9]*; do
     readme="$spec_dir/README.md"
     if [ ! -f "$readme" ]; then continue; fi
-    
+
     # Skip if already has front-matter
     if head -1 "$readme" | grep -q "^---$"; then
         echo "✅ $spec_dir already has front-matter"
         continue
     fi
-    
+
     # Extract SPEC number and slug
     spec_num=$(basename "$spec_dir" | sed 's/-.*//')
     slug=$(basename "$spec_dir")
-    
+
     # Create temp file with front-matter + original content
     {
         echo "---"
@@ -155,7 +155,7 @@ for spec_dir in specs/[0-9]*; do
         echo ""
         cat "$readme"
     } > "$readme.tmp"
-    
+
     # Replace only if different
     if ! diff -q "$readme" "$readme.tmp" > /dev/null; then
         mv "$readme.tmp" "$readme"
@@ -232,9 +232,9 @@ echo "4. Commit: git add -A && git commit -m 'fix: restore corrupted SPECs and r
 
 ## ⏱️ **Impact**
 
-**Time Lost:** 
+**Time Lost:**
 - Developer B: ~4 hours debugging docusaurus
-- You: ~1 hour investigating  
+- You: ~1 hour investigating
 - Total: ~5 hours
 
 **Data At Risk:**
@@ -261,6 +261,6 @@ echo "4. Commit: git add -A && git commit -m 'fix: restore corrupted SPECs and r
 
 ---
 
-**Status:** 🔴 **URGENT - Needs immediate recovery**  
-**Priority:** Fix this BEFORE root cleanup  
+**Status:** 🔴 **URGENT - Needs immediate recovery**
+**Priority:** Fix this BEFORE root cleanup
 **Risk:** Low (recoverable from git)

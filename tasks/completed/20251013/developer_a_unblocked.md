@@ -1,7 +1,7 @@
 # Developer A - UNBLOCKED! 🎉
 
-**Time:** 4:55 PM  
-**Status:** ✅ **HTTP STUBBING NOW WORKING**  
+**Time:** 4:55 PM
+**Status:** ✅ **HTTP STUBBING NOW WORKING**
 **Test Results:** 6 PASSED (up from 2!)
 
 ---
@@ -33,7 +33,7 @@ for module_path in modules_to_patch:
         monkeypatch.setattr(module.httpx, "AsyncClient", _StubAsyncClient)
 ```
 
-**Root Cause:** 
+**Root Cause:**
 - `hasattr(module, "httpx")` returns False because httpx is imported, not an attribute
 - Needed to patch httpx.AsyncClient at the httpx module level directly
 
@@ -65,7 +65,7 @@ from collections import defaultdict
 - ❌ 0 tests running (blocked on pytest_asyncio)
 
 ### **After (Now):**
-- ✅ **6 PASSED** 
+- ✅ **6 PASSED**
 - ⚠️ 4 FAILED (need stub response tweaks)
 - ⚠️ 33 ERRORS (need fixture fixes)
 
@@ -100,7 +100,7 @@ These are close - just need stub response tweaks:
 **Likely Cause:** Guest role responses not matching expectations
 
 #### **4. `test_ensure_team_context_sends_expected_payload` - FAILED**
-**Error:** `HTTP 401` when setting up team context  
+**Error:** `HTTP 401` when setting up team context
 **Likely Cause:** Authorization header not being recognized by stub
 
 ---
@@ -216,7 +216,7 @@ When any test requests `stubbed_http` fixture:
 async def test_something(stubbed_http):
     # Your code runs with stubbed HTTP
     result = await some_api_call()
-    
+
     # Verify what was called
     assert len(stubbed_http["post"]) == 1
     assert stubbed_http["post"][0]["path"] == "/auth/login"

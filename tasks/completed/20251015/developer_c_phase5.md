@@ -239,7 +239,7 @@ curl -X POST http://localhost:13390/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
-    "password": "SecurePass123!"
+    "password": "SecurePass123!"  # pragma: allowlist secret
   }'
 
 # Response includes both tokens:
@@ -306,7 +306,7 @@ alembic upgrade head
 # Test login
 curl -X POST http://localhost:13390/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123"}'
+  -d '{"email":"test@example.com","password":"password123"}'  # pragma: allowlist secret
 ```
 
 ---

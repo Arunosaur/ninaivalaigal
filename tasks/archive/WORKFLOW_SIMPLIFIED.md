@@ -1,6 +1,6 @@
 # ✅ Workflow Simplified - No Branches Needed!
 
-**Date**: October 13, 2025  
+**Date**: October 13, 2025
 **Decision**: Work directly on `main` (no feature branches)
 
 ---
@@ -53,11 +53,11 @@ git pull origin main  # See what others did
 
 ## ❌ **Old Workflow (REMOVED)**
 
-~~Branch creation~~  
-~~git checkout -b feature/branch-name~~  
-~~Create PR~~  
-~~Wait for review~~  
-~~Merge conflicts~~  
+~~Branch creation~~
+~~git checkout -b feature/branch-name~~
+~~Create PR~~
+~~Wait for review~~
+~~Merge conflicts~~
 
 **All removed!** ✨
 
@@ -171,7 +171,7 @@ git push origin main
 
 ## 🎊 **Bottom Line**
 
-**Old way**: 
+**Old way**:
 ```
 Pull → Branch → Work → Commit → Push to branch → PR → Review → Merge
 ```
@@ -187,22 +187,22 @@ Pull → Work → Commit → Push to main
 
 ## 📞 **Questions?**
 
-**Q: What if I accidentally break main?**  
+**Q: What if I accidentally break main?**
 A: Immediately notify team, revert commit: `git revert HEAD`
 
-**Q: What if we need to work on the same file?**  
+**Q: What if we need to work on the same file?**
 A: Coordinate in standup: "I'm editing X today, avoid it"
 
-**Q: What about code review?**  
+**Q: What about code review?**
 A: Informal review during standup, trust your teammates
 
-**Q: Can we use branches if needed?**  
+**Q: Can we use branches if needed?**
 A: Yes! For long-term experiments only. Daily work stays on main.
 
 ---
 
-**Updated**: All 3 developer task files  
-**Status**: ✅ Ready to use  
+**Updated**: All 3 developer task files
+**Status**: ✅ Ready to use
 **Effective**: Monday, October 13, 2025
 
 **Happy simplified coding! 🚀**

@@ -1,8 +1,8 @@
 # Developer B: Gantt Timeline Enhancement
 
-**Priority:** HIGH  
-**Estimated Time:** 2-3 hours  
-**Status:** Ready to Start  
+**Priority:** HIGH
+**Estimated Time:** 2-3 hours
+**Status:** Ready to Start
 **Value:** Professional-grade Program Management Visualization
 
 ---
@@ -170,7 +170,7 @@ export default function SpecGanttTimeline() {
               labelFormatter={(label) => `SPEC: ${label}`}
               formatter={(value, name) =>
                 name === 'duration'
-                  ? `${Math.round(value)} days` 
+                  ? `${Math.round(value)} days`
                   : new Date(value).toLocaleDateString()
               }
             />
@@ -404,9 +404,9 @@ When complete, you should have:
 
 ---
 
-**Status:** 📋 Ready to Start  
-**Priority:** HIGH (Professional visualization)  
-**Estimated Time:** 2-3 hours  
+**Status:** 📋 Ready to Start
+**Priority:** HIGH (Professional visualization)
+**Estimated Time:** 2-3 hours
 **Dependencies:** Existing dashboard infrastructure
 
 ---

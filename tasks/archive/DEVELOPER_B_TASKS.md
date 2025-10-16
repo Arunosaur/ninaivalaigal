@@ -236,7 +236,7 @@ curl -X POST http://localhost:13390/auth/signup/individual \
   -H "Content-Type: application/json" \
   -d '{
     "email": "your@email.com",
-    "password": "SecurePassword123!",
+    "password": "SecurePassword123!",  # pragma: allowlist secret
     "name": "Your Name"
   }'
 ```
@@ -247,7 +247,7 @@ curl -X POST http://localhost:13390/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "your@email.com",
-    "password": "YourPassword"
+    "password": "YourPassword"  # pragma: allowlist secret
   }'
 ```
 
@@ -371,14 +371,14 @@ export NINAIVALAIGAL_JWT_TOKEN="your_jwt_token_here"
 ```bash
 curl -X POST http://localhost:13390/auth/signup/individual \
   -H "Content-Type: application/json" \
-  -d '{"email":"you@example.com","password":"SecurePass123!","name":"Your Name"}'
+  -d '{"email":"you@example.com","password":"SecurePass123!","name":"Your Name"}'  # pragma: allowlist secret
 ```
 
 ### 2. Login
 ```bash
 curl -X POST http://localhost:13390/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"you@example.com","password":"SecurePass123!"}'
+  -d '{"email":"you@example.com","password":"SecurePass123!"}'  # pragma: allowlist secret
 ```
 
 ### 3. Use JWT Token

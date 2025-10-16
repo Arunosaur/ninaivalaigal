@@ -111,7 +111,7 @@ POST /auth/signup/individual
 Body:
 {
   "email": "you@example.com",
-  "password": "SecurePass123!",
+  "password": "SecurePass123!",  # pragma: allowlist secret
   "name": "Your Name"
 }
 

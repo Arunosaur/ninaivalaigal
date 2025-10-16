@@ -1,8 +1,8 @@
 # Developer B - SPEC Dashboard Cleanup Task
 
-**Priority:** Medium  
-**Estimated Time:** 4-6 hours  
-**Status:** Not Started  
+**Priority:** Medium
+**Estimated Time:** 4-6 hours
+**Status:** Not Started
 **Date Created:** October 13, 2025
 
 ---
@@ -275,12 +275,12 @@ If blocked:
 
 ---
 
-**Status:** 📋 Ready to Start  
-**Priority:** Medium  
-**Owner:** Developer B  
+**Status:** 📋 Ready to Start
+**Priority:** Medium
+**Owner:** Developer B
 **Reviewer:** TBD
 
 ---
 
-**Created:** October 13, 2025  
+**Created:** October 13, 2025
 **Last Updated:** October 13, 2025

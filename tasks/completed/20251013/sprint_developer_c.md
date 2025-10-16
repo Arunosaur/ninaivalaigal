@@ -1,8 +1,8 @@
 # ⚙️ Developer C: Sprint Tasks
 ## **Backend & Infrastructure Lead**
 
-**Sprint**: October 13-26, 2025  
-**Focus**: Technical Debt + ML Pipeline Foundation  
+**Sprint**: October 13-26, 2025
+**Focus**: Technical Debt + ML Pipeline Foundation
 **Working Directory**: `/Users/swami/WorkSpace/ninaivalaigal`
 
 ---
@@ -44,12 +44,12 @@ TD-001 is blocking pre-commit hooks. This is your **Day 1 Priority**.
 
 - [ ] **Fix D103 violations (9 files)** (1 hour)
   **Issue**: Missing docstrings in public functions
-  
+
   Files to fix:
   - `alembic/env_new.py` (2 violations)
   - `alembic/versions/0112_staff_management.py` (2 violations)
   - `ninaivalaigal_ci_rbac_pack/rbac/permissions.py` (5 violations)
-  
+
   **Fix**: Add docstrings
   ```python
   def function_name():
@@ -59,19 +59,19 @@ TD-001 is blocking pre-commit hooks. This is your **Day 1 Priority**.
 
 - [ ] **Fix B007 violations (13 files)** (1 hour)
   **Issue**: Loop variable not used (should start with underscore)
-  
+
   Files to fix (examples):
   - `tests/auth/test_rate_limiting.py`
   - `tests/auth_aware/test_fixtures.py`
   - `tests/auth_aware/test_multi_user_scenarios.py`
   - Plus 10 more test files
-  
+
   **Fix**: Rename unused loop vars
   ```python
   # Before
   for user in users:
       do_something()  # user not used
-  
+
   # After
   for _user in users:
       do_something()
@@ -79,18 +79,18 @@ TD-001 is blocking pre-commit hooks. This is your **Day 1 Priority**.
 
 - [ ] **Fix F841 violations (8 files)** (30 min)
   **Issue**: Local variable assigned but never used
-  
+
   Files to fix:
   - `tests/foundation/spec_058/test_documentation_links.py`
   - `tests/foundation/spec_063/test_agentic_core.py`
   - Plus 6 more test files
-  
+
   **Fix**: Either use the variable or prefix with underscore
   ```python
   # Option 1: Use it
   result = function()
   assert result is not None
-  
+
   # Option 2: Mark as intentionally unused
   _result = function()
   ```
@@ -115,11 +115,11 @@ TD-001 is blocking pre-commit hooks. This is your **Day 1 Priority**.
   - Add docstrings to alembic functions (D103)
   - Rename unused loop variables with _ prefix (B007)
   - Fix unused local variables (F841)
-  
+
   All pre-commit hooks now pass without --no-verify
-  
+
   Resolves: TD-001"
-  
+
   git push origin main
   ```
 
@@ -158,20 +158,20 @@ TD-001 is blocking pre-commit hooks. This is your **Day 1 Priority**.
   ```python
   import pytest
   from datetime import datetime, timedelta
-  
+
   class TestTokenRefresh:
       def test_refresh_token_success(self, client, auth_headers):
           """Test successful token refresh"""
           # Your test here
-          
+
       def test_refresh_token_expired(self, client):
           """Test refresh with expired token"""
           # Your test here
-          
+
       def test_refresh_token_invalid(self, client):
           """Test refresh with invalid token"""
           # Your test here
-          
+
       def test_refresh_token_revoked(self, client):
           """Test refresh with revoked token"""
           # Your test here
@@ -252,7 +252,7 @@ TD-001 is blocking pre-commit hooks. This is your **Day 1 Priority**.
   async def liveness():
       """Kubernetes liveness probe"""
       return {"status": "alive"}
-  
+
   @router.get("/health/ready")
   async def readiness():
       """Kubernetes readiness probe"""
@@ -260,7 +260,7 @@ TD-001 is blocking pre-commit hooks. This is your **Day 1 Priority**.
       # Check Redis connection
       # Check critical services
       return {"status": "ready", "checks": {...}}
-  
+
   @router.get("/health/detailed")
   async def detailed_health():
       """Detailed health with metrics"""
@@ -419,7 +419,7 @@ TD-001 is blocking pre-commit hooks. This is your **Day 1 Priority**.
   ```
   File: specs/126-ml-model-training-pipeline/README.md
   ```
-  
+
   Include sections:
   - [ ] Overview and objectives
   - [ ] ML use cases for ninaivalaigal

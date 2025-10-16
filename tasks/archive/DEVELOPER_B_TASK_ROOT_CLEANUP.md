@@ -1,8 +1,8 @@
 # Developer B - Root Directory Cleanup Task
 
-**Priority:** Medium  
-**Estimated Time:** 4-6 hours  
-**Status:** Not Started  
+**Priority:** Medium
+**Estimated Time:** 4-6 hours
+**Status:** Not Started
 **Date Created:** October 13, 2025
 
 ---
@@ -466,7 +466,7 @@ grep -r "filename" . --exclude-dir=node_modules --exclude-dir=.git
 # Start with obvious ones:
 # 1. Move all DAY_*.md first
 # 2. Move all *SUMMARY*.md next
-# 3. Move all Dockerfile.* 
+# 3. Move all Dockerfile.*
 # 4. Review remaining files
 ```
 
@@ -482,9 +482,9 @@ grep -r "filename" . --exclude-dir=node_modules --exclude-dir=.git
 
 ---
 
-**Status:** 📋 Ready to Start  
-**Priority:** Medium  
-**Owner:** Developer B  
+**Status:** 📋 Ready to Start
+**Priority:** Medium
+**Owner:** Developer B
 **Timeline:** Thursday-Friday, Oct 16-17
 
 ---

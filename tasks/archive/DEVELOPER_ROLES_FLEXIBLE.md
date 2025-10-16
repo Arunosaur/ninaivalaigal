@@ -1,6 +1,6 @@
 # Developer Roles & Responsibilities - Flexible Model
 
-**Created:** October 13, 2025  
+**Created:** October 13, 2025
 **Philosophy:** Primary ownership with flexible collaboration
 
 ---
@@ -440,12 +440,12 @@ Tests: pytest tests/auth_aware/ passing
 
 ---
 
-**Status:** ✅ Active  
-**Review:** Monthly or as needed  
+**Status:** ✅ Active
+**Review:** Monthly or as needed
 **Philosophy:** "Strong opinions, weakly held. Clear ownership, flexible execution."
 
 ---
 
-**Created by:** Developer C  
-**Approved by:** Team  
+**Created by:** Developer C
+**Approved by:** Team
 **Last Updated:** October 13, 2025

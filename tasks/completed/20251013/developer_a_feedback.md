@@ -1,7 +1,7 @@
 # Developer A Feedback - October 13, 2025
 
-**Time:** 4:15 PM  
-**Reviewer:** Developer C  
+**Time:** 4:15 PM
+**Reviewer:** Developer C
 **Status:** ✅ EXCELLENT WORK - Next Steps Completed
 
 ---
@@ -117,7 +117,7 @@ $ pytest tests/auth_aware/ -v
 
 ### **Option 1: Stub More Tests (Recommended)**
 
-**Priority:** HIGH  
+**Priority:** HIGH
 **Time Estimate:** 2-3 hours
 
 Now that `stubbed_http` is centralized, you can easily add it to other tests:
@@ -126,11 +126,11 @@ Now that `stubbed_http` is centralized, you can easily add it to other tests:
 1. **`test_multi_user.py`** (4 tests, all ERROR)
    - Update fixtures to use `stubbed_http`
    - Remove live API calls
-   
+
 2. **`test_multi_user_scenarios.py`** (11 tests, all ERROR)
    - Already refactored fixtures ✅
    - Just need to add `stubbed_http` to test signatures
-   
+
 3. **`test_security_scenarios.py`** (13 tests, all ERROR)
    - Add `stubbed_http` to enable offline testing
 
@@ -148,7 +148,7 @@ async def test_concurrent_user_authentication(multi_user_manager):
 async def test_concurrent_user_authentication(multi_user_manager, stubbed_http):
     # Now uses mock API → PASSED
     result = await multi_user_manager.concurrent_auth_test(...)
-    
+
     # Can verify API calls
     assert len(stubbed_http["post"]) == expected_auth_calls
 ```
@@ -157,7 +157,7 @@ async def test_concurrent_user_authentication(multi_user_manager, stubbed_http):
 
 ### **Option 2: Integration Tests (Later)**
 
-**Priority:** MEDIUM  
+**Priority:** MEDIUM
 **Time Estimate:** 1-2 hours
 
 **For tests that NEED live API:**
@@ -176,7 +176,7 @@ async def test_real_rbac_validation(rbac_engine, api_config):
 
 ### **Option 3: Extend Stubbed Responses (As Needed)**
 
-**Priority:** LOW  
+**Priority:** LOW
 **Time Estimate:** 30 minutes per endpoint
 
 If tests need specific API responses, extend `conftest.py`:
@@ -185,14 +185,14 @@ If tests need specific API responses, extend `conftest.py`:
 # In tests/auth_aware/conftest.py
 async def post(self, path: str, json: Dict | None = None, ...):
     calls["post"].append({...})
-    
+
     # Add new endpoint stubs as needed
     if path.endswith("/teams/create"):
         return _StubResponse(201, {"team_id": "team-123", ...})
-    
+
     if path.endswith("/permissions/check"):
         return _StubResponse(200, {"allowed": True})
-    
+
     # Default
     return _StubResponse(201, {})
 ```
@@ -228,7 +228,7 @@ async def post(self, path: str, json: Dict | None = None, ...):
 ```python
 # Quick wins - just add stubbed_http to signatures:
 async def test_concurrent_user_authentication(
-    multi_user_manager, 
+    multi_user_manager,
     stubbed_http  # Add this!
 ):
     ...
@@ -308,8 +308,8 @@ async def test_concurrent_user_authentication(
 
 ## ✅ **Approval Status**
 
-**Reviewer:** Developer C  
-**Status:** ✅ **APPROVED** - Excellent work!  
+**Reviewer:** Developer C
+**Status:** ✅ **APPROVED** - Excellent work!
 **Ready to Continue:** YES
 
 **Next Review:** Friday (after stubbing remaining tests)

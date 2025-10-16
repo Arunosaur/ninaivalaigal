@@ -133,7 +133,7 @@ We encourage TDD:
 **Example:**
 ```python
 def test_hash_password():
-    password = "SecurePass123!"
+    password = "SecurePass123!"  # pragma: allowlist secret
     hashed = hash_password(password)
 
     assert hashed != password
@@ -158,7 +158,7 @@ def test_hash_password():
 def test_login_endpoint(client, test_user):
     response = client.post('/auth/login', json={
         'email': test_user.email,
-        'password': 'password123'
+        'password': 'password123'  # pragma: allowlist secret
     })
 
     assert response.status_code == 200

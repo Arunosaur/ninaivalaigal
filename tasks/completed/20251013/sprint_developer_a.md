@@ -1,8 +1,8 @@
 # 👨‍💻 Developer A: Sprint Tasks
 ## **Frontend & Testing Lead**
 
-**Sprint**: October 13-26, 2025  
-**Focus**: Testing Infrastructure + Feature Flags  
+**Sprint**: October 13-26, 2025
+**Focus**: Testing Infrastructure + Feature Flags
 **Working Directory**: `/Users/swami/WorkSpace/ninaivalaigal`
 
 ---
@@ -217,7 +217,7 @@
     enableMLSuggestions: boolean;
     enableAnalyticsDashboard: boolean;
   }
-  
+
   // Using Zustand
   const useFeatureFlagsStore = create<FeatureFlagsStore>((set) => ({
     flags: getDefaultFlags(),

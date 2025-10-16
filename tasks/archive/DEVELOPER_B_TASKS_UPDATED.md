@@ -1,7 +1,7 @@
 # Developer B - Updated Task Assignment
 
-**Date:** October 13, 2025  
-**Status:** ✅ **READY TO START**  
+**Date:** October 13, 2025
+**Status:** ✅ **READY TO START**
 **Focus:** SPEC-088 (API Versioning Strategy)
 
 ---
@@ -19,7 +19,7 @@ The SPEC numbering conflict has been resolved:
 
 ### **Create SPEC-088: API Versioning Strategy**
 
-**Directory:** `specs/088-api-versioning-strategy/`  
+**Directory:** `specs/088-api-versioning-strategy/`
 **File:** `specs/088-api-versioning-strategy/README.md`
 
 ---
@@ -54,9 +54,9 @@ sidebar_position: 88
 
 # SPEC-088: API Versioning Strategy
 
-**Status:** Draft  
-**Phase:** Infrastructure  
-**Owner:** Developer B  
+**Status:** Draft
+**Phase:** Infrastructure
+**Owner:** Developer B
 **Updated:** October 13, 2025
 
 ---
@@ -208,12 +208,12 @@ def detect_api_version(request):
         return "v2"
     elif "/api/v1/" in request.url.path:
         return "v1"
-    
+
     # Fallback to Accept header
     accept = request.headers.get("Accept", "")
     if "v2" in accept:
         return "v2"
-    
+
     # Default to v1
     return "v1"
 ```
@@ -368,8 +368,8 @@ When you're done, you should have:
 
 ---
 
-**Estimated Time:** 3-4 hours  
-**Difficulty:** Medium (architecture design)  
+**Estimated Time:** 3-4 hours
+**Difficulty:** Medium (architecture design)
 **Status:** ✅ Ready to start immediately
 
 ---
