@@ -17,11 +17,16 @@ use crate::proto::graphops::v1::{
 };
 use crate::DbPool;
 use std::collections::HashMap;
+use std::env;
+use std::sync::Arc;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use tokio::sync::Semaphore;
+use tokio::task::JoinSet;
 use tonic::{Request, Response, Status};
 use tracing::{error, info};
 
 const RUNTIME_LABEL: &str = "rust";
+const DEFAULT_BATCH_MAX_CONCURRENCY: usize = 4;
 
 #[derive(Clone)]
 pub struct GraphOpsService {
@@ -29,16 +34,29 @@ pub struct GraphOpsService {
     graph_name: String,
     service_start_time: SystemTime,
     query_cache: QueryCache,
+    batch_max_concurrency: usize,
 }
 
 impl GraphOpsService {
     pub fn new(pool: DbPool, graph_name: String) -> Self {
+        let batch_max_concurrency = env::var("GRAPHOPS_BATCH_MAX_CONCURRENCY")
+            .ok()
+            .and_then(|value| value.parse::<usize>().ok())
+            .filter(|value| *value > 0)
+            .unwrap_or(DEFAULT_BATCH_MAX_CONCURRENCY);
+
         Self {
             pool,
             graph_name,
             service_start_time: SystemTime::now(),
             query_cache: QueryCache::new(300, 1000),
+            batch_max_concurrency,
         }
+    }
+
+    pub fn with_batch_max_concurrency(mut self, batch_max_concurrency: usize) -> Self {
+        self.batch_max_concurrency = batch_max_concurrency.max(1);
+        self
     }
 
     async fn execute_single_query(
@@ -211,6 +229,18 @@ impl GraphOpsService {
             context,
         }
     }
+
+    fn error_response(status: Status) -> CypherResponse {
+        let details = Self::status_to_error_details(&status);
+        CypherResponse {
+            status: ExecutionStatus::Error as i32,
+            results: Vec::new(),
+            execution_time_ms: 0,
+            row_count: 0,
+            error: Some(details),
+            metrics: None,
+        }
+    }
 }
 
 #[tonic::async_trait]
@@ -240,36 +270,72 @@ impl GraphOpsServiceTrait for GraphOpsService {
         let mut batch_timer = Some(RequestTimer::new());
         let batch_start = Instant::now();
 
-        let mut responses = Vec::with_capacity(payload.queries.len());
+        let fail_fast = payload.fail_fast;
+        let query_count = payload.queries.len();
+        let max_concurrency = self.batch_max_concurrency.max(1);
+        let semaphore = Arc::new(Semaphore::new(max_concurrency));
+        let mut join_set = JoinSet::new();
+
+        for (index, query_request) in payload.queries.into_iter().enumerate() {
+            let service = self.clone();
+            let semaphore = semaphore.clone();
+            join_set.spawn(async move {
+                let permit = match semaphore.acquire_owned().await {
+                    Ok(permit) => permit,
+                    Err(_) => return (index, Err(Status::cancelled("batch execution cancelled"))),
+                };
+
+                let result = service
+                    .execute_single_query(query_request, "ExecuteQuery")
+                    .await;
+                drop(permit);
+                (index, result)
+            });
+        }
+
+        let mut responses: Vec<Option<CypherResponse>> = vec![None; query_count];
         let mut success_count = 0;
         let mut failure_count = 0;
+        let mut aborted_count = 0;
+        while let Some(join_result) = join_set.join_next().await {
+            let (index, outcome) = match join_result {
+                Ok(value) => value,
+                Err(error) => {
+                    join_set.shutdown().await;
+                    error!(?error, "batch worker task failed");
+                    return Err(Status::internal("batch execution task failed"));
+                }
+            };
 
-        for query_request in payload.queries {
-            match self
-                .execute_single_query(query_request, "ExecuteQuery")
-                .await
-            {
+            match outcome {
                 Ok(response) => {
                     success_count += 1;
-                    responses.push(response);
+                    responses[index] = Some(response);
                 }
                 Err(status) => {
                     failure_count += 1;
-                    responses.push(CypherResponse {
-                        status: ExecutionStatus::Error as i32,
-                        results: Vec::new(),
-                        execution_time_ms: 0,
-                        row_count: 0,
-                        error: Some(Self::status_to_error_details(&status)),
-                        metrics: None,
-                    });
+                    responses[index] = Some(Self::error_response(status));
 
-                    if payload.fail_fast {
+                    if fail_fast {
+                        join_set.shutdown().await;
                         break;
                     }
                 }
             }
         }
+
+        let responses: Vec<CypherResponse> = responses
+            .into_iter()
+            .map(|response| match response {
+                Some(response) => response,
+                None => {
+                    aborted_count += 1;
+                    Self::error_response(Status::cancelled("batch execution cancelled"))
+                }
+            })
+            .collect();
+
+        failure_count += aborted_count;
 
         let batch_status = if failure_count == 0 {
             ExecutionStatus::Success

@@ -6,7 +6,7 @@
 use graphops_service::proto::graphops::v1::graph_ops_service_client::GraphOpsServiceClient;
 use graphops_service::proto::graphops::v1::graph_ops_service_server::GraphOpsServiceServer;
 use graphops_service::proto::graphops::v1::{
-    CypherBatchRequest, CypherRequest, HealthCheckRequest, MetricsRequest,
+    CypherBatchRequest, CypherRequest, ExecutionStatus, HealthCheckRequest, MetricsRequest,
 };
 use graphops_service::{DbPool, GraphOpsService};
 use std::env;
@@ -15,7 +15,18 @@ use std::time::Duration;
 use tokio::sync::oneshot;
 use tonic::transport::{Channel, Endpoint, Server};
 
+#[derive(Default)]
+struct SpawnOptions {
+    batch_max_concurrency: Option<usize>,
+}
+
 async fn spawn_test_client() -> Option<(GraphOpsServiceClient<Channel>, oneshot::Sender<()>)> {
+    spawn_test_client_with_options(SpawnOptions::default()).await
+}
+
+async fn spawn_test_client_with_options(
+    options: SpawnOptions,
+) -> Option<(GraphOpsServiceClient<Channel>, oneshot::Sender<()>)> {
     // Load local environment overrides if present.
     let _ = dotenvy::dotenv();
 
@@ -38,7 +49,10 @@ async fn spawn_test_client() -> Option<(GraphOpsServiceClient<Channel>, oneshot:
         }
     };
 
-    let service = GraphOpsService::new(pool, graph_name);
+    let service = match options.batch_max_concurrency {
+        Some(limit) => GraphOpsService::new(pool, graph_name).with_batch_max_concurrency(limit),
+        None => GraphOpsService::new(pool, graph_name),
+    };
 
     // Bind to an ephemeral port so tests can run in parallel without conflicts.
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind test listener");
@@ -158,6 +172,169 @@ async fn execute_query_batch_roundtrip() {
     assert_eq!(payload.failure_count, 0);
 
     let _ = shutdown.send(());
+}
+
+#[tokio::test]
+async fn execute_query_batch_permutations() {
+    let concurrency_limits = [1_usize, 2, 4];
+    let batch_sizes = [1_usize, 2, 4];
+    let fail_fast_options = [false, true];
+
+    for &limit in &concurrency_limits {
+        let Some((mut client, shutdown)) = spawn_test_client_with_options(SpawnOptions {
+            batch_max_concurrency: Some(limit),
+        })
+        .await
+        else {
+            return;
+        };
+
+        for &batch_size in &batch_sizes {
+            for &fail_fast in &fail_fast_options {
+                let success_trace =
+                    format!("perm-success-limit-{limit}-size-{batch_size}-failfast-{fail_fast}");
+                let success_queries: Vec<CypherRequest> = (0..batch_size)
+                    .map(|index| CypherRequest {
+                        query: "MATCH (n) RETURN n LIMIT 1".to_string(),
+                        parameters: Default::default(),
+                        timeout_ms: 0,
+                        trace_id: format!("perm-success-{success_trace}-{index}"),
+                        span_id: String::new(),
+                    })
+                    .collect();
+
+                let success_response = client
+                    .execute_query_batch(CypherBatchRequest {
+                        queries: success_queries,
+                        fail_fast,
+                        trace_id: success_trace,
+                    })
+                    .await
+                    .expect("ExecuteQueryBatch RPC should return in success permutation")
+                    .into_inner();
+
+                assert_eq!(
+                    success_response.responses.len(),
+                    batch_size,
+                    "response vector must match batch size"
+                );
+                assert_eq!(
+                    success_response.failure_count, 0,
+                    "success permutation should not report failures"
+                );
+                assert_eq!(
+                    success_response.batch_status,
+                    ExecutionStatus::Success as i32,
+                    "success permutation should mark batch success"
+                );
+                assert!(
+                    success_response
+                        .responses
+                        .iter()
+                        .all(|response| response.status == ExecutionStatus::Success as i32),
+                    "every per-query response should be success"
+                );
+
+                if batch_size > 1 {
+                    let failure_trace = format!(
+                        "perm-failure-limit-{limit}-size-{batch_size}-failfast-{fail_fast}"
+                    );
+                    let mut failure_queries: Vec<CypherRequest> = Vec::with_capacity(batch_size);
+                    failure_queries.push(CypherRequest {
+                        query: "MATCH (n) RETURN n LIMIT 1".to_string(),
+                        parameters: Default::default(),
+                        timeout_ms: 0,
+                        trace_id: format!("perm-failure-{failure_trace}-0"),
+                        span_id: String::new(),
+                    });
+
+                    for index in 1..batch_size {
+                        let query = if index == batch_size - 1 {
+                            String::new()
+                        } else {
+                            "MATCH (n) RETURN n LIMIT 1".to_string()
+                        };
+
+                        failure_queries.push(CypherRequest {
+                            query,
+                            parameters: Default::default(),
+                            timeout_ms: 0,
+                            trace_id: format!("perm-failure-{failure_trace}-{index}"),
+                            span_id: String::new(),
+                        });
+                    }
+
+                    let failure_response = client
+                        .execute_query_batch(CypherBatchRequest {
+                            queries: failure_queries,
+                            fail_fast,
+                            trace_id: failure_trace,
+                        })
+                        .await
+                        .expect("ExecuteQueryBatch RPC should return in failure permutation")
+                        .into_inner();
+
+                    assert_eq!(
+                        failure_response.responses.len(),
+                        batch_size,
+                        "failure permutation must return one response per query"
+                    );
+                    assert!(
+                        failure_response.failure_count >= 1,
+                        "failure permutation must report at least one failure"
+                    );
+                    assert!(
+                        failure_response.failure_count as usize <= failure_response.responses.len(),
+                        "failure count cannot exceed total responses"
+                    );
+
+                    if fail_fast {
+                        if failure_response.failure_count as usize
+                            == failure_response.responses.len()
+                        {
+                            assert_eq!(
+                                failure_response.batch_status,
+                                ExecutionStatus::Error as i32,
+                                "failFast=true with universal failure should mark batch error"
+                            );
+                        } else {
+                            assert_eq!(
+                                failure_response.batch_status,
+                                ExecutionStatus::Partial as i32,
+                                "failFast=true with partial success should mark batch partial"
+                            );
+                        }
+                    } else if failure_response.failure_count as usize
+                        == failure_response.responses.len()
+                    {
+                        assert_eq!(
+                            failure_response.batch_status,
+                            ExecutionStatus::Error as i32,
+                            "all failures should mark batch error"
+                        );
+                    } else {
+                        assert_eq!(
+                            failure_response.batch_status,
+                            ExecutionStatus::Partial as i32,
+                            "mixed success/failure should mark batch partial"
+                        );
+                    }
+
+                    let error_responses = failure_response
+                        .responses
+                        .iter()
+                        .filter(|response| response.status == ExecutionStatus::Error as i32)
+                        .count();
+                    assert_eq!(
+                        error_responses, failure_response.failure_count as usize,
+                        "failure count should match number of error responses"
+                    );
+                }
+            }
+        }
+
+        let _ = shutdown.send(());
+    }
 }
 
 #[tokio::test]
