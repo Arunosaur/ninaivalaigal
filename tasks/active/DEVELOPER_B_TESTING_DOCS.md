@@ -678,7 +678,160 @@ def test_full_memory_flow():
     assert insight_resp.status_code == 200
 ```
 
-**End of Week 2 Deliverable**: All 5 services tested, documented, benchmarked
+---
+
+## 📅 Week 2 Days 4-5 - Go Infrastructure Testing
+
+### As Developer A builds Go Gateway & Load Tools
+
+**NEW**: Testing Go infrastructure layer
+
+### Day 4: Go gRPC Gateway Testing
+
+**Your tasks**:
+
+1. **Test gateway health**:
+```bash
+# Gateway should be running on :8080
+curl http://localhost:8080/health
+```
+
+2. **Test REST → gRPC translation**:
+```python
+# tests/integration/test_grpc_gateway.py
+import requests
+
+def test_gateway_proxies_memory_service():
+    """Test Gateway translates REST to gRPC for Memory Service"""
+    # Call via Gateway (REST)
+    response = requests.post(
+        "http://localhost:8080/v1/memory",
+        json={"content": "Test via gateway"}
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    assert "id" in data
+    assert data["content"] == "Test via gateway"
+
+def test_gateway_vs_direct():
+    """Compare Gateway latency vs direct gRPC"""
+    import time
+
+    # Direct to Rust service
+    start = time.time()
+    direct_resp = requests.post("http://localhost:8001/memory/remember", ...)
+    direct_latency = time.time() - start
+
+    # Via Go gateway
+    start = time.time()
+    gateway_resp = requests.post("http://localhost:8080/v1/memory", ...)
+    gateway_latency = time.time() - start
+
+    # Gateway should add minimal overhead (<10ms)
+    overhead = gateway_latency - direct_latency
+    assert overhead < 0.01  # <10ms overhead
+```
+
+3. **Test gateway error handling**:
+```python
+def test_gateway_handles_service_down():
+    """Gateway returns proper error if Rust service is down"""
+    # Stop Memory Service
+    # Gateway should return 503 Service Unavailable
+    response = requests.post("http://localhost:8080/v1/memory", ...)
+    assert response.status_code in [503, 504]
+```
+
+**End of Day 4**: Gateway tested with <10ms overhead
+
+---
+
+### Day 5: Go Load Testing Tool Validation
+
+**Your tasks**:
+
+1. **Validate load tool output**:
+```bash
+# Run Developer A's load tool
+cd go-services/load-tools
+./load-test --target localhost:8001 --requests 1000 --concurrency 10
+
+# Verify it reports:
+# - Total requests
+# - Concurrency level
+# - Requests/sec
+# - Latency stats (P50, P95, P99)
+```
+
+2. **Cross-validate with Python benchmarks**:
+```python
+# tests/performance/validate_load_tool.py
+import subprocess
+import json
+
+def test_load_tool_accuracy():
+    """Ensure Go load tool reports match our Python benchmarks"""
+    # Run Go load tool
+    result = subprocess.run(
+        ["./load-test", "--target", "localhost:8001", "--requests", "100"],
+        capture_output=True,
+        text=True
+    )
+
+    # Parse output (you'll need to add JSON output to Go tool)
+    # Compare with our Python benchmark results
+    # Should be within 10% margin
+```
+
+3. **Test load tool features**:
+```bash
+# Test different concurrency levels
+./load-test --concurrency 1   # Sequential
+./load-test --concurrency 50  # High concurrency
+./load-test --concurrency 100 # Stress test
+
+# Test different targets
+./load-test --target localhost:8001  # Memory Service (Rust)
+./load-test --target localhost:8002  # Graph/AI Service (Rust)
+./load-test --target localhost:8080  # Via Gateway (Go → Rust)
+```
+
+4. **Create load test reports**:
+```markdown
+# docs/performance/LOAD_TEST_RESULTS.md
+
+## Memory Service Performance
+
+### Direct (Rust :8001)
+- Requests/sec: 5,234
+- P50 latency: 1.2ms
+- P95 latency: 8.5ms
+- P99 latency: 15.2ms
+
+### Via Gateway (Go :8080 → Rust :8001)
+- Requests/sec: 4,987
+- P50 latency: 1.5ms  (+0.3ms overhead)
+- P95 latency: 9.1ms  (+0.6ms overhead)
+- P99 latency: 16.8ms (+1.6ms overhead)
+
+**Conclusion**: Gateway adds <2ms P99 overhead ✅
+```
+
+**End of Day 5**: Load tool validated, performance reports complete
+
+---
+
+## ✅ Week 2 Final Deliverable
+
+**All 5 Services + Go Infrastructure**:
+- [ ] Core API (Python) - tested & documented
+- [ ] Business Service (Python) - tested & documented
+- [ ] Admin/Vendor Service (Python) - tested & documented
+- [ ] Memory Service (Rust) - benchmarked (50-90% faster)
+- [ ] Graph/AI Service (Rust) - integration tests passing
+- [ ] Go gRPC Gateway - <10ms overhead validated
+- [ ] Go Load Testing Tool - cross-validated with Python benchmarks
 
 ---
 
@@ -696,8 +849,11 @@ def test_full_memory_flow():
 - [ ] Graph/AI Service: Full integration tests
 - [ ] End-to-end flow tests passing
 - [ ] Performance comparison report (Python vs Rust)
+- [ ] Go gRPC Gateway: Tested with <10ms overhead
+- [ ] Go Load Testing Tool: Cross-validated with Python benchmarks
 - [ ] Postman collections for all services
 - [ ] Complete API documentation
+- [ ] **Validates**: Polyglot architecture (Python + Rust + Go)
 
 ---
 

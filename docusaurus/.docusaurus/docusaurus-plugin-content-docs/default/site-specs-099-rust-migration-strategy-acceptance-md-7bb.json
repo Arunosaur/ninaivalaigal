@@ -16,7 +16,7 @@
   "frontMatter": {},
   "sidebar": "specSidebar",
   "previous": {
-    "title": "SPEC-099: Rust Migration Strategy & ROI Analysis",
+    "title": "SPEC-099: Rust + Go Migration Strategy & ROI Analysis",
     "permalink": "/ninaivalaigal/specs/rust-migration-strategy/"
   },
   "next": {

@@ -1,6 +1,6 @@
-# SPEC-099: Rust Migration Strategy & ROI Analysis
+# SPEC-099: Rust + Go Migration Strategy & ROI Analysis
 
-**Status:** PLANNED
+**Status:** PLANNED → IN PROGRESS
 **Priority:** HIGH
 **Category:** Architecture / Strategic Investment
 **Owner:** Engineering Leadership
@@ -10,9 +10,12 @@
 
 ## Executive Summary
 
-This SPEC defines a **selective, incremental Rust adoption strategy** for performance-critical ninaivalaigal components, targeting **50-90% latency reduction** and **30-60% infrastructure cost savings** while preserving developer velocity in Python for orchestration and SDK-heavy services.
+This SPEC defines a **selective, incremental adoption strategy** using **Rust for performance-critical services** and **Go for infrastructure/tooling**, targeting **50-90% latency reduction** and **30-60% infrastructure cost savings** while preserving developer velocity in Python for orchestration and SDK-heavy services.
 
-**Key Principle:** Use Rust where determinism and performance matter; keep Python where ecosystems and SDKs shine.
+**Key Principles:**
+- **Rust:** Safety-critical query processing, caching, high-throughput pipelines
+- **Go:** gRPC gateways, CLI tools, agent orchestration, load testing
+- **Python:** Business logic, SDK integrations, rapid prototyping
 
 ---
 
@@ -61,6 +64,27 @@ Performance and cost benefits validated through load-test POC:
 
 ---
 
+### Zone 1B: 🔧 Ideal for Go (Infrastructure & Tooling)
+
+**Criteria:** Service glue, concurrent I/O, tooling, gRPC ecosystems
+
+| Area | Reason | Impact |
+|------|--------|--------|
+| **gRPC Gateway** | Go has best gRPC ecosystem (auto-generated stubs, gateway) | 🌐 REST ↔ gRPC translation with zero manual code |
+| **Load Testing Tools** | Simple concurrency model (goroutines), fast compilation | ⚡ Concurrent load testing, instant iteration |
+| **CLI Tools** | Single binary deployment, cross-compilation | 🛠️ Zero dependencies, easy distribution |
+| **Agent Orchestration Layer** | Taiga ↔ Windsurf ↔ service coordination | 🤖 Simple async communication patterns |
+| **Observability Collectors** | Prometheus exporters, log aggregators | 📊 Native Prometheus client libraries |
+| **Background Job Runners** | Long-running workers, simple scheduling | 🔄 Built-in timer, ticker patterns |
+
+**Summary:** Go excels at infrastructure glue code, tooling, and scenarios where gRPC or simple concurrency patterns dominate.
+
+**Key Decision Criteria:**
+- **Choose Go if:** gRPC-heavy, tooling/CLI, simple concurrent I/O, rapid iteration needed
+- **Choose Rust if:** Safety-critical, CPU-bound computation, zero-copy performance needed
+
+---
+
 ### Zone 2: ⚙️ Possible with Effort (Bridging Zone)
 
 **Criteria:** Technically feasible but only if you build/reuse bindings or REST wrappers. ROI and developer velocity matter more than capability.
@@ -102,21 +126,35 @@ Performance and cost benefits validated through load-test POC:
 
 ```mermaid
 flowchart TD
-    A[Python Core API] -->|REST/gRPC| B[GraphOps Runtime - Rust]
-    A --> C[Memory Engine - Rust]
-    B --> D[Feedback Loop - Rust]
-    C --> D
-    D --> E[Redis/NATS Event Bus]
-    E --> F[Python Dashboards]
+    Client[REST Client] -->|HTTP| GW[Go gRPC Gateway :8080]
+    GW -->|gRPC| B[GraphOps Runtime - Rust :50051]
+    GW -->|gRPC| C[Memory Engine - Rust :8001]
+    GW -->|gRPC| G[Graph/AI Service - Rust :8002]
+
+    A[Python Core API :8000] -->|REST| GW
+    A --> D[Business Service - Python :8003]
+
+    B --> E[Redis Cache]
+    C --> E
+    G --> E
+
+    C --> F[PostgreSQL + Apache AGE]
+    A --> F
+
+    LT[Go Load Test Tool] -.->|Test| GW
+    CLI[Go CLI Tools] -.->|Ops| GW
 ```
 
 **Architecture Layers:**
-- **A (Python Core API):** FastAPI orchestration, CRUD operations, business logic glue
-- **B (GraphOps Runtime):** Rust microservice for graph traversal and Cypher parsing
-- **C (Memory Engine):** Rust service for tokenization and pattern matching
-- **D (Feedback Loop):** Rust async service for event processing
-- **E (Event Bus):** Redis Streams or NATS for service decoupling
-- **F (Python Dashboards):** Next.js/React frontends (stay in Python/JS ecosystem)
+- **Client → Go gRPC Gateway:** REST requests translated to gRPC (auto-generated stubs)
+- **Go Gateway → Rust Services:** High-performance gRPC communication
+- **Python Core API:** Auth, users, teams (CRUD + business logic)
+- **Rust Memory Service:** Memory CRUD with PostgreSQL + Redis caching
+- **Rust Graph/AI Service:** Graph intelligence with Apache AGE integration
+- **Rust GraphOps:** Cypher query parsing and graph traversal
+- **Python Business Service:** Billing, subscriptions (Stripe SDK)
+- **Go Load Tools:** Concurrent load testing with goroutines
+- **Go CLI Tools:** Operational utilities (single binary deployment)
 
 ---
 
@@ -124,58 +162,73 @@ flowchart TD
 
 ```mermaid
 graph TD
-    A[Monolith API] --> B1[Core API - Keep Python]
+    A[Monolith API] --> B1[Core API - Keep Python ✅]
     A --> B2[Memory Service - Rust Target ✅]
     A --> B3[Graph/AI Service - Rust Target ✅]
-    A --> B4[Business Service - Python for SDKs]
-    A --> B5[Admin/Vendor Service - Python]
+    A --> B4[Business Service - Keep Python ✅]
+    A --> B5[Admin/Vendor Service - Keep Python ✅]
 
-    B2 --> C1[Redis Streams - Rust async]
-    B3 --> C2[GraphOps Engine - Rust compute]
+    NEW1[New: Go gRPC Gateway ✅] --> B2
+    NEW1 --> B3
+    NEW1 --> GRO[GraphOps - Rust ✅]
 
-    C1 --> D[Billing - Python SDK]
-    C2 --> D
+    NEW2[New: Go Load Tools ✅] -.->|Test| B2
+    NEW2 -.->|Test| B3
+
+    B2 --> C1[Redis Cache - dashmap/moka]
+    B3 --> C2[GraphOps + Apache AGE]
+
+    B1 --> D[PostgreSQL]
+    B2 --> D
+    B3 --> D
 ```
 
 ---
 
-## 4. 🛣️ How to Transition Without Disruption
+## 5. 🛣️ How to Transition Without Disruption
 
 ### Phase-Based Rollout
 
-| Phase | Rust Entry Point | Status |
-|-------|------------------|--------|
-| **1** | Introduce Rust-based microservice for GraphOps (SPEC-062) | ✅ Low-risk, parallel |
-| **2** | Memory ingestion/feedback engine (SPEC-040) | ⚙️ Shared contract |
-| **3** | Real-time telemetry daemon | 🌿 Pure Rust async service |
-| **4** | Token + Security middleware | 🔒 Replace Python crypto utils |
-| **5** | Optional expansion into background tasks | 🤖 Reuse contracts, async ready |
+| Phase | Technology | Component | Status |
+|-------|-----------|-----------|--------|
+| **1** | Rust | GraphOps (SPEC-062) - Cypher parsing | ✅ Complete (Oct 15, 2025) |
+| **2A** | Rust | Memory Service - CRUD + caching (Week 1) | ⚙️ In Progress |
+| **2B** | Rust | Graph/AI Service - Apache AGE integration (Week 2) | ⚙️ In Progress |
+| **3A** | Go | gRPC Gateway - REST ↔ gRPC translation (Week 2) | 🌿 Planned |
+| **3B** | Go | Load Testing Tools - Concurrent benchmarking (Week 2) | 🌿 Planned |
+| **4** | Rust | Real-time telemetry daemon | 🔄 Future |
+| **5** | Go | CLI Tools + Agent Orchestration | 🔄 Future |
+| **6** | Rust | Token + Security middleware (optional) | 🔄 Future |
 
 ---
 
-## 5. 🎤 How to Present This to the Team
+## 6. 🎤 How to Present This to the Team
 
-### Don't Say "Replace Python"
+### Don't Say "Replace Python" or "Rewrite Everything"
 
-❌ **Wrong:** "We're switching the stack to Rust."
-✅ **Right:** "We're adding optimized service modules in a compiled runtime for heavy workloads."
+❌ **Wrong:** "We're switching the stack to Rust and Go."
+✅ **Right:** "We're adding specialized tools: Rust for performance, Go for infrastructure, Python stays for business logic."
 
-### Emphasize Coexistence
+### Emphasize Polyglot by Design
 
-- Python remains for orchestration, SDKs, and flexibility
-- The optimized runtime layer accelerates compute-heavy paths
-- No full rewrite — incremental, measurable improvements
+- **Python:** Remains primary language for business logic, SDKs, rapid iteration
+- **Rust:** Added for performance-critical paths (50-90% latency reduction proven)
+- **Go:** Added for infrastructure tooling (best gRPC ecosystem, simple concurrency)
+- All three coexist via **contract-based integration** (SPEC-100)
 
 ### Show Results in Metrics
 
-- Latency, throughput, and resource savings — not syntax
-- "GraphOps now handles 10x more concurrent queries per server"
-- "Memory retrieval dropped from 180ms to 30ms"
+- **Rust GraphOps:** 10x more concurrent queries per server
+- **Rust Memory Service:** Latency dropped from 180ms to <30ms
+- **Go gRPC Gateway:** Zero-code REST ↔ gRPC translation
+- **Go Load Tools:** 10,000+ concurrent requests with simple goroutines
 
-### Reassure Them
+### Reassure Developers
 
-- "We're not switching the stack; we're extending the architecture."
-- Contract-based integration (SPEC-100) ensures language agnostic interfaces
+- "We're not forcing language switches"
+- "Each language has clear boundaries - use what's best for the problem"
+- "Contract-first integration means you can work in your preferred language"
+- "Python developers: keep coding in Python. We're just adding specialized services."
 
 ---
 
@@ -444,11 +497,91 @@ service GraphOpsService {
 
 ## 📜 Conclusion
 
+## 7. 📁 Project Structure
+
+### Recommended Directory Layout
+
+```
+ninaivalaigal/
+├── rust-services/              # Rust performance-critical services
+│   ├── memory-service/        # Memory CRUD + caching
+│   │   ├── Cargo.toml
+│   │   ├── src/
+│   │   │   ├── main.rs        # HTTP server (Axum)
+│   │   │   ├── memory.rs      # Memory logic
+│   │   │   ├── storage.rs     # PostgreSQL
+│   │   │   ├── cache.rs       # Redis + dashmap
+│   │   │   └── models.rs      # Data structures
+│   │   └── Dockerfile
+│   │
+│   ├── graph-ai-service/      # Graph intelligence + AI
+│   │   ├── Cargo.toml
+│   │   ├── src/
+│   │   │   ├── main.rs        # gRPC + REST server
+│   │   │   ├── graph.rs       # Apache AGE queries
+│   │   │   ├── ai.rs          # AI intelligence
+│   │   │   └── graphops_client.rs  # gRPC client
+│   │   └── Dockerfile
+│   │
+│   └── graphops/              # Query engine (already complete)
+│       └── (existing structure)
+│
+├── go-services/               # Go infrastructure & tooling
+│   ├── grpc-gateway/         # REST ↔ gRPC gateway
+│   │   ├── go.mod
+│   │   ├── main.go
+│   │   ├── proto/            # Generated stubs
+│   │   └── Dockerfile
+│   │
+│   ├── load-tools/           # Load testing CLI
+│   │   ├── go.mod
+│   │   ├── cmd/
+│   │   │   └── load-test/
+│   │   │       └── main.go
+│   │   └── pkg/
+│   │       ├── grpc/         # gRPC client
+│   │       └── metrics/      # Results reporting
+│   │
+│   └── cli-tools/            # Operational CLI utilities
+│       └── (future)
+│
+├── services/                  # Python business logic
+│   ├── core-api/             # Auth, users, teams (Python)
+│   ├── business-service/     # Billing, Stripe (Python)
+│   └── admin-vendor-service/ # Dashboards (Python)
+│
+├── shared/
+│   ├── contracts/            # OpenAPI + Proto schemas
+│   │   ├── memory-service/v1/openapi.yaml
+│   │   ├── graph-ai-service/v1/openapi.yaml
+│   │   └── protos/
+│   │       ├── memory.proto
+│   │       └── graph_ai.proto
+│   └── models/              # Shared data models
+│
+└── docker/
+    ├── Dockerfile.rust       # Rust services
+    ├── Dockerfile.go        # Go services
+    ├── Dockerfile.python    # Python services
+    └── docker-compose.yml   # All services orchestration
+```
+
+**Key Principles:**
+- **Language Isolation:** Each language in its own top-level directory
+- **Contract-First:** Shared contracts in `shared/contracts/`
+- **Independent Builds:** Each service has own Dockerfile
+- **Clear Boundaries:** No cross-language code imports, only contract-based communication
+
+---
+
 ### The Hybrid Architecture Vision
 
-**The Rust migration will extend the existing Python architecture—not replace it.**
+**The Rust + Go migration will extend the existing Python architecture—not replace it.**
 
-This hybrid design maintains developer velocity while introducing a high-performance, deterministic tier for compute-bound workloads.
+This polyglot design maintains developer velocity while introducing:
+- **High-performance tier (Rust):** Compute-bound workloads
+- **Infrastructure tier (Go):** gRPC gateways, tooling, orchestration
+- **Business logic tier (Python):** SDK integrations, rapid iteration
 
 ### Key Takeaways for the Board
 

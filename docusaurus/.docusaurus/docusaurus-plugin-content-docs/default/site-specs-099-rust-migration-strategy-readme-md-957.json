@@ -1,7 +1,7 @@
 {
   "id": "rust-migration-strategy/README",
-  "title": "SPEC-099: Rust Migration Strategy & ROI Analysis",
-  "description": "Status: PLANNED",
+  "title": "SPEC-099: Rust + Go Migration Strategy & ROI Analysis",
+  "description": "Status: PLANNED → IN PROGRESS",
   "source": "@site/../specs/099-rust-migration-strategy/README.md",
   "sourceDirName": "099-rust-migration-strategy",
   "slug": "/rust-migration-strategy/",

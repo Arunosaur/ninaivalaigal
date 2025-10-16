@@ -506,9 +506,9 @@ cargo test
 
 ---
 
-## 📅 Week 2: Graph/AI Service (Rust)
+## 📅 Week 2: Graph/AI Service (Rust) + Go Infrastructure
 
-### Day 1-2 (Oct 21-22) - GraphOps Integration
+### Day 1-2 (Oct 21-22) - Graph/AI Service Architecture (Rust)
 
 **Key tasks**:
 1. Review GraphOps gRPC client from today's work
@@ -516,27 +516,303 @@ cargo test
 3. Integrate GraphOps gRPC calls
 4. Implement graph intelligence endpoints
 
-### Day 3-4 (Oct 23-24) - AI Features
+### Day 3 (Oct 23) - Graph/AI AI Features (Rust)
 
 **Key tasks**:
 1. Port insight generation logic
 2. Port feedback processing
 3. Add relevance scoring
 4. Redis caching for AI results
+5. Create Dockerfile for Graph/AI service
 
-### Day 5 (Oct 25) - Containerization
+### Day 4 (Oct 24) - Go gRPC Gateway
 
-**Key tasks**:
-1. Create Dockerfile
-2. Build and test container
-3. Integration testing with Memory Service
-4. Performance benchmarking
+**IMPORTANT**: Switch to Go for infrastructure layer
+
+**Morning (4 hours): Setup Go Project**
+
+1. **Create Go module**:
+```bash
+cd go-services
+mkdir -p grpc-gateway
+cd grpc-gateway
+go mod init github.com/Arunosaur/ninaivalaigal/grpc-gateway
+```
+
+2. **Install dependencies**:
+```bash
+# gRPC ecosystem
+go get google.golang.org/grpc@latest
+go get google.golang.org/protobuf@latest
+go get github.com/grpc-ecosystem/grpc-gateway/v2@latest
+
+# HTTP router
+go get github.com/gin-gonic/gin@latest
+```
+
+3. **Create proto definitions** (`shared/contracts/protos/memory.proto`):
+```proto
+syntax = "proto3";
+
+package ninaivalaigal.memory.v1;
+
+option go_package = "github.com/Arunosaur/ninaivalaigal/grpc-gateway/proto/memory";
+
+service MemoryService {
+  rpc CreateMemory(CreateMemoryRequest) returns (Memory);
+  rpc GetMemories(GetMemoriesRequest) returns (MemoriesResponse);
+  rpc DeleteMemory(DeleteMemoryRequest) returns (Empty);
+}
+
+message CreateMemoryRequest {
+  string content = 1;
+  string context_id = 2;
+}
+
+message Memory {
+  string id = 1;
+  string user_id = 2;
+  string content = 3;
+  string context_id = 4;
+  int64 created_at = 5;
+}
+
+message GetMemoriesRequest {
+  string user_id = 1;
+}
+
+message MemoriesResponse {
+  repeated Memory memories = 1;
+}
+
+message DeleteMemoryRequest {
+  string id = 1;
+}
+
+message Empty {}
+```
+
+**Afternoon (6 hours): Implement Gateway**
+
+4. **Generate Go stubs**:
+```bash
+cd shared/contracts/protos
+protoc --go_out=../../../go-services/grpc-gateway/proto \
+  --go-grpc_out=../../../go-services/grpc-gateway/proto \
+  --grpc-gateway_out=../../../go-services/grpc-gateway/proto \
+  memory.proto
+```
+
+5. **Create gateway server** (`go-services/grpc-gateway/main.go`):
+```go
+package main
+
+import (
+    "context"
+    "log"
+    "net/http"
+
+    "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/credentials/insecure"
+
+    pb "github.com/Arunosaur/ninaivalaigal/grpc-gateway/proto/memory"
+)
+
+func main() {
+    ctx := context.Background()
+    ctx, cancel := context.WithCancel(ctx)
+    defer cancel()
+
+    // Create gRPC gateway mux
+    mux := runtime.NewServeMux()
+
+    // Connect to Memory Service (Rust)
+    opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+    err := pb.RegisterMemoryServiceHandlerFromEndpoint(ctx, mux, "localhost:8001", opts)
+    if err != nil {
+        log.Fatalf("Failed to register Memory Service: %v", err)
+    }
+
+    // Start HTTP server
+    log.Println("gRPC Gateway listening on :8080")
+    log.Println("Memory Service proxied from :8001")
+    if err := http.ListenAndServe(":8080", mux); err != nil {
+        log.Fatalf("Failed to serve: %v", err)
+    }
+}
+```
+
+6. **Test gateway**:
+```bash
+# Run Memory Service (Rust) on :8001
+cd rust-services/memory-service
+cargo run
+
+# In another terminal, run Go gateway
+cd go-services/grpc-gateway
+go run main.go
+
+# Test via REST (gateway translates to gRPC)
+curl -X POST http://localhost:8080/v1/memory \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Test via gateway"}'
+```
+
+**End of Day 4 Deliverable**: Go gRPC Gateway translating REST → gRPC
+
+---
+
+### Day 5 (Oct 25) - Go Load Testing Tool
+
+**Morning (4 hours): Create Load Test Tool**
+
+1. **Create Go module**:
+```bash
+cd go-services
+mkdir -p load-tools
+cd load-tools
+go mod init github.com/Arunosaur/ninaivalaigal/load-tools
+```
+
+2. **Install dependencies**:
+```bash
+go get google.golang.org/grpc@latest
+go get github.com/montanaflynn/stats@latest
+```
+
+3. **Create load test CLI** (`go-services/load-tools/cmd/load-test/main.go`):
+```go
+package main
+
+import (
+    "context"
+    "flag"
+    "fmt"
+    "log"
+    "sync"
+    "time"
+
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/credentials/insecure"
+
+    pb "github.com/Arunosaur/ninaivalaigal/load-tools/proto/memory"
+)
+
+func main() {
+    requests := flag.Int("requests", 1000, "Total requests")
+    concurrency := flag.Int("concurrency", 10, "Concurrent workers")
+    target := flag.String("target", "localhost:8001", "gRPC target")
+    flag.Parse()
+
+    // Connect to service
+    conn, err := grpc.Dial(*target, grpc.WithTransportCredentials(insecure.NewCredentials()))
+    if err != nil {
+        log.Fatalf("Failed to connect: %v", err)
+    }
+    defer conn.Close()
+
+    client := pb.NewMemoryServiceClient(conn)
+
+    // Run load test
+    var wg sync.WaitGroup
+    results := make(chan time.Duration, *requests)
+
+    start := time.Now()
+
+    for i := 0; i < *concurrency; i++ {
+        wg.Add(1)
+        go func(workerID int) {
+            defer wg.Done()
+            for j := 0; j < (*requests / *concurrency); j++ {
+                reqStart := time.Now()
+
+                // Create memory request
+                _, err := client.CreateMemory(context.Background(), &pb.CreateMemoryRequest{
+                    Content: fmt.Sprintf("Load test %d-%d", workerID, j),
+                })
+
+                latency := time.Since(reqStart)
+                results <- latency
+
+                if err != nil {
+                    log.Printf("Request failed: %v", err)
+                }
+            }
+        }(i)
+    }
+
+    wg.Wait()
+    close(results)
+
+    totalDuration := time.Since(start)
+
+    // Calculate statistics
+    var latencies []float64
+    for lat := range results {
+        latencies = append(latencies, float64(lat.Milliseconds()))
+    }
+
+    // Print results
+    fmt.Printf("\n=== Load Test Results ===\n")
+    fmt.Printf("Total Requests: %d\n", *requests)
+    fmt.Printf("Concurrency: %d\n", *concurrency)
+    fmt.Printf("Total Duration: %v\n", totalDuration)
+    fmt.Printf("Requests/sec: %.2f\n", float64(*requests)/totalDuration.Seconds())
+
+    // Calculate percentiles (you'll need stats package)
+    fmt.Printf("\nLatency Stats:\n")
+    // Add percentile calculations here
+}
+```
+
+**Afternoon (6 hours): Test & Optimize**
+
+4. **Build load tool**:
+```bash
+cd go-services/load-tools
+go build -o load-test cmd/load-test/main.go
+```
+
+5. **Run comprehensive tests**:
+```bash
+# Test Memory Service (Rust)
+./load-test --target localhost:8001 --requests 10000 --concurrency 50
+
+# Test via Gateway (Go → Rust)
+./load-test --target localhost:8080 --requests 10000 --concurrency 50
+
+# Compare results
+```
+
+6. **Create Docker images**:
+```dockerfile
+# go-services/grpc-gateway/Dockerfile
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN go build -o grpc-gateway main.go
+
+FROM alpine:latest
+COPY --from=builder /app/grpc-gateway /usr/local/bin/
+EXPOSE 8080
+CMD ["grpc-gateway"]
+```
+
+**End of Day 5 Deliverable**:
+- Go gRPC Gateway containerized
+- Go load testing tool operational
+- All services integrated
 
 ---
 
 ## ✅ Success Criteria
 
-**Week 1 (Memory Service)**:
+**Week 1 (Memory Service - Rust)**:
 - [ ] Rust HTTP server running
 - [ ] PostgreSQL CRUD operations working
 - [ ] Redis caching with <30ms P95
@@ -545,12 +821,20 @@ cargo test
 - [ ] Passes integration tests
 - [ ] **Target**: 50-90% faster than Python version
 
-**Week 2 (Graph/AI Service)**:
+**Week 2 Days 1-3 (Graph/AI Service - Rust)**:
 - [ ] GraphOps gRPC integration working
 - [ ] AI endpoints functional
 - [ ] Container builds successfully
-- [ ] All services communicate properly
-- [ ] Load tests show performance gains
+- [ ] Integrates with Memory Service
+
+**Week 2 Days 4-5 (Go Infrastructure)**:
+- [ ] gRPC Gateway translating REST → gRPC
+- [ ] Gateway proxies Memory Service
+- [ ] Gateway proxies Graph/AI Service
+- [ ] Load testing tool runs 10,000+ concurrent requests
+- [ ] Load tool reports P50/P95/P99 latencies
+- [ ] Both Go services containerized
+- [ ] **Validates**: Polyglot architecture (Rust + Go + Python)
 
 ---
 
@@ -571,10 +855,67 @@ cargo test
 2. Use connection pooling
 3. Profile with `cargo flamegraph`
 
+### Go Module Issues (Week 2 Days 4-5)
+1. **"cannot find package"**: Run `go mod tidy` to download dependencies
+2. **Proto generation fails**: Install protoc compiler: `brew install protobuf`
+3. **gRPC connection refused**: Verify Rust service is running on correct port
+4. **Import path errors**: Check go.mod module name matches code imports
+
+### Gateway Not Proxying
+1. Check Rust service is running: `curl http://localhost:8001/health`
+2. Verify gateway config points to correct port
+3. Check logs: `go run main.go` shows connection errors
+4. Test direct gRPC connection before adding gateway
+
 ---
 
-**Focus**: You already proved you can write production Rust with GraphOps. Now apply that skill to Memory + Graph/AI services!
+## 🎯 Key Reminders to Avoid Circular Work
 
-**Philosophy**: Fast, safe, concurrent - Rust's sweet spot
+**IMPORTANT - READ THIS CAREFULLY**:
 
-**Goal**: 50-90% latency reduction vs Python!
+### Week 1 Focus: Rust Only
+- **DO**: Build Memory Service in Rust
+- **DON'T**: Think about Go yet
+- **WHY**: Need working Rust service before adding gateway
+
+### Week 2 Days 1-3: Still Rust
+- **DO**: Build Graph/AI Service in Rust
+- **DON'T**: Start Go infrastructure
+- **WHY**: Need both Rust services working before adding Go layer
+
+### Week 2 Days 4-5: Now Add Go
+- **DO**: Create Go gRPC Gateway (Day 4)
+- **DO**: Create Go load testing tool (Day 5)
+- **DON'T**: Rewrite Rust services in Go (they stay in Rust!)
+- **WHY**: Go is for infrastructure glue, not replacing Rust
+
+### Clear Boundaries
+```
+Python Services (Developer C)     Rust Services (Developer A Week 1-2)     Go Infrastructure (Developer A Week 2 Days 4-5)
+┌─────────────────────┐           ┌──────────────────────┐                ┌───────────────────┐
+│ Core API            │           │ Memory Service       │◄───────────────│ gRPC Gateway      │
+│ Business Service    │           │ Graph/AI Service     │                │                   │
+│ Admin Service       │           │                      │                └───────────────────┘
+└─────────────────────┘           └──────────────────────┘                ┌───────────────────┐
+                                                                           │ Load Testing Tool │
+                                                                           └───────────────────┘
+```
+
+**You own the middle (Rust) AND the right (Go infrastructure).**
+**Developer C owns the left (Python).**
+**Developer B tests everything.**
+
+---
+
+**Focus Week 1**: Rust performance (you already proved this with GraphOps!)
+
+**Focus Week 2 Days 1-3**: More Rust (apply same patterns)
+
+**Focus Week 2 Days 4-5**: Go infrastructure (new, but simpler than Rust!)
+
+**Philosophy**:
+- **Rust**: Fast, safe, concurrent
+- **Go**: Simple, productive, great gRPC ecosystem
+- **Python**: Business logic, SDKs, velocity
+
+**Goal**: Polyglot architecture with 50-90% latency reduction!
