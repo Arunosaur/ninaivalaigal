@@ -1,4 +1,5 @@
 mod auth;
+mod cache;
 mod models;
 mod storage;
 
@@ -7,34 +8,40 @@ use axum::extract::{Extension, Path, State};
 use axum::http::StatusCode;
 use axum::routing::{delete, get, post};
 use axum::{middleware, Json, Router};
+use cache::MemoryCache;
 use dotenvy::dotenv;
-use models::RecallRequest;
-use models::{CreateMemoryRequest, Memory};
+use models::{CreateMemoryRequest, Memory, RecallRequest};
 use serde_json::json;
 use std::env;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use storage::MemoryStorage;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
 use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct AppState {
     storage: Arc<MemoryStorage>,
+    cache: MemoryCache,
     auth: JwtVerifier,
 }
 
 impl AppState {
-    fn new(storage: MemoryStorage, auth: JwtVerifier) -> Self {
+    fn new(storage: MemoryStorage, cache: MemoryCache, auth: JwtVerifier) -> Self {
         Self {
             storage: Arc::new(storage),
+            cache,
             auth,
         }
     }
 
     fn storage(&self) -> Arc<MemoryStorage> {
         Arc::clone(&self.storage)
+    }
+
+    fn cache(&self) -> MemoryCache {
+        self.cache.clone()
     }
 
     fn auth(&self) -> &JwtVerifier {
@@ -52,16 +59,27 @@ async fn main() {
 
     let _ = dotenv();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let redis_url = env::var("REDIS_URL").expect("REDIS_URL must be set");
+
+    let cache_ttl_seconds = env::var("MEMORY_CACHE_TTL_SECONDS")
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .filter(|ttl| *ttl > 0)
+        .unwrap_or(3600);
 
     let storage = MemoryStorage::new(&database_url)
         .await
         .expect("failed to initialise MemoryStorage");
 
+    let cache = MemoryCache::new(&redis_url, cache_ttl_seconds)
+        .await
+        .expect("failed to initialise MemoryCache");
+
     let jwt_secret =
         env::var("NINAIVALAIGAL_JWT_SECRET").expect("NINAIVALAIGAL_JWT_SECRET must be set");
     let jwt = JwtVerifier::new(&jwt_secret);
 
-    let state = Arc::new(AppState::new(storage, jwt));
+    let state = Arc::new(AppState::new(storage, cache, jwt));
 
     let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "8000".to_string())
@@ -108,16 +126,21 @@ async fn remember(
     Json(request): Json<CreateMemoryRequest>,
 ) -> Result<Json<Memory>, StatusCode> {
     let storage = state.storage();
+    let cache = state.cache();
     let user_id = user.user_id();
 
-    storage
-        .create_memory(user_id, request)
-        .await
-        .map(Json)
-        .map_err(|error| {
+    match storage.create_memory(user_id, request).await {
+        Ok(memory) => {
+            if let Err(error) = cache.invalidate_user(user_id).await {
+                warn!(?error, user_id = %user_id, "failed to invalidate cache after create");
+            }
+            Ok(Json(memory))
+        }
+        Err(error) => {
             error!(?error, "failed to create memory");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
 }
 
 async fn recall(
@@ -125,17 +148,28 @@ async fn recall(
     Extension(user): Extension<AuthenticatedUser>,
     Json(request): Json<RecallRequest>,
 ) -> Result<Json<Vec<Memory>>, StatusCode> {
-    let limit = request.limit.unwrap_or(10).clamp(1, 100);
     let storage = state.storage();
+    let cache = state.cache();
+    let user_id = user.user_id();
+    let RecallRequest { query, limit } = request;
+    let limit = limit.unwrap_or(10).clamp(1, 100) as i64;
 
-    storage
-        .recall_memories(user.user_id(), &request.query, limit as i64)
-        .await
-        .map(Json)
-        .map_err(|error| {
+    if let Ok(Some(cached)) = cache.get_recall(user_id, &query, limit).await {
+        return Ok(Json(cached));
+    }
+
+    match storage.recall_memories(user_id, &query, limit).await {
+        Ok(memories) => {
+            if let Err(error) = cache.cache_recall(user_id, &query, limit, &memories).await {
+                warn!(?error, user_id = %user_id, "failed to cache recall result");
+            }
+            Ok(Json(memories))
+        }
+        Err(error) => {
             error!(?error, "failed to recall memories");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
 }
 
 async fn list_memories(
@@ -143,15 +177,25 @@ async fn list_memories(
     Extension(user): Extension<AuthenticatedUser>,
 ) -> Result<Json<Vec<Memory>>, StatusCode> {
     let storage = state.storage();
+    let cache = state.cache();
+    let user_id = user.user_id();
 
-    storage
-        .get_memories(user.user_id())
-        .await
-        .map(Json)
-        .map_err(|error| {
+    if let Ok(Some(cached)) = cache.get_user_memories(user_id).await {
+        return Ok(Json(cached));
+    }
+
+    match storage.get_memories(user_id).await {
+        Ok(memories) => {
+            if let Err(error) = cache.cache_user_memories(user_id, &memories).await {
+                warn!(?error, user_id = %user_id, "failed to cache user memories");
+            }
+            Ok(Json(memories))
+        }
+        Err(error) => {
             error!(?error, "failed to load memories");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
 }
 
 async fn delete_memory(
@@ -160,10 +204,17 @@ async fn delete_memory(
     Extension(user): Extension<AuthenticatedUser>,
 ) -> StatusCode {
     let storage = state.storage();
+    let cache = state.cache();
+    let user_id = user.user_id();
 
-    match storage.delete_memory(id, user.user_id()).await {
+    match storage.delete_memory(id, user_id).await {
         Ok(0) => StatusCode::NOT_FOUND,
-        Ok(_) => StatusCode::NO_CONTENT,
+        Ok(_) => {
+            if let Err(error) = cache.invalidate_user(user_id).await {
+                warn!(?error, user_id = %user_id, "failed to invalidate cache after delete");
+            }
+            StatusCode::NO_CONTENT
+        }
         Err(error) => {
             error!(?error, "failed to delete memory");
             StatusCode::INTERNAL_SERVER_ERROR
