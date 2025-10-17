@@ -1,13 +1,13 @@
 # Taiga Workflow - Task Assignment & Tracking
 
-**Effective:** Oct 16, 2025  
+**Effective:** Oct 16, 2025
 **Status:** Active - All new tasks use Taiga
 
 ---
 
 ## 🎯 Quick Access
 
-**Taiga URL:** http://localhost:9000/project/ninaivalaigal  
+**Taiga URL:** http://localhost:9000/project/ninaivalaigal
 **Login:** admin / admin123
 
 ---
@@ -40,7 +40,7 @@
 
 ### 2. **Developer Assignments**
 
-**Instead of:** `/tasks/active/DEVELOPER_A_*.md`  
+**Instead of:** `/tasks/active/DEVELOPER_A_*.md`
 **Use:** Taiga's assignment feature
 
 **Assign tasks:**
@@ -144,7 +144,7 @@ import TaigaTaskList from '@site/src/components/TaigaTaskList';
 
 # Memory Service Development
 
-<TaigaTaskList 
+<TaigaTaskList
   project="ninaivalaigal"
   epic="SPEC-093"
   showCompleted={false}
@@ -155,7 +155,7 @@ import TaigaTaskList from '@site/src/components/TaigaTaskList';
 ```mdx
 import SpecTraceability from '@site/src/components/SpecTraceability';
 
-<SpecTraceability 
+<SpecTraceability
   specId="SPEC-093"
   project="ninaivalaigal"
 />
@@ -244,8 +244,8 @@ TAIGA_USERNAME='admin' TAIGA_PASSWORD='admin123' python3 taiga-import-tasks.py
 
 ## 🎓 Learning Resources
 
-**Taiga Docs:** https://docs.taiga.io/  
-**Our Plugin:** `/Users/swami/WorkSpace/taiga/docusaurus-plugin-taiga/README.md`  
+**Taiga Docs:** https://docs.taiga.io/
+**Our Plugin:** `/Users/swami/WorkSpace/taiga/docusaurus-plugin-taiga/README.md`
 **Import Script:** `/Users/swami/WorkSpace/taiga/taiga-import-tasks.py`
 
 ---

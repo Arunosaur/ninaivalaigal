@@ -1,107 +1,103 @@
-# Tasks Directory
+# Tasks Management
 
-This directory contains all project management, sprint planning, and developer task documentation for the ninaivalaigal project.
-
-## 📁 Directory Structure
-
-```
-tasks/
-├── active/              # Current sprint work (in progress)
-├── completed/           # Completed work organized by date
-│   ├── 20251012/       # Oct 12, 2025 - Session summaries
-│   ├── 20251013/       # Oct 13, 2025 - Sprint kickoff, team planning
-│   ├── 20251014/       # Oct 14, 2025 - Development work
-│   └── 20251015/       # Oct 15, 2025 - Validation, bonus sprint
-├── reports/            # Final deliverables and summary reports
-└── archive/            # Old/superseded documentation
-```
-
-## 🎯 Directory Purpose
-
-### `active/`
-Work currently in progress. Files move here when actively being worked on and move to `completed/YYYYMMDD/` when done.
-
-### `completed/YYYYMMDD/`
-Completed work organized chronologically by completion date (YYYY-MM-DD format).
-- Easy to find work from specific dates
-- Natural archival as dates get older
-- Simplified filenames (date in folder, not filename)
-
-### `reports/`
-Final summary reports, validation reports, and completion documentation:
-- `developer_a_final_summary.md` - Developer A's complete sprint summary (cache + batch execution)
-- `developer_b_completion.md` - Developer B's gRPC prototype completion
-- `developer_c_batch_validation.md` - Developer C's batch execution validation
-- `developer_c_validation.md` - Developer C's production validation
-
-### `archive/`
-Old documentation, superseded plans, and historical reference material.
-
-## 📋 File Naming Convention
-
-**Completed work**: `developer_[role]_[description].md`
-- Example: `developer_a_cache_load_test.md`
-- Date context from folder: `completed/20251015/developer_a_cache_load_test.md`
-
-**Reports**: `developer_[role]_[type].md`
-- Example: `developer_a_final_summary.md`
-
-**Sprint files**: `sprint_[topic].md`
-- Example: `sprint_team_plan.md`
-
-## 🔍 Finding Files
-
-**By date**: Look in `completed/YYYYMMDD/`
-```bash
-ls completed/20251015/
-```
-
-**By developer**: Search across dates
-```bash
-find completed/ -name "developer_a_*.md"
-```
-
-**Recent work**: Check latest date folders
-```bash
-ls -lt completed/*/
-```
-
-**Final reports**: Check `reports/` directory
-```bash
-ls reports/
-```
-
-## 📊 Recent Work Summary
-
-### October 15, 2025 - Bonus Sprint Success
-**Developer A**:
-- Query cache implementation (99.9% hit rate, 0.126ms latency)
-- Batch execution improvements (30 test scenarios, all passing)
-- Performance validation and benchmarking
-
-**Developer B**:
-- gRPC client prototype (fully functional)
-- Protobuf contract validation
-- Phase 1 integration ready
-
-**Developer C**:
-- Production validation (all tests passing)
-- Batch execution validation (comprehensive testing)
-- Docker infrastructure planning
-
-### October 13, 2025 - Sprint Planning
-- Team coordination and role assignment
-- Sprint planning and task distribution
-- Development workflow establishment
-
-## 🗂️ Migration History
-
-**2025-10-15**: Reorganized from flat structure (57 files) to hierarchical structure
-- Grouped by completion date for chronological organization
-- Separated active work, completed work, reports, and archive
-- Simplified filenames (removed date prefixes, using folder dates instead)
+**Status**: Migrated to Taiga 🎉
 
 ---
 
-**Last Updated**: October 15, 2025
-**Structure Version**: 2.0 (Hierarchical)
+## 🌐 Task Tracking
+
+All active tasks are now tracked in **Taiga**:
+
+- **URL**: http://localhost:9000/project/ninaivalaigal
+- **Project**: ninaivalaigal
+- **Sprint**: Day 2 (Oct 17, 2025)
+
+### Developer Logins
+```
+developer-a / developer123  (Rust + Go specialist)
+developer-b / developer123  (Testing + Docs)
+developer-c / developer123  (Python services)
+```
+
+---
+
+## 📂 Directory Structure
+
+```
+tasks/
+├── README.md                    # This file
+├── TAIGA_WORKFLOW.md            # How to use Taiga
+├── docs/                        # Reference documentation
+│   ├── DEVELOPER_A_RUST_MIGRATION.md      # Rust implementation guide
+│   ├── DEVELOPER_B_TESTING_DOCS.md        # Testing guide
+│   ├── DEVELOPER_C_PYTHON_SERVICES.md     # Python services guide
+│   └── SPRINT_OVERVIEW.md                 # 2-week sprint plan
+├── archive/                     # Historical documents
+│   └── ... (old status reports, completed work)
+└── completed/                   # Completed sprint work
+    └── YYYYMMDD/ (organized by date)
+```
+
+---
+
+## 📋 Current Sprint Tasks (Day 2)
+
+### Developer A (3 tasks)
+- #28: Memory Service - Add Redis Caching
+- #29: Memory Service - Performance Benchmarks
+- #30: Graph/AI Service - Architecture & Setup
+
+### Developer C (4 tasks)
+- #31: Core API - User Profile Endpoints
+- #32: Core API - Team Management Endpoints
+- #33: Core API - Docker Compose Integration
+- #34: Business Service - Code Extraction
+
+### Developer B (4 tasks)
+- #35: Core API - Documentation
+- #39: Core API - Test New Endpoints
+- #40: Business Service - Test Preparation
+- #41: Memory Service - Integration Testing
+
+**View in Taiga**: http://localhost:9000/project/ninaivalaigal/kanban
+
+---
+
+## 🎯 How to Use
+
+### For Developers
+1. Login to Taiga
+2. View "My Work" to see your assigned tasks
+3. Move tasks through: Ready → In Progress → Done
+4. Update task comments with progress
+5. Refer to implementation guides in `docs/` folder
+
+### For Managers
+1. View project board in Taiga
+2. Check task assignments and progress
+3. Use docs/ folder for sprint planning reference
+4. Archive completed sprint reports to archive/
+
+---
+
+## 📚 Documentation
+
+**Implementation Guides** (in `docs/`):
+- Detailed step-by-step guides for each developer
+- Week 1-2 sprint breakdown
+- Technical specifications
+- Code examples and templates
+
+**These are REFERENCE docs, not tasks!**
+
+---
+
+## ✅ Migration Complete
+
+- ✅ Day 2 tasks created in Taiga (Tasks #28-41)
+- ✅ Developer accounts created
+- ✅ Tasks assigned to developers
+- ✅ Implementation guides preserved as reference
+- ✅ Old reports archived
+
+**All task tracking now in Taiga!** 🎉

@@ -1,7 +1,7 @@
 # Zombie Containers Issue - RESOLVED
 
-**Date:** Oct 16, 2025 @ 3:11 PM  
-**Issue:** Old `nv-*` containers kept reappearing despite cleanup  
+**Date:** Oct 16, 2025 @ 3:11 PM
+**Issue:** Old `nv-*` containers kept reappearing despite cleanup
 **Status:** ✅ FIXED
 
 ---

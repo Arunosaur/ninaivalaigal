@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  core-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@host.docker.internal:5432/ninaivalaigal
+      - PORT=8000
+      - JWT_SECRET_KEY=your-secret-key-here
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRATION_MINUTES=30
+    volumes:
+      - .:/app
+      - ../../shared:/app/shared
+    depends_on:
+      - db
+    command: python main.py
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ninaivalaigal
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

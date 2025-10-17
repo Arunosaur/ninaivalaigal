@@ -1,7 +1,7 @@
 # Team Documentation - Quick Reference
 
-**Updated:** Oct 16, 2025 @ 2:43 PM  
-**Location:** `/tasks/active/`  
+**Updated:** Oct 16, 2025 @ 2:43 PM
+**Location:** `/tasks/active/`
 **NEW:** Using Taiga for task assignments
 
 ---
@@ -10,8 +10,8 @@
 
 **All task assignments now in Taiga!**
 
-**URL:** http://localhost:9000/project/ninaivalaigal  
-**Login:** admin / admin123  
+**URL:** http://localhost:9000/project/ninaivalaigal
+**Login:** admin / admin123
 **Guide:** [TAIGA_WORKFLOW.md](./TAIGA_WORKFLOW.md)
 
 ---
@@ -284,7 +284,7 @@ alembic upgrade head
 
 ## 🎯 This Week's Focus
 
-**Developer A:** 
+**Developer A:**
 - Finish Memory Service container setup
 - Start JWT authentication
 

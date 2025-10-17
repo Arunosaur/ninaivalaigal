@@ -6,7 +6,7 @@
 # Usage: source env.sh  OR  . env.sh
 
 export DATABASE_URL="postgresql://nina:dev_password_change_in_production@192.168.64.137:6432/ninaivalaigal_dev"  # pragma: allowlist secret
-export GRAPHOPS_GRAPH="ninaivalaigal_intelligence"
+export GRAPHOPS_GRAPH="ninaivalaigal_intelligence_dev"  # Option A: Full environment suffixes
 export GRAPHOPS_PY_ITERATIONS="10"
 export RUST_LOG="graphops_service=debug,info"
 

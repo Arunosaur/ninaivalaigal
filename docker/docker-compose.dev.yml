@@ -4,8 +4,6 @@
 # Development Docker Compose Configuration
 # Usage: docker-compose -f docker/docker-compose.dev.yml up
 
-version: '3.9'
-
 services:
   # ============================================================================
   # GraphOps Rust Service
@@ -31,38 +29,53 @@ services:
       - ninaivalaigal
     restart: unless-stopped
     healthcheck:
-      test: ["/app/graphops-service", "--health-check"]
+      test: ["CMD", "/app/graphops-service", "--health-check"]
       interval: 10s
       timeout: 3s
       retries: 3
       start_period: 5s
 
   # ============================================================================
-  # Core API (Python FastAPI)
+  # Core API Microservice (Authentication, Users, Teams, Organizations)
+  # Extracted from monolithic server for SPEC-100 Stage 3
   # ============================================================================
   core-api:
     build:
       context: ..
-      dockerfile: docker/templates/python-service.Dockerfile
-    container_name: core-api
+      dockerfile: services/core-api/Dockerfile
+    container_name: ninaivalaigal-core-api
     ports:
-      - "8000:8000"
+      - "8001:8000"  # External 8001, internal 8000
     environment:
-      DATABASE_URL: postgresql://nina:${DB_PASSWORD:-dev_password}@postgres:5432/ninaivalaigal_dev
-      REDIS_URL: redis://redis:6379/0
-      GRAPHOPS_URL: graphops:50051
+      # Database connection (via PgBouncer for connection pooling)
+      NINA_ENV: dev
+      NINA_DB_USER: nina
+      NINA_DB_PASSWORD: ${DB_PASSWORD:-dev_password}
+      DATABASE_URL: postgresql://nina:${DB_PASSWORD:-dev_password}@pgbouncer:5432/ninaivalaigal_dev
+      
+      # JWT Authentication
+      NINAIVALAIGAL_JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_change_in_production}
+      NINA_JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_change_in_production}
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRATION_HOURS: 168
+      
+      # Service configuration
+      PORT: 8000
       ENVIRONMENT: development
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      
+      # Redis (for future session management)
+      REDIS_URL: redis://redis:6379/0
     volumes:
       # Mount code for hot-reload in development
-      - ../server:/app/server
+      - ../services/core-api:/app
       - ../shared:/app/shared
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
       redis:
-        condition: service_healthy
-      graphops:
         condition: service_healthy
     networks:
       - ninaivalaigal
