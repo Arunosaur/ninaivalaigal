@@ -31,12 +31,16 @@ IMAGE_NAME="nina-memory-service:arm64"
 PORT_EXTERNAL=13393
 PORT_INTERNAL=8000
 
+MEMORY_CACHE_TTL_SECONDS=${MEMORY_CACHE_TTL_SECONDS:-3600}
+REDIS_PORT=${REDIS_PORT:-6379}
+
 echo "Configuration"
 echo "   Environment: $NINA_ENV"
 echo "   Container:   $CONTAINER_NAME"
 echo "   Image:       $IMAGE_NAME"
 echo "   Port:        $PORT_EXTERNAL -> $PORT_INTERNAL"
 echo "   JWT Secret:  ${NINA_JWT_SECRET:0:4}***"
+echo "   Cache TTL:   ${MEMORY_CACHE_TTL_SECONDS}s"
 echo ""
 
 # Resolve PgBouncer IP (dynamic on Apple silicon)
@@ -53,6 +57,24 @@ fi
 echo "   PgBouncer: $PGB_IP:6432"
 DATABASE_URL="postgresql://${NINA_DB_USER}:${NINA_DB_PASSWORD}@${PGB_IP}:6432/ninaivalaigal_${NINA_ENV}"
 echo "   Database URL: postgresql://${NINA_DB_USER}:***@${PGB_IP}:6432/ninaivalaigal_${NINA_ENV}"
+echo ""
+
+if [ -z "${REDIS_URL:-}" ]; then
+    echo "Resolving Redis endpoint..."
+    REDIS_CONTAINER="ninaivalaigal-${NINA_ENV}-redis"
+    REDIS_IP=$(container inspect "$REDIS_CONTAINER" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
+    if [ -z "$REDIS_IP" ] || [ "$REDIS_IP" = "null" ]; then
+        echo "Unable to find Redis container ($REDIS_CONTAINER)."
+        echo "   Please ensure redis services are running:"
+        echo "   cd $PROJECT_ROOT && ./scripts/nv-redis-start.sh"
+        exit 1
+    fi
+    REDIS_URL="redis://${REDIS_IP}:${REDIS_PORT}"
+    echo "   Redis URL: $REDIS_URL"
+else
+    echo "Using provided REDIS_URL environment override"
+fi
+
 echo ""
 
 # Build Docker image for Apple container import
@@ -90,6 +112,8 @@ container run -d \
     -e DATABASE_URL="$DATABASE_URL" \
     -e NINAIVALAIGAL_JWT_SECRET="$NINA_JWT_SECRET" \
     -e NINA_JWT_SECRET="$NINA_JWT_SECRET" \
+    -e REDIS_URL="$REDIS_URL" \
+    -e MEMORY_CACHE_TTL_SECONDS="$MEMORY_CACHE_TTL_SECONDS" \
     -e PORT="$PORT_INTERNAL" \
     -e RUST_LOG="info" \
     "$IMAGE_NAME" || {
@@ -112,6 +136,7 @@ for attempt in {1..10}; do
         echo "Service did not become healthy in time"
         exit 1
     fi
+
 done
 
 echo ""
