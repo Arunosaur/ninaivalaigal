@@ -17,4 +17,5 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 # Run the Python client
-python3 mem0 "$@"
+cpython3 mem0 "$@"
+c

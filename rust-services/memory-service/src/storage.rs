@@ -2,8 +2,17 @@ use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::{PgPool, Result as SqlxResult};
 use std::str::FromStr;
 use uuid::Uuid;
+use serde::Serialize;
 
 use crate::models::{CreateMemoryRequest, Memory};
+
+#[derive(Clone, Serialize)]
+pub struct ConnectionStats {
+    pub size: u32,
+    pub idle: usize,
+    pub active: usize,
+    pub max_connections: u32,
+}
 
 #[derive(Clone)]
 pub struct MemoryStorage {
@@ -12,7 +21,8 @@ pub struct MemoryStorage {
 
 impl MemoryStorage {
     pub async fn new(database_url: &str) -> SqlxResult<Self> {
-        let options = PgConnectOptions::from_str(database_url)?.application_name("memory-service");
+        let options = PgConnectOptions::from_str(database_url)?
+            .application_name("memory-service");
 
         let pool = PgPoolOptions::new()
             .max_connections(8)
@@ -109,6 +119,19 @@ impl MemoryStorage {
         .await?;
 
         Ok(result.rows_affected())
+    }
+
+    /// Get current connection pool statistics for monitoring
+    pub fn connection_stats(&self) -> ConnectionStats {
+        let size = self.pool.size();
+        let idle = self.pool.num_idle();
+
+        ConnectionStats {
+            size,
+            idle,
+            active: size as usize - idle,
+            max_connections: 8, // Matches PgPoolOptions::max_connections
+        }
     }
 
     async fn initialise(&self) -> SqlxResult<()> {

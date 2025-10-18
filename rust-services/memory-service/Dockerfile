@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM rust:1.80-bullseye AS builder
+FROM rustlang/rust:nightly-bullseye AS builder
 WORKDIR /app
 
 # Create a dummy project structure to leverage Docker layer caching
@@ -10,11 +10,11 @@ COPY src ./src
 # Build release binary
 RUN cargo build --release
 
-FROM debian:bookworm-slim
+FROM debian:bullseye-slim
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
         ca-certificates \
-        libssl3 \
+        libssl1.1 \
         libpq5 \
     && rm -rf /var/lib/apt/lists/*
 

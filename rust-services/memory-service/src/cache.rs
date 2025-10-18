@@ -15,12 +15,12 @@ use crate::models::Memory;
 #[derive(Clone)]
 pub struct MemoryCache {
     connection: Arc<Mutex<ConnectionManager>>,
-    ttl_seconds: usize,
+    ttl_seconds: u64,
 }
 
 impl MemoryCache {
     pub async fn new(redis_url: &str, ttl_seconds: u64) -> RedisResult<Self> {
-        let ttl = ttl_seconds.max(1).min(usize::MAX as u64) as usize;
+        let ttl = ttl_seconds.max(1);
         let client = redis::Client::open(redis_url)?;
         let connection = ConnectionManager::new(client).await?;
 
@@ -94,13 +94,13 @@ impl MemoryCache {
         let recall_index = recall_index_key(user_id);
         let mut conn = self.connection.lock().await;
         let _: usize = conn.sadd(&recall_index, &key).await?;
-        let _: bool = conn.expire(&recall_index, self.ttl_seconds).await?;
+        let _: bool = conn.expire(&recall_index, self.ttl_seconds as i64).await?;
         Ok(())
     }
 
     async fn write_json<T>(&self, key: String, value: &T) -> RedisResult<()>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         let payload = serde_json::to_vec(value).map_err(|_| {
             RedisError::from((

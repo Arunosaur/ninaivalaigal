@@ -112,11 +112,26 @@ async fn main() {
         .expect("serve memory-service");
 }
 
-async fn health() -> Json<serde_json::Value> {
+async fn health(State(state): State<Arc<AppState>>) -> Json<serde_json::Value> {
+    let storage = state.storage();
+    let conn_stats = storage.connection_stats();
+
     Json(json!({
         "status": "healthy",
         "service": "memory-service",
-        "language": "rust"
+        "language": "rust",
+        "database": {
+            "connections_active": conn_stats.active,
+            "connections_idle": conn_stats.idle,
+            "connections_total": conn_stats.size,
+            "connections_max": conn_stats.max_connections,
+            "connection_mode": "direct_postgresql",
+            "connection_strategy": "short_term_workaround"
+        },
+        "redis": {
+            "enabled": true,
+            "ttl_seconds": 3600
+        }
     }))
 }
 
