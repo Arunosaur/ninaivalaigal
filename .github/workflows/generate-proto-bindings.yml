@@ -1,0 +1,104 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 Medhasys LLC
+#
+# Auto-generate protocol buffer bindings on proto file changes
+
+name: Generate Proto Bindings
+
+on:
+  push:
+    paths:
+      - 'shared/contracts/**/*.proto'
+    branches:
+      - main
+      - develop
+  pull_request:
+    paths:
+      - 'shared/contracts/**/*.proto'
+
+jobs:
+  generate-bindings:
+    name: Generate Python and Go Bindings
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          protoc --version
+
+      - name: Install Python proto tools
+        run: |
+          pip install grpcio-tools protobuf
+
+      - name: Install Go proto plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+      - name: Generate Python bindings
+        run: |
+          cd shared/contracts
+          python3 -m grpc_tools.protoc \
+            --proto_path=. \
+            --python_out=. \
+            --pyi_out=. \
+            --grpc_python_out=. \
+            $(find . -name "*.proto")
+
+      - name: Generate Go bindings
+        run: |
+          cd shared/contracts
+          export PATH=$PATH:$(go env GOPATH)/bin
+          for proto in $(find . -name "*.proto"); do
+            protoc --proto_path=. \
+              --go_out=. \
+              --go_opt=paths=source_relative \
+              --go-grpc_out=. \
+              --go-grpc_opt=paths=source_relative \
+              "$proto"
+          done
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit generated bindings
+        if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'push'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add shared/contracts
+          git commit -m "chore: Auto-generate proto bindings [skip ci]"
+          git push
+
+      - name: Comment on PR
+        if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ Proto bindings need to be regenerated. Run `./scripts/generate-proto-python.sh` and `./scripts/generate-proto-go.sh` locally and commit the changes.'
+            })

@@ -83,26 +83,45 @@ shared/contracts/
 
 ## 🚀 Code Generation
 
-### Generate Python Bindings
+### Automatic Generation (CI)
+Proto bindings are automatically generated when .proto files change:
+- GitHub Actions workflow regenerates bindings on push
+- Pre-commit hook validates proto files compile
+- Bindings committed automatically to repository
+
+### Manual Generation
+
+#### Generate Python Bindings
 ```bash
 # Generate all Python proto bindings
 ./scripts/generate-proto-python.sh
 
 # Or manually
-protoc --python_out=. --pyi_out=. \
-  --proto_path=shared/contracts \
-  shared/contracts/**/*.proto
+cd shared/contracts
+python3 -m grpc_tools.protoc \
+  --proto_path=. \
+  --python_out=. \
+  --pyi_out=. \
+  --grpc_python_out=. \
+  $(find . -name "*.proto")
 ```
 
-### Generate Go Bindings
+#### Generate Go Bindings
 ```bash
 # Generate all Go proto bindings
 ./scripts/generate-proto-go.sh
 
 # Or manually
-protoc --go_out=. --go-grpc_out=. \
-  --proto_path=shared/contracts \
-  shared/contracts/**/*.proto
+cd shared/contracts
+export PATH=$PATH:~/go/bin
+for proto in $(find . -name "*.proto"); do
+  protoc --proto_path=. \
+    --go_out=. \
+    --go_opt=paths=source_relative \
+    --go-grpc_out=. \
+    --go-grpc_opt=paths=source_relative \
+    "$proto"
+done
 ```
 
 ### Generate Rust Bindings
