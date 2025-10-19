@@ -48,13 +48,18 @@ if ! load_config "$RUNTIME" "$ENVIRONMENT"; then
 fi
 
 # Helper functions
-cleanup_container() {
+cleanup_or_start_container() {
     local container_name=$1
-    if $CONTAINER_COMMAND list | grep -q "$container_name"; then
-        log_info "Removing existing container: $container_name"
-        $CONTAINER_COMMAND stop "$container_name" 2>/dev/null || true
-        $CONTAINER_COMMAND rm "$container_name" 2>/dev/null || true
+    # Check if container exists and is stopped
+    if $CONTAINER_COMMAND list --all | grep -q "^$container_name .*stopped"; then
+        log_info "Starting existing container: $container_name"
+        $CONTAINER_COMMAND start "$container_name" 2>/dev/null
+        return 2  # Signal that we started existing container
+    elif $CONTAINER_COMMAND list | grep -q "^$container_name .*running"; then
+        log_warning "Container $container_name already running"
+        return 1  # Signal that container is already running
     fi
+    return 0  # Signal that we need to create new container
 }
 
 wait_for_container() {
@@ -85,7 +90,21 @@ start_database() {
     log_info "Step 1/4: Starting PostgreSQL Database"
     log_info "════════════════════════════════════════"
 
-    cleanup_container "$DB_CONTAINER"
+    cleanup_or_start_container "$DB_CONTAINER"
+    local start_result=$?
+    if [ $start_result -eq 1 ]; then
+        log_success "$DB_CONTAINER already running"
+        return 0
+    elif [ $start_result -eq 2 ]; then
+        sleep 3
+        if ! check_database_health; then
+            log_error "Database health check failed"
+            return 1
+        fi
+        log_success "Database is fully operational"
+        return 0
+    fi
+    # Continue with create...
 
     # Create volume if it doesn't exist (Apple CLI doesn't auto-create)
     if ! $CONTAINER_COMMAND volume list 2>/dev/null | grep -q "$DB_VOLUME"; then
@@ -133,7 +152,17 @@ start_redis() {
     log_info "Step 2/4: Starting Redis Cache"
     log_info "════════════════════════════════════════"
 
-    cleanup_container "$REDIS_CONTAINER"
+    cleanup_or_start_container "$REDIS_CONTAINER"
+    local start_result=$?
+    if [ $start_result -eq 1 ]; then
+        log_success "$REDIS_CONTAINER already running"
+        return 0
+    elif [ $start_result -eq 2 ]; then
+        sleep 2
+        log_success "Redis is operational"
+        return 0
+    fi
+    # Continue with create...
 
     # Create volume if it doesn't exist
     if ! $CONTAINER_COMMAND volume list 2>/dev/null | grep -q "$REDIS_VOLUME"; then
@@ -172,7 +201,17 @@ start_pgbouncer() {
     log_info "Step 3/4: Starting PgBouncer"
     log_info "════════════════════════════════════════"
 
-    cleanup_container "$PGBOUNCER_CONTAINER"
+    cleanup_or_start_container "$PGBOUNCER_CONTAINER"
+    local start_result=$?
+    if [ $start_result -eq 1 ]; then
+        log_success "$PGBOUNCER_CONTAINER already running"
+        return 0
+    elif [ $start_result -eq 2 ]; then
+        sleep 2
+        log_success "PgBouncer is operational"
+        return 0
+    fi
+    # Continue with create...
 
     # Get database IP for networking
     local db_ip=$(get_container_ip "$DB_CONTAINER")
@@ -226,7 +265,17 @@ start_api() {
     log_info "Step 4/4: Starting API Server"
     log_info "════════════════════════════════════════"
 
-    cleanup_container "$API_CONTAINER"
+    cleanup_or_start_container "$API_CONTAINER"
+    local start_result=$?
+    if [ $start_result -eq 1 ]; then
+        log_success "$API_CONTAINER already running"
+        return 0
+    elif [ $start_result -eq 2 ]; then
+        sleep 3
+        log_success "API is operational"
+        return 0
+    fi
+    # Continue with create...
 
     # Get PgBouncer IP for database connection
     local pgbouncer_ip=$(get_container_ip "$PGBOUNCER_CONTAINER")
@@ -293,6 +342,132 @@ cur.close(); conn.close()
     return 0
 }
 
+# START MEMORY SERVICE (Rust)
+start_memory_service() {
+    echo ""
+    log_info "════════════════════════════════════════"
+    log_info "Step 5/11: Starting Memory Service (Rust)"
+    log_info "════════════════════════════════════════"
+
+    local container_name="ninaivalaigal-${NINA_ENV}-memory-service"
+    cleanup_or_start_container "$container_name"
+    local start_result=$?
+    if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
+        log_success "$container_name operational"
+        return 0
+    fi
+    log_warning "Memory service not configured for automatic creation - manual start required"
+    return 0
+}
+
+# START GRPC GATEWAY (Go)
+start_grpc_gateway() {
+    echo ""
+    log_info "════════════════════════════════════════"
+    log_info "Step 6/11: Starting gRPC Gateway (Go)"
+    log_info "════════════════════════════════════════"
+
+    local container_name="ninaivalaigal-${NINA_ENV}-grpc-gateway"
+    cleanup_or_start_container "$container_name"
+    local start_result=$?
+    if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
+        log_success "$container_name operational"
+        return 0
+    fi
+    log_warning "gRPC Gateway not configured for automatic creation - manual start required"
+    return 0
+}
+
+# START GRAPH SERVICE (Python)
+start_graph_service() {
+    echo ""
+    log_info "════════════════════════════════════════"
+    log_info "Step 7/11: Starting Graph Service"
+    log_info "════════════════════════════════════════"
+
+    local container_name="ninaivalaigal-${NINA_ENV}-graph-service"
+    cleanup_or_start_container "$container_name"
+    local start_result=$?
+    if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
+        log_success "$container_name operational"
+        return 0
+    fi
+    log_warning "Graph service not configured for automatic creation - manual start required"
+    return 0
+}
+
+# START ADMIN VENDOR SERVICE
+start_admin_vendor() {
+    echo ""
+    log_info "════════════════════════════════════════"
+    log_info "Step 8/11: Starting Admin Vendor Service"
+    log_info "════════════════════════════════════════"
+
+    local container_name="ninaivalaigal-${NINA_ENV}-admin-vendor"
+    cleanup_or_start_container "$container_name"
+    local start_result=$?
+    if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
+        log_success "$container_name operational"
+        return 0
+    fi
+    log_warning "Admin vendor service not configured for automatic creation - manual start required"
+    return 0
+}
+
+# START BUSINESS SERVICE
+start_business_service() {
+    echo ""
+    log_info "════════════════════════════════════════"
+    log_info "Step 9/11: Starting Business Service"
+    log_info "════════════════════════════════════════"
+
+    local container_name="ninaivalaigal-${NINA_ENV}-business-service"
+    cleanup_or_start_container "$container_name"
+    local start_result=$?
+    if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
+        log_success "$container_name operational"
+        return 0
+    fi
+    log_warning "Business service not configured for automatic creation - manual start required"
+    return 0
+}
+
+# START ADMIN CONSOLE (UI)
+start_admin_console() {
+    echo ""
+    log_info "════════════════════════════════════════"
+    log_info "Step 10/11: Starting Admin Console"
+    log_info "════════════════════════════════════════"
+
+    local container_name="ninaivalaigal-${NINA_ENV}-admin-console"
+    cleanup_or_start_container "$container_name"
+    local start_result=$?
+    if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
+        log_success "$container_name operational"
+        return 0
+    fi
+    log_warning "Admin console not configured for automatic creation - manual start required"
+    return 0
+}
+
+# START CUSTOMER APP (UI)
+start_customer_app() {
+    echo ""
+    log_info "════════════════════════════════════════"
+    log_info "Step 11/11: Starting Customer App"
+    log_info "════════════════════════════════════════"
+
+    local container_name="ninaivalaigal-${NINA_ENV}-customer-app"
+    cleanup_or_start_container "$container_name"
+    local start_result=$?
+    if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
+        log_success "$container_name operational"
+        return 0
+    fi
+    log_warning "Customer app not configured for automatic creation - manual start required"
+    return 0
+}
+
 # Display final status
 show_stack_status() {
     echo ""
@@ -353,6 +528,15 @@ main() {
         log_error "Failed to start API server"
         exit 1
     fi
+
+    # Start additional services (best effort - won't fail if not configured)
+    start_memory_service
+    start_grpc_gateway
+    start_graph_service
+    start_admin_vendor
+    start_business_service
+    start_admin_console
+    start_customer_app
 
     # Show status
     show_stack_status
