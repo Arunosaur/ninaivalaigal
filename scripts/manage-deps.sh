@@ -34,7 +34,7 @@ compile_requirements() {
 
     ensure_pip_tools
 
-    cd "$REQUIREMENTS_DIR"
+    cd "$REQUIREMENTS_DIR" || exit
 
     case "$target" in
         "base"|"all")

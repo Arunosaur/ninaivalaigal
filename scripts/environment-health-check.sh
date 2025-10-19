@@ -254,7 +254,7 @@ check_port_availability() {
 run_smoke_tests() {
     log "Running smoke tests..."
 
-    cd "$PROJECT_ROOT"
+    cd "$PROJECT_ROOT" || exit
 
     if [[ -f "requirements.txt" ]] && [[ -d "tests/smoke" ]]; then
         # Install test dependencies if needed

@@ -206,7 +206,7 @@ main() {
     log "🧪 Starting comprehensive validation of all combinations..."
     echo ""
 
-    cd "$ROOT_DIR"
+    cd "$ROOT_DIR" || exit
 
     # Run all tests
     test_port_assignments

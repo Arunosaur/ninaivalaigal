@@ -1,0 +1,176 @@
+{
+  "name": "grpc-gateway-comprehensive",
+  "base_url": "http://localhost:8080",
+  "headers": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer load-test-token",
+    "User-Agent": "Ninaivalaigal-LoadTester/1.0"
+  },
+  "timeout": "30s",
+  "endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "weight": 15,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "100ms"
+        },
+        {
+          "type": "json_path",
+          "field": "status",
+          "operator": "eq",
+          "value": "healthy"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/remember",
+      "method": "POST",
+      "body": "{\"content\":\"Load test memory entry for performance validation\",\"context\":\"load_testing_scenario\",\"metadata\":{\"test_id\":\"lt001\",\"scenario\":\"comprehensive\",\"timestamp\":\"2025-10-18\"}}",
+      "weight": 25,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "2s"
+        },
+        {
+          "type": "json_path",
+          "field": "status",
+          "operator": "eq",
+          "value": "success"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/recall?q=load%20test&limit=10&threshold=0.7",
+      "method": "GET",
+      "weight": 20,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "1s"
+        },
+        {
+          "type": "json_path",
+          "field": "memories",
+          "operator": "exists",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/memories?page=1&page_size=20",
+      "method": "GET",
+      "weight": 10,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "1s"
+        },
+        {
+          "type": "json_path",
+          "field": "memories",
+          "operator": "exists",
+          "value": ""
+        },
+        {
+          "type": "json_path",
+          "field": "page",
+          "operator": "eq",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/graph/query",
+      "method": "POST",
+      "body": "{\"query\":\"MATCH (n) RETURN count(n) as total_nodes\",\"parameters\":{},\"timeout_ms\":5000}",
+      "weight": 20,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "5s"
+        },
+        {
+          "type": "json_path",
+          "field": "results",
+          "operator": "exists",
+          "value": ""
+        },
+        {
+          "type": "json_path",
+          "field": "status",
+          "operator": "eq",
+          "value": "success"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/graph/query",
+      "method": "POST",
+      "body": "{\"query\":\"MATCH (m:Memory) WHERE m.content CONTAINS 'load test' RETURN m LIMIT 5\",\"parameters\":{},\"timeout_ms\":3000}",
+      "weight": 15,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "3s"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/graph/health",
+      "method": "GET",
+      "weight": 5,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "500ms"
+        }
+      ]
+    }
+  ]
+}

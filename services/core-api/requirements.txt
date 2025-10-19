@@ -9,6 +9,8 @@ email-validator==2.1.0
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.12.1
+asyncpg==0.29.0
+pgvector==0.2.4
 
 # Authentication
 pyjwt==2.8.0
@@ -25,3 +27,11 @@ python-dateutil==2.8.2
 # Monitoring & Metrics (SPEC-100)
 psutil==5.9.6
 redis==5.0.1
+
+# HTTP Client & Additional Dependencies
+httpx==0.25.2
+aiohttp==3.9.1
+requests==2.31.0
+
+# Cryptography for API keys
+cryptography==41.0.7

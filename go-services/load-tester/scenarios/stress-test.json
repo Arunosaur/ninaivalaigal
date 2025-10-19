@@ -1,0 +1,81 @@
+{
+  "name": "stress-test",
+  "base_url": "http://localhost:8080",
+  "headers": {
+    "Content-Type": "application/json",
+    "User-Agent": "Ninaivalaigal-StressTester/1.0"
+  },
+  "timeout": "60s",
+  "endpoints": [
+    {
+      "path": "/api/v1/memory/remember",
+      "method": "POST",
+      "body": "{\"content\":\"High-volume stress test memory entry - batch {{.RequestID}}\",\"context\":\"stress_testing\",\"metadata\":{\"batch_id\":\"{{.BatchID}}\",\"worker_id\":\"{{.WorkerID}}\",\"timestamp\":\"{{.Timestamp}}\"}}",
+      "weight": 40,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "in",
+          "value": "200,201,429"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "10s"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/recall?q=stress%20test&limit=50",
+      "method": "GET",
+      "weight": 30,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "in",
+          "value": "200,429,503"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "5s"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/graph/query",
+      "method": "POST",
+      "body": "{\"query\":\"MATCH (m:Memory) WHERE m.content CONTAINS 'stress test' RETURN count(m) as stress_memories\"}",
+      "weight": 20,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "in",
+          "value": "200,429,503"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "15s"
+        }
+      ]
+    },
+    {
+      "path": "/health",
+      "method": "GET",
+      "weight": 10,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "in",
+          "value": "200,503"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "30s"
+        }
+      ]
+    }
+  ]
+}

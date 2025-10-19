@@ -1,3 +1,49 @@
+# ============================================================================
+# ROOT DIRECTORY PROTECTION
+# ============================================================================
+# Goal: Keep root clean - only essential config files allowed
+# Everything else must live in subdirectories
+
+# Root guard: Ignore everything at root by default...
+/*
+
+# ...then explicitly allow essential files:
+!/.gitignore
+!/README.md
+!/CHANGELOG.md
+!/CONTRIBUTING.md
+!/SECURITY.md
+!/LICENSE
+
+# Build files
+!/Makefile
+!/Makefile.compose
+!/Makefile.dev
+!/Dockerfile
+
+# Python
+!/pyproject.toml
+!/requirements.txt
+!/requirements-dev.txt
+
+# Node.js
+!/package.json
+!/package-lock.json
+
+# Database
+!/alembic.ini
+
+# Pre-commit configuration
+!/.pre-commit-config.yaml
+!/.pre-commit-config-enhanced.yaml
+
+# Allow all directories (they have their own .gitignore)
+!*/
+
+# ============================================================================
+# STANDARD IGNORES
+# ============================================================================
+
 # Ignore Logs
 logs
 *.log
@@ -8,7 +54,10 @@ lerna-debug.log*
 .pnpm-debug.log*
 
 # IDE Configuration
-.vscode/
+# Allow .vscode/settings.json for team settings, but ignore personal configs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
@@ -117,3 +166,9 @@ target/
 Cargo.lock
 **/*.rs.bk
 *.pdb
+
+
+# Go build artifacts
+go-services/*/grpc-gateway
+go-services/*/nina-cli
+go-services/*/test-binary

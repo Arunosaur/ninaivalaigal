@@ -1,0 +1,103 @@
+{
+  "name": "smoke-test",
+  "base_url": "http://localhost:8080",
+  "headers": {
+    "Content-Type": "application/json",
+    "User-Agent": "Ninaivalaigal-SmokeTest/1.0"
+  },
+  "timeout": "10s",
+  "endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "weight": 30,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "1s"
+        },
+        {
+          "type": "json_path",
+          "field": "status",
+          "operator": "eq",
+          "value": "healthy"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/health",
+      "method": "GET",
+      "weight": 25,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "1s"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/graph/health",
+      "method": "GET",
+      "weight": 25,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "1s"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/remember",
+      "method": "POST",
+      "body": "{\"content\":\"Smoke test validation entry\",\"context\":\"smoke_test\",\"metadata\":{\"test_type\":\"smoke\",\"purpose\":\"basic_validation\"}}",
+      "weight": 15,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "2s"
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/recall?q=smoke%20test&limit=5",
+      "method": "GET",
+      "weight": 5,
+      "validate": [
+        {
+          "type": "status_code",
+          "operator": "eq",
+          "value": "200"
+        },
+        {
+          "type": "response_time",
+          "operator": "lt",
+          "value": "1s"
+        }
+      ]
+    }
+  ]
+}

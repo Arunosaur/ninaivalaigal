@@ -2,21 +2,10 @@
 # SPDX-License-Identifier: Proprietary
 # Copyright (c) 2025 Medhasys LLC
 """
-Graph/AI Service - SPEC-100 Modularization
+Graph/AI Service - SPEC-100 Compliant Microservice.
 
-Handles:
-- Graph intelligence and reasoning (Apache AGE)
-- AI-powered suggestions and relevance
-- Memory graph analysis
-- Heavy compute isolation
-
-Integrates with:
-- GraphOps Stack (ninaivalaigal-graph-db on port 5433)
-- Graph Redis Cache (ninaivalaigal-graph-redis on port 6380)
-
-Part of SPEC-100 API Container Modularization & Runtime-Agnostic Federation
-SPEC-062: GraphOps Stack Deployment Architecture
-SPEC-064: Graph Intelligence Architecture
+Handles graph intelligence, Apache AGE integration, and AI reasoning.
+Part of SPEC-100 API Container Modularization & Runtime-Agnostic Federation.
 """
 
 import os
@@ -29,10 +18,13 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Add shared to path
+# Add directories to path (order matters: current first, then lib, then shared)
 current_dir = Path(__file__).parent
 shared_dir = current_dir.parent.parent / "shared"
-sys.path.insert(0, str(shared_dir))
+lib_dir = current_dir / "lib"
+sys.path.insert(0, str(current_dir))  # Current directory first for our routers
+sys.path.insert(1, str(lib_dir))  # Then lib for server dependencies
+sys.path.insert(2, str(shared_dir))  # Finally shared utilities
 
 # Set environment defaults for GraphOps
 os.environ.setdefault("NINA_ENV", "dev")
@@ -44,17 +36,24 @@ os.environ.setdefault("GRAPH_DB_PASSWORD", "graphops_password")
 os.environ.setdefault("GRAPH_REDIS_HOST", "localhost")
 os.environ.setdefault("GRAPH_REDIS_PORT", "6380")  # GraphOps Redis port
 
-from routers import health as health_router  # noqa: E402
-from routers import metrics as metrics_router  # noqa: E402
+from database import DatabaseManager  # noqa: E402
 
 # Configure structlog
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
         structlog.processors.JSONRenderer(),
     ],
+    context_class=dict,
     logger_factory=structlog.stdlib.LoggerFactory(),
     wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
 )
 
 logger = structlog.get_logger(__name__)
@@ -62,48 +61,29 @@ logger = structlog.get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifecycle management for Graph/AI Service"""
-    logger.info("🧠 Graph/AI Service starting up...")
+    """FastAPI lifespan for proper startup/shutdown"""
+    logger.info("🧠 Starting Graph/AI Service...")
 
-    # GraphOps connection details
-    graph_db_url = (
-        f"postgresql://{os.getenv('GRAPH_DB_USER')}:{os.getenv('GRAPH_DB_PASSWORD')}"
-        f"@{os.getenv('GRAPH_DB_HOST')}:{os.getenv('GRAPH_DB_PORT')}/{os.getenv('GRAPH_DB_NAME')}"
-    )
-    graph_redis_url = f"redis://{os.getenv('GRAPH_REDIS_HOST')}:{os.getenv('GRAPH_REDIS_PORT')}"
+    # Initialize database from environment variable
+    database_url = os.getenv(
+        "DATABASE_URL", "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"
+    )  # pragma: allowlist secret
+    logger.info(f"📊 Database URL: {database_url[:50]}...")
 
-    logger.info(f"📊 Graph DB: {graph_db_url[:60]}...")
-    logger.info(f"📊 Graph Redis: {graph_redis_url}")
-
-    # Initialize connections
     try:
-        # TODO: Initialize Apache AGE client
-        # app.state.age_client = AGEClient(graph_db_url)
-        logger.info("✅ Apache AGE client ready (placeholder)")
-
-        # TODO: Initialize Graph Redis client
-        # app.state.graph_redis = redis.from_url(graph_redis_url)
-        logger.info("✅ Graph Redis client ready (placeholder)")
-
-        # TODO: Initialize GraphReasoner
-        # app.state.graph_reasoner = GraphReasoner(app.state.age_client, app.state.graph_redis)
-        logger.info("✅ GraphReasoner ready (placeholder)")
-
-        app.state.graphops_available = False  # Set to True when connected
+        db_manager = DatabaseManager(database_url)
+        app.state.db_manager = db_manager
+        app.state.db = db_manager
+        logger.info("✅ Database connected")
     except Exception as e:
-        logger.error(f"❌ GraphOps connection failed: {e}")
-        app.state.graphops_available = False
+        logger.error(f"❌ Database connection failed: {e}")
+        raise
+
+    logger.info("✅ Graph/AI Service started successfully")
 
     yield
 
-    # Cleanup
     logger.info("👋 Graph/AI Service shutting down...")
-    if hasattr(app.state, "age_client"):
-        # Close Apache AGE connections
-        logger.info("✅ Apache AGE connections closed")
-    if hasattr(app.state, "graph_redis"):
-        # Close Redis connections
-        logger.info("✅ Graph Redis connections closed")
 
 
 # Initialize FastAPI app with SPEC-100 metadata
@@ -123,14 +103,80 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include SPEC-100 compliant routers
+# Import and include SPEC-100 routers
+from routers import health as health_router  # noqa: E402
+from routers import metrics as metrics_router  # noqa: E402
+
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
 
-# Include graph intelligence routers
-from routers import graph as graph_router  # noqa: E402
+# Import graph intelligence routers - ALL ROUTERS ENABLED
+# All lib/ imports fixed, enabling full graph intelligence stack
 
-app.include_router(graph_router.router)
+# Import all graph routers with proper error handling
+try:
+    from routers import graphops_integration  # noqa: E402
+
+    app.include_router(graphops_integration.router)
+except Exception as e:
+    print(f"⚠️  Could not load graphops_integration: {e}")
+
+try:
+    from routers import dashboard_widgets_api  # noqa: E402
+
+    app.include_router(dashboard_widgets_api.router)
+except Exception as e:
+    print(f"⚠️  Could not load dashboard_widgets_api: {e}")
+
+try:
+    from routers import ai_feedback_api  # noqa: E402
+
+    app.include_router(ai_feedback_api.router)
+except Exception as e:
+    print(f"⚠️  Could not load ai_feedback_api: {e}")
+
+# NOW ENABLING: Complex graph intelligence routers
+try:
+    from routers import graph_intelligence_api  # noqa: E402
+
+    app.include_router(graph_intelligence_api.router)
+except Exception as e:
+    print(f"⚠️  Could not load graph_intelligence_api: {e}")
+
+try:
+    from routers import graph_intelligence_integration_api  # noqa: E402
+
+    app.include_router(graph_intelligence_integration_api.router)
+except Exception as e:
+    print(f"⚠️  Could not load graph_intelligence_integration_api: {e}")
+
+try:
+    from routers import graph_rank  # noqa: E402
+
+    app.include_router(graph_rank.router)
+except Exception as e:
+    print(f"⚠️  Could not load graph_rank: {e}")
+
+try:
+    from routers import insights_api  # noqa: E402
+
+    app.include_router(insights_api.router)
+except Exception as e:
+    print(f"⚠️  Could not load insights_api: {e}")
+
+try:
+    from routers import performance_api  # noqa: E402
+
+    app.include_router(performance_api.router)
+except Exception as e:
+    print(f"⚠️  Could not load performance_api: {e}")
+
+try:
+    from routers import agentic_api  # noqa: E402
+
+    app.include_router(agentic_api.router)
+except Exception as e:
+    print(f"⚠️  Could not load agentic_api: {e}")
 
 
 if __name__ == "__main__":

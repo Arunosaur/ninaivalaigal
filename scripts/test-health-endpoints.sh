@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 Medhasys LLC
+#
 # Health Endpoints Test Script
 # Tests all health endpoints and displays results
 

@@ -29,3 +29,10 @@ per-file-ignores =
     coverage/*:D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
     graph-validation/*:B007,D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403
     server/routers/memory.py:F821
+
+# Ignore flake8 in legacy/testing files
+[flake8:config/mem0]
+ignore = E402,D103
+
+[flake8:scripts/testing/test_redis_debug.py]
+ignore = E265

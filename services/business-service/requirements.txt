@@ -1,6 +1,4 @@
-# Business Service Dependencies (SPEC-100)
-
-# Core API Framework
+# Core API Service Dependencies
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
@@ -11,16 +9,26 @@ email-validator==2.1.0
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.12.1
+asyncpg==0.29.0
+pgvector==0.2.4
 
-# Payment Processing
-stripe==7.5.0
+# Authentication
+pyjwt==2.8.0
+passlib==1.7.4
+bcrypt==4.1.1
+python-multipart==0.0.6
 
 # Logging
 structlog==23.2.0
+
+# Utilities
+python-dateutil==2.8.2
 
 # Monitoring & Metrics (SPEC-100)
 psutil==5.9.6
 redis==5.0.1
 
-# Utilities
-python-dateutil==2.8.2
+# Business Logic (Billing, Invoicing)
+stripe==7.7.0
+reportlab==4.0.7
+openpyxl==3.1.2

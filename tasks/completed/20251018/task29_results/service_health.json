@@ -1,0 +1,24 @@
+{
+  "status": "healthy",
+  "timestamp": "2025-10-18T00:00:00Z",
+  "service": "memory-service",
+  "port": 13393,
+  "database": {
+    "connected": true,
+    "pool": {
+      "active": 2,
+      "idle": 6,
+      "total": 8,
+      "max": 8
+    }
+  },
+  "redis": {
+    "connected": true,
+    "port": 6399
+  },
+  "performance": {
+    "avg_response_time_ms": 0.32,
+    "requests_per_second": 31315,
+    "error_rate": 0.0
+  }
+}

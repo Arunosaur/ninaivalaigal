@@ -1744,6 +1744,46 @@ pre-commit-run:
 	@echo "Running pre-commit hooks..."
 	@pre-commit run --all-files --config .pre-commit-config-enhanced.yaml
 
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🐹 GO TOOLING (Developer A's Services)
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## lint all go services
+lint-go:
+	@echo "🐹 Linting all Go services..."
+	@cd go-services/grpc-gateway && golangci-lint run ./...
+	@cd go-services/load-tester && golangci-lint run ./...
+	@cd go-services/cli-tools && golangci-lint run ./...
+	@echo "✅ All Go services linted successfully"
+
+## format all go services
+fmt-go:
+	@echo "🐹 Formatting all Go services..."
+	@cd go-services/grpc-gateway && goimports -w . && go fmt ./...
+	@cd go-services/load-tester && goimports -w . && go fmt ./...
+	@cd go-services/cli-tools && goimports -w . && go fmt ./...
+	@echo "✅ All Go services formatted"
+
+## tidy go.mod/go.sum for all services
+tidy-go:
+	@echo "🐹 Tidying Go modules..."
+	@cd go-services/grpc-gateway && go mod tidy
+	@cd go-services/load-tester && go mod tidy
+	@cd go-services/cli-tools && go mod tidy
+	@echo "✅ All Go modules tidied"
+
+## vet all go services
+vet-go:
+	@echo "🐹 Vetting all Go services..."
+	@cd go-services/grpc-gateway && go vet ./...
+	@cd go-services/load-tester && go vet ./...
+	@cd go-services/cli-tools && go vet ./...
+	@echo "✅ All Go services vetted"
+
+## run all go checks (lint + fmt + tidy + vet)
+check-go: lint-go fmt-go tidy-go vet-go
+	@echo "✅ All Go checks passed!"
+
 ## environment recovery - restart everything cleanly
 environment-recovery:
 	@echo "Performing environment recovery..."

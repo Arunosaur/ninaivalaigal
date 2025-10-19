@@ -18,15 +18,15 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-# Add shared and parent directories to path
+# Add directories to path (order matters: current first, then lib, then shared)
 current_dir = Path(__file__).parent
 shared_dir = current_dir.parent.parent / "shared"
-sys.path.insert(0, str(shared_dir))
-sys.path.insert(0, str(current_dir.parent.parent / "server"))
+lib_dir = current_dir / "lib"
+sys.path.insert(0, str(current_dir))  # Current directory first for our routers
+sys.path.insert(1, str(lib_dir))  # Then lib for server dependencies
+sys.path.insert(2, str(shared_dir))  # Finally shared utilities
 
-from database.database import DatabaseManager  # noqa: E402
-
-from utils.config import load_config  # noqa: E402
+from database import DatabaseManager  # noqa: E402
 
 # Configure structlog
 structlog.configure(
@@ -49,21 +49,16 @@ structlog.configure(
 
 logger = structlog.get_logger(__name__)
 
-# Load configuration
-config = load_config()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """FastAPI lifespan for proper startup/shutdown"""
     logger.info("🚀 Starting Core API Service...")
 
-    # Initialize database
-    database_url = os.getenv("DATABASE_URL") or load_config()
-    if isinstance(database_url, dict):
-        database_url = database_url.get("storage", {}).get(
-            "database_url", "postgresql://user:password@localhost:5432/ninaivalaigal"  # pragma: allowlist secret
-        )
+    # Initialize database from environment variable
+    database_url = os.getenv(
+        "DATABASE_URL", "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"
+    )  # pragma: allowlist secret
     logger.info(f"📊 Database URL: {database_url[:50]}...")
 
     try:
@@ -121,8 +116,49 @@ from routers import metrics as metrics_router  # noqa: E402
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
 
-# TODO: Add business logic routers after extracting from server/
-# from routers import auth, signup, users, teams, organizations
+# Import team management routers
+# Import memory & session routers
+# Import business logic routers
+from routers import memory_acl_api  # noqa: E402
+from routers import memory_api  # noqa: E402
+from routers import memory_drift_api  # noqa: E402
+from routers import memory_health_api  # noqa: E402
+from routers import memory_injection_api  # noqa: E402
+from routers import memory_suggestions_api  # noqa: E402
+from routers import organizations  # noqa: E402
+from routers import preload_api  # noqa: E402
+from routers import queue_api  # noqa: E402
+from routers import rbac_api  # noqa: E402
+from routers import session_api  # noqa: E402
+from routers import signup_api  # noqa: E402
+from routers import team_api_keys_api  # noqa: E402
+from routers import team_invitations_api  # noqa: E402
+from routers import teams  # noqa: E402
+from routers import token_api  # noqa: E402
+from routers import users  # noqa: E402
+
+# Include business logic routers
+app.include_router(signup_api.router)
+app.include_router(users.router)
+app.include_router(teams.router)
+app.include_router(organizations.router)
+app.include_router(rbac_api.rbac_router)  # Note: rbac_api uses 'rbac_router' not 'router'
+app.include_router(token_api.router)
+
+# Include memory & session routers
+app.include_router(memory_api.router)
+app.include_router(memory_acl_api.router)
+app.include_router(memory_drift_api.router)
+app.include_router(memory_health_api.router)
+app.include_router(memory_injection_api.router)
+app.include_router(memory_suggestions_api.router)
+app.include_router(session_api.router)
+app.include_router(queue_api.router)
+app.include_router(preload_api.router)
+
+# Include team management routers
+app.include_router(team_api_keys_api.router)
+app.include_router(team_invitations_api.router)
 
 
 if __name__ == "__main__":

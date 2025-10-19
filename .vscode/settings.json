@@ -5,5 +5,34 @@
       "args": [],
       "cwd": "/Users/asrajag/Workspace/mem0"
     }
-  }
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/*.pyo": true,
+    "**/.DS_Store": true,
+    "**/target": true,
+    "**/node_modules": true,
+    "**/*.log": true,
+    "**/.pytest_cache": true,
+    "**/.coverage": true,
+    "**/htmlcov": true,
+    "**/.mypy_cache": true,
+    "**/*.egg-info": true,
+    "**/.eggs": true,
+    "**/build": true,
+    "**/dist": true
+  },
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/target/**": true,
+    "**/__pycache__/**": true,
+    "**/build/**": true,
+    "**/dist/**": true
+  },
+  "files.defaultLanguage": "{python}",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000
 }

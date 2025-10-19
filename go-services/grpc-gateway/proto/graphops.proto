@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package ninaivalaigal.graphops.v1;
+
+option go_package = "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto/graphopspb";
+
+import "google/protobuf/timestamp.proto";
+
+// GraphOps Service - gRPC definitions
+service GraphOpsService {
+  // Execute a Cypher query
+  rpc ExecuteQuery(ExecuteQueryRequest) returns (ExecuteQueryResponse);
+
+  // Execute multiple queries in a transaction
+  rpc ExecuteTransaction(ExecuteTransactionRequest) returns (ExecuteTransactionResponse);
+
+  // Health check
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+
+  // Get graph statistics
+  rpc GetGraphStats(GetGraphStatsRequest) returns (GetGraphStatsResponse);
+}
+
+// Execute Query
+message ExecuteQueryRequest {
+  string query = 1;
+  map<string, string> parameters = 2;
+  string user_id = 3; // for access control
+  int32 timeout_ms = 4;
+}
+
+message ExecuteQueryResponse {
+  repeated QueryResult results = 1;
+  QueryMetadata metadata = 2;
+  string status = 3;
+}
+
+message QueryResult {
+  repeated QueryColumn columns = 1;
+  repeated QueryRow rows = 2;
+}
+
+message QueryColumn {
+  string name = 1;
+  string type = 2;
+}
+
+message QueryRow {
+  repeated QueryValue values = 1;
+}
+
+message QueryValue {
+  oneof value {
+    string string_value = 1;
+    int64 int_value = 2;
+    double double_value = 3;
+    bool bool_value = 4;
+    bytes json_value = 5; // for complex objects
+  }
+}
+
+message QueryMetadata {
+  int32 rows_affected = 1;
+  int32 execution_time_ms = 2;
+  string query_plan = 3;
+  repeated string warnings = 4;
+}
+
+// Execute Transaction
+message ExecuteTransactionRequest {
+  repeated string queries = 1;
+  map<string, string> parameters = 2;
+  string user_id = 3;
+  int32 timeout_ms = 4;
+}
+
+message ExecuteTransactionResponse {
+  repeated QueryResult results = 1;
+  TransactionMetadata metadata = 2;
+  string status = 3;
+}
+
+message TransactionMetadata {
+  int32 total_queries = 1;
+  int32 successful_queries = 2;
+  int32 total_execution_time_ms = 3;
+  bool committed = 4;
+}
+
+// Graph Statistics
+message GetGraphStatsRequest {
+  string graph_name = 1;
+}
+
+message GetGraphStatsResponse {
+  GraphStats stats = 1;
+}
+
+message GraphStats {
+  int64 node_count = 1;
+  int64 edge_count = 2;
+  repeated LabelStats node_labels = 3;
+  repeated LabelStats edge_labels = 4;
+  google.protobuf.Timestamp last_updated = 5;
+}
+
+message LabelStats {
+  string label = 1;
+  int64 count = 2;
+}
+
+// Health Check
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string status = 1;
+  string version = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  ConnectionStatus database = 4;
+}
+
+message ConnectionStatus {
+  bool connected = 1;
+  int32 active_connections = 2;
+  int32 idle_connections = 3;
+  int32 max_connections = 4;
+}

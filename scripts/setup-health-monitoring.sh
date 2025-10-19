@@ -116,7 +116,7 @@ jobs:
 
     - name: Run health check
       run: |
-        cd ${{ github.workspace }}
+        cd ${{ github.workspace }} || exit
         ./scripts/comprehensive-health-monitor.sh status
 
     - name: Check container status

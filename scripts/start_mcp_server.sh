@@ -43,7 +43,7 @@ start_server() {
     echo "Database: $NINAIVALAIGAL_DATABASE_URL"
     echo "Log file: $LOG_FILE"
 
-    cd "$SERVER_DIR"
+    cd "$SERVER_DIR" || exit
     python mcp_server.py > "$LOG_FILE" 2>&1 &
     SERVER_PID=$!
 
@@ -111,7 +111,7 @@ status_server() {
 
 test_server() {
     echo "Testing MCP server functionality..."
-    cd "$PROJECT_ROOT"
+    cd "$PROJECT_ROOT" || exit
     python tests/test_mcp_server_basic.py
 }
 

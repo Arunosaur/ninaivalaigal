@@ -22,7 +22,7 @@ export NINAIVALAIGAL_DATABASE_URL="postgresql://mem0user:mem0pass@localhost:5432
 export PYTHONPATH="/Users/asrajag/Workspace/mem0/server"
 
 # Change to project directory
-cd "/Users/asrajag/Workspace/mem0"
+cd "/Users/asrajag/Workspace/mem0" || exit
 
 echo "DEBUG: Changed to $(pwd)" >&2
 echo "DEBUG: Python path: /opt/homebrew/anaconda3/bin/python3.11" >&2

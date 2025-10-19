@@ -174,4 +174,45 @@ repos:
         files: \.rs$
         pass_filenames: false
 
+  # ---- Go toolchain hygiene ----
+  - repo: local
+    hooks:
+      - id: golangci-lint
+        name: golangci-lint
+        entry: bash -c 'cd go-services && for dir in grpc-gateway load-tester cli-tools; do echo "Linting $dir..." && cd $dir && golangci-lint run ./... && cd ..; done'
+        language: system
+        types: [go]
+        pass_filenames: false
+
+      - id: goimports
+        name: goimports (format)
+        entry: bash -c 'cd go-services && for dir in grpc-gateway load-tester cli-tools; do echo "Formatting $dir..." && cd $dir && goimports -w . && cd ..; done'
+        language: system
+        types: [go]
+        pass_filenames: false
+
+      - id: go-mod-tidy
+        name: go mod tidy
+        entry: bash -c 'cd go-services && for dir in grpc-gateway load-tester cli-tools; do echo "Tidying $dir..." && cd $dir && go mod tidy && cd ..; done'
+        language: system
+        files: go\.(mod|sum)$
+        pass_filenames: false
+
+      - id: go-vet
+        name: go vet
+        entry: bash -c 'cd go-services && for dir in grpc-gateway load-tester cli-tools; do echo "Vetting $dir..." && cd $dir && go vet ./... && cd ..; done'
+        language: system
+        types: [go]
+        pass_filenames: false
+
+  # ---- Root directory cleanliness enforcement ----
+  - repo: local
+    hooks:
+      - id: root-clean
+        name: Enforce root directory cleanliness
+        entry: .pre-commit-hooks/check-root-clean.sh
+        language: script
+        pass_filenames: false
+        stages: [commit]
+
   # ---- Optional: Add more hooks below ----

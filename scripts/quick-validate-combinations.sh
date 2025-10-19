@@ -21,7 +21,7 @@ echo "║  Quick Validation - Remaining Combinations                ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 
-cd /Users/swami/WorkSpace/ninaivalaigal
+cd /Users/swami/WorkSpace/ninaivalaigal || exit
 
 # Already validated: Docker/dev, Apple CLI/dev
 echo "✅ Already Validated:"

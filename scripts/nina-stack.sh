@@ -191,7 +191,7 @@ run_compose() {
 
     log_info "Using: $compose_file with $env_file"
 
-    cd "$PROJECT_ROOT"
+    cd "$PROJECT_ROOT" || exit
     $compose_cmd --env-file "$env_file" -f "$compose_file" "$@"
 }
 

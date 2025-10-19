@@ -33,7 +33,7 @@ main() {
   sleep 5
 
   log "Running tests..."
-  cd "$PROJECT_ROOT"
+  cd "$PROJECT_ROOT" || exit
 
   # Set up environment for tests
   export PYTHONPATH="$PROJECT_ROOT/server:$PYTHONPATH"

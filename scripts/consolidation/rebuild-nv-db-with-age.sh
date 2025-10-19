@@ -162,7 +162,7 @@ build_new_db() {
     cp "${BACKUP_DIR}"/nv-db-backup-*.sql "${SCRIPT_DIR}/restore-data.sql" 2>/dev/null || echo "-- No backup to restore" > "${SCRIPT_DIR}/restore-data.sql"
 
     # Build the new container
-    cd "$SCRIPT_DIR"
+    cd "$SCRIPT_DIR" || exit
     container build -t nv-db-age:latest -f Dockerfile.nv-db-age .
 
     success "New nv-db container built with Apache AGE"

@@ -220,7 +220,7 @@ test_data_sharing() {
 }
 
 # Main test execution
-cd /Users/swami/WorkSpace/ninaivalaigal
+cd /Users/swami/WorkSpace/ninaivalaigal || exit
 
 echo "Starting comprehensive 9-combination test..."
 echo ""

@@ -28,7 +28,7 @@ COPY services/graph-service/ /app/
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV SERVICE_ROLE=graph-service
-ENV PORT=8001
+ENV PORT=8000
 
 # GraphOps defaults (SPEC-062)
 ENV GRAPH_DB_HOST=localhost
@@ -40,11 +40,11 @@ ENV GRAPH_REDIS_HOST=localhost
 ENV GRAPH_REDIS_PORT=6380
 
 # Expose port
-EXPOSE 8001
+EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8001/health')"
+    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
 
 # Run the service
 CMD ["python", "main.py"]

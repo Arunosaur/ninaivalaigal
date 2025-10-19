@@ -116,7 +116,7 @@ useradd -m -s /bin/bash ninaivalaigal
 usermod -aG sudo ninaivalaigal
 
 # Clone ninaivalaigal repository
-cd /home/ninaivalaigal
+cd /home/ninaivalaigal || exit
 git clone https://github.com/Arunosaur/ninaivalaigal.git
 chown -R ninaivalaigal:ninaivalaigal ninaivalaigal
 

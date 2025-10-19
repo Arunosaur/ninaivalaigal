@@ -2,15 +2,10 @@
 # SPDX-License-Identifier: Proprietary
 # Copyright (c) 2025 Medhasys LLC
 """
-Business Service - SPEC-100 Modularization
+Business Service - SPEC-100 Compliant Microservice.
 
-Handles:
-- Billing management (Stripe integration)
-- Usage analytics and metrics
-- Admin analytics dashboard
-- Team billing portals
-
-Part of SPEC-100 API Container Modularization & Runtime-Agnostic Federation
+Handles billing, invoicing, usage analytics, and admin intelligence.
+Part of SPEC-100 API Container Modularization & Runtime-Agnostic Federation.
 """
 
 import os
@@ -23,24 +18,20 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Add shared to path
+# Add directories to path (order matters: current first, then lib, then shared)
 current_dir = Path(__file__).parent
 shared_dir = current_dir.parent.parent / "shared"
-sys.path.insert(0, str(shared_dir))
+lib_dir = current_dir / "lib"
+sys.path.insert(0, str(current_dir))  # Current directory first for our routers
+sys.path.insert(1, str(lib_dir))  # Then lib for server dependencies
+sys.path.insert(2, str(shared_dir))  # Finally shared utilities
 
 # Set environment defaults
 os.environ.setdefault("NINA_ENV", "dev")
 os.environ.setdefault("NINA_DB_USER", "nina")
 os.environ.setdefault("NINA_DB_PASSWORD", "dev_password_change_in_production")
 
-# Import SPEC-100 routers
-from routers import health as health_router  # noqa: E402
-from routers import metrics as metrics_router  # noqa: E402
-
-# TODO: Add database connection after extracting from server/
-# from database import DatabaseManager
-# from utils.config import get_dynamic_database_url
-# DATABASE_URL = get_dynamic_database_url()
+from database import DatabaseManager  # noqa: E402
 
 # Configure structlog
 structlog.configure(
@@ -57,20 +48,28 @@ logger = structlog.get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifecycle management for Business Service - Phase 1 Placeholder"""
-    logger.info("🚀 Business Service starting up...")
-    logger.info("📋 Phase 1: Health and metrics endpoints only")
+    """FastAPI lifespan for proper startup/shutdown"""
+    logger.info("🚀 Starting Business Service...")
 
-    # TODO: Add database connection after extracting from server/
-    # try:
-    #     app.state.db = DatabaseManager(DATABASE_URL)
-    #     logger.info("✅ Database connection established")
-    # except Exception as e:
-    #     logger.error(f"❌ Database connection failed: {e}")
+    # Initialize database from environment variable
+    database_url = os.getenv(
+        "DATABASE_URL", "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"
+    )  # pragma: allowlist secret
+    logger.info(f"📊 Database URL: {database_url[:50]}...")
+
+    try:
+        db_manager = DatabaseManager(database_url)
+        app.state.db_manager = db_manager
+        app.state.db = db_manager
+        logger.info("✅ Database connected")
+    except Exception as e:
+        logger.error(f"❌ Database connection failed: {e}")
+        raise
+
+    logger.info("✅ Business Service started successfully")
 
     yield
 
-    # Cleanup
     logger.info("👋 Business Service shutting down...")
 
 
@@ -91,16 +90,43 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include SPEC-100 compliant routers
+# Import and include SPEC-100 routers
+from routers import health as health_router  # noqa: E402
+from routers import metrics as metrics_router  # noqa: E402
+
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
 
-# Include business routers
-from routers import analytics as analytics_router  # noqa: E402
-from routers import billing as billing_router  # noqa: E402
+# Import engagement routers
+# Import business routers
+from routers import admin_analytics_api  # noqa: E402
+from routers import billing_console_api  # noqa: E402
+from routers import billing_engine_integration_api  # noqa: E402
+from routers import discussion_api  # noqa: E402
+from routers import early_adopter_api  # noqa: E402
+from routers import feedback_api  # noqa: E402
+from routers import gamification_api  # noqa: E402
+from routers import invoice_management_api  # noqa: E402
+from routers import partner_ecosystem_api  # noqa: E402
+from routers import team_billing_portal_api  # noqa: E402
+from routers import timeline_api  # noqa: E402
+from routers import usage_analytics_api  # noqa: E402
 
-app.include_router(billing_router.router)
-app.include_router(analytics_router.router)
+# Include business routers
+app.include_router(billing_console_api.router)
+app.include_router(invoice_management_api.router)
+app.include_router(usage_analytics_api.router)
+app.include_router(admin_analytics_api.router)
+app.include_router(billing_engine_integration_api.router)
+app.include_router(team_billing_portal_api.router)
+
+# Include engagement routers
+app.include_router(early_adopter_api.router)
+app.include_router(gamification_api.router)
+app.include_router(feedback_api.router)
+app.include_router(partner_ecosystem_api.router)
+app.include_router(discussion_api.router)
+app.include_router(timeline_api.router)
 
 
 if __name__ == "__main__":
