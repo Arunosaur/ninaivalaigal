@@ -481,10 +481,13 @@ start_customer_app() {
 
 # Display final status
 show_stack_status() {
+    local runtime_upper=$(echo "$RUNTIME" | tr '[:lower:]' '[:upper:]')
+    local env_upper=$(echo "$ENVIRONMENT" | tr '[:lower:]' '[:upper:]')
+
     echo ""
     log_success "╔══════════════════════════════════════════════════════╗"
     log_success "║         Stack Started Successfully!                  ║"
-    log_success "║         Runtime: ${RUNTIME^^} | Environment: ${ENVIRONMENT^^}        ║"
+    log_success "║         Runtime: ${runtime_upper} | Environment: ${env_upper}         ║"
     log_success "╚══════════════════════════════════════════════════════╝"
     echo ""
     echo "📊 Running Containers (${RUNTIME} / ${ENVIRONMENT}):"
@@ -510,10 +513,13 @@ show_stack_status() {
 
 # Main execution
 main() {
+    local runtime_upper=$(echo "$RUNTIME" | tr '[:lower:]' '[:upper:]')
+    local env_upper=$(echo "$ENVIRONMENT" | tr '[:lower:]' '[:upper:]')
+
     echo ""
     log_info "╔══════════════════════════════════════════════════════╗"
     log_info "║        Ninaivalaigal Stack Startup                   ║"
-    log_info "║        Runtime: ${RUNTIME^^} | Environment: ${ENVIRONMENT^^}        ║"
+    log_info "║        Runtime: ${runtime_upper} | Environment: ${env_upper}         ║"
     log_info "╚══════════════════════════════════════════════════════╝"
     echo ""
     log_info "🔧 Container Command: $CONTAINER_COMMAND"
