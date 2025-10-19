@@ -367,11 +367,10 @@ start_memory_service() {
     log_info "Step 5/11: Starting Memory Service (Rust)"
     log_info "════════════════════════════════════════"
 
-    local container_name="ninaivalaigal-${NINA_ENV}-memory-service"
-    cleanup_or_start_container "$container_name"
+    cleanup_or_start_container "$MEMORY_SERVICE_CONTAINER"
     local start_result=$?
     if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
-        log_success "$container_name operational"
+        log_success "$MEMORY_SERVICE_CONTAINER operational"
         return 0
     fi
     log_warning "Memory service not configured for automatic creation - manual start required"
@@ -385,11 +384,10 @@ start_grpc_gateway() {
     log_info "Step 6/11: Starting gRPC Gateway (Go)"
     log_info "════════════════════════════════════════"
 
-    local container_name="ninaivalaigal-${NINA_ENV}-grpc-gateway"
-    cleanup_or_start_container "$container_name"
+    cleanup_or_start_container "$GRPC_GATEWAY_CONTAINER"
     local start_result=$?
     if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
-        log_success "$container_name operational"
+        log_success "$GRPC_GATEWAY_CONTAINER operational"
         return 0
     fi
     log_warning "gRPC Gateway not configured for automatic creation - manual start required"
@@ -403,11 +401,10 @@ start_graph_service() {
     log_info "Step 7/11: Starting Graph Service"
     log_info "════════════════════════════════════════"
 
-    local container_name="ninaivalaigal-${NINA_ENV}-graph-service"
-    cleanup_or_start_container "$container_name"
+    cleanup_or_start_container "$GRAPH_SERVICE_CONTAINER"
     local start_result=$?
     if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
-        log_success "$container_name operational"
+        log_success "$GRAPH_SERVICE_CONTAINER operational"
         return 0
     fi
     log_warning "Graph service not configured for automatic creation - manual start required"
@@ -421,11 +418,10 @@ start_admin_vendor() {
     log_info "Step 8/11: Starting Admin Vendor Service"
     log_info "════════════════════════════════════════"
 
-    local container_name="ninaivalaigal-${NINA_ENV}-admin-vendor"
-    cleanup_or_start_container "$container_name"
+    cleanup_or_start_container "$ADMIN_VENDOR_CONTAINER"
     local start_result=$?
     if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
-        log_success "$container_name operational"
+        log_success "$ADMIN_VENDOR_CONTAINER operational"
         return 0
     fi
     log_warning "Admin vendor service not configured for automatic creation - manual start required"
@@ -439,11 +435,10 @@ start_business_service() {
     log_info "Step 9/11: Starting Business Service"
     log_info "════════════════════════════════════════"
 
-    local container_name="ninaivalaigal-${NINA_ENV}-business-service"
-    cleanup_or_start_container "$container_name"
+    cleanup_or_start_container "$BUSINESS_SERVICE_CONTAINER"
     local start_result=$?
     if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
-        log_success "$container_name operational"
+        log_success "$BUSINESS_SERVICE_CONTAINER operational"
         return 0
     fi
     log_warning "Business service not configured for automatic creation - manual start required"
@@ -457,11 +452,10 @@ start_admin_console() {
     log_info "Step 10/11: Starting Admin Console"
     log_info "════════════════════════════════════════"
 
-    local container_name="ninaivalaigal-${NINA_ENV}-admin-console"
-    cleanup_or_start_container "$container_name"
+    cleanup_or_start_container "$ADMIN_CONSOLE_CONTAINER"
     local start_result=$?
     if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
-        log_success "$container_name operational"
+        log_success "$ADMIN_CONSOLE_CONTAINER operational"
         return 0
     fi
     log_warning "Admin console not configured for automatic creation - manual start required"
@@ -475,11 +469,10 @@ start_customer_app() {
     log_info "Step 11/11: Starting Customer App"
     log_info "════════════════════════════════════════"
 
-    local container_name="ninaivalaigal-${NINA_ENV}-customer-app"
-    cleanup_or_start_container "$container_name"
+    cleanup_or_start_container "$CUSTOMER_APP_CONTAINER"
     local start_result=$?
     if [ $start_result -eq 1 ] || [ $start_result -eq 2 ]; then
-        log_success "$container_name operational"
+        log_success "$CUSTOMER_APP_CONTAINER operational"
         return 0
     fi
     log_warning "Customer app not configured for automatic creation - manual start required"
