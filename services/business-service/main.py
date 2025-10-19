@@ -33,14 +33,14 @@ os.environ.setdefault("NINA_ENV", "dev")
 os.environ.setdefault("NINA_DB_USER", "nina")
 os.environ.setdefault("NINA_DB_PASSWORD", "dev_password_change_in_production")
 
-from database import DatabaseManager  # noqa: E402
+# Import SPEC-100 routers
 from routers import health as health_router  # noqa: E402
 from routers import metrics as metrics_router  # noqa: E402
 
-from utils.config import get_dynamic_database_url  # noqa: E402
-
-# Get database URL dynamically
-DATABASE_URL = get_dynamic_database_url()
+# TODO: Add database connection after extracting from server/
+# from database import DatabaseManager
+# from utils.config import get_dynamic_database_url
+# DATABASE_URL = get_dynamic_database_url()
 
 # Configure structlog
 structlog.configure(
@@ -57,25 +57,21 @@ logger = structlog.get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifecycle management for Business Service"""
+    """Lifecycle management for Business Service - Phase 1 Placeholder"""
     logger.info("🚀 Business Service starting up...")
-    logger.info(f"📊 Database: {DATABASE_URL[:50]}...")
+    logger.info("📋 Phase 1: Health and metrics endpoints only")
 
-    # Initialize database connection
-    try:
-        app.state.db = DatabaseManager(DATABASE_URL)
-        logger.info("✅ Database connection established")
-    except Exception as e:
-        logger.error(f"❌ Database connection failed: {e}")
-        app.state.db = None
+    # TODO: Add database connection after extracting from server/
+    # try:
+    #     app.state.db = DatabaseManager(DATABASE_URL)
+    #     logger.info("✅ Database connection established")
+    # except Exception as e:
+    #     logger.error(f"❌ Database connection failed: {e}")
 
     yield
 
     # Cleanup
     logger.info("👋 Business Service shutting down...")
-    if hasattr(app.state, "db") and app.state.db:
-        # Close database connections if needed
-        logger.info("✅ Database connections closed")
 
 
 # Initialize FastAPI app with SPEC-100 metadata
@@ -115,7 +111,7 @@ if __name__ == "__main__":
     print(f"📍 Health: http://localhost:{port}/health")
     print(f"📍 Ready:  http://localhost:{port}/ready")
     print(f"📍 Metrics: http://localhost:{port}/metrics")
-    print(f"📊 Database: {DATABASE_URL[:50]}...")
+    print("📋 Phase 1: Health and metrics endpoints only")
     print("=" * 60)
 
     uvicorn.run(
