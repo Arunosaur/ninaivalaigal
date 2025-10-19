@@ -1,0 +1,31 @@
+# Graph/AI Service Dependencies (SPEC-100 + SPEC-062)
+
+# Core API Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Database (Apache AGE)
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+
+# Graph Database (Apache AGE integration)
+# psycopg2-binary provides PostgreSQL connectivity for Apache AGE
+
+# Redis (Graph Cache)
+redis==5.0.1
+
+# Logging
+structlog==23.2.0
+
+# Monitoring & Metrics (SPEC-100)
+psutil==5.9.6
+
+# Utilities
+python-dateutil==2.8.2
+
+# TODO: Add when implementing full GraphOps integration
+# apache-age-python==0.0.5  # Apache AGE Python driver
+# networkx==3.1  # Graph algorithms
+# scikit-learn==1.3.0  # ML for graph intelligence
