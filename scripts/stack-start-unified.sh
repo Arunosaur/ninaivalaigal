@@ -83,6 +83,24 @@ get_container_ip() {
     $CONTAINER_COMMAND list | grep "^$container_name " | awk '{print $6}'
 }
 
+check_database_health() {
+    local retries=0
+    local max_retries=30
+
+    log_info "Checking database health..."
+    while [ $retries -lt $max_retries ]; do
+        if PGPASSWORD="$NINA_DB_PASSWORD" psql -h localhost -p $DB_PORT -U $DB_USER -d $DB_NAME -c "SELECT 1;" >/dev/null 2>&1; then
+            log_success "Database is healthy"
+            return 0
+        fi
+        retries=$((retries + 1))
+        sleep 1
+    done
+
+    log_error "Database health check failed"
+    return 1
+}
+
 # START DATABASE
 start_database() {
     echo ""
