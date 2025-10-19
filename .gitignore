@@ -172,3 +172,8 @@ Cargo.lock
 go-services/*/grpc-gateway
 go-services/*/nina-cli
 go-services/*/test-binary
+
+# Third-party client tools (should not be committed)
+client-tools/
+vscode-client/
+**/vendor/  # Python vendor directories
