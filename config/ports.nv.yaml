@@ -99,10 +99,13 @@ matrix:
       # Microservices (SPEC-100 Stage 3)
       core_api: 13390           # Auth, Users, Teams, Orgs
       business_logic: 13391      # Business operations
-      admin_vendor: 13392        # Admin/vendor management  
+      admin_vendor: 13392        # Admin/vendor management
       memory_service: 13393      # Memory CRUD (Rust)
       graph_service: 13394       # Graph intelligence (Rust)
       gateway: 13395            # API Gateway (Rust gRPC)
+      # Developer A Infrastructure (SPEC-099)
+      load_tester: 13396        # Go load testing tool
+      cli_tools: 13397          # Go CLI operational utilities
     test:
       postgresql: 5552
       pgbouncer: 6552
@@ -127,13 +130,13 @@ naming_conventions:
   database_pattern: "ninaivalaigal_{env}"
   age_graph_pattern: "ninaivalaigal_intelligence_{env}"
   script_pattern: "nv-{service}-{action}.sh"
-  
+
   rationale: |
     Option A (Full Suffixes) chosen for:
     - Multi-environment support on same host (dev + test + prod)
     - Self-documenting database dumps
     - Clear separation for shared infrastructure
-  
+
   examples:
     containers:
       - "ninaivalaigal-dev-db"
@@ -171,6 +174,9 @@ container_names:
   memory_service: "ninaivalaigal-{env}-memory-service"
   graph_service: "ninaivalaigal-{env}-graph-service"
   gateway: "ninaivalaigal-{env}-gateway"
+  # Developer A Infrastructure (SPEC-099)
+  load_tester: "ninaivalaigal-{env}-load-tester"
+  cli_tools: "ninaivalaigal-{env}-cli-tools"
 
 # Service metadata
 services:
@@ -252,6 +258,19 @@ services:
     container_port: 8000
     protocol: "grpc"
     health_check: "grpcurl -plaintext localhost:{host_port} health"
+
+  # Developer A Infrastructure (SPEC-099)
+  load_tester:
+    description: "Go Load Testing Tool - Concurrent benchmarking"
+    container_port: 8080
+    protocol: "http"
+    health_check: "./load-tester --help"
+
+  cli_tools:
+    description: "Go CLI Tools - Operational utilities"
+    container_port: 8080
+    protocol: "http"
+    health_check: "./cli-tools --version"
 
 # Port range reservations
 port_ranges:
