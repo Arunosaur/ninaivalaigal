@@ -52,13 +52,17 @@ class ContractValidator:
 
         for proto_file in proto_files:
             try:
-                # Get the directory containing the proto file for --proto_path
-                proto_dir = proto_file.parent
-                proto_name = proto_file.name
+                # Use contracts root directory as proto_path for imports to work
+                relative_path = proto_file.relative_to(self.contracts_dir)
 
                 result = subprocess.run(
-                    [protoc_cmd, f"--proto_path={proto_dir}", "--descriptor_set_out=/dev/null", proto_name],
-                    cwd=proto_dir,
+                    [
+                        protoc_cmd,
+                        f"--proto_path={self.contracts_dir}",
+                        "--descriptor_set_out=/dev/null",
+                        str(relative_path),
+                    ],
+                    cwd=self.contracts_dir,
                     capture_output=True,
                     text=True,
                     check=True,

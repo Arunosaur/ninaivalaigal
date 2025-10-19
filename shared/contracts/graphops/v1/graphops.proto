@@ -12,6 +12,8 @@ syntax = "proto3";
 
 package ninaivalaigal.graphops.v1;
 
+option go_package = "github.com/Arunosaur/ninaivalaigal/shared/contracts/graphops/v1;graphopsv1";
+
 // GraphOps Service - High-performance Apache AGE query execution
 //
 // This service provides a unified interface for executing Cypher queries
