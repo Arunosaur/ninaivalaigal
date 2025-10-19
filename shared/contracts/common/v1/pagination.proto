@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Medhasys LLC
+//
+// Common pagination types for all services
+
+syntax = "proto3";
+
+package common.v1;
+
+option go_package = "github.com/Arunosaur/ninaivalaigal/shared/contracts/common/v1;commonv1";
+
+// Pagination request parameters
+message PageRequest {
+  // Page number (1-indexed)
+  int32 page = 1;
+
+  // Number of items per page
+  int32 page_size = 2;
+
+  // Sort field
+  string sort_by = 3;
+
+  // Sort direction (asc/desc)
+  string sort_order = 4;
+}
+
+// Pagination metadata in response
+message PageInfo {
+  // Total number of items
+  int32 total = 1;
+
+  // Total number of pages
+  int32 pages = 2;
+
+  // Current page number
+  int32 current_page = 3;
+
+  // Number of items per page
+  int32 page_size = 4;
+
+  // Whether there is a next page
+  bool has_next = 5;
+
+  // Whether there is a previous page
+  bool has_previous = 6;
+}
+
+// Cursor-based pagination request
+message CursorRequest {
+  // Cursor for next page
+  string cursor = 1;
+
+  // Number of items to return
+  int32 limit = 2;
+}
+
+// Cursor-based pagination response
+message CursorInfo {
+  // Next cursor (empty if no more items)
+  string next_cursor = 1;
+
+  // Previous cursor (empty if no previous items)
+  string previous_cursor = 2;
+
+  // Whether there are more items
+  bool has_more = 3;
+}

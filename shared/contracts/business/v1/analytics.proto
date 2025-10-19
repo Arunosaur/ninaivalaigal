@@ -1,0 +1,124 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Medhasys LLC
+//
+// Analytics service contract
+
+syntax = "proto3";
+
+package business.v1;
+
+import "common/v1/pagination.proto";
+
+option go_package = "github.com/Arunosaur/ninaivalaigal/shared/contracts/business/v1;businessv1";
+
+// Analytics service
+service AnalyticsService {
+  // Get user analytics
+  rpc GetUserAnalytics(GetUserAnalyticsRequest) returns (UserAnalytics);
+
+  // Get organization analytics
+  rpc GetOrganizationAnalytics(GetOrganizationAnalyticsRequest) returns (OrganizationAnalytics);
+
+  // Get engagement metrics
+  rpc GetEngagementMetrics(GetEngagementRequest) returns (EngagementMetrics);
+
+  // Get cohort analysis
+  rpc GetCohortAnalysis(GetCohortRequest) returns (CohortAnalysis);
+}
+
+// Get user analytics request
+message GetUserAnalyticsRequest {
+  string user_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+}
+
+// Get organization analytics request
+message GetOrganizationAnalyticsRequest {
+  string organization_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+}
+
+// Get engagement request
+message GetEngagementRequest {
+  string organization_id = 1;
+  string period = 2; // daily, weekly, monthly
+}
+
+// Get cohort request
+message GetCohortRequest {
+  string start_date = 1;
+  string end_date = 2;
+  string grouping = 3; // signup_month, tier, etc.
+}
+
+// User analytics
+message UserAnalytics {
+  string user_id = 1;
+  int64 total_memories = 2;
+  int64 total_api_calls = 3;
+  int64 total_storage_bytes = 4;
+  repeated DailyMetric daily_metrics = 5;
+}
+
+// Organization analytics
+message OrganizationAnalytics {
+  string organization_id = 1;
+  int64 total_users = 2;
+  int64 active_users = 3;
+  int64 total_memories = 4;
+  int64 total_api_calls = 5;
+  double total_revenue = 6;
+  repeated TeamMetric team_metrics = 7;
+}
+
+// Engagement metrics
+message EngagementMetrics {
+  int64 daily_active_users = 1;
+  int64 weekly_active_users = 2;
+  int64 monthly_active_users = 3;
+  double retention_rate = 4;
+  double churn_rate = 5;
+  repeated EngagementPoint engagement_timeline = 6;
+}
+
+// Cohort analysis
+message CohortAnalysis {
+  repeated CohortGroup cohorts = 1;
+  string grouping = 2;
+}
+
+// Daily metric
+message DailyMetric {
+  string date = 1;
+  int64 api_calls = 2;
+  int64 memories_created = 3;
+  int64 storage_used = 4;
+}
+
+// Team metric
+message TeamMetric {
+  string team_id = 1;
+  string team_name = 2;
+  int64 members = 3;
+  int64 memories = 4;
+  int64 api_calls = 5;
+}
+
+// Engagement point
+message EngagementPoint {
+  string date = 1;
+  int64 active_users = 2;
+  int64 new_users = 3;
+  int64 churned_users = 4;
+}
+
+// Cohort group
+message CohortGroup {
+  string cohort_id = 1;
+  string start_date = 2;
+  int64 initial_users = 3;
+  repeated double retention_rates = 4; // retention at week 1, 2, 3, etc.
+  double lifetime_value = 5;
+}

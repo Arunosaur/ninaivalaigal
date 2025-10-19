@@ -1,0 +1,91 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Medhasys LLC
+//
+// Authentication and authorization service contract
+
+syntax = "proto3";
+
+package auth.v1;
+
+import "common/v1/errors.proto";
+
+option go_package = "github.com/Arunosaur/ninaivalaigal/shared/contracts/auth/v1;authv1";
+
+// Authentication service
+service AuthService {
+  // Register a new user
+  rpc Register(RegisterRequest) returns (AuthResponse);
+
+  // Login with credentials
+  rpc Login(LoginRequest) returns (AuthResponse);
+
+  // Refresh access token
+  rpc RefreshToken(RefreshRequest) returns (AuthResponse);
+
+  // Validate token
+  rpc ValidateToken(ValidateRequest) returns (ValidateResponse);
+
+  // Logout (invalidate token)
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
+
+// Register request
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string full_name = 3;
+  map<string, string> metadata = 4;
+}
+
+// Login request
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+// Refresh token request
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+// Validate token request
+message ValidateRequest {
+  string access_token = 1;
+}
+
+// Logout request
+message LogoutRequest {
+  string access_token = 1;
+}
+
+// Authentication response
+message AuthResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
+  string token_type = 4;
+  User user = 5;
+}
+
+// Token validation response
+message ValidateResponse {
+  bool valid = 1;
+  User user = 2;
+  repeated string roles = 3;
+  repeated string permissions = 4;
+}
+
+// Logout response
+message LogoutResponse {
+  bool success = 1;
+}
+
+// User information
+message User {
+  string id = 1;
+  string email = 2;
+  string full_name = 3;
+  repeated string roles = 4;
+  bool is_active = 5;
+  string created_at = 6;
+}

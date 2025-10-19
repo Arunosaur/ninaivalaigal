@@ -1,0 +1,173 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Medhasys LLC
+//
+// Admin service contract
+
+syntax = "proto3";
+
+package admin.v1;
+
+import "common/v1/errors.proto";
+import "common/v1/pagination.proto";
+
+option go_package = "github.com/Arunosaur/ninaivalaigal/shared/contracts/admin/v1;adminv1";
+
+// Admin service
+service AdminService {
+  // List all users
+  rpc ListUsers(ListUsersRequest) returns (UserList);
+
+  // Get user details
+  rpc GetUser(GetUserRequest) returns (UserDetails);
+
+  // Update user
+  rpc UpdateUser(UpdateUserRequest) returns (UserDetails);
+
+  // Suspend user
+  rpc SuspendUser(SuspendUserRequest) returns (SuspendUserResponse);
+
+  // List all organizations
+  rpc ListOrganizations(ListOrganizationsRequest) returns (OrganizationList);
+
+  // Get system metrics
+  rpc GetSystemMetrics(GetSystemMetricsRequest) returns (SystemMetrics);
+
+  // Get audit logs
+  rpc GetAuditLogs(GetAuditLogsRequest) returns (AuditLogList);
+}
+
+// List users request
+message ListUsersRequest {
+  common.v1.PageRequest page = 1;
+  string filter = 2; // active, suspended, all
+  string search = 3;
+}
+
+// Get user request
+message GetUserRequest {
+  string user_id = 1;
+}
+
+// Update user request
+message UpdateUserRequest {
+  string user_id = 1;
+  string full_name = 2;
+  repeated string roles = 3;
+  bool is_active = 4;
+}
+
+// Suspend user request
+message SuspendUserRequest {
+  string user_id = 1;
+  string reason = 2;
+  int64 duration_days = 3; // 0 = permanent
+}
+
+// Suspend user response
+message SuspendUserResponse {
+  bool success = 1;
+  string suspended_until = 2;
+}
+
+// List organizations request
+message ListOrganizationsRequest {
+  common.v1.PageRequest page = 1;
+  string tier_filter = 2;
+}
+
+// Get system metrics request
+message GetSystemMetricsRequest {
+  string period = 1; // hour, day, week, month
+}
+
+// Get audit logs request
+message GetAuditLogsRequest {
+  string user_id = 1;
+  string action_type = 2;
+  string start_date = 3;
+  string end_date = 4;
+  common.v1.PageRequest page = 5;
+}
+
+// User list response
+message UserList {
+  repeated UserSummary users = 1;
+  common.v1.PageInfo page_info = 2;
+}
+
+// User summary
+message UserSummary {
+  string id = 1;
+  string email = 2;
+  string full_name = 3;
+  bool is_active = 4;
+  string created_at = 5;
+  string last_login = 6;
+}
+
+// User details
+message UserDetails {
+  string id = 1;
+  string email = 2;
+  string full_name = 3;
+  repeated string roles = 4;
+  bool is_active = 5;
+  string created_at = 6;
+  string last_login = 7;
+  int64 total_memories = 8;
+  int64 total_api_calls = 9;
+  repeated string organizations = 10;
+}
+
+// Organization list response
+message OrganizationList {
+  repeated OrganizationSummary organizations = 1;
+  common.v1.PageInfo page_info = 2;
+}
+
+// Organization summary
+message OrganizationSummary {
+  string id = 1;
+  string name = 2;
+  string tier = 3;
+  int64 member_count = 4;
+  double monthly_revenue = 5;
+  string created_at = 6;
+}
+
+// System metrics
+message SystemMetrics {
+  int64 total_users = 1;
+  int64 active_users = 2;
+  int64 total_organizations = 3;
+  int64 total_memories = 4;
+  int64 api_calls_per_second = 5;
+  double system_health_score = 6;
+  repeated ServiceStatus services = 7;
+}
+
+// Service status
+message ServiceStatus {
+  string name = 1;
+  string status = 2; // healthy, degraded, down
+  double response_time_ms = 3;
+  double error_rate = 4;
+}
+
+// Audit log list
+message AuditLogList {
+  repeated AuditLog logs = 1;
+  common.v1.PageInfo page_info = 2;
+}
+
+// Audit log entry
+message AuditLog {
+  string id = 1;
+  string user_id = 2;
+  string action = 3;
+  string resource_type = 4;
+  string resource_id = 5;
+  string timestamp = 6;
+  string ip_address = 7;
+  map<string, string> metadata = 8;
+}

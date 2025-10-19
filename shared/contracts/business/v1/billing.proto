@@ -1,0 +1,140 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Medhasys LLC
+//
+// Billing and subscription service contract
+
+syntax = "proto3";
+
+package business.v1;
+
+import "common/v1/errors.proto";
+import "common/v1/pagination.proto";
+
+option go_package = "github.com/Arunosaur/ninaivalaigal/shared/contracts/business/v1;businessv1";
+
+// Billing service
+service BillingService {
+  // Create a new subscription
+  rpc CreateSubscription(CreateSubscriptionRequest) returns (Subscription);
+
+  // Get subscription details
+  rpc GetSubscription(GetSubscriptionRequest) returns (Subscription);
+
+  // Update subscription
+  rpc UpdateSubscription(UpdateSubscriptionRequest) returns (Subscription);
+
+  // Cancel subscription
+  rpc CancelSubscription(CancelSubscriptionRequest) returns (CancelSubscriptionResponse);
+
+  // Get usage report
+  rpc GetUsage(GetUsageRequest) returns (UsageReport);
+
+  // List invoices
+  rpc ListInvoices(ListInvoicesRequest) returns (InvoiceList);
+}
+
+// Subscription tiers
+enum SubscriptionTier {
+  SUBSCRIPTION_TIER_UNSPECIFIED = 0;
+  SUBSCRIPTION_TIER_FREE = 1;
+  SUBSCRIPTION_TIER_STARTER = 2;
+  SUBSCRIPTION_TIER_PRO = 3;
+  SUBSCRIPTION_TIER_ENTERPRISE = 4;
+}
+
+// Subscription status
+enum SubscriptionStatus {
+  SUBSCRIPTION_STATUS_UNSPECIFIED = 0;
+  SUBSCRIPTION_STATUS_ACTIVE = 1;
+  SUBSCRIPTION_STATUS_CANCELLED = 2;
+  SUBSCRIPTION_STATUS_EXPIRED = 3;
+  SUBSCRIPTION_STATUS_TRIAL = 4;
+}
+
+// Create subscription request
+message CreateSubscriptionRequest {
+  string user_id = 1;
+  string organization_id = 2;
+  SubscriptionTier tier = 3;
+  string payment_method_id = 4;
+}
+
+// Get subscription request
+message GetSubscriptionRequest {
+  string subscription_id = 1;
+}
+
+// Update subscription request
+message UpdateSubscriptionRequest {
+  string subscription_id = 1;
+  SubscriptionTier new_tier = 2;
+}
+
+// Cancel subscription request
+message CancelSubscriptionRequest {
+  string subscription_id = 1;
+  bool immediate = 2;
+  string reason = 3;
+}
+
+// Cancel subscription response
+message CancelSubscriptionResponse {
+  bool success = 1;
+  string ends_at = 2;
+}
+
+// Get usage request
+message GetUsageRequest {
+  string organization_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+}
+
+// List invoices request
+message ListInvoicesRequest {
+  string organization_id = 1;
+  common.v1.PageRequest page = 2;
+}
+
+// Subscription details
+message Subscription {
+  string id = 1;
+  string user_id = 2;
+  string organization_id = 3;
+  SubscriptionTier tier = 4;
+  SubscriptionStatus status = 5;
+  string started_at = 6;
+  string ends_at = 7;
+  string cancelled_at = 8;
+  double monthly_price = 9;
+  string currency = 10;
+}
+
+// Usage report
+message UsageReport {
+  string organization_id = 1;
+  int64 api_calls = 2;
+  int64 memory_count = 3;
+  int64 storage_bytes = 4;
+  double cost = 5;
+  string period_start = 6;
+  string period_end = 7;
+}
+
+// Invoice list response
+message InvoiceList {
+  repeated Invoice invoices = 1;
+  common.v1.PageInfo page_info = 2;
+}
+
+// Invoice details
+message Invoice {
+  string id = 1;
+  string organization_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string status = 5;
+  string due_date = 6;
+  string paid_at = 7;
+  string pdf_url = 8;
+}
