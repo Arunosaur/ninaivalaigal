@@ -107,6 +107,13 @@ matrix:
       load_tester: 13396        # Go load testing tool
       cli_tools: 13397          # Go CLI operational utilities
       graphops: 13398            # GraphOps gRPC service (Task #49)
+      # Observability (Task #84)
+      jaeger_otlp_grpc: 4317    # Jaeger OTLP gRPC (primary tracing)
+      jaeger_otlp_http: 4318    # Jaeger OTLP HTTP
+      jaeger_ui: 16686          # Jaeger UI
+      jaeger_collector: 14268   # Jaeger HTTP collector
+      jaeger_grpc: 14250        # Jaeger gRPC
+      zipkin: 9411              # Zipkin compatibility
       # Note: Gateway uses standard ports 80/443 (not in runtime offset)
     test:
       postgresql: 5552

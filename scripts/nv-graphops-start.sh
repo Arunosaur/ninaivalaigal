@@ -51,8 +51,13 @@ container run -d \
   -e DATABASE_URL="$DATABASE_URL" \
   -e GRAPHOPS_GRAPH="$GRAPH_NAME" \
   -e GRAPHOPS_GRPC_ADDR="0.0.0.0:${CONTAINER_PORT}" \
+  -e GRAPHOPS_GRPC_ADDR="0.0.0.0:${CONTAINER_PORT}" \
   -e GRAPHOPS_METRICS_ADDR="0.0.0.0:${CONTAINER_PORT}" \
   -e RUST_LOG=info \
+  -e OTEL_SERVICE_NAME="ninaivalaigal-graphops" \
+  -e OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317" \
+  -e OTEL_TRACING_ENABLED="true" \
+  -e ENVIRONMENT="development" \
   -p "${HOST_PORT}:${CONTAINER_PORT}" \
   --cpus 4 \
   --memory 1g \
