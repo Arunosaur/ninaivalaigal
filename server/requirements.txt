@@ -44,4 +44,3 @@ passlib[bcrypt]
 aiofiles
 jinja2
 python-dotenv
-graphops_client

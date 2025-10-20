@@ -43,20 +43,20 @@ echo "   JWT Secret:  ${NINA_JWT_SECRET:0:4}***"
 echo "   Cache TTL:   ${MEMORY_CACHE_TTL_SECONDS}s"
 echo ""
 
-# Resolve Database IP (bypass PgBouncer for Rust/SQLx compatibility)
-echo "Resolving Database endpoint..."
-DB_CONTAINER="ninaivalaigal-${NINA_ENV}-db"
-DB_IP=$(container inspect "$DB_CONTAINER" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
-if [ -z "$DB_IP" ] || [ "$DB_IP" = "null" ]; then
-    echo "Unable to find Database container ($DB_CONTAINER)."
-    echo "   Please ensure database is running:"
-    echo "   cd $PROJECT_ROOT && ./scripts/stack-start-complete.sh"
+# Task #85: Use PgBouncer (now in session mode, supports prepared statements)
+echo "Resolving PgBouncer endpoint..."
+PGBOUNCER_CONTAINER="ninaivalaigal-${NINA_ENV}-pgbouncer"
+PGBOUNCER_IP=$(container inspect "$PGBOUNCER_CONTAINER" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
+if [ -z "$PGBOUNCER_IP" ] || [ "$PGBOUNCER_IP" = "null" ]; then
+    echo "❌ Unable to find PgBouncer container ($PGBOUNCER_CONTAINER)."
+    echo "   Please ensure PgBouncer is running:"
+    echo "   cd $PROJECT_ROOT && ./scripts/nv-pgbouncer-start.sh"
     exit 1
 fi
 
-echo "   Database: $DB_IP:5432 (direct connection, bypassing PgBouncer for SQLx compatibility)"
-DATABASE_URL="postgresql://${NINA_DB_USER}:${NINA_DB_PASSWORD}@${DB_IP}:5432/ninaivalaigal_${NINA_ENV}"
-echo "   Database URL: postgresql://${NINA_DB_USER}:***@${DB_IP}:5432/ninaivalaigal_${NINA_ENV}"
+echo "   Database: $PGBOUNCER_IP:6432 (via PgBouncer - session mode, prepared statements supported)"
+DATABASE_URL="postgresql://${NINA_DB_USER}:${NINA_DB_PASSWORD}@${PGBOUNCER_IP}:6432/ninaivalaigal_${NINA_ENV}"
+echo "   Database URL: postgresql://${NINA_DB_USER}:***@${PGBOUNCER_IP}:6432/ninaivalaigal_${NINA_ENV}"
 echo ""
 
 if [ -z "${REDIS_URL:-}" ]; then
