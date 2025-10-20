@@ -212,13 +212,13 @@ health-monitor:
 # OpenTelemetry / Jaeger Distributed Tracing (Task #84)
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-## start Jaeger all-in-one for distributed tracing
+## start Jaeger all-in-one for distributed tracing (Apple Container CLI)
 jaeger-start:
-	@$(SCRIPTS)/nv-jaeger-start.sh
+	@$(SCRIPTS)/nv-jaeger-start-apple.sh
 
-## stop Jaeger tracing server
+## stop Jaeger tracing server (Apple Container CLI)
 jaeger-stop:
-	@$(SCRIPTS)/nv-jaeger-stop.sh
+	@$(SCRIPTS)/nv-jaeger-stop-apple.sh
 
 ## show Jaeger status and endpoints
 jaeger-status:

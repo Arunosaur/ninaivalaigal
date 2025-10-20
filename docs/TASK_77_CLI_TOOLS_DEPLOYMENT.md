@@ -27,7 +27,7 @@
 | Integration sweep | `make integration-test` | Validated `--version`, `config show`, and JSON health check (warns when services unavailable) |
 | Release packaging | `make release-package` | Runs fmt + vet + golangci-lint + tests before multi-platform build and archive creation |
 
-> Version embedded: `v1.0.0-compliance-84-g8952c02b-dirty` (generated from `git describe`).
+> Release artifact suffix: `v1.0.0-compliance-92-gad69d72d` (value of `git describe` when the packages were built). Runtime banner prints `nina version 1.0.0`.
 
 ---
 
@@ -37,10 +37,10 @@ All packages reside in `go-services/cli-tools/dist/`.
 
 | Platform | File | Size | SHA-256 |
 |----------|------|------|---------|
-| Linux (amd64) | `nina-v1.0.0-compliance-84-g8952c02b-dirty-linux-amd64.tar.gz` | 8.0 MB | `36c457b013d0afc526039b894704f06d4b7b6552605e733075cd8b4183c24a20` |
-| macOS (amd64) | `nina-v1.0.0-compliance-84-g8952c02b-dirty-darwin-amd64.tar.gz` | 8.2 MB | `2ff11aec2fe3fe7cdcd6a250086a58a5592778a38d4c441777741ee940394438` |
-| macOS (arm64) | `nina-v1.0.0-compliance-84-g8952c02b-dirty-darwin-arm64.tar.gz` | 7.7 MB | `ba9ae9225b430dedadf690270e27595a1e5de0a50ea87c1c9c335c66e9f4e337` |
-| Windows (amd64) | `nina-v1.0.0-compliance-84-g8952c02b-dirty-windows-amd64.zip` | 8.2 MB | `d9be8a388066766242166e07eaae924f6b81ca21ac907d9ffa68d82af8769a1f` |
+| Linux (amd64) | `nina-v1.0.0-compliance-92-gad69d72d-linux-amd64.tar.gz` | 8.0 MB | `87aa68aa7dae6b3e05a50a4357b5cf39bf40cf5d125270f01b5858e6ccb80310` |
+| macOS (amd64) | `nina-v1.0.0-compliance-92-gad69d72d-darwin-amd64.tar.gz` | 8.2 MB | `a7cb078bce27b1b83f6eb41dea2531a784546344ce3f027d46cb76b06f146b61` |
+| macOS (arm64) | `nina-v1.0.0-compliance-92-gad69d72d-darwin-arm64.tar.gz` | 7.7 MB | `6cca599e19ac746ac07724a5b505efa8bd8c83a50b1a913d1423a2f3ac141ee7` |
+| Windows (amd64) | `nina-v1.0.0-compliance-92-gad69d72d-windows-amd64.zip` | 8.2 MB | `8fccd40d521ce0aafd04685f9f621d548509e0f31bf4f3119bbaafc5557429aa` |
 
 To inspect contents:
 ```bash
@@ -48,14 +48,16 @@ cd go-services/cli-tools/dist
 bsdtar -tf nina-*-linux-amd64.tar.gz  # or use tar -tzf
 ```
 
+Checksums are recorded in `go-services/cli-tools/dist/checksums.txt` for automated verification (`shasum -a 256 -c checksums.txt`).
+
 ---
 
 ## 🧪 Manual Verification Checklist
 
-1. `./nina --version` & `./nina --help` (ASCII banner confirms build metadata).
-2. `./nina config show --format json` (reads default profile).
-3. `./nina health check --json` (returns structured output; warns if backend services unavailable).
-4. `./nina memory --help`, `graph --help`, `health --help`, `loadtest --help`, `server --help`, `interactive --help` (covered via `make smoke-test`).
+1. `./nina-darwin-arm64 --version` & `--help` (run from build root) → banner appears, reports `nina version 1.0.0`.
+2. `./nina-darwin-arm64 config show --format json` → default profile now surfaces the corrected Apple port map (`13390/13393/13395/13396/13398`).
+3. `./nina-darwin-arm64 health check --json` → returns structured results; `core-api`, `gateway`, and `memory` respond `healthy` on 1339x endpoints, while `graphops` currently reports `unhealthy` (`EOF`) because its HTTP probe is offline in this environment. Exit code remains non-zero when any service is unavailable.
+4. `./nina-darwin-arm64 memory --help`, `graph --help`, `health --help`, `loadtest --help`, `server --help`, `interactive --help` (exercised during smoke tests; spot checks performed manually).
 
 Backends (Memory Service, GraphOps, Gateway) are optional for packaging; health check will surface connectivity errors until those services are reachable (Apple container runtime in production).
 
