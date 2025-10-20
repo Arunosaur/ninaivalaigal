@@ -16,7 +16,7 @@ flake8==7.0.0
 bandit==1.7.5
 mypy==1.8.0
 structlog==23.2.0
-stripe==7.8.0
+stripe==13.0.1
 reportlab==4.0.7
 prometheus-client
 mem0ai
