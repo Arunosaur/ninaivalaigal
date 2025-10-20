@@ -17,9 +17,11 @@
 ### **Build Success**
 ```bash
 docker build --no-cache --platform linux/arm64 \
-  -t nina-graphops:arm64 \
+  -t ninaivalaigal-graphops:arm64 \
   -f containers/graphops-rust/Dockerfile .
 ```
+
+**Naming Convention:** Following `ninaivalaigal-{service}:{tag}` pattern
 
 **Status:** ✅ Build successful - image created
 
@@ -37,7 +39,7 @@ The GraphOps binary does **not** have a `--health-check` flag/mode:
 ### **Current Behavior**
 ```bash
 # This DOES NOT exit after health check:
-docker run --rm nina-graphops:arm64 --health-check
+docker run --rm ninaivalaigal-graphops:arm64 --health-check
 
 # What actually happens:
 # 1. Full GraphOps server starts
@@ -60,15 +62,15 @@ GRAPHOPS_METRICS_ADDR=0.0.0.0:9090
 
 ### **Smoke Test Procedure**
 ```bash
-# 1. Run with required env vars and port mapping (pragma: allowlist secret)
-docker run --rm \
-  -e DATABASE_URL=postgresql://nina:password@host:5432/ninaivalaigal \
+# 1. Run with required env vars and port mapping
+docker run --name ninaivalaigal-dev-graphops --rm \
+  -e DATABASE_URL=postgresql://nina:password@host:5432/ninaivalaigal `# pragma: allowlist secret` \
   -e GRAPHOPS_GRAPH=ninaivalaigal_graph \
   -e GRAPHOPS_GRPC_ADDR=0.0.0.0:50051 \
   -e GRAPHOPS_METRICS_ADDR=0.0.0.0:9090 \
   -p 9090:9090 \
   -p 50051:50051 \
-  nina-graphops:arm64
+  ninaivalaigal-graphops:arm64
 
 # 2. In another terminal, probe health endpoints:
 curl http://localhost:9090/health

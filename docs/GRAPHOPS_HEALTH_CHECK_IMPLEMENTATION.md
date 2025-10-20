@@ -16,6 +16,19 @@ Add a `--health-check` CLI flag to GraphOps that:
 
 ---
 
+## 📛 Naming Convention
+
+**Image Name:** `ninaivalaigal-graphops:arm64`
+**Container Name:** `ninaivalaigal-dev-graphops`
+
+**Pattern:**
+- Images: `ninaivalaigal-{service}:{tag}`
+- Containers: `ninaivalaigal-{env}-{service}`
+
+Do NOT use `nina-graphops` or add runtime suffixes like `-apple`.
+
+---
+
 ## 📝 Implementation Steps
 
 ### **1. Update CLI Arguments (clap)**
@@ -136,7 +149,7 @@ cargo build --release
 
 # Or rebuild container
 docker build --no-cache --platform linux/arm64 \
-  -t nina-graphops:arm64 \
+  -t ninaivalaigal-graphops:arm64 \
   -f containers/graphops-rust/Dockerfile .
 ```
 
@@ -168,14 +181,14 @@ GRAPHOPS_GRAPH=test_graph \
 
 ```bash
 # Quick health check (should exit immediately)
-docker run --rm nina-graphops:arm64 --health-check
+docker run --rm ninaivalaigal-graphops:arm64 --health-check
 
 # Should see:
 # ✅ GraphOps health check PASSED
 # (and container exits with code 0)
 
 # Check exit code
-docker run --rm nina-graphops:arm64 --health-check
+docker run --rm ninaivalaigal-graphops:arm64 --health-check
 echo $?  # Should print: 0
 ```
 
@@ -189,12 +202,12 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 Then:
 ```bash
-docker build -t nina-graphops:arm64-healthcheck .
+docker build -t ninaivalaigal-graphops:arm64-healthcheck .
 
 # Start container
 docker run -d --name graphops-test \
   -e DATABASE_URL=postgresql://... \
-  nina-graphops:arm64-healthcheck
+  ninaivalaigal-graphops:arm64-healthcheck
 
 # Check health status (wait ~5 seconds for start period)
 docker ps  # Should show "healthy" in STATUS column
@@ -269,13 +282,13 @@ That's it! Even this minimal version is enough for Docker health checks.
 
 **Before:**
 ```bash
-docker run --rm nina-graphops:arm64 --health-check
+docker run --rm ninaivalaigal-graphops:arm64 --health-check
 # ❌ Hangs indefinitely waiting for server shutdown
 ```
 
 **After:**
 ```bash
-docker run --rm nina-graphops:arm64 --health-check
+docker run --rm ninaivalaigal-graphops:arm64 --health-check
 # ✅ GraphOps healthy
 # (exits immediately with code 0)
 ```

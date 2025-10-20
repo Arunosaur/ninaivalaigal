@@ -167,7 +167,7 @@ echo "────────────────────────�
 
 # Check if gateway is logging
 echo -n "Testing access logs... "
-if docker logs ninaivalaigal-gateway 2>&1 | tail -5 | grep -q "GET\|POST\|level"; then
+if docker logs ninaivalaigal-dev-gateway 2>&1 | tail -5 | grep -q "GET\|POST\|level"; then
     echo -e "${GREEN}✅ PASS${NC}"
     ((PASS++))
 else
@@ -193,7 +193,7 @@ else
     echo ""
     echo "Troubleshooting:"
     echo "  • Check gateway status: ./scripts/gateway-status.sh"
-    echo "  • Check gateway logs: docker logs ninaivalaigal-gateway"
+    echo "  • Check gateway logs: docker logs ninaivalaigal-dev-gateway"
     echo "  • Ensure services are running"
     echo ""
     exit 1

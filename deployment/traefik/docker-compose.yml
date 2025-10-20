@@ -9,7 +9,7 @@ version: '3.8'
 services:
   traefik:
     image: traefik:v2.10
-    container_name: ninaivalaigal-gateway
+    container_name: ninaivalaigal-dev-gateway
     restart: unless-stopped
 
     ports:

@@ -29,10 +29,10 @@ docker network inspect ninaivalaigal-network >/dev/null 2>&1 || {
 }
 
 # Stop existing gateway if running
-if docker ps | grep -q ninaivalaigal-gateway; then
+if docker ps | grep -q ninaivalaigal-dev-gateway; then
     echo "🛑 Stopping existing gateway..."
-    docker stop ninaivalaigal-gateway >/dev/null 2>&1
-    docker rm ninaivalaigal-gateway >/dev/null 2>&1
+    docker stop ninaivalaigal-dev-gateway >/dev/null 2>&1
+    docker rm ninaivalaigal-dev-gateway >/dev/null 2>&1
 fi
 
 # Start Traefik
@@ -43,7 +43,7 @@ docker-compose up -d
 # Wait for health check
 echo "⏳ Waiting for gateway to be healthy..."
 for i in {1..30}; do
-    if docker ps | grep -q "ninaivalaigal-gateway.*healthy\|ninaivalaigal-gateway.*Up"; then
+    if docker ps | grep -q "ninaivalaigal-dev-gateway.*healthy\|ninaivalaigal-dev-gateway.*Up"; then
         echo "✅ Gateway is healthy!"
         break
     fi
@@ -70,5 +70,5 @@ echo "   • /health     → Gateway Health"
 echo "   • /metrics    → Prometheus Metrics"
 echo ""
 echo "📝 Logs:"
-echo "   docker logs -f ninaivalaigal-gateway"
+echo "   docker logs -f ninaivalaigal-dev-gateway"
 echo ""

@@ -13,12 +13,12 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # Check if gateway is running
-if docker ps --format "{{.Names}}" | grep -q "^ninaivalaigal-gateway$"; then
+if docker ps --format "{{.Names}}" | grep -q "^ninaivalaigal-dev-gateway$"; then
     echo "✅ Gateway: Running"
 
     # Get container status
-    STATUS=$(docker inspect ninaivalaigal-gateway --format '{{.State.Status}}')
-    HEALTH=$(docker inspect ninaivalaigal-gateway --format '{{.State.Health.Status}}' 2>/dev/null || echo "no healthcheck")
+    STATUS=$(docker inspect ninaivalaigal-dev-gateway --format '{{.State.Status}}')
+    HEALTH=$(docker inspect ninaivalaigal-dev-gateway --format '{{.State.Health.Status}}' 2>/dev/null || echo "no healthcheck")
 
     echo "   Status: $STATUS"
     echo "   Health: $HEALTH"
@@ -26,7 +26,7 @@ if docker ps --format "{{.Names}}" | grep -q "^ninaivalaigal-gateway$"; then
     # Check ports
     echo ""
     echo "📡 Ports:"
-    docker port ninaivalaigal-gateway | sed 's/^/   /'
+    docker port ninaivalaigal-dev-gateway | sed 's/^/   /'
 
     # Test endpoints
     echo ""
@@ -48,7 +48,7 @@ if docker ps --format "{{.Names}}" | grep -q "^ninaivalaigal-gateway$"; then
 
     echo ""
     echo "📝 Logs (last 10 lines):"
-    docker logs --tail 10 ninaivalaigal-gateway 2>&1 | sed 's/^/   /'
+    docker logs --tail 10 ninaivalaigal-dev-gateway 2>&1 | sed 's/^/   /'
 
 else
     echo "❌ Gateway: Not running"

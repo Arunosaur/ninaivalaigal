@@ -18,7 +18,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 cd "$TRAEFIK_DIR"
 
 # Stop gateway
-if docker ps | grep -q ninaivalaigal-gateway; then
+if docker ps | grep -q ninaivalaigal-dev-gateway; then
     echo "🛑 Stopping gateway..."
     docker-compose down
     echo "✅ Gateway stopped"
