@@ -15,11 +15,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY server/ ./server/
-COPY mem0.config.json .
+COPY config/mem0.config.json .
 
 # Create non-root user
 RUN useradd -m -u 1000 mem0user && chown -R mem0user:mem0user /app
 USER mem0user
+
+ENV PYTHONPATH=/app/server
 
 # Expose port
 EXPOSE 13370

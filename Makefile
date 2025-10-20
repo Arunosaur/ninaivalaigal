@@ -208,6 +208,27 @@ health-restart:
 health-monitor:
 	@$(SCRIPTS)/nv-container-health.sh continuous 30 true
 
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# OpenTelemetry / Jaeger Distributed Tracing (Task #84)
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## start Jaeger all-in-one for distributed tracing
+jaeger-start:
+	@$(SCRIPTS)/nv-jaeger-start.sh
+
+## stop Jaeger tracing server
+jaeger-stop:
+	@$(SCRIPTS)/nv-jaeger-stop.sh
+
+## show Jaeger status and endpoints
+jaeger-status:
+	@$(SCRIPTS)/nv-jaeger-status.sh
+
+## open Jaeger UI in browser
+jaeger-ui:
+	@echo "🔍 Opening Jaeger UI..."
+	@open http://localhost:16686 || xdg-open http://localhost:16686 || echo "Please visit: http://localhost:16686"
+
 ## bring up only the database
 db-only:
 	@$(SCRIPTS)/nv-stack-start.sh --db-only

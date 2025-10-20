@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: Elastic-2.0
+# Copyright (c) 2025 Medhasys LLC
+#
+# Jaeger All-in-One for Distributed Tracing (Task #84)
+version: '3.8'
+
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.51
+    container_name: ninaivalaigal-dev-jaeger
+    restart: unless-stopped
+    ports:
+      # Agent ports
+      - "5775:5775/udp"    # Zipkin compact thrift (deprecated)
+      - "6831:6831/udp"    # Jaeger compact thrift
+      - "6832:6832/udp"    # Jaeger binary thrift
+      - "5778:5778"        # Serve configs
+
+      # Collector ports
+      - "14268:14268"      # Jaeger collector HTTP
+      - "14250:14250"      # Jaeger gRPC
+      - "4317:4317"        # OTLP gRPC
+      - "4318:4318"        # OTLP HTTP
+
+      # Query/UI port
+      - "16686:16686"      # Jaeger UI
+
+      # Zipkin compatibility
+      - "9411:9411"        # Zipkin compatible endpoint
+    environment:
+      # Collector configuration
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - COLLECTOR_OTLP_ENABLED=true
+
+      # Storage configuration (in-memory for dev)
+      - SPAN_STORAGE_TYPE=memory
+      - MEMORY_MAX_TRACES=10000
+
+      # Query configuration
+      - QUERY_BASE_PATH=/
+
+      # Logging
+      - LOG_LEVEL=info
+    networks:
+      - ninaivalaigal-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:16686/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  ninaivalaigal-network:
+    external: true

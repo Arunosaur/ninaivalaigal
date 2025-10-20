@@ -33,6 +33,7 @@ from fastapi.staticfiles import StaticFiles
 
 # Middleware and security
 from observability import health_router, metrics_router
+from observability.tracing import TracingConfig, init_tracing
 from performance_monitor import get_performance_monitor, start_performance_monitoring
 from redis_client import redis_client
 from redis_queue import queue_manager
@@ -162,6 +163,27 @@ app = FastAPI(
     openapi_url=None,  # Disabled - using protected endpoint
     lifespan=lifespan,  # Use modern lifespan context manager
 )
+
+# Initialize OpenTelemetry Distributed Tracing (Task #84)
+try:
+    service_name = os.getenv("OTEL_SERVICE_NAME", "ninaivalaigal-core-api")
+    jaeger_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+    tracing_enabled = os.getenv("OTEL_TRACING_ENABLED", "true").lower() == "true"
+    is_dev = os.getenv("ENVIRONMENT", "production").lower() == "development"
+    if tracing_enabled:
+        tracing_config = TracingConfig(
+            service_name=service_name,
+            service_version="1.0.0",
+            jaeger_endpoint=jaeger_endpoint,
+            enable_console_export=is_dev,
+        )
+        tracer = init_tracing(app, tracing_config)
+        logger.info(f"✅ Distributed tracing enabled: {service_name} -> {jaeger_endpoint}")
+    else:
+        logger.info("⏭️  Distributed tracing disabled via OTEL_TRACING_ENABLED=false")
+except Exception as e:
+    logger.warning(f"⚠️  Failed to initialize tracing: {e}")
+    logger.info("Continuing without distributed tracing")
 
 # Configure CORS
 app.add_middleware(
