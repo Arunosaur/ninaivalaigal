@@ -19,7 +19,6 @@ structlog==23.2.0
 stripe==7.8.0
 reportlab==4.0.7
 prometheus-client
-mem0ai
 pgvector
 redis
 asyncpg
@@ -37,3 +36,4 @@ passlib[bcrypt]
 aiofiles
 jinja2
 python-dotenv
+graphops_client

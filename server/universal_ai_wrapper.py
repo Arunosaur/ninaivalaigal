@@ -72,18 +72,18 @@ class AIContext:
 
 @dataclass
 class MemoryContext:
-    """Memory retrieved from mem0"""
+    """Memory retrieved from Ninaivalaigal memory system"""
 
     content: str
     context_name: str
     memory_type: str
     relevance_score: float
     created_at: str
-    source: str = "mem0"
+    source: str = "ninaivalaigal"
 
 
 class UniversalAIWrapper:
-    """Universal wrapper that enhances any AI model with mem0 memories via MCP"""
+    """Universal wrapper that enhances any AI model with Ninaivalaigal memories via MCP"""
 
     def __init__(self):
         """Initialize instance."""

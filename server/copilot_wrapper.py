@@ -7,8 +7,8 @@
 # See LICENSE file in the server/ directory for details.
 #
 """
-GitHub Copilot + mem0 MCP Integration Wrapper
-Enhances Copilot prompts with relevant memories from mem0 via MCP protocol
+GitHub Copilot + Ninaivalaigal Memory Integration Wrapper
+Enhances Copilot prompts with relevant memories from our custom memory system via MCP protocol
 """
 
 import asyncio
@@ -43,8 +43,8 @@ class CopilotContext:
     project_context: str | None = None
 
 
-class Mem0CopilotWrapper:
-    """Wrapper that enhances Copilot with mem0 memories via MCP"""
+class NinaivalaigalCopilotWrapper:
+    """Wrapper that enhances Copilot with Ninaivalaigal memories via MCP"""
 
     def __init__(self):
         """Initialize instance."""
@@ -52,9 +52,9 @@ class Mem0CopilotWrapper:
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
     async def enhance_copilot_prompt(self, context: CopilotContext, original_prompt: str) -> str:
-        """Enhance Copilot prompt with relevant mem0 memories"""
+        """Enhance Copilot prompt with relevant Ninaivalaigal memories"""
         try:
-            # Get relevant memories from mem0
+            # Get relevant memories from our custom memory system
             relevant_memories = await self._get_relevant_memories(context)
 
             if not relevant_memories:
@@ -118,7 +118,7 @@ class Mem0CopilotWrapper:
             return []
 
     async def _query_mcp_server(self, tool: str, params: dict[str, Any]) -> list[dict[str, Any]]:
-        """Query mem0 MCP server for memories"""
+        """Query Ninaivalaigal MCP server for memories"""
         try:
             # Build MCP request
             mcp_request = {
@@ -223,7 +223,7 @@ class Mem0CopilotWrapper:
             return original_prompt
 
         # Build memory context
-        memory_context = "# Relevant Context from mem0:\n"
+        memory_context = "# Relevant Context from Ninaivalaigal:\n"
         for i, memory in enumerate(memories, 1):
             memory_context += f"{i}. {memory['content']}\n"
 
@@ -291,7 +291,7 @@ class Mem0CopilotWrapper:
         return keywords
 
     async def store_copilot_interaction(self, context: CopilotContext, prompt: str, suggestion: str, accepted: bool):
-        """Store Copilot interaction in mem0 for future reference"""
+        """Store Copilot interaction in Ninaivalaigal for future reference"""
         try:
             interaction_data = {
                 "type": "copilot_interaction",
@@ -320,14 +320,14 @@ class Mem0CopilotWrapper:
 
 
 class VSCodeCopilotBridge:
-    """Bridge between VS Code, Copilot, and mem0"""
+    """Bridge between VS Code, Copilot, and Ninaivalaigal"""
 
     def __init__(self):
         """Initialize instance."""
-        self.wrapper = Mem0CopilotWrapper()
+        self.wrapper = NinaivalaigalCopilotWrapper()
 
     async def handle_copilot_request(self, request_data: dict[str, Any]) -> dict[str, Any]:
-        """Handle Copilot completion request with mem0 enhancement"""
+        """Handle Copilot completion request with Ninaivalaigal enhancement"""
         try:
             # Extract context from VS Code request
             context = CopilotContext(
@@ -366,15 +366,15 @@ class VSCodeCopilotBridge:
 copilot_bridge = VSCodeCopilotBridge()
 
 
-async def enhance_copilot_with_mem0(request_data: dict[str, Any]) -> dict[str, Any]:
-    """Main function to enhance Copilot with mem0 memories"""
+async def enhance_copilot_with_ninaivalaigal(request_data: dict[str, Any]) -> dict[str, Any]:
+    """Main function to enhance Copilot with Ninaivalaigal memories"""
     return await copilot_bridge.handle_copilot_request(request_data)
 
 
 if __name__ == "__main__":
     # Test the wrapper
     async def test_wrapper():
-        """Test the Mem0 Copilot wrapper with sample context."""
+        """Test the Ninaivalaigal Copilot wrapper with sample context."""
         context = CopilotContext(
             file_path="test.ts",
             language="typescript",
@@ -384,7 +384,7 @@ if __name__ == "__main__":
             project_context="auth-system",
         )
 
-        wrapper = Mem0CopilotWrapper()
+        wrapper = NinaivalaigalCopilotWrapper()
         enhanced = await wrapper.enhance_copilot_prompt(context, "Complete the user authentication function")
 
         print("Enhanced prompt:")

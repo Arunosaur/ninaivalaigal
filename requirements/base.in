@@ -33,7 +33,6 @@ prometheus-client>=0.20.0,<1.0.0
 structlog>=24.0.0,<25.0.0
 psutil>=5.9.0,<6.0.0
 
-# AI & Memory Management
-mem0ai>=0.1.0,<1.0.0
+# AI & Memory Management (using our own system, not external tools)
 scikit-learn>=1.3.0,<1.4.0
 numpy>=1.24.0,<2.0.0
