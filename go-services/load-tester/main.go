@@ -26,6 +26,9 @@ func main() {
 	// Setup colored output
 	color.NoColor = false
 
+	// Initialize global configuration before creating commands so flag bindings are safe
+	config = NewLoadTestConfig()
+
 	// Create root command
 	rootCmd := &cobra.Command{
 		Use:   "load-tester",
@@ -47,7 +50,12 @@ Features:
 		Version: Version,
 	}
 
-	// Add subcommands
+	// Global flags
+	rootCmd.PersistentFlags().BoolVar(&config.Verbose, "verbose", false, "Enable verbose logging")
+	rootCmd.PersistentFlags().StringVar(&config.OutputFormat, "output", "console", "Output format (console, json, prometheus)")
+	rootCmd.PersistentFlags().StringVar(&config.MetricsAddr, "metrics-addr", ":9090", "Prometheus metrics server address")
+
+	// Add subcommands after config initialization so nested commands can safely access it
 	rootCmd.AddCommand(
 		createHTTPCommand(),
 		createGRPCCommand(),
@@ -57,14 +65,6 @@ Features:
 		createServerCommand(),
 		createValidateCommand(),
 	)
-
-	// Global flags
-	rootCmd.PersistentFlags().BoolVar(&config.Verbose, "verbose", false, "Enable verbose logging")
-	rootCmd.PersistentFlags().StringVar(&config.OutputFormat, "output", "console", "Output format (console, json, prometheus)")
-	rootCmd.PersistentFlags().StringVar(&config.MetricsAddr, "metrics-addr", ":9090", "Prometheus metrics server address")
-
-	// Initialize config
-	config = NewLoadTestConfig()
 
 	// Setup graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())

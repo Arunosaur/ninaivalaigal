@@ -10,6 +10,10 @@ RUN apk add --no-cache git ca-certificates tzdata
 # Set working directory
 WORKDIR /app
 
+# Propagate target platform information from buildx
+ARG TARGETOS
+ARG TARGETARCH
+
 # Copy go mod files
 COPY go.mod go.sum ./
 
@@ -19,8 +23,8 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+# Build the binary for the requested target platform
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} go build \
     -ldflags="-w -s -X main.Version=$(git describe --tags --always --dirty)" \
     -o load-tester .
 

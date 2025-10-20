@@ -107,31 +107,32 @@ app.add_middleware(
 from routers import health as health_router  # noqa: E402
 from routers import metrics as metrics_router  # noqa: E402
 
-app.include_router(health_router.router)
-app.include_router(metrics_router.router)
+# Add routers with SPEC-100 compliant API prefix
+app.include_router(health_router.router, prefix="/api/v1/graph", tags=["health"])
+app.include_router(metrics_router.router, prefix="/api/v1/graph", tags=["metrics"])
 
 # Import graph intelligence routers - ALL ROUTERS ENABLED
 # All lib/ imports fixed, enabling full graph intelligence stack
 
-# Import all graph routers with proper error handling
+# Import all graph routers with proper error handling and SPEC-100 prefix
 try:
     from routers import graphops_integration  # noqa: E402
 
-    app.include_router(graphops_integration.router)
+    app.include_router(graphops_integration.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load graphops_integration: {e}")
 
 try:
     from routers import dashboard_widgets_api  # noqa: E402
 
-    app.include_router(dashboard_widgets_api.router)
+    app.include_router(dashboard_widgets_api.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load dashboard_widgets_api: {e}")
 
 try:
     from routers import ai_feedback_api  # noqa: E402
 
-    app.include_router(ai_feedback_api.router)
+    app.include_router(ai_feedback_api.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load ai_feedback_api: {e}")
 
@@ -139,42 +140,42 @@ except Exception as e:
 try:
     from routers import graph_intelligence_api  # noqa: E402
 
-    app.include_router(graph_intelligence_api.router)
+    app.include_router(graph_intelligence_api.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load graph_intelligence_api: {e}")
 
 try:
     from routers import graph_intelligence_integration_api  # noqa: E402
 
-    app.include_router(graph_intelligence_integration_api.router)
+    app.include_router(graph_intelligence_integration_api.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load graph_intelligence_integration_api: {e}")
 
 try:
     from routers import graph_rank  # noqa: E402
 
-    app.include_router(graph_rank.router)
+    app.include_router(graph_rank.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load graph_rank: {e}")
 
 try:
     from routers import insights_api  # noqa: E402
 
-    app.include_router(insights_api.router)
+    app.include_router(insights_api.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load insights_api: {e}")
 
 try:
     from routers import performance_api  # noqa: E402
 
-    app.include_router(performance_api.router)
+    app.include_router(performance_api.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load performance_api: {e}")
 
 try:
     from routers import agentic_api  # noqa: E402
 
-    app.include_router(agentic_api.router)
+    app.include_router(agentic_api.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load agentic_api: {e}")
 
@@ -184,10 +185,10 @@ if __name__ == "__main__":
     print("=" * 60)
     print("🧠 GRAPH/AI SERVICE - SPEC-100 + SPEC-062 Integration")
     print("=" * 60)
-    print(f"📍 Health: http://localhost:{port}/health")
-    print(f"📍 Ready:  http://localhost:{port}/ready")
-    print(f"📍 Metrics: http://localhost:{port}/metrics")
-    print(f"📍 Graph:  http://localhost:{port}/graph/*")
+    print(f"📍 Health: http://localhost:{port}/api/v1/graph/health")
+    print(f"📍 Ready:  http://localhost:{port}/api/v1/graph/ready")
+    print(f"📍 Metrics: http://localhost:{port}/api/v1/graph/metrics")
+    print(f"📍 API:    http://localhost:{port}/api/v1/graph/*")
     print("📊 Graph DB: Port 5433 (GraphOps)")
     print("📊 Graph Redis: Port 6380 (GraphOps)")
     print("=" * 60)

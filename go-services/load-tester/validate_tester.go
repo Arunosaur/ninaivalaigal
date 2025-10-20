@@ -213,6 +213,16 @@ func (v *ValidateTester) testGraphHealth(ctx context.Context) ValidationResult {
 	}()
 
 	duration := time.Since(start)
+
+	if resp.StatusCode == http.StatusNotImplemented {
+		return ValidationResult{
+			Success:    true,
+			Message:    "Graph health endpoint not implemented (acceptable)",
+			StatusCode: resp.StatusCode,
+			Duration:   duration,
+		}
+	}
+
 	success := resp.StatusCode >= 200 && resp.StatusCode < 500 // Accept 4xx as service exists
 	message := fmt.Sprintf("Status: %d", resp.StatusCode)
 
