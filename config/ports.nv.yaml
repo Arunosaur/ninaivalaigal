@@ -102,7 +102,7 @@ matrix:
       admin_vendor: 13392        # Admin/vendor management
       memory_service: 13393      # Memory CRUD (Rust)
       graph_service: 13394       # Graph intelligence (Rust)
-      gateway: 13395            # API Gateway (Rust gRPC)
+      # Note: Gateway uses standard ports 80/443 (not in runtime offset)
       # Developer A Infrastructure (SPEC-099)
       load_tester: 13396        # Go load testing tool
       cli_tools: 13397          # Go CLI operational utilities
@@ -269,12 +269,14 @@ services:
     note: "All endpoints under /api/v1/graph/* (SPEC-100)"
 
   gateway:
-    description: "API Gateway (Rust) - gRPC service mesh"
-    container_port: 8000
-    protocol: "grpc"
-    health_check: "grpcurl -plaintext localhost:{host_port} health"
-    grpc_reflection: "enabled"
-    explore: "grpcurl -plaintext localhost:{host_port} list"
+    description: "API Gateway (Traefik) - HTTP/HTTPS Reverse Proxy"
+    container_port: 80  # HTTP
+    container_port_https: 443  # HTTPS
+    container_port_dashboard: 8080  # Dashboard
+    protocol: "http"
+    health_check: "curl -f http://localhost/ping"
+    dashboard: "http://localhost:8080"
+    note: "Uses standard ports 80/443, not subject to runtime offsets"
 
   # Developer A Infrastructure (SPEC-099)
   load_tester:
