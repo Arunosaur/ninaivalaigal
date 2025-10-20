@@ -10,7 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/arunosaur/ninaivalaigal/grpc-gateway/tracing"
 	"github.com/gorilla/mux"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
 )
 
@@ -163,6 +165,33 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func main() {
 	log.Println("🚀 Starting gRPC Gateway for ninaivalaigal")
+
+	// Initialize distributed tracing (Task #84)
+	serviceName := os.Getenv("OTEL_SERVICE_NAME")
+	if serviceName == "" {
+		serviceName = "ninaivalaigal-grpc-gateway"
+	}
+	jaegerEndpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if jaegerEndpoint == "" {
+		jaegerEndpoint = "localhost:4317"
+	}
+	tracingEnabled := os.Getenv("OTEL_TRACING_ENABLED")
+	if tracingEnabled == "" {
+		tracingEnabled = "true"
+	}
+
+	var cleanupTracing func()
+	if tracingEnabled == "true" {
+		var err error
+		cleanupTracing, err = tracing.InitTracing(serviceName, jaegerEndpoint)
+		if err != nil {
+			log.Printf("⚠️  Failed to initialize OpenTelemetry tracing: %v", err)
+			log.Println("ℹ️  Continuing without distributed tracing")
+		} else {
+			defer cleanupTracing()
+		}
+	}
+
 	log.Printf("📡 Gateway will listen on %s", GatewayPort)
 	log.Printf("🔗 Backend services: Memory=%s, GraphOps=%s, CoreAPI=%s",
 		MemoryAddr, GraphOpsAddr, CoreAPIAddr)
@@ -190,9 +219,15 @@ func main() {
 		log.Println("✅ Enhanced handlers with gRPC integration enabled")
 	}
 
+	// Wrap router with OpenTelemetry HTTP instrumentation (Task #84)
+	var handler http.Handler = gateway.router
+	if cleanupTracing != nil {
+		handler = otelhttp.NewHandler(gateway.router, "grpc-gateway")
+	}
+
 	server := &http.Server{
 		Addr:         GatewayPort,
-		Handler:      gateway.router,
+		Handler:      handler,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
