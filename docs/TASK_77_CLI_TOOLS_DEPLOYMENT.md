@@ -56,10 +56,10 @@ Checksums are recorded in `go-services/cli-tools/dist/checksums.txt` for automat
 
 1. `./nina-darwin-arm64 --version` & `--help` (run from build root) → banner appears, reports `nina version 1.0.0`.
 2. `./nina-darwin-arm64 config show --format json` → default profile now surfaces the corrected Apple port map (`13390/13393/13395/13396/13398`).
-3. `./nina-darwin-arm64 health check --json` → returns structured results; `core-api`, `gateway`, and `memory` respond `healthy` on 1339x endpoints, while `graphops` currently reports `unhealthy` (`EOF`) because its HTTP probe is offline in this environment. Exit code remains non-zero when any service is unavailable.
+3. `./nina-darwin-arm64 health check --json` → returns structured results; `core-api`, `gateway`, and `memory` respond `healthy` on 1339x endpoints. `graphops` shows `unhealthy` with `EOF` because it is a gRPC-only service without an HTTP `/health` route. CLI exits non-zero whenever any service is unreachable.
 4. `./nina-darwin-arm64 memory --help`, `graph --help`, `health --help`, `loadtest --help`, `server --help`, `interactive --help` (exercised during smoke tests; spot checks performed manually).
 
-Backends (Memory Service, GraphOps, Gateway) are optional for packaging; health check will surface connectivity errors until those services are reachable (Apple container runtime in production).
+Backends (Memory Service, GraphOps, Gateway) are optional for packaging; health check will surface connectivity errors until those services are reachable (Apple container runtime in production). For GraphOps validation use `container exec ninaivalaigal-dev-graphops /usr/local/bin/graphops --health-check` or `grpcurl -plaintext localhost:13398 list`.
 
 ---
 
