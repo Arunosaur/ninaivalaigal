@@ -122,11 +122,12 @@ func initConfig() error {
 	viper.SetEnvPrefix("NINA")
 	viper.AutomaticEnv()
 
-	// Set defaults
-	viper.SetDefault("services.memory.url", "http://localhost:8081")
-	viper.SetDefault("services.graphops.url", "http://localhost:8082")
+	// Set defaults - Updated for correct ports (Task #77 fix)
+	viper.SetDefault("services.core-api.url", "http://localhost:13390")
+	viper.SetDefault("services.memory.url", "http://localhost:13393")
+	viper.SetDefault("services.graphops.url", "http://localhost:50051")
 	viper.SetDefault("services.gateway.url", "http://localhost:8080")
-	viper.SetDefault("services.loadtester.url", "http://localhost:8083")
+	viper.SetDefault("services.loadtester.url", "http://localhost:13396")
 	viper.SetDefault("output.format", "table")
 	viper.SetDefault("output.colors", true)
 	viper.SetDefault("timeouts.default", "30s")

@@ -339,6 +339,13 @@ func createHealthSummaryCommand() *cobra.Command {
 func getServiceDefinitions() []ServiceDefinition {
 	return []ServiceDefinition{
 		{
+			Name:         "core-api",
+			URL:          viper.GetString("services.core-api.url"),
+			HealthPath:   "/health",
+			Timeout:      10 * time.Second,
+			ExpectedCode: http.StatusOK,
+		},
+		{
 			Name:         "gateway",
 			URL:          viper.GetString("services.gateway.url"),
 			HealthPath:   "/health",
@@ -348,14 +355,14 @@ func getServiceDefinitions() []ServiceDefinition {
 		{
 			Name:         "memory",
 			URL:          viper.GetString("services.memory.url"),
-			HealthPath:   "/api/v1/memory/health",
+			HealthPath:   "/health",
 			Timeout:      10 * time.Second,
 			ExpectedCode: http.StatusOK,
 		},
 		{
 			Name:         "graphops",
 			URL:          viper.GetString("services.graphops.url"),
-			HealthPath:   "/api/v1/graph/health",
+			HealthPath:   "/health",
 			Timeout:      10 * time.Second,
 			ExpectedCode: http.StatusOK,
 		},
