@@ -18,6 +18,8 @@ use std::sync::Arc;
 use storage::MemoryStorage;
 use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -97,7 +99,31 @@ async fn main() {
             require_jwt,
         ));
 
+    #[derive(OpenApi)]
+    #[openapi(
+        paths(
+            health,
+            remember,
+            recall,
+            list_memories,
+            delete_memory
+        ),
+        components(
+            schemas(Memory, CreateMemoryRequest, RecallRequest)
+        ),
+        tags(
+            (name = "memory-service", description = "Memory CRUD operations with Redis caching")
+        ),
+        info(
+            title = "Memory Service API",
+            version = "1.0.0",
+            description = "Rust-based memory service for ninaivalaigal platform (SPEC-100 compliant)"
+        )
+    )]
+    struct ApiDoc;
+
     let app = Router::new()
+        .merge(SwaggerUi::new("/docs").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .route("/health", get(health))
         .merge(protected)
         .with_state(state);
@@ -112,6 +138,17 @@ async fn main() {
         .expect("serve memory-service");
 }
 
+/// Health check endpoint
+///
+/// Returns the service health status including database and Redis connection information.
+#[utoipa::path(
+    get,
+    path = "/health",
+    tag = "health",
+    responses(
+        (status = 200, description = "Service is healthy", body = serde_json::Value)
+    )
+)]
 async fn health(State(state): State<Arc<AppState>>) -> Json<serde_json::Value> {
     let storage = state.storage();
     let conn_stats = storage.connection_stats();
@@ -135,6 +172,23 @@ async fn health(State(state): State<Arc<AppState>>) -> Json<serde_json::Value> {
     }))
 }
 
+/// Create a new memory
+///
+/// Store a new memory item for the authenticated user with optional metadata.
+#[utoipa::path(
+    post,
+    path = "/memory/remember",
+    tag = "memories",
+    request_body = CreateMemoryRequest,
+    responses(
+        (status = 200, description = "Memory created successfully", body = Memory),
+        (status = 401, description = "Unauthorized - JWT token required"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
 async fn remember(
     State(state): State<Arc<AppState>>,
     Extension(user): Extension<AuthenticatedUser>,
@@ -158,6 +212,23 @@ async fn remember(
     }
 }
 
+/// Recall/search memories
+///
+/// Search for memories matching the query text with optional result limit.
+#[utoipa::path(
+    post,
+    path = "/memory/recall",
+    tag = "memories",
+    request_body = RecallRequest,
+    responses(
+        (status = 200, description = "Memories retrieved successfully", body = Vec<Memory>),
+        (status = 401, description = "Unauthorized - JWT token required"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
 async fn recall(
     State(state): State<Arc<AppState>>,
     Extension(user): Extension<AuthenticatedUser>,
@@ -187,6 +258,22 @@ async fn recall(
     }
 }
 
+/// List all memories
+///
+/// Retrieve all memories for the authenticated user.
+#[utoipa::path(
+    get,
+    path = "/memory/memories",
+    tag = "memories",
+    responses(
+        (status = 200, description = "Memories retrieved successfully", body = Vec<Memory>),
+        (status = 401, description = "Unauthorized - JWT token required"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
 async fn list_memories(
     State(state): State<Arc<AppState>>,
     Extension(user): Extension<AuthenticatedUser>,
@@ -213,6 +300,26 @@ async fn list_memories(
     }
 }
 
+/// Delete a memory
+///
+/// Delete a specific memory by ID for the authenticated user.
+#[utoipa::path(
+    delete,
+    path = "/memory/memories/{id}",
+    tag = "memories",
+    params(
+        ("id" = Uuid, Path, description = "Memory ID to delete")
+    ),
+    responses(
+        (status = 204, description = "Memory deleted successfully"),
+        (status = 404, description = "Memory not found"),
+        (status = 401, description = "Unauthorized - JWT token required"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
 async fn delete_memory(
     Path(id): Path<Uuid>,
     State(state): State<Arc<AppState>>,
