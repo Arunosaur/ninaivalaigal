@@ -10,15 +10,16 @@
 WORKING AUTH SOLUTION - GET-based endpoints that bypass POST body parsing issue
 """
 
+from datetime import datetime
 from typing import Any, Dict
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 router = APIRouter(prefix="/auth-working", tags=["auth-working"])
 
 
 @router.get("/login")
-async def login_get(email: str, password: str) -> Dict[str, Any]:
+async def login_get(request: Request, email: str, password: str) -> Dict[str, Any]:
     """
     GET-based login endpoint - WORKING SOLUTION
     Usage: GET /auth-working/login?email=user@example.com&password=secret
@@ -28,11 +29,34 @@ async def login_get(email: str, password: str) -> Dict[str, Any]:
     try:
         # Import auth function locally to avoid import-time issues
         from auth_async import authenticate_user_sync
+        from event_publisher_util import publish_event
 
         result = authenticate_user_sync(email, password)
 
         if result:
             print(f"✅ Auth successful for: {email}")
+
+            # Publish user.login event
+            try:
+                from uuid import UUID
+
+                user_id = UUID(result["user_id"]) if isinstance(result["user_id"], str) else result["user_id"]
+
+                await publish_event(
+                    request=request,
+                    event_type="user.login",
+                    payload={
+                        "user_id": str(user_id),
+                        "email": result["email"],
+                        "account_type": result["account_type"],
+                        "role": result["role"],
+                        "login_at": datetime.utcnow().isoformat(),
+                    },
+                    user_id=user_id,
+                )
+            except Exception as e:
+                print(f"Failed to publish user.login event: {e}")
+
             return {
                 "success": True,
                 "message": "Login successful",
@@ -96,14 +120,38 @@ async def validate_token(token: str) -> Dict[str, Any]:
 
 
 @router.get("/signup")
-async def signup_get(email: str, password: str, name: str, account_type: str = "individual") -> Dict[str, Any]:
+async def signup_get(
+    request: Request, email: str, password: str, name: str, account_type: str = "individual"
+) -> Dict[str, Any]:
     """GET-based signup endpoint"""
     try:
         from auth_async import create_user_sync
+        from event_publisher_util import publish_event
 
         result = create_user_sync(email, password, name, account_type)
 
         if result:
+            # Publish user.created event
+            try:
+                from uuid import UUID
+
+                user_id = UUID(result["user_id"]) if isinstance(result["user_id"], str) else result["user_id"]
+
+                await publish_event(
+                    request=request,
+                    event_type="user.created",
+                    payload={
+                        "user_id": str(user_id),
+                        "email": result["email"],
+                        "name": name,
+                        "account_type": account_type,
+                        "created_at": datetime.utcnow().isoformat(),
+                    },
+                    user_id=user_id,
+                )
+            except Exception as e:
+                print(f"Failed to publish user.created event: {e}")
+
             return {
                 "success": True,
                 "message": "User created successfully",

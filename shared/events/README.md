@@ -234,5 +234,30 @@ redis-cli XPENDING ninaivalaigal:events:users analytics-service
 
 ---
 
-**Status:** Infrastructure complete ✅
-**Next:** Integrate into services (Phase 2)
+## 🚀 Quick Test
+
+### Test Event Publishing
+
+```bash
+# Test event publishing
+python scripts/test_event_bus.py
+```
+
+### Run Event Consumer
+
+```bash
+# Start consumer to process events
+python scripts/run_event_consumer.py
+
+# Or with custom settings
+REDIS_URL=redis://localhost:6399 \
+CONSUMER_GROUP=analytics-service \
+CONSUMER_NAME=worker-1 \
+python scripts/run_event_consumer.py
+```
+
+---
+
+**Status:** Phase 1-3 Complete ✅
+**Progress:** 70% complete
+**Next:** Integration tests, Business Service integration

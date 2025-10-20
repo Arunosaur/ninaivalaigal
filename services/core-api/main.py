@@ -70,12 +70,28 @@ async def lifespan(app: FastAPI):
         logger.error(f"❌ Database connection failed: {e}")
         raise
 
+    # Initialize event publisher
+    try:
+        from events import get_event_publisher
+
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6399")
+        event_publisher = await get_event_publisher(redis_url)
+        app.state.event_publisher = event_publisher
+        logger.info("✅ Event publisher connected")
+    except Exception as e:
+        logger.warning(f"⚠️  Event publisher connection failed: {e}")
+        logger.warning("Events will not be published")
+        app.state.event_publisher = None
+
     logger.info("✅ Core API Service started successfully")
 
     yield
 
     # Cleanup
     logger.info("🛑 Shutting down Core API Service...")
+    if hasattr(app.state, "event_publisher") and app.state.event_publisher:
+        await app.state.event_publisher.disconnect()
+        logger.info("Event publisher disconnected")
 
 
 # Create FastAPI app
