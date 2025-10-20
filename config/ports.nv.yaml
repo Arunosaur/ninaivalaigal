@@ -102,10 +102,12 @@ matrix:
       admin_vendor: 13392        # Admin/vendor management
       memory_service: 13393      # Memory CRUD (Rust)
       graph_service: 13394       # Graph intelligence (Rust)
-      # Note: Gateway uses standard ports 80/443 (not in runtime offset)
+      grpc_gateway: 13395        # gRPC Gateway (Go)
       # Developer A Infrastructure (SPEC-099)
       load_tester: 13396        # Go load testing tool
       cli_tools: 13397          # Go CLI operational utilities
+      graphops: 13398            # GraphOps gRPC service (Task #49)
+      # Note: Gateway uses standard ports 80/443 (not in runtime offset)
     test:
       postgresql: 5552
       pgbouncer: 6552
@@ -174,6 +176,7 @@ container_names:
   memory_service: "ninaivalaigal-{env}-memory-service"
   graph_service: "ninaivalaigal-{env}-graph-service"
   gateway: "ninaivalaigal-{env}-gateway"
+  graphops: "ninaivalaigal-{env}-graphops"
   # Developer A Infrastructure (SPEC-099)
   load_tester: "ninaivalaigal-{env}-load-tester"
   cli_tools: "ninaivalaigal-{env}-cli-tools"
@@ -277,6 +280,16 @@ services:
     health_check: "curl -f http://localhost/ping"
     dashboard: "http://localhost:8080"
     note: "Uses standard ports 80/443, not subject to runtime offsets"
+
+  graphops:
+    description: "GraphOps gRPC Service (Rust) - Graph operations via gRPC"
+    container_port: 8000
+    protocol: "grpc+http"
+    health_check: "/usr/local/bin/graphops --health-check"
+    grpc_reflection: "enabled"
+    explore: "grpcurl -plaintext localhost:{host_port} list"
+    metrics: "http://localhost:{host_port}/metrics"
+    note: "Task #49 - gRPC+HTTP service on 13398 (139xx range)"
 
   # Developer A Infrastructure (SPEC-099)
   load_tester:

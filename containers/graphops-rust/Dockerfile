@@ -57,7 +57,7 @@ WORKDIR /app
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
         ca-certificates \
-    libssl3 \
+        libssl3 \
         libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -71,5 +71,9 @@ ENV RUST_LOG=info \
 
 # Expose gRPC and metrics ports
 EXPOSE 50051 9090
+
+# Container health check leverages the lightweight CLI probe
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD ["/usr/local/bin/graphops", "--health-check"]
 
 ENTRYPOINT ["/usr/local/bin/graphops"]

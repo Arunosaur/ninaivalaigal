@@ -1,7 +1,7 @@
 # Task #49: GraphOps gRPC Integration - Containerization Progress
 
 **Developer:** Developer A
-**Status:** In Progress (Containerization Phase)
+**Status:** In Progress (Health Check validated)
 **Date:** October 20, 2025
 
 ---
@@ -27,30 +27,22 @@ docker build --no-cache --platform linux/arm64 \
 
 ---
 
-## 🔍 Current Issue: Health Check Mode
+## ✅ Completed: Health Check Mode
 
-### **Problem Identified**
-The GraphOps binary does **not** have a `--health-check` flag/mode:
-- Running `docker run --rm nina-graphops:arm64 --health-check` starts the **full server**
-- Server blocks waiting for shutdown signal
-- Continuously retries PostgreSQL connection (expects env vars)
-- Container runs indefinitely instead of quick health probe
+- Added clap-based CLI with `--health-check` flag
+- Health probe validates configuration, exits immediately
+- Works with or without `DATABASE_URL`
+- Docker `HEALTHCHECK` now calls the probe
 
-### **Current Behavior**
 ```bash
-# This DOES NOT exit after health check:
 docker run --rm ninaivalaigal-graphops:arm64 --health-check
-
-# What actually happens:
-# 1. Full GraphOps server starts
-# 2. Waits for DATABASE_URL, GRAPHOPS_GRAPH, etc.
-# 3. Blocks on missing PostgreSQL connection
-# 4. Never exits (waiting for Ctrl+C)
+# 🏥 Running GraphOps health check...
+# ✅ GraphOps health check passed
 ```
 
 ---
 
-## 🔧 Temporary Workaround: Manual Testing
+## 🔧 Manual Testing (Still Available)
 
 ### **Required Environment Variables**
 ```bash
@@ -83,51 +75,7 @@ curl http://localhost:9090/health
 
 ## 📋 Recommended Next Steps
 
-### **1. Add Dedicated Health Check Mode** (HIGH PRIORITY)
-
-**Implementation in Rust binary:**
-```rust
-// In main.rs or cli.rs
-#[derive(Parser)]
-struct Cli {
-    /// Run health check and exit
-    #[arg(long)]
-    health_check: bool,
-
-    // ... other flags
-}
-
-fn main() -> Result<()> {
-    let cli = Cli::parse();
-
-    if cli.health_check {
-        // Perform quick health probe
-        run_health_check()?;
-        std::process::exit(0); // Exit immediately
-    }
-
-    // Normal server startup
-    start_server()?;
-}
-
-fn run_health_check() -> Result<()> {
-    // 1. Check binary can start
-    // 2. Optionally ping DB if DATABASE_URL provided
-    // 3. Print "✅ GraphOps healthy"
-    // 4. Return success
-    println!("✅ GraphOps health check passed");
-    Ok(())
-}
-```
-
-**Dockerfile Update:**
-```dockerfile
-# Health check that actually exits
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["/usr/local/bin/graphops", "--health-check"]
-```
-
-### **2. Document Runtime Requirements**
+### **1. Document Runtime Requirements**
 
 **Required Environment Variables:**
 - `DATABASE_URL` - PostgreSQL connection string
@@ -140,7 +88,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 - `GRAPHOPS_MAX_CONNECTIONS` - DB connection pool size
 - `GRAPHOPS_TIMEOUT` - Query timeout
 
-### **3. Create Deployment Documentation**
+### **2. Create Deployment Documentation**
 
 Once health check mode is implemented:
 1. Re-run container with health check
@@ -203,19 +151,15 @@ Once health check mode is implemented:
 | Dockerfile | ✅ Complete | Multi-stage, arm64 ready |
 | Build Process | ✅ Working | No-cache build successful |
 | Binary Location | ✅ Correct | /usr/local/bin/graphops |
-| Health Check Mode | ❌ Missing | Needs `--health-check` flag |
+| Health Check Mode | ✅ Complete | Flag implemented, exits immediately |
 | Env Var Docs | 🔄 Partial | Identified but not documented |
 | Smoke Test | ⚠️ Manual | Requires full env setup |
 | CI/CD Ready | ❌ Blocked | Needs health check mode |
 
 ---
 
-**Next Action:** Implement `--health-check` CLI flag in GraphOps Rust binary
-
-**Estimated Time:** 30-60 minutes
-
-**Priority:** HIGH (blocks Task #77 completion)
+**Next Action:** Finalize documentation updates and smoke-test scripts that call the new flag.
 
 ---
 
-**Developer A:** Excellent work on the containerization! The multi-stage build and arm64 support are production-ready. Once we add the health check mode, this will be complete.
+**Developer A:** Excellent work on the containerization! The multi-stage build, arm64 support, and health check mode are production-ready—let's close out the documentation and integration steps next.

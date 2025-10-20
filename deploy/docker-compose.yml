@@ -49,7 +49,7 @@ services:
       - mem0-network
     restart: unless-stopped
     volumes:
-      - ../mem0.config.json:/app/mem0.config.json:ro
+      - ../configs/mem0.config.json:/app/mem0.config.json:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:13370/contexts"]
       interval: 30s
