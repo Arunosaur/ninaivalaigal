@@ -6,6 +6,13 @@
 **Owner:** Engineering Leadership
 **Dependencies:** SPEC-100 (Runtime-Agnostic Contracts)
 
+**📋 Implementation Tracking:**
+- **Taiga Tasks:** #85 (PgBouncer), #79 (Contracts), #83 (Gateway), #86 (Benchmarks), #87 (Schema Drift), #88 (Core Decomp)
+- **3-Month Plan:** docs/3_MONTH_EXECUTION_PLAN.md
+- **Gap Analysis:** docs/SPEC_099_100_GAP_ANALYSIS_OCT20.md
+- **Timeline:** Oct 2025 - Jan 2026 (12 weeks)
+- **Team:** Developer C (P0 tasks), Developer A (P1 tasks)
+
 ---
 
 ## Executive Summary

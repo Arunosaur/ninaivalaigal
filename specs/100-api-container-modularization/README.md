@@ -7,6 +7,14 @@
 **Author:** Architecture Team
 **Date:** October 2025
 
+**📋 Implementation Tracking:**
+- **Taiga Tasks:** #79 (Contracts - Phase 0), #83 (Gateway), #87 (Schema Drift), #88 (Core API Decomp)
+- **Blocks:** #85 (PgBouncer - infrastructure prerequisite)
+- **3-Month Plan:** docs/3_MONTH_EXECUTION_PLAN.md
+- **Gap Analysis:** docs/SPEC_099_100_GAP_ANALYSIS_OCT20.md
+- **Timeline:** Oct 2025 - Jan 2026 (12 weeks)
+- **Team:** Developer C (contracts, gateway), Developer A (decomposition)
+
 ---
 
 ## Purpose
