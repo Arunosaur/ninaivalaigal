@@ -228,36 +228,53 @@ services:
     container_port: 8000
     protocol: "http"
     health_check: "curl -f http://localhost:{host_port}/health"
+    api_docs: "http://localhost:{host_port}/docs"
+    redoc: "http://localhost:{host_port}/redoc"
+    openapi_schema: "http://localhost:{host_port}/openapi.json"
 
   business_logic:
     description: "Business Logic - Workflows, Operations"
     container_port: 8000
     protocol: "http"
     health_check: "curl -f http://localhost:{host_port}/health"
+    api_docs: "http://localhost:{host_port}/docs"
+    redoc: "http://localhost:{host_port}/redoc"
+    openapi_schema: "http://localhost:{host_port}/openapi.json"
 
   admin_vendor:
     description: "Admin/Vendor Management"
     container_port: 8000
     protocol: "http"
     health_check: "curl -f http://localhost:{host_port}/health"
+    api_docs: "http://localhost:{host_port}/docs"
+    redoc: "http://localhost:{host_port}/redoc"
+    openapi_schema: "http://localhost:{host_port}/openapi.json"
 
   memory_service:
     description: "Memory Service (Rust) - CRUD operations"
     container_port: 8000
     protocol: "http"
     health_check: "curl -f http://localhost:{host_port}/health"
+    api_docs: "http://localhost:{host_port}/docs"
+    note: "OpenAPI docs when deployed"
 
   graph_service:
     description: "Graph Service (Rust) - Intelligence operations"
     container_port: 8000
     protocol: "http"
     health_check: "curl -f http://localhost:{host_port}/health"
+    api_docs: "http://localhost:{host_port}/docs"
+    redoc: "http://localhost:{host_port}/redoc"
+    openapi_schema: "http://localhost:{host_port}/openapi.json"
+    note: "All endpoints under /api/v1/graph/* (SPEC-100)"
 
   gateway:
     description: "API Gateway (Rust) - gRPC service mesh"
     container_port: 8000
     protocol: "grpc"
     health_check: "grpcurl -plaintext localhost:{host_port} health"
+    grpc_reflection: "enabled"
+    explore: "grpcurl -plaintext localhost:{host_port} list"
 
   # Developer A Infrastructure (SPEC-099)
   load_tester:
