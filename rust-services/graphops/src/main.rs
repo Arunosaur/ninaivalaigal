@@ -78,9 +78,28 @@ fn run_health_check(cli: &Cli) -> Result<(), Box<dyn std::error::Error + Send + 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    tracing_subscriber::fmt::try_init().ok();
-
     let cli = Cli::parse();
+
+    // Initialize distributed tracing (Task #84)
+    let service_name =
+        env::var("OTEL_SERVICE_NAME").unwrap_or_else(|_| "ninaivalaigal-graphops".to_string());
+    let jaeger_endpoint = env::var("OTEL_EXPORTER_OTLP_ENDPOINT").ok();
+    let tracing_enabled = env::var("OTEL_TRACING_ENABLED")
+        .unwrap_or_else(|_| "true".to_string())
+        .to_lowercase()
+        == "true";
+
+    if tracing_enabled {
+        if let Err(e) =
+            graphops_service::tracing::init_tracing(&service_name, jaeger_endpoint.as_deref())
+        {
+            eprintln!("⚠️  Failed to initialize OpenTelemetry tracing: {}", e);
+            eprintln!("ℹ️  Falling back to simple tracing");
+            graphops_service::tracing::init_simple_tracing().ok();
+        }
+    } else {
+        graphops_service::tracing::init_simple_tracing().ok();
+    }
 
     if cli.health_check {
         if let Err(error) = run_health_check(&cli) {
@@ -139,6 +158,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             }
         }
     }
+
+    // Shutdown tracing gracefully
+    graphops_service::tracing::shutdown_tracing();
 
     Ok(())
 }

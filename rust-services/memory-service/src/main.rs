@@ -2,6 +2,7 @@ mod auth;
 mod cache;
 mod models;
 mod storage;
+mod telemetry;
 
 use auth::{require_jwt, AuthenticatedUser, JwtVerifier};
 use axum::extract::{Extension, Path, State};
@@ -17,7 +18,6 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use storage::MemoryStorage;
 use tracing::{error, info, warn};
-use tracing_subscriber::EnvFilter;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 use uuid::Uuid;
@@ -53,13 +53,26 @@ impl AppState {
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
-        .with_target(false)
-        .compact()
-        .init();
-
     let _ = dotenv();
+
+    // Initialize distributed tracing (Task #84)
+    let service_name = env::var("OTEL_SERVICE_NAME")
+        .unwrap_or_else(|_| "ninaivalaigal-memory-service".to_string());
+    let jaeger_endpoint = env::var("OTEL_EXPORTER_OTLP_ENDPOINT").ok();
+    let tracing_enabled = env::var("OTEL_TRACING_ENABLED")
+        .unwrap_or_else(|_| "true".to_string())
+        .to_lowercase()
+        == "true";
+
+    if tracing_enabled {
+        if let Err(e) = telemetry::init_tracing(&service_name, jaeger_endpoint.as_deref()) {
+            eprintln!("⚠️  Failed to initialize OpenTelemetry tracing: {}", e);
+            eprintln!("ℹ️  Falling back to simple tracing");
+            telemetry::init_simple_tracing().ok();
+        }
+    } else {
+        telemetry::init_simple_tracing().ok();
+    }
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let redis_url = env::var("REDIS_URL").expect("REDIS_URL must be set");
 
@@ -136,6 +149,9 @@ async fn main() {
     axum::serve(listener, app)
         .await
         .expect("serve memory-service");
+
+    // Shutdown tracing gracefully
+    telemetry::shutdown_tracing();
 }
 
 /// Health check endpoint

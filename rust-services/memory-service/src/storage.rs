@@ -1,8 +1,8 @@
+use serde::Serialize;
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::{PgPool, Result as SqlxResult};
 use std::str::FromStr;
 use uuid::Uuid;
-use serde::Serialize;
 
 use crate::models::{CreateMemoryRequest, Memory};
 
@@ -21,8 +21,7 @@ pub struct MemoryStorage {
 
 impl MemoryStorage {
     pub async fn new(database_url: &str) -> SqlxResult<Self> {
-        let options = PgConnectOptions::from_str(database_url)?
-            .application_name("memory-service");
+        let options = PgConnectOptions::from_str(database_url)?.application_name("memory-service");
 
         let pool = PgPoolOptions::new()
             .max_connections(8)

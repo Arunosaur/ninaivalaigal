@@ -15,7 +15,12 @@ chrono = { version = "0.4", features = ["serde"] }
 tower = "0.4"
 tower-http = { version = "0.5", features = ["cors", "trace"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+# OpenTelemetry for distributed tracing (Task #84)
+opentelemetry = "0.21"
+opentelemetry-otlp = { version = "0.14", features = ["tokio", "grpc-tonic"] }
+opentelemetry_sdk = { version = "0.21", features = ["rt-tokio"] }
+tracing-opentelemetry = "0.22"
 dotenvy = "0.15"
 jsonwebtoken = "9"
 base64 = "0.21"

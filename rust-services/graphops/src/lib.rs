@@ -16,6 +16,7 @@ pub mod proto {
     }
 }
 pub mod service;
+pub mod tracing;
 
 pub use db::DbPool;
 pub use handlers::CypherExecutor;
