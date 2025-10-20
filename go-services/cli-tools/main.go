@@ -123,10 +123,11 @@ func initConfig() error {
 	viper.AutomaticEnv()
 
 	// Set defaults - Updated for correct ports (Task #77 fix)
+	// All services use 133XX port series per MICROSERVICES_PORT_ALLOCATION.md
 	viper.SetDefault("services.core-api.url", "http://localhost:13390")
 	viper.SetDefault("services.memory.url", "http://localhost:13393")
-	viper.SetDefault("services.graphops.url", "http://localhost:50051")
-	viper.SetDefault("services.gateway.url", "http://localhost:8080")
+	viper.SetDefault("services.graphops.url", "http://localhost:13398")
+	viper.SetDefault("services.gateway.url", "http://localhost:13395")
 	viper.SetDefault("services.loadtester.url", "http://localhost:13396")
 	viper.SetDefault("output.format", "table")
 	viper.SetDefault("output.colors", true)
