@@ -1,60 +1,75 @@
 # SPDX-License-Identifier: Proprietary
 # Copyright (c) 2025 Medhasys LLC
 #
-# Multi-stage Dockerfile for Rust GraphOps service
+# Multi-stage Dockerfile for GraphOps Rust service
 # SPEC-099: High-performance Apache AGE query execution
 
-FROM rust:1.75-alpine AS builder
+# syntax=docker/dockerfile:1.6
 
-# Install build dependencies
-RUN apk add --no-cache \
-    musl-dev \
-    protobuf-dev \
-    openssl-dev \
-    pkgconfig
+ARG RUST_VERSION=1.81
 
-WORKDIR /app
+FROM --platform=$BUILDPLATFORM rust:${RUST_VERSION}-slim-bookworm AS builder
 
-# Copy dependency manifests
-COPY rust-services/graphops/Cargo.toml rust-services/graphops/Cargo.lock ./
+ARG TARGETPLATFORM
+ARG TARGETARCH
+ARG TARGETOS
 
-# Cache dependencies (build with dummy main)
-RUN mkdir src && \
-    echo "fn main() {}" > src/main.rs && \
-    cargo build --release && \
-    rm -rf src
+WORKDIR /workspace
 
-# Copy source code
-COPY rust-services/graphops/src ./src
-COPY shared/contracts/graphops/v1/graphops.proto ./proto/
+# Install build dependencies required for tonic-build (prost) and postgres
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        pkg-config \
+        libssl-dev \
+        libpq-dev \
+        ca-certificates \
+        curl \
+        build-essential \
+        protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
 
-# Build application
+# Copy manifests early to leverage Docker layer caching
+COPY rust-services/graphops/Cargo.toml rust-services/graphops/Cargo.lock rust-services/graphops/build.rs ./rust-services/graphops/
+
+# Copy protobuf contracts required during build.rs execution
+COPY shared/contracts ./shared/contracts
+
+# Copy source code (excluding target directory to keep image small)
+COPY rust-services/graphops/src ./rust-services/graphops/src
+COPY rust-services/graphops/benches ./rust-services/graphops/benches
+COPY rust-services/graphops/benchmarks ./rust-services/graphops/benchmarks
+COPY rust-services/graphops/tests ./rust-services/graphops/tests
+
+WORKDIR /workspace/rust-services/graphops
+
+# Ensure the correct compilation target is available when cross-compiling
+RUN if [ "$TARGETARCH" = "arm64" ]; then rustup target add aarch64-unknown-linux-gnu; fi \
+    && if [ "$TARGETARCH" = "amd64" ]; then rustup target add x86_64-unknown-linux-gnu; fi
+
+# Build release binary
 RUN cargo build --release --bin graphops-service
 
-# Runtime stage
-FROM alpine:latest
-
-RUN apk add --no-cache \
-    ca-certificates \
-    libgcc
+FROM debian:bookworm-slim AS runtime
 
 WORKDIR /app
 
-# Copy binary from builder
-COPY --from=builder /app/target/release/graphops-service .
+# Install runtime dependencies
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        ca-certificates \
+    libssl3 \
+        libpq5 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
-RUN addgroup -g 1000 graphops && \
-    adduser -D -u 1000 -G graphops graphops && \
-    chown -R graphops:graphops /app
+# Copy compiled binary from builder stage
+COPY --from=builder /workspace/rust-services/graphops/target/release/graphops-service /usr/local/bin/graphops
 
-USER graphops
+# Default environment configuration (can be overridden at runtime)
+ENV RUST_LOG=info \
+    GRAPHOPS_GRPC_ADDR=0.0.0.0:50051 \
+    GRAPHOPS_METRICS_ADDR=0.0.0.0:9090
 
-# Expose gRPC port
-EXPOSE 50051
+# Expose gRPC and metrics ports
+EXPOSE 50051 9090
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["/app/graphops-service", "--health-check"]
-
-ENTRYPOINT ["/app/graphops-service"]
+ENTRYPOINT ["/usr/local/bin/graphops"]

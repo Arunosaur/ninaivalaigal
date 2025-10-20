@@ -1,6 +1,12 @@
 # SPDX-License-Identifier: Proprietary
 # Copyright (c) 2025 Medhasys LLC
 
+"""
+Core API Integration Tests
+
+Tests authentication flow and API endpoints.
+"""
+
 import uuid
 
 import pytest
@@ -95,40 +101,44 @@ class TestUserManagement:
     @pytest.fixture
     def auth_token(self):
         """Get auth token for authenticated requests"""
+        email = f"authuser-{uuid.uuid4().hex[:8]}@test.com"
         # Signup
-        requests.post(
+        signup_response = requests.post(
             f"{CORE_API_BASE_URL}/auth/signup",
             json={
-                "email": "authuser@test.com",
+                "email": email,
                 "password": "AuthPass123!",  # pragma: allowlist secret
                 "name": "Auth User",
             },
         )
+        assert signup_response.status_code == 200, f"Signup failed: {signup_response.text}"
 
         # Login
         response = requests.post(
             f"{CORE_API_BASE_URL}/auth/login",
-            json={"email": "authuser@test.com", "password": "AuthPass123!"},  # pragma: allowlist secret
+            json={"email": email, "password": "AuthPass123!"},  # pragma: allowlist secret
         )
+        assert response.status_code == 200, f"Login failed: {response.text}"
 
-        return response.json()["jwt_token"]
+        token = response.json()["jwt_token"]
+        return token, email
 
-    @pytest.mark.skip(reason="User profile endpoints not yet implemented")
     def test_get_current_user(self, auth_token):
         """Get current user profile"""
-        response = requests.get(f"{CORE_API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {auth_token}"})
+        token, email = auth_token
+        response = requests.get(f"{CORE_API_BASE_URL}/users/me", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code == 200
         data = response.json()
-        assert data["email"] == "authuser@test.com"
+        assert data["email"] == email
         assert data["name"] == "Auth User"
 
-    @pytest.mark.skip(reason="User profile endpoints not yet implemented")
     def test_update_user_profile(self, auth_token):
         """Update user profile"""
+        token, email = auth_token
         response = requests.patch(
             f"{CORE_API_BASE_URL}/users/me",
-            headers={"Authorization": f"Bearer {auth_token}"},
+            headers={"Authorization": f"Bearer {token}"},
             json={"name": "Updated Name"},
         )
 
@@ -143,41 +153,45 @@ class TestTeamManagement:
     @pytest.fixture
     def auth_token(self):
         """Get auth token"""
-        requests.post(
+        email = f"teamuser-{uuid.uuid4().hex[:8]}@test.com"
+        signup_response = requests.post(
             f"{CORE_API_BASE_URL}/auth/signup",
             json={
-                "email": "teamuser@test.com",
+                "email": email,
                 "password": "TeamPass123!",  # pragma: allowlist secret
                 "name": "Team User",
             },
         )
+        assert signup_response.status_code == 200, f"Signup failed: {signup_response.text}"
 
         response = requests.post(
             f"{CORE_API_BASE_URL}/auth/login",
-            json={"email": "teamuser@test.com", "password": "TeamPass123!"},  # pragma: allowlist secret
+            json={"email": email, "password": "TeamPass123!"},  # pragma: allowlist secret
         )
+        assert response.status_code == 200, f"Login failed: {response.text}"
 
         return response.json()["jwt_token"]
 
-    @pytest.mark.skip(reason="Team management endpoints not yet implemented")
     def test_create_team(self, auth_token):
         """Create a new team"""
+        team_name = f"My Team {uuid.uuid4().hex[:4]}"
         response = requests.post(
-            f"{CORE_API_BASE_URL}/teams", headers={"Authorization": f"Bearer {auth_token}"}, json={"name": "My Team"}
+            f"{CORE_API_BASE_URL}/teams", headers={"Authorization": f"Bearer {auth_token}"}, json={"name": team_name}
         )
 
-        assert response.status_code == 201
+        assert response.status_code == 200
         data = response.json()
-        assert data["name"] == "My Team"
+        assert data["name"] == team_name
         assert "id" in data
 
-    @pytest.mark.skip(reason="Team management endpoints not yet implemented")
     def test_list_teams(self, auth_token):
         """List user's teams"""
         # Create team
-        requests.post(
-            f"{CORE_API_BASE_URL}/teams", headers={"Authorization": f"Bearer {auth_token}"}, json={"name": "Team 1"}
+        team_name = f"Team 1 {uuid.uuid4().hex[:4]}"
+        create_response = requests.post(
+            f"{CORE_API_BASE_URL}/teams", headers={"Authorization": f"Bearer {auth_token}"}, json={"name": team_name}
         )
+        assert create_response.status_code == 200
 
         # List teams
         response = requests.get(f"{CORE_API_BASE_URL}/teams", headers={"Authorization": f"Bearer {auth_token}"})
@@ -185,4 +199,4 @@ class TestTeamManagement:
         assert response.status_code == 200
         teams = response.json()
         assert len(teams) >= 1
-        assert any(t["name"] == "Team 1" for t in teams)
+        assert any(t["name"] == team_name for t in teams)
