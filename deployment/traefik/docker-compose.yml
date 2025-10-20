@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: Elastic-2.0
+# Copyright (c) 2025 Medhasys LLC
+
+# Traefik API Gateway Deployment
+# Task #83: API Gateway
+
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: ninaivalaigal-gateway
+    restart: unless-stopped
+
+    ports:
+      - "80:80"       # HTTP
+      - "443:443"     # HTTPS
+      - "8080:8080"   # Dashboard
+
+    volumes:
+      # Configuration
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./dynamic.yml:/etc/traefik/dynamic/dynamic.yml:ro
+
+      # Docker socket for service discovery
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+      # SSL certificates
+      - traefik-certs:/letsencrypt
+
+      # Logs
+      - traefik-logs:/var/log/traefik
+
+    networks:
+      - ninaivalaigal-network
+
+    labels:
+      # Traefik dashboard
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=web"
+
+    environment:
+      - TZ=UTC
+
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  traefik-certs:
+    name: traefik-letsencrypt
+  traefik-logs:
+    name: traefik-logs
+
+networks:
+  ninaivalaigal-network:
+    name: ninaivalaigal-network
+    external: true
