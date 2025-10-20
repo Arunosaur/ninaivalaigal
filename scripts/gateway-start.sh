@@ -22,10 +22,11 @@ if ! docker info >/dev/null 2>&1; then
 fi
 
 # Create network if it doesn't exist
-if ! docker network ls | grep -q ninaivalaigal-network; then
+echo "📡 Checking network..."
+docker network inspect ninaivalaigal-network >/dev/null 2>&1 || {
     echo "📡 Creating ninaivalaigal-network..."
     docker network create ninaivalaigal-network
-fi
+}
 
 # Stop existing gateway if running
 if docker ps | grep -q ninaivalaigal-gateway; then

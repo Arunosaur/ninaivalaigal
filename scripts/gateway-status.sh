@@ -13,7 +13,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # Check if gateway is running
-if docker ps | grep -q ninaivalaigal-gateway; then
+if docker ps --format "{{.Names}}" | grep -q "^ninaivalaigal-gateway$"; then
     echo "✅ Gateway: Running"
 
     # Get container status
