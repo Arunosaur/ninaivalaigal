@@ -15,11 +15,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy shared utilities first (needed by the service)
 COPY shared/ /app/shared/
 
+# Copy graphops_client Python package
+COPY python-clients/graphops/graphops_client /app/graphops_client
+
 # Copy service code
 COPY services/core-api/ /app/
 
-# Set Python path to include shared
-ENV PYTHONPATH=/app:/app/shared
+# Set Python path to include shared and graphops_client
+ENV PYTHONPATH=/app:/app/shared:/app
 
 # Expose port
 EXPOSE 8000
