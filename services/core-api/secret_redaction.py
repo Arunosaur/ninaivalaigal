@@ -44,7 +44,7 @@ class SecretDetector:
             ],
             "private_key": [
                 r"-----BEGIN [A-Z ]+PRIVATE KEY-----[\s\S]*?-----END [A-Z ]+PRIVATE KEY-----",
-                r"-----BEGIN RSA PRIVATE KEY-----[\s\S]*?-----END RSA PRIVATE KEY-----",
+                r"-----BEGIN (?:RSA |EC |DSA )?PRIVATE KEY-----",  # noqa: E203
             ],
             "aws_credentials": [
                 r"AKIA[0-9A-Z]{16}",  # AWS Access Key ID
@@ -244,11 +244,11 @@ def redact_api_response(response_data: Any) -> Any:
 def test_secret_detection():
     """Test the secret detection and redaction"""
     test_cases = [
-        "JWT token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjN9.signature",
-        "API key: sk-1234567890abcdef1234567890abcdef",
-        "Database: postgresql://user:password123@localhost:5432/db",
-        "Password: 'mySecretPassword123'",
-        "AWS key: AKIAIOSFODNN7EXAMPLE",
+        "JWT token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjN9.signature",  # pragma: allowlist secret
+        "API key: sk-1234567890abcdef1234567890abcdef",  # pragma: allowlist secret
+        "Database: postgresql://user:password123@localhost:5432/db",  # pragma: allowlist secret
+        "Password: 'mySecretPassword123'",  # pragma: allowlist secret
+        "AWS key: AKIAIOSFODNN7EXAMPLE",  # pragma: allowlist secret
     ]
 
     detector = SecretDetector()

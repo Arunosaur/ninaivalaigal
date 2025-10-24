@@ -2,11 +2,10 @@
 # Copyright (c) 2025 Medhasys LLC
 """Unit tests for RBAC middleware."""
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock
 
 import pytest
-from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request
 
 # Import middleware (adjust import path as needed)
 # from src.rbac_middleware import rbac_middleware
@@ -132,7 +131,6 @@ class TestRBACPermissions:
         """Test admin role has all permissions."""
         # Admin should have access to everything
         user_role = "admin"
-        required_permission = "any_permission"
 
         # Mock permission check
         has_permission = user_role == "admin"
@@ -140,7 +138,6 @@ class TestRBACPermissions:
 
     def test_user_has_limited_permissions(self):
         """Test regular user has limited permissions."""
-        user_role = "user"
 
         # User should have basic permissions
         allowed_permissions = ["read:own", "write:own"]
@@ -154,7 +151,6 @@ class TestRBACPermissions:
 
     def test_team_member_permissions(self):
         """Test team member permissions."""
-        user_role = "team_member"
 
         # Team member should access team resources
         assert True  # Placeholder

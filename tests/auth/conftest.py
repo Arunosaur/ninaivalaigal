@@ -17,7 +17,6 @@ import sys
 
 import pytest
 import requests
-from fastapi.testclient import TestClient
 
 # Add project root to Python path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

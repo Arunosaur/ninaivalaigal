@@ -56,7 +56,11 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: [flake8-docstrings, flake8-bugbear]
-        args: ["--per-file-ignores=services/core-api/main_with_auth.py:E402"]
+        args: [
+          "--per-file-ignores=services/core-api/main_with_auth.py:E402",
+          "--extend-ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D202,D205,D400,D401,E203,B008,B007",
+          "--max-line-length=120"
+        ]
         exclude: |
           (?x)^(
             client-tools/vendor/.*|

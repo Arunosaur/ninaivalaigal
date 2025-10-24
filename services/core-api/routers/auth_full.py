@@ -17,27 +17,14 @@ import os
 import re
 import secrets
 from datetime import datetime, timedelta
-from typing import Any
 
 import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, EmailStr
 
 # Import models from local auth module
-from auth import (
-    ApiKeyCreate,
-    ApiKeyResponse,
-    IndividualUserSignup,
-    InvitationAccept,
-    OrganizationSignup,
-    Token,
-    TokenData,
-    TokenUsage,
-    UserInvitation,
-    UserLogin,
-)
+from auth import IndividualUserSignup, TokenData
 
 
 # Configuration loading (moved from main.py to avoid circular import)

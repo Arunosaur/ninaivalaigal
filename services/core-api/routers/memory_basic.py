@@ -8,7 +8,7 @@ These endpoints exist primarily to test authentication middleware.
 Full memory functionality is in other routers (memory_health_api, etc.)
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 
 from auth import get_current_user
 

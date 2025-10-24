@@ -12,7 +12,6 @@ import importlib
 import importlib.util
 import os
 import sys
-import types
 from pathlib import Path
 
 import uvicorn
@@ -59,7 +58,7 @@ sys.modules["auth"] = local_auth
 if previous_auth is not None:
     sys.modules.setdefault("contracts.auth", contracts_auth)
 
-import main  # noqa: E402  pylint: disable=wrong-import-position
+import main  # noqa: E402,F401  pylint: disable=wrong-import-position,unused-import
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=int(os.getenv("PORT", "18000")))

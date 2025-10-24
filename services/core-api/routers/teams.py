@@ -11,7 +11,7 @@ Team Management Router
 Extracted from main.py for better code organization
 """
 
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from auth_service import get_current_user
@@ -27,7 +27,6 @@ from common.v1 import (
 )
 from database import DatabaseManager, Team, TeamMember, User
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, Field
 from rbac_middleware import require_permission
 
 from rbac.permissions import Action, Resource

@@ -6,7 +6,6 @@
 # Unauthorized copying, modification, or distribution is prohibited.
 # See LICENSE file in the server/ directory for details.
 #
-import json
 
 import requests
 
@@ -39,7 +38,7 @@ def test_get_user_teams():
     """Tests the /protected/teams endpoint."""
     token = get_auth_token()
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_AURL}/protected/teams", headers=headers)
+    response = requests.get(f"{BASE_URL}/protected/teams", headers=headers)
     response.raise_for_status()
     teams_data = response.json()
     assert teams_data["success"] is True

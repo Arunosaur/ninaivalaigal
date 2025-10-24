@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 
 import pytest
 from jose import jwt
-from passlib.context import CryptContext
 
 # Import auth core functions
 from src.auth import (

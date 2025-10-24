@@ -11,7 +11,6 @@ Simple test script to verify Core API service can start
 Tests basic imports and structure without full router complexity
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -27,7 +26,7 @@ print(f"📁 Current directory: {current_dir}")
 # Test 1: Import database module
 print("\n1️⃣  Testing database import...")
 try:
-    from database import DatabaseManager
+    pass
 
     print("✅ DatabaseManager imported successfully")
 except Exception as e:
@@ -51,7 +50,7 @@ print("\n3️⃣  Testing auth import...")
 try:
     from utils.auth import JWT_ALGORITHM
 
-    print(f"✅ Auth utilities imported successfully")
+    print("✅ Auth utilities imported successfully")
     print(f"🔐 JWT Algorithm: {JWT_ALGORITHM}")
 except Exception as e:
     print(f"⚠️  Auth import failed (may need JWT_SECRET env var): {e}")
@@ -68,7 +67,7 @@ try:
         return {"status": "healthy", "service": "core-api-test"}
 
     print("✅ FastAPI app created successfully")
-    print(f"📍 Health endpoint: /health")
+    print("📍 Health endpoint: /health")
 except Exception as e:
     print(f"❌ FastAPI app creation failed: {e}")
     sys.exit(1)

@@ -11,7 +11,6 @@ User Management Router
 Extracted from main.py for better code organization
 """
 
-from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
