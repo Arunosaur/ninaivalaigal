@@ -1,5 +1,10 @@
 # Developer A Task #37 - Load Tester Makefile
 
+IMAGE_NAME := ninaivalaigal-load-tester
+ARM64_IMAGE := $(IMAGE_NAME):arm64
+STAMP := $(shell date +%Y%m%d-%H%M%S)
+ARM64_TAR ?= /tmp/load-tester-$(STAMP).tar
+
 .PHONY: help build run test clean install quick-test demo profiles
 
 # Default target
@@ -162,6 +167,16 @@ docker-build: ## Build Docker image
 docker-run: docker-build ## Run in Docker container
 	@echo "🐳 Running load tester in Docker..."
 	docker run --rm --network host ninaivalaigal/load-tester:latest
+
+docker-build-arm64: ## Build arm64 Docker image for Apple container runtime
+	@echo "🐳 Building arm64 Docker image..."
+	docker build --platform linux/arm64 -t $(ARM64_IMAGE) .
+	@echo "✅ Built $(ARM64_IMAGE)"
+
+docker-package-arm64: docker-build-arm64 ## Build and export arm64 image tarball
+	@echo "📦 Exporting arm64 image to $(ARM64_TAR)..."
+	docker save $(ARM64_IMAGE) -o $(ARM64_TAR)
+	@echo "✅ Image saved to $(ARM64_TAR)"
 
 # Status and information
 status: ## Show current service status

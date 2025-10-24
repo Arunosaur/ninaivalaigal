@@ -9,11 +9,15 @@ use graphops_service::proto::graphops::v1::{
     CypherBatchRequest, CypherRequest, ExecutionStatus, HealthCheckRequest, MetricsRequest,
 };
 use graphops_service::{DbPool, GraphOpsService};
+use serde_json::Value;
 use std::env;
 use std::net::TcpListener;
 use std::time::Duration;
 use tokio::sync::oneshot;
 use tonic::transport::{Channel, Endpoint, Server};
+
+const PERF_USER_SEED_QUERY: &str = include_str!("cypher/perf_user_seed.cypher");
+const MEMORY_FEED_QUERY: &str = include_str!("cypher/memory_feed.cypher");
 
 #[derive(Default)]
 struct SpawnOptions {
@@ -356,6 +360,72 @@ async fn health_check_roundtrip() {
         graphops_service::proto::graphops::v1::HealthStatus::Healthy as i32
     );
     assert!(payload.uptime_seconds >= 0);
+
+    let _ = shutdown.send(());
+}
+
+#[tokio::test]
+async fn memory_feed_returns_map_rows() {
+    let Some((mut client, shutdown)) = spawn_test_client().await else {
+        return;
+    };
+
+    let seed_request = CypherRequest {
+        query: PERF_USER_SEED_QUERY.to_string(),
+        parameters: Default::default(),
+        timeout_ms: 0,
+        trace_id: "it-memory-feed-seed".to_string(),
+        span_id: String::new(),
+    };
+
+    let seed_response = client
+        .execute_query(seed_request)
+        .await
+        .expect("Seed ExecuteQuery RPC should return")
+        .into_inner();
+
+    assert_eq!(
+        seed_response.status,
+        ExecutionStatus::Success as i32,
+        "seed query must succeed"
+    );
+
+    let request = CypherRequest {
+        query: MEMORY_FEED_QUERY.to_string(),
+        parameters: Default::default(),
+        timeout_ms: 0,
+        trace_id: "it-memory-feed".to_string(),
+        span_id: String::new(),
+    };
+
+    let response = client
+        .execute_query(request)
+        .await
+        .expect("Memory feed ExecuteQuery RPC should return");
+    let payload = response.into_inner();
+
+    assert_eq!(
+        payload.status,
+        ExecutionStatus::Success as i32,
+        "memory feed query must succeed"
+    );
+    assert!(
+        payload.row_count > 0,
+        "expected seeded memories; run perf_user_seed.cypher before this test"
+    );
+
+    for row_json in &payload.results {
+        let value: Value = serde_json::from_str(row_json).expect("row must be valid JSON");
+        let obj = value
+            .as_object()
+            .expect("row must decode to a JSON object (map)");
+        assert!(obj.contains_key("memory_id"), "row missing memory_id key");
+        assert!(obj.contains_key("title"), "row missing title key");
+        assert!(
+            obj.contains_key("memory_type"),
+            "row missing memory_type key"
+        );
+    }
 
     let _ = shutdown.send(());
 }

@@ -15,7 +15,11 @@ use std::env;
 use std::net::SocketAddr;
 use std::process;
 use tonic::transport::Server;
+use tonic_reflection::server::Builder as ReflectionBuilder;
 use tracing::{error, info};
+
+/// Encoded protobuf descriptors for gRPC reflection; generated in build.rs
+const GRAPHOPS_DESCRIPTOR_SET: &[u8] = include_bytes!("../proto/graphops_descriptor.bin");
 
 #[derive(Parser, Debug, Clone)]
 #[command(name = "graphops", about = "GraphOps gRPC Service", long_about = None)]
@@ -132,7 +136,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let pool = DbPool::new(&database_url)?;
     let service = GraphOpsService::new(pool, graph_name);
 
+    // Reflection lets tooling list services without external proto files
+    let reflection_service = ReflectionBuilder::configure()
+        .register_encoded_file_descriptor_set(GRAPHOPS_DESCRIPTOR_SET)
+        .build()?;
+
     let grpc_server = Server::builder()
+        .add_service(reflection_service)
         .add_service(GraphOpsServiceServer::new(service))
         .serve(grpc_addr);
 

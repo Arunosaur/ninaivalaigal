@@ -1,5 +1,10 @@
 # Developer A Task #36 - gRPC Gateway Makefile
 
+IMAGE_NAME := ninaivalaigal-grpc-gateway
+ARM64_IMAGE := $(IMAGE_NAME):arm64
+STAMP := $(shell date +%Y%m%d-%H%M%S)
+ARM64_TAR ?= /tmp/grpc-gateway-$(STAMP).tar
+
 .PHONY: help build run test clean docker proto deps
 
 # Default target
@@ -37,6 +42,16 @@ docker: ## Build Docker image
 docker-run: docker ## Run in Docker container
 	@echo "🐳 Running gRPC Gateway in Docker..."
 	docker run --rm -p 8080:8080 --name grpc-gateway ninaivalaigal/grpc-gateway:latest
+
+docker-build-arm64: ## Build arm64 Docker image for Apple container runtime
+	@echo "🐳 Building arm64 Docker image..."
+	docker build --platform linux/arm64 -t $(ARM64_IMAGE) .
+	@echo "✅ Built $(ARM64_IMAGE)"
+
+docker-package-arm64: docker-build-arm64 ## Build and export arm64 image tarball
+	@echo "📦 Exporting arm64 image to $(ARM64_TAR)..."
+	docker save $(ARM64_IMAGE) -o $(ARM64_TAR)
+	@echo "✅ Image saved to $(ARM64_TAR)"
 
 proto: ## Generate protobuf code
 	@echo "📡 Generating protobuf code..."

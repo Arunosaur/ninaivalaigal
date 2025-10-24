@@ -15,8 +15,11 @@ from pathlib import Path
 
 import structlog
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Add directories to path (order matters: current first, then lib, then shared)
 current_dir = Path(__file__).parent
@@ -27,6 +30,7 @@ sys.path.insert(1, str(lib_dir))  # Then lib for server dependencies
 sys.path.insert(2, str(shared_dir))  # Finally shared utilities
 
 from database import DatabaseManager  # noqa: E402
+from rbac_middleware import rbac_middleware  # noqa: E402
 
 # Configure structlog
 structlog.configure(
@@ -57,8 +61,9 @@ async def lifespan(app: FastAPI):
 
     # Initialize database from environment variable
     database_url = os.getenv(
-        "DATABASE_URL", "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"
-    )  # pragma: allowlist secret
+        "DATABASE_URL",
+        "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev",  # pragma: allowlist secret
+    )
     logger.info(f"📊 Database URL: {database_url[:50]}...")
 
     try:
@@ -111,6 +116,75 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Enforce JWT authentication + RBAC context extraction for protected routes
+app.middleware("http")(rbac_middleware)
+
+
+# Exception handlers for proper status codes
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Handle HTTP exceptions with proper status codes"""
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
+import json
+
+# Add JSON parsing error handler (catches malformed JSON before route handlers)
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+
+@app.middleware("http")
+async def catch_json_errors(request: Request, call_next):
+    """Catch JSON parsing errors and return 400"""
+    # Only process JSON requests
+    if request.headers.get("content-type") == "application/json":
+        try:
+            # Try to read and parse the body
+            body = await request.body()
+            if body:
+                try:
+                    json.loads(body)
+                except json.JSONDecodeError:
+                    return JSONResponse(
+                        status_code=status.HTTP_400_BAD_REQUEST, content={"detail": "Malformed JSON payload"}
+                    )
+
+            # Reset body for route handlers
+            async def receive():
+                return {"type": "http.request", "body": body}
+
+            request._receive = receive
+        except Exception:
+            pass
+
+    response = await call_next(request)
+    return response
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """
+    Handle validation errors
+
+    For JSON parsing errors, return 400 (Bad Request)
+    For field validation errors, return 422 (Unprocessable Entity)
+    """
+    errors = exc.errors()
+
+    # Check if it's a JSON parsing error
+    for error in errors:
+        if error.get("type") in ["json_invalid", "json_type_error"]:
+            return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": "Invalid JSON format"})
+
+    # Otherwise, return 422 for field validation errors
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content={"detail": errors})
+
+
+@app.exception_handler(ValueError)
+async def value_error_handler(request: Request, exc: ValueError):
+    """Handle ValueError as 400 Bad Request"""
+    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": str(exc)})
+
 
 # Dependency injection
 def get_db(request: Request) -> DatabaseManager:
@@ -132,11 +206,11 @@ from routers import metrics as metrics_router  # noqa: E402
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
 
+# from routers import memory_api  # noqa: E402  # REMOVED - redundant with Rust
 # Import team management routers
 # Import memory & session routers
 # Import business logic routers
 from routers import memory_acl_api  # noqa: E402
-from routers import memory_api  # noqa: E402
 from routers import memory_drift_api  # noqa: E402
 from routers import memory_health_api  # noqa: E402
 from routers import memory_injection_api  # noqa: E402
@@ -152,6 +226,9 @@ from routers import team_invitations_api  # noqa: E402
 from routers import teams  # noqa: E402
 from routers import token_api  # noqa: E402
 from routers import users  # noqa: E402
+from routers import (  # noqa: E402  # Basic protected memory endpoints for auth testing
+    memory_basic,
+)
 
 # Include business logic routers
 app.include_router(signup_api.router)
@@ -162,7 +239,10 @@ app.include_router(rbac_api.rbac_router)  # Note: rbac_api uses 'rbac_router' no
 app.include_router(token_api.router)
 
 # Include memory & session routers
-app.include_router(memory_api.router)
+# memory_api.router REMOVED - redundant with Rust Memory Service (port 13393)
+# Basic CRUD (remember, recall, list, delete) now handled by Rust
+# app.include_router(memory_api.router)
+app.include_router(memory_basic.router)  # Protected endpoints for auth testing
 app.include_router(memory_acl_api.router)
 app.include_router(memory_drift_api.router)
 app.include_router(memory_health_api.router)

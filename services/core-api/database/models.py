@@ -36,22 +36,20 @@ Base = declarative_base()
 
 
 class User(Base):
-    """User model with authentication and RBAC support"""
+    """User model with authentication, RBAC, and employment provenance intelligence"""
 
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    username = Column(String(255), unique=True, nullable=True, index=True)  # Made nullable for email-only signup
-    email = Column(String(255), unique=True, nullable=False, index=True)  # Made required
-    name = Column(String(255), nullable=False)  # Full name
+    username = Column(String(255), unique=True, nullable=True, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    name = Column(String(255), nullable=False)
     password_hash = Column(String(255), nullable=False)
-    account_type = Column(
-        String(50), nullable=False, default="individual"
-    )  # individual, team_member, organization_admin
-    subscription_tier = Column(String(50), nullable=False, default="free")  # free, team, enterprise
+    account_type = Column(String(50), nullable=False, default="individual")
+    subscription_tier = Column(String(50), nullable=False, default="free")
     personal_contexts_limit = Column(Integer, default=10)
-    role = Column(String(50), nullable=False, default="user")  # user, admin, super_admin
-    created_via = Column(String(50), nullable=False, default="signup")  # signup, invite, admin
+    role = Column(String(50), nullable=False, default="user")
+    created_via = Column(String(50), nullable=False, default="signup")
     email_verified = Column(Boolean, default=False)
     verification_token = Column(String(255), nullable=True)
     password_reset_token = Column(String(255), nullable=True)
@@ -65,6 +63,43 @@ class User(Base):
     default_role = Column(String(50), default="MEMBER")
     is_system_admin = Column(Boolean, default=False)
 
+    # User Provenance & Employment Intelligence
+    origin = Column(String(50), nullable=False, default="native")  # native, acquired, contractor, partner, intern
+    acquired_from_organization_id = Column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
+    )
+    acquisition_date = Column(DateTime, nullable=True)
+
+    # Employment Status & Lifecycle
+    employment_status = Column(
+        String(50), nullable=False, default="active"
+    )  # active, on_leave, offboarded, alumni, contractor_expired
+    employment_type = Column(
+        String(50), nullable=False, default="full_time"
+    )  # full_time, part_time, contractor, intern, consultant
+
+    # Employment Governance
+    employment_governance = Column(
+        String(50), nullable=False, default="employee"
+    )  # employee, contractor, partner, consultant
+    vendor_organization_id = Column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
+    )
+
+    # Employment Dates & Hierarchy
+    hire_date = Column(DateTime, nullable=True)
+    termination_date = Column(DateTime, nullable=True)
+    contract_start_date = Column(DateTime, nullable=True)
+    contract_end_date = Column(DateTime, nullable=True)
+    manager_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    primary_organization_id = Column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
+    )
+
+    # Metadata & Analytics
+    employment_metadata = Column(JSON, nullable=True)
+    full_reporting_chain = Column(JSON, nullable=True)  # Array of UUIDs for org chart
+
     # Relationships for sharing system
     owned_contexts = relationship("Context", foreign_keys="[Context.owner_id]", back_populates="owner")
     team_memberships = relationship("TeamMember", back_populates="user")
@@ -74,7 +109,18 @@ class User(Base):
         back_populates="granted_by_user",
     )
     user_permissions = relationship("ContextPermission", foreign_keys="[ContextPermission.user_id]")
-    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+    refresh_tokens = relationship(
+        "RefreshToken", foreign_keys="[RefreshToken.user_id]", back_populates="user", cascade="all, delete-orphan"
+    )
+    revoked_refresh_tokens = relationship(
+        "RefreshToken", foreign_keys="[RefreshToken.revoked_by]", back_populates="revoker"
+    )
+
+    # Employment Provenance Relationships
+    acquired_from_organization = relationship("Organization", foreign_keys=[acquired_from_organization_id])
+    vendor_organization = relationship("Organization", foreign_keys=[vendor_organization_id])
+    primary_organization = relationship("Organization", foreign_keys=[primary_organization_id])
+    manager = relationship("User", remote_side=[id], foreign_keys=[manager_id])
 
     # RBAC relationships (defined in rbac_models.py)
     # These are added dynamically by rbac_models.py to avoid circular imports
@@ -98,6 +144,7 @@ class RefreshToken(Base):
 
     # Relationships
     user = relationship("User", foreign_keys=[user_id], back_populates="refresh_tokens")
+    revoker = relationship("User", foreign_keys=[revoked_by], back_populates="revoked_refresh_tokens")
 
 
 class Memory(Base):
@@ -116,27 +163,69 @@ class Memory(Base):
 
 
 class Organization(Base):
-    """Organization model for multi-tenant support"""
+    """Organization model with multi-tenant support and corporate provenance intelligence"""
 
     __tablename__ = "organizations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), unique=True, nullable=False)
     description = Column(Text, nullable=True)
-    domain = Column(String(255), nullable=True)  # Company domain
-    settings = Column(JSON, nullable=True)  # Organization settings
+    domain = Column(String(255), nullable=True)
+    settings = Column(JSON, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Organization Provenance & Corporate Intelligence
+    origin = Column(
+        String(50), nullable=False, default="founding"
+    )  # founding, acquired, merger, subsidiary, spin_off, joint_venture
+    founded_date = Column(DateTime, nullable=True)
+
+    # Corporate Structure & Lineage
+    parent_organization_id = Column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
+    )
+    acquired_by_organization_id = Column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
+    )
+    acquisition_date = Column(DateTime, nullable=True)
+    full_corporate_hierarchy = Column(JSON, nullable=True)  # Array of UUIDs
+
+    # Organization Status & Lifecycle
+    organization_status = Column(
+        String(50), nullable=False, default="active"
+    )  # active, acquired, merged, dissolved, dormant, bankrupt
+    dissolution_date = Column(DateTime, nullable=True)
+
+    # Operational Metadata
+    legal_name = Column(String(500), nullable=True)
+    tax_id = Column(String(100), nullable=True)
+    headquarters_location = Column(String(255), nullable=True)
+    employee_count_range = Column(String(50), nullable=True)
+    revenue_tier = Column(String(50), nullable=True)
+    industry_sector = Column(String(100), nullable=True)
+    organization_type = Column(
+        String(50), nullable=False, default="corporation"
+    )  # corporation, llc, partnership, non_profit, government, sole_proprietor
+
+    # Corporate Metadata
+    corporate_metadata = Column(JSON, nullable=True)
+
     # Relationships
-    teams = relationship("Team", back_populates="organization")
+    teams = relationship("Team", foreign_keys="[Team.organization_id]", back_populates="organization")
     contexts = relationship("Context", back_populates="organization")
     permissions = relationship("ContextPermission", back_populates="organization")
 
+    # Corporate Structure Relationships
+    parent_organization = relationship("Organization", remote_side=[id], foreign_keys=[parent_organization_id])
+    acquired_by_organization = relationship(
+        "Organization", remote_side=[id], foreign_keys=[acquired_by_organization_id]
+    )
+
 
 class Team(Base):
-    """Team model for collaborative workspaces"""
+    """Team model for collaborative workspaces with M&A provenance tracking"""
 
     __tablename__ = "teams"
 
@@ -146,12 +235,44 @@ class Team(Base):
         UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )  # NULL for cross-org teams
     description = Column(Text, nullable=True)
+
+    # Team provenance fields for M&A scenarios
+    origin = Column(String(50), nullable=True, default="native")  # native, acquired, merged, partner
+    acquired_from_organization_id = Column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
+    )  # Original org if acquired
+    acquisition_date = Column(DateTime, nullable=True)  # When team was acquired/integrated
+    parent_team_id = Column(
+        UUID(as_uuid=True), ForeignKey("teams.id", ondelete="SET NULL"), nullable=True
+    )  # For team mergers/splits
+    provenance_metadata = Column(JSON, nullable=True)  # Additional M&A context
+
+    # Dimension 5: Operational Status
+    status = Column(String(50), nullable=False, default="active")  # active, inactive, sunset, transitioning
+
+    # Dimension 6: Governance & Role Alignment
+    governance_type = Column(String(50), nullable=False, default="internal")  # internal, shared, external
+    lead_user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )  # Team lead for org charts
+
+    # Analytical: Full lineage path for graph traversal
+    full_lineage_path = Column(JSON, nullable=True)  # Array of UUIDs representing ancestry
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    organization = relationship("Organization", back_populates="teams")
-    members = relationship("TeamMember", back_populates="team")
+    organization = relationship("Organization", foreign_keys=[organization_id], back_populates="teams")
+    acquired_from_organization = relationship(
+        "Organization", foreign_keys=[acquired_from_organization_id]
+    )  # Original org for acquired teams
+    parent_team = relationship(
+        "Team", remote_side=[id], foreign_keys=[parent_team_id]
+    )  # Parent team for mergers/splits
+    lead_user = relationship("User", foreign_keys=[lead_user_id])  # Team lead/owner
+
+    members = relationship("TeamMember", back_populates="team", cascade="all, delete-orphan")
     contexts = relationship("Context", back_populates="team")
     permissions = relationship("ContextPermission", back_populates="team")
     invitations = relationship("TeamInvitation", back_populates="team", cascade="all, delete-orphan")
@@ -230,8 +351,12 @@ class OrganizationRegistration(Base):
     __tablename__ = "organization_registrations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
-    creator_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    organization_id = Column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", deferrable=True, initially="deferred"), nullable=False
+    )
+    creator_user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", deferrable=True, initially="deferred"), nullable=False
+    )
     registration_data = Column(JSON, nullable=True)  # Additional signup data
     status = Column(String(50), nullable=False, default="active")  # active, suspended, cancelled
     billing_email = Column(String(255), nullable=False)
@@ -268,3 +393,48 @@ class UserInvitation(Base):
     organization = relationship("Organization")
     team = relationship("Team")
     inviter = relationship("User")
+
+
+class TeamInvitation(Base):
+    """Team invitation model for inviting users to teams"""
+
+    __tablename__ = "team_invitations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
+    invited_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    email = Column(String(255), nullable=False, index=True)
+    invitation_token = Column(String(255), unique=True, nullable=False)
+    role = Column(String(50), nullable=True)
+    status = Column(String(50), nullable=True)  # pending, accepted, expired, cancelled
+    expires_at = Column(DateTime, nullable=False)
+    accepted_at = Column(DateTime, nullable=True)
+    accepted_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    team = relationship("Team", back_populates="invitations")
+    invited_by = relationship("User", foreign_keys=[invited_by_user_id])
+    accepted_by = relationship("User", foreign_keys=[accepted_by_user_id])
+
+
+class TeamMembership(Base):
+    """Team membership model with enhanced tracking"""
+
+    __tablename__ = "team_memberships"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    role = Column(String(50), nullable=False)
+    joined_at = Column(DateTime, default=datetime.utcnow)
+    invited_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    status = Column(String(50), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    team = relationship("Team", back_populates="memberships")
+    user = relationship("User", foreign_keys=[user_id])
+    invited_by = relationship("User", foreign_keys=[invited_by_user_id])

@@ -1,0 +1,3 @@
+{
+  "query": "// Returning list of maps to satisfy MCP ingestion expectations.\nMATCH (u:User {id: 'perf_user_001'})-[:CREATED]->(m:Memory)\nRETURN {memory_id: m.id, title: m.title, memory_type: m.type}\nORDER BY m.id\nLIMIT 20"
+}

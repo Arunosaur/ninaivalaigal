@@ -88,23 +88,43 @@ func createGRPCCommand() *cobra.Command {
 		Long: `Run gRPC load test against a target gRPC service.
 
 Examples:
-  # Test gRPC health check
-  load-tester grpc localhost:50051 --service health --method Check --concurrency 10
+  # Test GraphOps using reflection
+  load-tester grpc localhost:13398 \
+    --service ninaivalaigal.graphops.v1.GraphOpsService \
+    --method ExecuteQuery \
+    --data '{"query":"MATCH (n) RETURN n LIMIT 1"}' \
+    --concurrency 50 --requests 5000
 
-  # Test Memory Service
-  load-tester grpc localhost:13393 --service MemoryService --method Remember \
-    --proto-file memory.proto --concurrency 20 --requests 1000`,
+  # Supply proto file instead of reflection
+  load-tester grpc localhost:13398 \
+    --method ninaivalaigal.graphops.v1.GraphOpsService/ExecuteQuery \
+    --proto ../../shared/contracts/graphops/v1/graphops.proto \
+    --data-file payload.json --duration 60s`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config.URL = args[0]
-			color.Yellow("🚧 gRPC load testing coming soon!")
-			return nil
+
+			if err := validateGRPCConfig(config); err != nil {
+				return err
+			}
+
+			tester := NewGRPCTester(config)
+			return tester.Run(cmd.Context())
 		},
 	}
 
-	cmd.Flags().StringVar(&config.GRPCService, "service", "", "gRPC service name")
-	cmd.Flags().StringVar(&config.GRPCMethod, "method", "", "gRPC method name")
-	cmd.Flags().StringVar(&config.ProtoFile, "proto-file", "", "Protocol buffer file")
+	cmd.Flags().StringVar(&config.GRPCService, "service", "", "Fully qualified gRPC service name (optional if --method contains service)")
+	cmd.Flags().StringVar(&config.GRPCMethod, "method", "", "gRPC method (e.g. ExecuteQuery or Service/Method)")
+	cmd.Flags().StringVar(&config.ProtoFile, "proto", "", "Path to proto file (optional when using reflection)")
+	cmd.Flags().StringArrayVarP(&config.Headers, "header", "H", []string{}, "gRPC metadata header (Key: Value)")
+	cmd.Flags().StringVar(&config.Body, "data", "", "Inline JSON request payload for unary calls")
+	cmd.Flags().StringVar(&config.BodyFile, "data-file", "", "Path to JSON payload file")
+	cmd.Flags().IntVarP(&config.Concurrency, "concurrency", "c", 1, "Number of concurrent workers")
+	cmd.Flags().IntVarP(&config.TotalRequests, "requests", "n", 0, "Total number of requests (0 to use duration)")
+	cmd.Flags().DurationVarP(&config.Duration, "duration", "t", 30*time.Second, "Test duration when --requests is 0")
+	cmd.Flags().IntVar(&config.RateLimit, "rps", 0, "Requests per second limit (0 for unlimited)")
+	cmd.Flags().DurationVar(&config.Timeout, "timeout", 30*time.Second, "Per-request timeout")
+	cmd.Flags().BoolVar(&config.GRPCPlaintext, "plaintext", true, "Use plaintext (disable TLS)")
 
 	return cmd
 }
@@ -165,6 +185,11 @@ Examples:
 	}
 
 	cmd.Flags().StringToStringVar(&config.Variables, "var", make(map[string]string), "Scenario variables (key=value)")
+	cmd.Flags().IntVarP(&config.Concurrency, "concurrency", "c", config.Concurrency, "Base concurrency per endpoint (weight adjusted)")
+	cmd.Flags().IntVar(&config.TotalRequests, "requests", 0, "Total requests per endpoint (0 for duration-based)")
+	cmd.Flags().DurationVarP(&config.Duration, "duration", "t", config.Duration, "Per-endpoint test duration (ignored if --requests > 0)")
+	cmd.Flags().IntVar(&config.RateLimit, "rate-limit", config.RateLimit, "Base rate limit (requests/sec) per endpoint (weight adjusted)")
+	cmd.Flags().DurationVar(&config.ThinkTime, "think-time", config.ThinkTime, "Think time between requests")
 
 	return cmd
 }
@@ -238,6 +263,26 @@ func validateHTTPConfig(config *LoadTestConfig) error {
 	}
 	if !methodValid {
 		return fmt.Errorf("invalid HTTP method: %s", config.Method)
+	}
+
+	return nil
+}
+
+func validateGRPCConfig(config *LoadTestConfig) error {
+	if config.URL == "" {
+		return fmt.Errorf("target address is required")
+	}
+
+	if config.Concurrency <= 0 {
+		return fmt.Errorf("concurrency must be greater than 0")
+	}
+
+	if config.TotalRequests <= 0 && config.Duration <= 0 {
+		return fmt.Errorf("either total requests (--requests) or duration (--duration) must be specified")
+	}
+
+	if config.Timeout <= 0 {
+		config.Timeout = 30 * time.Second
 	}
 
 	return nil
@@ -329,11 +374,29 @@ func runTargetScenario(ctx context.Context, target TestTarget) error {
 		}
 		testConfig.Headers = headers
 
-		// Adjust concurrency based on weight
+		// Adjust concurrency and rate limit based on weight
 		if endpoint.Weight > 0 {
-			testConfig.Concurrency = config.Concurrency * endpoint.Weight / 100
-			if testConfig.Concurrency < 1 {
-				testConfig.Concurrency = 1
+			if config.Concurrency > 0 {
+				testConfig.Concurrency = config.Concurrency * endpoint.Weight / 100
+				if testConfig.Concurrency < 1 {
+					testConfig.Concurrency = 1
+				}
+			}
+
+			if config.RateLimit > 0 {
+				rate := config.RateLimit * endpoint.Weight / 100
+				if rate < 1 {
+					rate = 1
+				}
+				testConfig.RateLimit = rate
+			}
+
+			if config.TotalRequests > 0 {
+				reqs := config.TotalRequests * endpoint.Weight / 100
+				if reqs < 1 {
+					reqs = 1
+				}
+				testConfig.TotalRequests = reqs
 			}
 		}
 

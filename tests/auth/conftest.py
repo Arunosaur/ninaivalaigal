@@ -25,8 +25,8 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 # Test Configuration
-BASE_URL = "http://localhost:13370"
-TEST_TIMEOUT = 5
+BASE_URL = os.getenv("CORE_API_BASE_URL", "http://localhost:13370")
+TEST_TIMEOUT = int(os.getenv("CORE_API_TIMEOUT", "5"))
 
 
 @pytest.fixture

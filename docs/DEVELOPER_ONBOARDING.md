@@ -177,10 +177,11 @@ ninaivalaigal/
 - **Memory:** Individual captured command or data
 - **Recall:** Search memories by similarity
 
-### 2. User Management (SPEC-002)
+### 2. User Management (SPEC-006)
 - **Signup:** Create account (individual or organization)
 - **Login:** Returns JWT token (24-hour expiry)
 - **RBAC:** Role-based access control
+- **Note:** SPEC-006 consolidates all user management, authentication, and signup functionality
 
 ### 3. Context Scopes (SPEC-007)
 - **Personal:** Only you can access
@@ -354,7 +355,7 @@ Types:
 
 **Recommended First Task:**
 - Read SPEC-001 (Core Memory System)
-- Read SPEC-002 (User Management)
+- Read SPEC-006 (User Management, Authentication & Signup)
 - Run the app and try signup/login
 - Create a context and store a memory
 - Explore the codebase

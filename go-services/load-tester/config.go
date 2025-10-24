@@ -16,6 +16,7 @@ type LoadTestConfig struct {
 	Method      string   `json:"method"`
 	Headers     []string `json:"headers"`
 	Body        string   `json:"body"`
+	BodyFile    string   `json:"body_file"`
 	ContentType string   `json:"content_type"`
 
 	// Load parameters
@@ -44,9 +45,10 @@ type LoadTestConfig struct {
 	MetricsEnabled bool          `json:"metrics_enabled"`
 
 	// gRPC specific
-	GRPCService string `json:"grpc_service"`
-	GRPCMethod  string `json:"grpc_method"`
-	ProtoFile   string `json:"proto_file"`
+	GRPCService   string `json:"grpc_service"`
+	GRPCMethod    string `json:"grpc_method"`
+	ProtoFile     string `json:"proto_file"`
+	GRPCPlaintext bool   `json:"grpc_plaintext"`
 
 	// WebSocket specific
 	WSProtocol      string        `json:"ws_protocol"`
@@ -72,6 +74,7 @@ func NewLoadTestConfig() *LoadTestConfig {
 		MetricsEnabled:  false,
 		MessageInterval: 1 * time.Second,
 		Variables:       make(map[string]string),
+		GRPCPlaintext:   true,
 	}
 }
 

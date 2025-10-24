@@ -11,7 +11,7 @@ Organization Management Router
 Extracted from main.py for better code organization
 """
 
-from auth import get_current_user
+from auth_service import get_current_user
 from database import DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from models.api_models import OrganizationCreate

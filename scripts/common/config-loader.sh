@@ -147,6 +147,12 @@ set_derived_config() {
     # Volume names
     export DB_VOLUME="${CONTAINER_PREFIX}_${NINA_ENV}_db_data"
     export REDIS_VOLUME="${CONTAINER_PREFIX}_${NINA_ENV}_redis_data"
+
+    # Default container images (can be overridden by environment)
+    export DEFAULT_API_IMAGE="${DEFAULT_API_IMAGE:-nina-core-api:arm64}"
+    export DEFAULT_DB_IMAGE="${DEFAULT_DB_IMAGE:-nina-intelligence-db:arm64}"
+    export DEFAULT_REDIS_IMAGE="${DEFAULT_REDIS_IMAGE:-redis:7-alpine}"
+    export DEFAULT_PGBOUNCER_IMAGE="${DEFAULT_PGBOUNCER_IMAGE:-nina-pgbouncer:latest}"
 }
 
 # Validate all required configuration

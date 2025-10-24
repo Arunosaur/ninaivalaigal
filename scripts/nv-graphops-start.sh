@@ -2,23 +2,39 @@
 # SPDX-License-Identifier: Elastic-2.0
 # Copyright (c) 2025 Medhasys LLC
 #
-# Start GraphOps gRPC Service (Task #49)
+# Start GraphOps gRPC Service (Task #49, Fixed for Task #85)
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🚀 Starting GraphOps gRPC Service"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
+# Load centralized environment
+if [ -f "$PROJECT_ROOT/.env.dev" ]; then
+    # shellcheck disable=SC1091
+    source "$PROJECT_ROOT/.env.dev"
+    echo "✅ Loaded environment from .env.dev"
+else
+    echo "❌ .env.dev not found!"
+    echo "   Run: cp .env.example .env.dev"
+    exit 1
+fi
+echo ""
+
 # Configuration
-CONTAINER_NAME="ninaivalaigal-dev-graphops"
+NINA_ENV=${NINA_ENV:-dev}
+CONTAINER_NAME="ninaivalaigal-${NINA_ENV}-graphops"
 IMAGE_NAME="ninaivalaigal-graphops:arm64"
-GRAPH_NAME="ninaivalaigal_intelligence_dev"
+GRAPH_NAME="ninaivalaigal_intelligence_${NINA_ENV}"
 
 # Port from ports.nv.yaml (apple.dev.graphops)
 HOST_PORT=13398
-CONTAINER_PORT=8000
+CONTAINER_PORT=50051  # GraphOps gRPC actually listens on 50051, not 8000
 
 # Stop existing container if running
 if container list | grep -q "$CONTAINER_NAME"; then
@@ -28,20 +44,22 @@ if container list | grep -q "$CONTAINER_NAME"; then
     sleep 2
 fi
 
-# Get PgBouncer IP dynamically
-echo "📡 Getting PgBouncer IP..."
-PGBOUNCER_IP=$(container list | grep ninaivalaigal-dev-pgbouncer | awk '{print $6}')
+# Task #85 Revised: Use PgBouncer TRANSACTION mode (stateless Cypher queries)
+echo "📡 Getting PgBouncer-TX IP..."
+PGBOUNCER_TX_CONTAINER=${PGBOUNCER_TX_CONTAINER:-ninaivalaigal-${NINA_ENV}-pgbouncer-tx}
+PGBOUNCER_IP=$(container inspect "$PGBOUNCER_TX_CONTAINER" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
 
-if [ -z "$PGBOUNCER_IP" ]; then
-    echo "❌ Error: PgBouncer not running"
-    echo "   Start PgBouncer first: ./scripts/nv-pgbouncer-start.sh"
+if [ -z "$PGBOUNCER_IP" ] || [ "$PGBOUNCER_IP" = "null" ]; then
+    echo "❌ Error: PgBouncer-TX not running"
+    echo "   Start PgBouncer first: ./scripts/nv-pgbouncer-tx-start.sh"
     exit 1
 fi
 
-echo "   PgBouncer IP: $PGBOUNCER_IP"
+echo "   PgBouncer-TX (transaction mode): $PGBOUNCER_IP:6432"
 
-# Build DATABASE_URL dynamically
-DATABASE_URL="postgresql://nina:dev_password_change_in_production@${PGBOUNCER_IP}:6432/ninaivalaigal_dev"  # pragma: allowlist secret
+# Build DATABASE_URL from environment variables (NO hardcoded credentials)
+DATABASE_URL="postgresql://${NINA_DB_USER}:${NINA_DB_PASSWORD}@${PGBOUNCER_IP}:6432/ninaivalaigal_${NINA_ENV}"
+echo "   Database URL: postgresql://${NINA_DB_USER}:***@${PGBOUNCER_IP}:6432/ninaivalaigal_${NINA_ENV}"
 
 # Start GraphOps container
 echo ""
@@ -50,15 +68,15 @@ container run -d \
   --name "$CONTAINER_NAME" \
   -e DATABASE_URL="$DATABASE_URL" \
   -e GRAPHOPS_GRAPH="$GRAPH_NAME" \
-  -e GRAPHOPS_GRPC_ADDR="0.0.0.0:${CONTAINER_PORT}" \
-  -e GRAPHOPS_GRPC_ADDR="0.0.0.0:${CONTAINER_PORT}" \
-  -e GRAPHOPS_METRICS_ADDR="0.0.0.0:${CONTAINER_PORT}" \
+  -e GRAPHOPS_GRPC_ADDR="0.0.0.0:50051" \
+  -e GRAPHOPS_METRICS_ADDR="0.0.0.0:9090" \
   -e RUST_LOG=info \
   -e OTEL_SERVICE_NAME="ninaivalaigal-graphops" \
   -e OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317" \
   -e OTEL_TRACING_ENABLED="true" \
   -e ENVIRONMENT="development" \
   -p "${HOST_PORT}:${CONTAINER_PORT}" \
+  -p "9090:9090" \
   --cpus 4 \
   --memory 1g \
   "$IMAGE_NAME"

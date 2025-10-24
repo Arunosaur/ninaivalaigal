@@ -28,7 +28,7 @@ from datetime import datetime
 from typing import Any
 
 import structlog
-from auth import get_current_user
+from auth_service import get_current_user
 from database import User
 from fastapi import APIRouter, Depends, HTTPException, Query
 from memory_drift_engine import MemoryDriftEngine, get_drift_engine

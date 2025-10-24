@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Check Core API service status
 
 NINA_ENV=${NINA_ENV:-dev}
@@ -13,12 +20,12 @@ echo ""
 # Check if container exists and is running
 if container list | grep -q "$CONTAINER_NAME"; then
     echo "✅ Container Status: RUNNING"
-    
+
     # Get container IP
     CORE_API_IP=$(container inspect "$CONTAINER_NAME" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
     echo "   Container IP: $CORE_API_IP"
     echo "   External Port: $PORT_EXTERNAL"
-    
+
     # Check health endpoint
     echo ""
     echo "🏥 Health Check:"
@@ -30,14 +37,14 @@ if container list | grep -q "$CONTAINER_NAME"; then
     else
         echo "   ❌ Service not responding on port $PORT_EXTERNAL"
     fi
-    
+
     # Show recent logs
     echo ""
     echo "📝 Recent Logs (last 10 lines):"
     echo "---"
     container logs --tail 10 "$CONTAINER_NAME" 2>&1
     echo "---"
-    
+
 else
     echo "❌ Container Status: NOT RUNNING"
     echo "   Container: $CONTAINER_NAME"

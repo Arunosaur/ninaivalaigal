@@ -1,0 +1,52 @@
+{
+  "name": "memory-service-recall-write",
+  "base_url": "http://localhost:13393",
+  "headers": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer {{TOKEN}}",
+    "User-Agent": "Ninaivalaigal-LoadTester/US86"
+  },
+  "timeout": "5s",
+  "endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "weight": 10,
+      "validate": [
+        { "type": "status_code", "operator": "eq", "value": "200" },
+        { "type": "response_time", "operator": "lt", "value": "100ms" }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/remember",
+      "method": "POST",
+      "body": "{\"content\":\"Benchmark memory entry from US-86 realistic workload\",\"context\":\"us86_performance_suite\",\"metadata\":{\"source\":\"load-tester\",\"scenario\":\"recall_write\"}}",
+      "weight": 35,
+      "validate": [
+        { "type": "status_code", "operator": "eq", "value": "200" },
+        { "type": "response_time", "operator": "lt", "value": "750ms" },
+        { "type": "json_path", "field": "status", "operator": "eq", "value": "success" }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/recall?q=us86_performance_suite&limit=5",
+      "method": "GET",
+      "weight": 35,
+      "validate": [
+        { "type": "status_code", "operator": "eq", "value": "200" },
+        { "type": "response_time", "operator": "lt", "value": "750ms" },
+        { "type": "json_path", "field": "memories", "operator": "exists", "value": "" }
+      ]
+    },
+    {
+      "path": "/api/v1/memory/memories?page=1&page_size=25",
+      "method": "GET",
+      "weight": 20,
+      "validate": [
+        { "type": "status_code", "operator": "eq", "value": "200" },
+        { "type": "response_time", "operator": "lt", "value": "1s" },
+        { "type": "json_path", "field": "memories", "operator": "exists", "value": "" }
+      ]
+    }
+  ]
+}

@@ -177,3 +177,6 @@ go-services/*/test-binary
 client-tools/
 vscode-client/
 **/vendor/  # Python vendor directories
+go-services/load-tester/bin/
+benchmarks/results/*.csv
+*.importfix

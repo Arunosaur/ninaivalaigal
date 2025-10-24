@@ -12,7 +12,7 @@ RESTful API for memory preloading management and monitoring
 """
 
 import structlog
-from auth import get_current_user
+from auth_service import get_current_user
 from database import User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from preloading_engine import (

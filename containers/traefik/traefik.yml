@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# Traefik API Gateway Configuration
+# US #83: API Gateway Path Routing
+
+api:
+  dashboard: true
+  insecure: true  # Dev only - use TLS in prod
+
+entryPoints:
+  web:
+    address: ":80"
+
+providers:
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+log:
+  level: INFO
+
+accessLog:
+  format: json

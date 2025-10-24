@@ -21,11 +21,11 @@
   | 000 | Vision and Scope | Complete | Foundation |
   | 000 | Template | Reference | - |
   | 001 | Core Memory System | Complete | Foundation |
-| 002 | User Management & Authentication | 95% Complete | Phase 1 |
+| 002 | ~~User Management & Authentication~~ | 🔴 **DEPRECATED - See SPEC-006** | ~~Phase 1~~ |
   | 003 | Core API Architecture | Complete | Foundation |
   | 004 | Team Collaboration | Complete | Phase 1 |
   | 005 | Admin Dashboard | Complete | Phase 1 |
-  | 006 | User Signup System | Complete | Phase 1 |
+  | 006 | **User Management, Authentication & Signup** | ✅ **Complete (Authoritative)** | Phase 1 |
   | 007 | Unified Context Scope System | Complete | Phase 2A |
   | 008 | Security Middleware Redaction | Complete | Phase 2A |
   | 009 | Security Headers & CSP | Complete | Phase 2A |
@@ -210,6 +210,18 @@
   - **Q4 2024**: Current priority initiatives
 
 ## Recent Changes (October 2025)
+
+### October 22, 2025 - SPEC-002 Consolidation & Directory Cleanup ✅
+- **Fixed duplicate SPEC-001**: Renamed `001-user-management/` → `002-user-management/`
+- **Consolidated SPEC-002**: Archived both SPEC-002 variants (002a-basic, 002b-rbac)
+- **SPEC-006 now authoritative**: All user management, authentication, and signup functionality
+  - Updated title: "User Management, Authentication & Signup System"
+  - Supersedes: SPEC-002a (Basic User Management) and SPEC-002b (Multi-User RBAC)
+  - Contains: Individual/Team/Org user types, 3-tier memory, RBAC, invitation system
+- **Archived to**: `specs/.archive/002a-user-management-basic-DEPRECATED/`
+- **Archived to**: `specs/.archive/002b-multi-user-rbac-DEPRECATED/`
+- **Deprecation headers added** to archived files pointing to SPEC-006
+- **Zero data loss**, all historical content preserved in archive
 
 ### October 13, 2025 - SPEC Renumbering (Conflict Resolution) ✅
 - **Resolved duplicate SPEC numbers**:

@@ -10,9 +10,9 @@ RUN apk add --no-cache pgbouncer ca-certificates \
 # Install gettext for envsubst
 RUN apk add --no-cache gettext
 
-# Create pgbouncer.ini.template with templating
+# Create pgbouncer.ini.template with DYNAMIC pool_mode
 RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini.template \
-&& echo '* = host=${DB_HOST} port=5432 pool_mode=session' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo '* = host=${DB_HOST} port=5432 pool_mode=${POOL_MODE}' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo '' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo '[pgbouncer]' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'listen_addr = 0.0.0.0' >> /etc/pgbouncer/pgbouncer.ini.template \
@@ -20,7 +20,7 @@ RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'auth_type = scram-sha-256' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'auth_file = /etc/pgbouncer/userlist.txt' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'admin_users = postgres' >> /etc/pgbouncer/pgbouncer.ini.template \
-&& echo 'pool_mode = session' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'pool_mode = ${POOL_MODE}' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'max_client_conn = 100' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'default_pool_size = 20' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'logfile = /var/log/pgbouncer/pgbouncer.log' >> /etc/pgbouncer/pgbouncer.ini.template \

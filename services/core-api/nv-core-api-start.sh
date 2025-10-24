@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Start Core API service with Apple Container CLI
 # Follows the same pattern as nv-db-start.sh and nv-pgbouncer-start.sh
 
@@ -40,25 +47,35 @@ echo ""
 # Step 1: Get dynamic IPs for dependencies
 echo "🔍 Step 1: Discovering service IPs..."
 
-PGB_IP=$(container inspect "ninaivalaigal-${NINA_ENV}-pgbouncer" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
+# Task #85 Revised: Use PgBouncer TRANSACTION mode (port 6432) for Core API
+PGBOUNCER_TX_CONTAINER=${PGBOUNCER_TX_CONTAINER:-ninaivalaigal-${NINA_ENV}-pgbouncer-tx}
+PGB_IP=$(container inspect "$PGBOUNCER_TX_CONTAINER" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
 if [ -z "$PGB_IP" ] || [ "$PGB_IP" = "null" ]; then
-    echo "❌ PgBouncer not found! Please start it first:"
+    echo "❌ PgBouncer-TX not found! Please start it first:"
     echo "   cd $PROJECT_ROOT"
-    echo "   ./scripts/nv-pgbouncer-start.sh"
+    echo "   ./scripts/nv-pgbouncer-tx-start.sh"
     exit 1
 fi
-echo "   ✅ PgBouncer: $PGB_IP:6432"
+echo "   ✅ PgBouncer-TX (transaction mode): $PGB_IP:6432"
 
-REDIS_IP=$(container inspect "ninaivalaigal-${NINA_ENV}-redis" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
+REDIS_CONTAINER=${REDIS_CONTAINER:-ninaivalaigal-${NINA_ENV}-redis}
+REDIS_IP=$(container inspect "$REDIS_CONTAINER" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
 if [ -z "$REDIS_IP" ] || [ "$REDIS_IP" = "null" ]; then
     echo "   ⚠️  Redis not found (optional)"
     REDIS_IP="127.0.0.1"
 fi
-echo "   ✅ Redis: $REDIS_IP:6379"
+REDIS_PASSWORD=${REDIS_PASSWORD:-}
+if [ -n "$REDIS_PASSWORD" ]; then
+    REDIS_URL="redis://:${REDIS_PASSWORD}@${REDIS_IP}:6379/0"
+    echo "   ✅ Redis: $REDIS_IP:6379 (with password)"
+else
+    REDIS_URL="redis://${REDIS_IP}:6379/0"
+    echo "   ✅ Redis: $REDIS_IP:6379 (no password)"
+fi
 
-# Construct database URL
+# Construct database URL (via PgBouncer-TX transaction mode)
 DATABASE_URL="postgresql://${NINA_DB_USER}:${NINA_DB_PASSWORD}@${PGB_IP}:6432/ninaivalaigal_${NINA_ENV}"
-echo "   ✅ Database URL: ${DATABASE_URL%%:*}:***@${PGB_IP}:6432/ninaivalaigal_${NINA_ENV}"
+echo "   ✅ Database URL: postgresql://${NINA_DB_USER}:***@${PGB_IP}:6432/ninaivalaigal_${NINA_ENV}"
 
 echo ""
 
@@ -126,7 +143,7 @@ container run -d \
     -e PORT="$PORT_INTERNAL" \
     -e ENVIRONMENT=development \
     -e LOG_LEVEL=info \
-    -e REDIS_URL="redis://${REDIS_IP}:6379/0" \
+    -e REDIS_URL="$REDIS_URL" \
     "$IMAGE_NAME"
 
 if [ $? -eq 0 ]; then

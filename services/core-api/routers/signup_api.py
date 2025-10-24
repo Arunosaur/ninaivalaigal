@@ -11,30 +11,50 @@ User signup and registration API endpoints
 Supports individual users, team members, and organization creators
 """
 
+import json
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Optional
 
 import jwt
-from auth import (
+from auth_service import (
     JWT_ALGORITHM,
     JWT_EXPIRATION_HOURS,
     JWT_SECRET,
     IndividualUserSignup,
     InvitationAccept,
     OrganizationSignup,
-    UserLogin,
     authenticate_user,
     create_individual_user,
+    create_refresh_token,
     generate_invitation_token,
+    generate_jwt_token,
     generate_verification_token,
     get_current_user,
+    get_user_by_uuid,
+    get_user_roles_for_token,
     hash_password,
+    request_password_reset_token,
+    reset_password_with_token,
+    revoke_all_user_tokens,
+    revoke_refresh_token,
     send_verification_email,
     validate_email,
+    validate_refresh_token,
     verify_email_token,
 )
+from auth_service import verify_reset_token as auth_verify_reset_token
+from auth_service import verify_token
 from database import Organization, OrganizationRegistration, User, UserInvitation
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    HTTPException,
+    Request,
+    status,
+)
+from pydantic import BaseModel, ValidationError
 
 # Initialize router
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -43,189 +63,507 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # Database helper
 def get_db():
     """Get database instance"""
-    from auth import get_db as auth_get_db
+    from auth_service import get_db as auth_get_db
 
     return auth_get_db()
 
 
-@router.post("/signup/individual")
-async def signup_individual_user(
-    signup_data: IndividualUserSignup, background_tasks: BackgroundTasks
+class OrganizationSignupPayload(BaseModel):
+    """Flexible organization signup payload supporting nested and flat formats."""
+
+    email: Optional[str] = None
+    password: Optional[str] = None
+    full_name: Optional[str] = None
+    name: Optional[str] = None
+    organization_name: Optional[str] = None
+    organization_domain: Optional[str] = None
+    organization_size: Optional[str] = None
+    organization_industry: Optional[str] = None
+    user: Optional[dict[str, Any]] = None
+    organization: Optional[dict[str, Any]] = None
+
+    class Config:
+        extra = "allow"
+
+    def to_normalized(self) -> dict[str, dict[str, Any]]:
+        """Normalize payload to the shared OrganizationSignup schema."""
+
+        user_section = dict(self.user or {})
+        organization_section = dict(self.organization or {})
+
+        if self.email and "email" not in user_section:
+            user_section["email"] = self.email
+        if self.password and "password" not in user_section:
+            user_section["password"] = self.password
+
+        user_name = self.full_name or self.name
+        if user_name and "name" not in user_section:
+            user_section["name"] = str(user_name).strip()
+
+        if self.organization_name and "name" not in organization_section:
+            organization_section["name"] = self.organization_name
+        if self.organization_domain and "domain" not in organization_section:
+            organization_section["domain"] = self.organization_domain
+        if self.organization_size and "size" not in organization_section:
+            organization_section["size"] = self.organization_size
+        if self.organization_industry and "industry" not in organization_section:
+            organization_section["industry"] = self.organization_industry
+
+        return {"user": user_section, "organization": organization_section}
+
+
+@router.post("/signup/individual", status_code=status.HTTP_201_CREATED)
+async def signup_individual_user(request: Request, background_tasks: BackgroundTasks) -> dict[str, Any]:
+    """Sign up as individual user for personal memory management."""
+
+    # Check payload size (max 100KB for signup requests)
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > 100_000:
+        raise HTTPException(status_code=413, detail="Payload too large. Maximum size is 100KB")
+
+    try:
+        payload = await request.json()
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from None
+
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Invalid request payload")
+
+    # Validate individual field sizes
+    for field_name in ["email", "password", "full_name", "name"]:
+        field_value = payload.get(field_name)
+        if field_value and len(str(field_value)) > 10_000:
+            raise HTTPException(
+                status_code=400, detail=f"Field '{field_name}' exceeds maximum length of 10,000 characters"
+            )
+
+    email_raw = payload.get("email")
+    password = payload.get("password")
+    name_raw = payload.get("full_name") or payload.get("name")
+    account_type = payload.get("account_type") or "individual"
+
+    missing = []
+    if not email_raw:
+        missing.append("email")
+    if not password:
+        missing.append("password")
+    if not name_raw:
+        missing.append("full_name")
+
+    if missing:
+        missing_fields = ", ".join(missing)
+        raise HTTPException(status_code=400, detail=f"Missing required fields: {missing_fields}")
+
+    normalized_email = validate_email(str(email_raw))
+    name = str(name_raw).strip()
+
+    try:
+        signup_model = IndividualUserSignup(
+            email=normalized_email,
+            password=str(password),
+            name=name,
+            account_type=account_type,
+        )
+    except ValidationError as exc:
+        raise HTTPException(status_code=400, detail="Invalid signup data") from exc
+
+    try:
+        result = create_individual_user(signup_model)
+    except HTTPException:
+        # Propagate explicit HTTP errors from auth layer
+        raise
+    except Exception as exc:  # pragma: no cover - safety net
+        raise HTTPException(status_code=500, detail=f"Signup failed: {str(exc)}") from exc
+
+    verification_token = result.get("verification_token")
+    if verification_token:
+        background_tasks.add_task(send_verification_email, result["email"], verification_token)
+
+    token = result.pop("jwt_token", None)
+    result.pop("verification_token", None)
+
+    user_payload = {
+        "id": result.get("user_id"),
+        "email": result.get("email"),
+        "name": result.get("name"),
+        "account_type": result.get("account_type"),
+        "email_verified": result.get("email_verified", False),
+    }
+
+    if "personal_contexts_limit" in result:
+        user_payload["personal_contexts_limit"] = result["personal_contexts_limit"]
+
+    response: dict[str, Any] = {
+        "success": True,
+        "message": "Individual user account created successfully",
+        "user": user_payload,
+        "next_steps": ["verify_email", "create_first_context", "install_tools"],
+    }
+
+    if token:
+        expires_in = JWT_EXPIRATION_HOURS * 3600
+        response.update(
+            {
+                "access_token": token,
+                "token": token,
+                "jwt_token": token,
+                "token_type": "bearer",
+                "expires_in": expires_in,
+            }
+        )
+
+    return response
+
+
+@router.post("/signup/organization", status_code=201)
+async def signup_organization(
+    background_tasks: BackgroundTasks,
+    signup_payload: OrganizationSignupPayload = Body(...),
 ) -> dict[str, Any]:
     """
-    Sign up as individual user for personal memory management
+    Sign up as organization creator.
 
-    Creates user account with personal contexts only
+    Creates organization, admin user, and initial setup while accepting either
+    nested or flattened payload formats from tests and legacy clients.
     """
+
+    # Payload size validation happens at FastAPI level (max_body_size in config)
+    # Individual field length validation below
+
+    normalized_payload = signup_payload.to_normalized()
+    user_section = normalized_payload["user"]
+    organization_section = normalized_payload["organization"]
+
+    missing_user_fields = [field for field in ("email", "password", "name") if not user_section.get(field)]
+    if missing_user_fields:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Missing required user fields: {', '.join(missing_user_fields)}",
+        )
+
+    if not organization_section.get("name"):
+        raise HTTPException(status_code=400, detail="Missing required organization field: name")
+
+    for field_name in ("email", "password", "name"):
+        field_value = user_section.get(field_name)
+        if field_value and len(str(field_value)) > 10_000:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Field '{field_name}' exceeds maximum length of 10,000 characters",
+            )
+
+    org_name_value = organization_section.get("name")
+    if org_name_value and len(str(org_name_value)) > 10_000:
+        raise HTTPException(
+            status_code=400,
+            detail="Field 'organization_name' exceeds maximum length of 10,000 characters",
+        )
+
     try:
-        result = create_individual_user(signup_data)
+        signup_data = OrganizationSignup(**normalized_payload)
+    except ValidationError as exc:
+        raise HTTPException(status_code=400, detail="Invalid organization signup data") from exc
 
-        # Send verification email in background
-        background_tasks.add_task(send_verification_email, result["email"], result["verification_token"])
+    user_data = signup_data.user
+    org_data = signup_data.organization
 
-        # Remove sensitive data from response
-        result.pop("verification_token", None)
+    normalized_email = validate_email(user_data["email"])
+    user_data["email"] = normalized_email
+
+    db = get_db()
+    session = db.get_session()
+    try:
+        existing_user = session.query(User).filter_by(email=user_data["email"]).first()
+        if existing_user:
+            raise HTTPException(status_code=409, detail="User with this email already exists")
+
+        new_org = Organization(
+            name=org_data["name"],
+            description=f"Organization for {org_data['name']}",
+            domain=org_data.get("domain"),
+            settings={
+                "size": org_data.get("size"),
+                "industry": org_data.get("industry"),
+            },
+        )
+        session.add(new_org)
+
+        password_hash = hash_password(user_data["password"])
+        verification_token = generate_verification_token()
+
+        admin_user = User(
+            email=user_data["email"],
+            name=user_data["name"],
+            password_hash=password_hash,
+            account_type="organization_admin",
+            subscription_tier="team",
+            role="admin",
+            created_via="signup",
+            email_verified=False,
+            verification_token=verification_token,
+        )
+        session.add(admin_user)
+
+        # Flush once to generate IDs for all pending objects
+        session.flush()
+
+        org_registration = OrganizationRegistration(
+            organization_id=new_org.id,
+            creator_user_id=admin_user.id,
+            registration_data={
+                "signup_date": "2024-01-15",
+                "initial_setup": "pending",
+            },
+            status="active",
+            billing_email=user_data["email"],
+            company_size=org_data.get("size"),
+            industry=org_data.get("industry"),
+        )
+        session.add(org_registration)
+
+        # Commit all changes in a single transaction
+        session.commit()
+
+        jwt_payload = {
+            "user_id": str(admin_user.id),  # Convert UUID to string
+            "email": admin_user.email,
+            "account_type": admin_user.account_type,
+            "role": admin_user.role,
+            "organization_id": str(new_org.id),  # Convert UUID to string
+            "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
+        }
+        jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+        background_tasks.add_task(send_verification_email, admin_user.email, verification_token)
 
         return {
             "success": True,
-            "message": "Individual user account created successfully",
-            "user": result,
-            "next_steps": ["verify_email", "create_first_context", "install_tools"],
+            "message": "Organization and admin account created successfully",
+            "user_id": str(admin_user.id),  # Convert UUID to string
+            "organization_id": str(new_org.id),  # Convert UUID to string
+            "role": "organization_admin",
+            "jwt_token": jwt_token,
+            "setup_steps": [
+                "verify_email",
+                "setup_teams",
+                "invite_members",
+                "create_org_contexts",
+            ],
         }
 
-    except HTTPException as e:
-        raise e
+    except HTTPException:
+        session.rollback()
+        raise  # Re-raise HTTP exceptions as-is
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Signup failed: {str(e)}")
-
-
-@router.post("/signup/organization")
-async def signup_organization(signup_data: OrganizationSignup, background_tasks: BackgroundTasks) -> dict[str, Any]:
-    """
-    Sign up as organization creator
-
-    Creates organization, admin user, and initial setup
-    """
-    try:
-        user_data = signup_data.user
-        org_data = signup_data.organization
-
-        # Validate user data
-        if not validate_email(user_data["email"]):
-            raise HTTPException(status_code=400, detail="Invalid email format")
-
-        db = get_db()
-        session = db.get_session()
-        try:
-            # Check if user already exists
-            existing_user = session.query(User).filter_by(email=user_data["email"]).first()
-            if existing_user:
-                raise HTTPException(status_code=400, detail="User with this email already exists")
-
-            # Create organization
-            new_org = Organization(
-                name=org_data["name"],
-                description=f"Organization for {org_data['name']}",
-                domain=org_data.get("domain"),
-                settings={
-                    "size": org_data.get("size"),
-                    "industry": org_data.get("industry"),
-                },
-            )
-            session.add(new_org)
-            session.flush()  # Get organization ID
-
-            # Create admin user
-            password_hash = hash_password(user_data["password"])
-            verification_token = generate_verification_token()
-
-            admin_user = User(
-                email=user_data["email"],
-                name=user_data["name"],
-                password_hash=password_hash,
-                account_type="organization_admin",
-                subscription_tier="team",
-                role="admin",
-                created_via="signup",
-                email_verified=False,
-                verification_token=verification_token,
-            )
-            session.add(admin_user)
-            session.flush()  # Get user ID
-
-            # Create organization registration record
-            org_registration = OrganizationRegistration(
-                organization_id=new_org.id,
-                creator_user_id=admin_user.id,
-                registration_data={
-                    "signup_date": "2024-01-15",
-                    "initial_setup": "pending",
-                },
-                status="active",
-                billing_email=user_data["email"],
-                company_size=org_data.get("size"),
-                industry=org_data.get("industry"),
-            )
-            session.add(org_registration)
-
-            session.commit()
-
-            # Generate JWT token
-            jwt_payload = {
-                "user_id": admin_user.id,
-                "email": admin_user.email,
-                "account_type": admin_user.account_type,
-                "role": admin_user.role,
-                "organization_id": new_org.id,
-                "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
-            }
-            jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-
-            # Send verification email in background
-            background_tasks.add_task(send_verification_email, admin_user.email, verification_token)
-
-            return {
-                "success": True,
-                "message": "Organization and admin account created successfully",
-                "user_id": admin_user.id,
-                "organization_id": new_org.id,
-                "role": "organization_admin",
-                "jwt_token": jwt_token,
-                "setup_steps": [
-                    "verify_email",
-                    "setup_teams",
-                    "invite_members",
-                    "create_org_contexts",
-                ],
-            }
-
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            session.close()
-
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Organization signup failed: {str(e)}")
+        session.rollback()
+        # Log the actual error for debugging
+        print(f"Organization signup error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Organization signup failed: {str(e)}") from e
+    finally:
+        session.close()
 
 
 @router.post("/login")
-async def login_user(login_data: UserLogin, request: Request) -> dict[str, Any]:
-    """
-    User login for all account types
+async def login_user(request: Request) -> dict[str, Any]:
+    """Authenticate user credentials and return access tokens."""
 
-    Returns JWT token, refresh token, and user information
-    """
+    content_type = request.headers.get("content-type", "").lower()
+
+    if content_type.startswith("application/x-www-form-urlencoded"):
+        form_data = await request.form()
+        payload = dict(form_data)
+    else:
+        try:
+            payload = await request.json()
+        except json.JSONDecodeError:
+            payload = {}
+
+    if not isinstance(payload, dict):
+        payload = {}
+
+    identifier = payload.get("email") or payload.get("username")
+    password = payload.get("password")
+
+    if not identifier:
+        raise HTTPException(status_code=422, detail="Email is required")
+    if not password:
+        raise HTTPException(status_code=422, detail="Password is required")
+
+    normalized_email = validate_email(str(identifier))
+
     try:
-        result = authenticate_user(login_data.email, login_data.password)
+        result = authenticate_user(normalized_email, str(password))
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - safety net
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(exc)}") from exc
 
-        if not result:
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not result:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        # Create refresh token
-        from auth import create_refresh_token
+    user_id = str(result.get("user_id"))
+    device_info = {"platform": "web"}
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
 
-        user_id = str(result["user_id"])
-        device_info = {"platform": "web"}  # Can be enhanced with actual device info
-        ip_address = request.client.host if request.client else None
-        user_agent = request.headers.get("user-agent")
+    refresh_token, refresh_expires = create_refresh_token(
+        user_id=user_id,
+        device_info=device_info,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
 
-        refresh_token, refresh_expires = create_refresh_token(
-            user_id=user_id, device_info=device_info, ip_address=ip_address, user_agent=user_agent
-        )
+    token = result.pop("jwt_token", None)
 
-        # Add refresh token to response
-        result["refresh_token"] = refresh_token
-        result["refresh_token_expires"] = refresh_expires.isoformat()
+    if not token:
+        raise HTTPException(status_code=500, detail="Token generation failed")
 
-        return {"success": True, "message": "Login successful", "user": result}
+    user_payload = {
+        "id": result.get("user_id"),
+        "email": result.get("email"),
+        "name": result.get("name"),
+        "account_type": result.get("account_type"),
+        "role": result.get("role"),
+        "email_verified": result.get("email_verified", False),
+        "rbac_roles": result.get("rbac_roles", {}),
+        "is_system_admin": result.get("is_system_admin", False),
+    }
 
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
+    response: dict[str, Any] = {
+        "success": True,
+        "message": "Login successful",
+        "access_token": token,
+        "token": token,
+        "jwt_token": token,
+        "token_type": "bearer",
+        "expires_in": JWT_EXPIRATION_HOURS * 3600,
+        "refresh_token": refresh_token,
+        "refresh_token_expires": refresh_expires.isoformat(),
+        "user": user_payload,
+    }
+
+    return response
+
+
+@router.post("/refresh")
+async def refresh_access_token(request: Request, db=Depends(get_db)) -> dict[str, Any]:
+    """Refresh JWT access token using a valid refresh token."""
+
+    try:
+        payload = await request.json()
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from None
+
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Invalid request payload")
+
+    refresh_token = payload.get("refresh_token")
+    if not refresh_token or not isinstance(refresh_token, str) or not refresh_token.strip():
+        raise HTTPException(status_code=400, detail="Refresh token is required")
+
+    refresh_token = refresh_token.strip()
+
+    user_id = validate_refresh_token(refresh_token)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    user = get_user_by_uuid(db, user_id)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    role_details = get_user_roles_for_token(db, user_id)
+
+    try:
+        access_token = generate_jwt_token(user, roles=role_details)
+    except Exception as exc:  # pragma: no cover - safety net
+        raise HTTPException(status_code=500, detail="Failed to generate access token") from exc
+
+    new_refresh_token = None
+    new_refresh_expires = None
+    try:
+        new_refresh_token, new_refresh_expires = create_refresh_token(user_id)
+        revoke_refresh_token(refresh_token, revoked_by_user_id=user_id)
+    except Exception:
+        # If rotation fails, fall back to existing refresh token but do not block access token issuance.
+        new_refresh_token = None
+        new_refresh_expires = None
+
+    user_payload = {
+        "id": str(getattr(user, "id", user_id)),
+        "email": getattr(user, "email", None),
+        "name": getattr(user, "name", None),
+        "account_type": getattr(user, "account_type", None),
+        "role": getattr(user, "role", None),
+        "email_verified": getattr(user, "email_verified", False),
+        "rbac_roles": role_details.get("roles", {}) if isinstance(role_details, dict) else {},
+    }
+
+    response: dict[str, Any] = {
+        "success": True,
+        "message": "Token refreshed successfully",
+        "access_token": access_token,
+        "token": access_token,
+        "jwt_token": access_token,
+        "token_type": "bearer",
+        "expires_in": JWT_EXPIRATION_HOURS * 3600,
+        "user": user_payload,
+    }
+
+    if new_refresh_token and new_refresh_expires:
+        response["refresh_token"] = new_refresh_token
+        response["refresh_token_expires"] = new_refresh_expires.isoformat()
+
+    return response
+
+
+@router.post("/validate")
+async def validate_access_token(request: Request, db=Depends(get_db)) -> dict[str, Any]:
+    """Validate a JWT access token and return user information."""
+
+    try:
+        payload = await request.json()
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from None
+
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="Invalid request payload")
+
+    token = payload.get("access_token") or payload.get("token") or payload.get("jwt_token")
+    if not token or not isinstance(token, str) or not token.strip():
+        raise HTTPException(status_code=400, detail="Access token is required")
+
+    token = token.strip()
+
+    token_data = verify_token(token)
+    if not token_data or not token_data.user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = get_user_by_uuid(db, token_data.user_id)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    role_details = get_user_roles_for_token(db, token_data.user_id)
+
+    user_payload = {
+        "id": str(getattr(user, "id", token_data.user_id)),
+        "email": getattr(user, "email", None),
+        "name": getattr(user, "name", None),
+        "account_type": getattr(user, "account_type", None),
+        "role": getattr(user, "role", None),
+        "email_verified": getattr(user, "email_verified", False),
+    }
+
+    response: dict[str, Any] = {
+        "success": True,
+        "valid": True,
+        "user": user_payload,
+        "roles": role_details.get("roles", {}) if isinstance(role_details, dict) else {},
+        "teams": role_details.get("teams", {}) if isinstance(role_details, dict) else {},
+        "organization_id": role_details.get("org_id") if isinstance(role_details, dict) else None,
+        "permissions": [],
+    }
+
+    return response
 
 
 @router.post("/logout")
@@ -241,8 +579,6 @@ async def logout_user(
     revoked = False
 
     if refresh_token and current_user:
-        from auth import revoke_refresh_token
-
         revoked = revoke_refresh_token(refresh_token, str(current_user.id))
 
     return {
@@ -287,8 +623,6 @@ async def request_password_reset(email: str) -> dict[str, Any]:
     Always returns success to prevent email enumeration
     """
     try:
-        from auth import request_password_reset_token
-
         # Always return success (don't reveal if email exists)
         request_password_reset_token(email)
 
@@ -313,9 +647,7 @@ async def verify_reset_token(token: str) -> dict[str, Any]:
     Returns success if token is valid and not expired
     """
     try:
-        from auth import verify_reset_token as verify_token
-
-        user_email = verify_token(token)
+        user_email = auth_verify_reset_token(token)
 
         if not user_email:
             raise HTTPException(status_code=400, detail="Invalid or expired reset token")
@@ -340,8 +672,6 @@ async def confirm_password_reset(token: str, new_password: str) -> dict[str, Any
     Resets password if token is valid
     """
     try:
-        from auth import reset_password_with_token
-
         if len(new_password) < 8:
             raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
@@ -369,8 +699,6 @@ async def refresh_access_token(refresh_token: str, request: Request) -> dict[str
     Returns new access token and optionally new refresh token
     """
     try:
-        from auth import generate_jwt_token, validate_refresh_token
-
         # Validate refresh token
         user_id = validate_refresh_token(refresh_token)
 
@@ -417,8 +745,6 @@ async def revoke_token(refresh_token: str, current_user: User = Depends(get_curr
     Requires authentication (user revoking their own token)
     """
     try:
-        from auth import revoke_refresh_token
-
         success = revoke_refresh_token(refresh_token, str(current_user.id))
 
         if not success:
@@ -443,8 +769,6 @@ async def revoke_all_tokens(current_user: User = Depends(get_current_user)) -> d
     Useful for "log out all devices" functionality
     """
     try:
-        from auth import revoke_all_user_tokens
-
         count = revoke_all_user_tokens(str(current_user.id))
 
         return {
@@ -485,10 +809,10 @@ async def create_invitation(
         db = get_db()
         session = db.get_session()
         try:
-            # Check if user already exists
+            # Check if user already exists (409 Conflict)
             existing_user = session.query(User).filter_by(email=email).first()
             if existing_user:
-                raise HTTPException(status_code=400, detail="User with this email already exists")
+                raise HTTPException(status_code=409, detail="User with this email already exists")
 
             # Create invitation
             invitation_token = generate_invitation_token()

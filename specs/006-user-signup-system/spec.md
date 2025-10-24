@@ -1,4 +1,8 @@
-# Spec 006: User Signup and Organization Registration System
+# Spec 006: User Management, Authentication & Signup System
+
+**Status:** Complete (Consolidated - October 22, 2025)
+**Supersedes:** SPEC-002a (Basic User Management) and SPEC-002b (Multi-User RBAC)
+**Authoritative:** This is the complete and authoritative specification for all user management, authentication, and signup functionality.
 
 ## Overview
 
@@ -149,7 +153,7 @@ Content-Type: application/json
 
 {
   "email": "john@example.com",
-  "password": "secure_password",
+  "password": "secure_password",  # pragma: allowlist secret
   "name": "John Doe",
   "account_type": "individual"
 }
@@ -173,7 +177,7 @@ Content-Type: application/json
 {
   "user": {
     "email": "admin@company.com",
-    "password": "secure_password",
+    "password": "secure_password",  # pragma: allowlist secret
     "name": "Jane Smith"
   },
   "organization": {
@@ -226,9 +230,9 @@ POST /auth/signup/invitation
 Content-Type: application/json
 
 {
-  "invitation_token": "abc123def456",
+  "invitation_token": "abc123def456",  # pragma: allowlist secret
   "user": {
-    "password": "secure_password",
+    "password": "secure_password",  # pragma: allowlist secret
     "name": "Bob Johnson"
   }
 }

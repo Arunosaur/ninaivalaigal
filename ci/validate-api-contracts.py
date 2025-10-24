@@ -76,9 +76,11 @@ class ContractValidator:
 
     def check_breaking_changes(self) -> bool:
         """Check for breaking changes in proto schemas"""
-        # TODO: Implement using buf or protolock
-        # For now, just print warning
-        self.warnings.append("Breaking change detection not yet implemented")
+        # Breaking change detection is now handled by ci/check-breaking-changes.py
+        # which is called separately in the CI workflow.
+        # This provides better separation of concerns and more detailed reporting.
+        #
+        # For local validation, run: python ci/check-breaking-changes.py --base origin/main --head HEAD
         return True
 
     def validate_naming_conventions(self) -> bool:

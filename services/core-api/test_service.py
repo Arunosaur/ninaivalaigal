@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 """
 Simple test script to verify Core API service can start
 Tests basic imports and structure without full router complexity
@@ -21,6 +28,7 @@ print(f"📁 Current directory: {current_dir}")
 print("\n1️⃣  Testing database import...")
 try:
     from database import DatabaseManager
+
     print("✅ DatabaseManager imported successfully")
 except Exception as e:
     print(f"❌ Database import failed: {e}")
@@ -30,6 +38,7 @@ except Exception as e:
 print("\n2️⃣  Testing config import...")
 try:
     from utils.config import load_config
+
     print("✅ Config loaded successfully")
     config = load_config()
     print(f"📊 Config type: {type(config)}")
@@ -41,6 +50,7 @@ except Exception as e:
 print("\n3️⃣  Testing auth import...")
 try:
     from utils.auth import JWT_ALGORITHM
+
     print(f"✅ Auth utilities imported successfully")
     print(f"🔐 JWT Algorithm: {JWT_ALGORITHM}")
 except Exception as e:
@@ -50,12 +60,13 @@ except Exception as e:
 print("\n4️⃣  Testing FastAPI app creation...")
 try:
     from fastapi import FastAPI
+
     app = FastAPI(title="Core API Test")
-    
+
     @app.get("/health")
     def health():
         return {"status": "healthy", "service": "core-api-test"}
-    
+
     print("✅ FastAPI app created successfully")
     print(f"📍 Health endpoint: /health")
 except Exception as e:
@@ -73,9 +84,9 @@ if routers_dir.exists():
 else:
     print("❌ Routers directory not found")
 
-print("\n" + "="*50)
+print("\n" + "=" * 50)
 print("✅ ALL TESTS PASSED!")
-print("="*50)
+print("=" * 50)
 print("\n🚀 Core API service structure is valid!")
 print("📝 Next: Fix router imports and test with uvicorn")
 print("💡 Run: cd services/core-api && python test_service.py")

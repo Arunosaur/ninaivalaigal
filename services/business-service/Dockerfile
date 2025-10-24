@@ -15,6 +15,12 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy shared contracts FIRST (SPEC-100 Task #79)
+COPY shared/contracts /app/shared/contracts
+
+# Install shared contracts package
+RUN pip install --no-cache-dir -e /app/shared/contracts
+
 # Copy requirements and install Python dependencies
 COPY services/business-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -29,6 +35,7 @@ COPY services/business-service/ /app/
 ENV PYTHONUNBUFFERED=1
 ENV SERVICE_ROLE=business-service
 ENV PORT=8000
+ENV PYTHONPATH=/app:/app/shared/contracts
 
 # Expose port
 EXPOSE 8000

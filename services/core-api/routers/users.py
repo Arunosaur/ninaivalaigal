@@ -11,13 +11,39 @@ User Management Router
 Extracted from main.py for better code organization
 """
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from auth import get_current_user
+from auth_service import get_current_user
 from database import DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
+
+
+# Pydantic models for user profile operations
+class UserProfileResponse(BaseModel):
+    """User profile response model"""
+
+    id: str
+    username: Optional[str] = None
+    email: str
+    name: str
+    account_type: str
+    subscription_tier: str
+    role: str
+    email_verified: bool
+    is_active: bool
+    created_at: str
+    last_login: Optional[str] = None
+
+
+class UserProfileUpdate(BaseModel):
+    """User profile update request model"""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[EmailStr] = None
 
 
 # Database manager dependency
@@ -28,34 +54,8 @@ def get_db():
     return DatabaseManager(get_dynamic_database_url())
 
 
-# Request/Response Models
-class UserProfileUpdate(BaseModel):
-    """Model for updating user profile"""
-
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    username: Optional[str] = Field(None, min_length=3, max_length=255)
-    email: Optional[EmailStr] = None
-
-
-class UserProfileResponse(BaseModel):
-    """Model for user profile response"""
-
-    id: UUID
-    username: Optional[str]
-    email: Optional[str]  # Made optional for privacy
-    name: str
-    account_type: str
-    subscription_tier: str
-    role: str
-    email_verified: bool
-    is_active: bool
-    created_at: str
-    last_login: Optional[str]
-
-    class Config:
-        """Pydantic config"""
-
-        from_attributes = True
+# NOTE: User profile models now imported from shared contracts
+# This eliminates duplicate definitions and ensures consistency across services.
 
 
 # Initialize router

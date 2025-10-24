@@ -20,6 +20,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 
+# Import models from shared contracts (SPEC-100 Task #79)
+from auth.v1.models import UserLogin
+
 # Add shared to path
 current_dir = Path(__file__).parent
 shared_dir = current_dir.parent.parent / "shared"
@@ -64,10 +67,6 @@ class UserSignup(BaseModel):
     email: EmailStr
     password: str
     name: str
-    account_type: str = "individual"
-
-
-class UserLogin(BaseModel):
     """User login request"""
 
     email: EmailStr

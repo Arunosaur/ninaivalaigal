@@ -15,7 +15,7 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta
 
-from auth import (
+from auth_service import (
     ApiKeyCreate,
     ApiKeyResponse,
     TokenUsage,

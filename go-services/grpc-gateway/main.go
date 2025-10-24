@@ -16,16 +16,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	// Default ports
-	GatewayPort = ":8080"
-
-	// Backend gRPC services (will be configurable via env vars)
-	CoreAPIAddr  = "localhost:13390" // FastAPI Core
-	MemoryAddr   = "localhost:13393" // Rust Memory Service
-	GraphOpsAddr = "localhost:50051" // Rust GraphOps Service
-)
-
 type Gateway struct {
 	router    *mux.Router
 	grpcConns map[string]*grpc.ClientConn
@@ -192,7 +182,8 @@ func main() {
 		}
 	}
 
-	log.Printf("📡 Gateway will listen on %s", GatewayPort)
+	log.Printf("📡 Gateway will listen on %s", GatewayAddr)
+	log.Printf("🌐 External access via %s", GatewayPublicURL)
 	log.Printf("🔗 Backend services: Memory=%s, GraphOps=%s, CoreAPI=%s",
 		MemoryAddr, GraphOpsAddr, CoreAPIAddr)
 
@@ -226,7 +217,7 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr:         GatewayPort,
+		Addr:         GatewayAddr,
 		Handler:      handler,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
@@ -235,8 +226,8 @@ func main() {
 
 	// Start server in goroutine
 	go func() {
-		log.Printf("✅ gRPC Gateway started on %s", GatewayPort)
-		log.Println("🏥 Health check: curl http://localhost:8080/health")
+		log.Printf("✅ gRPC Gateway started on %s", GatewayAddr)
+		log.Printf("🏥 Health check: curl %s/health", GatewayPublicURL)
 
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("❌ Server failed to start: %v", err)

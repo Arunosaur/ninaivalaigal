@@ -16,7 +16,7 @@ A comprehensive load testing tool designed specifically for the Ninaivalaigal mi
 
 ### **Protocol Support**
 - ✅ **HTTP/REST**: Full HTTP load testing with custom headers, bodies, methods
-- 🚧 **gRPC**: Native gRPC service testing (coming soon)
+- ✅ **gRPC**: Native gRPC service testing with reflection + proto file support
 - 🚧 **WebSocket**: Real-time connection testing (planned)
 
 ### **Reporting & Metrics**
@@ -294,6 +294,27 @@ Throughput:          2.34 MB/s
   --rate-limit 50 \
   --ramp-up 5s \
   --timeout 10s
+
+### **gRPC Service Tests**
+
+```bash
+# GraphOps reflection-based load test (requires server reflection)
+./bin/load-tester grpc localhost:13398 \
+  --service ninaivalaigal.graphops.v1.GraphOpsService \
+  --method ExecuteQuery \
+  --data '{"query":"MATCH (n) RETURN n LIMIT 10","parameters":{},"timeout_ms":5000}' \
+  --concurrency 80 \
+  --requests 8000 \
+  --rps 2000
+
+# Using proto files instead of reflection
+./bin/load-tester grpc localhost:13398 \
+  --method ninaivalaigal.graphops.v1.GraphOpsService/ExecuteQuery \
+  --proto ../../shared/contracts/graphops/v1/graphops.proto \
+  --data-file ./payloads/graphops.json \
+  --duration 60s \
+  --concurrency 40
+```
 ```
 
 ### **Performance Validation**

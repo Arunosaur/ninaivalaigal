@@ -42,11 +42,14 @@ COPY rust-services/graphops/tests ./rust-services/graphops/tests
 
 WORKDIR /workspace/rust-services/graphops
 
+# Create proto directory for descriptor generation
+RUN mkdir -p proto
+
 # Ensure the correct compilation target is available when cross-compiling
 RUN if [ "$TARGETARCH" = "arm64" ]; then rustup target add aarch64-unknown-linux-gnu; fi \
     && if [ "$TARGETARCH" = "amd64" ]; then rustup target add x86_64-unknown-linux-gnu; fi
 
-# Build release binary
+# Build release binary (build.rs will generate proto/graphops_descriptor.bin)
 RUN cargo build --release --bin graphops-service
 
 FROM debian:bookworm-slim AS runtime
@@ -61,7 +64,7 @@ RUN apt-get update \
         libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy compiled binary from builder stage
+# Copy compiled binary from builder stage (includes embedded descriptor from include_bytes!)
 COPY --from=builder /workspace/rust-services/graphops/target/release/graphops-service /usr/local/bin/graphops
 
 # Default environment configuration (can be overridden at runtime)

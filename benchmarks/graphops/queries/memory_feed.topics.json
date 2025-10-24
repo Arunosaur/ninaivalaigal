@@ -1,0 +1,3 @@
+{
+  "query": "// Returning list of maps to satisfy MCP ingestion expectations.\nMATCH (u:User {id: 'perf_user_001'})-[:CREATED]->(m:Memory)-[:TAGGED_WITH]->(t:Topic)\nWITH t.name AS topic_name, count(m) AS memory_count\nRETURN {topic: topic_name, memory_count: memory_count}\nORDER BY memory_count DESC\nLIMIT 10"
+}

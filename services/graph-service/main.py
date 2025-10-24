@@ -26,15 +26,8 @@ sys.path.insert(0, str(current_dir))  # Current directory first for our routers
 sys.path.insert(1, str(lib_dir))  # Then lib for server dependencies
 sys.path.insert(2, str(shared_dir))  # Finally shared utilities
 
-# Set environment defaults for GraphOps
+# Set environment defaults (from .env.dev or start script)
 os.environ.setdefault("NINA_ENV", "dev")
-os.environ.setdefault("GRAPH_DB_HOST", "localhost")
-os.environ.setdefault("GRAPH_DB_PORT", "5433")  # GraphOps port
-os.environ.setdefault("GRAPH_DB_NAME", "graph_db")
-os.environ.setdefault("GRAPH_DB_USER", "graphops")
-os.environ.setdefault("GRAPH_DB_PASSWORD", "graphops_password")
-os.environ.setdefault("GRAPH_REDIS_HOST", "localhost")
-os.environ.setdefault("GRAPH_REDIS_PORT", "6380")  # GraphOps Redis port
 
 from database import DatabaseManager  # noqa: E402
 
@@ -64,10 +57,12 @@ async def lifespan(app: FastAPI):
     """FastAPI lifespan for proper startup/shutdown"""
     logger.info("🧠 Starting Graph/AI Service...")
 
-    # Initialize database from environment variable
-    database_url = os.getenv(
-        "DATABASE_URL", "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"
-    )  # pragma: allowlist secret
+    # Initialize database from environment variable (REQUIRED - no fallback)
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        logger.error("❌ DATABASE_URL environment variable not set!")
+        logger.error("   Start service with: ./services/graph-service/nv-graph-service-start.sh")
+        raise ValueError("DATABASE_URL is required")
     logger.info(f"📊 Database URL: {database_url[:50]}...")
 
     try:

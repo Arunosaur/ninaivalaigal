@@ -25,6 +25,20 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
+# Import models from local auth module
+from auth import (
+    ApiKeyCreate,
+    ApiKeyResponse,
+    IndividualUserSignup,
+    InvitationAccept,
+    OrganizationSignup,
+    Token,
+    TokenData,
+    TokenUsage,
+    UserInvitation,
+    UserLogin,
+)
+
 
 # Configuration loading (moved from main.py to avoid circular import)
 def load_config():
@@ -143,91 +157,10 @@ def generate_invitation_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-# Pydantic models for signup and auth
-class IndividualUserSignup(BaseModel):
-    """IndividualUserSignup class."""
-
-    email: EmailStr
-    password: str
-    name: str
-    account_type: str = "individual"
-
-
-class OrganizationSignup(BaseModel):
-    """OrganizationSignup class."""
-
-    user: dict[str, Any]  # email, password, name
-    organization: dict[str, Any]  # name, domain, size, industry
-
-
-class UserLogin(BaseModel):
-    """UserLogin class."""
-
-    email: EmailStr
-    password: str
-
-
-class InvitationAccept(BaseModel):
-    """InvitationAccept class."""
-
-    invitation_token: str
-    user: dict[str, Any]  # password, name
-
-
-class UserInvitation(BaseModel):
-    """UserInvitation class."""
-
-    email: EmailStr
-    team_ids: list | None = []
-    role: str = "user"
-    message: str | None = None
-
-
-class Token(BaseModel):
-    """Token class."""
-
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    """TokenData class."""
-
-    username: str | None = None
-    user_id: str | None = None  # Changed to str to support UUID
-
-
-class ApiKeyCreate(BaseModel):
-    """ApiKeyCreate class."""
-
-    name: str
-    permissions: list = []
-    expiration: int | None = None  # days, None for never expires
-
-
-class ApiKeyResponse(BaseModel):
-    """ApiKeyResponse class."""
-
-    id: str
-    name: str
-    key: str | None = None  # Only returned on creation
-    permissions: list
-    created_at: datetime
-    expires_at: datetime | None = None
-    last_used_at: datetime | None = None
-    is_active: bool = True
-
-
-class TokenUsage(BaseModel):
-    """TokenUsage class."""
-
-    requests_today: int = 0
-    requests_week: int = 0
-    last_used: datetime | None = None
-    rate_limit_remaining: int = 1000
-    rate_limit_total: int = 1000
-    recent_activity: list = []
-
+# NOTE: Pydantic models now imported from shared contracts (see imports above)
+# This eliminates duplicate definitions and ensures consistency across services.
+# Models: IndividualUserSignup, OrganizationSignup, UserLogin, InvitationAccept,
+#         UserInvitation, Token, TokenData, ApiKeyCreate, ApiKeyResponse, TokenUsage
 
 # Security scheme
 security = HTTPBearer()

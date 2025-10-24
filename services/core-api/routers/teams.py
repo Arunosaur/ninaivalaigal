@@ -14,7 +14,17 @@ Extracted from main.py for better code organization
 from typing import List, Optional
 from uuid import UUID
 
-from auth import get_current_user
+from auth_service import get_current_user
+
+# Import models from shared contracts (SPEC-100 Task #79)
+from common.v1 import (
+    TeamCreateRequest,
+    TeamMemberAddRequest,
+    TeamMemberResponse,
+    TeamMemberUpdateRequest,
+    TeamResponse,
+    TeamUpdateRequest,
+)
 from database import DatabaseManager, Team, TeamMember, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -22,67 +32,8 @@ from rbac_middleware import require_permission
 
 from rbac.permissions import Action, Resource
 
-
-# Pydantic Models
-class TeamCreateRequest(BaseModel):
-    """Request model for creating a team"""
-
-    name: str = Field(..., min_length=1, max_length=255)
-    organization_id: Optional[UUID] = None
-    description: Optional[str] = None
-
-
-class TeamUpdateRequest(BaseModel):
-    """Request model for updating a team"""
-
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-
-
-class TeamResponse(BaseModel):
-    """Response model for team data"""
-
-    id: UUID
-    name: str
-    organization_id: Optional[UUID]
-    description: Optional[str]
-    member_count: int
-    created_at: str
-    updated_at: str
-
-    class Config:
-        """Pydantic config"""
-
-        from_attributes = True
-
-
-class TeamMemberAddRequest(BaseModel):
-    """Request model for adding a team member"""
-
-    user_id: UUID
-    role: str = Field(default="member", pattern="^(owner|admin|member|viewer)$")
-
-
-class TeamMemberUpdateRequest(BaseModel):
-    """Request model for updating a team member's role"""
-
-    role: str = Field(..., pattern="^(owner|admin|member|viewer)$")
-
-
-class TeamMemberResponse(BaseModel):
-    """Response model for team member data"""
-
-    id: UUID
-    user_id: UUID
-    user_name: str
-    user_email: str
-    role: str
-    joined_at: str
-
-    class Config:
-        """Pydantic config"""
-
-        from_attributes = True
+# NOTE: Team models now imported from shared contracts
+# This eliminates duplicate definitions and ensures consistency across services.
 
 
 # Initialize router

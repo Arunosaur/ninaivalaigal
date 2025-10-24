@@ -15,7 +15,7 @@ Provides endpoints for managing roles, permissions, and access requests
 
 from datetime import datetime  # noqa: E402
 
-from auth import get_current_user  # noqa: E402
+from auth_service import get_current_user  # noqa: E402
 from database import DatabaseManager, User  # noqa: E402
 from fastapi import APIRouter, Depends, HTTPException, Request  # noqa: E402
 from pydantic import BaseModel  # noqa: E402

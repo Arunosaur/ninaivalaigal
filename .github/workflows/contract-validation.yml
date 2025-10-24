@@ -1,0 +1,80 @@
+name: API Contract Validation
+
+on:
+  pull_request:
+    paths:
+      - 'shared/contracts/**'
+      - 'services/**'
+      - '.github/workflows/contract-validation.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'shared/contracts/**'
+
+jobs:
+  validate-contracts:
+    name: Validate API Contracts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need history for breaking change detection
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install validation tools
+        run: |
+          pip install --upgrade pip
+          pip install openapi-spec-validator pyyaml jsonschema
+
+      - name: Validate OpenAPI Syntax
+        run: |
+          echo "🔍 Validating OpenAPI specifications..."
+          python ci/validate-api-contracts.py
+
+      - name: Check for Breaking Changes
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "🔍 Checking for breaking changes..."
+          python ci/check-breaking-changes.py \
+            --base origin/${{ github.base_ref }} \
+            --head ${{ github.sha }}
+
+      - name: Generate Contract Diff Report
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "📊 Generating contract diff report..."
+          python ci/generate-contract-diff.py \
+            --base origin/${{ github.base_ref }} \
+            --head ${{ github.sha }} \
+            --output contract-diff.md
+
+      - name: Comment PR with Contract Changes
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('contract-diff.md')) {
+              const diff = fs.readFileSync('contract-diff.md', 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: diff
+              });
+            }
+
+      - name: Fail on Breaking Changes
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -f breaking-changes-detected ]; then
+            echo "❌ Breaking changes detected without version bump!"
+            exit 1
+          fi

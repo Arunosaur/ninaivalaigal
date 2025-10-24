@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import structlog
-from auth import get_current_user
+from auth_service import get_current_user
 from database.operations import DatabaseOperations, get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from memory_suggestions import (

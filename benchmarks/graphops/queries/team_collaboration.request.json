@@ -1,0 +1,3 @@
+{
+  "query": "// Returning list of maps to satisfy MCP ingestion expectations.\nMATCH (u:User {id: 'perf_user_001'})-[:COLLABORATES_WITH]->(coworker:User)\nOPTIONAL MATCH (coworker)-[:WORKS_ON]->(proj:Project)\nWITH coworker, collect(DISTINCT proj.id) AS projects\nRETURN {coworker_id: coworker.id, team: coworker.team_id, projects: projects}\nORDER BY coworker.id\nLIMIT 25"
+}

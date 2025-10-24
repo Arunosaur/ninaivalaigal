@@ -24,9 +24,10 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly ENV="${NINA_ENV:-dev}"
 
-# Container names (SPEC-086 unified naming)
+# Container names (SPEC-086 unified naming + Task #85 Dual PgBouncer)
 readonly DB_CONTAINER="ninaivalaigal-${ENV}-db"
-readonly PGBOUNCER_CONTAINER="ninaivalaigal-${ENV}-pgbouncer"
+readonly PGBOUNCER_TX_CONTAINER="ninaivalaigal-${ENV}-pgbouncer-tx"    # Transaction mode (stateless)
+readonly PGBOUNCER_SESS_CONTAINER="ninaivalaigal-${ENV}-pgbouncer-sess"  # Session mode (prepared statements)
 readonly REDIS_CONTAINER="ninaivalaigal-${ENV}-redis"
 readonly API_CONTAINER="ninaivalaigal-${ENV}-api"
 readonly CUSTOMER_APP_CONTAINER="ninaivalaigal-${ENV}-customer-app"
@@ -149,62 +150,38 @@ start_pgbouncer() {
     log_info "Step 2/6: Starting PgBouncer (Connection Gateway)"
     log_info "════════════════════════════════════════"
 
-    cleanup_container "$PGBOUNCER_CONTAINER"
+    # Task #85: Start dual PgBouncer instances
+    log_info "Task #85: Starting dual PgBouncer (transaction + session modes)..."
 
-    # Get database IP for networking
-    local db_ip=$(get_container_ip "$DB_CONTAINER")
-    log_info "Database IP: $db_ip"
-
-    # Get SCRAM password from database
-    log_info "Retrieving SCRAM password..."
-    local scram_password=$(PGPASSWORD="$DB_PASSWORD" psql -h localhost -p $DB_PORT -U $DB_USER -d $DB_NAME -t -c "SELECT rolpassword FROM pg_authid WHERE rolname = '$DB_USER';" | tr -d ' ')
-
-    log_info "Starting $PGBOUNCER_CONTAINER on port $PGBOUNCER_PORT..."
-
-    # Use custom nina-pgbouncer image (proven working)
-    local pgb_image="${NINA_PGBOUNCER_IMAGE:-nina-pgbouncer:arm64}"
-
-    # For bitnami image, use standard env vars
-    if [[ "$pgb_image" == *"bitnami"* ]]; then
-        container run -d --name "$PGBOUNCER_CONTAINER" \
-            -p "$PGBOUNCER_PORT:6432" \
-            -e POSTGRESQL_HOST="$db_ip" \
-            -e POSTGRESQL_PORT=5432 \
-            -e POSTGRESQL_DATABASE="$DB_NAME" \
-            -e POSTGRESQL_USERNAME="$DB_USER" \
-            -e POSTGRESQL_PASSWORD="$DB_PASSWORD" \
-            -e PGBOUNCER_POOL_MODE=transaction \
-            -e PGBOUNCER_MAX_CLIENT_CONN=100 \
-            -e PGBOUNCER_DEFAULT_POOL_SIZE=20 \
-            "$pgb_image"
+    # Use dedicated start scripts for dual PgBouncer
+    if [ -f "$ROOT_DIR/scripts/nv-pgbouncer-tx-start.sh" ]; then
+        log_info "Starting PgBouncer-TX (transaction mode)..."
+        "$ROOT_DIR/scripts/nv-pgbouncer-tx-start.sh" > /dev/null 2>&1 || {
+            log_error "PgBouncer-TX failed to start"
+            return 1
+        }
+        log_success "PgBouncer-TX ready (port 6432)"
     else
-        # Custom nina-pgbouncer image
-        container run -d --name "$PGBOUNCER_CONTAINER" \
-            -p "$PGBOUNCER_PORT:6432" \
-            -e DB_HOST="$db_ip" \
-            -e SCRAM_PASSWORD="$scram_password" \
-            "$pgb_image"
-    fi
-
-    if ! wait_for_container "$PGBOUNCER_CONTAINER" 30; then
-        log_error "PgBouncer failed to start"
+        log_error "nv-pgbouncer-tx-start.sh not found"
         return 1
     fi
 
-    log_info "Testing PgBouncer connection..."
-    local retries=0
-    while [ $retries -lt $MAX_RETRIES ]; do
-        if PGPASSWORD="$DB_PASSWORD" psql -h localhost -p $PGBOUNCER_PORT -U $DB_USER -d $DB_NAME -c "SELECT 1;" >/dev/null 2>&1; then
-            log_success "PgBouncer ready (port $PGBOUNCER_PORT) ✨"
-            log_warning "⚠️  ALL database connections MUST use PgBouncer:$PGBOUNCER_PORT"
-            return 0
-        fi
-        retries=$((retries + 1))
-        sleep $RETRY_DELAY
-    done
+    if [ -f "$ROOT_DIR/scripts/nv-pgbouncer-sess-start.sh" ]; then
+        log_info "Starting PgBouncer-SESS (session mode)..."
+        "$ROOT_DIR/scripts/nv-pgbouncer-sess-start.sh" > /dev/null 2>&1 || {
+            log_error "PgBouncer-SESS failed to start"
+            return 1
+        }
+        log_success "PgBouncer-SESS ready (port 6433)"
+    else
+        log_error "nv-pgbouncer-sess-start.sh not found"
+        return 1
+    fi
 
-    log_error "PgBouncer health check failed"
-    return 1
+    log_success "Dual PgBouncer started successfully"
+    log_info "  TX Mode (port 6432):   For Core API, GraphOps, Business Service, Graph Service"
+    log_info "  SESS Mode (port 6433): For Memory Service (SQLx/prepared statements)"
+    return 0
 }
 
 # 3. START REDIS
@@ -252,14 +229,14 @@ start_api() {
 
     cleanup_container "$API_CONTAINER"
 
-    # Get container IPs
-    local pgbouncer_ip=$(get_container_ip "$PGBOUNCER_CONTAINER")
+    # Get container IPs (Task #85: Use TX mode for stateless API)
+    local pgbouncer_ip=$(get_container_ip "$PGBOUNCER_TX_CONTAINER")
     local redis_ip=$(get_container_ip "$REDIS_CONTAINER")
 
-    log_info "PgBouncer IP: $pgbouncer_ip"
+    log_info "PgBouncer-TX IP: $pgbouncer_ip (transaction mode)"
     log_info "Redis IP: $redis_ip"
 
-    # **CRITICAL**: API connects to PgBouncer, NOT direct DB
+    # **CRITICAL**: API connects to PgBouncer-TX (transaction mode), NOT direct DB
     local database_url="postgresql://${DB_USER}:${DB_PASSWORD}@${pgbouncer_ip}:6432/${DB_NAME}"
 
     log_info "Starting $API_CONTAINER on port $API_PORT..."

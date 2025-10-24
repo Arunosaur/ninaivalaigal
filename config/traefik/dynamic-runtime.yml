@@ -1,0 +1,119 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# Traefik Dynamic Configuration - Service Routing
+# US #83: API Gateway Path Routing
+
+http:
+  routers:
+    # Core API - Auth, Users, Teams
+    core-api:
+      rule: "PathPrefix(`/api/auth`) || PathPrefix(`/api/users`) || PathPrefix(`/api/teams`) || PathPrefix(`/api/orgs`) || PathPrefix(`/api/acl`) || PathPrefix(`/health`) || PathPrefix(`/docs`) || PathPrefix(`/openapi.json`)"
+      service: core-api
+      entryPoints:
+        - web
+      middlewares:
+        - strip-api-prefix
+        - cors
+
+    # Business Service - Billing, Usage
+    business-service:
+      rule: "PathPrefix(`/api/billing`) || PathPrefix(`/api/usage`) || PathPrefix(`/api/analytics`)"
+      service: business-service
+      entryPoints:
+        - web
+      middlewares:
+        - strip-api-prefix
+        - cors
+
+    # Admin/Vendor Service
+    admin-vendor:
+      rule: "PathPrefix(`/api/admin`) || PathPrefix(`/api/vendor`)"
+      service: admin-vendor
+      entryPoints:
+        - web
+      middlewares:
+        - strip-api-prefix
+        - cors
+
+    # Memory Service (Rust)
+    memory-service:
+      rule: "PathPrefix(`/api/memory`) || PathPrefix(`/api/recall`)"
+      service: memory-service
+      entryPoints:
+        - web
+      middlewares:
+        - strip-api-prefix
+        - cors
+
+    # Graph Service (AI/Intelligence)
+    graph-service:
+      rule: "PathPrefix(`/api/graph`) || PathPrefix(`/api/intelligence`)"
+      service: graph-service
+      entryPoints:
+        - web
+      middlewares:
+        - strip-api-prefix
+        - cors
+
+    # gRPC Gateway
+    grpc-gateway:
+      rule: "PathPrefix(`/grpc`)"
+      service: grpc-gateway
+      entryPoints:
+        - web
+      middlewares:
+        - cors
+
+  services:
+    core-api:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.66.93:8000"
+
+    business-service:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.66.99:8000"
+
+    admin-vendor:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.66.98:8000"
+
+    memory-service:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.66.103:8000"
+
+    graph-service:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.66.94:8000"
+
+    grpc-gateway:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.66.92:8000"
+
+  middlewares:
+    strip-api-prefix:
+      stripPrefix:
+        prefixes:
+          - "/api"
+
+    cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+          - OPTIONS
+        accessControlAllowHeaders:
+          - "*"
+        accessControlAllowOriginList:
+          - "*"
+        accessControlMaxAge: 100
+        addVaryHeader: true

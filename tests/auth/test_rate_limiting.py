@@ -12,13 +12,14 @@ Authentication System Tests: Rate Limiting
 Tests rate limiting and brute force protection mechanisms.
 """
 
+import os
 import time
 
 import pytest
 import requests
 
 # Test Configuration
-BASE_URL = "http://localhost:13370"
+BASE_URL = os.getenv("CORE_API_BASE_URL", "http://localhost:13370")
 
 
 class TestRateLimiting:

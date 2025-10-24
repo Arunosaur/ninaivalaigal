@@ -12,11 +12,13 @@ Authentication System Tests: Signup Flow
 Tests user registration and account creation functionality.
 """
 
+import os
+
 import pytest
 import requests
 
 # Test Configuration
-BASE_URL = "http://localhost:13370"
+BASE_URL = os.getenv("CORE_API_BASE_URL", "http://localhost:13370")
 
 
 class TestUserSignup:

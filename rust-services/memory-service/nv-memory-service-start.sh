@@ -43,20 +43,20 @@ echo "   JWT Secret:  ${NINA_JWT_SECRET:0:4}***"
 echo "   Cache TTL:   ${MEMORY_CACHE_TTL_SECONDS}s"
 echo ""
 
-# Task #85: Use PgBouncer (now in session mode, supports prepared statements)
-echo "Resolving PgBouncer endpoint..."
-PGBOUNCER_CONTAINER="ninaivalaigal-${NINA_ENV}-pgbouncer"
+# Task #85 Revised: Use PgBouncer SESSION mode (port 6433) for prepared statements
+echo "Resolving PgBouncer SESSION mode endpoint..."
+PGBOUNCER_CONTAINER="ninaivalaigal-${NINA_ENV}-pgbouncer-sess"
 PGBOUNCER_IP=$(container inspect "$PGBOUNCER_CONTAINER" 2>/dev/null | jq -r '.[0].networks[0].address' | cut -d'/' -f1)
 if [ -z "$PGBOUNCER_IP" ] || [ "$PGBOUNCER_IP" = "null" ]; then
-    echo "❌ Unable to find PgBouncer container ($PGBOUNCER_CONTAINER)."
-    echo "   Please ensure PgBouncer is running:"
-    echo "   cd $PROJECT_ROOT && ./scripts/nv-pgbouncer-start.sh"
+    echo "❌ Unable to find PgBouncer SESSION container ($PGBOUNCER_CONTAINER)."
+    echo "   Please ensure PgBouncer SESSION mode is running:"
+    echo "   cd $PROJECT_ROOT && ./scripts/nv-pgbouncer-sess-start.sh"
     exit 1
 fi
 
-echo "   Database: $PGBOUNCER_IP:6432 (via PgBouncer - session mode, prepared statements supported)"
-DATABASE_URL="postgresql://${NINA_DB_USER}:${NINA_DB_PASSWORD}@${PGBOUNCER_IP}:6432/ninaivalaigal_${NINA_ENV}"
-echo "   Database URL: postgresql://${NINA_DB_USER}:***@${PGBOUNCER_IP}:6432/ninaivalaigal_${NINA_ENV}"
+echo "   Database: $PGBOUNCER_IP:6433 (via PgBouncer-SESS - session mode, prepared statements)"
+DATABASE_URL="postgresql://${NINA_DB_USER}:${NINA_DB_PASSWORD}@${PGBOUNCER_IP}:6433/ninaivalaigal_${NINA_ENV}"
+echo "   Database URL: postgresql://${NINA_DB_USER}:***@${PGBOUNCER_IP}:6433/ninaivalaigal_${NINA_ENV}"
 echo ""
 
 if [ -z "${REDIS_URL:-}" ]; then

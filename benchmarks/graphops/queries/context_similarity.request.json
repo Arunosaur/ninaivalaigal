@@ -1,0 +1,3 @@
+{
+  "query": "// Returning list of maps to satisfy MCP ingestion expectations.\nMATCH (anchor:Memory {id: 'perf_mem_001'})<-[:SIMILAR_TO]-(candidate:Memory)\nWHERE candidate.id <> anchor.id\nRETURN {similar_id: candidate.id, memory_type: candidate.type, score: candidate.relevance_score}\nORDER BY candidate.relevance_score DESC\nLIMIT 25"
+}

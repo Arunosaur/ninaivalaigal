@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from auth import get_current_user, get_db
+from auth_service import get_current_user, get_db
 from cryptography.fernet import Fernet
 from database import Team, User
 from fastapi import APIRouter, Depends, HTTPException, Query

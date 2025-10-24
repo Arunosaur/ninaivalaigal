@@ -1,0 +1,36 @@
+{
+  "description": "Stress scenario pushing GraphOps to burst throughput limits (US-86).",
+  "queries": [
+    {
+      "name": "memory_feed",
+      "template": "benchmarks/graphops/queries/memory_feed.request.json",
+      "weight": 0.25,
+      "expected_shape": "map"
+    },
+    {
+      "name": "context_similarity",
+      "template": "benchmarks/graphops/queries/context_similarity.request.json",
+      "weight": 0.25,
+      "expected_shape": "map"
+    },
+    {
+      "name": "team_collaboration",
+      "template": "benchmarks/graphops/queries/team_collaboration.request.json",
+      "weight": 0.25,
+      "expected_shape": "map"
+    },
+    {
+      "name": "memory_feed_topics",
+      "template": "benchmarks/graphops/queries/memory_feed.topics.json",
+      "weight": 0.25,
+      "expected_shape": "map"
+    }
+  ],
+  "ramp_up_seconds": 15,
+  "steady_state_seconds": 60,
+  "cooldown_seconds": 15,
+  "target_rps": 5000,
+  "parallel_workers": 50,
+  "snapshot_interval_seconds": 5,
+  "prometheus_url": "http://localhost:9090"
+}
