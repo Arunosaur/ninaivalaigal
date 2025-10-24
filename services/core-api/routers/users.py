@@ -11,38 +11,12 @@ User Management Router
 Extracted from main.py for better code organization
 """
 
-from typing import Optional
 from uuid import UUID
 
 from auth_service import get_current_user
+from common.v1.user_models import UserProfileResponse, UserProfileUpdate
 from database import DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr, Field
-
-
-# Pydantic models for user profile operations
-class UserProfileResponse(BaseModel):
-    """User profile response model"""
-
-    id: str
-    username: Optional[str] = None
-    email: str
-    name: str
-    account_type: str
-    subscription_tier: str
-    role: str
-    email_verified: bool
-    is_active: bool
-    created_at: str
-    last_login: Optional[str] = None
-
-
-class UserProfileUpdate(BaseModel):
-    """User profile update request model"""
-
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    username: Optional[str] = Field(None, min_length=3, max_length=50)
-    email: Optional[EmailStr] = None
 
 
 # Database manager dependency

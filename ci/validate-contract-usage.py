@@ -160,16 +160,32 @@ class ContractUsageValidator:
         if self.missing_imports:
             print("⚠️  SERVICES NOT USING SHARED CONTRACTS:")
             print("")
-            for service in self.missing_imports:
-                if service == "memory-service":
-                    print(f"  - {service} (Rust service in rust-services/memory-service - uses serde, not Pydantic)")
-                elif service == "graph-ai-service":
-                    print(f"  - {service} (Placeholder directory - no implementation)")
-                else:
+            for service_name in self.missing_imports[:]:
+                service_path = self.services_dir / service_name
+                rust_service_path = self.services_dir.parent / "rust-services" / service_name
+
+                # Check if it's a Rust service (could be in services/ or rust-services/)
+                if (service_path.exists() and (service_path / "Cargo.toml").exists()) or (
+                    rust_service_path.exists() and (rust_service_path / "Cargo.toml").exists()
+                ):
+                    print(f"  - {service_name} (Rust service - uses serde, not Pydantic)")
+                    self.missing_imports.remove(service_name)
+                # Check if it's a backup/clean directory
+                elif service_path.exists() and ("-clean" in service_name or "-backup" in service_name):
+                    print(f"  - {service_name} (Backup/test directory - excluded)")
+                    self.missing_imports.remove(service_name)
+                # Check if it's a placeholder
+                elif service_name == "graph-ai-service":
+                    print(f"  - {service_name} (Placeholder directory - no implementation)")
+                    self.missing_imports.remove(service_name)
+
+            if self.missing_imports:
+                print("")
+                for service in self.missing_imports:
                     print(f"  - {service}")
-            print("  Note: Rust services use their own type system and do not need Python contracts.")
-            print("")
-            print("  Action: Update services to import from contracts.*")
+                print("")
+                print("  Action: Update remaining services to import from contracts.*")
+            print("  Note: Rust services and backup directories use their own type system.")
             print("")
         else:
             print("✅ All services import from shared contracts")
@@ -186,10 +202,14 @@ class ContractUsageValidator:
         print(f"  Services Missing Imports: {len(self.missing_imports)}")
         print("")
 
-        # Check if there are actionable issues (exclude Rust and placeholder services)
-        actionable_issues = [s for s in self.missing_imports if s not in ["memory-service", "graph-ai-service"]]
-
-        if self.duplicates or actionable_issues:
+        # Return success/failure (Python services only - exclude Rust/backups)
+        success = len(self.duplicates) == 0 and len(self.missing_imports) == 0
+        if success:
+            print("✅ CONTRACT COMPLIANCE: PASSED")
+            print("")
+            print("All Python services are using shared contracts!")
+            print("")
+        else:
             print("❌ CONTRACT COMPLIANCE: FAILED")
             print("")
             print("Next Steps:")
@@ -197,18 +217,8 @@ class ContractUsageValidator:
             print("2. Import models from shared contracts")
             print("3. Update Dockerfiles to include shared/contracts")
             print("4. Re-run validation")
-        elif not self.duplicates and not actionable_issues:
-            print("✅ CONTRACT COMPLIANCE: PASSED")
             print("")
-            print("All Python services are using shared contracts!")
-            if self.missing_imports:
-                print("Note: Rust and placeholder services excluded from validation.")
-            print("")
-            return False
-        else:
-            print("✅ CONTRACT COMPLIANCE: PASSED")
-            print("")
-            return True
+        return success
 
 
 def main():
