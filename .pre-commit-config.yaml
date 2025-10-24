@@ -215,4 +215,14 @@ repos:
         pass_filenames: false
         stages: [commit]
 
+  # ---- API Contract Validation (SPEC-100 Task #79) ----
+  - repo: local
+    hooks:
+      - id: validate-contracts
+        name: Validate API Contracts
+        entry: python ci/validate-api-contracts.py
+        language: system
+        files: 'shared/contracts/.*\.(yaml|yml)$'
+        pass_filenames: false
+
   # ---- Optional: Add more hooks below ----
