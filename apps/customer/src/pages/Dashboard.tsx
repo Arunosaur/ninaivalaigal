@@ -6,7 +6,7 @@
 // See LICENSE file in the server/ directory for details.
 //
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Navigation } from '../components/Navigation'
 
 interface TeamStats {
   total_memories: number
@@ -37,27 +37,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Header */}
-      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700/50 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">N</span>
-              </div>
-              <h1 className="text-2xl font-bold text-white">Nina Memory Platform</h1>
-            </div>
-            <nav className="flex space-x-2">
-              <Link to="/dashboard" className="bg-blue-600/20 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium border border-blue-500/30">
-                Dashboard
-              </Link>
-              <Link to="/settings" className="text-gray-300 hover:text-white hover:bg-gray-700/50 px-4 py-2 rounded-lg text-sm font-medium transition">
-                Settings
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      {/* Navigation */}
+      <Navigation variant="dark" className="sticky top-0 z-10" />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

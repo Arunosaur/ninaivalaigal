@@ -13,6 +13,7 @@
 
 import { useState, useEffect } from 'react';
 import { GuidedTour, type Memory } from '@nina/ui';
+import { Navigation } from '../components/Navigation';
 import axios from 'axios';
 
 const API_BASE_URL = (import.meta.env?.VITE_API_URL as string) || 'http://localhost:13390';
@@ -169,33 +170,7 @@ export default function MemoryBrowser() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="bg-gradient-to-r from-purple-600 to-purple-800 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-white">Ninaivalaigal</h1>
-              <span className="ml-3 text-white/80">Memory Browser</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <a
-                href="/dashboard"
-                className="text-white/90 hover:text-white transition-colors"
-              >
-                ← Back to Dashboard
-              </a>
-              <button
-                onClick={() => {
-                  localStorage.removeItem('auth_token');
-                  window.location.href = '/login';
-                }}
-                className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
