@@ -13,9 +13,7 @@ Shared fixtures and configuration for all Foundation SPEC tests.
 """
 
 import asyncio
-import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -24,19 +22,21 @@ import pytest
 # No need to configure pytest_plugins here (causes "non-top-level" error)
 
 
+# Note: event_loop fixture override is deprecated in pytest-asyncio
+# Using asyncio_event_loop_policy instead
 @pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+def asyncio_event_loop_policy():
+    """Set the event loop policy for the test session."""
+    return asyncio.get_event_loop_policy()
 
 
 @pytest.fixture
 async def foundation_test_config():
     """Foundation test configuration"""
     return {
-        "test_database_url": "postgresql://postgres:foundation_test@localhost:5432/foundation_test",  # pragma: allowlist secret
+        "test_database_url": (
+            "postgresql://postgres:foundation_test@localhost:5432/foundation_test"  # pragma: allowlist secret
+        ),  # noqa: E501
         "test_redis_url": "redis://localhost:6379/15",
         "test_timeout": 30,
         "coverage_threshold": 85.0,

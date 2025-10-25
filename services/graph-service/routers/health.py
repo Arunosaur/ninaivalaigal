@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Proprietary
 # Copyright (c) 2025 Medhasys LLC
-"""
-Health and Readiness Endpoints (SPEC-100 Compliant)
+"""Health and readiness endpoints for the Graph/AI service."""
 
-Implements SPEC-100 Section 5.3 standardized health endpoints:
-- GET /health  - Basic liveness check
-- GET /ready   - Readiness check with dependency validation
-"""
+from __future__ import annotations
 
-import os
 import time
 from datetime import datetime
 from typing import Any, Dict
 
 import structlog
 from fastapi import APIRouter, HTTPException
+from graph.age_client import ApacheAGEClient
 from pydantic import BaseModel
+from redis import asyncio as aioredis
 
-# Service metadata
-SERVICE_NAME = "graph-service"
+from config import get_config
+
+CONFIG = get_config()
+SERVICE_NAME = CONFIG.service_name
 SERVICE_VERSION = "1.0.0"
 START_TIME = time.time()
 
@@ -28,7 +27,7 @@ router = APIRouter(tags=["health"])
 
 
 class HealthResponse(BaseModel):
-    """Health check response model"""
+    """Basic health response payload."""
 
     status: str
     service: str
@@ -38,7 +37,7 @@ class HealthResponse(BaseModel):
 
 
 class ReadinessResponse(BaseModel):
-    """Readiness check response model"""
+    """Detailed readiness payload including dependency status."""
 
     status: str
     service: str
@@ -48,71 +47,83 @@ class ReadinessResponse(BaseModel):
 
 
 def get_uptime() -> float:
-    """Calculate service uptime in seconds"""
+    """Return service uptime in seconds."""
+
     return time.time() - START_TIME
 
 
 async def check_database() -> Dict[str, Any]:
-    """Check Apache AGE (GraphOps) connectivity"""
-    try:
-        # GraphOps database check (port 5433)
-        graph_db_host = os.getenv("GRAPH_DB_HOST", "localhost")
-        graph_db_port = os.getenv("GRAPH_DB_PORT", "5433")
+    """Validate PgBouncer connection and Apache AGE extension."""
 
-        # Placeholder: Would connect to Apache AGE
+    client = ApacheAGEClient(
+        CONFIG.database_url,
+        graph_name=CONFIG.graph_name,
+        db_name=CONFIG.db_name,
+        use_cache=False,
+    )
+
+    try:
+        await client.initialize()
+        return await client.health_check()
+    except Exception as exc:  # pragma: no cover - defensive logging path
+        logger.error("graphops_health_check_failed", error=str(exc))
         return {
-            "status": "healthy",
-            "type": "apache-age",
-            "message": f"GraphOps ready on {graph_db_host}:{graph_db_port}",
-            "note": "Placeholder - full integration pending",
+            "status": "unhealthy",
+            "type": "postgresql+age",
+            "database": CONFIG.db_name,
+            "error": str(exc),
         }
-    except Exception as e:
-        logger.error("graphops_health_check_failed", error=str(e))
-        return {"status": "unhealthy", "type": "apache-age", "error": str(e)}
+    finally:
+        await client.close()
 
 
 async def check_redis() -> Dict[str, Any]:
-    """Check Graph Redis (GraphOps) connectivity"""
-    try:
-        graph_redis_host = os.getenv("GRAPH_REDIS_HOST", "localhost")
-        graph_redis_port = os.getenv("GRAPH_REDIS_PORT", "6380")
+    """Ping Redis if a URL is configured; otherwise bypass the check."""
 
-        # Placeholder: Would connect to Graph Redis
+    if not CONFIG.redis_url:
+        return {
+            "status": "bypassed",
+            "type": "redis",
+            "message": "REDIS_URL not configured for graph service",
+        }
+
+    try:
+        client = aioredis.from_url(CONFIG.redis_url)
+        try:
+            await client.ping()
+        finally:
+            await client.close()
+
         return {
             "status": "healthy",
-            "type": "graph-redis",
-            "message": f"Graph cache ready on {graph_redis_host}:{graph_redis_port}",
-            "note": "Placeholder - full integration pending",
+            "type": "redis",
+            "url": CONFIG.redis_url,
         }
-    except Exception as e:
-        logger.error("graph_redis_health_check_failed", error=str(e))
-        return {"status": "unhealthy", "type": "graph-redis", "error": str(e)}
+    except Exception as exc:  # pragma: no cover - defensive logging path
+        logger.error("graph_redis_health_check_failed", error=str(exc))
+        return {
+            "status": "unhealthy",
+            "type": "redis",
+            "url": CONFIG.redis_url,
+            "error": str(exc),
+        }
 
 
 async def check_graphops() -> Dict[str, Any]:
-    """Check GraphOps stack availability"""
-    try:
-        # Check if GraphOps infrastructure is running
-        # This would verify both Apache AGE and Graph Redis
-        return {
-            "status": "healthy",
-            "type": "graphops",
-            "message": "GraphOps stack operational (SPEC-062)",
-            "note": "Placeholder - full integration pending",
-        }
-    except Exception as e:
-        logger.error("graphops_health_check_failed", error=str(e))
-        return {"status": "unhealthy", "type": "graphops", "error": str(e)}
+    """Provide informational status for the external GraphOps service."""
+
+    return {
+        "status": "bypassed",
+        "type": "graphops-service",
+        "message": "External GraphOps service is optional for readiness",
+        "port": CONFIG.service_port,
+    }
 
 
 @router.get("/health", response_model=HealthResponse)
-async def health_check():
-    """
-    Basic liveness check (SPEC-100 compliant)
+async def health_check() -> HealthResponse:
+    """Return basic liveness information."""
 
-    Returns 200 OK if service is running.
-    Does not check dependencies.
-    """
     return HealthResponse(
         status="healthy",
         service=SERVICE_NAME,
@@ -123,22 +134,12 @@ async def health_check():
 
 
 @router.get("/ready", response_model=ReadinessResponse)
-async def readiness_check():
-    """
-    Readiness check with dependency validation (SPEC-100 compliant)
+async def readiness_check() -> ReadinessResponse:
+    """Run dependency checks to determine readiness."""
 
-    Returns 200 OK if all dependencies are healthy.
-    Returns 503 Service Unavailable if any dependency fails.
-
-    Checks:
-    - PostgreSQL connectivity
-    - Redis connectivity
-    - PgBouncer status
-    """
-    # Check all GraphOps dependencies
-    age_check = await check_database()  # Apache AGE
-    graph_redis_check = await check_redis()  # Graph Redis
-    graphops_check = await check_graphops()  # Overall GraphOps
+    age_check = await check_database()
+    graph_redis_check = await check_redis()
+    graphops_check = await check_graphops()
 
     dependencies = {
         "apache-age": age_check,
@@ -146,8 +147,7 @@ async def readiness_check():
         "graphops": graphops_check,
     }
 
-    # Determine overall status
-    all_healthy = all(dep["status"] in ["healthy", "bypassed", "unknown"] for dep in dependencies.values())
+    all_healthy = all(dep["status"] in {"healthy", "bypassed", "unknown"} for dep in dependencies.values())
 
     if not all_healthy:
         logger.warning("readiness_check_failed", dependencies=dependencies)

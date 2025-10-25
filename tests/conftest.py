@@ -11,7 +11,7 @@
 import asyncio
 import os
 import time
-from typing import AsyncGenerator, Dict, Generator
+from typing import Dict
 
 import pytest
 
@@ -32,13 +32,13 @@ except ImportError:
 
 # Import SPEC-056 fixtures
 try:
-    from .fixtures import *
+    from .fixtures import *  # noqa: F401, F403
 except ImportError:
     # Fallback for when running from different contexts
     import sys
 
     sys.path.append(os.path.dirname(__file__))
-    from fixtures import *
+    from fixtures import *  # noqa: F401, F403
 
 
 # ========================================
@@ -46,11 +46,12 @@ except ImportError:
 # Single source of truth for API endpoints
 # ========================================
 
+
 @pytest.fixture(scope="session")
 def api_config() -> Dict:
     """
     Centralized API configuration for all tests.
-    
+
     Uses environment variables with sensible defaults:
     - TEST_API_BASE_URL: Backend API URL (default: http://localhost:13390)
     - TEST_API_TIMEOUT: Request timeout in seconds (default: 30)
@@ -79,12 +80,12 @@ else:
     TestingSessionLocal = None
 
 
+# Note: event_loop fixture override is deprecated in pytest-asyncio
+# Using fixture_loop_scope instead
 @pytest.fixture(scope="session")
-def event_loop() -> Generator:
-    """Create an instance of the default event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+def asyncio_event_loop_policy():
+    """Set the event loop policy for the test session."""
+    return asyncio.get_event_loop_policy()
 
 
 @pytest.fixture
@@ -92,7 +93,7 @@ def db_session():
     """Create a test database session."""
     if engine is None:
         pytest.skip("SQLAlchemy not available")
-    
+
     connection = engine.connect()
     transaction = connection.begin()
     session = TestingSessionLocal(bind=connection)
@@ -109,7 +110,7 @@ def client(db_session):
     """Create a test client."""
     if TestClient is None:
         pytest.skip("FastAPI not available")
-    
+
     from server.database import get_db
     from server.main import app
 
