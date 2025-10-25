@@ -216,12 +216,13 @@ export const Callout: React.FC<CalloutProps> = ({
 }) => {
   const [visible, setVisible] = useState(isVisible);
   const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const calloutRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
-  // Handle auto-hide
+  // Handle auto-hide (pause on hover OR focus for keyboard accessibility)
   useEffect(() => {
-    if (autoHide && visible && !isHovered) {
+    if (autoHide && visible && !isHovered && !isFocused) {
       timeoutRef.current = setTimeout(() => {
         setVisible(false);
         onClose?.();
@@ -233,7 +234,7 @@ export const Callout: React.FC<CalloutProps> = ({
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [autoHide, visible, isHovered, onClose]);
+  }, [autoHide, visible, isHovered, isFocused, onClose]);
 
   // Handle visibility changes
   useEffect(() => {
@@ -257,6 +258,8 @@ export const Callout: React.FC<CalloutProps> = ({
       className={cn(calloutVariants({ variant, size, position }), className)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
       role={interactive ? 'dialog' : 'tooltip'}
       aria-live="polite"
       {...props}
@@ -387,7 +390,11 @@ export const Callout: React.FC<CalloutProps> = ({
   // If children are provided, render as a positioned callout
   if (children) {
     return (
-      <div className="relative inline-block">
+      <div
+        className="relative inline-block"
+        aria-haspopup={interactive ? 'dialog' : undefined}
+        aria-expanded={interactive ? visible : undefined}
+      >
         {children}
         {visible && calloutElement}
       </div>

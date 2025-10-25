@@ -128,7 +128,12 @@ interface StepProps {
   size?: VariantProps<typeof stepperVariants>['size'];
 }
 
-const Step: React.FC<StepProps> = ({
+interface StepPropsExtended extends StepProps {
+  isLastStep: boolean;
+  totalSteps: number;
+}
+
+const Step: React.FC<StepPropsExtended> = ({
   step,
   index,
   isActive,
@@ -136,13 +141,15 @@ const Step: React.FC<StepProps> = ({
   onClick,
   variant = 'timeline',
   size = 'md',
+  isLastStep,
+  totalSteps,
 }) => {
   const state = isCompleted ? 'completed' : isActive ? 'active' : 'pending';
 
   return (
     <div
       className={cn(
-        'flex items-start space-x-3 cursor-pointer group',
+        'relative flex items-start space-x-3 cursor-pointer group',
         variant === 'horizontal' && 'flex-col items-center space-x-0 space-y-2',
         variant === 'compact' && 'flex-row items-center space-y-0 space-x-2'
       )}
@@ -150,6 +157,8 @@ const Step: React.FC<StepProps> = ({
       role="button"
       tabIndex={0}
       aria-current={isActive ? 'step' : undefined}
+      aria-setsize={totalSteps}
+      aria-posinset={index + 1}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -200,8 +209,8 @@ const Step: React.FC<StepProps> = ({
         )}
       </div>
 
-      {/* Connection Line (for timeline variant) */}
-      {variant === 'timeline' && (
+      {/* Connection Line (for timeline variant, hidden on last step) */}
+      {variant === 'timeline' && !isLastStep && (
         <div className={cn(
           'absolute left-4 top-12 w-0.5 h-8 -mt-2',
           isCompleted ? 'bg-success-400' : 'bg-secondary-300'
@@ -269,6 +278,19 @@ export const Stepper: React.FC<StepperProps> = ({
     }
   }, [activeStep, allowSkip, steps, onStepChange, onComplete]);
 
+  // Arrow key navigation handler
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      const nextStep = Math.min(activeStep + 1, steps.length - 1);
+      handleStepClick(nextStep);
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prevStep = Math.max(activeStep - 1, 0);
+      handleStepClick(prevStep);
+    }
+  }, [activeStep, steps.length, handleStepClick]);
+
   const progressPercentage = ((activeStep + 1) / steps.length) * 100;
 
   return (
@@ -276,6 +298,7 @@ export const Stepper: React.FC<StepperProps> = ({
       className={cn(stepperVariants({ variant, size, state }), className)}
       role="navigation"
       aria-label="Step navigation"
+      onKeyDown={handleKeyDown}
       {...props}
     >
       {/* Progress Bar */}
@@ -290,7 +313,7 @@ export const Stepper: React.FC<StepperProps> = ({
               className="bg-primary-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
               role="progressbar"
-              aria-valuenow={progressPercentage}
+              aria-valuenow={Math.round(progressPercentage)}
               aria-valuemin={0}
               aria-valuemax={100}
             />
@@ -299,12 +322,16 @@ export const Stepper: React.FC<StepperProps> = ({
       )}
 
       {/* Steps */}
-      <div className={cn(
-        'relative',
-        variant === 'timeline' && 'space-y-6',
-        variant === 'horizontal' && 'flex justify-between items-start',
-        variant === 'compact' && 'flex space-x-4'
-      )}>
+      <div
+        className={cn(
+          'relative',
+          variant === 'timeline' && 'space-y-6',
+          variant === 'horizontal' && 'flex justify-between items-start',
+          variant === 'compact' && 'flex space-x-4'
+        )}
+        role="list"
+        aria-label="Steps"
+      >
         {steps.map((step, index) => (
           <Step
             key={step.id}
@@ -315,6 +342,8 @@ export const Stepper: React.FC<StepperProps> = ({
             onClick={() => handleStepClick(index)}
             variant={variant}
             size={size}
+            isLastStep={index === steps.length - 1}
+            totalSteps={steps.length}
           />
         ))}
       </div>

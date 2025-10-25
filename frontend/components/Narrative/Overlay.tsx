@@ -6,7 +6,7 @@
 // See LICENSE file in the server/ directory for details.
 //
 import { cva, type VariantProps } from 'class-variance-authority';
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useId } from 'react';
 
 import { cn } from '../../utils/cn';
 
@@ -118,15 +118,22 @@ export interface OverlayProps extends VariantProps<typeof overlayVariants> {
  * Provides modal, spotlight, and guided overlay modes with accessibility
  * support and integration with SPEC-075 design tokens.
  *
+ * **Important Dismissal Behavior:**
+ * - `variant="modal"`: Dismissible via ESC key and backdrop click (default)
+ * - `variant="spotlight"`: Dismissible via ESC key and backdrop click (default)
+ * - `variant="guided"`: NOT dismissible by default (closeOnEscape=false, closeOnBackdrop=false)
+ *   This is intentional for guided tours where users should follow the flow.
+ *   Use onNext/onPrevious/onSkip handlers to control progression.
+ *
  * @example
  * ```tsx
- * // Modal overlay
+ * // Modal overlay (dismissible)
  * <Overlay isOpen={showModal} onClose={() => setShowModal(false)} variant="modal">
  *   <h2>Welcome to the guided tour!</h2>
  *   <p>Let's walk through the key features...</p>
  * </Overlay>
  *
- * // Spotlight overlay highlighting specific element
+ * // Spotlight overlay highlighting specific element (dismissible)
  * <Overlay
  *   isOpen={showSpotlight}
  *   variant="spotlight"
@@ -135,7 +142,7 @@ export interface OverlayProps extends VariantProps<typeof overlayVariants> {
  *   <div>This highlights the search bar above</div>
  * </Overlay>
  *
- * // Guided overlay for step-by-step walkthrough
+ * // Guided overlay for step-by-step walkthrough (NOT dismissible by default)
  * <Overlay isOpen={showGuide} variant="guided" position="top-right">
  *   <div>Step 1: Click the menu button</div>
  * </Overlay>
@@ -164,6 +171,9 @@ export const Overlay: React.FC<OverlayProps> = ({
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Generate unique ID for spotlight mask to prevent collisions with multiple overlays
+  const spotlightMaskId = useId();
 
   // Handle escape key
   useEffect(() => {
@@ -263,7 +273,7 @@ export const Overlay: React.FC<OverlayProps> = ({
           style={{ zIndex: -1 }}
         >
           <defs>
-            <mask id="spotlight-mask">
+            <mask id={spotlightMaskId}>
               <rect width="100%" height="100%" fill="black" />
               <rect
                 x={spotlight.x}
@@ -279,7 +289,7 @@ export const Overlay: React.FC<OverlayProps> = ({
             width="100%"
             height="100%"
             fill="rgba(0, 0, 0, 0.75)"
-            mask="url(#spotlight-mask)"
+            mask={`url(#${spotlightMaskId})`}
           />
         </svg>
       )}
