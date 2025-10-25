@@ -240,9 +240,11 @@ class MemoryBrowser {
         const createdDate = new Date(memory.created_at).toLocaleDateString();
         const updatedDate = new Date(memory.updated_at).toLocaleDateString();
         const relevancePercent = (memory.relevance_score * 100).toFixed(1);
+        const isRecent = (new Date() - new Date(memory.created_at)) / (1000 * 60 * 60 * 24) < 7;
 
         return `
-            <div class="memory-card bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden"
+            <div id="memory-card-${memory.id}"
+                 class="memory-card bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden p-4"
                  data-memory-id="${memory.id}"
                  onclick="showMemoryDetail('${memory.id}')">
                 <div class="flex items-start justify-between mb-3">
@@ -476,30 +478,106 @@ class MemoryBrowser {
         this.renderMemories();
     }
 
-    // SPEC-076 Narrative Mode Methods
+    // SPEC-076 Narrative Mode Methods (React-based Guided Tour)
     async startNarrativeWalkthrough() {
         try {
-            // Generate narrative sequence from current memories
-            await this.generateNarrativeSequence();
-
-            if (this.narrativeSequence.length === 0) {
-                showNotification('No memories available for narrative walkthrough', 'info');
+            // Check if React integration is available
+            if (!window.MemoryBrowserReact) {
+                console.warn('React integration not available, falling back to legacy mode');
+                await this.startLegacyNarrative();
                 return;
             }
 
-            this.narrativeStep = 0;
-            this.showNarrativeStep();
+            // Prepare memories for guided tour
+            const tourMemories = this.filteredMemories.length > 0
+                ? this.filteredMemories
+                : this.memories;
+
+            if (tourMemories.length === 0) {
+                this.showNotification('No memories available for guided tour', 'info');
+                return;
+            }
+
+            // Start React-based guided tour
+            window.MemoryBrowserReact.startGuidedTour(
+                tourMemories,
+                () => {
+                    // On complete
+                    this.narrativeMode = false;
+                    this.updateNarrativeToggleUI();
+                    this.showNotification('✅ Tour completed!', 'success');
+                },
+                () => {
+                    // On exit
+                    this.narrativeMode = false;
+                    this.updateNarrativeToggleUI();
+                    this.showNotification('Tour exited', 'info');
+                }
+            );
+
+            console.log('✅ Started React-based guided tour');
 
         } catch (error) {
             console.error('Failed to start narrative walkthrough:', error);
-            showNotification('Failed to start narrative mode', 'error');
+            this.showNotification('Failed to start guided mode', 'error');
         }
     }
 
     stopNarrativeWalkthrough() {
+        if (window.MemoryBrowserReact) {
+            window.MemoryBrowserReact.stopGuidedTour();
+        }
         this.narrativeStep = 0;
         this.narrativeSequence = [];
-        this.hideNarrativeOverlay();
+        this.narrativeMode = false;
+        this.updateNarrativeToggleUI();
+    }
+
+    updateNarrativeToggleUI() {
+        const toggleButton = document.getElementById('narrative-toggle');
+        const toggleText = document.getElementById('narrative-toggle-text');
+
+        if (toggleButton && toggleText) {
+            if (this.narrativeMode) {
+                toggleButton.classList.add('bg-purple-700');
+                toggleButton.classList.remove('bg-purple-600');
+                toggleText.textContent = 'Exit Guided Mode';
+            } else {
+                toggleButton.classList.remove('bg-purple-700');
+                toggleButton.classList.add('bg-purple-600');
+                toggleText.textContent = 'Guided Mode';
+            }
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        // Simple notification (can be enhanced later)
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
+            type === 'success' ? 'bg-green-600' :
+            type === 'error' ? 'bg-red-600' :
+            'bg-blue-600'
+        } text-white`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Legacy narrative mode (fallback)
+    async startLegacyNarrative() {
+        await this.generateNarrativeSequence();
+
+        if (this.narrativeSequence.length === 0) {
+            this.showNotification('No memories available for narrative walkthrough', 'info');
+            return;
+        }
+
+        this.narrativeStep = 0;
+        this.showNarrativeStep();
     }
 
     async generateNarrativeSequence() {
@@ -1638,30 +1716,21 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// SPEC-076 Narrative Mode Functions
+// SPEC-076 Narrative Mode Functions (React-based Guided Tour)
 function toggleNarrativeMode() {
     const browser = window.memoryBrowser;
     browser.narrativeMode = !browser.narrativeMode;
 
-    const toggleBtn = document.getElementById('narrative-toggle');
-    const toggleText = document.getElementById('narrative-toggle-text');
-
     if (browser.narrativeMode) {
-        // Enter narrative mode
-        toggleBtn.className = 'bg-purple-800 hover:bg-purple-900 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2';
-        toggleText.textContent = 'Exit Narrative';
-
-        // Start narrative walkthrough
+        console.log('🎯 Starting guided tour...');
         browser.startNarrativeWalkthrough();
-        showNotification('📖 Narrative mode activated! Follow the guided walkthrough.');
+        browser.updateNarrativeToggleUI();
+        showNotification('📖 Guided mode activated! Follow the tour.');
     } else {
-        // Exit narrative mode
-        toggleBtn.className = 'bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2';
-        toggleText.textContent = 'Narrative Mode';
-
-        // Stop narrative walkthrough
+        console.log('🛑 Stopping guided tour...');
         browser.stopNarrativeWalkthrough();
-        showNotification('🔍 Switched back to search/filter mode.');
+        browser.updateNarrativeToggleUI();
+        showNotification('🔍 Switched back to normal mode.');
     }
 }
 
