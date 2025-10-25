@@ -13,8 +13,8 @@ import asyncio
 import os
 import tempfile
 from datetime import datetime, timedelta
-from typing import Any, AsyncGenerator, Dict, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Any, Dict, Optional
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
@@ -216,7 +216,7 @@ def temp_dir():
 def test_env_vars():
     """Provide test environment variables"""
     test_vars = {
-        "NINAIVALAIGAL_JWT_SECRET": "test-secret-key",
+        "NINAIVALAIGAL_JWT_SECRET": "test-secret-key",  # pragma: allowlist secret
         "DATABASE_URL": "sqlite:///:memory:",
         "REDIS_URL": "redis://localhost:6379/0",
         "TESTING": "true",
@@ -306,12 +306,12 @@ def benchmark_config():
 
 
 # Async test utilities
+# Note: event_loop fixture override is deprecated in pytest-asyncio
+# Using asyncio_event_loop_policy instead
 @pytest.fixture(scope="session")
-def event_loop():
-    """Create event loop for async tests"""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+def asyncio_event_loop_policy():
+    """Set the event loop policy for the test session."""
+    return asyncio.get_event_loop_policy()
 
 
 # Test markers

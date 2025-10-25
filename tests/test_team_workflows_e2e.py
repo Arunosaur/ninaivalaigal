@@ -80,7 +80,7 @@ class TestViralGrowthJourney(TestTeamWorkflowsE2E):
         # Step 1: User signs up with team creation
         signup_data = {
             "email": "founder@startup.com",
-            "password": "securepass123",
+            "password": "securepass123",  # pragma: allowlist secret
             "name": "Jane Founder",
             "team_name": "Awesome Startup",
             "team_max_members": 10,
@@ -121,7 +121,7 @@ class TestViralGrowthJourney(TestTeamWorkflowsE2E):
 
         join_signup_data = {
             "email": "developer@startup.com",
-            "password": "devpass123",
+            "password": "designpass123",  # pragma: allowlist secret
             "name": "John Developer",
             "invitation_token": invitation_token,
         }
@@ -155,7 +155,7 @@ class TestViralGrowthJourney(TestTeamWorkflowsE2E):
         # Create team with 5-member limit
         signup_data = {
             "email": "admin@company.com",
-            "password": "adminpass123",
+            "password": "marketingpass123",  # pragma: allowlist secret
             "name": "Team Admin",
             "team_name": "Growing Company",
             "team_max_members": 5,
@@ -181,7 +181,7 @@ class TestViralGrowthJourney(TestTeamWorkflowsE2E):
             invitation = response.json()
             join_data = {
                 "email": f"member{i+1}@company.com",
-                "password": f"pass{i+1}",
+                "password": f"pass{i+1}",  # pragma: allowlist secret
                 "name": f"Member {i+1}",
                 "invitation_token": invitation["id"],
             }
@@ -219,7 +219,7 @@ class TestConversionFunnelJourney(TestTeamWorkflowsE2E):
         # Step 1: Create team on free plan
         signup_data = {
             "email": "ceo@startup.com",
-            "password": "ceopass123",
+            "password": "ceopass123",  # pragma: allowlist secret
             "name": "CEO Startup",
             "team_name": "Scaling Startup",
             "team_max_members": 5,  # Free tier limit
@@ -282,7 +282,7 @@ class TestConversionFunnelJourney(TestTeamWorkflowsE2E):
         # Create team approaching limits
         signup_data = {
             "email": "manager@company.com",
-            "password": "managerpass123",
+            "password": "memberpass123",  # pragma: allowlist secret
             "name": "Team Manager",
             "team_name": "Growing Team",
             "team_max_members": 5,
@@ -333,7 +333,7 @@ class TestBillingIntegration(TestTeamWorkflowsE2E):
         # Create team
         signup_data = {
             "email": "billing@company.com",
-            "password": "billingpass123",
+            "password": "billingpass123",  # pragma: allowlist secret
             "name": "Billing Admin",
             "team_name": "Billing Test Team",
             "team_max_members": 5,
@@ -376,7 +376,7 @@ class TestSecurityAndValidation(TestTeamWorkflowsE2E):
         # Create two separate teams
         team1_data = {
             "email": "admin1@team1.com",
-            "password": "team1pass",
+            "password": "team1pass",  # pragma: allowlist secret
             "name": "Team 1 Admin",
             "team_name": "Team One",
             "team_max_members": 5,
@@ -384,7 +384,7 @@ class TestSecurityAndValidation(TestTeamWorkflowsE2E):
 
         team2_data = {
             "email": "admin2@team2.com",
-            "password": "team2pass",
+            "password": "team2pass",  # pragma: allowlist secret
             "name": "Team 2 Admin",
             "team_name": "Team Two",
             "team_max_members": 5,
@@ -429,7 +429,7 @@ class TestSecurityAndValidation(TestTeamWorkflowsE2E):
         # Create team
         signup_data = {
             "email": "security@test.com",
-            "password": "securitypass123",
+            "password": "securitypass123",  # pragma: allowlist secret
             "name": "Security Tester",
             "team_name": "Security Test Team",
             "team_max_members": 5,
@@ -455,7 +455,7 @@ class TestSecurityAndValidation(TestTeamWorkflowsE2E):
         # Test with invalid token
         invalid_join_data = {
             "email": "invitee@test.com",
-            "password": "inviteepass123",
+            "password": "inviteepass",  # pragma: allowlist secret
             "name": "Invitee",
             "invitation_token": "invalid_token_123",
         }
@@ -466,7 +466,7 @@ class TestSecurityAndValidation(TestTeamWorkflowsE2E):
         # Test with wrong email for valid token
         wrong_email_data = {
             "email": "wrong@test.com",
-            "password": "wrongpass123",
+            "password": "wrongpass",  # pragma: allowlist secret
             "name": "Wrong Person",
             "invitation_token": valid_token,
         }
@@ -477,7 +477,7 @@ class TestSecurityAndValidation(TestTeamWorkflowsE2E):
         # Test with correct token and email
         correct_join_data = {
             "email": "invitee@test.com",
-            "password": "inviteepass123",
+            "password": "inviteepass123",  # pragma: allowlist secret
             "name": "Correct Invitee",
             "invitation_token": valid_token,
         }
@@ -495,7 +495,7 @@ class TestPerformanceAndScaling(TestTeamWorkflowsE2E):
         # Create team with higher member limit
         signup_data = {
             "email": "performance@test.com",
-            "password": "perfpass123",
+            "password": "perfpass123",  # pragma: allowlist secret
             "name": "Performance Tester",
             "team_name": "Large Team Test",
             "team_max_members": 50,
@@ -541,12 +541,12 @@ class TestPerformanceAndScaling(TestTeamWorkflowsE2E):
 
 
 # Pytest configuration and fixtures
+# Note: event_loop fixture override is deprecated in pytest-asyncio
+# Using asyncio_event_loop_policy instead
 @pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+def asyncio_event_loop_policy():
+    """Set the event loop policy for the test session."""
+    return asyncio.get_event_loop_policy()
 
 
 if __name__ == "__main__":
