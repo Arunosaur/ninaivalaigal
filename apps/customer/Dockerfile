@@ -1,16 +1,19 @@
-# Customer App Dockerfile - Serves customer-facing pages only
+# Customer App Dockerfile - Serves React/Vite build (SPEC-083)
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy ONLY customer-facing pages (SPEC-083 separation)
-COPY ../../frontend/customer ./customer
+# Copy ONLY the production build from apps/customer/dist
+COPY apps/customer/dist ./dist
 
-# Install http-server for serving static files
-RUN npm install -g http-server
+# Install serve for serving static files with SPA support
+RUN npm install -g serve
 
-# Expose port
+# Expose port (internal container port)
 EXPOSE 8101
 
-# Serve the customer directory
-CMD ["http-server", "./customer", "-p", "8101", "--cors"]
+# Serve React build with SPA routing support
+# -s: single-page application mode (fallback to index.html)
+# -p: listen port
+# --no-clipboard: disable clipboard in container
+CMD ["serve", "-s", "./dist", "-p", "8101", "--no-clipboard"]

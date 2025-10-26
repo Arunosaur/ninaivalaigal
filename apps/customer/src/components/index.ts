@@ -6,3 +6,4 @@
  */
 
 export { Navigation, SidebarNavigation, MobileNavigation } from './Navigation';
+export { MarketingNavigation } from './MarketingNavigation';

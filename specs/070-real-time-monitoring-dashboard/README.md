@@ -50,3 +50,9 @@ WebSocket-powered live metrics dashboard with professional UI for real-time syst
 - SPEC-010: Observability & Telemetry
 - SPEC-018: API Health Monitoring
 - SPEC-022: Prometheus Grafana Monitoring
+
+## Related Taiga User Stories
+
+- **Story #102**: US-90 - Grafana Monitoring Dashboards (P1)
+  - Implementation guide: `/tasks/US_SPEC_003_IMPLEMENTATION.md`
+  - View in Taiga: http://localhost:9000/project/ninaivalaigal/us/102

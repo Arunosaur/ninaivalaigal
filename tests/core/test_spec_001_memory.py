@@ -12,12 +12,21 @@ SPEC-001: Core Memory System - Comprehensive Test Coverage
 Tests the fundamental memory recording, recall, and context management functionality.
 """
 
+import os
+
 import pytest
 import requests
 
 # Test Configuration
-BASE_URL = "http://localhost:13370"
-TEST_TOKEN = "test-token"
+# Note: Port 13390 is the correct core_api port per ports.nv.yaml
+# Port 13393 is the memory_service port for memory operations
+CORE_API_URL = os.getenv("TEST_CORE_API_URL", "http://localhost:13390")
+MEMORY_SERVICE_URL = os.getenv("TEST_MEMORY_SERVICE_URL", "http://localhost:13393")
+BASE_URL = CORE_API_URL  # For legacy compatibility
+
+# Authentication token from environment (SPEC-008 compliance)
+# Usage: export TEST_AUTH_TOKEN=$(curl -X POST http://localhost:13390/auth/login ...)
+TEST_TOKEN = os.getenv("TEST_AUTH_TOKEN", "test-token")
 HEADERS = {"Authorization": f"Bearer {TEST_TOKEN}"}
 
 

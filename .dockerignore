@@ -22,7 +22,6 @@ __pycache__/
 *.so
 .Python
 *.egg-info/
-dist/
 build/
 .pytest_cache/
 .coverage
@@ -96,3 +95,5 @@ Thumbs.db
 *.key
 *.crt
 secrets/
+# Temp allow dist for customer app
+!apps/customer/dist

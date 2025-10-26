@@ -62,3 +62,9 @@ Enterprise-grade security framework with advanced threat detection, compliance m
 - SPEC-008: Security Middleware Redaction
 - SPEC-023: Centralized Secrets Management
 - SPEC-054: Secret Management & Environment Hygiene
+
+## Related Taiga User Stories
+
+- **Story #103**: US-91 - API Rate Limiting & Throttling (P0)
+  - Implementation guide: `/tasks/US_SPEC_003_IMPLEMENTATION.md`
+  - View in Taiga: http://localhost:9000/project/ninaivalaigal/us/103

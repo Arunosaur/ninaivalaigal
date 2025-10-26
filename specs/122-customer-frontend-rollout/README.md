@@ -227,5 +227,13 @@ NEXT_PUBLIC_FEATURE_FLAGS_URL=https://unleash.ninaivalaigal.com
 
 ---
 
+## 11) Related Taiga User Stories
+
+- **Story #101**: US-89 - Customer UI Auth Integration (P0)
+  - Implementation guide: `/tasks/US_SPEC_003_IMPLEMENTATION.md`
+  - View in Taiga: http://localhost:9000/project/ninaivalaigal/us/101
+
+---
+
 **Status**: Ready for implementation
 **Next Steps**: Configure Vercel project and deploy staging environment

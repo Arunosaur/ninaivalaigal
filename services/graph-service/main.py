@@ -54,7 +54,7 @@ logger = structlog.get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """FastAPI lifespan for proper startup/shutdown"""
+    """Manage FastAPI lifespan for proper startup and shutdown."""
     logger.info("🧠 Starting Graph/AI Service...")
 
     # Initialize database from environment variable (REQUIRED - no fallback)
@@ -116,6 +116,13 @@ try:
     app.include_router(graphops_integration.router, prefix="/api/v1/graph")
 except Exception as e:
     print(f"⚠️  Could not load graphops_integration: {e}")
+
+try:
+    from routers import graphs  # noqa: E402
+
+    app.include_router(graphs.router, prefix="/api/v1/graph")
+except Exception as e:
+    print(f"⚠️  Could not load graphs router: {e}")
 
 try:
     from routers import dashboard_widgets_api  # noqa: E402

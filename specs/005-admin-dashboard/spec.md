@@ -379,3 +379,25 @@ location /api/admin {
 - [ ] Intuitive navigation requires no training
 
 This admin dashboard will transform mem0 from a developer-only tool into a production-ready system that non-technical stakeholders can manage effectively.
+
+---
+
+## Related Taiga User Stories
+
+**Coverage: 38% → Target: 100%**
+
+- **Story #110**: US-98 - Admin User Management API (P0)
+- **Story #111**: US-99 - Admin UI Integration & Polish (P0)
+- **Story #112**: US-100 - Admin Activity Logging System (P0)
+- **Story #113**: US-101 - Context Admin Management API (P1)
+- **Story #114**: US-102 - System Dashboard & Monitoring (P1)
+
+**Analysis:** `/tasks/SPEC_005_COVERAGE_ANALYSIS.md`
+**View in Taiga:** http://localhost:9000/project/ninaivalaigal
+
+**Key Gaps Identified:**
+- Admin user CRUD endpoints missing
+- UI shell exists but disconnected from APIs
+- No activity logging/audit trail
+- Context admin functionality incomplete
+- Dashboard shows mock data only

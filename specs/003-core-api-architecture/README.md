@@ -49,3 +49,18 @@ FastAPI-based REST API architecture with UUID authentication, middleware integra
 - SPEC-002: Multi-User Authentication
 - SPEC-018: API Health Monitoring
 - SPEC-053: Authentication Middleware Refactor
+
+## Related Taiga User Stories
+
+**Active Implementation (Sprint 1):**
+- **US-89**: Customer UI Auth Integration (P0) - Developer A ⚡
+- **US-91**: API Rate Limiting & Throttling (P0)
+
+**Planned (Sprint 2-3):**
+- **US-90**: Grafana Monitoring Dashboards (P1)
+- **US-92**: Comprehensive API Test Suite (P1)
+- **Task #86**: Performance Benchmarking CI (P1)
+- **Task #87**: Schema Drift Prevention CI (P1)
+- **Task #88**: Core API Decomposition (P1)
+
+**Implementation Guide:** `/tasks/US_SPEC_003_IMPLEMENTATION.md`

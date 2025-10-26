@@ -65,3 +65,16 @@ As a development team member, I need to share contexts and memories with my team
 - [x] Requirements generated
 - [x] Entities identified
 - [x] Review checklist passed
+
+## Related Taiga User Stories
+
+**Coverage: 54% → Target: 100%**
+
+- **Story #105**: US-93 - Context Sharing & Permissions API (P0)
+- **Story #106**: US-94 - Context Sharing Audit Trail (P0)
+- **Story #107**: US-95 - Cross-Team Collaboration (P1)
+- **Story #108**: US-96 - Context Ownership Transfer (P1)
+- **Story #109**: US-97 - Bulk Permission Management (P2)
+
+**Analysis:** `/tasks/SPEC_004_COVERAGE_ANALYSIS.md`
+**View in Taiga:** http://localhost:9000/project/ninaivalaigal

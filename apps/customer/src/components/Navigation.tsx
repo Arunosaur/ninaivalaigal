@@ -10,8 +10,9 @@
  *
  * Provides consistent navigation across all customer-facing pages.
  */
-
-import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/authContext';
 
 interface NavigationProps {
   variant?: 'default' | 'dark' | 'transparent';
@@ -20,6 +21,8 @@ interface NavigationProps {
 
 export function Navigation({ variant = 'default', className = '' }: NavigationProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, clearAuthState } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -41,6 +44,13 @@ export function Navigation({ variant = 'default', className = '' }: NavigationPr
         return 'bg-gradient-to-r from-purple-600 to-purple-800 shadow-lg';
     }
   };
+
+  const handleLogout = () => {
+    clearAuthState();
+    navigate('/login', { replace: true });
+  };
+
+  const userLabel = user?.name || user?.email;
 
   return (
     <nav className={`${getNavStyle()} ${className}`}>
@@ -78,13 +88,11 @@ export function Navigation({ variant = 'default', className = '' }: NavigationPr
           </div>
 
           {/* User Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 text-white/80">
+            {userLabel ? <span className="text-sm">{userLabel}</span> : null}
             <button
-              onClick={() => {
-                localStorage.removeItem('auth_token');
-                window.location.href = '/login';
-              }}
-              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              onClick={handleLogout}
+              className="hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-all"
             >
               Logout
             </button>
@@ -101,6 +109,8 @@ export function Navigation({ variant = 'default', className = '' }: NavigationPr
  */
 export function SidebarNavigation() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { clearAuthState, user } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -111,6 +121,11 @@ export function SidebarNavigation() {
     { path: '/memory-browser', label: 'Memory Browser', icon: '📖' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];
+
+  const handleLogout = () => {
+    clearAuthState();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <aside className="w-64 bg-gray-800 border-r border-gray-700 min-h-screen">
@@ -147,11 +162,11 @@ export function SidebarNavigation() {
 
       {/* User Section */}
       <div className="absolute bottom-0 w-64 p-4 border-t border-gray-700">
+        {user?.email ? (
+          <div className="mb-2 text-xs uppercase tracking-[0.18em] text-gray-500">{user.email}</div>
+        ) : null}
         <button
-          onClick={() => {
-            localStorage.removeItem('auth_token');
-            window.location.href = '/login';
-          }}
+          onClick={handleLogout}
           className="w-full text-gray-300 hover:text-white hover:bg-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-all"
         >
           Logout
@@ -168,6 +183,8 @@ export function SidebarNavigation() {
 export function MobileNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { clearAuthState } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -178,6 +195,11 @@ export function MobileNavigation() {
     { path: '/memory-browser', label: 'Memory Browser', icon: '📖' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];
+
+  const handleLogout = () => {
+    clearAuthState();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <>
@@ -220,10 +242,7 @@ export function MobileNavigation() {
               </Link>
             ))}
             <button
-              onClick={() => {
-                localStorage.removeItem('auth_token');
-                window.location.href = '/login';
-              }}
+              onClick={handleLogout}
               className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition mt-4"
             >
               <span className="text-xl">🚪</span>
@@ -235,6 +254,3 @@ export function MobileNavigation() {
     </>
   );
 }
-
-// Add useState import
-import { useState } from 'react';

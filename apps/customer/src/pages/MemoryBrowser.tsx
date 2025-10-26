@@ -14,9 +14,8 @@
 import { useState, useEffect } from 'react';
 import { GuidedTour, type Memory } from '@nina/ui';
 import { Navigation } from '../components/Navigation';
-import axios from 'axios';
-
-const API_BASE_URL = (import.meta.env?.VITE_API_URL as string) || 'http://localhost:13390';
+import apiClient from '../lib/apiClient';
+import '../styles/memory-browser.css';
 
 export default function MemoryBrowser() {
   // State
@@ -43,19 +42,16 @@ export default function MemoryBrowser() {
   const loadMemories = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('auth_token');
-
-      const response = await axios.get(`${API_BASE_URL}/api/v1/memory/memories`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const response = await apiClient.get('/api/v1/memory/memories');
 
       const memoriesData = response.data.memories || response.data || [];
       setMemories(memoriesData);
       setFilteredMemories(memoriesData);
       setError(null);
-    } catch (err: any) {
-      console.error('Failed to load memories:', err);
-      setError(err.message || 'Failed to load memories');
+    } catch (err: unknown) {
+      const fallbackMessage =
+        err instanceof Error ? err.message : 'Failed to load memories';
+      setError(fallbackMessage);
       // Use sample data for development
       const sampleMemories = generateSampleMemories();
       setMemories(sampleMemories);
@@ -184,7 +180,7 @@ export default function MemoryBrowser() {
         )}
 
         {/* Search and Filters */}
-        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <div className="card-shadow rounded-lg p-6 mb-6" style={{ background: 'white' }}>
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl">
@@ -239,9 +235,7 @@ export default function MemoryBrowser() {
               <button
                 onClick={handleStartGuidedTour}
                 disabled={guidedMode}
-                className={`${
-                  guidedMode ? 'bg-purple-700' : 'bg-purple-600 hover:bg-purple-700'
-                } text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50`}
+                className={`btn-primary flex items-center space-x-2 ${guidedMode ? 'opacity-75' : ''}`}
               >
                 <span>📖</span>
                 <span>{guidedMode ? 'Guided Mode Active' : 'Guided Mode'}</span>
@@ -249,7 +243,7 @@ export default function MemoryBrowser() {
 
               <button
                 onClick={loadMemories}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="btn-secondary"
               >
                 🔄 Refresh
               </button>
@@ -358,63 +352,68 @@ interface MemoryCardProps {
 }
 
 function MemoryCard({ memory }: MemoryCardProps) {
-  const createdDate = new Date(memory.created_at).toLocaleDateString();
-  const isRecent =
-    (new Date().getTime() - new Date(memory.created_at).getTime()) / (1000 * 60 * 60 * 24) < 7;
-
   return (
-    <div
-      id={`memory-card-${memory.id}`}
-      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-4 cursor-pointer hover:-translate-y-1"
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          {memory.pinned && <span className="text-yellow-500">📌</span>}
-          {memory.archived && <span className="text-gray-500">📦</span>}
-          {isRecent && <span className="text-green-500">🆕</span>}
-          <span className="text-xs text-gray-500">
-            {(memory.relevance_score * 100).toFixed(0)}%
+    <div id={`memory-card-${memory.id}`} className="memory-card">
+      <div className="memory-card-header">
+        <div className="flex items-center justify-between mb-3">
+          <span className={`context-badge ${memory.context.toLowerCase()}`}>
+            {memory.context}
           </span>
+          <div className="flex items-center space-x-2">
+            {memory.pinned && (
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">
+                📌 Pinned
+              </span>
+            )}
+            {memory.archived && (
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">
+                📦 Archived
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center space-x-1">
-          <span className="text-xs text-gray-400">{memory.size} chars</span>
-          <div
-            className={`w-2 h-2 rounded-full ${
-              memory.relevance_score > 0.9
-                ? 'bg-green-500'
-                : memory.relevance_score > 0.8
-                ? 'bg-yellow-500'
-                : 'bg-gray-400'
-            }`}
-          ></div>
-        </div>
+        <h3 className="text-lg font-bold text-gray-900 leading-tight">
+          {memory.content.substring(0, 100)}
+          {memory.content.length > 100 && '...'}
+        </h3>
       </div>
 
-      {/* Content */}
-      <div className="text-gray-800 text-sm mb-4 line-clamp-4">{memory.content}</div>
+      <div className="memory-card-body">
+        <div className="memory-content text-gray-700 mb-4">
+          {memory.content}
+        </div>
 
-      {/* Tags */}
-      <div className="flex flex-wrap gap-1 mb-3">
-        {memory.tags.slice(0, 3).map((tag: string) => (
-          <span
-            key={tag}
-            className="inline-block bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium"
-          >
-            {tag}
-          </span>
-        ))}
-        {memory.tags.length > 3 && (
-          <span className="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-            +{memory.tags.length - 3} more
-          </span>
+        {memory.tags && memory.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {memory.tags.map((tag, idx) => (
+              <span key={idx} className="tag">
+                {tag}
+              </span>
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        <span>{memory.context.replace(/-/g, ' ')}</span>
-        <span>{createdDate}</span>
+      <div className="memory-card-footer flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <span className="flex items-center">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {new Date(memory.created_at).toLocaleDateString()}
+          </span>
+          {memory.size && (
+            <span className="flex items-center">
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              {(memory.size / 1024).toFixed(1)} KB
+            </span>
+          )}
+        </div>
+        <button className="text-purple-600 hover:text-purple-800 font-medium transition-colors">
+          View Details →
+        </button>
       </div>
     </div>
   );

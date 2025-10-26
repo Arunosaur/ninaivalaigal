@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 import structlog
 from fastapi import APIRouter, HTTPException
-from graph.age_client import ApacheAGEClient
+from graph.age_client import get_age_client
 from pydantic import BaseModel
 from redis import asyncio as aioredis
 
@@ -34,6 +34,7 @@ class HealthResponse(BaseModel):
     version: str
     uptime_seconds: float
     timestamp: str
+    details: Dict[str, Any]
 
 
 class ReadinessResponse(BaseModel):
@@ -55,15 +56,8 @@ def get_uptime() -> float:
 async def check_database() -> Dict[str, Any]:
     """Validate PgBouncer connection and Apache AGE extension."""
 
-    client = ApacheAGEClient(
-        CONFIG.database_url,
-        graph_name=CONFIG.graph_name,
-        db_name=CONFIG.db_name,
-        use_cache=False,
-    )
-
     try:
-        await client.initialize()
+        client = await get_age_client(use_cache=False)
         return await client.health_check()
     except Exception as exc:  # pragma: no cover - defensive logging path
         logger.error("graphops_health_check_failed", error=str(exc))
@@ -73,8 +67,6 @@ async def check_database() -> Dict[str, Any]:
             "database": CONFIG.db_name,
             "error": str(exc),
         }
-    finally:
-        await client.close()
 
 
 async def check_redis() -> Dict[str, Any]:
@@ -122,14 +114,30 @@ async def check_graphops() -> Dict[str, Any]:
 
 @router.get("/health", response_model=HealthResponse)
 async def health_check() -> HealthResponse:
-    """Return basic liveness information."""
+    """Return liveness information backed by real AGE verification."""
+
+    age_status = await check_database()
+    overall_status = "healthy" if age_status["status"] == "healthy" else "unhealthy"
+
+    if overall_status != "healthy":  # pragma: no cover - defensive logging path
+        logger.warning("health_check_unhealthy", age_status=age_status)
+
+    details = {
+        "apache_age": {
+            "status": age_status["status"],
+            "database": age_status.get("database"),
+            "age_extension": age_status.get("age_extension") or age_status.get("type"),
+            "graphs_available": len(age_status.get("graphs", [])),
+        }
+    }
 
     return HealthResponse(
-        status="healthy",
+        status=overall_status,
         service=SERVICE_NAME,
         version=SERVICE_VERSION,
         uptime_seconds=get_uptime(),
         timestamp=datetime.utcnow().isoformat(),
+        details=details,
     )
 
 
