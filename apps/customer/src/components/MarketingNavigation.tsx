@@ -5,7 +5,7 @@
 // Unauthorized copying, modification, or distribution is prohibited.
 // See LICENSE file in the server/ directory for details.
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { isBrowser, prefersReducedMotion } from '../utils/environment';
 
@@ -23,6 +23,53 @@ interface MarketingNavigationProps {
 
 export function MarketingNavigation({ activeSection, onNavigate }: MarketingNavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isBrowser) {
+      return;
+    }
+
+    const element = headerRef.current;
+    if (!element) {
+      return;
+    }
+
+    let frameId: number | null = null;
+
+    const assignHeight = () => {
+      if (!headerRef.current) {
+        return;
+      }
+      const { height } = headerRef.current.getBoundingClientRect();
+      document.documentElement.style.setProperty('--marketing-nav-height', `${height}px`);
+    };
+
+    const scheduleAssign = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      frameId = window.requestAnimationFrame(assignHeight);
+    };
+
+    scheduleAssign();
+
+    window.addEventListener('resize', scheduleAssign);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof window.ResizeObserver !== 'undefined') {
+      resizeObserver = new window.ResizeObserver(scheduleAssign);
+      resizeObserver.observe(element);
+    }
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener('resize', scheduleAssign);
+      resizeObserver?.disconnect();
+    };
+  }, [isOpen]);
 
   const handleNavigate = (section: string) => {
     onNavigate?.(section);
@@ -39,14 +86,19 @@ export function MarketingNavigation({ activeSection, onNavigate }: MarketingNavi
   };
 
   return (
-    <header className="fixed top-0 z-40 w-full border-b border-white/5 bg-[#05070f]/85 backdrop-blur-md transition-[background-color,transform] duration-300">
+    <header
+      ref={headerRef}
+      className="fixed top-0 z-40 w-full border-b border-white/5 bg-[#05070f]/85 backdrop-blur-md transition-[background-color,transform] duration-300"
+    >
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3" aria-label="Ninaivalaigal">
           <div className="brand-gradient flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg shadow-indigo-500/30">
-            <span className="text-xl font-bold text-white">N</span>
+            <span className="text-[1.45rem] font-semibold text-white" aria-hidden="true">நி</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-base font-semibold tracking-wide text-slate-100">Ninaivalaigal</span>
+          <div className="flex flex-col text-left">
+            <span className="text-base font-semibold tracking-wide text-slate-100">
+              Ninaivalaigal <span lang="ta" className="ml-1 font-medium tracking-normal text-slate-300/85">(நினைவலைகள்)</span>
+            </span>
             <span className="text-xs uppercase tracking-[0.22em] text-slate-400">Exponential Memory OS</span>
           </div>
         </Link>

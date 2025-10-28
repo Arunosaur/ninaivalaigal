@@ -24,10 +24,62 @@ import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, EmailStr
 
 # Import models from local auth module
 # These Pydantic models are defined in auth.py in the same directory
 from auth import IndividualUserSignup, TokenData
+
+
+# Additional Pydantic models for auth
+class InvitationAccept(BaseModel):
+    """Invitation acceptance model"""
+
+    token: str
+    email: EmailStr
+    password: str
+    full_name: str
+
+
+class OrganizationSignup(BaseModel):
+    """Organization signup model"""
+
+    user: dict[str, Any]
+    organization: dict[str, Any]
+
+
+# Password policy
+PASSWORD_REQUIREMENTS_MESSAGE = (
+    "Password must be at least 8 characters long and contain "
+    "at least one uppercase letter, one lowercase letter, one digit, and one special character."
+)
+
+
+# Additional API models for token management
+class ApiKeyCreate(BaseModel):
+    """API key creation model"""
+
+    name: str
+    expires_in_days: int = 90
+
+
+class ApiKeyResponse(BaseModel):
+    """API key response model"""
+
+    id: int
+    name: str
+    key: str
+    created_at: datetime
+    expires_at: datetime
+
+
+class TokenUsage(BaseModel):
+    """Token usage analytics model"""
+
+    token_id: int
+    last_used: datetime
+    usage_count: int
+    ip_addresses: list[str]
 
 
 # Configuration loading (moved from main.py to avoid circular import)
@@ -70,41 +122,61 @@ def load_config():
     return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
 
 
+def validate_password(password: str) -> bool:
+    """Validate password meets requirements"""
+    if len(password) < 8:
+        return False
+    has_upper = any(c.isupper() for c in password)
+    has_lower = any(c.islower() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+    has_special = any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password)
+    return has_upper and has_lower and has_digit and has_special
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash"""
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+
+
+def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
+    """Create JWT access token"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(hours=1)
+    to_encode.update({"exp": expire})
+    jwt_secret = os.getenv("NINA_JWT_SECRET", "dev_jwt_secret_change_in_production")
+    encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm="HS256")
+    return encoded_jwt
+
+
 # Database helper to avoid circular imports
 def get_db():
     """Get database instance with user operations"""
     from database import DatabaseManager
 
-    database_url = load_config()  # load_config returns string directly
+    from config import get_dynamic_database_url
+
+    database_url = get_dynamic_database_url()
     return DatabaseManager(database_url)
 
 
 def get_user_by_uuid(db, user_id):
-    """Helper function to get user by UUID - handles UUID/string conversion"""
+    """Helper function to get user by UUID - uses ORM for full user object"""
+    import uuid as uuid_lib
+
+    from database import User
+
     session = db.get_session()
     try:
-        from sqlalchemy import text
+        # Convert string to UUID if needed
+        if isinstance(user_id, str):
+            user_id = uuid_lib.UUID(user_id)
 
-        result = session.execute(
-            text("SELECT id, email, name FROM users WHERE id = :user_id"),
-            {"user_id": user_id},
-        )
-        row = result.fetchone()
-        if row:
-            # Create user-like object
-            class UserResult:
-                """UserResult class."""
-
-                def __init__(self, row):
-                    """Initialize instance."""
-
-                    self.id = row.id
-                    self.email = row.email
-                    self.name = row.name
-                    self.username = None  # username not in current schema
-
-            return UserResult(row)
-        return None
+        # Use ORM to get full User object with all attributes
+        user = session.query(User).filter(User.id == user_id).first()
+        return user
     finally:
         session.close()
 
@@ -335,7 +407,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
         validated_data = {
             "email": validate_email(signup_data.email),
             "password": signup_data.password,
-            "name": signup_data.name,
+            "name": signup_data.full_name,
             "account_type": signup_data.account_type,
         }
 

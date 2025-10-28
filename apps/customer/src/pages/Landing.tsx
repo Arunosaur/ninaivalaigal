@@ -5,18 +5,78 @@
 // Unauthorized copying, modification, or distribution is prohibited.
 // See LICENSE file in the server/ directory for details.
 //
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MarketingNavigation } from '../components';
+import { MatrixRainSides } from '../components/MatrixRainSides';
 import { useAuth } from '../lib/authContext';
-import { isBrowser } from '../utils/environment';
+import { isBrowser, prefersReducedMotion } from '../utils/environment';
+import ConceptEquation from './prototypes/concept-equation/ConceptEquation';
 
 const SECTION_ORDER = ['product', 'why', 'how', 'outcomes'] as const;
+
+const EQUATION_STEPS = ['E = mc²', 'E = M × C²', 'Emergence = Memory × Context²'] as const;
+
+interface EquationStory {
+  keyword: string;
+  equation: string;
+  description: string;
+}
+
+const EQUATION_STORIES: EquationStory[] = [
+  {
+    keyword: 'Energy',
+    equation: 'E = M × C² → Energy arises from contextualized memory.',
+    description: 'Every recalled insight gathers velocity. Memory gives it mass, context supplies acceleration.',
+  },
+  {
+    keyword: 'Experience',
+    equation: 'E = M × C² → Experience expands exponentially.',
+    description: 'Collective memory, enriched by live context, becomes shared wisdom that compounds with each interaction.',
+  },
+  {
+    keyword: 'Emergence',
+    equation: 'E = M × C² → Emergence from memory and context.',
+    description: 'Intelligence surfaces when stored knowledge meets situational nuance — the sparks that reveal what to do next.',
+  },
+  {
+    keyword: 'Essence',
+    equation: 'E = M × C² → Essence born of contextual memory.',
+    description: 'Reduce the noise to meaning. Memory supplies the archive; context distills the signal.',
+  },
+  {
+    keyword: 'Evolution',
+    equation: 'E = M × C² → The evolution of collective intelligence.',
+    description: 'Feedback loops teach the system how to adapt. Every contribution refines what the organization knows, feels, and becomes.',
+  },
+  {
+    keyword: 'Enlightenment',
+    equation: 'E = M × C² → Enlightenment as living cognition.',
+    description: 'Moments of clarity appear when memory, context, and velocity align — insight that feels inevitable.',
+  },
+]
+
+const CTA_LYRIC_PHRASES: string[] = [
+  'வசந்தக் கால நதிகளில்...',
+  'நினைவோ ஒரு பரவை...',
+  'நினைவலைகள் தொடருவதால்...',
+  'Ninaivalaigal — where memories flow into meaning.',
+  'நினைவோ ஒரு பறவை',
+  'நினைவலைகள் தொடருவதால்',
+  'நினைவைளை சிலை செய்து',
+  'நினைத்தது யாரோ நீதானே',
+  'நினைவுகள் தூரம் அல்லவா',
+  'நினைவுகள் சில நேரங்கள்',
+  'நினைவுகளுக்கு நீ என் நிழல்',
+]
 
 export function Landing() {
   const navigate = useNavigate();
   const { isAuthenticated, loading } = useAuth();
   const [activeSection, setActiveSection] = useState<(typeof SECTION_ORDER)[number]>('product');
+  const [activeEquationIndex, setActiveEquationIndex] = useState(0);
+  const ctaSectionRef = useRef<HTMLElement | null>(null);
+  const [ctaFlowActive, setCtaFlowActive] = useState(false);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -55,6 +115,53 @@ export function Landing() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!isBrowser) {
+      return;
+    }
+
+    if (prefersReducedMotion()) {
+      setActiveEquationIndex(EQUATION_STEPS.length - 1);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setActiveEquationIndex((index) => (index + 1) % EQUATION_STEPS.length);
+    }, 3600);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!isBrowser) {
+      return;
+    }
+
+    const node = ctaSectionRef.current;
+    if (!node) {
+      return;
+    }
+
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.target !== node) {
+            return;
+          }
+          setCtaFlowActive(entry.isIntersecting && entry.intersectionRatio > 0.35);
+        });
+      },
+      { rootMargin: '-20% 0px -20% 0px', threshold: [0.25, 0.45, 0.65] },
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const navOffset = 'calc(var(--marketing-nav-height, 0px) + 1rem)';
+  const sectionScrollMargin = 'calc(var(--marketing-nav-height, 0px) + 1rem)';
+
   return (
     <div className="relative min-h-screen bg-[var(--bg-dark)] text-[var(--text-primary)]">
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -73,12 +180,14 @@ export function Landing() {
         }
       />
 
-      <main className="pt-28 md:pt-32">
+      <main style={{ paddingTop: navOffset }}>
         <section
           id="product"
-          className="relative scroll-mt-32 overflow-hidden bg-gradient-to-b from-[#05070f] via-[#0d1422] to-[#101a2c] text-gray-100 md:scroll-mt-36"
+          className="relative overflow-hidden bg-gradient-to-b from-[#05070f] via-[#0d1422] to-[#101a2c] text-gray-100"
+          style={{ scrollMarginTop: sectionScrollMargin }}
         >
           <NeuralBackdrop />
+          <MatrixRainSides variant="landing" speedMultiplier={0.32} densityMultiplier={1.1} />
           <div className="layout-container section-padding">
             <div className="grid items-center gap-16 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="section-stack text-left">
@@ -87,8 +196,8 @@ export function Landing() {
                   Capture knowledge once. Recall it forever.
                 </h1>
                 <p className="text-body max-w-xl text-left">
-                  Ninaivalaigal orchestrates your organization's collective intelligence into an adaptive memory graph so teams stay aligned,
-                  insights surface faster, and context never slips.
+                  Ninaivalaigal <span lang="ta" className="ml-1 font-medium text-white/85">(நினைவலைகள்)</span> orchestrates your organization's
+                  collective intelligence into an adaptive memory graph so teams stay aligned, insights surface faster, and context never slips.
                 </p>
                 <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-gray-200/80">
                   <Badge pill text="★★★★★ Rated by knowledge-first teams" />
@@ -146,8 +255,10 @@ export function Landing() {
 
         <section
           id="why"
-          className="border-t border-white/5 bg-[var(--bg-section)]/95 scroll-mt-32 md:scroll-mt-36"
+          className="relative border-t border-white/5 bg-[var(--bg-section)]/95"
+          style={{ scrollMarginTop: sectionScrollMargin }}
         >
+          <MatrixRainSides variant="why" speedMultiplier={0.28} densityMultiplier={0.95} />
           <div className="layout-container section-padding">
             <div className="section-stack text-left">
               <Badge text="Why teams choose Ninaivalaigal" />
@@ -200,8 +311,10 @@ export function Landing() {
 
         <section
           id="how"
-          className="border-t border-white/5 bg-gradient-to-b from-[#0d1626] via-[#0f1d33] to-[#101f37] scroll-mt-32 md:scroll-mt-36"
+          className="relative border-t border-white/5 bg-gradient-to-b from-[#0d1626] via-[#0f1d33] to-[#101f37]"
+          style={{ scrollMarginTop: sectionScrollMargin }}
         >
+          <MatrixRainSides variant="how" speedMultiplier={0.26} densityMultiplier={1.05} />
           <div className="layout-container section-padding section-stack">
             <div className="section-stack text-center text-balance">
               <Badge text="How it works" />
@@ -255,15 +368,17 @@ export function Landing() {
 
         <section
           id="outcomes"
-          className="border-t border-white/5 bg-[var(--bg-section)]/94 scroll-mt-32 md:scroll-mt-36"
+          className="relative border-t border-white/5 bg-[var(--bg-section)]/94"
+          style={{ scrollMarginTop: sectionScrollMargin }}
         >
+          <MatrixRainSides variant="outcomes" speedMultiplier={0.3} densityMultiplier={1} />
           <div className="layout-container section-padding grid gap-12 lg:grid-cols-[0.65fr_1.35fr]">
             <div className="section-stack text-left">
               <Badge text="What teams experience" />
               <h3 className="text-heading max-w-2xl">Designed for innovators that live on the edge of discovery</h3>
               <p className="text-body max-w-xl">
-                From frontier research to scaled product organizations, Ninaivalaigal adapts to your ambition with hardened security,
-                measurable velocity gains, and a narrative of proof you can show to stakeholders.
+                From frontier research to scaled product organizations, Ninaivalaigal adapts to your ambition with hardened security, measurable velocity gains,
+                and a narrative of proof you can show to stakeholders.
               </p>
               <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-gray-300/80">
                 <Badge text="Life sciences" />
@@ -298,15 +413,104 @@ export function Landing() {
           </div>
         </section>
 
-        <section className="border-t border-white/5 bg-gradient-to-r from-[#091225] via-[#0d1a33] to-[#08152b]">
-          <div className="layout-container section-padding text-center section-stack">
+        <section
+          id="equation-stories"
+          className="relative border-t border-white/5 bg-gradient-to-b from-[#070d1d] via-[#0a1629] to-[#0b1c33]"
+        >
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(79,70,229,0.2),_transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(14,165,233,0.18),_transparent_65%)]" />
+          </div>
+          <MatrixRainSides variant="emc2" speedMultiplier={0.28} densityMultiplier={1.08} />
+          <div className="layout-container section-padding space-y-16">
+            <div className="section-stack text-center text-balance">
+              <Badge text="E = M × C²" />
+              <h2 className="text-heading mx-auto max-w-4xl">Where Energy = Memory × Context²</h2>
+              <p className="text-body mx-auto max-w-3xl">
+                Inspired by Einstein’s equation — respectfully reinterpreted as the living equation of intelligence. Memory supplies the mass,
+                context accelerates the insight. Together, they power the Exponential Memory OS.
+              </p>
+            </div>
+
+            <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+              <div className="glass-surface gradient-outline rounded-[34px] border border-white/10 bg-slate-950/60 p-10 text-left shadow-2xl">
+                <div className="space-y-5">
+                  <span className="tag w-fit">Concept narrative</span>
+                  <h3 className="text-3xl font-semibold leading-tight text-white md:text-[2.2rem]">
+                    Memory × Context² → Operational Intelligence, Activated.
+                  </h3>
+                  <div className="space-y-4 text-body text-gray-200">
+                    <p>When living memory carries mass and context delivers velocity squared, teams feel the physics behind every confident decision.</p>
+                    <p>The equation lives behind the narrative — energizing the story without overwhelming it.</p>
+                  </div>
+                </div>
+
+                <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.32em] text-indigo-100/80">The living equation</p>
+                  <div className="mt-5 flex flex-wrap gap-4 text-[1.65rem] font-semibold md:text-[1.95rem]">
+                    {EQUATION_STEPS.map((step, index) => {
+                      const isActive = index === activeEquationIndex;
+                      return (
+                        <span
+                          key={step}
+                          className={
+                            isActive
+                              ? 'text-white drop-shadow-[0_0_22px_rgba(165,180,252,0.55)] transition-colors duration-700 ease-[cubic-bezier(.4,0,.2,1)]'
+                              : 'text-white/35 transition-colors duration-700 ease-[cubic-bezier(.4,0,.2,1)]'
+                          }
+                        >
+                          {step}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-5 text-[0.92rem] leading-relaxed text-gray-200/80">
+                    Metaphorical adaptation inspired by Einstein’s equation — a poetic framing of how intelligence emerges from memory and context.
+                  </p>
+                </div>
+              </div>
+
+              <div className="max-lg:order-first">
+                <ConceptEquation variant="embedded" />
+              </div>
+            </div>
+
+            <div className="section-stack text-center text-balance">
+              <h3 className="text-heading mx-auto max-w-3xl">Every “E” tells a story.</h3>
+              <p className="text-body mx-auto max-w-3xl">
+                Each facet of E refracts the same truth: when living memory meets accelerated context, intelligence compounds. These six lenses
+                help teams feel the physics behind the Exponential Memory OS.
+              </p>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {EQUATION_STORIES.map((story) => (
+                <EquationStoryCard key={story.keyword} {...story} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          ref={ctaSectionRef}
+          className="relative overflow-hidden border-t border-white/5 bg-gradient-to-r from-[#091225] via-[#0d1a33] to-[#08152b]"
+        >
+          <MatrixRainSides
+            variant="cta"
+            speedMultiplier={ctaFlowActive ? 0.18 : 0.25}
+            densityMultiplier={ctaFlowActive ? 0.9 : 1}
+            orientation={ctaFlowActive ? 'horizontal' : 'vertical'}
+            className="matrix-rain--cta-flow"
+            lyricPhrases={CTA_LYRIC_PHRASES}
+          />
+          <div className="layout-container section-padding text-center section-stack relative z-10 pb-28 lg:pb-40">
             <div className="tag mx-auto">Operational Intelligence, Activated</div>
             <h2 className="text-heading mx-auto max-w-3xl">
               Build the memory infrastructure your future deserves
             </h2>
             <p className="text-body mx-auto max-w-2xl">
-              Partner with Ninaivalaigal to transform how your teams capture, synthesize, and operationalize insight. Deployment architects take you
-              from pilot to enterprise scale in weeks, not quarters.
+              Partner with Ninaivalaigal <span lang="ta" className="ml-1 font-medium text-white/85">நினைவலைகள்</span> to transform how your teams capture,
+              synthesize, and operationalize insight. Deployment architects take you from pilot to enterprise scale in weeks, not quarters.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
@@ -332,9 +536,11 @@ export function Landing() {
       <footer className="border-t border-white/5 bg-[#0b0f1d]">
         <div className="layout-container section-padding grid gap-12 text-sm text-gray-400 lg:grid-cols-4">
           <div className="section-stack">
-            <Link to="/" className="flex items-center gap-3">
-              <span className="brand-gradient inline-flex h-11 w-11 items-center justify-center rounded-2xl text-lg font-bold text-white">N</span>
-              <span className="text-base font-semibold text-gray-100">Ninaivalaigal</span>
+            <Link to="/" className="flex items-center gap-3" aria-label="Ninaivalaigal">
+              <span className="brand-gradient inline-flex h-11 w-11 items-center justify-center rounded-2xl text-lg font-semibold text-white" aria-hidden="true">நி</span>
+              <span className="text-base font-semibold text-gray-100">
+                Ninaivalaigal <span lang="ta" className="ml-1 font-medium text-gray-300/85">நினைவலைகள்</span>
+              </span>
             </Link>
             <p className="text-body max-w-xs">
               AI-first memory operating system for institutions advancing science, product, and policy.
@@ -441,6 +647,19 @@ function ProofPoint({ headline, subheading, body }: ProofPointProps) {
       <p className="text-3xl font-semibold text-white">{headline}</p>
       <p className="mt-2 text-xs font-semibold uppercase tracking-[0.26em] text-indigo-200/80">{subheading}</p>
       <p className="mt-3 text-sm text-gray-300">{body}</p>
+    </article>
+  );
+}
+
+function EquationStoryCard({ keyword, equation, description }: EquationStory) {
+  return (
+    <article
+      tabIndex={0}
+      className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-950/70 p-8 text-left shadow-lg shadow-cyan-500/10 transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_bottom,_rgba(14,165,233,0.12),_transparent_65%)] hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-cyan-400/20 focus-visible:-translate-y-1 focus-visible:border-cyan-300/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+    >
+      <p className="text-xs font-semibold uppercase tracking-[0.26em] text-cyan-200/80">{keyword}</p>
+      <h3 className="mt-3 text-lg font-semibold text-white">{equation}</h3>
+      <p className="mt-4 text-sm leading-relaxed text-gray-300">{description}</p>
     </article>
   );
 }

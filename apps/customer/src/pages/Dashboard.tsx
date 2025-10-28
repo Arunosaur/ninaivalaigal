@@ -6,7 +6,9 @@
 // See LICENSE file in the server/ directory for details.
 //
 import { useState, useEffect } from 'react'
+import type { AxiosError } from 'axios'
 import { Navigation } from '../components/Navigation'
+import apiClient from '../lib/apiClient'
 
 interface TeamStats {
   total_memories: number
@@ -14,25 +16,60 @@ interface TeamStats {
   team_members: number
   storage_used_mb: number
   api_calls_today: number
+  subscription_tier: string
+}
+
+const SAMPLE_TEAM_STATS: TeamStats = {
+  total_memories: 1284,
+  active_sessions: 7,
+  team_members: 24,
+  storage_used_mb: 812.45,
+  api_calls_today: 1864,
+  subscription_tier: 'enterprise',
 }
 
 export default function Dashboard() {
   const [stats, setStats] = useState<TeamStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [usingFallback, setUsingFallback] = useState(false)
 
   useEffect(() => {
-    // TODO: Replace with actual API call when authenticated
-    // For now, use mock data
-    setTimeout(() => {
-      setStats({
-        total_memories: 1234,
-        active_sessions: 42,
-        team_members: 8,
-        storage_used_mb: 2048,
-        api_calls_today: 15420,
-      })
-      setLoading(false)
-    }, 500)
+    let isMounted = true
+    const controller = new AbortController()
+
+    async function loadStats() {
+      try {
+        setLoading(true)
+  const response = await apiClient.get<TeamStats>('/users/me/stats', { signal: controller.signal })
+        if (!isMounted) {
+          return
+        }
+        setStats(response.data)
+        setError(null)
+        setUsingFallback(false)
+      } catch (err) {
+        if (!isMounted) {
+          return
+        }
+        const axiosError = err as AxiosError<{ detail?: string }>
+        const message = axiosError.response?.data?.detail || axiosError.message || 'Unable to load dashboard stats'
+        setError(message)
+        setStats(SAMPLE_TEAM_STATS)
+        setUsingFallback(true)
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadStats()
+
+    return () => {
+      isMounted = false
+      controller.abort()
+    }
   }, [])
 
   return (
@@ -53,8 +90,13 @@ export default function Dashboard() {
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
           </div>
-        ) : (
+        ) : stats ? (
           <>
+            {usingFallback ? (
+              <div className="mb-8 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                API connection failed ({error}). Displaying sample enterprise telemetry for development.
+              </div>
+            ) : null}
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <StatCard
@@ -80,9 +122,9 @@ export default function Dashboard() {
               />
               <StatCard
                 title="Storage Used"
-                value={`${((stats?.storage_used_mb || 0) / 1024).toFixed(1)} GB`}
+                value={`${((stats?.storage_used_mb || 0)).toFixed(2)} MB`}
                 icon="📊"
-                trend="20% of limit"
+                trend="Daily snapshot"
                 trendUp={false}
               />
               <StatCard
@@ -94,7 +136,7 @@ export default function Dashboard() {
               />
               <StatCard
                 title="Plan"
-                value="Pro"
+                value={(stats?.subscription_tier ?? 'pro').toUpperCase()}
                 icon="⭐"
                 trend="Upgrade available"
                 trendUp={false}
@@ -123,6 +165,10 @@ export default function Dashboard() {
               </div>
             </div>
           </>
+        ) : (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-rose-300 text-sm font-medium">{error ?? 'Unable to load dashboard stats'}</p>
+          </div>
         )}
       </main>
     </div>

@@ -31,7 +31,7 @@ export function renderWithRouter(
   }
 
   const rendered = render(
-    <HistoryRouter history={history}>
+    <HistoryRouter history={history as any}>
       <RoutesContainer />
     </HistoryRouter>,
   );

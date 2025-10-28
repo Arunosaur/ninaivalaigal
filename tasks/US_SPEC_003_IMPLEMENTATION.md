@@ -43,23 +43,23 @@ Connect the customer UI signup/login forms to the backend authentication API, en
 ```
 ✅ Backend API operational at 192.168.66.163:8000
 ✅ Customer UI running at localhost:8101
-✅ Beautiful signup/login forms with Tailwind CSS
-❌ No API integration - forms are UI-only placeholders
-❌ No JWT token management
-❌ No protected routes
+✅ Auth flows integrated with live API (login, signup, logout)
+✅ JWT token management + interceptor-driven logout on 401s
+✅ Protected routes + landing redirect fully exercised by tests
+✅ Component tests cover login, signup, logout, protected redirect
 ```
 
 ### Acceptance Criteria
-- [ ] **AC1**: Axios/fetch API client configured with base URL
-- [ ] **AC2**: Signup form submits to `POST /auth/signup`
-- [ ] **AC3**: Login form submits to `POST /auth/login`
-- [ ] **AC4**: JWT tokens stored securely (localStorage/httpOnly cookies)
-- [ ] **AC5**: Protected routes redirect unauthenticated users to /login
-- [ ] **AC6**: Auth context provider available throughout app
-- [ ] **AC7**: Error handling for failed auth attempts
-- [ ] **AC8**: Loading states during API calls
-- [ ] **AC9**: Successful login redirects to /dashboard
-- [ ] **AC10**: Logout functionality clears tokens and redirects to /
+- [x] **AC1**: Axios/fetch API client configured with base URL
+- [x] **AC2**: Signup form submits to `POST /auth/signup`
+- [x] **AC3**: Login form submits to `POST /auth/login`
+- [x] **AC4**: JWT tokens stored securely (localStorage/httpOnly cookies)
+- [x] **AC5**: Protected routes redirect unauthenticated users to /login
+- [x] **AC6**: Auth context provider available throughout app
+- [x] **AC7**: Error handling for failed auth attempts
+- [x] **AC8**: Loading states during API calls
+- [x] **AC9**: Successful login redirects to /dashboard
+- [x] **AC10**: Logout functionality clears tokens and redirects to /
 
 ### Technical Requirements
 
@@ -197,7 +197,8 @@ Response 200:
 ```
 
 ### Testing Requirements
-- [ ] Manual testing: Signup → Login → Dashboard → Logout
+- [x] Automated component coverage: login, signup, logout, landing redirect, protected-route 401 handling (`apps/customer/src/__tests__/auth`)
+- [ ] Manual QA pass: Signup → Login → Dashboard → Logout
 - [ ] Error handling: Invalid credentials, network errors, expired tokens
 - [ ] Token persistence: Refresh page maintains login state
 - [ ] Token expiry: Automatic refresh or logout after expiry

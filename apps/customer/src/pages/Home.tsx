@@ -32,7 +32,7 @@ export default function Home() {
       {/* FEATURE GRID */}
       <section className="bg-gray-950 py-24 px-6 text-gray-100 border-t border-gray-800">
         <div className="max-w-6xl mx-auto text-center space-y-12">
-          <h2 className="text-3xl font-semibold">Why Ninaivalaigal?</h2>
+          <h2 className="text-3xl font-semibold">Why Ninaivalaigal <span lang="ta" className="ml-1 text-2xl font-medium text-gray-300">(நினைவலைகள்)</span>?</h2>
           <div className="grid md:grid-cols-3 gap-12">
             <Feature
               icon="🧠"
@@ -87,7 +87,9 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer className="bg-black py-12 text-center text-gray-500 text-sm border-t border-gray-800">
-        <p>© 2025 Medhasys LLC · Ninaivalaigal -- Exponential Memory System</p>
+        <p>
+          © 2025 Medhasys LLC · Ninaivalaigal <span lang="ta" className="ml-1">(நினைவலைகள்)</span> -- Exponential Memory System
+        </p>
       </footer>
     </main>
   );

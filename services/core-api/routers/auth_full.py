@@ -68,7 +68,7 @@ def get_user_by_uuid(db, user_id):
 
         result = session.execute(
             text("SELECT id, email, name FROM users WHERE id = :user_id"),
-            {"user_id": user_id},
+            {"user_id": str(user_id)},
         )
         row = result.fetchone()
         if row:

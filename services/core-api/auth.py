@@ -22,9 +22,31 @@ import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, EmailStr, validator
 
-# Import shared contract models
-from auth.v1.models import IndividualUserSignup, TokenData
+
+# Pydantic models for auth
+class TokenData(BaseModel):
+    """Token data model"""
+
+    username: str
+    user_id: str
+
+    @validator("user_id", pre=True)
+    def _coerce_user_id(cls, value: object) -> str:
+        """Ensure user_id always stored as string for UUID support."""
+        if value is None:
+            raise ValueError("user_id is required")
+        return str(value)
+
+
+class IndividualUserSignup(BaseModel):
+    """Individual user signup model"""
+
+    email: EmailStr
+    password: str
+    full_name: str
+    account_type: str = "individual"
 
 
 # Configuration loading (moved from main.py to avoid circular import)
@@ -56,36 +78,27 @@ def get_db():
     """Get database instance with user operations"""
     from database import DatabaseManager
 
-    database_url = load_config()  # load_config returns string directly
+    from config import get_dynamic_database_url
+
+    database_url = get_dynamic_database_url()
     return DatabaseManager(database_url)
 
 
 def get_user_by_uuid(db, user_id):
-    """Helper function to get user by UUID - handles UUID/string conversion"""
+    """Helper function to get user by UUID - uses ORM for full user object"""
+    import uuid as uuid_lib
+
+    from database import User
+
     session = db.get_session()
     try:
-        from sqlalchemy import text
+        # Convert string to UUID if needed
+        if isinstance(user_id, str):
+            user_id = uuid_lib.UUID(user_id)
 
-        result = session.execute(
-            text("SELECT id, email, name FROM users WHERE id = :user_id"),
-            {"user_id": user_id},
-        )
-        row = result.fetchone()
-        if row:
-            # Create user-like object
-            class UserResult:
-                """UserResult class."""
-
-                def __init__(self, row):
-                    """Initialize instance."""
-
-                    self.id = row.id
-                    self.email = row.email
-                    self.name = row.name
-                    self.username = None  # username not in current schema
-
-            return UserResult(row)
-        return None
+        # Use ORM to get full User object with all attributes
+        user = session.query(User).filter(User.id == user_id).first()
+        return user
     finally:
         session.close()
 
@@ -207,7 +220,7 @@ def verify_token(token: str) -> TokenData:
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         username: str = payload.get("email")  # Use email as username
-        user_id: int = payload.get("user_id")
+        user_id = payload.get("user_id")
         if username is None or user_id is None:
             return None
         token_data = TokenData(username=username, user_id=user_id)
@@ -261,7 +274,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
         validated_data = {
             "email": validate_email(signup_data.email),
             "password": signup_data.password,
-            "name": signup_data.name,
+            "name": signup_data.full_name,
             "account_type": signup_data.account_type,
         }
 

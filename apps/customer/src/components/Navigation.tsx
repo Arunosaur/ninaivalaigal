@@ -58,11 +58,13 @@ export function Navigation({ variant = 'default', className = '' }: NavigationPr
         <div className="flex justify-between h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <Link to="/dashboard" className="flex items-center space-x-3 hover:opacity-80 transition">
+            <Link to="/dashboard" className="flex items-center space-x-3 hover:opacity-80 transition" aria-label="Ninaivalaigal">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">N</span>
+                <span className="text-white font-semibold text-[1.35rem]" aria-hidden="true">நி</span>
               </div>
-              <h1 className="text-2xl font-bold text-white">Ninaivalaigal</h1>
+              <h1 className="text-2xl font-bold text-white">
+                Ninaivalaigal <span lang="ta" className="ml-2 text-xl font-medium text-white/85">(நினைவலைகள்)</span>
+              </h1>
             </Link>
           </div>
 
@@ -131,11 +133,13 @@ export function SidebarNavigation() {
     <aside className="w-64 bg-gray-800 border-r border-gray-700 min-h-screen">
       {/* Logo */}
       <div className="p-6 border-b border-gray-700">
-        <Link to="/dashboard" className="flex items-center space-x-3">
+        <Link to="/dashboard" className="flex items-center space-x-3" aria-label="Ninaivalaigal">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">N</span>
+            <span className="text-white font-semibold text-[1.35rem]" aria-hidden="true">நி</span>
           </div>
-          <h1 className="text-xl font-bold text-white">Ninaivalaigal</h1>
+          <h1 className="text-xl font-bold text-white">
+            Ninaivalaigal <span lang="ta" className="ml-2 text-lg font-medium text-white/85">(நினைவலைகள்)</span>
+          </h1>
         </Link>
       </div>
 
@@ -206,11 +210,13 @@ export function MobileNavigation() {
       {/* Mobile Header */}
       <nav className="bg-gradient-to-r from-purple-600 to-purple-800 shadow-lg md:hidden">
         <div className="px-4 py-3 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center space-x-2">
+          <Link to="/dashboard" className="flex items-center space-x-2" aria-label="Ninaivalaigal">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">N</span>
+              <span className="text-white font-semibold text-lg" aria-hidden="true">நி</span>
             </div>
-            <h1 className="text-lg font-bold text-white">Ninaivalaigal</h1>
+            <h1 className="text-lg font-bold text-white">
+              Ninaivalaigal <span lang="ta" className="ml-1 text-base font-medium text-white/80">(நினைவலைகள்)</span>
+            </h1>
           </Link>
           <button
             onClick={() => setIsOpen(!isOpen)}

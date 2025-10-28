@@ -25,11 +25,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY services/core-api/ .
 COPY config/mem0.config.json .
 
+# Copy Alembic migrations and configuration
+COPY alembic.ini .
+COPY alembic/ ./alembic/
+
+# Copy entrypoint script
+COPY services/core-api/docker-entrypoint.sh .
+RUN chmod +x docker-entrypoint.sh
+
 # Copy graphops_client Python package
 COPY python-clients/graphops/graphops_client /app/graphops_client
 
 # Set Python path to include all modules
-ENV PYTHONPATH=/app:/app/shared/contracts:/app/graphops_client
+ENV PYTHONPATH=/app:/app/shared/contracts
 
 # Create non-root user
 RUN useradd -m -u 1000 mem0user && chown -R mem0user:mem0user /app
@@ -42,5 +50,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Start command
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start command with migrations
+CMD ["./docker-entrypoint.sh"]

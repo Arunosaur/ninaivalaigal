@@ -59,11 +59,11 @@ async def lifespan(app: FastAPI):
     """FastAPI lifespan for proper startup/shutdown"""
     logger.info("🚀 Starting Core API Service...")
 
-    # Initialize database from environment variable
-    database_url = os.getenv(
-        "DATABASE_URL",
-        "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev",  # pragma: allowlist secret
-    )
+    # Initialize database from environment variable (required)
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        logger.error("❌ DATABASE_URL environment variable not set")
+        raise ValueError("DATABASE_URL must be set in environment")
     logger.info(f"📊 Database URL: {database_url[:50]}...")
 
     try:
@@ -75,14 +75,18 @@ async def lifespan(app: FastAPI):
         logger.error(f"❌ Database connection failed: {e}")
         raise
 
-    # Initialize event publisher
+    # Initialize event publisher (optional)
     try:
         from events import get_event_publisher
 
-        redis_url = os.getenv("REDIS_URL", "redis://localhost:6399")
-        event_publisher = await get_event_publisher(redis_url)
-        app.state.event_publisher = event_publisher
-        logger.info("✅ Event publisher connected")
+        redis_url = os.getenv("REDIS_URL")
+        if not redis_url:
+            logger.warning("⚠️  REDIS_URL not configured - events will not be published")
+            app.state.event_publisher = None
+        else:
+            event_publisher = await get_event_publisher(redis_url)
+            app.state.event_publisher = event_publisher
+            logger.info("✅ Event publisher connected")
     except Exception as e:
         logger.warning(f"⚠️  Event publisher connection failed: {e}")
         logger.warning("Events will not be published")
@@ -210,7 +214,9 @@ app.include_router(metrics_router.router)
 # Import team management routers
 # Import memory & session routers
 # Import business logic routers
+from routers import dev_tools  # noqa: E402
 from routers import memory_acl_api  # noqa: E402
+from routers import memory_browser_api  # noqa: E402
 from routers import memory_drift_api  # noqa: E402
 from routers import memory_health_api  # noqa: E402
 from routers import memory_injection_api  # noqa: E402
@@ -244,6 +250,7 @@ app.include_router(token_api.router)
 # app.include_router(memory_api.router)
 app.include_router(memory_basic.router)  # Protected endpoints for auth testing
 app.include_router(memory_acl_api.router)
+app.include_router(memory_browser_api.router)
 app.include_router(memory_drift_api.router)
 app.include_router(memory_health_api.router)
 app.include_router(memory_injection_api.router)
@@ -255,6 +262,9 @@ app.include_router(preload_api.router)
 # Include team management routers
 app.include_router(team_api_keys_api.router)
 app.include_router(team_invitations_api.router)
+
+# Include development tools router
+app.include_router(dev_tools.router)
 
 
 if __name__ == "__main__":

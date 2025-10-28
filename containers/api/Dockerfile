@@ -17,11 +17,14 @@ COPY server/ ./server/
 COPY frontend/ ./frontend/
 COPY run_server.py ./
 COPY eM.py ./
+# Include shared libraries and generated clients required at runtime
+COPY shared/ ./shared/
+COPY python-clients/graphops/graphops_client/ ./graphops_client/
 COPY alembic/ ./alembic/
 COPY alembic.ini ./
 
-# Set Python path to include both /app and /app/server for imports
-ENV PYTHONPATH=/app:/app/server
+# Set Python path to include server, shared utilities, and vendored clients
+ENV PYTHONPATH=/app:/app/server:/app/shared:/app/graphops_client
 
 # Create non-root user for security
 RUN useradd --system --no-create-home --shell /bin/false apiuser && \

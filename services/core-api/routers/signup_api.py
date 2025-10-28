@@ -161,7 +161,7 @@ async def signup_individual_user(request: Request, background_tasks: BackgroundT
         signup_model = IndividualUserSignup(
             email=normalized_email,
             password=str(password),
-            name=name,
+            full_name=name,
             account_type=account_type,
         )
     except ValidationError as exc:

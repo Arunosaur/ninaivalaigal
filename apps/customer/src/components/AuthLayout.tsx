@@ -25,9 +25,11 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           <div className="rounded-[26px] bg-slate-950/60 p-10 shadow-[0_40px_60px_-45px_rgba(15,23,42,0.95)]">
             <div className="mb-8 flex flex-col items-center text-center">
               <div className="brand-gradient flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg shadow-indigo-500/40">
-                <span className="text-xl font-bold text-white">N</span>
+                <span className="text-[1.45rem] font-semibold text-white" aria-hidden="true">நி</span>
               </div>
-              <h1 className="mt-4 text-2xl font-semibold text-white">Ninaivalaigal</h1>
+              <h1 className="mt-4 text-2xl font-semibold text-white">
+                Ninaivalaigal <span lang="ta" className="ml-2 text-xl font-medium text-white/85">(நினைவலைகள்)</span>
+              </h1>
               <p className="mt-2 text-sm font-medium text-slate-400">
                 e<sup>M</sup> — Exponential Memory System
               </p>

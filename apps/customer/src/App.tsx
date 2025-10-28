@@ -12,6 +12,8 @@ import { Login } from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import MemoryBrowser from './pages/MemoryBrowser'
 import ProtectedRoute from './components/ProtectedRoute'
+import EMC2Prototype from './pages/prototypes/EMC2Prototype'
+import Settings from './pages/Settings'
 
 function App() {
   return (
@@ -20,9 +22,11 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/prototype/emc2" element={<EMC2Prototype />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/memory-browser" element={<MemoryBrowser />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>

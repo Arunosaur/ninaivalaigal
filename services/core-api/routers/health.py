@@ -79,7 +79,9 @@ async def check_redis() -> Dict[str, Any]:
     try:
         import redis
 
-        redis_url = os.getenv("REDIS_URL", "redis://192.168.66.6:6379/0")
+        redis_url = os.getenv("REDIS_URL")
+        if not redis_url:
+            return {"status": "unknown", "type": "redis", "message": "REDIS_URL not configured"}
 
         # Parse Redis URL
         if redis_url.startswith("redis://"):

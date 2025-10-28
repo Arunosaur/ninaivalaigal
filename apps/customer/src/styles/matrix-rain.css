@@ -1,0 +1,159 @@
+.matrix-rain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: min(18vw, 240px);
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.matrix-rain canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0.86;
+  filter: saturate(1.1) blur(0.12px);
+}
+
+.matrix-rain--full {
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+.matrix-rain--orientation-horizontal {
+  top: auto;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92vw, 980px);
+  height: clamp(220px, 34vh, 360px);
+  overflow: visible;
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.78) 10%, rgba(0, 0, 0, 0.92) 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.78) 10%, rgba(0, 0, 0, 0.92) 90%, transparent 100%);
+  animation: matrix-rain-rotate-in 1.1s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.matrix-rain--orientation-horizontal canvas {
+  opacity: 0.97;
+  filter: saturate(1.08);
+  transition: opacity 0.9s ease;
+}
+
+.matrix-rain--orientation-horizontal::after {
+  content: '';
+  position: absolute;
+  inset: -96px -14vw -12px -14vw;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(6, 10, 20, 0.88) 0%, rgba(6, 10, 20, 0.72) 40%, rgba(6, 10, 20, 0.12) 100%);
+}
+
+.matrix-rain--left {
+  left: 0;
+}
+
+.matrix-rain--right {
+  right: 0;
+}
+
+.matrix-rain--left::after,
+.matrix-rain--right::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.matrix-rain--orientation-horizontal::after {
+  background: linear-gradient(180deg, rgba(6, 12, 24, 0.94) 0%, rgba(6, 12, 24, 0.65) 55%, rgba(6, 12, 24, 0.1) 100%);
+}
+
+.matrix-rain--left::after {
+  background: linear-gradient(90deg, rgba(5, 7, 20, 1) 0%, rgba(5, 7, 20, 0.8) 55%, transparent 100%);
+}
+
+.matrix-rain--right::after {
+  background: linear-gradient(270deg, rgba(5, 7, 20, 1) 0%, rgba(5, 7, 20, 0.8) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-emc2.matrix-rain--left::after {
+  background: linear-gradient(90deg, rgba(5, 7, 20, 0.98) 0%, rgba(5, 7, 20, 0.86) 60%, rgba(5, 7, 20, 0.12) 100%);
+}
+
+.matrix-rain--variant-emc2.matrix-rain--right::after {
+  background: linear-gradient(270deg, rgba(5, 7, 20, 0.98) 0%, rgba(5, 7, 20, 0.86) 60%, rgba(5, 7, 20, 0.12) 100%);
+}
+
+.matrix-rain--variant-landing.matrix-rain--left::after {
+  background: linear-gradient(90deg, rgba(9, 13, 28, 0.98) 0%, rgba(9, 13, 28, 0.75) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-landing.matrix-rain--right::after {
+  background: linear-gradient(270deg, rgba(9, 13, 28, 0.98) 0%, rgba(9, 13, 28, 0.75) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-why.matrix-rain--left::after {
+  background: linear-gradient(90deg, rgba(28, 14, 8, 0.95) 0%, rgba(28, 14, 8, 0.7) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-why.matrix-rain--right::after {
+  background: linear-gradient(270deg, rgba(28, 14, 8, 0.95) 0%, rgba(28, 14, 8, 0.7) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-how.matrix-rain--left::after {
+  background: linear-gradient(90deg, rgba(24, 6, 24, 0.95) 0%, rgba(24, 6, 24, 0.72) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-how.matrix-rain--right::after {
+  background: linear-gradient(270deg, rgba(24, 6, 24, 0.95) 0%, rgba(24, 6, 24, 0.72) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-outcomes.matrix-rain--left::after {
+  background: linear-gradient(90deg, rgba(8, 18, 32, 0.96) 0%, rgba(8, 18, 32, 0.74) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-outcomes.matrix-rain--right::after {
+  background: linear-gradient(270deg, rgba(8, 18, 32, 0.96) 0%, rgba(8, 18, 32, 0.74) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-cta.matrix-rain--left::after {
+  background: linear-gradient(90deg, rgba(5, 24, 24, 0.94) 0%, rgba(5, 24, 24, 0.68) 55%, transparent 100%);
+}
+
+.matrix-rain--variant-cta.matrix-rain--right::after {
+  background: linear-gradient(270deg, rgba(5, 24, 24, 0.94) 0%, rgba(5, 24, 24, 0.68) 55%, transparent 100%);
+}
+
+.matrix-rain--orientation-horizontal.matrix-rain--variant-cta::after {
+  background: linear-gradient(180deg, rgba(6, 18, 20, 0.9) 0%, rgba(6, 18, 20, 0.54) 60%, transparent 100%);
+}
+
+
+@keyframes matrix-rain-rotate-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) rotate(-90deg) scale(0.82);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) rotate(0deg) scale(1);
+  }
+}
+
+@media (max-width: 960px) {
+  .matrix-rain {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix-rain canvas {
+    opacity: 0.35;
+    filter: none;
+  }
+
+  .matrix-rain__lyrics-track {
+    animation: none;
+  }
+}

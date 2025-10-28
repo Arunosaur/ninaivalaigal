@@ -18,8 +18,9 @@ This is the **Customer App** - the end-user experience for individuals, teams, a
 ## Features
 
 - ✅ Signup/login flows
+- ✅ Token management with axios interceptors
+- ✅ Protected routing + landing redirect guards
 - ✅ Memory recording UI
-- ✅ Token management
 - ✅ MCP configuration
 - ✅ Billing pages
 - ✅ Public API docs (gated by sign-in)
@@ -29,14 +30,6 @@ This is the **Customer App** - the end-user experience for individuals, teams, a
 ```bash
 # Install dependencies
 npm install
-
-# Start dev server (runs on port 8101)
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
 npm run preview
 
 # Type check
@@ -48,6 +41,12 @@ npm run lint
 
 ## Environment Variables
 
+# Start dev server (runs on port 8101)
+npm run dev
+
+# Build for production
+npm run build
+
 Create a `.env` file:
 
 ```env
@@ -57,18 +56,23 @@ VITE_API_VERSION=v1
 
 ## Project Structure
 
+# Run unit/component tests (Vitest + Testing Library)
+npm run test
+
 ```
 src/
-├── pages/           # Page components
-│   ├── Signup.tsx
-│   ├── Login.tsx
-│   └── Dashboard.tsx
-├── components/      # Reusable components
-├── hooks/           # Custom React hooks
-├── lib/             # Utilities and helpers
-├── App.tsx          # Main app component
-├── main.tsx         # Entry point
-└── index.css        # Global styles
+├── __tests__/auth/      # Vitest + Testing Library suites (auth flows)
+├── components/          # Reusable UI building blocks
+├── lib/                 # API client + auth persistence helpers
+├── pages/               # Routed pages (Landing, Login, Signup, Dashboard)
+├── styles/              # Tailwind overrides
+├── types/               # Shared TypeScript contracts
+├── utils/               # Cross-cutting utilities
+├── App.tsx              # Main app component
+├── main.tsx             # Entry point
+├── setupTests.ts        # Global test setup (jsdom, matchers)
+├── test-utils.tsx       # Custom render helpers (HistoryRouter, AuthProvider)
+└── index.css            # Global styles
 ```
 
 ## Shared Packages

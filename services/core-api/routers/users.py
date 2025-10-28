@@ -11,12 +11,46 @@ User Management Router
 Extracted from main.py for better code organization
 """
 
+import json
+from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
-from auth_service import get_current_user
-from common.v1.user_models import UserProfileResponse, UserProfileUpdate
-from database import DatabaseManager, User
+from auth_service import (
+    PASSWORD_REQUIREMENTS_MESSAGE,
+    get_current_user,
+    hash_password,
+    validate_password,
+    verify_password,
+)
+from database import DatabaseManager, Memory, RefreshToken, TeamMember, User
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import func
+
+
+# User profile models (inline definitions)
+class UserProfileResponse(BaseModel):
+    """User profile response model"""
+
+    id: UUID
+    username: str | None = None
+    email: EmailStr
+    name: str
+    account_type: str
+    subscription_tier: str | None = None
+    role: str
+    email_verified: bool
+    is_active: bool
+    created_at: str
+    last_login: str | None = None
+
+
+class UserProfileUpdate(BaseModel):
+    """User profile update model"""
+
+    name: str | None = None
+    email: EmailStr | None = None
 
 
 # Database manager dependency
@@ -168,6 +202,218 @@ def get_user_profile_by_id(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get user profile: {str(e)}")
+    finally:
+        session.close()
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)
+    confirm_password: str = Field(..., min_length=8)
+
+
+class UserPreferences(BaseModel):
+    email_notifications: bool = Field(default=True)
+    theme: Literal["light", "dark", "auto"] = Field(default="auto")
+
+
+class UserPreferencesResponse(UserPreferences):
+    updated_at: str | None = Field(default=None)
+
+
+class UserStatsResponse(BaseModel):
+    total_memories: int = Field(default=0)
+    active_sessions: int = Field(default=0)
+    team_members: int = Field(default=1)
+    storage_used_mb: float = Field(default=0.0)
+    api_calls_today: int = Field(default=0)
+    subscription_tier: str = Field(default="free")
+
+
+@router.post("/me/password")
+def change_password(
+    payload: PasswordChangeRequest,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """Allow authenticated users to change their password."""
+
+    if payload.new_password != payload.confirm_password:
+        raise HTTPException(status_code=400, detail="New passwords do not match")
+
+    if not validate_password(payload.new_password):
+        raise HTTPException(status_code=422, detail=PASSWORD_REQUIREMENTS_MESSAGE)
+
+    session = db.get_session()
+    try:
+        user = session.query(User).filter(User.id == current_user.id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        if not verify_password(payload.current_password, user.password_hash):
+            raise HTTPException(status_code=400, detail="Current password is incorrect")
+
+        user.password_hash = hash_password(payload.new_password)
+        user.password_reset_token = None
+        user.password_reset_expires = None
+        user.updated_at = datetime.utcnow()
+
+        session.commit()
+        return {"success": True, "message": "Password updated successfully"}
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as exc:  # pragma: no cover - safeguard
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update password: {str(exc)}")
+    finally:
+        session.close()
+
+
+def _load_preferences(user: User) -> tuple[UserPreferences, str | None]:
+    metadata = user.employment_metadata or {}
+    settings = metadata.get("user_settings", {}) if isinstance(metadata, dict) else {}
+    raw_preferences = settings.get("preferences", {}) if isinstance(settings, dict) else {}
+    updated_at = settings.get("preferences_updated_at") if isinstance(settings, dict) else None
+
+    try:
+        preferences = UserPreferences(**raw_preferences)
+    except Exception:
+        preferences = UserPreferences()
+
+    return preferences, updated_at
+
+
+@router.get("/me/preferences", response_model=UserPreferencesResponse)
+def get_user_preferences(
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """Retrieve the authenticated user's saved preferences."""
+
+    session = db.get_session()
+    try:
+        user = session.query(User).filter(User.id == current_user.id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        preferences, updated_at = _load_preferences(user)
+        return UserPreferencesResponse(**preferences.model_dump(), updated_at=updated_at)
+    finally:
+        session.close()
+
+
+@router.put("/me/preferences", response_model=UserPreferencesResponse)
+def update_user_preferences(
+    payload: UserPreferences,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """Update the authenticated user's preferences."""
+
+    session = db.get_session()
+    try:
+        user = session.query(User).filter(User.id == current_user.id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        metadata = user.employment_metadata if isinstance(user.employment_metadata, dict) else {}
+        user_settings = dict(metadata.get("user_settings", {})) if isinstance(metadata, dict) else {}
+
+        timestamp = datetime.utcnow().isoformat()
+        user_settings.update(
+            {
+                "preferences": payload.model_dump(),
+                "preferences_updated_at": timestamp,
+            }
+        )
+
+        metadata.update({"user_settings": user_settings})
+        user.employment_metadata = metadata
+        user.updated_at = datetime.utcnow()
+
+        session.commit()
+        return UserPreferencesResponse(**payload.model_dump(), updated_at=timestamp)
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as exc:  # pragma: no cover - safeguard
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(exc)}")
+    finally:
+        session.close()
+
+
+@router.get("/me/stats", response_model=UserStatsResponse)
+def get_user_stats(
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """Return dashboard statistics for the authenticated user."""
+
+    session = db.get_session()
+    try:
+        user = session.query(User).filter(User.id == current_user.id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        total_memories = session.query(func.count(Memory.id)).filter(Memory.user_id == user.id).scalar() or 0
+
+        start_of_day = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        api_calls_today = (
+            session.query(func.count(Memory.id))
+            .filter(Memory.user_id == user.id, Memory.created_at >= start_of_day)
+            .scalar()
+            or 0
+        )
+
+        active_sessions = (
+            session.query(func.count(RefreshToken.id))
+            .filter(
+                RefreshToken.user_id == user.id,
+                RefreshToken.revoked_at.is_(None),
+                RefreshToken.expires_at > datetime.utcnow(),
+            )
+            .scalar()
+            or 0
+        )
+
+        team_ids = [row[0] for row in session.query(TeamMember.team_id).filter(TeamMember.user_id == user.id).all()]
+
+        team_members = 1
+        if team_ids:
+            team_members = (
+                session.query(func.count(func.distinct(TeamMember.user_id)))
+                .filter(TeamMember.team_id.in_(team_ids))
+                .scalar()
+                or 1
+            )
+
+        # Calculate storage (gracefully handle if data column doesn't exist yet)
+        storage_used_mb = 0.0
+        try:
+            memory_payloads = session.query(Memory.data).filter(Memory.user_id == user.id).all()
+
+            storage_bytes = 0
+            for (payload,) in memory_payloads:
+                try:
+                    storage_bytes += len(json.dumps(payload).encode("utf-8"))
+                except Exception:
+                    continue
+
+            storage_used_mb = round(storage_bytes / (1024 * 1024), 2)
+        except Exception:
+            # If data column doesn't exist yet, fall back to count-based estimate
+            storage_used_mb = round(total_memories * 0.001, 2)  # ~1KB per memory estimate
+
+        return UserStatsResponse(
+            total_memories=total_memories,
+            active_sessions=active_sessions,
+            team_members=team_members,
+            storage_used_mb=storage_used_mb,
+            api_calls_today=api_calls_today,
+            subscription_tier=user.subscription_tier or "free",
+        )
     finally:
         session.close()
 

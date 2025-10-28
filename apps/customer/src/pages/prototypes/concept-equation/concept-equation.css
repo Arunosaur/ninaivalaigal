@@ -1,0 +1,283 @@
+.concept-equation {
+  position: relative;
+  padding: 6rem 0;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.82), rgba(2, 6, 23, 0.9));
+  overflow: hidden;
+}
+
+.concept-equation--embedded {
+  margin: 0;
+  padding: clamp(3.25rem, 6vw, 4.75rem) clamp(1rem, 4vw, 2.75rem);
+  background: linear-gradient(135deg, rgba(8, 16, 32, 0.9), rgba(4, 10, 26, 0.92));
+  border-radius: 36px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow:
+    0 40px 86px -60px rgba(14, 116, 189, 0.45),
+    inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+  backdrop-filter: blur(26px);
+}
+
+.concept-equation--embedded .concept-equation__header {
+  margin-bottom: 2.5rem;
+}
+
+.concept-equation--embedded .concept-equation__content {
+  padding: 0;
+}
+
+.concept-equation__header {
+  max-width: 48rem;
+  margin: 0 auto 3rem;
+  display: grid;
+  gap: 1rem;
+  text-align: center;
+}
+
+.concept-equation__tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(129, 140, 248, 0.28);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 253, 0.9);
+  background: rgba(79, 70, 229, 0.15);
+}
+
+.concept-equation__lede {
+  margin: 0;
+  color: rgba(203, 213, 225, 0.78);
+  line-height: 1.75;
+}
+
+.concept-equation__content {
+  position: relative;
+  display: grid;
+  gap: 2.5rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .concept-equation__content {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: 3rem;
+  }
+}
+
+.concept-equation__canvas {
+  position: relative;
+  min-height: 420px;
+  border-radius: 28px;
+  border: 1px solid rgba(99, 102, 241, 0.24);
+  background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.2), transparent 65%),
+    radial-gradient(circle at 80% 30%, rgba(6, 182, 212, 0.2), transparent 70%),
+    rgba(15, 23, 42, 0.85);
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 1px rgba(99, 102, 241, 0.2),
+    0 32px 60px -48px rgba(59, 130, 246, 0.65);
+}
+
+.concept-equation__layers {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.concept-equation__layer {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(94, 234, 212, 0.28);
+  background: rgba(94, 234, 212, 0.08);
+  font-family: 'Menlo', 'SFMono-Regular', 'Consolas', monospace;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  letter-spacing: 0.08em;
+  color: rgba(165, 180, 252, 0.9);
+  opacity: 0.25;
+  transform: scale(0.82);
+}
+
+.concept-equation__layer--active {
+  border-color: rgba(196, 181, 253, 0.45);
+  background: rgba(196, 181, 253, 0.12);
+  color: rgba(225, 245, 255, 0.98);
+  text-shadow: 0 0 24px rgba(165, 180, 252, 0.75);
+}
+
+.concept-equation__static {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: 'Menlo', 'SFMono-Regular', 'Consolas', monospace;
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  color: rgba(203, 213, 225, 0.78);
+}
+
+
+.concept-equation__cards {
+  position: relative;
+  height: clamp(420px, 55vh, 520px);
+}
+
+.concept-equation-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  width: 100%;
+  border-radius: 26px;
+  padding: 2.4rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(12, 20, 32, 0.78);
+  box-shadow:
+    0 28px 48px -36px rgba(79, 70, 229, 0.7),
+    inset 0 0 0 1px rgba(148, 163, 184, 0.12);
+}
+
+.concept-equation-card__body {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+}
+
+.concept-equation-card__meta {
+  display: grid;
+  gap: 0.35rem;
+  align-content: start;
+}
+
+.concept-equation-card__headline {
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  font-weight: 600;
+  color: rgba(224, 231, 255, 0.96);
+}
+
+.concept-equation-card__subhead {
+  font-size: 0.9rem;
+  font-family: 'Menlo', 'SFMono-Regular', 'Consolas', monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(94, 234, 212, 0.78);
+}
+
+.concept-equation-card p {
+  margin: 0;
+  color: rgba(203, 213, 225, 0.82);
+  line-height: 1.75;
+}
+
+.concept-equation-card__footnote {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: rgba(165, 180, 252, 0.85);
+}
+
+.concept-equation-card__footnote--placeholder {
+  visibility: hidden;
+}
+
+.concept-equation__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  padding: 0 1.5rem;
+}
+
+.concept-equation__controls ul {
+  display: flex;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.control-dot {
+  height: 12px;
+  width: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.85);
+  transition: transform 0.4s ease, background 0.4s ease, border-color 0.4s ease;
+}
+
+.control-dot--active {
+  background: rgba(94, 234, 212, 0.8);
+  border-color: rgba(94, 234, 212, 0.95);
+  transform: scale(1.25);
+  box-shadow: 0 0 18px rgba(94, 234, 212, 0.45);
+}
+
+.control-dot:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.55);
+}
+
+.concept-equation__toggle {
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 999px;
+  padding: 0.55rem 1.25rem;
+  background: rgba(12, 20, 32, 0.82);
+  color: rgba(203, 213, 225, 0.85);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: transform 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.concept-equation__toggle:focus-visible {
+  outline: none;
+}
+
+.concept-equation__toggle:hover,
+.concept-equation__toggle:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(94, 234, 212, 0.55);
+  color: rgba(241, 245, 249, 0.95);
+}
+
+@media (min-width: 1024px) {
+  .concept-equation__toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .concept-equation {
+    padding: 4.5rem 0;
+  }
+
+  .concept-equation__content {
+    padding: 0 1rem;
+  }
+
+  .concept-equation__toggle {
+    margin-left: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .concept-equation__layer,
+  .concept-equation-card,
+  .control-dot {
+    transition: none !important;
+  }
+}
