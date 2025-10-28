@@ -65,6 +65,10 @@ def list_memories(
 
     session = db.get_session()
     try:
+        # Debug: Check total memories for this user
+        total_count = session.query(Memory).filter(Memory.user_id == current_user.id).count()
+        print(f"[DEBUG] Total memories for user {current_user.id}: {total_count}")
+        
         query = (
             session.query(Memory)
             .filter(Memory.user_id == current_user.id)
@@ -74,6 +78,7 @@ def list_memories(
         )
 
         records = query.all()
+        print(f"[DEBUG] Query returned {len(records)} records")
         serialized = [_serialize_memory(memory) for memory in records]
 
         return {

@@ -19,6 +19,14 @@ interface TeamStats {
   subscription_tier: string
 }
 
+interface Memory {
+  id: string
+  content: string
+  context: string
+  created_at: string
+  tags: string[]
+}
+
 const SAMPLE_TEAM_STATS: TeamStats = {
   total_memories: 1284,
   active_sessions: 7,
@@ -30,6 +38,7 @@ const SAMPLE_TEAM_STATS: TeamStats = {
 
 export default function Dashboard() {
   const [stats, setStats] = useState<TeamStats | null>(null)
+  const [recentMemories, setRecentMemories] = useState<Memory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [usingFallback, setUsingFallback] = useState(false)
@@ -41,7 +50,7 @@ export default function Dashboard() {
     async function loadStats() {
       try {
         setLoading(true)
-  const response = await apiClient.get<TeamStats>('/users/me/stats', { signal: controller.signal })
+        const response = await apiClient.get<TeamStats>('/users/me/stats', { signal: controller.signal })
         if (!isMounted) {
           return
         }
@@ -64,13 +73,43 @@ export default function Dashboard() {
       }
     }
 
+    async function loadRecentMemories() {
+      try {
+        const response = await apiClient.get<{ memories: Memory[] }>('/api/v1/memory/memories', {
+          signal: controller.signal,
+          params: { limit: 5 }
+        })
+        if (!isMounted) {
+          return
+        }
+        setRecentMemories(response.data.memories || [])
+      } catch (err) {
+        console.error('Failed to load recent memories:', err)
+      }
+    }
+
     loadStats()
+    loadRecentMemories()
 
     return () => {
       isMounted = false
       controller.abort()
     }
   }, [])
+
+  function formatTimeAgo(dateString: string): string {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -147,21 +186,24 @@ export default function Dashboard() {
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-2xl">
               <h3 className="text-xl font-semibold text-white mb-4">Recent Activity</h3>
               <div className="space-y-3">
-                <ActivityItem
-                  action="Memory created"
-                  details="Project Alpha - Q4 Planning"
-                  time="2 minutes ago"
-                />
-                <ActivityItem
-                  action="Team member added"
-                  details="john@example.com joined your team"
-                  time="1 hour ago"
-                />
-                <ActivityItem
-                  action="API integration"
-                  details="Connected to Slack workspace"
-                  time="3 hours ago"
-                />
+                {recentMemories.length > 0 ? (
+                  recentMemories.slice(0, 3).map((memory) => (
+                    <ActivityItem
+                      key={memory.id}
+                      action="Memory created"
+                      details={memory.content.substring(0, 60) + (memory.content.length > 60 ? '...' : '')}
+                      time={formatTimeAgo(memory.created_at)}
+                    />
+                  ))
+                ) : (
+                  <>
+                    <ActivityItem
+                      action="No recent activity"
+                      details="Create your first memory to get started"
+                      time="—"
+                    />
+                  </>
+                )}
               </div>
             </div>
           </>
