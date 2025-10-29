@@ -114,6 +114,7 @@ export interface StepperProps extends VariantProps<typeof stepperVariants> {
   className?: string;
   showProgress?: boolean;
   allowSkip?: boolean;
+  disableStepClick?: boolean; // Disable clicking on step circles
   children?: React.ReactNode;
 }
 
@@ -254,6 +255,7 @@ export const Stepper: React.FC<StepperProps> = ({
   className,
   showProgress = true,
   allowSkip = false,
+  disableStepClick = false,
   children,
   ...props
 }) => {
@@ -261,6 +263,12 @@ export const Stepper: React.FC<StepperProps> = ({
   const activeStep = currentStep ?? internalStep;
 
   const handleStepClick = useCallback((stepIndex: number) => {
+    // Don't handle clicks if step clicking is disabled
+    if (disableStepClick) {
+      console.log('🚫 Step clicking is disabled');
+      return;
+    }
+
     if (!allowSkip && stepIndex > activeStep + 1) {
       return; // Don't allow skipping ahead unless explicitly allowed
     }
@@ -272,11 +280,9 @@ export const Stepper: React.FC<StepperProps> = ({
       setInternalStep(stepIndex);
     }
 
-    // Check if this is the last step
-    if (stepIndex === steps.length - 1 && onComplete) {
-      onComplete();
-    }
-  }, [activeStep, allowSkip, steps, onStepChange, onComplete]);
+    // Don't auto-complete when clicking on last step
+    // Let the parent component handle completion
+  }, [activeStep, allowSkip, disableStepClick, steps, onStepChange, onComplete]);
 
   // Arrow key navigation handler
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {

@@ -15,7 +15,7 @@ const calloutVariants = cva(
   // Base styles - applied to all callouts
   [
     'relative inline-block max-w-xs',
-    'bg-white border rounded-lg shadow-lg',
+    'bg-slate-800 border rounded-lg shadow-lg',
     'text-sm leading-relaxed',
     'transition-all duration-200',
     'z-50',
@@ -24,13 +24,13 @@ const calloutVariants = cva(
     variants: {
       variant: {
         tooltip: [
-          'p-3 border-secondary-200',
+          'p-3 border-slate-700 text-slate-200',
           'shadow-md',
         ],
         annotation: [
-          'p-4 border-primary-200',
-          'shadow-lg ring-1 ring-primary-100',
-          'bg-gradient-to-br from-primary-50 to-white',
+          'p-4 border-indigo-700',
+          'shadow-lg ring-1 ring-indigo-500/30',
+          'bg-gradient-to-br from-indigo-900/50 to-slate-800 text-slate-200',
         ],
         warning: [
           'p-3 border-warning-300',
@@ -48,10 +48,10 @@ const calloutVariants = cva(
           'shadow-md',
         ],
         ai: [
-          'p-4 border-primary-300',
-          'bg-gradient-to-br from-primary-100 to-primary-50',
-          'shadow-lg ring-2 ring-primary-200',
-          'text-primary-900',
+          'p-4 border-indigo-700',
+          'bg-gradient-to-br from-indigo-900/50 to-slate-800',
+          'shadow-lg ring-2 ring-indigo-500/30',
+          'text-slate-200',
         ],
       },
       size: {
@@ -83,17 +83,17 @@ const calloutVariants = cva(
 const arrowVariants = cva(
   [
     'absolute w-3 h-3 transform rotate-45',
-    'border border-secondary-200 bg-white',
+    'border border-slate-700 bg-slate-800',
   ],
   {
     variants: {
       variant: {
-        tooltip: 'border-secondary-200 bg-white',
-        annotation: 'border-primary-200 bg-primary-50',
+        tooltip: 'border-slate-700 bg-slate-800',
+        annotation: 'border-indigo-700 bg-indigo-900/50',
         warning: 'border-warning-300 bg-warning-50',
         error: 'border-error-300 bg-error-50',
         success: 'border-success-300 bg-success-50',
-        ai: 'border-primary-300 bg-primary-100',
+        ai: 'border-indigo-700 bg-indigo-900/50',
       },
       position: {
         top: '-bottom-1.5 left-1/2 -translate-x-1/2 border-t-0 border-l-0',

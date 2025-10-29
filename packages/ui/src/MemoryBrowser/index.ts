@@ -11,3 +11,7 @@
 
 export { GuidedTour } from './GuidedTour';
 export type { Memory, GuidedTourProps } from './GuidedTour';
+
+// Carousel-style guided tour (SPEC-076 enhanced)
+export { GuidedTourCarousel } from './GuidedTourCarousel';
+export type { GuidedTourCarouselProps } from './GuidedTourCarousel';

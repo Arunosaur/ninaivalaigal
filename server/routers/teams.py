@@ -14,12 +14,12 @@ Extracted from main.py for better code organization
 from typing import List, Optional
 from uuid import UUID
 
-from auth import get_current_user
 from database import DatabaseManager, Team, TeamMember, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from rbac_middleware import require_permission
 
+from auth import get_current_user
 from rbac.permissions import Action, Resource
 
 
@@ -30,6 +30,16 @@ class TeamCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     organization_id: Optional[UUID] = None
     description: Optional[str] = None
+    governance_type: Optional[str] = Field(default="internal", pattern="^(internal|external|shared)$")
+
+
+class ExternalTeamCreateRequest(BaseModel):
+    """Request model for creating an external/independent team (no organization)"""
+
+    name: str = Field(..., min_length=1, max_length=255, description="Team name")
+    description: Optional[str] = Field(None, description="Team description")
+    purpose: Optional[str] = Field(None, description="Purpose (e.g., open-source, freelance, study group)")
+    is_public: bool = Field(default=False, description="Whether team is public or invite-only")
 
 
 class TeamUpdateRequest(BaseModel):
@@ -46,12 +56,17 @@ class TeamResponse(BaseModel):
     name: str
     organization_id: Optional[UUID]
     description: Optional[str]
+    governance_type: str  # internal, external, shared
+    origin: str  # native, partner, acquired
+    status: str  # active, inactive, sunset
     member_count: int
+    is_external: bool  # Helper field: True if governance_type == 'external'
     created_at: str
     updated_at: str
 
     class Config:
         """Pydantic config"""
+
         from_attributes = True
 
 
@@ -80,6 +95,7 @@ class TeamMemberResponse(BaseModel):
 
     class Config:
         """Pydantic config"""
+
         from_attributes = True
 
 
@@ -123,7 +139,11 @@ def list_teams(
                         name=team.name,
                         organization_id=team.organization_id,
                         description=team.description,
+                        governance_type=getattr(team, "governance_type", "internal"),
+                        origin=getattr(team, "origin", "native"),
+                        status=getattr(team, "status", "active"),
                         member_count=member_count,
+                        is_external=getattr(team, "governance_type", "internal") == "external",
                         created_at=team.created_at.isoformat(),
                         updated_at=team.updated_at.isoformat(),
                     )
@@ -152,11 +172,20 @@ def create_team(
     try:
         session = db.get_session()
 
+        # Determine governance type based on organization presence
+        governance_type = team_data.governance_type
+        if team_data.organization_id is None and governance_type == "internal":
+            governance_type = "external"  # No org = external team
+
         # Create team
         team = Team(
             name=team_data.name,
             organization_id=team_data.organization_id,
             description=team_data.description,
+            governance_type=governance_type,
+            origin="native",
+            status="active",
+            lead_user_id=current_user.id,
         )
         session.add(team)
         session.flush()  # Get team ID
@@ -177,13 +206,90 @@ def create_team(
             name=team.name,
             organization_id=team.organization_id,
             description=team.description,
+            governance_type=team.governance_type,
+            origin=team.origin,
+            status=team.status,
             member_count=1,
+            is_external=team.governance_type == "external",
             created_at=team.created_at.isoformat(),
             updated_at=team.updated_at.isoformat(),
         )
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to create team: {str(e)}")
+    finally:
+        session.close()
+
+
+@router.post("/external", response_model=TeamResponse)
+def create_external_team(
+    team_data: ExternalTeamCreateRequest,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """
+    Create an external/independent team (no organization required)
+
+    Perfect for:
+    - Open source project teams
+    - Freelancer collaborations
+    - Study groups
+    - Community projects
+    - Any team that doesn't belong to an organization
+
+    Individual users can create external teams to collaborate with others.
+    """
+    try:
+        session = db.get_session()
+
+        # Store purpose in provenance_metadata if provided
+        metadata = {}
+        if team_data.purpose:
+            metadata["purpose"] = team_data.purpose
+        if team_data.is_public:
+            metadata["is_public"] = team_data.is_public
+
+        # Create external team
+        team = Team(
+            name=team_data.name,
+            organization_id=None,  # External teams have no organization
+            description=team_data.description,
+            governance_type="external",  # Explicitly external
+            origin="native",
+            status="active",
+            lead_user_id=current_user.id,
+            provenance_metadata=metadata if metadata else None,
+        )
+        session.add(team)
+        session.flush()
+
+        # Add creator as owner
+        membership = TeamMember(
+            team_id=team.id,
+            user_id=current_user.id,
+            role="owner",
+        )
+        session.add(membership)
+
+        session.commit()
+        session.refresh(team)
+
+        return TeamResponse(
+            id=team.id,
+            name=team.name,
+            organization_id=None,
+            description=team.description,
+            governance_type="external",
+            origin="native",
+            status="active",
+            member_count=1,
+            is_external=True,
+            created_at=team.created_at.isoformat(),
+            updated_at=team.updated_at.isoformat(),
+        )
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create external team: {str(e)}")
     finally:
         session.close()
 
@@ -223,7 +329,11 @@ def get_team(
             name=team.name,
             organization_id=team.organization_id,
             description=team.description,
+            governance_type=getattr(team, "governance_type", "internal"),
+            origin=getattr(team, "origin", "native"),
+            status=getattr(team, "status", "active"),
             member_count=member_count,
+            is_external=getattr(team, "governance_type", "internal") == "external",
             created_at=team.created_at.isoformat(),
             updated_at=team.updated_at.isoformat(),
         )
@@ -280,7 +390,11 @@ def update_team(
             name=team.name,
             organization_id=team.organization_id,
             description=team.description,
+            governance_type=getattr(team, "governance_type", "internal"),
+            origin=getattr(team, "origin", "native"),
+            status=getattr(team, "status", "active"),
             member_count=member_count,
+            is_external=getattr(team, "governance_type", "internal") == "external",
             created_at=team.created_at.isoformat(),
             updated_at=team.updated_at.isoformat(),
         )

@@ -11,6 +11,7 @@ import { Signup } from './pages/Signup'
 import { Login } from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import MemoryBrowser from './pages/MemoryBrowser'
+import Teams from './pages/Teams'
 import ProtectedRoute from './components/ProtectedRoute'
 import EMC2Prototype from './pages/prototypes/EMC2Prototype'
 import Settings from './pages/Settings'
@@ -26,6 +27,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/memory-browser" element={<MemoryBrowser />} />
+          <Route path="/teams" element={<Teams />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>

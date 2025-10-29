@@ -34,7 +34,7 @@ const overlayVariants = cva(
           'pointer-events-none',
         ],
         fullscreen: [
-          'bg-white',
+          'bg-slate-900',
           'backdrop-blur-none',
         ],
       },
@@ -55,8 +55,8 @@ const overlayVariants = cva(
 const contentVariants = cva(
   [
     'relative max-w-2xl mx-auto',
-    'bg-white rounded-lg shadow-xl',
-    'border border-secondary-200',
+    'bg-slate-800 rounded-lg shadow-xl',
+    'border border-slate-700',
     'transition-all duration-300',
   ],
   {
@@ -311,7 +311,7 @@ export const Overlay: React.FC<OverlayProps> = ({
             {title && (
               <h2
                 id="overlay-title"
-                className="text-lg font-semibold text-secondary-900"
+                className="text-lg font-semibold text-white"
               >
                 {title}
               </h2>
@@ -322,9 +322,9 @@ export const Overlay: React.FC<OverlayProps> = ({
                 type="button"
                 onClick={onClose}
                 className={cn(
-                  'p-2 rounded-md text-secondary-400',
-                  'hover:text-secondary-600 hover:bg-secondary-100',
-                  'focus:outline-none focus:ring-2 focus:ring-primary-500'
+                  'p-2 rounded-md text-slate-400',
+                  'hover:text-white hover:bg-slate-700',
+                  'focus:outline-none focus:ring-2 focus:ring-indigo-500'
                 )}
                 aria-label="Close overlay"
               >
@@ -341,7 +341,7 @@ export const Overlay: React.FC<OverlayProps> = ({
         )}
 
         {/* Content */}
-        <div className="text-secondary-700">
+        <div className="text-slate-200">
           {children}
         </div>
       </div>
@@ -407,13 +407,13 @@ export const GuidedStep: React.FC<GuidedStepProps> = ({
         <div>{content}</div>
 
         {showControls && (
-          <div className="flex justify-between items-center pt-4 border-t border-secondary-200">
+          <div className="flex justify-between items-center pt-4 border-t border-slate-700">
             <button
               type="button"
               onClick={onPrevious}
               className={cn(
-                'px-3 py-1 text-sm text-secondary-600',
-                'hover:text-secondary-800 focus:outline-none focus:ring-2 focus:ring-primary-500'
+                'px-3 py-1 text-sm text-slate-300',
+                'hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500'
               )}
             >
               Previous
@@ -425,8 +425,8 @@ export const GuidedStep: React.FC<GuidedStepProps> = ({
                   type="button"
                   onClick={onSkip}
                   className={cn(
-                    'px-3 py-1 text-sm text-secondary-600',
-                    'hover:text-secondary-800 focus:outline-none focus:ring-2 focus:ring-primary-500'
+                    'px-3 py-1 text-sm text-slate-300',
+                    'hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500'
                   )}
                 >
                   Skip Tour
@@ -438,8 +438,8 @@ export const GuidedStep: React.FC<GuidedStepProps> = ({
                 onClick={onNext}
                 className={cn(
                   'px-4 py-2 text-sm font-medium rounded-md',
-                  'bg-primary-600 text-white',
-                  'hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500'
+                  'bg-indigo-600 text-white',
+                  'hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500'
                 )}
               >
                 Next

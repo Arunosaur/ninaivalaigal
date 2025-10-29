@@ -31,6 +31,7 @@ export function Navigation({ variant = 'default', className = '' }: NavigationPr
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/memory-browser', label: 'Memory Browser', icon: '📖' },
+    { path: '/teams', label: 'Teams', icon: '👥' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];
 
@@ -121,6 +122,7 @@ export function SidebarNavigation() {
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/memory-browser', label: 'Memory Browser', icon: '📖' },
+    { path: '/teams', label: 'Teams', icon: '👥' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];
 
@@ -197,6 +199,7 @@ export function MobileNavigation() {
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/memory-browser', label: 'Memory Browser', icon: '📖' },
+    { path: '/teams', label: 'Teams', icon: '👥' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];
 

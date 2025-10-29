@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { GuidedTour, type Memory } from '@nina/ui';
+import { GuidedTourCarousel, type Memory } from '@nina/ui';
 import { Navigation } from '../components/Navigation';
 import apiClient from '../lib/apiClient';
 import '../styles/memory-browser.css';
@@ -31,6 +31,8 @@ export default function MemoryBrowser() {
   const [filterContext, setFilterContext] = useState('all');
   const [filterPinned, setFilterPinned] = useState(false);
   const [filterArchived, setFilterArchived] = useState(false);
+  const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
+  const [viewMode, setViewMode] = useState<'modal' | 'sidepanel'>('sidepanel'); // sidepanel is less intrusive
 
   const PAGE_SIZE = 12;
 
@@ -226,7 +228,7 @@ export default function MemoryBrowser() {
 
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors"
+                className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors border border-slate-600"
               >
                 🔍 Filters
               </button>
@@ -252,13 +254,13 @@ export default function MemoryBrowser() {
 
           {/* Expanded Filters */}
           {showFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-200 flex flex-wrap gap-4">
+            <div className="mt-4 pt-4 border-t border-slate-700 flex flex-wrap gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Context</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Context</label>
                 <select
                   value={filterContext}
                   onChange={(e) => setFilterContext(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="px-3 py-2 bg-slate-800 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 >
                   <option value="all">All Contexts</option>
                   {uniqueContexts.map((ctx) => (
@@ -297,7 +299,7 @@ export default function MemoryBrowser() {
         {/* Memory Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           {paginatedMemories.map((memory) => (
-            <MemoryCard key={memory.id} memory={memory} />
+            <MemoryCard key={memory.id} memory={memory} onViewDetails={setSelectedMemory} />
           ))}
         </div>
 
@@ -333,13 +335,28 @@ export default function MemoryBrowser() {
         )}
       </div>
 
-      {/* Guided Tour Overlay */}
+      {/* Guided Tour Carousel Overlay */}
       {guidedMode && (
-        <GuidedTour
+        <GuidedTourCarousel
           memories={filteredMemories.length > 0 ? filteredMemories : memories}
           isActive={guidedMode}
           onComplete={handleCompleteTour}
           onExit={handleExitGuidedTour}
+        />
+      )}
+
+      {/* Memory Detail Views */}
+      {selectedMemory && viewMode === 'sidepanel' && (
+        <MemoryDetailSidePanel
+          memory={selectedMemory}
+          onClose={() => setSelectedMemory(null)}
+        />
+      )}
+
+      {selectedMemory && viewMode === 'modal' && (
+        <MemoryDetailModal
+          memory={selectedMemory}
+          onClose={() => setSelectedMemory(null)}
         />
       )}
     </div>
@@ -349,9 +366,10 @@ export default function MemoryBrowser() {
 // Memory Card Component
 interface MemoryCardProps {
   memory: Memory;
+  onViewDetails: (memory: Memory) => void;
 }
 
-function MemoryCard({ memory }: MemoryCardProps) {
+function MemoryCard({ memory, onViewDetails }: MemoryCardProps) {
   return (
     <div id={`memory-card-${memory.id}`} className="memory-card">
       <div className="memory-card-header">
@@ -412,11 +430,210 @@ function MemoryCard({ memory }: MemoryCardProps) {
           )}
         </div>
         <button
-          onClick={() => alert(`Memory ID: ${memory.id}\n\nContent: ${memory.content}\n\nContext: ${memory.context}\n\nTags: ${memory.tags.join(', ')}\n\nCreated: ${new Date(memory.created_at).toLocaleString()}`)}
-          className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
+          onClick={() => onViewDetails(memory)}
+          className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
         >
           View Details →
         </button>
+      </div>
+    </div>
+  );
+}
+
+// Memory Detail Side Panel Component (Less intrusive than modal)
+interface MemoryDetailSidePanelProps {
+  memory: Memory;
+  onClose: () => void;
+}
+
+function MemoryDetailSidePanel({ memory, onClose }: MemoryDetailSidePanelProps) {
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+        onClick={onClose}
+      />
+
+      {/* Side Panel */}
+      <div className="fixed right-0 top-0 bottom-0 w-full md:w-2/3 lg:w-1/2 bg-slate-800 shadow-2xl z-50 overflow-y-auto border-l border-slate-700">
+        {/* Header */}
+        <div className="sticky top-0 bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between z-10">
+          <h2 className="text-xl font-bold text-white">Memory Details</h2>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 py-6 space-y-6">
+          {/* ID */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Memory ID</label>
+            <div className="bg-slate-900 rounded-lg px-4 py-3 border border-slate-700">
+              <code className="text-sm text-slate-300 font-mono break-all">{memory.id}</code>
+            </div>
+          </div>
+
+          {/* Context */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Context</label>
+            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+              memory.context.toLowerCase() === 'work-project' ? 'bg-blue-500/20 text-blue-300' :
+              memory.context.toLowerCase() === 'research' ? 'bg-purple-500/20 text-purple-300' :
+              memory.context.toLowerCase() === 'team-standup' ? 'bg-green-500/20 text-green-300' :
+              'bg-slate-700 text-slate-300'
+            }`}>
+              {memory.context}
+            </span>
+          </div>
+
+          {/* Content */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Content</label>
+            <div className="bg-slate-900 rounded-lg px-4 py-3 border border-slate-700">
+              <p className="text-slate-200 leading-relaxed">{memory.content}</p>
+            </div>
+          </div>
+
+          {/* Tags */}
+          {memory.tags && memory.tags.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-2">Tags</label>
+              <div className="flex flex-wrap gap-2">
+                {memory.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-sm border border-indigo-500/30"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Metadata */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-2">Created</label>
+              <div className="bg-slate-900 rounded-lg px-4 py-3 border border-slate-700">
+                <p className="text-slate-300 text-sm">
+                  {new Date(memory.created_at).toLocaleString()}
+                </p>
+              </div>
+            </div>
+            {memory.size && (
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Size</label>
+                <div className="bg-slate-900 rounded-lg px-4 py-3 border border-slate-700">
+                  <p className="text-slate-300 text-sm">
+                    {(memory.size / 1024).toFixed(2)} KB
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Memory Detail Modal Component (Traditional popup - more intrusive)
+interface MemoryDetailModalProps {
+  memory: Memory;
+  onClose: () => void;
+}
+
+function MemoryDetailModal({ memory, onClose }: MemoryDetailModalProps) {
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-slate-700">
+        {/* Header */}
+        <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-700">
+          <h2 className="text-xl font-bold text-white">Memory Details</h2>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 py-6 overflow-y-auto max-h-[calc(90vh-80px)] space-y-5">
+          {/* ID */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Memory ID</label>
+            <code className="block bg-slate-900 rounded px-3 py-2 text-sm text-slate-300 font-mono break-all border border-slate-700">
+              {memory.id}
+            </code>
+          </div>
+
+          {/* Context & Tags */}
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-slate-400 mb-2">Context</label>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                memory.context.toLowerCase() === 'work-project' ? 'bg-blue-500/20 text-blue-300' :
+                memory.context.toLowerCase() === 'research' ? 'bg-purple-500/20 text-purple-300' :
+                'bg-slate-700 text-slate-300'
+              }`}>
+                {memory.context}
+              </span>
+            </div>
+            {memory.tags && memory.tags.length > 0 && (
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-slate-400 mb-2">Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {memory.tags.map((tag, idx) => (
+                    <span key={idx} className="bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded text-xs border border-indigo-500/30">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Content */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-2">Content</label>
+            <div className="bg-slate-900 rounded-lg px-4 py-3 border border-slate-700">
+              <p className="text-slate-200 leading-relaxed whitespace-pre-wrap">{memory.content}</p>
+            </div>
+          </div>
+
+          {/* Metadata */}
+          <div className="flex gap-4 text-sm text-slate-400">
+            <div>
+              <span className="font-medium">Created:</span> {new Date(memory.created_at).toLocaleString()}
+            </div>
+            {memory.size && (
+              <div>
+                <span className="font-medium">Size:</span> {(memory.size / 1024).toFixed(2)} KB
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-slate-900 px-6 py-4 flex justify-end border-t border-slate-700">
+          <button
+            onClick={onClose}
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg transition-colors"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -136,7 +136,13 @@ class Organization(Base):
 
 
 class Team(Base):
-    """Team model for collaborative workspaces"""
+    """Team model for collaborative workspaces
+
+    Supports three types of teams based on governance_type:
+    - internal: Teams within an organization (organization_id NOT NULL)
+    - external: Independent teams without organization (organization_id NULL, e.g., open source)
+    - shared: Cross-organization collaborative teams
+    """
 
     __tablename__ = "teams"
 
@@ -144,13 +150,26 @@ class Team(Base):
     name = Column(String(255), nullable=False)
     organization_id = Column(
         UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
-    )  # NULL for cross-org teams
+    )  # NULL for external/independent teams
     description = Column(Text, nullable=True)
+
+    # Team governance and origin fields
+    origin = Column(String(50), nullable=False, default="native")  # native, partner, acquired
+    governance_type = Column(String(50), nullable=False, default="internal")  # internal, external, shared
+    status = Column(String(50), nullable=False, default="active")  # active, inactive, sunset, transitioning
+    lead_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # Team lead
+
+    # Advanced team features
+    parent_team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)  # For sub-teams
+    acquired_from_organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
+    acquisition_date = Column(DateTime, nullable=True)
+    provenance_metadata = Column(JSON, nullable=True)  # Additional metadata
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    organization = relationship("Organization", back_populates="teams")
+    organization = relationship("Organization", foreign_keys=[organization_id], back_populates="teams")
     members = relationship("TeamMember", back_populates="team")
     contexts = relationship("Context", back_populates="team")
     permissions = relationship("ContextPermission", back_populates="team")
