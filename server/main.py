@@ -73,8 +73,7 @@ config = load_config()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    FastAPI lifespan context manager for proper startup/shutdown.
+    """Lifespan context manager for proper FastAPI startup/shutdown.
 
     This replaces import-time initialization to comply with SPEC-055:
     - No database connections at import time
@@ -314,7 +313,8 @@ from standalone_teams_billing_api import (  # noqa: E402
 from tag_suggester import router as tag_router  # noqa: E402
 from team_api_keys_api import router as team_api_keys_router  # noqa: E402
 from team_billing_portal_api import router as team_billing_portal_router  # noqa: E402
-from teams_working import router as teams_working_router  # noqa: E402
+
+# from teams_working import router as teams_working_router  # noqa: E402  # Disabled: conflicts with routers/teams.py
 from test_raw_body import router as test_raw_router  # noqa: E402
 from timeline_api import router as timeline_router  # noqa: E402
 from unified_macro_intelligence_api import (  # noqa: E402
@@ -330,7 +330,7 @@ app.include_router(signup_router)  # USER REGISTRATION SYSTEM
 app.include_router(test_raw_router)  # TEST RAW BODY PARSING
 app.include_router(auth_working_router)  # WORKING AUTH SOLUTION
 app.include_router(protected_router)  # PROTECTED ROUTES WITH JWT AUTH
-app.include_router(teams_working_router)  # TEAM MANAGEMENT SYSTEM
+# app.include_router(teams_working_router)  # TEAM MANAGEMENT SYSTEM - Disabled: conflicts with routers/teams.py
 app.include_router(memory_system_router)  # MEMORY SYSTEM - THE HEART OF NINAIVALAIGAL
 # app.include_router(
 #     approval_workflows_router
@@ -428,6 +428,7 @@ def get_user_role_from_request(request: Request) -> Role | None:
         token = auth_header.split(" ")[1]
         try:
             import jwt
+
             from auth import JWT_ALGORITHM, JWT_SECRET
 
             # Decode JWT token
