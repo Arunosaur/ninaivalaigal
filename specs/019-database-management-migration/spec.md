@@ -16,7 +16,50 @@ This specification defines the comprehensive database management and migration s
 
 ### 1. Database Architecture
 
-#### 1.1 Core Database Components
+#### 1.1 Schema Namespace Strategy
+
+**FOUNDATIONAL PRINCIPLE**: One canonical table per logical domain, one authoritative migration chain per schema.
+
+```
+ninaivalaigal_dev (database)
+├── public schema      → Core identity & cross-domain entities
+│   ├── users          → User accounts
+│   ├── teams          → Team entities
+│   ├── organizations  → Organization entities
+│   └── memories (VIEW)→ Backward compatibility view (DEPRECATED)
+│
+├── memory schema      → Memory domain (owned by Memory Service)
+│   ├── memory_records → Canonical memory storage with pgvector
+│   └── memory_tags    → Memory tagging system
+│
+├── graph schema       → Graph intelligence (future)
+│   └── (planned)
+│
+├── billing schema     → Financial records (future)
+│   └── (planned)
+│
+└── admin schema       → System monitoring (future)
+    └── (planned)
+```
+
+**Schema Ownership & Responsibility**:
+
+| Schema | Owner Service | Purpose | Write Access | Read Access |
+|--------|--------------|---------|--------------|-------------|
+| `public` | Core API (Python) | Global identity model | Core API | All services |
+| `memory` | Memory Service (Rust) | Memory persistence & AI operations | Memory Service | All services |
+| `graph` | Graph Service (Rust) | Knowledge graph & intelligence | Graph Service | All services |
+| `billing` | Business Service (Python) | Financial & usage tracking | Business Service | Admin/Business |
+| `admin` | Admin Service | System monitoring & audit | Admin Service | Admin only |
+
+**Why Schema Separation?**
+1. **Logical Ownership**: Each domain team owns their schema
+2. **Migration Control**: Independent migration chains prevent conflicts
+3. **Security Boundaries**: Row-Level Security per schema
+4. **Performance**: Schema-level partitioning and optimization
+5. **Scalability**: Future multi-database sharding by schema
+
+#### 1.2 Core Database Components
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   PostgreSQL    │    │   Alembic       │    │   pgvector      │
@@ -113,41 +156,154 @@ alembic history
 alembic current
 ```
 
+#### 2.4 Migration Best Practices
+
+**Migration Discipline**:
+1. **Single Responsibility**: Each migration has ONE clear purpose (schema, indexes, data, or view)
+2. **Sequential Numbering**: Strictly follow `down_revision` chain (0001 → 0002 → 0003)
+3. **Never Modify Applied**: Always add incremental `+update_*` files, never edit applied migrations
+4. **Fully Qualified Names**: Cross-schema references must use `schema.table` notation
+5. **Comprehensive Docstrings**: Document breaking changes, purpose, and architectural decisions
+
+**Example Migration Structure**:
+```
+alembic/versions/
+├── 0001_extensions.py              ← Enable pgvector, uuid-ossp
+├── 0002_apache_age_graph.py        ← Graph database setup
+├── 0003_core_tables.py             ← Create public.users, teams, orgs
+├── 0124_create_memory_schema.py    ← Create memory schema & tables
+├── 0125_add_memory_indexes.py      ← Add performance indexes
+└── 0126_create_memory_views.py     ← Add backward compatibility views
+```
+
+**Cross-Schema Foreign Key Pattern**:
+```python
+# ✅ CORRECT - Fully qualified
+op.execute("""
+    CREATE TABLE memory.memory_records (
+        user_id UUID REFERENCES public.users(id) ON DELETE CASCADE
+    );
+""")
+
+# ❌ WRONG - Ambiguous
+op.execute("""
+    CREATE TABLE memory_records (
+        user_id UUID REFERENCES users(id)
+    );
+""")
+```
+
 ### 3. pgvector Extension Management
 
 #### 3.1 Vector Extension Setup
 ```sql
--- Extension installation (in migration)
+-- Extension installation (in migration 0001_extensions.py)
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Vector column definition
-ALTER TABLE memories ADD COLUMN embedding vector(1536);
+-- Vector column definition (in migration 0124_create_memory_schema.py)
+CREATE TABLE memory.memory_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id),
+    text TEXT NOT NULL,
+    embedding VECTOR(1536),  -- OpenAI text-embedding-3-small / ada-002
+    created_at TIMESTAMPTZ DEFAULT now()
+);
 
--- Vector index creation
-CREATE INDEX memories_embedding_idx ON memories
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
+-- HNSW index for fast similarity search (preferred over IVFFlat)
+CREATE INDEX idx_memory_records_embedding ON memory.memory_records
+USING hnsw (embedding vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+
+-- GIN index for JSONB metadata queries
+CREATE INDEX idx_memory_records_metadata ON memory.memory_records
+USING gin (metadata);
 ```
 
-#### 3.2 Vector Operations
+**Index Performance Characteristics**:
+
+| Index Type | Build Time | Query Speed | Accuracy | Best For |
+|------------|-----------|-------------|----------|----------|
+| HNSW | Medium | Very Fast | High (99%) | Most use cases, <10M vectors |
+| IVFFlat | Fast | Fast | Good (95%) | Large datasets >10M vectors |
+| Exact | Instant | Slow | Perfect (100%) | Small datasets <100K vectors |
+
+**Recommendation**: Use HNSW for ninaivalaigal (expected dataset: <5M vectors)
+
+#### 3.2 Vector Operations in Rust (Memory Service)
+```rust
+// Vector similarity search (Rust - Memory Service)
+use sqlx::query_as;
+
+#[derive(Debug, sqlx::FromRow)]
+struct MemoryWithSimilarity {
+    id: Uuid,
+    text: String,
+    similarity: f64,
+}
+
+async fn find_similar_memories(
+    pool: &PgPool,
+    user_id: Uuid,
+    query_embedding: Vec<f32>,
+    limit: i64,
+) -> Result<Vec<MemoryWithSimilarity>> {
+    sqlx::query_as!(
+        MemoryWithSimilarity,
+        r#"
+        SELECT
+            id,
+            text,
+            1 - (embedding <=> $1::vector) as similarity
+        FROM memory.memory_records
+        WHERE user_id = $2
+        ORDER BY embedding <=> $1::vector
+        LIMIT $3
+        "#,
+        query_embedding,
+        user_id,
+        limit
+    )
+    .fetch_all(pool)
+    .await
+}
+```
+
+#### 3.3 Vector Operations in Python (Legacy - Core API)
 ```python
-# Vector similarity search
+# Vector similarity search (Python - via view for backward compatibility)
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import text
 
 class Memory(Base):
-    __tablename__ = "memories"
+    __tablename__ = "memories"  # This is a VIEW → memory.memory_records
+    __table_args__ = {"schema": "public"}
 
-    id = Column(Integer, primary_key=True)
-    content = Column(Text, nullable=False)
-    embedding = Column(Vector(1536))  # OpenAI embedding dimension
+    id = Column(UUID, primary_key=True)
+    user_id = Column(UUID, nullable=False)
+    data = Column(Text, nullable=False)  # Maps to 'text' column
+    metadata = Column(JSONB)
+    # Note: embedding not exposed in view (Rust owns embedding writes)
 
     @classmethod
-    def find_similar(cls, session, query_embedding, limit=10):
-        """Find memories similar to query embedding"""
-        return session.query(cls).order_by(
-            cls.embedding.cosine_distance(query_embedding)
-        ).limit(limit).all()
+    def find_similar(cls, session, user_id, query_embedding, limit=10):
+        """
+        Find memories similar to query embedding.
+        NOTE: This queries the canonical memory.memory_records table directly,
+        not the view, for vector operations.
+        """
+        result = session.execute(text("""
+            SELECT id, text, metadata,
+                   1 - (embedding <=> :embedding::vector) as similarity
+            FROM memory.memory_records
+            WHERE user_id = :user_id
+            ORDER BY embedding <=> :embedding::vector
+            LIMIT :limit
+        """), {
+            "embedding": str(query_embedding),
+            "user_id": user_id,
+            "limit": limit
+        })
+        return result.fetchall()
 ```
 
 #### 3.3 Vector Index Management
