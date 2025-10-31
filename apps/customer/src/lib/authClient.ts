@@ -293,3 +293,35 @@ export async function signupOrganization(payload: OrganizationSignupPayload): Pr
     throw toAuthApiError(error);
   }
 }
+
+export async function refreshAccessToken(
+  refreshToken: string,
+  currentToken?: string | null,
+): Promise<AuthResult> {
+  const client = getAuthClient();
+  const requestPayload: Record<string, unknown> = {
+    refresh_token: refreshToken,
+  };
+
+  if (currentToken) {
+    requestPayload.token = currentToken;
+  }
+
+  const endpoints = ['/refresh', '/refresh-old'];
+  let lastError: unknown = null;
+
+  for (const endpoint of endpoints) {
+    try {
+      const { data } = await client.post<RawAuthResponse>(endpoint, requestPayload);
+      return normalizeAuthResponse(data);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404 && endpoint !== endpoints[endpoints.length - 1]) {
+        lastError = error;
+        continue;
+      }
+      throw toAuthApiError(error);
+    }
+  }
+
+  throw toAuthApiError(lastError);
+}
