@@ -18,11 +18,12 @@ import re
 import secrets
 from datetime import datetime, timedelta
 
-import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, validator
+
+from utils.password import hash_password, verify_password
 
 
 # Pydantic models for auth
@@ -110,6 +111,11 @@ if not JWT_SECRET:
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = int(os.getenv("NINAIVALAIGAL_JWT_EXPIRATION_HOURS", "168"))  # Default 7 days
 
+# Password policy
+PASSWORD_REQUIREMENTS_MESSAGE = (
+    "Password must be at least 8 characters long and include both letters and numbers."  # pragma: allowlist secret
+)
+
 
 # Password validation
 def validate_password(password: str) -> bool:
@@ -132,18 +138,6 @@ def validate_email(email: str) -> str:
     if not re.match(pattern, email):
         raise HTTPException(status_code=400, detail="Invalid email format")
     return email.lower().strip()
-
-
-# Password hashing
-def hash_password(password: str) -> str:
-    """Hash password using bcrypt"""
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
-
-
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash"""
-    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
 # Token generation

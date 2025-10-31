@@ -370,6 +370,37 @@ It provides end-to-end observability, performance validation, contract complianc
 
 ---
 
-**Last Updated:** 2025-10-15
-**Next Review:** After SPEC-100 Phase 4 completion
-**Status:** Ready for planning
+## Related Documentation
+
+### Implementation Files
+- **Monitoring Config:** `/monitoring/` (to be created)
+- **Docker Compose:** `docker-compose.observability.yml` (to be created)
+- **Dashboards:** `/monitoring/dashboards/` (to be created)
+
+### Related SPECs
+- **SPEC-022:** Prometheus + Grafana Monitoring (subset of SPEC-101)
+- **SPEC-099:** Rust Migration Strategy & ROI Analysis (validation enabled by observability)
+- **SPEC-100:** API Container Modularization (service monitoring)
+- **SPEC-018:** API Health Monitoring (health endpoints)
+
+### Taiga Tasks
+- **US#152:** SPEC-101 Unified Observability Stack Implementation
+
+---
+
+## Implementation Status
+
+📋 **PLANNED** - Ready for implementation
+
+**Dependencies:**
+- Services must expose `/metrics` endpoints
+- Structured logging implementation
+- Docker compose environment ready
+
+**Estimated Effort:** 2-3 weeks
+
+---
+
+**Last Updated:** October 30, 2025 (Taiga tracking added)
+**Next Review:** When ready to implement observability stack
+**Status:** Tracked in Taiga US#152

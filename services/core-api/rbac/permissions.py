@@ -197,7 +197,8 @@ allow(
     Action.UPDATE,
     Action.EXPORT,
 )
-allow(Role.MEMBER, Resource.TEAM, Action.READ)
+# Allow members to create and read teams (individuals can create their own teams)
+allow(Role.MEMBER, Resource.TEAM, Action.READ, Action.CREATE)
 allow(Role.MEMBER, Resource.USER, Action.READ)
 allow(Role.MEMBER, Resource.BACKUP, Action.READ)
 allow(Role.MEMBER, Resource.API, Action.READ)

@@ -132,3 +132,57 @@ k8s/
 4. **Week 3**: Integrate with existing CI/CD from Phase 2B
 
 Ready to implement immediately on the bulletproof Phase 2B foundation! 🚀
+
+---
+
+## Related Documentation
+
+### Implementation Files
+- **ArgoCD Setup:** `/argocd/` - ArgoCD configuration and installation
+- **K8s Manifests:** `/deployment/k8s/` - Kubernetes deployments and overlays
+- **Scripts:** `/scripts/argocd-*.sh` - Automation scripts
+
+### Architecture Documents
+- [Kubernetes Deployment Guide](/deployment/k8s/README.md)
+- [ArgoCD Operations Manual](/argocd/README.md)
+- [Testing Results](/docs/ARGOCD_TESTING_RESULTS.md)
+
+### Related SPECs
+- **SPEC-015:** Kubernetes Deployment Strategy
+- **SPEC-016:** CI/CD Pipeline Architecture
+- **SPEC-022:** Kubernetes Monitoring with Prometheus + Grafana
+
+### Taiga Tasks
+- **US#149:** SPEC-021 Implementation & Validation
+- **Task #150:** Performance Validation (deployment time, rollback time)
+- **Task #151:** Functional Validation (auto-sync, RBAC, multi-env)
+
+---
+
+## Implementation Status
+
+✅ **Phase 1: Base Kubernetes Manifests** - COMPLETE
+- Base deployments created for all services
+- Persistent storage configured
+- Health checks implemented
+
+✅ **Phase 2: ArgoCD GitOps Setup** - COMPLETE
+- ArgoCD installed and configured
+- GitOps applications defined
+- Automated sync policies implemented
+- Rollback strategies defined
+
+✅ **Phase 3: Multi-Environment Configuration** - COMPLETE
+- Environment overlays created (dev/staging/prod)
+- Kustomization setup complete
+- Environment-specific configurations
+
+🟡 **Phase 4: Production Validation** - IN PROGRESS
+- Performance validation needed
+- Functional requirements verification
+- See Taiga US#149 for validation tasks
+
+---
+
+**Last Updated:** October 30, 2025 (Taiga cross-references added)
+**Status:** Implemented ✅ - Validation pending

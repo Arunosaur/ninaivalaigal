@@ -18,13 +18,13 @@ import re
 import secrets
 from datetime import datetime, timedelta
 
-import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 # Import models from local auth module
 from auth import IndividualUserSignup, TokenData
+from utils.password import hash_password, verify_password
 
 
 # Configuration loading (moved from main.py to avoid circular import)
@@ -119,18 +119,6 @@ def validate_email(email: str) -> str:
     if not re.match(pattern, email):
         raise HTTPException(status_code=400, detail="Invalid email format")
     return email.lower().strip()
-
-
-# Password hashing
-def hash_password(password: str) -> str:
-    """Hash password using bcrypt"""
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
-
-
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash"""
-    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
 # Token generation

@@ -36,7 +36,14 @@ Base = declarative_base()
 
 
 class User(Base):
-    """User model with authentication, RBAC, and employment provenance intelligence"""
+    """User model with authentication and RBAC support
+
+    Note: This model matches public.users schema after database consolidation.
+    Extended employment provenance fields are in ag_catalog.users materialized view
+    and should be accessed via graph queries, not this ORM model.
+
+    Schema Resolution: Uses search_path (public, ag_catalog, pg_catalog) set by migration 0123.
+    """
 
     __tablename__ = "users"
 
@@ -52,8 +59,6 @@ class User(Base):
     created_via = Column(String(50), nullable=False, default="signup")
     email_verified = Column(Boolean, default=False)
     verification_token = Column(String(255), nullable=True)
-    password_reset_token = Column(String(255), nullable=True)
-    password_reset_expires = Column(DateTime, nullable=True)
     last_login = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -63,42 +68,8 @@ class User(Base):
     default_role = Column(String(50), default="MEMBER")
     is_system_admin = Column(Boolean, default=False)
 
-    # User Provenance & Employment Intelligence
-    origin = Column(String(50), nullable=False, default="native")  # native, acquired, contractor, partner, intern
-    acquired_from_organization_id = Column(
-        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
-    )
-    acquisition_date = Column(DateTime, nullable=True)
-
-    # Employment Status & Lifecycle
-    employment_status = Column(
-        String(50), nullable=False, default="active"
-    )  # active, on_leave, offboarded, alumni, contractor_expired
-    employment_type = Column(
-        String(50), nullable=False, default="full_time"
-    )  # full_time, part_time, contractor, intern, consultant
-
-    # Employment Governance
-    employment_governance = Column(
-        String(50), nullable=False, default="employee"
-    )  # employee, contractor, partner, consultant
-    vendor_organization_id = Column(
-        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
-    )
-
-    # Employment Dates & Hierarchy
-    hire_date = Column(DateTime, nullable=True)
-    termination_date = Column(DateTime, nullable=True)
-    contract_start_date = Column(DateTime, nullable=True)
-    contract_end_date = Column(DateTime, nullable=True)
-    manager_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    primary_organization_id = Column(
-        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
-    )
-
-    # Metadata & Analytics
-    employment_metadata = Column(JSON, nullable=True)
-    full_reporting_chain = Column(JSON, nullable=True)  # Array of UUIDs for org chart
+    # Note: Employment provenance fields removed - use ag_catalog.users MV or graph queries
+    # The canonical transactional user table (public.users) is intentionally simpler
 
     # Relationships for sharing system
     owned_contexts = relationship("Context", foreign_keys="[Context.owner_id]", back_populates="owner")
@@ -115,12 +86,6 @@ class User(Base):
     revoked_refresh_tokens = relationship(
         "RefreshToken", foreign_keys="[RefreshToken.revoked_by]", back_populates="revoker"
     )
-
-    # Employment Provenance Relationships
-    acquired_from_organization = relationship("Organization", foreign_keys=[acquired_from_organization_id])
-    vendor_organization = relationship("Organization", foreign_keys=[vendor_organization_id])
-    primary_organization = relationship("Organization", foreign_keys=[primary_organization_id])
-    manager = relationship("User", remote_side=[id], foreign_keys=[manager_id])
 
     # RBAC relationships (defined in rbac_models.py)
     # These are added dynamically by rbac_models.py to avoid circular imports
@@ -225,7 +190,11 @@ class Organization(Base):
 
 
 class Team(Base):
-    """Team model for collaborative workspaces with M&A provenance tracking"""
+    """Team model for collaborative workspaces
+
+    Note: This model matches public.teams schema after database consolidation.
+    Extended M&A provenance fields should be accessed via graph queries.
+    """
 
     __tablename__ = "teams"
 
@@ -235,43 +204,14 @@ class Team(Base):
         UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )  # NULL for cross-org teams
     description = Column(Text, nullable=True)
-
-    # Team provenance fields for M&A scenarios
-    origin = Column(String(50), nullable=True, default="native")  # native, acquired, merged, partner
-    acquired_from_organization_id = Column(
-        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True
-    )  # Original org if acquired
-    acquisition_date = Column(DateTime, nullable=True)  # When team was acquired/integrated
-    parent_team_id = Column(
-        UUID(as_uuid=True), ForeignKey("teams.id", ondelete="SET NULL"), nullable=True
-    )  # For team mergers/splits
-    provenance_metadata = Column(JSON, nullable=True)  # Additional M&A context
-
-    # Dimension 5: Operational Status
-    status = Column(String(50), nullable=False, default="active")  # active, inactive, sunset, transitioning
-
-    # Dimension 6: Governance & Role Alignment
-    governance_type = Column(String(50), nullable=False, default="internal")  # internal, shared, external
-    lead_user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
-    )  # Team lead for org charts
-
-    # Analytical: Full lineage path for graph traversal
-    full_lineage_path = Column(JSON, nullable=True)  # Array of UUIDs representing ancestry
-
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Note: M&A provenance fields removed - use ag_catalog or graph queries
+    # The canonical transactional team table (public.teams) is intentionally simpler
+
     # Relationships
     organization = relationship("Organization", foreign_keys=[organization_id], back_populates="teams")
-    acquired_from_organization = relationship(
-        "Organization", foreign_keys=[acquired_from_organization_id]
-    )  # Original org for acquired teams
-    parent_team = relationship(
-        "Team", remote_side=[id], foreign_keys=[parent_team_id]
-    )  # Parent team for mergers/splits
-    lead_user = relationship("User", foreign_keys=[lead_user_id])  # Team lead/owner
-
     members = relationship("TeamMember", back_populates="team", cascade="all, delete-orphan")
     contexts = relationship("Context", back_populates="team")
     permissions = relationship("ContextPermission", back_populates="team")

@@ -34,7 +34,7 @@ declare -A CONTAINER_MIGRATIONS=(
     # Legacy NV containers (no env suffix)
     ["nv-db"]="ninaivalaigal-dev-db"
     ["nv-redis"]="ninaivalaigal-dev-redis"
-    ["nv-api"]="ninaivalaigal-dev-api"
+    ["nv-api"]="ninaivalaigal-dev-core-api"
     ["nv-ui"]="ninaivalaigal-dev-ui-customer"
     ["nv-pgbouncer"]="ninaivalaigal-dev-pgbouncer"
 

@@ -404,7 +404,12 @@ export default function Settings() {
             }
 
             // Decode JWT to get expiration
-            let decodedPayload: any = null;
+            interface JWTPayload {
+              exp?: number;
+              user_id?: string;
+              account_type?: string;
+            }
+            let decodedPayload: JWTPayload | null = null;
             let expiresAt: Date | null = null;
             let isExpired = false;
             let timeRemaining = '';
@@ -414,7 +419,7 @@ export default function Settings() {
               const payloadJson = atob(payloadBase64);
               decodedPayload = JSON.parse(payloadJson);
 
-              if (decodedPayload.exp) {
+              if (decodedPayload?.exp) {
                 expiresAt = new Date(decodedPayload.exp * 1000);
                 isExpired = expiresAt < new Date();
 

@@ -126,13 +126,14 @@ class RBACMiddleware:
                     print(f"[AUTH_DEBUG] Missing user_id or email in token for " f"{request.url.path}")
                 return None
 
-            # Extract team and org information
-            org_id = roles.get("org_id")
+            # Extract team and org information from top-level payload (not from roles dict)
+            org_id = payload.get("org_id")
             team_ids = set()
 
-            # Parse team roles
-            if "teams" in roles:
-                team_ids = set(roles["teams"].keys())
+            # Parse team roles from top-level payload
+            teams = payload.get("teams", {})
+            if teams:
+                team_ids = set(teams.keys())
 
             if debug_mode:
                 print(f"[AUTH_DEBUG] Created RBAC context for user {user_id} on " f"{request.url.path}")
@@ -236,7 +237,7 @@ def require_permission(resource: str, action: str) -> Callable:
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs) -> Any:
+        def wrapper(*args, **kwargs) -> Any:
             request = kwargs.get("request") or (args[0] if args and hasattr(args[0], "headers") else None)
             if not request:
                 raise HTTPException(status_code=500, detail="Request object not found")
@@ -264,7 +265,7 @@ def require_permission(resource: str, action: str) -> Callable:
             if not rbac_context.has_permission(resource_enum, action_enum):
                 raise HTTPException(status_code=403, detail=f"Permission denied: {action} on {resource}")
 
-            return await func(*args, **kwargs)
+            return func(*args, **kwargs)
 
         return wrapper
 

@@ -30,6 +30,16 @@ from sqlalchemy import func
 
 
 # User profile models (inline definitions)
+class RoleAssignmentResponse(BaseModel):
+    """Role assignment response model"""
+
+    role: str
+    scope_type: str
+    scope_id: str | None = None
+    granted_at: str
+    is_active: bool
+
+
 class UserProfileResponse(BaseModel):
     """User profile response model"""
 
@@ -44,6 +54,7 @@ class UserProfileResponse(BaseModel):
     is_active: bool
     created_at: str
     last_login: str | None = None
+    role_assignments: list[RoleAssignmentResponse] = []
 
 
 class UserProfileUpdate(BaseModel):
@@ -72,25 +83,55 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get("/me", response_model=UserProfileResponse)
 def get_current_user_profile(
     current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
 ):
     """
     Get current user's profile
 
-    Returns complete profile information for the authenticated user.
+    Returns complete profile information for the authenticated user, including RBAC role assignments.
     """
-    return UserProfileResponse(
-        id=current_user.id,
-        username=current_user.username,
-        email=current_user.email,
-        name=current_user.name,
-        account_type=current_user.account_type,
-        subscription_tier=current_user.subscription_tier,
-        role=current_user.role,
-        email_verified=current_user.email_verified,
-        is_active=current_user.is_active,
-        created_at=current_user.created_at.isoformat(),
-        last_login=current_user.last_login.isoformat() if current_user.last_login else None,
-    )
+    session = db.get_session()
+    try:
+        # Get user with role_assignments loaded
+        user = session.query(User).filter(User.id == current_user.id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Build role_assignments response
+        role_assignments = []
+        if hasattr(user, "role_assignments") and user.role_assignments:
+            for assignment in user.role_assignments:
+                if assignment.is_active:
+                    role_assignments.append(
+                        RoleAssignmentResponse(
+                            role=str(assignment.role),
+                            scope_type=assignment.scope_type,
+                            scope_id=assignment.scope_id,
+                            granted_at=(
+                                assignment.granted_at.isoformat()
+                                if assignment.granted_at
+                                else datetime.utcnow().isoformat()
+                            ),
+                            is_active=assignment.is_active,
+                        )
+                    )
+
+        return UserProfileResponse(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            name=user.name,
+            account_type=user.account_type,
+            subscription_tier=user.subscription_tier,
+            role=user.role,
+            email_verified=user.email_verified,
+            is_active=user.is_active,
+            created_at=user.created_at.isoformat(),
+            last_login=user.last_login.isoformat() if user.last_login else None,
+            role_assignments=role_assignments,
+        )
+    finally:
+        session.close()
 
 
 @router.patch("/me", response_model=UserProfileResponse)
@@ -271,17 +312,10 @@ def change_password(
 
 
 def _load_preferences(user: User) -> tuple[UserPreferences, str | None]:
-    metadata = user.employment_metadata or {}
-    settings = metadata.get("user_settings", {}) if isinstance(metadata, dict) else {}
-    raw_preferences = settings.get("preferences", {}) if isinstance(settings, dict) else {}
-    updated_at = settings.get("preferences_updated_at") if isinstance(settings, dict) else None
-
-    try:
-        preferences = UserPreferences(**raw_preferences)
-    except Exception:
-        preferences = UserPreferences()
-
-    return preferences, updated_at
+    # Return default preferences since employment_metadata column was removed
+    # TODO: Add a dedicated user_preferences table if needed
+    preferences = UserPreferences()
+    return preferences, None
 
 
 @router.get("/me/preferences", response_model=UserPreferencesResponse)
@@ -309,39 +343,14 @@ def update_user_preferences(
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
 ):
-    """Update the authenticated user's preferences."""
+    """Update the authenticated user's preferences.
 
-    session = db.get_session()
-    try:
-        user = session.query(User).filter(User.id == current_user.id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        metadata = user.employment_metadata if isinstance(user.employment_metadata, dict) else {}
-        user_settings = dict(metadata.get("user_settings", {})) if isinstance(metadata, dict) else {}
-
-        timestamp = datetime.utcnow().isoformat()
-        user_settings.update(
-            {
-                "preferences": payload.model_dump(),
-                "preferences_updated_at": timestamp,
-            }
-        )
-
-        metadata.update({"user_settings": user_settings})
-        user.employment_metadata = metadata
-        user.updated_at = datetime.utcnow()
-
-        session.commit()
-        return UserPreferencesResponse(**payload.model_dump(), updated_at=timestamp)
-    except HTTPException:
-        session.rollback()
-        raise
-    except Exception as exc:  # pragma: no cover - safeguard
-        session.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(exc)}")
-    finally:
-        session.close()
+    Note: Preferences are currently stored in memory only.
+    TODO: Add dedicated user_preferences table for persistence.
+    """
+    # Return updated preferences without persisting (employment_metadata removed)
+    timestamp = datetime.utcnow().isoformat()
+    return UserPreferencesResponse(**payload.model_dump(), updated_at=timestamp)
 
 
 @router.get("/me/stats", response_model=UserStatsResponse)

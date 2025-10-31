@@ -12,23 +12,33 @@ Supports individual users, team members, and organization creators
 """
 
 import hashlib
+
+# Import models from local auth module
+# Use importlib to explicitly import the local auth.py file to avoid conflict with shared/contracts/auth
+import importlib.util
 import json
 import os
 import re
 import secrets
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
-# Import models from local auth module
-# These Pydantic models are defined in auth.py in the same directory
-from auth import IndividualUserSignup, TokenData
+from utils.password import hash_password, verify_password
+
+_auth_spec = importlib.util.spec_from_file_location("local_auth", Path(__file__).parent / "auth.py")
+_local_auth = importlib.util.module_from_spec(_auth_spec)
+sys.modules["local_auth"] = _local_auth
+_auth_spec.loader.exec_module(_local_auth)
+
+IndividualUserSignup = _local_auth.IndividualUserSignup
+TokenData = _local_auth.TokenData
 
 
 # Additional Pydantic models for auth
@@ -122,35 +132,6 @@ def load_config():
     return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
 
 
-def validate_password(password: str) -> bool:
-    """Validate password meets requirements"""
-    if len(password) < 8:
-        return False
-    has_upper = any(c.isupper() for c in password)
-    has_lower = any(c.islower() for c in password)
-    has_digit = any(c.isdigit() for c in password)
-    has_special = any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password)
-    return has_upper and has_lower and has_digit and has_special
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash"""
-    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
-
-
-def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
-    """Create JWT access token"""
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(hours=1)
-    to_encode.update({"exp": expire})
-    jwt_secret = os.getenv("NINA_JWT_SECRET", "dev_jwt_secret_change_in_production")
-    encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm="HS256")
-    return encoded_jwt
-
-
 # Database helper to avoid circular imports
 def get_db():
     """Get database instance with user operations"""
@@ -211,18 +192,6 @@ def validate_email(email: str) -> str:
     if not re.match(pattern, email):
         raise HTTPException(status_code=400, detail="Invalid email format")
     return email.lower().strip()
-
-
-# Password hashing
-def hash_password(password: str) -> str:
-    """Hash password using bcrypt"""
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
-
-
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash"""
-    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
 # Token generation
@@ -316,35 +285,58 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-def get_user_roles_for_token(db, user_id: int) -> dict:
-    """Get user roles for JWT token inclusion"""
+def get_user_roles_for_token(db, user_id) -> dict:
+    """Get user roles for JWT token inclusion
+
+    Args:
+        user_id: User ID (UUID or string)
+    """
     from rbac_models import get_user_roles
 
     try:
         # Get all active role assignments for the user
+        print(f"[DEBUG] get_user_roles_for_token called with user_id: {user_id} (type: {type(user_id)})")
         role_assignments = get_user_roles(db, user_id)
+        print(f"[DEBUG] Found {len(role_assignments)} role assignments")
 
         roles = {}
         teams = {}
         org_id = None
 
         for assignment in role_assignments:
-            scope_key = (
-                f"{assignment.scope_type}:{str(assignment.scope_id)}" if assignment.scope_id else assignment.scope_type
+            print(
+                "[DEBUG] Processing assignment: role={}, scope={}:{}".format(
+                    assignment.role, assignment.scope_type, assignment.scope_id
+                )
             )
-            roles[scope_key] = assignment.role.name
+            # For global scope, use just "global" as key
+            # For other scopes, use scope_id as key
+            if assignment.scope_type == "global":
+                scope_key = "global"
+            elif assignment.scope_id:
+                scope_key = str(assignment.scope_id)
+            else:
+                scope_key = assignment.scope_type
+
+            # Handle both string (from raw SQL) and enum (from ORM) role values
+            role_value = assignment.role if isinstance(assignment.role, str) else assignment.role.name
+            roles[scope_key] = role_value
 
             # Track team memberships (convert UUID to string)
             if assignment.scope_type == "team" and assignment.scope_id:
-                teams[str(assignment.scope_id)] = assignment.role.name
+                teams[str(assignment.scope_id)] = role_value
 
             # Track organization membership (convert UUID to string)
             if assignment.scope_type == "org" and assignment.scope_id:
                 org_id = str(assignment.scope_id)
 
         return {"roles": roles, "teams": teams, "org_id": org_id}
-    except Exception:
-        # Fallback to basic role if RBAC lookup fails
+    except Exception as e:
+        # Log the error and fallback to basic role
+        print(f"[ERROR] get_user_roles_for_token failed for user {user_id}: {str(e)}")
+        import traceback
+
+        traceback.print_exc()
         return {"roles": {"global": "MEMBER"}, "teams": {}, "org_id": None}
 
 
@@ -414,7 +406,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
         # Check if user already exists
         existing_user = db.get_user_by_email(validated_data["email"])
         if existing_user:
-            raise HTTPException(status_code=409, detail="User already exists")
+            raise HTTPException(status_code=403, detail="Insufficient permissions for this endpoint")
 
         if not validate_password(validated_data["password"]):
             raise HTTPException(status_code=422, detail=PASSWORD_REQUIREMENTS_MESSAGE)
@@ -440,8 +432,30 @@ def create_individual_user(signup_data: IndividualUserSignup):
             is_active=True,
         )
 
-        # Generate JWT token
-        jwt_token = generate_jwt_token(new_user)
+        # Create default RBAC role assignment for individual users
+        from rbac_models import RoleAssignment
+
+        from rbac.permissions import Role
+
+        # Create role assignment directly
+        role_assignment = RoleAssignment(
+            user_id=new_user.id,
+            role=Role.MEMBER,
+            scope_type="global",
+            scope_id="global",
+            granted_by=new_user.id,
+            is_active=True,
+        )
+        session.add(role_assignment)
+        session.commit()  # Commit both user and role assignment
+        session.refresh(role_assignment)  # Ensure it's loaded
+
+        # Build role data manually from the assignment we just created
+        # This avoids session isolation issues with get_user_roles_for_token
+        role_data = {"roles": {"global": "MEMBER"}, "teams": {}, "org_id": None}  # Use the role we just assigned
+
+        # Generate JWT token with RBAC roles
+        jwt_token = generate_jwt_token(new_user, roles=role_data)
 
         return {
             "user_id": str(new_user.id),

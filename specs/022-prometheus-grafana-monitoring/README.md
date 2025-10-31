@@ -73,4 +73,41 @@ groups:
 - [ ] Historical data retention (30 days minimum)
 
 ## Status
-📋 Planned
+📋 Planned - **See SPEC-101 for comprehensive implementation**
+
+---
+
+## Note: Merged into SPEC-101
+
+**SPEC-022** (Prometheus + Grafana) is a **subset** of **SPEC-101** (Unified Observability).
+
+**SPEC-101 includes:**
+- ✅ Prometheus (metrics)
+- ✅ Grafana (dashboards)
+- ✅ Loki (log aggregation)
+- ✅ Promtail (log shipping)
+- ✅ Jaeger (distributed tracing - already running)
+
+**Recommendation:** Implement the full observability stack via SPEC-101 rather than deploying Prometheus + Grafana in isolation.
+
+---
+
+## Related Documentation
+
+### Comprehensive SPEC
+- **SPEC-101:** Unified Observability and Performance Governance
+  - Location: `/specs/101-unified-observability-performance/README.md`
+  - Taiga: **US#152**
+
+### Related SPECs
+- **SPEC-099:** Rust Migration Strategy (ROI validation via metrics)
+- **SPEC-100:** API Container Modularization (service monitoring)
+- **SPEC-018:** API Health Monitoring
+
+### Taiga Tracking
+- **US#152:** SPEC-101 Unified Observability Stack (includes SPEC-022)
+
+---
+
+**Last Updated:** October 30, 2025
+**Status:** Merged into SPEC-101 - Track via US#152

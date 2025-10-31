@@ -13,17 +13,20 @@ Fixes the async/sync mismatch causing /auth/login to hang
 
 import asyncio
 import logging
+import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-import bcrypt
 import jwt
 from database.simple_operations import SimpleDatabaseOperations
+
+from utils.password import hash_password as util_hash_password
+from utils.password import verify_password as util_verify_password
 
 logger = logging.getLogger(__name__)
 
 # JWT Configuration
-JWT_SECRET = "your-secret-key-here"  # Should be from environment
+JWT_SECRET = "your-secret-key-here"  # Should be from environment  # pragma: allowlist secret
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24
 
@@ -31,7 +34,7 @@ JWT_EXPIRATION_HOURS = 24
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
     try:
-        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+        return util_verify_password(plain_password, hashed_password)
     except Exception as e:
         logger.error(f"Password verification error: {e}")
         return False
@@ -39,8 +42,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def hash_password(password: str) -> str:
     """Hash a password for storing"""
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+    try:
+        return util_hash_password(password)
+    except Exception as e:
+        logger.error(f"Password hashing error: {e}")
+        raise
 
 
 async def authenticate_user_async(email: str, password: str) -> Optional[Dict[str, Any]]:
@@ -60,6 +66,11 @@ async def authenticate_user_async(email: str, password: str) -> Optional[Dict[st
 
                 database_url = load_config()
                 db = SimpleDatabaseOperations(database_url)
+
+                # Get JWT secret from environment variable (required)
+                jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")  # pragma: allowlist secret
+                if not jwt_secret:
+                    return None
 
                 # Get user by email
                 user = db.get_user_by_email(email)

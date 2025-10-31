@@ -77,3 +77,46 @@ jobs:
 
 ## Status
 📋 Planned
+
+---
+
+## Related Documentation
+
+### Secret Management Options
+- **sealed-secrets:** Kubernetes-native, GitOps friendly
+- **SOPS:** File-based encryption with GPG/KMS
+- **Vault:** Enterprise solution (optional, heavier weight)
+
+### Related SPECs
+- **SPEC-021:** GitOps with ArgoCD (secret deployment workflow)
+- **SPEC-015:** Kubernetes Deployment Strategy (secret mounting)
+- **SPEC-009:** RBAC Policy Enforcement (access control)
+
+### Taiga Tracking
+- **US#153:** SPEC-023 Centralized Secrets Management
+
+---
+
+## Implementation Status
+
+📋 **PLANNED** - Not yet implemented
+
+**Key Decisions Needed:**
+1. Choose solution: sealed-secrets vs SOPS vs Vault
+2. Encryption backend: GPG vs KMS vs age
+3. Rotation frequency: Daily, weekly, or on-demand
+
+**Current Secrets to Migrate:**
+- Database credentials
+- Redis password
+- API keys (OpenAI, Stripe)
+- JWT signing secrets
+- OAuth client secrets
+- Container registry credentials
+
+**Estimated Effort:** 2-3 weeks
+
+---
+
+**Last Updated:** October 30, 2025 (Taiga tracking added)
+**Status:** Tracked in Taiga US#153

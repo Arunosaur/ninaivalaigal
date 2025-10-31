@@ -9,11 +9,14 @@
 """Memory browser endpoints for authenticated users."""
 
 import json
-from typing import Any
+import uuid
+from datetime import datetime
+from typing import Any, List, Optional
 
 from auth_service import get_current_user
 from database import DatabaseManager, Memory, User
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 from sqlalchemy import desc
 
 
@@ -25,6 +28,15 @@ def get_db():
 
 
 router = APIRouter(prefix="/api/v1/memory", tags=["memory"])
+
+
+class MemoryCreate(BaseModel):
+    """Request model for creating a new memory"""
+
+    content: str = Field(..., min_length=1, description="Memory content")
+    context: str = Field(default="general", description="Memory context/category")
+    tags: Optional[List[str]] = Field(default=None, description="Tags for the memory")
+    pinned: bool = Field(default=False, description="Whether to pin this memory")
 
 
 def _serialize_memory(record: Memory) -> dict[str, Any]:
@@ -68,7 +80,7 @@ def list_memories(
         # Debug: Check total memories for this user
         total_count = session.query(Memory).filter(Memory.user_id == current_user.id).count()
         print(f"[DEBUG] Total memories for user {current_user.id}: {total_count}")
-        
+
         query = (
             session.query(Memory)
             .filter(Memory.user_id == current_user.id)
@@ -91,5 +103,52 @@ def list_memories(
         raise
     except Exception as exc:  # pragma: no cover - safeguard
         raise HTTPException(status_code=500, detail=f"Failed to load memories: {str(exc)}")
+    finally:
+        session.close()
+
+
+@router.post("/memories", status_code=201)
+def create_memory(
+    memory_data: MemoryCreate,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """Create a new memory for the authenticated user."""
+
+    session = db.get_session()
+    try:
+        # Create memory data payload
+        data_payload = {
+            "content": memory_data.content,
+            "tags": memory_data.tags or [],
+            "pinned": memory_data.pinned,
+            "archived": False,
+            "relevance_score": 1.0,
+        }
+
+        # Create new memory record
+        new_memory = Memory(
+            id=uuid.uuid4(),
+            user_id=current_user.id,
+            context=memory_data.context,
+            type="user_created",  # Required field
+            source="web_ui",  # Required field
+            data=data_payload,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+
+        session.add(new_memory)
+        session.commit()
+        session.refresh(new_memory)
+
+        print(f"[DEBUG] Created memory {new_memory.id} for user {current_user.id}")
+
+        return {"success": True, "memory": _serialize_memory(new_memory), "message": "Memory created successfully"}
+
+    except Exception as exc:
+        session.rollback()
+        print(f"[ERROR] Failed to create memory: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to create memory: {str(exc)}")
     finally:
         session.close()

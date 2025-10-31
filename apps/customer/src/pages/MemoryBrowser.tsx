@@ -32,7 +32,6 @@ export default function MemoryBrowser() {
   const [filterPinned, setFilterPinned] = useState(false);
   const [filterArchived, setFilterArchived] = useState(false);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
-  const [viewMode, setViewMode] = useState<'modal' | 'sidepanel'>('sidepanel'); // sidepanel is less intrusive
 
   const PAGE_SIZE = 12;
 
@@ -346,15 +345,8 @@ export default function MemoryBrowser() {
       )}
 
       {/* Memory Detail Views */}
-      {selectedMemory && viewMode === 'sidepanel' && (
+      {selectedMemory && (
         <MemoryDetailSidePanel
-          memory={selectedMemory}
-          onClose={() => setSelectedMemory(null)}
-        />
-      )}
-
-      {selectedMemory && viewMode === 'modal' && (
-        <MemoryDetailModal
           memory={selectedMemory}
           onClose={() => setSelectedMemory(null)}
         />
@@ -542,100 +534,6 @@ function MemoryDetailSidePanel({ memory, onClose }: MemoryDetailSidePanelProps) 
         </div>
       </div>
     </>
-  );
-}
-
-// Memory Detail Modal Component (Traditional popup - more intrusive)
-interface MemoryDetailModalProps {
-  memory: Memory;
-  onClose: () => void;
-}
-
-function MemoryDetailModal({ memory, onClose }: MemoryDetailModalProps) {
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-slate-700">
-        {/* Header */}
-        <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-700">
-          <h2 className="text-xl font-bold text-white">Memory Details</h2>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="px-6 py-6 overflow-y-auto max-h-[calc(90vh-80px)] space-y-5">
-          {/* ID */}
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Memory ID</label>
-            <code className="block bg-slate-900 rounded px-3 py-2 text-sm text-slate-300 font-mono break-all border border-slate-700">
-              {memory.id}
-            </code>
-          </div>
-
-          {/* Context & Tags */}
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-400 mb-2">Context</label>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                memory.context.toLowerCase() === 'work-project' ? 'bg-blue-500/20 text-blue-300' :
-                memory.context.toLowerCase() === 'research' ? 'bg-purple-500/20 text-purple-300' :
-                'bg-slate-700 text-slate-300'
-              }`}>
-                {memory.context}
-              </span>
-            </div>
-            {memory.tags && memory.tags.length > 0 && (
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-slate-400 mb-2">Tags</label>
-                <div className="flex flex-wrap gap-2">
-                  {memory.tags.map((tag, idx) => (
-                    <span key={idx} className="bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded text-xs border border-indigo-500/30">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Content */}
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">Content</label>
-            <div className="bg-slate-900 rounded-lg px-4 py-3 border border-slate-700">
-              <p className="text-slate-200 leading-relaxed whitespace-pre-wrap">{memory.content}</p>
-            </div>
-          </div>
-
-          {/* Metadata */}
-          <div className="flex gap-4 text-sm text-slate-400">
-            <div>
-              <span className="font-medium">Created:</span> {new Date(memory.created_at).toLocaleString()}
-            </div>
-            {memory.size && (
-              <div>
-                <span className="font-medium">Size:</span> {(memory.size / 1024).toFixed(2)} KB
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="bg-slate-900 px-6 py-4 flex justify-end border-t border-slate-700">
-          <button
-            onClick={onClose}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 

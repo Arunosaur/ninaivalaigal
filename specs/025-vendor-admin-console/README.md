@@ -155,6 +155,45 @@ ALTER TABLE users ADD COLUMN vendor_role VARCHAR(20);
 ## Status
 📋 Planned - Ready for implementation
 
+---
+
+## Related Documentation
+
+### Components
+- **Backend API:** `/vendor/*` endpoints in admin-vendor-service
+- **Frontend Console:** Vendor admin dashboard (to be built)
+- **Database:** usage_stats, rate_limits, audit_log tables
+
+### Related SPECs
+- **SPEC-009:** RBAC Policy Enforcement (vendor_admin role)
+- **SPEC-018:** API Health Monitoring (system health integration)
+- **SPEC-101:** Unified Observability (usage metrics)
+- **SPEC-026-030:** Billing & Analytics (future integration)
+
+### Taiga Tracking
+- **US#155:** SPEC-025 Vendor Admin Console Implementation
+
+---
+
+## Implementation Status
+
+📋 **PLANNED** - Not yet implemented
+
+**Business Priority:** Medium-High (enables SaaS business model)
+
+**Key Benefits:**
+- Transforms ninaivalaigal into enterprise SaaS platform
+- Enables multi-tenant subscription management
+- Foundation for usage-based billing
+- Enterprise compliance capabilities
+
+**Estimated Effort:** 6-9 weeks
+
+---
+
+**Last Updated:** October 30, 2025 (Taiga tracking added)
+**Status:** Tracked in Taiga US#155
+
 ## Notes
 
 - This SPEC enables **Medhasys-as-a-Service**

@@ -32,7 +32,6 @@ from auth_service import (
     get_current_user,
     get_user_by_uuid,
     get_user_roles_for_token,
-    hash_password,
     request_password_reset_token,
     reset_password_with_token,
     revoke_all_user_tokens,
@@ -44,7 +43,14 @@ from auth_service import (
 )
 from auth_service import verify_reset_token as auth_verify_reset_token
 from auth_service import verify_token
-from database import Organization, OrganizationRegistration, User, UserInvitation
+from database import (
+    Organization,
+    OrganizationRegistration,
+    TeamInvitation,
+    TeamMember,
+    User,
+    UserInvitation,
+)
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -56,6 +62,8 @@ from fastapi import (
 )
 from pydantic import BaseModel, ValidationError
 
+from utils.password import hash_password
+
 # Initialize router
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -66,6 +74,77 @@ def get_db():
     from auth_service import get_db as auth_get_db
 
     return auth_get_db()
+
+
+def auto_accept_pending_invitations(user_id: str, email: str) -> int:
+    """
+    Auto-accept any pending team invitations for a newly registered user.
+
+    Args:
+        user_id: UUID of the newly created user
+        email: Email address of the user
+
+    Returns:
+        Number of invitations auto-accepted
+    """
+    db = get_db()
+    session = db.get_session()
+    accepted_count = 0
+
+    try:
+        # Find all pending invitations for this email
+        pending_invitations = (
+            session.query(TeamInvitation)
+            .filter(TeamInvitation.email == email.lower(), TeamInvitation.status == "pending")
+            .all()
+        )
+
+        for invitation in pending_invitations:
+            # Check if invitation has expired
+            if invitation.expires_at < datetime.utcnow():
+                invitation.status = "expired"
+                continue
+
+            # Check if user is already a member
+            existing_member = (
+                session.query(TeamMember)
+                .filter(TeamMember.team_id == invitation.team_id, TeamMember.user_id == user_id)
+                .first()
+            )
+
+            if existing_member:
+                # Mark as accepted but don't duplicate membership
+                invitation.status = "accepted"
+                invitation.accepted_at = datetime.utcnow()
+                invitation.accepted_by_user_id = user_id
+                continue
+
+            # Add user to team
+            new_member = TeamMember(
+                team_id=invitation.team_id,
+                user_id=user_id,
+                role=invitation.role or "member",
+            )
+            session.add(new_member)
+
+            # Update invitation status
+            invitation.status = "accepted"
+            invitation.accepted_at = datetime.utcnow()
+            invitation.accepted_by_user_id = user_id
+
+            accepted_count += 1
+            print(f"[AUTO-ACCEPT] Added user {email} to team {invitation.team_id} (role: {invitation.role})")
+
+        session.commit()
+        return accepted_count
+
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] Failed to auto-accept invitations for {email}: {str(e)}")
+        # Don't fail signup if invitation acceptance fails
+        return 0
+    finally:
+        session.close()
 
 
 class OrganizationSignupPayload(BaseModel):
@@ -174,6 +253,13 @@ async def signup_individual_user(request: Request, background_tasks: BackgroundT
         raise
     except Exception as exc:  # pragma: no cover - safety net
         raise HTTPException(status_code=500, detail=f"Signup failed: {str(exc)}") from exc
+
+    # Auto-accept any pending team invitations for this email
+    user_id = result.get("user_id")
+    if user_id:
+        accepted_count = auto_accept_pending_invitations(user_id, normalized_email)
+        if accepted_count > 0:
+            print(f"[SIGNUP] Auto-accepted {accepted_count} team invitation(s) for {normalized_email}")
 
     verification_token = result.get("verification_token")
     if verification_token:
@@ -445,8 +531,8 @@ async def login_user(request: Request) -> dict[str, Any]:
     return response
 
 
-@router.post("/refresh")
-async def refresh_access_token(request: Request, db=Depends(get_db)) -> dict[str, Any]:
+@router.post("/refresh-old")
+async def refresh_access_token_old(request: Request, db=Depends(get_db)) -> dict[str, Any]:
     """Refresh JWT access token using a valid refresh token."""
 
     try:
@@ -689,52 +775,6 @@ async def confirm_password_reset(token: str, new_password: str) -> dict[str, Any
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Password reset failed: {str(e)}")
-
-
-@router.post("/token/refresh")
-async def refresh_access_token(refresh_token: str, request: Request) -> dict[str, Any]:
-    """
-    Refresh access token using refresh token
-
-    Returns new access token and optionally new refresh token
-    """
-    try:
-        # Validate refresh token
-        user_id = validate_refresh_token(refresh_token)
-
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
-
-        # Get user from database
-        db = get_db()
-        session = db.get_session()
-        try:
-            user = session.query(User).filter_by(id=user_id).first()
-
-            if not user or not user.is_active:
-                raise HTTPException(status_code=401, detail="User not found or inactive")
-
-            # Generate new access token
-            jwt_token = generate_jwt_token(user)
-
-            # Optionally generate new refresh token (token rotation)
-            # This is more secure - each refresh invalidates the old token
-            # For now, we'll keep the same refresh token for simplicity
-
-            return {
-                "success": True,
-                "access_token": jwt_token,
-                "token_type": "bearer",
-                "expires_in": 86400,  # 24 hours in seconds
-            }
-
-        finally:
-            session.close()
-
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Token refresh failed: {str(e)}")
 
 
 @router.post("/token/revoke")

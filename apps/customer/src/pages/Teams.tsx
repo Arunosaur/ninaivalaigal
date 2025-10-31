@@ -30,6 +30,17 @@ interface TeamMember {
   joined_at: string;
 }
 
+interface TeamInvitation {
+  id: string;
+  team_id: string;
+  email: string;
+  role: string;
+  status: string;
+  expires_at: string;
+  created_at: string;
+  invited_by_user_id: string;
+}
+
 function getErrorMessage(error: unknown, fallback: string) {
   const axiosError = error as AxiosError<{ detail?: string }>;
   return axiosError.response?.data?.detail || axiosError.message || fallback;
@@ -39,6 +50,7 @@ export default function Teams() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,10 +59,11 @@ export default function Teams() {
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamDescription, setNewTeamDescription] = useState('');
 
-  // Add member modal
-  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
-  const [memberUserId, setMemberUserId] = useState('');
-  const [memberRole, setMemberRole] = useState('member');
+  // Invite member modal
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('member');
+  const [inviteLoading, setInviteLoading] = useState(false);
 
   // Toast notifications
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
@@ -77,6 +90,15 @@ export default function Teams() {
     }
   }, []);
 
+  const loadTeamInvitations = useCallback(async (teamId: string) => {
+    try {
+      const response = await apiClient.get<TeamInvitation[]>(`/teams/${teamId}/invitations`);
+      setInvitations(response.data);
+    } catch (error: unknown) {
+      console.error('Failed to load invitations:', error);
+    }
+  }, []);
+
   useEffect(() => {
     loadTeams();
   }, [loadTeams]);
@@ -84,6 +106,7 @@ export default function Teams() {
   function selectTeam(team: Team) {
     setSelectedTeam(team);
     loadTeamMembers(team.id);
+    loadTeamInvitations(team.id);
   }
 
   async function createTeam() {
@@ -108,23 +131,46 @@ export default function Teams() {
     }
   }
 
-  async function addMember() {
-    if (!selectedTeam) return;
+  async function inviteMember() {
+    if (!selectedTeam || !inviteEmail) return;
 
     try {
-      // Add member to team
-      await apiClient.post(`/teams/${selectedTeam.id}/members`, {
-        user_id: memberUserId,
-        role: memberRole,
+      setInviteLoading(true);
+      const response = await apiClient.post(`/teams/${selectedTeam.id}/invitations`, {
+        email: inviteEmail,
+        role: inviteRole,
       });
 
-      setShowAddMemberModal(false);
-      setMemberUserId('');
-      setMemberRole('member');
-      loadTeamMembers(selectedTeam.id);
-      setToast({ message: 'Member added successfully!', type: 'success' });
+      setShowInviteModal(false);
+      setInviteEmail('');
+      setInviteRole('member');
+
+      // Check if user was added directly (existing user) or invited (new user)
+      const invitation = response.data as TeamInvitation;
+      if (invitation.status === 'accepted') {
+        setToast({ message: 'User added to team!', type: 'success' });
+        loadTeamMembers(selectedTeam.id);
+      } else {
+        setToast({ message: 'Invitation sent successfully!', type: 'success' });
+        loadTeamInvitations(selectedTeam.id);
+      }
     } catch (error: unknown) {
-      setToast({ message: getErrorMessage(error, 'Failed to add member'), type: 'error' });
+      setToast({ message: getErrorMessage(error, 'Failed to send invitation'), type: 'error' });
+    } finally {
+      setInviteLoading(false);
+    }
+  }
+
+  async function cancelInvitation(invitationId: string) {
+    if (!selectedTeam) return;
+    if (!confirm('Cancel this invitation?')) return;
+
+    try {
+      await apiClient.delete(`/teams/${selectedTeam.id}/invitations/${invitationId}`);
+      loadTeamInvitations(selectedTeam.id);
+      setToast({ message: 'Invitation cancelled', type: 'success' });
+    } catch (error: unknown) {
+      setToast({ message: getErrorMessage(error, 'Failed to cancel invitation'), type: 'error' });
     }
   }
 
@@ -238,18 +284,54 @@ export default function Teams() {
                     </div>
                   </div>
                   <button
-                    onClick={() => setShowAddMemberModal(true)}
+                    onClick={() => setShowInviteModal(true)}
                     className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition text-sm"
                   >
-                    + Add Member
+                    + Invite Member
                   </button>
                 </div>
+
+                {/* Pending Invitations */}
+                {invitations.length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="text-lg font-semibold text-white mb-4">Pending Invitations</h4>
+                    <div className="space-y-3">
+                      {invitations.map((invitation) => (
+                        <div
+                          key={invitation.id}
+                          className="flex items-center justify-between p-4 bg-amber-900/10 rounded-lg border border-amber-700/30"
+                        >
+                          <div>
+                            <h5 className="text-white font-medium">{invitation.email}</h5>
+                            <p className="text-slate-400 text-sm">
+                              Invited • Expires {new Date(invitation.expires_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300">
+                              {invitation.role}
+                            </span>
+                            <button
+                              onClick={() => cancelInvitation(invitation.id)}
+                              className="text-red-400 hover:text-red-300 text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Members List */}
                 <div className="mt-6">
                   <h4 className="text-lg font-semibold text-white mb-4">Team Members</h4>
                   <div className="space-y-3">
-                    {members.map((member) => (
+                    {members.length === 0 ? (
+                      <p className="text-slate-400 text-sm">No members yet</p>
+                    ) : (
+                      members.map((member) => (
                       <div
                         key={member.id}
                         className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700/50"
@@ -280,7 +362,8 @@ export default function Teams() {
                           )}
                         </div>
                       </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -340,29 +423,33 @@ export default function Teams() {
           </div>
         )}
 
-        {/* Add Member Modal */}
-        {showAddMemberModal && (
+        {/* Invite Member Modal */}
+        {showInviteModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-md border border-slate-700">
-              <h3 className="text-xl font-bold text-white mb-4">Add Team Member</h3>
+              <h3 className="text-xl font-bold text-white mb-4">Invite Team Member</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">User ID</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
                   <input
-                    type="text"
-                    value={memberUserId}
-                    onChange={(e) => setMemberUserId(e.target.value)}
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
                     className="w-full bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none"
-                    placeholder="User UUID"
+                    placeholder="user@example.com"
+                    disabled={inviteLoading}
                   />
-                  <p className="text-xs text-slate-400 mt-1">Get user ID from database or user profile</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    If they have an account, they'll be added immediately. Otherwise, they'll receive an invitation.
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">Role</label>
                   <select
-                    value={memberRole}
-                    onChange={(e) => setMemberRole(e.target.value)}
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value)}
                     className="w-full bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none"
+                    disabled={inviteLoading}
                   >
                     <option value="member">Member</option>
                     <option value="admin">Admin</option>
@@ -372,16 +459,18 @@ export default function Teams() {
               </div>
               <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => setShowAddMemberModal(false)}
+                  onClick={() => setShowInviteModal(false)}
                   className="flex-1 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition"
+                  disabled={inviteLoading}
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={addMember}
-                  className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition"
+                  onClick={inviteMember}
+                  className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={inviteLoading || !inviteEmail}
                 >
-                  Add Member
+                  {inviteLoading ? 'Sending...' : 'Send Invitation'}
                 </button>
               </div>
             </div>

@@ -31,7 +31,13 @@ export function renderWithRouter(
   }
 
   const rendered = render(
-    <HistoryRouter history={history as any}>
+    <HistoryRouter
+      history={
+        // Type mismatch between history v5 and react-router-dom history types
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        history as any
+      }
+    >
       <RoutesContainer />
     </HistoryRouter>,
   );

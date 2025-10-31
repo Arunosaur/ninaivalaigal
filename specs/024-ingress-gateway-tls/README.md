@@ -98,3 +98,38 @@ spec:
 
 ## Status
 📋 Planned
+
+---
+
+## Related Documentation
+
+### Components
+- **NGINX Ingress Controller:** K8s HTTP/HTTPS routing
+- **cert-manager:** Automated TLS certificate management
+- **Let's Encrypt:** Free TLS certificates with auto-renewal
+
+### Related SPECs
+- **SPEC-021:** GitOps with ArgoCD (ingress deployment via GitOps)
+- **SPEC-015:** Kubernetes Deployment Strategy (service exposure)
+- **SPEC-023:** Secrets Management (TLS certificate storage)
+
+### Taiga Tracking
+- **US#154:** SPEC-024 Ingress Gateway and TLS Automation
+
+---
+
+## Implementation Status
+
+📋 **PLANNED** - Not yet implemented
+
+**Prerequisites:**
+- Kubernetes cluster operational
+- Domain name available (api.ninaivalaigal.com)
+- DNS provider access (Cloudflare or Route53)
+
+**Estimated Effort:** 2-3 weeks
+
+---
+
+**Last Updated:** October 30, 2025 (Taiga tracking added)
+**Status:** Tracked in Taiga US#154

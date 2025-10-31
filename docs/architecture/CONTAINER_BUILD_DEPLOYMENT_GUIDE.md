@@ -234,10 +234,10 @@ echo "Redis: $REDIS_IP"
 ### Start API Container
 ```bash
 container run -d --name ninaivalaigal-dev-api -p 13390:8000 \
-  -e DATABASE_URL="postgresql://nina:dev_password_change_in_production@${PGBOUNCER_IP}:6432/ninaivalaigal_dev" \
-  -e NINAIVALAIGAL_DATABASE_URL="postgresql://nina:dev_password_change_in_production@${PGBOUNCER_IP}:6432/ninaivalaigal_dev" \
+  -e DATABASE_URL="postgresql://nina:dev_password_change_in_production@${PGBOUNCER_IP}:6432/ninaivalaigal_dev" \  # pragma: allowlist secret
+  -e NINAIVALAIGAL_DATABASE_URL="postgresql://nina:dev_password_change_in_production@${PGBOUNCER_IP}:6432/ninaivalaigal_dev" \  # pragma: allowlist secret
   -e REDIS_URL="redis://:dev_redis_password@${REDIS_IP}:6379/0" \
-  -e NINAIVALAIGAL_JWT_SECRET="dev-secret-change-in-production" \
+  -e NINAIVALAIGAL_JWT_SECRET="dev_jwt_secret_change_in_production"  # pragma: allowlist secret \
   -e PYTHONPATH=/app:/app/server \
   -e ENVIRONMENT=development \
   nina-api:arm64
@@ -358,8 +358,10 @@ curl http://localhost:13390/docs
 - Host: 5452
 
 **Credentials**:
-- User: `nina`
-- Password: `dev_password_change_in_production`
+```yaml
+POSTGRES_USER: nina
+POSTGRES_PASSWORD=dev_password_change_in_production  # pragma: allowlist secret
+```
 - Database: `ninaivalaigal_dev`
 
 ### PgBouncer Container (nina-pgbouncer:arm64)
@@ -380,7 +382,7 @@ curl http://localhost:13390/docs
 - Host: 6399
 
 **Credentials**:
-- Password: `dev_redis_password`
+- Password: `dev_redis_password`  <!-- pragma: allowlist secret -->
 
 **Configuration**:
 - Max Memory: 512MB
@@ -404,9 +406,9 @@ container list | grep -E "(pgbouncer|redis|db)" | awk '{print $1, $4}'
 # Deploy
 container stop ninaivalaigal-dev-api && container delete ninaivalaigal-dev-api
 container run -d --name ninaivalaigal-dev-api -p 13390:8000 \
-  -e DATABASE_URL="postgresql://nina:dev_password_change_in_production@192.168.64.208:6432/ninaivalaigal_dev" \
+  -e DATABASE_URL="postgresql://nina:dev_password_change_in_production@192.168.64.208:6432/ninaivalaigal_dev" \  # pragma: allowlist secret
   -e REDIS_URL="redis://:dev_redis_password@192.168.64.189:6379/0" \
-  -e NINAIVALAIGAL_JWT_SECRET="dev-secret-change-in-production" \
+  -e NINAIVALAIGAL_JWT_SECRET="dev-secret-change-in-production" \  # pragma: allowlist secret
   -e PYTHONPATH=/app:/app/server \
   -e ENVIRONMENT=development \
   nina-api:arm64

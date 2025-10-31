@@ -28,6 +28,7 @@ class RoleAssignment(Base):
     """Role assignments for users in different scopes"""
 
     __tablename__ = "role_assignments"
+    __table_args__ = {"schema": "public"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
@@ -45,9 +46,8 @@ class RoleAssignment(Base):
 
     def __repr__(self):
         """Return string representation."""
-        return (
-            f"<RoleAssignment(user_id={self.user_id}, role={self.role.name}, "
-            f"scope={self.scope_type}:{self.scope_id})>"
+        return "<RoleAssignment(user_id={0}, role={1}, scope={2}:{3})>".format(
+            self.user_id, self.role.name, self.scope_type, self.scope_id
         )
 
 
@@ -55,6 +55,7 @@ class PermissionAudit(Base):
     """Audit log for all permission checks and access attempts"""
 
     __tablename__ = "permission_audits"
+    __table_args__ = {"schema": "public"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
@@ -164,18 +165,62 @@ User.permission_audits = relationship("PermissionAudit", back_populates="user")
 
 
 # Helper functions for RBAC operations
-def get_user_roles(db, user_id: int, scope_type: str = None, scope_id: str = None):
-    """Get all active role assignments for a user"""
+def get_user_roles(db, user_id, scope_type: str = None, scope_id: str = None):
+    """Get all active role assignments for a user
+
+    Args:
+        user_id: User ID (UUID or string)
+
+    Note: Uses raw SQL to avoid PgBouncer transaction mode issues with UUID parameters
+    """
+    from sqlalchemy import text
+
     session = db.get_session()
-    query = session.query(RoleAssignment).filter(RoleAssignment.user_id == user_id, RoleAssignment.is_active is True)
+    print(f"[DEBUG] get_user_roles: user_id={user_id}, type={type(user_id)}")
+
+    # Convert to string for raw SQL
+    user_id_str = str(user_id)
+
+    # Build raw SQL query to avoid PgBouncer prepared statement issues
+    sql = """
+        SELECT id, user_id, role, scope_type, scope_id, granted_by,
+               granted_at, expires_at, is_active
+        FROM public.role_assignments
+        WHERE user_id::text = :user_id AND is_active = true
+    """
+    params = {"user_id": user_id_str}
 
     if scope_type:
-        query = query.filter(RoleAssignment.scope_type == scope_type)
+        sql += " AND scope_type = :scope_type"
+        params["scope_type"] = scope_type
+        print(f"[DEBUG] Added scope_type filter: {scope_type}")
 
     if scope_id:
-        query = query.filter(RoleAssignment.scope_id == scope_id)
+        sql += " AND scope_id = :scope_id"
+        params["scope_id"] = scope_id
+        print("[DEBUG] Added scope_id filter: {}".format(scope_id))
 
-    return query.all()
+    print("[DEBUG] Executing raw SQL query")
+    result = session.execute(text(sql), params)
+    rows = result.fetchall()
+    print(f"[DEBUG] Query returned {len(rows)} results")
+
+    # Convert rows to RoleAssignment objects
+    assignments = []
+    for row in rows:
+        assignment = RoleAssignment()
+        assignment.id = row[0]
+        assignment.user_id = row[1]
+        assignment.role = row[2]
+        assignment.scope_type = row[3]
+        assignment.scope_id = row[4]
+        assignment.granted_by = row[5]
+        assignment.granted_at = row[6]
+        assignment.expires_at = row[7]
+        assignment.is_active = row[8]
+        assignments.append(assignment)
+
+    return assignments
 
 
 def get_effective_permissions(db, user_id: int, scope_type: str = None, scope_id: str = None):

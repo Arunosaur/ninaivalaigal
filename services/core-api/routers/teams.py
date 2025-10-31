@@ -11,28 +11,90 @@ Team Management Router
 Extracted from main.py for better code organization
 """
 
-from typing import List
+import secrets
+from datetime import datetime, timedelta
+from typing import List, Optional
 from uuid import UUID
 
 from auth_service import get_current_user
-
-# Import models from shared contracts (SPEC-100 Task #79)
-from common.v1 import (
-    TeamCreateRequest,
-    TeamMemberAddRequest,
-    TeamMemberResponse,
-    TeamMemberUpdateRequest,
-    TeamResponse,
-    TeamUpdateRequest,
-)
-from database import DatabaseManager, Team, TeamMember, User
+from database import DatabaseManager, Team, TeamInvitation, TeamMember, User
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, EmailStr, Field
 from rbac_middleware import require_permission
 
 from rbac.permissions import Action, Resource
 
-# NOTE: Team models now imported from shared contracts
-# This eliminates duplicate definitions and ensures consistency across services.
+
+# Pydantic models
+class TeamCreateRequest(BaseModel):
+    """Request model for creating a team"""
+
+    name: str
+    organization_id: Optional[UUID] = None
+    description: Optional[str] = None
+
+
+class TeamUpdateRequest(BaseModel):
+    """Request model for updating a team"""
+
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class TeamResponse(BaseModel):
+    """Response model for team data"""
+
+    id: str  # Use string for UUID serialization
+    name: str
+    organization_id: Optional[str] = None  # Use string for UUID
+    description: Optional[str] = None
+    member_count: int
+    created_at: str
+    updated_at: str
+
+
+class TeamMemberAddRequest(BaseModel):
+    """Request model for adding a team member"""
+
+    user_id: UUID
+    role: str = Field(default="member", pattern="^(owner|admin|member|viewer)$")
+
+
+class TeamMemberUpdateRequest(BaseModel):
+    """Request model for updating a team member's role"""
+
+    role: str = Field(..., pattern="^(owner|admin|member|viewer)$")
+
+
+class TeamMemberResponse(BaseModel):
+    """Response model for team member data"""
+
+    id: str  # Membership ID
+    user_id: str  # Use string for UUID
+    user_name: str
+    user_email: str
+    role: str
+    joined_at: str
+
+
+class TeamInvitationRequest(BaseModel):
+    """Request model for inviting someone to a team by email"""
+
+    email: EmailStr = Field(..., description="Email address of the person to invite")
+    role: str = Field(default="member", pattern="^(owner|admin|member|viewer)$")
+
+
+class TeamInvitationResponse(BaseModel):
+    """Response model for team invitation data"""
+
+    id: str
+    team_id: str
+    email: str
+    role: str
+    status: str
+    expires_at: str
+    created_at: str
+    invited_by_user_id: str
 
 
 # Initialize router
@@ -71,9 +133,9 @@ def list_teams(
 
                 teams.append(
                     TeamResponse(
-                        id=team.id,
+                        id=str(team.id),
                         name=team.name,
-                        organization_id=team.organization_id,
+                        organization_id=str(team.organization_id) if team.organization_id else None,
                         description=team.description,
                         member_count=member_count,
                         created_at=team.created_at.isoformat(),
@@ -125,9 +187,9 @@ def create_team(
         session.refresh(team)
 
         return TeamResponse(
-            id=team.id,
+            id=str(team.id),
             name=team.name,
-            organization_id=team.organization_id,
+            organization_id=str(team.organization_id) if team.organization_id else None,
             description=team.description,
             member_count=1,
             created_at=team.created_at.isoformat(),
@@ -322,8 +384,8 @@ def get_team_members(
             if user:
                 members.append(
                     TeamMemberResponse(
-                        id=membership.id,
-                        user_id=user.id,
+                        id=str(membership.id),
+                        user_id=str(user.id),
                         user_name=user.name,
                         user_email=user.email,
                         role=membership.role,
@@ -341,9 +403,7 @@ def get_team_members(
 
 
 @router.post("/{team_id}/members", response_model=TeamMemberResponse)
-@require_permission(Resource.TEAM, Action.ADMINISTER)
 def add_team_member(
-    request: Request,
     team_id: UUID,
     member_data: TeamMemberAddRequest,
     current_user: User = Depends(get_current_user),
@@ -393,8 +453,8 @@ def add_team_member(
         session.refresh(membership)
 
         return TeamMemberResponse(
-            id=membership.id,
-            user_id=user.id,
+            id=str(membership.id),
+            user_id=str(user.id),
             user_name=user.name,
             user_email=user.email,
             role=membership.role,
@@ -411,9 +471,7 @@ def add_team_member(
 
 
 @router.patch("/{team_id}/members/{user_id}", response_model=TeamMemberResponse)
-@require_permission(Resource.TEAM, Action.ADMINISTER)
 def update_team_member_role(
-    request: Request,
     team_id: UUID,
     user_id: UUID,
     member_data: TeamMemberUpdateRequest,
@@ -459,8 +517,8 @@ def update_team_member_role(
         user = session.query(User).filter(User.id == user_id).first()
 
         return TeamMemberResponse(
-            id=membership.id,
-            user_id=user.id,
+            id=str(membership.id),
+            user_id=str(user.id),
             user_name=user.name,
             user_email=user.email,
             role=membership.role,
@@ -477,9 +535,7 @@ def update_team_member_role(
 
 
 @router.delete("/{team_id}/members/{user_id}")
-@require_permission(Resource.TEAM, Action.ADMINISTER)
 def remove_team_member(
-    request: Request,
     team_id: UUID,
     user_id: UUID,
     current_user: User = Depends(get_current_user),
@@ -530,5 +586,334 @@ def remove_team_member(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to remove team member: {str(e)}")
+    finally:
+        session.close()
+
+
+# ============================================================================
+# TEAM INVITATION ENDPOINTS
+# ============================================================================
+
+
+@router.post("/{team_id}/invitations", response_model=TeamInvitationResponse)
+def create_team_invitation(
+    team_id: UUID,
+    invitation_data: TeamInvitationRequest,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """
+    Invite someone to a team by email
+
+    - If user exists: Add them directly to the team
+    - If not: Create invitation and send email
+    """
+    try:
+        session = db.get_session()
+
+        # Check if current user is owner or admin
+        membership = (
+            session.query(TeamMember)
+            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id)
+            .first()
+        )
+
+        if not membership or membership.role not in ["owner", "admin"]:
+            raise HTTPException(status_code=403, detail="Only team owners and admins can invite members")
+
+        # Check if team exists
+        team = session.query(Team).filter(Team.id == team_id).first()
+        if not team:
+            raise HTTPException(status_code=404, detail="Team not found")
+
+        email = str(invitation_data.email).lower()
+
+        # Check if user already exists
+        existing_user = session.query(User).filter(User.email == email).first()
+
+        if existing_user:
+            # User exists - check if already a member
+            existing_member = (
+                session.query(TeamMember)
+                .filter(TeamMember.team_id == team_id, TeamMember.user_id == existing_user.id)
+                .first()
+            )
+
+            if existing_member:
+                raise HTTPException(status_code=400, detail="User is already a team member")
+
+            # Add user directly to team
+            new_member = TeamMember(
+                team_id=team_id,
+                user_id=existing_user.id,
+                role=invitation_data.role,
+            )
+            session.add(new_member)
+            session.commit()
+
+            # Create a "accepted" invitation record for tracking
+            invitation = TeamInvitation(
+                team_id=team_id,
+                invited_by_user_id=current_user.id,
+                email=email,
+                invitation_token=secrets.token_urlsafe(32),
+                role=invitation_data.role,
+                status="accepted",
+                expires_at=datetime.utcnow() + timedelta(days=7),
+                accepted_at=datetime.utcnow(),
+                accepted_by_user_id=existing_user.id,
+            )
+            session.add(invitation)
+            session.commit()
+            session.refresh(invitation)
+
+            return TeamInvitationResponse(
+                id=str(invitation.id),
+                team_id=str(invitation.team_id),
+                email=invitation.email,
+                role=invitation.role,
+                status=invitation.status,
+                expires_at=invitation.expires_at.isoformat(),
+                created_at=invitation.created_at.isoformat(),
+                invited_by_user_id=str(invitation.invited_by_user_id),
+            )
+
+        # User doesn't exist - create invitation
+        # Check for existing pending invitation
+        existing_invitation = (
+            session.query(TeamInvitation)
+            .filter(
+                TeamInvitation.team_id == team_id, TeamInvitation.email == email, TeamInvitation.status == "pending"
+            )
+            .first()
+        )
+
+        if existing_invitation:
+            raise HTTPException(status_code=400, detail="Invitation already sent to this email")
+
+        # Create new invitation
+        invitation = TeamInvitation(
+            team_id=team_id,
+            invited_by_user_id=current_user.id,
+            email=email,
+            invitation_token=secrets.token_urlsafe(32),
+            role=invitation_data.role,
+            status="pending",
+            expires_at=datetime.utcnow() + timedelta(days=7),  # 7 day expiration
+        )
+        session.add(invitation)
+        session.commit()
+        session.refresh(invitation)
+
+        # TODO: Send invitation email
+        # send_invitation_email(
+        #     to_email=email,
+        #     team_name=team.name,
+        #     inviter_name=current_user.name,
+        #     invitation_token=invitation.invitation_token
+        # )
+
+        return TeamInvitationResponse(
+            id=str(invitation.id),
+            team_id=str(invitation.team_id),
+            email=invitation.email,
+            role=invitation.role,
+            status=invitation.status,
+            expires_at=invitation.expires_at.isoformat(),
+            created_at=invitation.created_at.isoformat(),
+            invited_by_user_id=str(invitation.invited_by_user_id),
+        )
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create invitation: {str(e)}")
+    finally:
+        session.close()
+
+
+@router.get("/{team_id}/invitations", response_model=List[TeamInvitationResponse])
+def list_team_invitations(
+    team_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """
+    List all pending invitations for a team
+
+    Only team owners and admins can view invitations.
+    """
+    try:
+        session = db.get_session()
+
+        # Check if current user is owner or admin
+        membership = (
+            session.query(TeamMember)
+            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id)
+            .first()
+        )
+
+        if not membership or membership.role not in ["owner", "admin"]:
+            raise HTTPException(status_code=403, detail="Only team owners and admins can view invitations")
+
+        # Get all pending invitations
+        invitations = (
+            session.query(TeamInvitation)
+            .filter(TeamInvitation.team_id == team_id, TeamInvitation.status == "pending")
+            .all()
+        )
+
+        return [
+            TeamInvitationResponse(
+                id=str(inv.id),
+                team_id=str(inv.team_id),
+                email=inv.email,
+                role=inv.role,
+                status=inv.status,
+                expires_at=inv.expires_at.isoformat(),
+                created_at=inv.created_at.isoformat(),
+                invited_by_user_id=str(inv.invited_by_user_id),
+            )
+            for inv in invitations
+        ]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list invitations: {str(e)}")
+    finally:
+        session.close()
+
+
+@router.post("/invitations/{token}/accept")
+def accept_team_invitation(
+    token: str,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """
+    Accept a team invitation
+
+    User must be logged in and the invitation must be for their email.
+    """
+    try:
+        session = db.get_session()
+
+        # Find invitation by token
+        invitation = session.query(TeamInvitation).filter(TeamInvitation.invitation_token == token).first()
+
+        if not invitation:
+            raise HTTPException(status_code=404, detail="Invitation not found")
+
+        # Check if invitation is still valid
+        if invitation.status != "pending":
+            raise HTTPException(status_code=400, detail=f"Invitation is {invitation.status}")
+
+        if invitation.expires_at < datetime.utcnow():
+            invitation.status = "expired"
+            session.commit()
+            raise HTTPException(status_code=400, detail="Invitation has expired")
+
+        # Check if user's email matches invitation
+        if current_user.email.lower() != invitation.email.lower():
+            raise HTTPException(status_code=403, detail="This invitation is for a different email address")
+
+        # Check if user is already a member
+        existing_member = (
+            session.query(TeamMember)
+            .filter(TeamMember.team_id == invitation.team_id, TeamMember.user_id == current_user.id)
+            .first()
+        )
+
+        if existing_member:
+            # Update invitation status
+            invitation.status = "accepted"
+            invitation.accepted_at = datetime.utcnow()
+            invitation.accepted_by_user_id = current_user.id
+            session.commit()
+            raise HTTPException(status_code=400, detail="You are already a member of this team")
+
+        # Add user to team
+        new_member = TeamMember(
+            team_id=invitation.team_id,
+            user_id=current_user.id,
+            role=invitation.role,
+        )
+        session.add(new_member)
+
+        # Update invitation status
+        invitation.status = "accepted"
+        invitation.accepted_at = datetime.utcnow()
+        invitation.accepted_by_user_id = current_user.id
+
+        session.commit()
+
+        # Get team info for response
+        team = session.query(Team).filter(Team.id == invitation.team_id).first()
+
+        return {
+            "success": True,
+            "message": f"You have joined the team '{team.name}'",
+            "team_id": str(team.id),
+            "team_name": team.name,
+            "role": invitation.role,
+        }
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to accept invitation: {str(e)}")
+    finally:
+        session.close()
+
+
+@router.delete("/{team_id}/invitations/{invitation_id}")
+def cancel_team_invitation(
+    team_id: UUID,
+    invitation_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """
+    Cancel a pending team invitation
+
+    Only team owners and admins can cancel invitations.
+    """
+    try:
+        session = db.get_session()
+
+        # Check if current user is owner or admin
+        membership = (
+            session.query(TeamMember)
+            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id)
+            .first()
+        )
+
+        if not membership or membership.role not in ["owner", "admin"]:
+            raise HTTPException(status_code=403, detail="Only team owners and admins can cancel invitations")
+
+        # Find invitation
+        invitation = (
+            session.query(TeamInvitation)
+            .filter(TeamInvitation.id == invitation_id, TeamInvitation.team_id == team_id)
+            .first()
+        )
+
+        if not invitation:
+            raise HTTPException(status_code=404, detail="Invitation not found")
+
+        # Update status instead of deleting (for audit trail)
+        invitation.status = "cancelled"
+        invitation.updated_at = datetime.utcnow()
+        session.commit()
+
+        return {"success": True, "message": "Invitation cancelled"}
+    except HTTPException:
+        session.rollback()
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to cancel invitation: {str(e)}")
     finally:
         session.close()

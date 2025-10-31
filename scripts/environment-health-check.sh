@@ -92,7 +92,7 @@ check_docker_status() {
 check_containers() {
     log "Checking container status..."
 
-    local expected_containers=("ninaivalaigal-dev-db" "ninaivalaigal-dev-redis" "ninaivalaigal-dev-api" "ninaivalaigal-dev-ui")
+    local expected_containers=("ninaivalaigal-dev-db" "ninaivalaigal-dev-redis" "ninaivalaigal-dev-core-api" "ninaivalaigal-dev-ui")
     local running_containers=$(docker ps --format "table {{.Names}}" | tail -n +2)
 
     for container in "${expected_containers[@]}"; do
