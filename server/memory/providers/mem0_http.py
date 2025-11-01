@@ -49,6 +49,7 @@ class Mem0HttpMemoryProvider:
         meta: Mapping[str, Any] | None = None,
         user_id: str | None = None,
         context_id: str | None = None,
+        bearer_token: str | None = None,
     ) -> MemoryItem:
         """Store a memory item via mem0 HTTP API"""
         try:
@@ -86,6 +87,7 @@ class Mem0HttpMemoryProvider:
         k: int = 5,
         user_id: str | None = None,
         context_id: str | None = None,
+        bearer_token: str | None = None,
     ) -> Sequence[MemoryItem]:
         """Retrieve memory items via mem0 HTTP API"""
         try:
@@ -122,7 +124,13 @@ class Mem0HttpMemoryProvider:
         except Exception as e:
             raise MemoryProviderError(f"Failed to recall memories: {e}")
 
-    async def delete(self, *, id: str, user_id: str | None = None) -> bool:
+    async def delete(
+        self,
+        *,
+        id: str,
+        user_id: str | None = None,
+        bearer_token: str | None = None,
+    ) -> bool:
         """Delete a memory item via mem0 HTTP API"""
         try:
             payload = {"memory_id": id, "user_id": user_id}
@@ -147,6 +155,7 @@ class Mem0HttpMemoryProvider:
         context_id: str | None = None,
         limit: int = 100,
         offset: int = 0,
+        bearer_token: str | None = None,
     ) -> Sequence[MemoryItem]:
         """List memory items via mem0 HTTP API"""
         try:

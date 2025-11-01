@@ -77,7 +77,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Service will be available at: `http://localhost:8002`
+Service will be available at: `http://localhost:13391`
 
 ### Docker
 ```bash
@@ -87,7 +87,7 @@ docker build -t ninaivalaigal-business-service:latest .
 # Run container
 docker run -d \
   --name ninaivalaigal-dev-business-service \
-  -p 8002:8002 \
+  -p 13391:13391 \
   -e DB_URI=postgresql://user:pass@host:5432/db \  # pragma: allowlist secret
   -e REDIS_URI=redis://host:6379 \
   -e STRIPE_SECRET_KEY=sk_test_... \
@@ -100,28 +100,28 @@ docker run -d \
 
 ### Health Check
 ```bash
-curl http://localhost:8002/health
+curl http://localhost:13391/health
 ```
 
 ### Readiness Check
 ```bash
-curl http://localhost:8002/ready
+curl http://localhost:13391/ready
 ```
 
 ### Metrics
 ```bash
-curl http://localhost:8002/metrics
+curl http://localhost:13391/metrics
 ```
 
 ### Billing Plans
 ```bash
-curl http://localhost:8002/billing/plans
+curl http://localhost:13391/billing/plans
 ```
 
 ### Analytics
 ```bash
-curl http://localhost:8002/analytics/team-growth?days=30
-curl http://localhost:8002/analytics/revenue?period=month
+curl http://localhost:13391/analytics/team-growth?days=30
+curl http://localhost:13391/analytics/revenue?period=month
 ```
 
 ---
@@ -155,7 +155,7 @@ curl http://localhost:8002/analytics/revenue?period=month
 - **PgBouncer:** `ninaivalaigal-dev-pgbouncer` (Connection pooling)
 
 ### Port Assignment
-- **Business Service:** `8002`
+- **Business Service:** `13391`
 - **Core API:** `8000`
 - **Memory Service:** `8001`
 

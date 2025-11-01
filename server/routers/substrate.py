@@ -14,7 +14,7 @@ FastAPI router for memory substrate management and monitoring
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from ..auth_utils import get_current_user
@@ -91,6 +91,7 @@ class MemoryResponse(BaseModel):
 @router.post("/memories", response_model=MemoryResponse, status_code=201)
 async def create_memory(
     memory_data: MemoryCreate,
+    request: Request,
     current_user: dict = Depends(get_current_user),
     substrate: MemorySubstrateManager = Depends(get_substrate_manager),
 ):
@@ -105,6 +106,7 @@ async def create_memory(
             meta=memory_data.meta,
             user_id=current_user["user_id"],
             context_id=memory_data.context_id,
+            bearer_token=request.headers.get("authorization"),
         )
 
         return MemoryResponse(**result)
@@ -117,6 +119,7 @@ async def create_memory(
 @router.post("/memories/search", response_model=List[MemoryResponse])
 async def search_memories(
     query_data: MemoryQuery,
+    request: Request,
     current_user: dict = Depends(get_current_user),
     substrate: MemorySubstrateManager = Depends(get_substrate_manager),
 ):
@@ -127,6 +130,7 @@ async def search_memories(
             k=query_data.k,
             user_id=current_user["user_id"],
             context_id=query_data.context_id,
+            bearer_token=request.headers.get("authorization"),
         )
 
         return [MemoryResponse(**result) for result in results]
@@ -141,6 +145,7 @@ async def list_memories(
     limit: int = Query(100, ge=1, le=1000, description="Number of memories to return"),
     offset: int = Query(0, ge=0, description="Number of memories to skip"),
     context_id: Optional[str] = Query(None, description="Filter by context ID"),
+    request: Request,
     current_user: dict = Depends(get_current_user),
     substrate: MemorySubstrateManager = Depends(get_substrate_manager),
 ):
@@ -151,6 +156,7 @@ async def list_memories(
             context_id=context_id,
             limit=limit,
             offset=offset,
+            bearer_token=request.headers.get("authorization"),
         )
 
         return [MemoryResponse(**result) for result in results]
@@ -163,12 +169,17 @@ async def list_memories(
 @router.delete("/memories/{memory_id}", status_code=204)
 async def delete_memory(
     memory_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user),
     substrate: MemorySubstrateManager = Depends(get_substrate_manager),
 ):
     """Delete a memory by ID with automatic failover"""
     try:
-        success = await substrate.delete(memory_id=memory_id, user_id=current_user["user_id"])
+        success = await substrate.delete(
+            memory_id=memory_id,
+            user_id=current_user["user_id"],
+            bearer_token=request.headers.get("authorization"),
+        )
 
         if not success:
             raise HTTPException(status_code=404, detail="Memory not found")

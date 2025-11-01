@@ -114,6 +114,7 @@ class MemorySubstrateManager:
         meta: Optional[Dict[str, Any]] = None,
         user_id: Optional[int] = None,
         context_id: Optional[str] = None,
+        bearer_token: Optional[str] = None,
         retry_fallbacks: bool = True,
     ) -> Dict[str, Any]:
         """Store memory with automatic failover"""
@@ -131,7 +132,13 @@ class MemorySubstrateManager:
 
             try:
                 start_time = datetime.now(timezone.utc)
-                result = await provider.remember(text=text, meta=meta, user_id=user_id, context_id=context_id)
+                result = await provider.remember(
+                    text=text,
+                    meta=meta,
+                    user_id=user_id,
+                    context_id=context_id,
+                    bearer_token=bearer_token,
+                )
 
                 # Update health metrics
                 response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
@@ -162,6 +169,7 @@ class MemorySubstrateManager:
         k: int = 5,
         user_id: Optional[int] = None,
         context_id: Optional[str] = None,
+        bearer_token: Optional[str] = None,
         retry_fallbacks: bool = True,
     ) -> List[Dict[str, Any]]:
         """Recall memories with automatic failover"""
@@ -179,7 +187,13 @@ class MemorySubstrateManager:
 
             try:
                 start_time = datetime.now(timezone.utc)
-                results = await provider.recall(query=query, k=k, user_id=user_id, context_id=context_id)
+                results = await provider.recall(
+                    query=query,
+                    k=k,
+                    user_id=user_id,
+                    context_id=context_id,
+                    bearer_token=bearer_token,
+                )
 
                 # Update health metrics
                 response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
@@ -211,6 +225,7 @@ class MemorySubstrateManager:
         self,
         memory_id: str,
         user_id: Optional[int] = None,
+        bearer_token: Optional[str] = None,
         retry_fallbacks: bool = True,
     ) -> bool:
         """Delete memory with automatic failover"""
@@ -229,7 +244,7 @@ class MemorySubstrateManager:
 
             try:
                 start_time = datetime.now(timezone.utc)
-                success = await provider.delete(id=memory_id, user_id=user_id)
+                success = await provider.delete(id=memory_id, user_id=user_id, bearer_token=bearer_token)
 
                 # Update health metrics
                 response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
@@ -255,6 +270,7 @@ class MemorySubstrateManager:
         context_id: Optional[str] = None,
         limit: int = 100,
         offset: int = 0,
+        bearer_token: Optional[str] = None,
         retry_fallbacks: bool = True,
     ) -> List[Dict[str, Any]]:
         """List memories with automatic failover"""
@@ -273,7 +289,11 @@ class MemorySubstrateManager:
             try:
                 start_time = datetime.now(timezone.utc)
                 results = await provider.list_memories(
-                    user_id=user_id, context_id=context_id, limit=limit, offset=offset
+                    user_id=user_id,
+                    context_id=context_id,
+                    limit=limit,
+                    offset=offset,
+                    bearer_token=bearer_token,
                 )
 
                 # Update health metrics

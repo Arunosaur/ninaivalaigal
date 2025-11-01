@@ -301,6 +301,15 @@ class DatabaseManager:
         # PostgreSQL connection with pool settings
         self.engine = create_engine(database_url, pool_pre_ping=True)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+        
+        # Install tenancy guard for automatic organization isolation (US#117)
+        try:
+            from server.security.orm.tenancy_guard import install_tenancy_guard
+            install_tenancy_guard(self.engine, enforce_context=True)
+            print("✅ Tenancy Guard installed - automatic organization isolation enabled")
+        except Exception as e:
+            print(f"⚠️  Warning: Could not install Tenancy Guard: {e}")
+        
         self.create_tables()
 
     def create_tables(self):

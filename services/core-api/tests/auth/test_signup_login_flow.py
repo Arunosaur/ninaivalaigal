@@ -122,7 +122,7 @@ class TestAuthenticateUser:
         self.user = SimpleNamespace(
             id=uuid4(),
             email="test@example.com",
-            password_hash=password_utils.hash_password("correct_password"),  # pragma: allowlist secret
+            password_hash=password_utils.hash_password(password),  # pragma: allowlist secret
             is_active=True,
             name="Person",
             account_type="individual",

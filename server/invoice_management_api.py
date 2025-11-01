@@ -13,37 +13,22 @@ Complete invoice generation, tax handling, and billing cycle management
 
 import os
 from datetime import datetime, timedelta
-from io import BytesIO
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 import stripe
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-# PDF generation imports
-try:
-    from reportlab.lib import colors
-    from reportlab.lib.enums import TA_CENTER
-    from reportlab.lib.pagesizes import letter
-    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-    from reportlab.lib.units import inch
-    from reportlab.platypus import (
-        Paragraph,
-        SimpleDocTemplate,
-        Spacer,
-        Table,
-        TableStyle,
-    )
-
-    REPORTLAB_AVAILABLE = True
-except ImportError:
-    REPORTLAB_AVAILABLE = False
-
 from auth import get_current_user, get_db
 from database import Team, User
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from models.standalone_teams import StandaloneTeamManager, TeamMembership
+from pydantic import BaseModel
+from services import InvoicingService, TaxCalculator
+from sqlalchemy.orm import Session
+
+# Shared invoicing services (US#237-243: SPEC-027/028 refactoring complete)
+# Always use shared services - legacy code removed
+tax_calculator = TaxCalculator()
+invoicing_service = InvoicingService(tax_calculator=tax_calculator)
 
 # Initialize Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "sk_test_...")
@@ -134,14 +119,7 @@ def get_team_manager() -> StandaloneTeamManager:
     return StandaloneTeamManager()
 
 
-def calculate_tax(subtotal: float, tax_settings: TaxSettings) -> float:
-    """Calculate tax amount based on settings"""
-    if tax_settings.is_tax_inclusive:
-        # Tax is already included in the subtotal
-        return subtotal * (tax_settings.tax_rate / (100 + tax_settings.tax_rate))
-    else:
-        # Tax is additional to subtotal
-        return subtotal * (tax_settings.tax_rate / 100)
+# calculate_tax() removed - use tax_calculator.calculate() directly (US#243)
 
 
 def generate_invoice_number() -> str:
@@ -152,190 +130,48 @@ def generate_invoice_number() -> str:
 
 
 def create_pdf_invoice(invoice: Invoice, tax_settings: Optional[TaxSettings] = None) -> bytes:
-    """Generate PDF invoice using ReportLab"""
-    if not REPORTLAB_AVAILABLE:
-        raise HTTPException(
-            status_code=500,
-            detail="PDF generation not available. Install reportlab package.",
-        )
+    """
+    Generate PDF invoice using shared InvoicingService (US#237-243)
 
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5 * inch)
-
-    # Styles
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        "CustomTitle",
-        parent=styles["Heading1"],
-        fontSize=24,
-        spaceAfter=30,
-        alignment=TA_CENTER,
-        textColor=colors.HexColor("#2563eb"),
-    )
-
-    heading_style = ParagraphStyle(
-        "CustomHeading",
-        parent=styles["Heading2"],
-        fontSize=14,
-        spaceAfter=12,
-        textColor=colors.HexColor("#1f2937"),
-    )
-
-    # Build PDF content
-    content = []
-
-    # Header
-    content.append(Paragraph("INVOICE", title_style))
-    content.append(Spacer(1, 20))
-
-    # Company and invoice info
-    company_info = [
-        ["<b>Ninaivalaigal</b>", f"<b>Invoice #:</b> {invoice.invoice_number}"],
-        [
-            "Memory Management Platform",
-            f"<b>Issue Date:</b> {invoice.issue_date.strftime('%B %d, %Y')}",
+    This is a wrapper function that transforms Invoice model to dict format
+    and calls the shared InvoicingService. All PDF generation is now centralized.
+    """
+    invoice_data = {
+        "invoice_number": invoice.invoice_number,
+        "issue_date": invoice.issue_date,
+        "created_at": invoice.issue_date,
+        "due_date": invoice.due_date,
+        "team_name": invoice.team_name,
+        "billing_email": invoice.billing_email,
+        "team_id": str(invoice.team_id),
+        "period_start": invoice.period_start,
+        "period_end": invoice.period_end,
+        "line_items": [
+            {
+                "description": item.description,
+                "quantity": item.quantity,
+                "unit_price": item.unit_price,
+                "total_price": item.total_price,
+                "period_start": item.period_start,
+                "period_end": item.period_end,
+            }
+            for item in invoice.line_items
         ],
-        [
-            "support@ninaivalaigal.com",
-            f"<b>Due Date:</b> {invoice.due_date.strftime('%B %d, %Y')}",
-        ],
-        [
-            "",
-            (
-                f"<b>Period:</b> {invoice.period_start.strftime('%b %d')} - "
-                f"{invoice.period_end.strftime('%b %d, %Y')}"
-            ),
-        ],
-    ]
+        "subtotal": invoice.subtotal,
+        "tax_amount": invoice.tax_amount,
+        "total_amount": invoice.total_amount,
+        "status": invoice.status,
+        "paid_date": invoice.paid_date,
+    }
 
-    company_table = Table(company_info, colWidths=[3 * inch, 3 * inch])
-    company_table.setStyle(
-        TableStyle(
-            [
-                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-            ]
-        )
-    )
-    content.append(company_table)
-    content.append(Spacer(1, 30))
+    tax_settings_dict = None
+    if tax_settings:
+        tax_settings_dict = {
+            "tax_name": tax_settings.tax_name,
+            "tax_rate": tax_settings.tax_rate,
+        }
 
-    # Bill to
-    content.append(Paragraph("<b>Bill To:</b>", heading_style))
-    bill_to_info = [
-        [invoice.team_name],
-        [invoice.billing_email],
-        [f"Team ID: {str(invoice.team_id)[:8]}..."],
-    ]
-
-    bill_to_table = Table(bill_to_info, colWidths=[6 * inch])
-    bill_to_table.setStyle(
-        TableStyle(
-            [
-                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]
-        )
-    )
-    content.append(bill_to_table)
-    content.append(Spacer(1, 20))
-
-    # Line items
-    content.append(Paragraph("<b>Services:</b>", heading_style))
-
-    line_items_data = [["Description", "Period", "Quantity", "Unit Price", "Total"]]
-
-    for item in invoice.line_items:
-        period_str = f"{item.period_start.strftime('%m/%d')} - " f"{item.period_end.strftime('%m/%d/%Y')}"
-        line_items_data.append(
-            [
-                item.description,
-                period_str,
-                str(item.quantity),
-                f"${item.unit_price:.2f}",
-                f"${item.total_price:.2f}",
-            ]
-        )
-
-    line_items_table = Table(
-        line_items_data,
-        colWidths=[2.5 * inch, 1.5 * inch, 0.8 * inch, 1 * inch, 1 * inch],
-    )
-    line_items_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f3f4f6")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#374151")),
-                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                ("ALIGN", (2, 0), (-1, -1), "RIGHT"),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 9),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-                ("GRID", (0, 0), (-1, -1), 1, colors.HexColor("#e5e7eb")),
-            ]
-        )
-    )
-    content.append(line_items_table)
-    content.append(Spacer(1, 20))
-
-    # Totals
-    totals_data = [["", "", "", "Subtotal:", f"${invoice.subtotal:.2f}"]]
-
-    if invoice.tax_amount > 0:
-        tax_label = tax_settings.tax_name if tax_settings else "Tax"
-        totals_data.append(["", "", "", f"{tax_label}:", f"${invoice.tax_amount:.2f}"])
-
-    totals_data.append(["", "", "", "<b>Total:</b>", f"<b>${invoice.total_amount:.2f}</b>"])
-
-    totals_table = Table(totals_data, colWidths=[2.5 * inch, 1.5 * inch, 0.8 * inch, 1 * inch, 1 * inch])
-    totals_table.setStyle(
-        TableStyle(
-            [
-                ("ALIGN", (3, 0), (-1, -1), "RIGHT"),
-                ("FONTNAME", (0, 0), (-1, -2), "Helvetica"),
-                ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                ("LINEABOVE", (3, -1), (-1, -1), 2, colors.HexColor("#374151")),
-            ]
-        )
-    )
-    content.append(totals_table)
-    content.append(Spacer(1, 30))
-
-    # Payment info
-    if invoice.status == "paid" and invoice.paid_date:
-        content.append(
-            Paragraph(
-                f"<b>Payment Status:</b> Paid on {invoice.paid_date.strftime('%B %d, %Y')}",
-                styles["Normal"],
-            )
-        )
-    else:
-        content.append(
-            Paragraph(
-                "<b>Payment Terms:</b> Payment is due within 30 days of invoice date.",
-                styles["Normal"],
-            )
-        )
-
-    content.append(Spacer(1, 10))
-    content.append(
-        Paragraph(
-            "Thank you for your business! For questions about this invoice, " "contact support@ninaivalaigal.com",
-            styles["Normal"],
-        )
-    )
-
-    # Build PDF
-    doc.build(content)
-    buffer.seek(0)
-    return buffer.getvalue()
+    return invoicing_service.generate_pdf(invoice_data, tax_settings_dict)
 
 
 @router.post("/generate")
@@ -410,11 +246,15 @@ async def generate_invoice(
     # Calculate totals
     subtotal = sum(item.total_price for item in line_items)
 
-    # Get tax settings
+    # Get tax settings and calculate tax using shared TaxCalculator service (US#237-243)
     tax_settings = tax_settings_db.get(str(team_id))
     tax_amount = 0.0
     if tax_settings:
-        tax_amount = calculate_tax(subtotal, tax_settings)
+        tax_amount = tax_calculator.calculate(
+            subtotal=subtotal,
+            tax_rate=tax_settings.tax_rate / 100.0,  # Convert percentage to decimal
+            is_tax_inclusive=tax_settings.is_tax_inclusive,
+        )
 
     total_amount = subtotal + tax_amount
 

@@ -193,6 +193,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add tenant isolation middleware (US#117: ORM Guardrails)
+try:
+    from server.security.orm.tenancy_guard import create_tenant_middleware
+    tenant_middleware = create_tenant_middleware()
+    app.middleware("http")(tenant_middleware)
+    logger.info("✅ Tenant isolation middleware installed")
+except Exception as e:
+    logger.warning(f"⚠️  Could not install tenant middleware: {e}")
+
 # Add custom middleware - ALL DISABLED FOR DEBUGGING
 # app.middleware("http")(rate_limit_middleware)
 # app.middleware("http")(rbac_middleware)  # THIS WAS BLOCKING - NOT ASYNC!

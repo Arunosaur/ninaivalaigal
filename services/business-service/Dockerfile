@@ -1,48 +1,45 @@
+# syntax=docker/dockerfile:1
 # SPDX-License-Identifier: Elastic-2.0
-# Copyright (c) 2025 Medhasys LLC
-#
-# Business Service Dockerfile - SPEC-100 Compliant
-# Handles billing, analytics, and business intelligence
+# Business Service Dockerfile - SPEC-100 compliant container image
 
-FROM python:3.11-slim
+FROM python:3.11-slim AS runtime
 
-# Set working directory
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    postgresql-client \
+# Install system dependencies required for build/runtime
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy shared contracts FIRST (SPEC-100 Task #79)
+# Copy shared contracts first for better caching
 COPY shared/contracts /app/shared/contracts
-
-# Install shared contracts package
 RUN pip install --no-cache-dir -e /app/shared/contracts
 
-# Copy requirements and install Python dependencies
-COPY services/business-service/requirements.txt .
+# Install service dependencies
+COPY services/business-service/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy shared directory
+# Copy shared libs and service code
 COPY shared/ /app/shared/
-
-# Copy service code
 COPY services/business-service/ /app/
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV SERVICE_ROLE=business-service
-ENV PORT=8000
-ENV PYTHONPATH=/app:/app/shared/contracts
+# Create non-root user aligned with containerization standard
+RUN addgroup --system nina && adduser --system --ingroup nina nina
 
-# Expose port
-EXPOSE 8000
+ENV SERVICE_ROLE=business-service \
+    PORT=13391 \
+    PYTHONPATH=/app:/app/shared/contracts
 
-# Health check
+# Expose canonical port from config/ports.nv.yaml
+EXPOSE 13391
+
+# Health check using Python stdlib (no extra deps required)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:13391/health')"
 
-# Run the service
+USER nina
+
 CMD ["python", "main.py"]

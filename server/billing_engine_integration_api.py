@@ -11,25 +11,32 @@ SPEC-027: Billing Engine Integration
 Complete payment infrastructure with Stripe integration, webhook processing, and automated billing
 """
 
-import io
+# io import no longer needed - handled by shared InvoicingService (US#243)
 import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 import stripe
-from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+
+# ReportLab imports no longer needed - PDF generation handled by shared InvoicingService (US#243)
 from sqlalchemy.orm import Session
 from standalone_teams_billing_api import (
     apply_discount_to_amount,
     billing_plans,
     deduct_team_credits,
 )
+
+from auth import get_current_user, get_db
+from services import InvoicingService, TaxCalculator
+
+# Shared invoicing services (US#237-243: SPEC-027/028 refactoring complete)
+# Always use shared services - legacy code removed
+tax_calculator = TaxCalculator()
+invoicing_service = InvoicingService(tax_calculator=tax_calculator)
 
 # Initialize router
 router = APIRouter(prefix="/billing-engine", tags=["billing"])
@@ -151,80 +158,39 @@ def get_stripe_customer_id(team_id: str) -> Optional[str]:
     return stripe_customers_store.get(team_id, {}).get("stripe_customer_id")
 
 
-def calculate_tax_amount(amount: float, tax_rate: float, billing_address: Dict[str, str]) -> float:
-    """Calculate tax amount based on billing address and rate"""
-    # Simplified tax calculation - in production, use tax service like TaxJar
-    if billing_address.get("country") == "US":
-        state_tax_rates = {
-            "CA": 0.0875,  # California
-            "NY": 0.08,  # New York
-            "TX": 0.0625,  # Texas
-            "FL": 0.06,  # Florida
-        }
-        state = billing_address.get("state", "")
-        tax_rate = state_tax_rates.get(state, 0.0)
-
-    return amount * tax_rate
+# calculate_tax_amount() removed - use tax_calculator.calculate_with_address() directly (US#243)
 
 
 def generate_invoice_pdf(invoice_data: Dict[str, Any]) -> bytes:
-    """Generate PDF invoice"""
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
+    """
+    Generate PDF invoice using shared InvoicingService (US#237-243)
 
-    # Header
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(50, height - 50, "ninaivalaigal")
-    p.setFont("Helvetica", 12)
-    p.drawString(50, height - 70, "Memory Management Platform")
+    This is a wrapper function that transforms invoice_data format and calls
+    the shared InvoicingService. All PDF generation is now centralized.
+    """
+    # Transform invoice_data format to match InvoicingService expectations
+    transformed_data = {
+        "invoice_number": invoice_data.get("invoice_number", ""),
+        "created_at": invoice_data.get("created_at", datetime.utcnow()),
+        "issue_date": invoice_data.get("created_at", datetime.utcnow()),
+        "due_date": invoice_data.get("due_date", datetime.utcnow()),
+        "team_name": invoice_data.get("team_name", ""),
+        "billing_email": invoice_data.get("billing_email", ""),
+        "team_id": invoice_data.get("team_id", ""),
+        "line_items": invoice_data.get("line_items", []),
+        "subtotal": invoice_data.get("subtotal", invoice_data.get("amount_due", 0.0)),
+        "tax_amount": invoice_data.get("tax_amount", 0.0),
+        "total_amount": invoice_data.get("amount_due", 0.0),
+        "status": invoice_data.get("status", "open"),
+    }
 
-    # Invoice details
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, height - 120, f"Invoice #{invoice_data['invoice_number']}")
+    # Add period if available
+    if "billing_period_start" in invoice_data:
+        transformed_data["period_start"] = invoice_data["billing_period_start"]
+    if "billing_period_end" in invoice_data:
+        transformed_data["period_end"] = invoice_data["billing_period_end"]
 
-    p.setFont("Helvetica", 10)
-    p.drawString(50, height - 140, f"Date: {invoice_data['created_at'].strftime('%B %d, %Y')}")
-    p.drawString(50, height - 155, f"Due Date: {invoice_data['due_date'].strftime('%B %d, %Y')}")
-
-    # Customer info
-    p.drawString(50, height - 185, "Bill To:")
-    p.drawString(50, height - 200, f"Team: {invoice_data['team_name']}")
-    p.drawString(50, height - 215, f"Email: {invoice_data['billing_email']}")
-
-    # Line items
-    y_position = height - 260
-    p.setFont("Helvetica-Bold", 10)
-    p.drawString(50, y_position, "Description")
-    p.drawString(300, y_position, "Quantity")
-    p.drawString(400, y_position, "Rate")
-    p.drawString(500, y_position, "Amount")
-
-    y_position -= 20
-    p.setFont("Helvetica", 10)
-
-    total_amount = 0
-    for item in invoice_data["line_items"]:
-        p.drawString(50, y_position, item["description"])
-        p.drawString(300, y_position, str(item["quantity"]))
-        p.drawString(400, y_position, f"${item['rate']:.2f}")
-        p.drawString(500, y_position, f"${item['amount']:.2f}")
-        total_amount += item["amount"]
-        y_position -= 15
-
-    # Total
-    y_position -= 20
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(400, y_position, f"Total: ${total_amount:.2f}")
-
-    # Footer
-    p.setFont("Helvetica", 8)
-    p.drawString(50, 50, "Thank you for using ninaivalaigal!")
-    p.drawString(50, 35, "Questions? Contact support@ninaivalaigal.com")
-
-    p.save()
-    buffer.seek(0)
-    return buffer.read()
+    return invoicing_service.generate_pdf(transformed_data)
 
 
 def send_invoice_email(invoice_data: Dict[str, Any], pdf_content: bytes):
@@ -519,9 +485,13 @@ async def generate_invoice(
         for code in request.discount_codes:
             discount_amount += subtotal - apply_discount_to_amount(subtotal, code)
 
-    # Calculate tax
+    # Calculate tax using shared TaxCalculator service (US#237-243)
     billing_address = stripe_customers_store.get(request.team_id, {}).get("billing_address", {})
-    tax_amount = calculate_tax_amount(subtotal - discount_amount, request.tax_rate or 0, billing_address)
+    tax_amount = tax_calculator.calculate_with_address(
+        subtotal=subtotal - discount_amount,
+        billing_address=billing_address or {"country": "US"},
+        is_tax_inclusive=False,
+    )
 
     # Apply credits
     total_before_credits = subtotal - discount_amount + tax_amount

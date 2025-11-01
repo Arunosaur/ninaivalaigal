@@ -24,7 +24,7 @@ COPY . .
 # Build static binary (no CGO) and respect target platform when provided.
 ARG TARGETOS=linux
 ARG TARGETARCH=arm64
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \ 
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
   go build -trimpath -ldflags="-s -w" -o /build/grpc-gateway ./
 
 # ============================================================================

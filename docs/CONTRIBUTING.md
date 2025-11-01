@@ -581,6 +581,60 @@ Add any other context, mockups, or examples about the feature request.
 - **Test Examples**: `tests/` directory
 - **Development Scripts**: `scripts/` directory
 
+## 📋 **SPEC Governance & Best Practices**
+
+### **Before Proposing New SPECs or User Stories**
+
+To avoid duplicate work and maintain clean traceability, **always check for existing SPECs and stories** before creating new ones:
+
+#### **Mandatory Pre-Creation Checks**
+
+1. **Search Git History**
+   ```bash
+   git log --grep="SPEC-XXX" --oneline
+   ```
+   Check if the SPEC has recent activity or related work.
+
+2. **Search Taiga**
+   ```bash
+   # In your browser or via Taiga API
+   # Search for: "SPEC-XXX" tag
+   ```
+   Look for existing user stories, epics, or tasks with the SPEC tag.
+
+3. **Check SPEC Cross-References**
+   - Read the target SPEC's README "Related SPECs" section
+   - Verify no overlap with related SPECs (e.g., SPEC-025 ↔ SPEC-030)
+   - Review integration points and dependencies
+
+#### **SPEC Overlap Resolution**
+
+If you find overlap between SPECs:
+
+- ✅ **DO**: Add subtasks or linked stories to existing work items
+- ✅ **DO**: Update SPEC READMEs with explicit cross-references
+- ✅ **DO**: Document the relationship in both SPECs
+- ❌ **DON'T**: Create duplicate SPECs or stories
+- ❌ **DON'T**: Renumber or merge SPECs without discussion
+
+#### **Example: SPEC-025 ↔ SPEC-030**
+
+Both SPECs relate to admin console features:
+- **SPEC-025**: Vendor Admin Console (operational)
+- **SPEC-030**: Admin Analytics Console (business intelligence)
+
+**Resolution**: Keep both SPECs but link them explicitly:
+- Added cross-references in both READMEs
+- Consolidated work under US#155 with SPEC-030 subtasks
+- Documented relationship for future maintainers
+
+### **Why This Matters**
+
+- 🎯 **Prevents Duplication**: Avoids wasted effort on duplicate work
+- 📊 **Maintains Traceability**: Preserves git and Taiga history
+- 🔍 **Improves Discoverability**: Makes relationships clear in future searches
+- 📝 **Honors Existing Work**: Respects previous contributor effort
+
 ## 🎉 **Welcome to the Community!**
 
 We're excited to have you contribute to Ninaivalaigal! Whether you're fixing a small bug, implementing a major feature, or improving documentation, every contribution helps make Ninaivalaigal better for everyone.

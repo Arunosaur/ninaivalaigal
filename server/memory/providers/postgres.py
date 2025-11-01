@@ -45,6 +45,7 @@ class PostgresMemoryProvider:
         meta: Mapping[str, Any] | None = None,
         user_id: str | None = None,
         context_id: str | None = None,
+        bearer_token: str | None = None,
     ) -> MemoryItem:
         """Store a memory item in PostgreSQL"""
         try:
@@ -96,6 +97,7 @@ class PostgresMemoryProvider:
         k: int = 5,
         user_id: str | None = None,
         context_id: str | None = None,
+        bearer_token: str | None = None,
     ) -> Sequence[MemoryItem]:
         """Retrieve memory items by similarity search"""
         try:
@@ -140,7 +142,13 @@ class PostgresMemoryProvider:
         except SQLAlchemyError as e:
             raise MemoryProviderError(f"Failed to recall memories: {e}")
 
-    async def delete(self, *, id: str, user_id: str | None = None) -> bool:
+    async def delete(
+        self,
+        *,
+        id: str,
+        user_id: str | None = None,
+        bearer_token: str | None = None,
+    ) -> bool:
         """Delete a memory item"""
         try:
             with self.SessionLocal() as session:
@@ -167,6 +175,7 @@ class PostgresMemoryProvider:
         context_id: str | None = None,
         limit: int = 100,
         offset: int = 0,
+        bearer_token: str | None = None,
     ) -> Sequence[MemoryItem]:
         """List memory items with pagination"""
         try:

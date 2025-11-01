@@ -39,6 +39,7 @@ class MemoryProvider(Protocol):
         meta: Mapping[str, Any] | None = None,
         user_id: str | None = None,
         context_id: str | None = None,
+        bearer_token: str | None = None,
     ) -> MemoryItem:
         """Store a memory item"""
         ...
@@ -50,11 +51,18 @@ class MemoryProvider(Protocol):
         k: int = 5,
         user_id: str | None = None,
         context_id: str | None = None,
+        bearer_token: str | None = None,
     ) -> Sequence[MemoryItem]:
         """Retrieve memory items by similarity search"""
         ...
 
-    async def delete(self, *, id: str, user_id: str | None = None) -> bool:
+    async def delete(
+        self,
+        *,
+        id: str,
+        user_id: str | None = None,
+        bearer_token: str | None = None,
+    ) -> bool:
         """Delete a memory item"""
         ...
 
@@ -65,6 +73,7 @@ class MemoryProvider(Protocol):
         context_id: str | None = None,
         limit: int = 100,
         offset: int = 0,
+        bearer_token: str | None = None,
     ) -> Sequence[MemoryItem]:
         """List memory items with pagination"""
         ...

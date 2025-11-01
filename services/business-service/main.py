@@ -49,22 +49,29 @@ async def lifespan(app: FastAPI):
     """FastAPI lifespan for proper startup/shutdown"""
     logger.info("🚀 Starting Business Service...")
 
-    # Initialize database from environment variable (REQUIRED - no fallback)
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        logger.error("❌ DATABASE_URL environment variable not set!")
-        logger.error("   Start service with: ./services/business-service/nv-business-service-start.sh")
-        raise ValueError("DATABASE_URL is required")
-    logger.info(f"📊 Database URL: {database_url[:50]}...")
+    skip_db = os.getenv("BUSINESS_SERVICE_SKIP_DB", "false").lower() in {"true", "1", "yes"}
+    db_manager = None
 
-    try:
-        db_manager = DatabaseManager(database_url)
-        app.state.db_manager = db_manager
-        app.state.db = db_manager
-        logger.info("✅ Database connected")
-    except Exception as e:
-        logger.error(f"❌ Database connection failed: {e}")
-        raise
+    if skip_db:
+        logger.warning("BUSINESS_SERVICE_SKIP_DB enabled; skipping database initialization")
+    else:
+        # Initialize database from environment variable (REQUIRED when skip flag is false)
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            logger.error("❌ DATABASE_URL environment variable not set!")
+            logger.error("   Start service with: ./scripts/nv-business-service-start.sh or export DATABASE_URL")
+            raise ValueError("DATABASE_URL is required when BUSINESS_SERVICE_SKIP_DB is false")
+        logger.info(f"📊 Database URL: {database_url[:50]}...")
+
+        try:
+            db_manager = DatabaseManager(database_url)
+            logger.info("✅ Database connected")
+        except Exception as e:
+            logger.error(f"❌ Database connection failed: {e}")
+            raise
+
+    app.state.db_manager = db_manager
+    app.state.db = db_manager
 
     logger.info("✅ Business Service started successfully")
 
@@ -130,12 +137,12 @@ app.include_router(timeline_api.router)
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", "8002"))  # Business Service on port 8002
+    port = int(os.getenv("PORT", "13391"))  # Business Service canonical port
     print("=" * 60)
     print("🏢 BUSINESS SERVICE - SPEC-100 Modularization")
     print("=" * 60)
-    print(f"📍 Health: http://localhost:{port}/health")
-    print(f"📍 Ready:  http://localhost:{port}/ready")
+    print(f"📍 Health:  http://localhost:{port}/health")
+    print(f"📍 Ready:   http://localhost:{port}/ready")
     print(f"📍 Metrics: http://localhost:{port}/metrics")
     print("📋 Phase 1: Health and metrics endpoints only")
     print("=" * 60)

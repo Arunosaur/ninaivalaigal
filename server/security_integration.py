@@ -14,6 +14,7 @@ Integrates the security middleware with existing RBAC system and FastAPI applica
 
 import os
 
+import structlog
 from fastapi import FastAPI, Request
 from rbac_middleware import RBACContext
 from security import RedactionEngine, SecurityHeadersMiddleware
@@ -48,8 +49,18 @@ class SecurityManager:
         else:
             app.add_middleware(SecurityHeadersMiddleware)
 
-        # Add Redis-backed rate limiting middleware (production-ready)
-        app.add_middleware(RedisRateLimiterMiddleware, limit=100, window=60)
+        # Add enhanced RBAC-aware rate limiting middleware (P0 Security)
+        # Falls back to Redis rate limiter if enhanced limiter unavailable
+        try:
+            from security.middleware.rate_limiting import RateLimitMiddleware
+            app.add_middleware(RateLimitMiddleware)
+            logger = structlog.get_logger(__name__)
+            logger.info("✅ Enhanced RBAC-aware rate limiting enabled")
+        except Exception as e:
+            # Fallback to Redis rate limiter if enhanced limiter fails
+            app.add_middleware(RedisRateLimiterMiddleware, limit=100, window=60)
+            logger = structlog.get_logger(__name__)
+            logger.warning(f"⚠️  Using fallback Redis rate limiter: {e}")
 
         # Add redaction middleware (disabled for now - causing response body issues)
         # app.add_middleware(RedactionMiddleware, enabled=redaction_config.enabled)
