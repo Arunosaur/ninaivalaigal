@@ -1,0 +1,146 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 Medhasys LLC
+#
+# Monthly SPEC Audit Automation
+# Runs on the 1st of each month to audit SPEC index and generate status report
+name: Monthly SPEC Audit
+
+on:
+  # Schedule: Run on the 1st of each month at 9:00 AM UTC
+  schedule:
+    - cron: '0 9 1 * *'
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      force_month:
+        description: 'Force specific month (YYYY-MM)'
+        required: false
+        type: string
+
+jobs:
+  monthly-audit:
+    name: Monthly SPEC Audit & Report
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Add any required dependencies here if needed
+          # Currently audit scripts use only standard library
+
+      - name: Run SPEC Index Audit
+        id: audit
+        run: |
+          echo "🔍 Running SPEC index audit..."
+          python3 scripts/audit_spec_index.py
+          echo "audit_exit=$?" >> $GITHUB_OUTPUT
+
+      - name: Generate Monthly Report
+        id: report
+        if: steps.audit.outputs.audit_exit == '0'
+        run: |
+          echo "📊 Generating monthly SPEC status report..."
+          python3 scripts/generate_monthly_spec_report.py
+          echo "report_exit=$?" >> $GITHUB_OUTPUT
+
+      - name: Determine Report Month
+        id: month
+        run: |
+          if [ -n "${{ github.event.inputs.force_month }}" ]; then
+            MONTH="${{ github.event.inputs.force_month }}"
+          else
+            MONTH=$(date +%Y-%m)
+          fi
+          echo "month=$MONTH" >> $GITHUB_OUTPUT
+          echo "📅 Report month: $MONTH"
+
+      - name: Upload Audit Report
+        if: steps.audit.outputs.audit_exit == '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: spec-audit-${{ steps.month.outputs.month }}
+          path: |
+            governance/reports/SPEC_INDEX_AUDIT_*.md
+          retention-days: 90
+
+      - name: Upload Monthly Status Report
+        if: steps.report.outputs.report_exit == '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: spec-monthly-report-${{ steps.month.outputs.month }}
+          path: |
+            governance/reports/SPEC_STATUS_MONTHLY_*.md
+          retention-days: 365
+
+      - name: Create Summary Comment
+        if: steps.report.outputs.report_exit == '0'
+        run: |
+          REPORT_FILE="governance/reports/SPEC_STATUS_MONTHLY_${{ steps.month.outputs.month }}.md"
+          if [ -f "$REPORT_FILE" ]; then
+            echo "## 📊 Monthly SPEC Audit Summary - ${{ steps.month.outputs.month }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            grep -E "^\*\*Total SPECs\*\*|\*\*✅ Complete\*\*|\*\*🚧 In Progress\*\*|\*\*📋 Planned\*\*|\*\*Health Score\*\*" "$REPORT_FILE" | head -6 >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📄 Full report: [$REPORT_FILE](/$REPORT_FILE)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Commit Reports (if changed)
+        if: steps.report.outputs.report_exit == '0'
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add governance/reports/SPEC_INDEX_AUDIT_*.md governance/reports/SPEC_STATUS_MONTHLY_*.md || true
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs(governance): automated monthly SPEC audit and report (${{ steps.month.outputs.month }})" || true
+            git push || true
+          fi
+
+      - name: Health Score Check
+        if: steps.report.outputs.report_exit == '0'
+        run: |
+          REPORT_FILE="governance/reports/SPEC_STATUS_MONTHLY_${{ steps.month.outputs.month }}.md"
+          if [ -f "$REPORT_FILE" ]; then
+            HEALTH_SCORE=$(grep -oP '\*\*Health Score\*\*: \K\d+' "$REPORT_FILE" | head -1 || echo "0")
+            echo "health_score=$HEALTH_SCORE" >> $GITHUB_OUTPUT
+            
+            if [ "$HEALTH_SCORE" -lt 70 ]; then
+              echo "⚠️ Health score is below 70: $HEALTH_SCORE/100"
+              echo "::warning::SPEC health score is below target (70/100)"
+            fi
+            
+            if [ "$HEALTH_SCORE" -lt 60 ]; then
+              echo "🚨 Health score is critically low: $HEALTH_SCORE/100"
+              echo "::error::SPEC health score is critically low (below 60/100)"
+              exit 1
+            fi
+          fi
+
+      - name: Report Summary
+        if: always()
+        run: |
+          echo "## ✅ Monthly SPEC Audit Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Audit completed" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.report.outputs.report_exit }}" == "0" ]; then
+            echo "- ✅ Monthly report generated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ Monthly report generation failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📅 Next run: 1st of next month at 9:00 AM UTC" >> $GITHUB_STEP_SUMMARY
+
