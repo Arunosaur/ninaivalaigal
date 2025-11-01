@@ -108,7 +108,27 @@ eM attachments delete --attachment att-xyz456
 
 ---
 
+## 📋 Related SPECs
+
+- **SPEC-077**: Multimodal Memory Capture (shares file upload infrastructure)
+- **SPEC-001**: Core Memory System (storage foundation)
+- **SPEC-008**: Security Middleware (file upload security)
+- **SPEC-043**: Access Control ACL (attachment visibility)
+
+## 🔗 Integration Notes
+
+**SPEC-032 and SPEC-077 share file upload and storage infrastructure:**
+
+- **SPEC-032** enriches existing memories with attachments
+- **SPEC-077** creates new memories from media inputs
+- Both rely on **EPIC#022** – File Upload & Storage Infrastructure
+
+This ensures consistent compliance and scalability.
+
+---
+
 ## 📦 Location
 
 - Path: `specs/032-memory-attachments/`
 - Status: 📋 PLANNED
+- Tracked in: US#267 (EPIC#022)

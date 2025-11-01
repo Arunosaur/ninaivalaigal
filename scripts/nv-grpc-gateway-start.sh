@@ -41,7 +41,9 @@ fi
 NINA_ENV="${NINA_ENV:-dev}"
 IMAGE_NAME="${IMAGE_NAME:-ninaivalaigal-grpc-gateway:arm64}"
 CONTAINER_NAME="ninaivalaigal-${NINA_ENV}-grpc-gateway"
-CONTAINER_PORT=8080
+# Standard: gRPC gateway binds to canonical port 13395 inside container
+# See: config/ports.nv.yaml and docs/standards/CONTAINERIZATION_STANDARD.md
+CONTAINER_PORT=13395
 HOST_PORT=${GATEWAY_HOST_PORT:-13395}
 
 HOST_IP=${HOST_SERVICE_IP:-$(detect_host_ip)}

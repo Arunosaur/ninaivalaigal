@@ -2,14 +2,27 @@
 {}
 ---
 
+# ⚠️ SPEC-066: DEPRECATED - SEE SPEC-026
 
+**❌ DEPRECATION NOTICE**: This SPEC has been **deprecated** as of **October 31, 2025**.
 
+**Reason**: Duplicate of [SPEC-026: Standalone Teams and Billing](/specs/026-standalone-teams-billing/)
 
-# SPEC-066: Standalone Team Accounts
+**Redirect**: All standalone team and billing work is now tracked under **SPEC-026**.
 
-**Status**: 📋 **PLANNED** - Ready for Implementation
-**Priority**: High (Enables SaaS Monetization Pipeline)
+**Action Required**: 
+- ✅ Use [SPEC-026](/specs/026-standalone-teams-billing/spec.md) as the authoritative specification
+- ✅ Reference SPEC-026 in all future documentation and Taiga stories
+- ✅ Do not implement features from this SPEC - use SPEC-026 instead
+
+---
+
+# ~~SPEC-066: Standalone Team Accounts~~ (DEPRECATED)
+
+**Status**: ❌ **DEPRECATED** (Was: Planned)
+**Priority**: N/A (Replaced by SPEC-026)
 **Created**: 2024-09-23
+**Deprecated**: 2025-10-31
 **Authors**: Arun Rajagopalan
 
 ## Title:

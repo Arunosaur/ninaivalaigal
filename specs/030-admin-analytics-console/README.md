@@ -52,6 +52,15 @@ Business intelligence dashboard for platform operators with system-wide analytic
 
 ## Related SPECs
 
+- SPEC-025: Vendor Admin Console ⚠️ **Shares vendor admin metrics interface with SPEC-025 (see US#155)**
 - SPEC-068: Comprehensive UI Suite
 - SPEC-070: Real-Time Monitoring Dashboard
 - SPEC-029: Usage Analytics & Reporting
+- SPEC-026: Standalone Teams & Billing (data source)
+- SPEC-027: Billing Engine Integration (data source)
+
+## Dependencies
+
+**Shares vendor admin metrics interface with SPEC-025 (see US#155).**
+
+This SPEC provides the analytics/BI layer while SPEC-025 provides the operational/admin layer. Both are being consolidated under US#155 to avoid duplication.

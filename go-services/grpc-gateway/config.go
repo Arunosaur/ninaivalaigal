@@ -29,7 +29,9 @@ var (
 
 func init() {
 	GatewayHost = getEnv("GATEWAY_HOST", "0.0.0.0")
-	port := sanitizePort(getEnv("GATEWAY_PORT", "8080"))
+	// Standard: gRPC gateway binds to canonical port 13395 inside container
+	// See: config/ports.nv.yaml and docs/standards/CONTAINERIZATION_STANDARD.md
+	port := sanitizePort(getEnv("GATEWAY_PORT", "13395"))
 	GatewayPort = ":" + port
 	GatewayAddr = fmt.Sprintf("%s:%s", GatewayHost, port)
 
@@ -54,7 +56,7 @@ func sanitizePort(port string) string {
 	trimmed := strings.TrimSpace(port)
 	trimmed = strings.TrimPrefix(trimmed, ":")
 	if trimmed == "" {
-		return "8080"
+		return "13395"
 	}
 	return trimmed
 }

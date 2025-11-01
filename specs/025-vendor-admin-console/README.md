@@ -168,10 +168,16 @@ ALTER TABLE users ADD COLUMN vendor_role VARCHAR(20);
 - **SPEC-009:** RBAC Policy Enforcement (vendor_admin role)
 - **SPEC-018:** API Health Monitoring (system health integration)
 - **SPEC-101:** Unified Observability (usage metrics)
-- **SPEC-026-030:** Billing & Analytics (future integration)
+- **SPEC-026:** Standalone Teams & Billing (data source for analytics)
+- **SPEC-027:** Billing Engine Integration (data source for revenue metrics)
+- **SPEC-030:** Admin Analytics Console ⚠️ **Linked with SPEC-030 for billing & analytics integration (tracked in US#155 subtasks)**
+
+### Integration / Future Work
+- Linked with SPEC-030 for billing & analytics integration (tracked in US#155 subtasks)
+- Shares vendor admin metrics interface with SPEC-030 (see US#155)
 
 ### Taiga Tracking
-- **US#155:** SPEC-025 Vendor Admin Console Implementation
+- **US#155:** SPEC-025 Vendor Admin Console Implementation (includes SPEC-030 consolidation subtasks)
 
 ---
 

@@ -70,6 +70,21 @@ Advanced memory capture system that supports audio, video, image, and document i
 - **SPEC-038**: Memory Token Preloading (processing optimization)
 - **SPEC-033**: Redis Integration (caching and queuing)
 
+## Related SPECs
+
+- **SPEC-032**: Memory Attachments (shared infrastructure)
+- **SPEC-001**: Core Memory System
+- **SPEC-008**: Security Middleware
+- **SPEC-043**: Access Control ACL
+
+## Integration Notes
+
+**SPEC-077 and SPEC-032 use the same underlying file upload and storage infrastructure defined in EPIC#022.** SPEC-077 focuses on creation of new memories from media; SPEC-032 focuses on attaching files to existing memories.
+
+- **SPEC-077** creates new memories from media inputs
+- **SPEC-032** enriches existing memories with attachments
+- Both rely on **EPIC#022** – File Upload & Storage Infrastructure
+
 ## Success Criteria
 
 - [ ] Support for 15+ media formats

@@ -74,9 +74,29 @@ score = (
 ---
 
 ## 🔗 Dependencies
-- SPEC-033 (Redis Core)
-- SPEC-045 (Session Management)
-- SPEC-040 (Feedback Loop – future)
+
+- **SPEC-033**: Redis Integration ⚠️ **Required** (caching backend)
+- **SPEC-045**: Session Management (session context)
+- **SPEC-040**: Feedback Loop (future enhancement)
+
+## 📋 Related SPECs
+
+- **SPEC-001**: Core Memory System (memory token foundation)
+- **SPEC-033**: Redis Integration (performance layer)
+- **SPEC-040**: Feedback Loop (score adjustment)
+
+## 🔗 Integration Notes
+
+**SPEC-031 relies on SPEC-033 Redis Integration for:**
+- Relevance score caching (15-minute TTL)
+- Top-N memory caching (1-hour TTL)
+- Score computation results (sub-millisecond retrieval)
+- Key pattern: `relevance:{user_id}:{memory_id}`
+
+**Performance Contract:**
+- Score retrieval: <5ms (Redis cache hit)
+- Score computation + cache: <10ms
+- Top-N retrieval: <5ms (sorted set)
 
 ---
 
