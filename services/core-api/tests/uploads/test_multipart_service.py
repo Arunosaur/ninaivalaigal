@@ -118,6 +118,5 @@ async def test_abort_session_records_state():
     await service.abort_session(session.session_id)
 
     saved = await store.get(session.session_id)
-    assert saved is not None
-    assert saved.status == "aborted"
+    assert saved is None
     assert session.upload_id in backend.aborted

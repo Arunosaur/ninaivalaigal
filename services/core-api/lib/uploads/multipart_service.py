@@ -49,6 +49,14 @@ class MultipartUploadService:
         self._store = store or MultipartUploadSessionStore()
         self._default_part_size = default_part_size
 
+    @property
+    def store(self) -> MultipartUploadSessionStore:
+        return self._store
+
+    @property
+    def backend(self) -> Any:
+        return self._backend
+
     def _resolve_backend(self) -> Any:
         backend = get_default_storage_backend()
         self._validate_backend(backend)
@@ -147,6 +155,21 @@ class MultipartUploadService:
         )
         return url
 
+    async def get_part_upload_url(
+        self,
+        session_id: str,
+        *,
+        part_number: int,
+        expires_in: int | None = None,
+        extra_params: Mapping[str, str] | None = None,
+    ) -> str:
+        return await self.generate_part_upload_url(
+            session_id,
+            part_number,
+            expires_in=expires_in,
+            extra_params=extra_params,
+        )
+
     async def register_uploaded_part(
         self,
         session_id: str,
@@ -167,6 +190,21 @@ class MultipartUploadService:
             etag=etag,
         )
         return session
+
+    async def register_part(
+        self,
+        session_id: str,
+        *,
+        part_number: int,
+        etag: str,
+        size: int | None = None,
+    ) -> MultipartUploadSession:
+        return await self.register_uploaded_part(
+            session_id,
+            part_number=part_number,
+            etag=etag,
+            size=size,
+        )
 
     async def sync_remote_parts(self, session_id: str) -> Iterable[dict[str, Any]]:
         session = await self.get_session(session_id)
@@ -226,7 +264,7 @@ class MultipartUploadService:
             raise
         finally:
             session.mark_aborted()
-            await self._store.save(session)
+            await self._store.delete(session_id)
             logger.debug("multipart session aborted", session_id=session.session_id)
 
     async def delete_session(self, session_id: str) -> None:
@@ -235,6 +273,9 @@ class MultipartUploadService:
     async def get_uploaded_parts(self, session_id: str) -> list[dict[str, Any]]:
         session = await self.get_session(session_id)
         return session.list_parts()
+
+    async def get_status(self, session_id: str) -> MultipartUploadSession:
+        return await self.get_session(session_id)
 
 
 def build_service_from_env() -> MultipartUploadService:

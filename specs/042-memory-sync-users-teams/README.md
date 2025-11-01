@@ -12,6 +12,8 @@
 **Phase**: 3C - Testing Excellence
 **Dependencies**: Phase 2B Foundation, SPEC-021/022 Ops, SPEC-041 Innovation
 
+**Note**: Auth-aware testing was previously referenced under SPEC-034 in SPEC_INDEX.md; it is now fully covered here in SPEC-042 (Enterprise Test Harness). SPEC-034 has been correctly aligned to "Memory Tags and Search Labels" per directory structure.
+
 ## 🎯 Objective
 
 Implement comprehensive auth-aware testing infrastructure that validates multi-user scenarios, role-based access controls, and security policies - completing the technical trifecta for enterprise readiness and partner confidence.
