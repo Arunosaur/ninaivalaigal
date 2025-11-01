@@ -206,9 +206,13 @@ async def health():
 # Import and include SPEC-100 routers
 from routers import health as health_router  # noqa: E402
 from routers import metrics as metrics_router  # noqa: E402
+from lib.observability import memory_health  # noqa: E402
+from lib.api import monitoring_api  # noqa: E402
 
 app.include_router(health_router.router)
 app.include_router(metrics_router.router)
+app.include_router(memory_health.router)
+app.include_router(monitoring_api.router)
 
 # from routers import memory_api  # noqa: E402  # REMOVED - redundant with Rust
 # Import team management routers

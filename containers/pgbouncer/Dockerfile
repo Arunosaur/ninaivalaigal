@@ -21,6 +21,7 @@ RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'auth_file = /etc/pgbouncer/userlist.txt' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'admin_users = postgres' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'pool_mode = ${POOL_MODE}' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'ignore_startup_parameters = extra_float_digits' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'max_client_conn = 100' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'default_pool_size = 20' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'logfile = /var/log/pgbouncer/pgbouncer.log' >> /etc/pgbouncer/pgbouncer.ini.template \

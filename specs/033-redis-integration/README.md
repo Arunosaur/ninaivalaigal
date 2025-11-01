@@ -20,7 +20,7 @@ Provide high-performance caching, session management, rate limiting, and async t
 ## 📊 Use Cases
 
 - **Memory Token Caching**: 1-hour TTL for frequently accessed memories
-- **Relevance Score Caching**: 15-minute TTL for SPEC-031 integration  
+- **Relevance Score Caching**: 15-minute TTL for SPEC-031 integration
 - **Session Storage**: 30-minute TTL for user sessions
 - **Rate Limiting**: Token bucket model per endpoint
 - **Background Task Queuing**: Async job processing
