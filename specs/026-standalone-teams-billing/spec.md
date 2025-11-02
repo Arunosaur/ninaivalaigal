@@ -1,11 +1,11 @@
 # SPEC-026: Standalone Teams and Billing
 
-**Status**: 📋 **PLANNED** - Ready for Implementation  
-**Priority**: High (Completes SaaS Platform Foundation)  
-**Created**: 2024-09-23  
-**Updated**: 2025-10-31  
-**Authors**: Arun Rajagopalan  
-**Epic**: SPEC-026 (Taiga)  
+**Status**: 📋 **PLANNED** - Ready for Implementation
+**Priority**: High (Completes SaaS Platform Foundation)
+**Created**: 2024-09-23
+**Updated**: 2025-10-31
+**Authors**: Arun Rajagopalan
+**Epic**: SPEC-026 (Taiga)
 
 ---
 
@@ -27,7 +27,7 @@ Enable creation and management of teams that are not tied to any parent organiza
 
 Many use cases require collaborative memory management but don't belong to formal organizations:
 - **Small project teams** and working groups
-- **Classroom/student collaborations**  
+- **Classroom/student collaborations**
 - **Informal communities** or non-profits
 - **Startups evaluating** the platform pre-onboarding
 - **Freelancers and contractors** collaborating on projects
@@ -666,7 +666,7 @@ CREATE TABLE team_usage_metrics (
 
 ---
 
-**SPEC Status**: 📋 **PLANNED** (Marked "Complete" in SPEC_INDEX.md erroneously - needs correction)  
-**Implementation**: NOT STARTED  
-**Taiga Epic**: TO BE CREATED  
+**SPEC Status**: 📋 **PLANNED** (Marked "Complete" in SPEC_INDEX.md erroneously - needs correction)
+**Implementation**: NOT STARTED
+**Taiga Epic**: TO BE CREATED
 **Target Start**: Q1 2026

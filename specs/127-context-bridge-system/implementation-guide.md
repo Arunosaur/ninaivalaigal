@@ -11,26 +11,26 @@ These hooks are the primary integration points for the Context Bridge system int
 ```python
 class MemoryProvider:
     """Extended for cross-context fetch"""
-    
+
     async def fetch_cross_context(
-        self, 
-        memory_id: str, 
+        self,
+        memory_id: str,
         source_context: str,
         trust_score: int
     ) -> Memory:
         """
         Fetch memory from another context via bridge
-        
+
         Integration Point: Extends existing e*M interface
         """
         bridge = ContextBridge.get_active(memory_id, source_context)
-        
+
         if not bridge:
             raise NoBridgeError()
-        
+
         if bridge.trust_score < trust_score:
             raise InsufficientTrustError()
-        
+
         if bridge.mode == "reference":
             return bridge.resolve()  # Live fetch
         elif bridge.mode == "clone":
@@ -51,10 +51,10 @@ class ContextBridgeResolver:
     Resolves cross-context references
     Integration: SPEC-063 Reasoner Layer
     """
-    
+
     def __init__(self, reasoner):
         self.reasoner = reasoner  # From SPEC-063
-        
+
     async def resolve_reference(
         self,
         memory_id: str,
@@ -62,7 +62,7 @@ class ContextBridgeResolver:
     ) -> Memory:
         """
         Resolve reference with trust checking
-        
+
         Integrates with:
         - SPEC-043 (ACL)
         - SPEC-063 (Reasoner)
@@ -71,16 +71,16 @@ class ContextBridgeResolver:
         # Check ACL
         if not self.reasoner.check_acl(memory_id, requesting_context):
             raise AccessDeniedError()
-        
+
         # Get trust score
         trust = TrustScoreCalculator().calculate_trust_score(
             source=requesting_context,
             target=Memory.get(memory_id).context_id
         )
-        
+
         # Resolve via bridge
         bridge = ContextBridge.find(memory_id, requesting_context)
-        
+
         if bridge.mode == "reference":
             return await self.resolve_reference_mode(bridge, trust)
         elif bridge.mode == "clone":
@@ -111,14 +111,14 @@ async def create_bridge(
     # Uses existing JWT auth from SPEC-045
     # Uses existing ACL from SPEC-043
     # Uses existing GraphOps from SPEC-061
-    
+
     bridge = await ContextBridgeService.create(
         source_memory_id=request.source_memory_id,
         target_context_id=request.target_context_id,
         mode=request.mode,
         user_id=current_user.id
     )
-    
+
     return bridge.to_dict()
 ```
 
@@ -139,16 +139,16 @@ app.include_router(context_bridge.router)
 # server/memory.py (existing)
 class Memory:
     # ... existing fields ...
-    
+
     # NEW: Cross-context fields
     derived_from: Optional[UUID]  # For clone mode
     bridge_id: Optional[UUID]     # Link to active bridge
-    
+
     @property
     def is_cross_context(self) -> bool:
         """Check if this memory is cross-context"""
         return self.bridge_id is not None
-    
+
     async def resolve_if_reference(self) -> "Memory":
         """
         If this is a reference, resolve to actual memory
@@ -156,7 +156,7 @@ class Memory:
         """
         if not self.is_cross_context:
             return self
-        
+
         bridge = ContextBridge.get(self.bridge_id)
         if bridge.mode == "reference":
             return await bridge.resolve()
@@ -178,11 +178,11 @@ async def get_memory(
     Cross-context resolution happens transparently
     """
     memory = await MemoryService.get(memory_id)
-    
+
     # NEW: Automatic cross-context resolution
     if memory.is_cross_context:
         memory = await memory.resolve_if_reference()
-    
+
     return memory
 ```
 
@@ -205,13 +205,13 @@ Create Date: 2025-10-13 08:00:00
 
 def upgrade() -> None:
     # Add bridge_id to memories table
-    op.add_column('memories', 
+    op.add_column('memories',
         sa.Column('bridge_id', postgresql.UUID(as_uuid=True), nullable=True)
     )
     op.add_column('memories',
         sa.Column('derived_from', postgresql.UUID(as_uuid=True), nullable=True)
     )
-    
+
     # Create context_bridges table
     op.create_table(
         'context_bridges',
@@ -223,10 +223,10 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime, nullable=False),
         # ... more columns from database-schema.md
     )
-    
+
     # Create trust_scores table
     op.create_table('trust_scores', ...)
-    
+
     # Create bridge_access_history table
     op.create_table('bridge_access_history', ...)
 ```
@@ -248,7 +248,7 @@ class ContextBridgeGraph:
     Extends existing Apache AGE schema
     Integration: SPEC-061 (Property Graph)
     """
-    
+
     @staticmethod
     def create_reference_edge(source_mem_id, target_mem_id, trust_score):
         """Create REFERENCES edge in graph"""
@@ -276,7 +276,7 @@ class ContextBridgeGraph:
 
 1. **&lt;50ms traversal latency per bridge edge** (target)
    - Measure: `SELECT AVG(response_time_ms) FROM bridge_access_history`
-   
+
 2. **Full audit via /context-bridge/audit endpoint**
    - Measure: Every access logged
    - Test: `SELECT COUNT(*) FROM bridge_access_history WHERE action='reference_accessed'`
@@ -297,7 +297,7 @@ def test_reference_mode_resolution():
     bridge = ReferenceLink(source_mem_id, target_ctx_id)
     resolved = bridge.resolve()
     assert resolved.id == source_mem_id
-    
+
 def test_trust_score_calculation():
     score = TrustScoreCalculator().calculate_trust_score(ctx_a, ctx_b)
     assert 0 <= score <= 100
@@ -309,10 +309,10 @@ def test_trust_score_calculation():
 async def test_cross_context_memory_fetch():
     # Create bridge
     bridge = await ContextBridgeService.create(...)
-    
+
     # Fetch via bridge
     memory = await MemoryProvider().fetch_cross_context(...)
-    
+
     # Verify audit log
     audit = AuditLog.get_latest()
     assert audit.action == "reference_accessed"
@@ -355,4 +355,3 @@ Performance is a critical success factor for the Context Bridge system. The foll
 - [ ] Audit logging enabled
 - [ ] Performance monitoring active (&lt;50ms target)
 - [ ] Documentation deployed
-

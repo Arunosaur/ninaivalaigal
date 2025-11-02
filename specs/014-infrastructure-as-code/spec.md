@@ -363,3 +363,24 @@ restart_policy = "OnFailure"
 - GitHub Container Registry access for image pulls
 
 This specification ensures ninaivalaigal has professional, repeatable infrastructure deployment capabilities across major cloud providers with proper automation and governance.
+
+---
+
+## Application Requirements
+
+This SPEC defines the infrastructure layer. For application-level features and requirements, see:
+
+**[SPEC-006: User Management, Authentication & Signup](../006-user-signup-system/spec.md)** defines:
+- ✅ User authentication and authorization requirements
+- ✅ Database schema definitions (users, teams, organizations)
+- ✅ API endpoint specifications
+- ✅ Environment variables needed by the application
+- ✅ Session management and JWT configuration
+
+**Integration**: SPEC-014 infrastructure hosts SPEC-006 application code. The infrastructure must support:
+- PostgreSQL database for user/team/org data
+- Redis for session management
+- Container runtime for FastAPI application
+- Environment variables for JWT secrets and database URLs
+
+**See Also**: [SPEC-006 vs SPEC-014 Boundary Verification](../../governance/reports/SPEC_006_014_BOUNDARY_VERIFICATION.md)

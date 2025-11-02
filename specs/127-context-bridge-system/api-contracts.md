@@ -275,4 +275,3 @@ Authorization: Bearer <jwt_token>
 
 - 100 requests per minute per user
 - 1000 federated queries per hour per organization
-

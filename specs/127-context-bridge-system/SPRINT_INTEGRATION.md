@@ -1,6 +1,6 @@
 # SPEC-127 Sprint Integration Summary
 
-**Date**: October 13, 2025 (Monday)  
+**Date**: October 13, 2025 (Monday)
 **Status**: ✅ Added to Developer B's Sprint Tasks
 
 ---
@@ -38,12 +38,12 @@ Based on the Grade A+ feedback, we added:
 - **File**: `trust-scoring.md` (updated)
 - Multi-factor formula documented:
   ```
-  trust = 0.4×org_reputation + 0.3×access_history + 
+  trust = 0.4×org_reputation + 0.3×access_history +
           0.2×policy_alignment + 0.1×recency_decay
   ```
 - Sources specified:
   - org_reputation: ACL registry
-  - access_history: e^M metrics  
+  - access_history: e^M metrics
   - policy_alignment: SPEC-050
   - recency_decay: Internal clock
 
@@ -216,7 +216,6 @@ Based on the Grade A+ feedback, we added:
 
 ---
 
-**Status**: Ready for Developer B's review on Friday Oct 24  
-**Grade**: A+ (Assessment confirmed)  
+**Status**: Ready for Developer B's review on Friday Oct 24
+**Grade**: A+ (Assessment confirmed)
 **Next Milestone**: Sprint demo presentation
-

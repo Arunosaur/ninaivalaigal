@@ -32,8 +32,8 @@ title: Untitled SPEC
 
 **Note**: The section below describes planned future enhancements (Phase 3B). The core "Related Memory Suggestions" functionality is complete and operational.
 
-**Priority**: High (Innovation Showcase)  
-**Phase**: 3B - Advanced Intelligence  
+**Priority**: High (Innovation Showcase)
+**Phase**: 3B - Advanced Intelligence
 **Dependencies**: Phase 2B Bulletproof Foundation, SPEC-021/022 Complete
 
 ### 🎯 Enhancement Objective

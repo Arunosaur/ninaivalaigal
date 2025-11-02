@@ -527,3 +527,20 @@ This SPEC has been significantly enhanced by:
 4. **Security audit** - Review all auth endpoints
 
 **Status:** ✅ **PRODUCTION READY** - All features operational and deployed
+
+---
+
+## Infrastructure Requirements
+
+This SPEC defines the application-level user management features. For infrastructure deployment, see:
+
+**[SPEC-014: Infrastructure as Code](../014-infrastructure-as-code/spec.md)** provides:
+- ✅ Cloud deployment options (AWS ECS, GCP Cloud Run, Azure Container Instances)
+- ✅ Database infrastructure provisioning (RDS, Cloud SQL, Azure Database)
+- ✅ Load balancer and networking setup
+- ✅ Monitoring and logging infrastructure (CloudWatch, Cloud Monitoring, Azure Monitor)
+- ✅ Automated deployment via Terraform
+
+**Integration**: SPEC-006 application code runs on SPEC-014 infrastructure. Both SPECs are required for production deployment.
+
+**See Also**: [SPEC-006 vs SPEC-014 Boundary Verification](../../governance/reports/SPEC_006_014_BOUNDARY_VERIFICATION.md)

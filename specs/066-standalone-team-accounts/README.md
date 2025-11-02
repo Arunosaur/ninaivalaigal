@@ -10,7 +10,7 @@
 
 **Redirect**: All standalone team and billing work is now tracked under **SPEC-026**.
 
-**Action Required**: 
+**Action Required**:
 - ✅ Use [SPEC-026](/specs/026-standalone-teams-billing/spec.md) as the authoritative specification
 - ✅ Reference SPEC-026 in all future documentation and Taiga stories
 - ✅ Do not implement features from this SPEC - use SPEC-026 instead

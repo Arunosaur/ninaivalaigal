@@ -71,7 +71,7 @@ This document defines the standard status values for all SPECs in the Ninaivalai
 
 **Examples**:
 - SPEC-042: Auth-Aware Test Harness → 🚧 In Progress
-- SPEC-076: Pilot Program Expansion → 🚧 In Progress
+- SPEC-076: Visual Narrative Layer → ✅ Complete
 
 ---
 

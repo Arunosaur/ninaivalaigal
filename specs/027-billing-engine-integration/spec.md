@@ -1,11 +1,11 @@
 # SPEC-027: Billing Engine Integration
 
-**Status**: ⚠️ **IMPLEMENTED BUT UNTESTED** (50% Complete)  
-**Priority**: Critical (Revenue Infrastructure)  
-**Created**: 2024-09-20  
-**Updated**: 2025-10-31  
-**Authors**: Arun Rajagopalan  
-**Implementation**: Complete (769 lines)  
+**Status**: ⚠️ **IMPLEMENTED BUT UNTESTED** (50% Complete)
+**Priority**: Critical (Revenue Infrastructure)
+**Created**: 2024-09-20
+**Updated**: 2025-10-31
+**Authors**: Arun Rajagopalan
+**Implementation**: Complete (769 lines)
 **Testing**: None (CRITICAL GAP)
 
 ---
@@ -236,10 +236,10 @@ async def handle_stripe_webhook(request: Request):
     event = stripe.Webhook.construct_event(
         payload, sig_header, webhook_secret
     )
-    
+
     # 2. Process event asynchronously
     background_tasks.add_task(process_payment_webhook, event)
-    
+
     # 3. Return 200 immediately (Stripe requirement)
     return {"received": True}
 ```
@@ -823,9 +823,9 @@ SPEC-027 is the **payment processing engine** for all revenue:
 
 ---
 
-**SPEC Status**: ⚠️ **IMPLEMENTED BUT UNTESTED** (50% Complete)  
-**Implementation**: ✅ Complete (769 lines, 8 endpoints)  
-**Testing**: ❌ None (CRITICAL GAP)  
-**Production Ready**: ❌ NO (needs database, email, tests)  
-**Taiga Epic**: TO BE CREATED (8 testing stories)  
+**SPEC Status**: ⚠️ **IMPLEMENTED BUT UNTESTED** (50% Complete)
+**Implementation**: ✅ Complete (769 lines, 8 endpoints)
+**Testing**: ❌ None (CRITICAL GAP)
+**Production Ready**: ❌ NO (needs database, email, tests)
+**Taiga Epic**: TO BE CREATED (8 testing stories)
 **Next Priority**: Testing & validation (3-4 weeks)

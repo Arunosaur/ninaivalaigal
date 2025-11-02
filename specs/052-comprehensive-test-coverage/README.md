@@ -60,6 +60,29 @@ Add test harness coverage for:
 - **Edge case test scripts** in `/tests/edge/`
 - **Optional**: Fuzzing using **hypothesis** (for memory tokens, session replay, etc.)
 
+## 🔌 IDE Integration Testing
+
+### JetBrains Plugin (Java) - Native Ninaivalaigal Integration
+- **Framework**: JUnit 5 + Mockito
+- **Coverage Target**: 70%+ for Java plugin code
+- **Integration**: Connects to **native ninaivalaigal MCP server** (not legacy mem0)
+- **Plugin Architecture**: Thin MCP client wrapper around ninaivalaigal's native server
+- **MCP Server**: Uses `server/mcp/server.py` or `server/run_mcp_server.py` via stdio transport
+- **Test Scope**:
+  - MCP client communication (NinaivalaigalClient)
+  - Settings persistence (NinaivalaigalSettings)
+  - IDE action handlers (RememberAction, RecallAction, ContextStartAction)
+  - Context management (start, list, switch contexts)
+  - Memory operations (remember, recall via MCP protocol)
+- **Connection Method**:
+  - **Stdio Transport**: Plugin spawns ninaivalaigal MCP server process via stdio
+  - **Server Path**: Configurable via plugin settings (defaults to ninaivalaigal server path)
+  - **MCP Protocol**: JSON-RPC 2.0 over stdio (standard MCP transport)
+- **Configuration**:
+  - Server path configurable in plugin settings
+  - No hardcoded mem0 paths (all ninaivalaigal native)
+  - Auto-detects project context from IDE project name
+
 ---
 
 ## 📁 Directory Structure Suggestion

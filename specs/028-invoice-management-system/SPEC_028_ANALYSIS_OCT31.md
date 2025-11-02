@@ -1,7 +1,7 @@
 # SPEC-028: Invoice Management System - Comprehensive Analysis
 
-**Date**: October 31, 2025, 10:00 AM UTC-05:00  
-**Analyst**: Cascade AI  
+**Date**: October 31, 2025, 10:00 AM UTC-05:00
+**Analyst**: Cascade AI
 **Status**: ⚠️ **"OVERLAP SPEC"** - Partial implementation, significant overlap with SPEC-027
 
 ---
@@ -46,10 +46,10 @@ SPEC-028: Invoice Management System | Partial | Phase 2A
 
 ### File: `/server/invoice_management_api.py`
 
-**Line Count**: 743 lines  
-**Header**: "SPEC-027: Invoice and Plan Management API" ← **MISLABELED**  
-**Router Prefix**: `/invoicing`  
-**Dependencies**: stripe, reportlab, FastAPI, pydantic  
+**Line Count**: 743 lines
+**Header**: "SPEC-027: Invoice and Plan Management API" ← **MISLABELED**
+**Router Prefix**: `/invoicing`
+**Dependencies**: stripe, reportlab, FastAPI, pydantic
 
 ### API Endpoints (11 Total)
 
@@ -650,7 +650,7 @@ SPEC-028 provides the **customer-facing invoice experience**:
 
 ---
 
-**Analysis Complete**: October 31, 2025, 10:00 AM UTC-05:00  
-**Next Action**: User decision on refactoring approach and priorities  
-**Related**: SPEC-027 analysis completed earlier today  
+**Analysis Complete**: October 31, 2025, 10:00 AM UTC-05:00
+**Next Action**: User decision on refactoring approach and priorities
+**Related**: SPEC-027 analysis completed earlier today
 **Critical**: Resolve overlap before proceeding with either SPEC

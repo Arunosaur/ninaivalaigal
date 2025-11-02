@@ -1,6 +1,6 @@
 # SPEC-127 Implementation Task Breakdown
 
-**Total Estimate**: 8 weeks (40 working days)  
+**Total Estimate**: 8 weeks (40 working days)
 **Team Size**: 2-3 developers (backend + full-stack)
 
 ---
@@ -11,7 +11,7 @@
 
 #### **Task 1.1: Database Schema** (3 days)
 - [ ] Create `context_bridges` table
-- [ ] Create `trust_scores` table  
+- [ ] Create `trust_scores` table
 - [ ] Create `bridge_access_history` table
 - [ ] Create `sync_policies` table (hybrid mode)
 - [ ] Add `bridge_id`, `derived_from` to `memories` table

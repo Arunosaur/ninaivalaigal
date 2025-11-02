@@ -1,11 +1,11 @@
 # SPEC-028: Invoice Management System
 
-**Status**: 🔄 **PARTIAL IMPLEMENTATION** (65% Complete)  
-**Priority**: High (Customer Experience)  
-**Created**: 2024-09-20  
-**Updated**: 2025-10-31  
-**Authors**: Arun Rajagopalan  
-**Implementation**: Partial (743 lines, needs refactoring)  
+**Status**: 🔄 **PARTIAL IMPLEMENTATION** (65% Complete)
+**Priority**: High (Customer Experience)
+**Created**: 2024-09-20
+**Updated**: 2025-10-31
+**Authors**: Arun Rajagopalan
+**Implementation**: Partial (743 lines, needs refactoring)
 **Testing**: Minimal (shared with SPEC-027)
 
 ---
@@ -189,18 +189,18 @@ Customer Portal Features:
    - Time-limited access tokens
    - Email-based authentication
    - No password required
-   
+
 2. Invoice Viewing
    - List all invoices for team
    - Filter by status/date/amount
    - Search functionality
-   
+
 3. Actions
    - Download PDF
    - View payment history
    - Request corrections
    - Update billing email
-   
+
 4. Notifications
    - New invoice alerts
    - Payment confirmations
@@ -211,13 +211,13 @@ Customer Portal Features:
 ```python
 POST /invoicing/portal/request-access
     # Request portal access token via email
-    
+
 GET /invoicing/portal/invoices?token={token}
     # List invoices with valid token
-    
+
 GET /invoicing/portal/invoice/{id}?token={token}
     # View specific invoice
-    
+
 POST /invoicing/portal/request-correction
     # Request invoice correction
 ```
@@ -258,13 +258,13 @@ POST /invoicing/portal/request-correction
 ```python
 POST /invoicing/{invoice_id}/adjust
     # Create adjustment
-    
+
 POST /invoicing/{invoice_id}/credit
     # Generate credit memo
-    
+
 POST /invoicing/{invoice_id}/void
     # Void invoice
-    
+
 GET /invoicing/corrections
     # List all corrections
 ```
@@ -350,7 +350,7 @@ class CurrencyConverter:
         # Fetch exchange rate for specific date
         rate = get_exchange_rate(from_currency, to_currency, date)
         return amount * rate
-    
+
     def display_invoice(self, invoice, display_currency):
         # Convert all amounts to display currency
         # Show original amount as reference
@@ -386,13 +386,13 @@ class CurrencyConverter:
 ```python
 GET /invoicing/export/csv?start_date=&end_date=
     # CSV export for accounting
-    
+
 POST /invoicing/integrations/quickbooks/connect
     # OAuth connection
-    
+
 POST /invoicing/integrations/quickbooks/sync
     # Manual sync trigger
-    
+
 GET /invoicing/integrations/status
     # Integration health check
 ```
@@ -865,10 +865,10 @@ GET    /invoicing/integrations/status
 
 ---
 
-**SPEC Status**: 🔄 **PARTIAL IMPLEMENTATION** (65% Complete)  
-**Implementation**: 🟡 Partial (743 lines, overlaps with SPEC-027)  
-**Testing**: 🟡 Minimal (shared tests)  
-**Production Ready**: ❌ NO (needs portal, corrections, database)  
-**Taiga Epic**: TO BE CREATED (8 stories needed)  
-**Next Priority**: Refactor overlap, implement customer portal  
+**SPEC Status**: 🔄 **PARTIAL IMPLEMENTATION** (65% Complete)
+**Implementation**: 🟡 Partial (743 lines, overlaps with SPEC-027)
+**Testing**: 🟡 Minimal (shared tests)
+**Production Ready**: ❌ NO (needs portal, corrections, database)
+**Taiga Epic**: TO BE CREATED (8 stories needed)
+**Next Priority**: Refactor overlap, implement customer portal
 **Estimated Timeline**: 8 weeks to full completion

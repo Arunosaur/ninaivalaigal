@@ -13,7 +13,7 @@ graph TD
     A[SPEC-076 Frontend Components] -->|Narrative Events| B(Event Bus - Kafka);
     B --> C{Narrative ETL Service};
     C -->|Aggregated Data| D[Data Warehouse];
-    
+
     E[Narrative Analytics API] -->|Queries| D;
     F[Dashboard Frontend] -->|API Calls| E;
     G[Redis Cache] <--> E;

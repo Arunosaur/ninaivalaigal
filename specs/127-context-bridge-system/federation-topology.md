@@ -160,4 +160,3 @@ Phase 2: Add Hub for discovery (as contexts grow)
    ↓
 Phase 3: Optimize to Hybrid (for performance)
 ```
-
