@@ -229,4 +229,34 @@ repos:
         files: 'shared/contracts/.*\.(yaml|yml)$'
         pass_filenames: false
 
+  # ---- Test Coverage Enforcement ----
+  - repo: local
+    hooks:
+      - id: check-new-files-have-tests
+        name: Check New Files Have Tests (Python)
+        entry: python scripts/check_test_coverage.py --check-new-files
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-commit]
+        description: "Ensures newly added Python files have corresponding test files"
+
+      - id: check-multi-lang-tests
+        name: Check New Files Have Tests (All Languages)
+        entry: python scripts/check_multi_lang_test_coverage.py --check-new-files
+        language: system
+        types: [python, rust, go]
+        pass_filenames: false
+        stages: [pre-commit]
+        description: "Ensures newly added files (Python, Rust, Go) have corresponding test files"
+
+      - id: check-typescript-tests
+        name: Check TypeScript/JavaScript Tests
+        entry: python scripts/check_multi_lang_test_coverage.py --check-new-files --language typescript
+        language: system
+        files: \.(ts|tsx|js|jsx)$
+        pass_filenames: false
+        stages: [pre-commit]
+        description: "Ensures newly added TypeScript/JavaScript files have corresponding test files"
+
   # ---- Optional: Add more hooks below ----

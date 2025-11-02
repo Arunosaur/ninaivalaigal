@@ -20,8 +20,9 @@ from typing import Any
 
 from sqlalchemy import event
 from sqlalchemy.orm import Session
-from sqlalchemy.orm.query import Query as SQLAlchemyQuery
 from sqlalchemy.sql import Select
+
+logger = logging.getLogger(__name__)
 
 
 class TenantContext:
@@ -90,17 +91,17 @@ class TenancyGuard:
 
     def install_listeners(self, engine):
         """Install SQLAlchemy event listeners for tenant filtering."""
-        
+
         # Install query compilation listener for automatic filtering
         # Use Query instead of Session for better compatibility
         from sqlalchemy.orm import Query
-        
+
         @event.listens_for(Query, "before_compile", retval=True)
         def receive_before_compile(query):
             """Automatically filter queries by tenant context."""
             if not self.enforce_context:
                 return query
-            
+
             tenant_id = _tenant_context.tenant_id or _tenant_context.organization_id
             if not tenant_id:
                 if self.enforce_context:
@@ -109,7 +110,7 @@ class TenancyGuard:
                     # This prevents accidental cross-tenant data access
                     return query.filter(False)  # Empty result
                 return query
-            
+
             # Get entities from query
             entities = getattr(query, "_entities", [])
             for entity_desc in entities:
@@ -117,7 +118,7 @@ class TenancyGuard:
                 entity = entity_desc.entity_zero.entity
                 if hasattr(entity, "__table__"):
                     query = self.filter_query(query, entity)
-            
+
             self.logger.debug(f"Applied tenant filter (tenant_id={tenant_id})")
             return query
 
@@ -263,7 +264,7 @@ def install_tenancy_guard(engine, enforce_context: bool = True):
     global _tenancy_guard
     _tenancy_guard = TenancyGuard(enforce_context)
     _tenancy_guard.install_listeners(engine)
-    
+
     # Register all models that need tenant isolation
     register_tenant_models()
 
@@ -271,22 +272,17 @@ def install_tenancy_guard(engine, enforce_context: bool = True):
 def register_tenant_models():
     """Register all models with organization/team isolation."""
     try:
-        from server.database.models import (
-            Team,
-            Context,
-            ContextPermission,
-            Memory,
-        )
-        
+        from server.database.models import Context, ContextPermission, Team
+
         # Register models with organization_id column
         _tenancy_guard.register_model(Team, tenant_column="organization_id")
         _tenancy_guard.register_model(Context, tenant_column="organization_id")
         _tenancy_guard.register_model(ContextPermission, tenant_column="organization_id")
-        
+
         # Note: Memory model doesn't have organization_id directly,
         # but should be filtered by user_id or context.organization_id
         # This requires custom filtering logic
-        
+
         _tenancy_guard.logger.info("Registered all tenant-isolated models")
     except ImportError:
         _tenancy_guard.logger.warning("Could not import models for registration")
@@ -327,41 +323,46 @@ async def get_tenant_from_jwt(token: str) -> str | None:
 def create_tenant_middleware():
     """Create FastAPI middleware for tenant context."""
     from fastapi import Request
-    
+
     async def tenant_middleware(request: Request, call_next):
         # Extract tenant from JWT
         auth_header = request.headers.get("authorization", "")
         org_id = None
         user_id = None
-        
+
         if auth_header.startswith("Bearer "):
             token = auth_header[7:]
-            
+
             try:
                 # Try multiple methods to extract tenant info
                 tenant_id = await get_tenant_from_jwt(token)
                 if tenant_id:
                     org_id = tenant_id
-            except Exception:
-                pass
-            
+            except Exception as e:
+                # Graceful fallback: tenant extraction failed, continue without tenant context
+                logger.debug("Tenant extraction from JWT failed", error=str(e))
+
             # Also try direct JWT parsing
             try:
-                import jwt
                 import os
+
+                import jwt
+
                 secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
                 if secret:
                     payload = jwt.decode(token, secret, algorithms=["HS256"])
                     org_id = payload.get("org_id") or payload.get("organization_id")
                     user_id = payload.get("user_id") or payload.get("sub")
-            except Exception:
-                pass
-        
+            except Exception as e:
+                # Graceful fallback: JWT parsing failed, continue without tenant context
+                # This is expected when token format doesn't match or secret is missing
+                logger.debug("JWT parsing failed for tenant extraction", error=str(e))
+
         # Set tenant context if available
         if org_id or user_id:
             with tenant_context(tenant_id=org_id, user_id=user_id, organization_id=org_id):
                 return await call_next(request)
-        
+
         # If no tenant context, still proceed (may be public endpoint)
         # But enforce_context will block queries that need tenant
         return await call_next(request)

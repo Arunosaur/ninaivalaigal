@@ -9,6 +9,7 @@ omit =
     */node_modules/*
     setup.py
     conftest.py
+    */__init__.py
 
 [report]
 exclude_lines =
@@ -22,6 +23,13 @@ exclude_lines =
     if __name__ == .__main__.:
     class .*\bProtocol\):
     @(abc\.)?abstractmethod
+    @abstractmethod
+    @property
+    @.*\.setter
+
+precision = 2
+show_missing = True
+skip_covered = False
 
 [html]
 directory = htmlcov

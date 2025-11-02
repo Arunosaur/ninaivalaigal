@@ -14,8 +14,9 @@ Provides API endpoints for monitoring and managing performance optimizations
 from typing import Dict
 
 import structlog
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from performance import get_performance_manager
+from sqlalchemy import text
 
 logger = structlog.get_logger(__name__)
 
@@ -533,6 +534,315 @@ async def get_graph_performance_benchmarks() -> Dict:
             status_code=500,
             detail=f"Failed to get graph performance benchmarks: {str(e)}",
         )
+
+
+@router.post("/benchmarks/run")
+async def create_benchmark_run(
+    request: Request,
+    run_type: str = "automated",
+    environment: str = "development",
+    commit_sha: str = None,
+    branch_name: str = None,
+) -> Dict:
+    """
+    Create a new benchmark run for tracking performance metrics.
+
+    Returns run_id for recording benchmark results.
+    Part of US#409: Performance Benchmarking Enhancement (SPEC-069)
+    """
+    try:
+        from .benchmark_storage import BenchmarkStorage
+
+        db_manager = request.app.state.db_manager
+        db_session = db_manager.get_session()
+        try:
+            storage = BenchmarkStorage(db_session)
+            run_id = storage.create_benchmark_run(
+                run_type=run_type,
+                environment=environment,
+                commit_sha=commit_sha,
+                branch_name=branch_name,
+            )
+
+            return {
+                "status": "success",
+                "data": {
+                    "run_id": str(run_id),
+                    "run_type": run_type,
+                    "environment": environment,
+                },
+            }
+        finally:
+            db_session.close()
+
+    except Exception as e:
+        logger.error("Failed to create benchmark run", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to create benchmark run: {str(e)}")
+
+
+@router.post("/benchmarks/run/{run_id}/result")
+async def record_benchmark_result(
+    request: Request,
+    run_id: str,
+    metric_name: str,
+    metric_category: str,
+    metric_value: float,
+    metric_unit: str = None,
+    target_value: float = None,
+    percentile_p50: float = None,
+    percentile_p95: float = None,
+    percentile_p99: float = None,
+    sample_count: int = 1,
+) -> Dict:
+    """
+    Record a benchmark result for a specific metric.
+
+    Part of US#409: Performance Benchmarking Enhancement (SPEC-069)
+    """
+    try:
+        from uuid import UUID
+
+        from .benchmark_storage import BenchmarkStorage
+
+        db_manager = request.app.state.db_manager
+        db_session = db_manager.get_session()
+        try:
+            storage = BenchmarkStorage(db_session)
+            result_id = storage.record_benchmark_result(
+                run_id=UUID(run_id),
+                metric_name=metric_name,
+                metric_category=metric_category,
+                metric_value=metric_value,
+                metric_unit=metric_unit,
+                target_value=target_value,
+                percentile_p50=percentile_p50,
+                percentile_p95=percentile_p95,
+                percentile_p99=percentile_p99,
+                sample_count=sample_count,
+            )
+
+            return {
+                "status": "success",
+                "data": {
+                    "result_id": str(result_id),
+                    "metric_name": metric_name,
+                },
+            }
+        finally:
+            db_session.close()
+
+    except Exception as e:
+        logger.error("Failed to record benchmark result", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to record benchmark result: {str(e)}")
+
+
+@router.post("/benchmarks/run/{run_id}/complete")
+async def complete_benchmark_run(request: Request, run_id: str, status: str = "completed") -> Dict:
+    """
+    Mark a benchmark run as completed and trigger regression detection.
+
+    Part of US#409: Performance Benchmarking Enhancement (SPEC-069)
+    """
+    try:
+        from uuid import UUID
+
+        from .benchmark_storage import BenchmarkStorage
+
+        db_manager = request.app.state.db_manager
+        db_session = db_manager.get_session()
+        try:
+            storage = BenchmarkStorage(db_session)
+            storage.complete_benchmark_run(UUID(run_id), status)
+
+            # Detect regressions
+            regressions = storage.detect_regressions(UUID(run_id))
+
+            return {
+                "status": "success",
+                "data": {
+                    "run_id": run_id,
+                    "status": status,
+                    "regressions_detected": len(regressions),
+                    "regressions": regressions,
+                },
+            }
+        finally:
+            db_session.close()
+
+    except Exception as e:
+        logger.error("Failed to complete benchmark run", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to complete benchmark run: {str(e)}")
+
+
+@router.get("/benchmarks/history")
+async def get_benchmark_history(
+    request: Request,
+    metric_name: str = None,
+    metric_category: str = None,
+    environment: str = None,
+    days: int = 30,
+    limit: int = 100,
+) -> Dict:
+    """
+    Get historical benchmark results for trend analysis.
+
+    Part of US#409: Performance Benchmarking Enhancement (SPEC-069)
+    """
+    try:
+        from .benchmark_storage import BenchmarkStorage
+
+        db_manager = request.app.state.db_manager
+        db_session = db_manager.get_session()
+        try:
+            storage = BenchmarkStorage(db_session)
+            history = storage.get_benchmark_history(
+                metric_name=metric_name,
+                metric_category=metric_category,
+                environment=environment,
+                days=days,
+                limit=limit,
+            )
+
+            return {
+                "status": "success",
+                "data": {
+                    "history": history,
+                    "count": len(history),
+                },
+            }
+        finally:
+            db_session.close()
+
+    except Exception as e:
+        logger.error("Failed to get benchmark history", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to get benchmark history: {str(e)}")
+
+
+@router.get("/benchmarks/compare/{current_run_id}")
+async def compare_benchmarks(
+    request: Request,
+    current_run_id: str,
+    baseline_run_id: str = None,
+    regression_threshold: float = -5.0,
+) -> Dict:
+    """
+    Compare current benchmark run with baseline for regression detection.
+
+    Part of US#409: Performance Benchmarking Enhancement (SPEC-069)
+    """
+    try:
+        from uuid import UUID
+
+        from .benchmark_storage import BenchmarkStorage
+
+        db_manager = request.app.state.db_manager
+        db_session = db_manager.get_session()
+        try:
+            storage = BenchmarkStorage(db_session)
+            comparisons = storage.compare_with_baseline(
+                current_run_id=UUID(current_run_id),
+                baseline_run_id=UUID(baseline_run_id) if baseline_run_id else None,
+                regression_threshold=regression_threshold,
+            )
+
+            regressions = [c for c in comparisons if c.get("is_regression")]
+            improvements = [c for c in comparisons if not c.get("is_regression") and c.get("change_percent", 0) > 0]
+
+            return {
+                "status": "success",
+                "data": {
+                    "comparisons": comparisons,
+                    "regressions_count": len(regressions),
+                    "improvements_count": len(improvements),
+                    "regressions": regressions,
+                    "improvements": improvements,
+                },
+            }
+        finally:
+            db_session.close()
+
+    except Exception as e:
+        logger.error("Failed to compare benchmarks", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to compare benchmarks: {str(e)}")
+
+
+@router.get("/benchmarks/regressions")
+async def get_regressions(
+    request: Request,
+    environment: str = None,
+    days: int = 7,
+    severity: str = None,
+) -> Dict:
+    """
+    Get recent performance regressions.
+
+    Part of US#409: Performance Benchmarking Enhancement (SPEC-069)
+    """
+    try:
+        from datetime import datetime, timedelta
+        from uuid import UUID
+
+        from .benchmark_storage import BenchmarkStorage
+
+        db_manager = request.app.state.db_manager
+        db_session = db_manager.get_session()
+        try:
+            storage = BenchmarkStorage(db_session)
+
+            # Get recent runs in the specified environment
+            cutoff_date = datetime.utcnow() - timedelta(days=days)
+            all_regressions = []
+
+            # Get all recent runs
+            query = text(
+                """
+                SELECT run_id FROM performance_benchmark_runs
+                WHERE run_timestamp >= :cutoff_date
+                  AND status = 'completed'
+                  AND (:environment IS NULL OR environment = :environment)
+                ORDER BY run_timestamp DESC
+            """
+            )
+
+            result = db_session.execute(
+                query,
+                {
+                    "cutoff_date": cutoff_date,
+                    "environment": environment,
+                },
+            )
+
+            for row in result.fetchall():
+                run_id = UUID(row[0])
+                regressions = storage.detect_regressions(run_id)
+                for reg in regressions:
+                    if severity is None or reg.get("regression_severity") == severity:
+                        all_regressions.append(reg)
+
+            # Sort by severity and change percent
+            all_regressions.sort(
+                key=lambda x: (
+                    {"critical": 0, "major": 1, "minor": 2}.get(x.get("regression_severity", "minor"), 3),
+                    abs(x.get("change_percent", 0)),
+                )
+            )
+
+            return {
+                "status": "success",
+                "data": {
+                    "regressions": all_regressions,
+                    "count": len(all_regressions),
+                    "critical": len([r for r in all_regressions if r.get("regression_severity") == "critical"]),
+                    "major": len([r for r in all_regressions if r.get("regression_severity") == "major"]),
+                    "minor": len([r for r in all_regressions if r.get("regression_severity") == "minor"]),
+                },
+            }
+        finally:
+            db_session.close()
+
+    except Exception as e:
+        logger.error("Failed to get regressions", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to get regressions: {str(e)}")
 
 
 # Add router to main application
