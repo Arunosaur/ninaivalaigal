@@ -172,9 +172,11 @@ export default function PaymentMethodPage() {
     console.error("Payment method error:", error);
   };
 
+  // Stripe Elements options - no mode/currency needed for payment methods
   const elementsOptions: StripeElementsOptions = {
-    mode: "payment",
-    currency: "usd",
+    appearance: {
+      theme: "stripe" as const,
+    },
   };
 
   if (!mounted) {
