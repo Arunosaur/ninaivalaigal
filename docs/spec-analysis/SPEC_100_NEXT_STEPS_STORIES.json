@@ -1,0 +1,22 @@
+[
+  {
+    "ref": 652,
+    "id": 681,
+    "subject": "SPEC-100: Verify Service Deployment Model (Independent vs Monolithic)"
+  },
+  {
+    "ref": 653,
+    "id": 682,
+    "subject": "SPEC-100: Implement Aggregator Layer (BFF Pattern)"
+  },
+  {
+    "ref": 654,
+    "id": 683,
+    "subject": "SPEC-100: Independent CI Workflows Per Service"
+  },
+  {
+    "ref": 655,
+    "id": 684,
+    "subject": "SPEC-100: Schema Separation (Phase 2)"
+  }
+]
