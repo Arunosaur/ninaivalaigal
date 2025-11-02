@@ -7,7 +7,7 @@
 //
 /**
  * US#210: E2E Tests for Team Creation Flow UI
- * 
+ *
  * Tests the complete team creation wizard and related flows:
  * - Team creation wizard (3 steps)
  * - Team dashboard display
@@ -151,11 +151,11 @@ test.describe('Team Creation Flow (US#210)', () => {
     // Step 2: Add invitation
     const emailInput = page.getByPlaceholder(/Enter email address/i).or(page.locator('input[type="email"]'));
     await emailInput.fill('member@example.com');
-    
+
     // Find the role select dropdown
     const roleSelect = page.locator('select').first();
     await roleSelect.selectOption('contributor');
-    
+
     await page.getByRole('button', { name: 'Add' }).click();
 
     // Verify invitation appears in list
@@ -214,7 +214,7 @@ test.describe('Team Creation Flow (US#210)', () => {
     await page.waitForLoadState('networkidle');
 
     // Should show "Team Not Found" message (wait for it)
-    await expect(page.locator('text=/Team Not Found|don't have a team|You don't have/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/Team Not Found|don\'t have a team|You don\'t have/i').first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('link', { name: /Create Your First Team|Create/i })).toBeVisible({ timeout: 5000 });
   });
 
@@ -281,7 +281,7 @@ test.describe('Team Creation Flow (US#210)', () => {
     // Try invalid email - HTML5 validation should prevent submission
     const emailInput = page.locator('input[type="email"]');
     await emailInput.fill('invalid-email');
-    
+
     // Try to submit - browser validation should prevent it
     const submitButton = page.getByRole('button', { name: /Send Invitation/i });
     await submitButton.click();
@@ -353,12 +353,12 @@ test.describe('Team Creation Flow (US#210)', () => {
         page.locator('input[required]').first()
       )
     );
-    
+
     // Check that it has required attribute
     const isRequired = await orgNameInput.first().evaluate((el: HTMLElement) => {
       return el.hasAttribute('required') || (el as HTMLInputElement).required;
     });
-    
+
     // HTML5 validation should be present
     expect(isRequired).toBeTruthy();
   });
@@ -382,7 +382,7 @@ test.describe('Team Creation Flow (US#210)', () => {
     await page.getByLabel(/Team Name/i).fill('Test Team');
     await page.getByRole('button', { name: 'Next' }).click();
     await page.getByRole('button', { name: 'Next' }).click();
-    
+
     // Wait for create button to be enabled
     await page.waitForSelector('button:has-text("Create Team")', { state: 'visible' });
     await page.getByRole('button', { name: /Create Team/i }).click();
@@ -414,4 +414,3 @@ test.describe('Team Creation Flow (US#210)', () => {
     await expect(page.getByRole('button', { name: /Creating.../i })).toBeVisible();
   });
 });
-
