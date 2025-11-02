@@ -422,22 +422,34 @@ async def change_subscription_plan(
     if not team_billing or not team_billing.stripe_customer_id:
         raise HTTPException(status_code=400, detail="Team billing not configured with Stripe")
 
-    # Validate plan ID (would check against available plans)
-    valid_plans = ["free", "starter", "team_pro", "team_enterprise", "nonprofit"]
+    # Validate plan ID
+    valid_plans = list(STRIPE_PRICE_MAPPING.keys())
     if request.new_plan_id not in valid_plans:
         raise HTTPException(status_code=400, detail=f"Invalid plan ID: {request.new_plan_id}")
 
     try:
-        # Get Stripe subscription (would be stored in subscription model)
-        # For now, assume we need to find it
-        stripe_subscription_id = getattr(subscription, "stripe_subscription_id", None)
+        # Get Stripe subscription ID from subscription metadata
+        stripe_subscription_id = None
+        if subscription.subscription_metadata:
+            stripe_subscription_id = subscription.subscription_metadata.get("stripe_subscription_id")
+        
         if not stripe_subscription_id:
-            raise HTTPException(status_code=400, detail="Stripe subscription ID not found")
+            raise HTTPException(status_code=400, detail="Stripe subscription ID not found. Please create a subscription first.")
 
-        # Update subscription in Stripe
-        # Note: This would require mapping plan_id to Stripe price_id
-        # For now, we'll update the subscription item
-        update_params: Dict[str, Any] = {}
+        # Determine billing cycle from current subscription (default to monthly)
+        billing_cycle = "monthly"  # Would be determined from subscription
+        new_price_id = STRIPE_PRICE_MAPPING.get(request.new_plan_id, {}).get(billing_cycle)
+        
+        if not new_price_id:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Stripe price ID not configured for plan {request.new_plan_id} ({billing_cycle})"
+            )
+
+        # Prepare Stripe subscription update
+        update_params: Dict[str, Any] = {
+            "items": [{"price": new_price_id}],
+        }
 
         if request.prorate:
             update_params["proration_behavior"] = "create_prorations"
@@ -445,8 +457,8 @@ async def change_subscription_plan(
         if request.billing_cycle_anchor:
             update_params["billing_cycle_anchor"] = int(request.billing_cycle_anchor.timestamp())
 
-        # In production, would map plan_id to Stripe price_id and update subscription items
-        # stripe.Subscription.modify(stripe_subscription_id, items=[{"price": new_price_id}], **update_params)
+        # Update subscription in Stripe
+        updated_subscription = stripe.Subscription.modify(stripe_subscription_id, **update_params)
 
         # Update database subscription
         subscription.plan_id = request.new_plan_id
