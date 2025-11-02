@@ -196,6 +196,7 @@ app.add_middleware(
 # Add tenant isolation middleware (US#117: ORM Guardrails)
 try:
     from server.security.orm.tenancy_guard import create_tenant_middleware
+
     tenant_middleware = create_tenant_middleware()
     app.middleware("http")(tenant_middleware)
     logger.info("✅ Tenant isolation middleware installed")
@@ -379,6 +380,10 @@ app.include_router(team_billing_portal_router)
 app.include_router(partner_ecosystem_router)
 app.include_router(standalone_teams_billing_router)
 app.include_router(billing_engine_router)
+
+# US#204: Team Billing APIs (SPEC-026 Phase 2)
+from team_billing_api import router as team_billing_router  # noqa: E402
+app.include_router(team_billing_router)
 app.include_router(macro_intelligence_router)
 app.include_router(graph_intelligence_integration_router)
 app.include_router(graph_validation_router)
