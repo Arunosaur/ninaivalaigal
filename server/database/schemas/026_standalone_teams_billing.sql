@@ -197,6 +197,36 @@ CREATE INDEX IF NOT EXISTS idx_discount_code_usage_code_id ON discount_code_usag
 CREATE INDEX IF NOT EXISTS idx_discount_code_usage_team_id ON discount_code_usage(team_id) WHERE team_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_discount_code_usage_org_id ON discount_code_usage(org_id) WHERE org_id IS NOT NULL;
 
+-- US#157: Credit Transactions Table (Audit Trail)
+-- Tracks all credit transactions for audit and balance validation
+CREATE TABLE IF NOT EXISTS credit_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_credit_id UUID REFERENCES team_credits(id) ON DELETE CASCADE NOT NULL,
+    transaction_type VARCHAR(20) NOT NULL CHECK (transaction_type IN ('grant', 'deduct', 'expire', 'refund')),
+    amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
+    balance_before NUMERIC(10,2) NOT NULL CHECK (balance_before >= 0),
+    balance_after NUMERIC(10,2) NOT NULL CHECK (balance_after >= 0),
+    reason TEXT NOT NULL,
+    performed_by UUID REFERENCES users(id),
+    invoice_id UUID REFERENCES billing_invoices(id), -- Link to invoice if credit was applied to invoice
+    created_at TIMESTAMP DEFAULT NOW(),
+    
+    -- Ensure balance_after is calculated correctly based on transaction type
+    CONSTRAINT balance_consistency_check CHECK (
+        (transaction_type = 'grant' AND balance_after = balance_before + amount) OR
+        (transaction_type = 'deduct' AND balance_after = balance_before - amount) OR
+        (transaction_type = 'expire' AND balance_after = balance_before - amount) OR
+        (transaction_type = 'refund' AND balance_after = balance_before + amount)
+    )
+);
+
+-- Create indexes for credit transactions
+CREATE INDEX IF NOT EXISTS idx_credit_transactions_credit_id ON credit_transactions(team_credit_id);
+CREATE INDEX IF NOT EXISTS idx_credit_transactions_type ON credit_transactions(transaction_type);
+CREATE INDEX IF NOT EXISTS idx_credit_transactions_performed_by ON credit_transactions(performed_by) WHERE performed_by IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_credit_transactions_invoice_id ON credit_transactions(invoice_id) WHERE invoice_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_credit_transactions_created_at ON credit_transactions(created_at DESC);
+
 -- Team billing settings
 CREATE TABLE IF NOT EXISTS team_billing_settings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

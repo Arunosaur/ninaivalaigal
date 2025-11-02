@@ -28,6 +28,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    Numeric,
     String,
     Text,
 )
@@ -394,4 +395,164 @@ class TeamUsageMetrics(Base):
         CheckConstraint("member_count >= 0", name="check_member_count_non_negative"),
         CheckConstraint("period_start <= period_end", name="usage_period_check"),
         {"comment": "Team usage metrics tracking (US#156, SPEC-026)"},
+    )
+
+
+# US#157: Discount & Credit System Models (SPEC-026 Phase 1)
+
+class DiscountCode(Base):
+    """Discount code model - discount codes for teams per US#157
+
+    Supports both percentage and fixed amount discounts.
+    Part of SPEC-026: Standalone Teams and Billing Phase 1.
+    """
+
+    __tablename__ = "discount_codes"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    code = Column(String(50), unique=True, nullable=False, index=True)
+    percent_off = Column(Integer, nullable=True)  # 1-100
+    amount_off = Column(Integer, nullable=True)  # in cents
+    expires_at = Column(DateTime, nullable=True, index=True)
+    usage_limit = Column(Integer, nullable=True)
+    used_count = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    creator = relationship("User", foreign_keys=[created_by])
+    usages = relationship("DiscountCodeUsage", back_populates="discount_code", cascade="all, delete-orphan")
+
+    # Constraints
+    __table_args__ = (
+        CheckConstraint("percent_off >= 1 AND percent_off <= 100", name="check_percent_off_range"),
+        CheckConstraint("amount_off >= 1", name="check_amount_off_positive"),
+        CheckConstraint("usage_limit >= 1", name="check_usage_limit_positive"),
+        CheckConstraint("used_count >= 0", name="check_used_count_non_negative"),
+        CheckConstraint(
+            "(percent_off IS NOT NULL AND amount_off IS NULL) OR (percent_off IS NULL AND amount_off IS NOT NULL)",
+            name="discount_type_check",
+        ),
+        CheckConstraint("usage_limit IS NULL OR used_count <= usage_limit", name="usage_limit_check"),
+        {"comment": "Discount codes for billing (US#157, SPEC-026)"},
+    )
+
+
+class TeamCredit(Base):
+    """Team credit model - credit balance tracking per US#157
+
+    Tracks credits granted to teams with usage tracking.
+    Part of SPEC-026: Standalone Teams and Billing Phase 1.
+    """
+
+    __tablename__ = "team_credits"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=True, index=True)
+    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True)
+    amount = Column(
+        "amount", Numeric(10, 2), nullable=False
+    )  # Use explicit name to avoid conflict with SQLAlchemy reserved word
+    used_amount = Column("used_amount", Numeric(10, 2), default=0)
+    remaining_amount = Column("remaining_amount", Numeric(10, 2))  # Computed column
+    granted_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    expires_at = Column(DateTime, nullable=True, index=True)
+    reason = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    team = relationship("Team", foreign_keys=[team_id])
+    organization = relationship("Organization", foreign_keys=[org_id])
+    granter = relationship("User", foreign_keys=[granted_by])
+    transactions = relationship("CreditTransaction", back_populates="credit", cascade="all, delete-orphan")
+
+    # Constraints
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="check_amount_positive"),
+        CheckConstraint("used_amount >= 0", name="check_used_amount_non_negative"),
+        CheckConstraint("used_amount <= amount", name="used_amount_check"),
+        CheckConstraint(
+            "(team_id IS NOT NULL AND org_id IS NULL) OR (team_id IS NULL AND org_id IS NOT NULL)",
+            name="credit_target_check",
+        ),
+        {"comment": "Team credits for billing (US#157, SPEC-026)"},
+    )
+
+
+class CreditTransactionType(str, Enum):
+    """Credit transaction type enum"""
+
+    GRANT = "grant"
+    DEDUCT = "deduct"
+    EXPIRE = "expire"
+    REFUND = "refund"
+
+
+class CreditTransaction(Base):
+    """Credit transaction model - audit trail per US#157
+
+    Tracks all credit transactions for audit and balance validation.
+    Part of SPEC-026: Standalone Teams and Billing Phase 1.
+    """
+
+    __tablename__ = "credit_transactions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    team_credit_id = Column(UUID(as_uuid=True), ForeignKey("team_credits.id", ondelete="CASCADE"), nullable=False, index=True)
+    transaction_type = Column(String(20), nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
+    balance_before = Column(Numeric(10, 2), nullable=False)
+    balance_after = Column(Numeric(10, 2), nullable=False)
+    reason = Column(Text, nullable=False)
+    performed_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    invoice_id = Column(UUID(as_uuid=True), ForeignKey("billing_invoices.id"), nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    # Relationships
+    credit = relationship("TeamCredit", back_populates="transactions")
+    performer = relationship("User", foreign_keys=[performed_by])
+
+    # Constraints
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="check_amount_positive"),
+        CheckConstraint("balance_before >= 0", name="check_balance_before_non_negative"),
+        CheckConstraint("balance_after >= 0", name="check_balance_after_non_negative"),
+        CheckConstraint("transaction_type IN ('grant', 'deduct', 'expire', 'refund')", name="check_transaction_type"),
+        {"comment": "Credit transaction audit trail (US#157, SPEC-026)"},
+    )
+
+
+class DiscountCodeUsage(Base):
+    """Discount code usage tracking model
+
+    Tracks when and how discount codes are applied.
+    Part of SPEC-026: Standalone Teams and Billing Phase 1.
+    """
+
+    __tablename__ = "discount_code_usage"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    discount_code_id = Column(UUID(as_uuid=True), ForeignKey("discount_codes.id", ondelete="CASCADE"), nullable=False, index=True)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=True, index=True)
+    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True)
+    invoice_id = Column(String(255), nullable=True)  # Reference to billing_invoices table (model not yet created)
+    amount_discounted = Column(Numeric(10, 2), nullable=False)
+    used_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    discount_code = relationship("DiscountCode", back_populates="usages")
+    team = relationship("Team", foreign_keys=[team_id])
+    organization = relationship("Organization", foreign_keys=[org_id])
+
+    # Constraints
+    __table_args__ = (
+        CheckConstraint("amount_discounted >= 0", name="check_amount_discounted_non_negative"),
+        CheckConstraint(
+            "(team_id IS NOT NULL AND org_id IS NULL) OR (team_id IS NULL AND org_id IS NOT NULL)",
+            name="discount_usage_target_check",
+        ),
+        {"comment": "Discount code usage tracking (US#157, SPEC-026)"},
     )
