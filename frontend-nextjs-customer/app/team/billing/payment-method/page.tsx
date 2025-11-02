@@ -25,11 +25,20 @@ import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { apiClient } from "@/utils/api-client";
 
-// Initialize Stripe with publishable key (test mode key is fine for development)
-// In production, this should come from environment variable
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_51PLACEHOLDER"
-);
+// Initialize Stripe with publishable key from environment
+// Test mode key works for development (pk_test_...)
+// Live mode key for production (pk_live_...)
+const getStripeKey = () => {
+  const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  if (!key) {
+    console.warn("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY not set. Stripe Elements will not work.");
+    return null;
+  }
+  return key;
+};
+
+const stripeKey = getStripeKey();
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 interface PaymentMethodFormProps {
   onSuccess: () => void;
@@ -175,6 +184,27 @@ export default function PaymentMethodPage() {
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-64 mb-8"></div>
             <div className="bg-white rounded-lg shadow p-6 h-64"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!stripePromise) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-yellow-800 mb-2">Stripe Not Configured</h2>
+            <p className="text-yellow-700 mb-4">
+              Please add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to your .env.local file.
+            </p>
+            <Link
+              href="/team/billing"
+              className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+            >
+              Back to Billing
+            </Link>
           </div>
         </div>
       </div>
