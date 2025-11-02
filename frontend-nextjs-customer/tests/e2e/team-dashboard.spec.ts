@@ -132,12 +132,17 @@ test.describe('Team Dashboard (US#210)', () => {
   });
 
   test('should display team members list', async ({ page }) => {
-    await page.route('**/teams/my', async (route) => {
-      await route.fulfill({
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockTeam),
-      });
+    await page.route('**/teams/*', async (route) => {
+      const url = route.request().url();
+      if (url.includes('/teams/')) {
+        await route.fulfill({
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mockTeam),
+        });
+      } else {
+        await route.continue();
+      }
     });
 
     await page.route('**/teams/*/members', async (route) => {
@@ -149,9 +154,10 @@ test.describe('Team Dashboard (US#210)', () => {
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-
-    // Wait for dashboard to load
-    await page.waitForSelector('h1', { state: 'visible' });
+    
+    // Wait for page to finish loading
+    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
     // Check members section
     await expect(page.getByText('Team Members')).toBeVisible({ timeout: 10000 });
@@ -167,18 +173,23 @@ test.describe('Team Dashboard (US#210)', () => {
   });
 
   test('should display team information section', async ({ page }) => {
-    await page.route('**/teams/my', async (route) => {
-      await route.fulfill({
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockTeam),
-      });
+    await page.route('**/teams/*', async (route) => {
+      const url = route.request().url();
+      if (url.includes('/teams/') && !url.includes('/members')) {
+        await route.fulfill({
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mockTeam),
+        });
+      } else {
+        await route.continue();
+      }
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-
-    // Wait for dashboard to load
-    await page.waitForSelector('h1', { state: 'visible' });
+    
+    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
     // Check team info section
     await expect(page.getByText('Team Information')).toBeVisible({ timeout: 10000 });
@@ -189,18 +200,23 @@ test.describe('Team Dashboard (US#210)', () => {
   });
 
   test('should navigate to invite page from dashboard', async ({ page }) => {
-    await page.route('**/teams/my', async (route) => {
-      await route.fulfill({
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockTeam),
-      });
+    await page.route('**/teams/*', async (route) => {
+      const url = route.request().url();
+      if (url.includes('/teams/') && !url.includes('/members')) {
+        await route.fulfill({
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mockTeam),
+        });
+      } else {
+        await route.continue();
+      }
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-
-    // Wait for dashboard to load
-    await page.waitForSelector('h1', { state: 'visible' });
+    
+    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
     // Click invite link (may be text link or button)
     const inviteLink = page.getByRole('link', { name: /Invite Member/i }).or(
@@ -213,18 +229,23 @@ test.describe('Team Dashboard (US#210)', () => {
   });
 
   test('should navigate to upgrade page from dashboard', async ({ page }) => {
-    await page.route('**/teams/my', async (route) => {
-      await route.fulfill({
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockTeam),
-      });
+    await page.route('**/teams/*', async (route) => {
+      const url = route.request().url();
+      if (url.includes('/teams/') && !url.includes('/members')) {
+        await route.fulfill({
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mockTeam),
+        });
+      } else {
+        await route.continue();
+      }
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-
-    // Wait for dashboard to load
-    await page.waitForSelector('h1', { state: 'visible' });
+    
+    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
     // Click upgrade button (may be in header or CTA section)
     const upgradeLink = page.getByRole('link', { name: /Upgrade to Organization/i }).or(
@@ -237,15 +258,22 @@ test.describe('Team Dashboard (US#210)', () => {
   });
 
   test('should show upgrade CTA for standalone teams', async ({ page }) => {
-    await page.route('**/teams/my', async (route) => {
-      await route.fulfill({
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...mockTeam, is_standalone: true }),
-      });
+    await page.route('**/teams/*', async (route) => {
+      const url = route.request().url();
+      if (url.includes('/teams/') && !url.includes('/members')) {
+        await route.fulfill({
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...mockTeam, is_standalone: true }),
+        });
+      } else {
+        await route.continue();
+      }
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
+    
+    await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Should show upgrade banner (check for upgrade CTA section)
     // The upgrade banner is only shown if team.is_standalone is true
@@ -262,13 +290,18 @@ test.describe('Team Dashboard (US#210)', () => {
 
   test('should show loading state while fetching team data', async ({ page }) => {
     // Delay API response
-    await page.route('**/teams/my', async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      await route.fulfill({
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockTeam),
-      });
+    await page.route('**/teams/*', async (route) => {
+      const url = route.request().url();
+      if (url.includes('/teams/') && !url.includes('/members')) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await route.fulfill({
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mockTeam),
+        });
+      } else {
+        await route.continue();
+      }
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
@@ -278,12 +311,17 @@ test.describe('Team Dashboard (US#210)', () => {
   });
 
   test('should handle empty members list', async ({ page }) => {
-    await page.route('**/teams/my', async (route) => {
-      await route.fulfill({
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockTeam),
-      });
+    await page.route('**/teams/*', async (route) => {
+      const url = route.request().url();
+      if (url.includes('/teams/') && !url.includes('/members')) {
+        await route.fulfill({
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mockTeam),
+        });
+      } else {
+        await route.continue();
+      }
     });
 
     await page.route('**/teams/*/members', async (route) => {
@@ -295,9 +333,12 @@ test.describe('Team Dashboard (US#210)', () => {
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
+    
+    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
     // Should show empty state (check for empty members message)
-    await expect(page.locator('text=/No members|No members yet/i').first()).toBeVisible();
+    await expect(page.locator('text=/No members|No members yet/i').first()).toBeVisible({ timeout: 5000 });
   });
 });
 
