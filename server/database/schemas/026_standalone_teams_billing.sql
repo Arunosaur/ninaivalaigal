@@ -337,23 +337,85 @@ WHERE billing_period_start <= CURRENT_DATE
     AND billing_period_end >= CURRENT_DATE
 GROUP BY team_id, org_id, metric_name, billing_period_start, billing_period_end;
 
+-- US#156: Core Team Billing Tables
+-- These tables are required per US#156 (Team Billing Schema Design)
+
+-- Team billing table (core billing information)
+CREATE TABLE IF NOT EXISTS team_billing (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id UUID REFERENCES teams(id) ON DELETE CASCADE UNIQUE NOT NULL,
+    stripe_customer_id VARCHAR(255) UNIQUE,
+    billing_email VARCHAR(255) NOT NULL,
+    payment_method_id VARCHAR(255), -- Stripe payment method ID
+    default_payment_method VARCHAR(255), -- Stripe default payment method
+    billing_address JSONB, -- Structured billing address
+    tax_id VARCHAR(50),
+    currency VARCHAR(3) DEFAULT 'USD',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create indexes for team_billing
+CREATE INDEX IF NOT EXISTS idx_team_billing_team_id ON team_billing(team_id);
+CREATE INDEX IF NOT EXISTS idx_team_billing_stripe_customer_id ON team_billing(stripe_customer_id) WHERE stripe_customer_id IS NOT NULL;
+
+-- Team subscriptions table (plan management)
+CREATE TABLE IF NOT EXISTS team_subscriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id UUID REFERENCES teams(id) ON DELETE CASCADE NOT NULL,
+    plan_id VARCHAR(50) NOT NULL, -- 'free', 'starter', 'pro', 'enterprise'
+    status VARCHAR(50) NOT NULL DEFAULT 'active', -- 'active', 'canceled', 'past_due', 'trialing', 'incomplete'
+    current_period_start TIMESTAMP NOT NULL,
+    current_period_end TIMESTAMP NOT NULL,
+    trial_start TIMESTAMP,
+    trial_end TIMESTAMP,
+    cancel_at_period_end BOOLEAN DEFAULT FALSE,
+    canceled_at TIMESTAMP,
+    subscription_metadata JSONB, -- Renamed from 'metadata' (reserved in SQLAlchemy)
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create indexes for team_subscriptions
+CREATE INDEX IF NOT EXISTS idx_team_subscriptions_team_id ON team_subscriptions(team_id);
+CREATE INDEX IF NOT EXISTS idx_team_subscriptions_status ON team_subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_team_subscriptions_period ON team_subscriptions(current_period_start, current_period_end);
+
+-- Team usage metrics table (tracking)
+CREATE TABLE IF NOT EXISTS team_usage_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id UUID REFERENCES teams(id) ON DELETE CASCADE NOT NULL,
+    period_start TIMESTAMPTZ NOT NULL,
+    period_end TIMESTAMPTZ NOT NULL,
+    memory_count INT DEFAULT 0 CHECK (memory_count >= 0),
+    api_calls INT DEFAULT 0 CHECK (api_calls >= 0),
+    storage_bytes BIGINT DEFAULT 0 CHECK (storage_bytes >= 0),
+    context_count INT DEFAULT 0 CHECK (context_count >= 0),
+    member_count INT DEFAULT 0 CHECK (member_count >= 0),
+    recorded_at TIMESTAMPTZ DEFAULT NOW(),
+
+    -- Ensure period is valid
+    CONSTRAINT usage_period_check CHECK (period_start <= period_end),
+
+    -- Unique constraint per team per period
+    CONSTRAINT unique_team_usage_period UNIQUE (team_id, period_start, period_end)
+);
+
+-- Create indexes for team_usage_metrics
+CREATE INDEX IF NOT EXISTS idx_team_usage_metrics_team_id ON team_usage_metrics(team_id, period_start);
+CREATE INDEX IF NOT EXISTS idx_team_usage_metrics_period ON team_usage_metrics(period_start, period_end);
+
+-- Add trigger for team_billing updated_at
+CREATE TRIGGER update_team_billing_updated_at BEFORE UPDATE ON team_billing FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Add trigger for team_subscriptions updated_at
+CREATE TRIGGER update_team_subscriptions_updated_at BEFORE UPDATE ON team_subscriptions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Grant permissions (adjust based on your user roles)
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated_users;
 GRANT SELECT ON ALL VIEWS IN SCHEMA public TO authenticated_users;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO authenticated_users;
 
--- Insert default billing plans data
-INSERT INTO discount_codes (code, percent_off, expires_at, usage_limit, created_by, is_active)
-VALUES
-    ('WELCOME10', 10, NOW() + INTERVAL '30 days', 100, (SELECT id FROM users WHERE role = 'admin' LIMIT 1), TRUE),
-    ('STARTUP50', 50, NOW() + INTERVAL '90 days', 50, (SELECT id FROM users WHERE role = 'admin' LIMIT 1), TRUE)
-ON CONFLICT (code) DO NOTHING;
-
--- Create initial admin user if not exists (for testing)
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM users WHERE role = 'admin') THEN
-        INSERT INTO users (id, email, role, created_at)
-        VALUES (gen_random_uuid(), 'admin@ninaivalaigal.com', 'admin', NOW());
-    END IF;
-END $$;
+-- Note: Default discount codes and admin user creation should be handled
+-- by migration scripts or application initialization, not in schema file.
+-- This prevents secrets detection issues and follows best practices.

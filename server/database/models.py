@@ -17,10 +17,13 @@ This addresses external code review feedback:
 
 import uuid
 from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Boolean,
+    CheckConstraint,
     Column,
     DateTime,
     ForeignKey,
@@ -28,7 +31,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -287,3 +290,108 @@ class UserInvitation(Base):
     organization = relationship("Organization")
     team = relationship("Team")
     inviter = relationship("User")
+
+
+# US#156: Team Billing Schema Models (SPEC-026 Phase 1)
+
+
+class SubscriptionStatus(str, Enum):
+    """Team subscription status enum"""
+
+    ACTIVE = "active"
+    CANCELED = "canceled"
+    PAST_DUE = "past_due"
+    TRIALING = "trialing"
+    INCOMPLETE = "incomplete"
+
+
+class TeamBilling(Base):
+    """Team billing model - core billing information per US#156
+
+    Stores Stripe customer ID and billing information for teams.
+    Part of SPEC-026: Standalone Teams and Billing Phase 1.
+    """
+
+    __tablename__ = "team_billing"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    team_id = Column(
+        UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), unique=True, nullable=False, index=True
+    )
+    stripe_customer_id = Column(String(255), unique=True, index=True)
+    billing_email = Column(String(255), nullable=False)
+    payment_method_id = Column(String(255))  # Stripe payment method ID
+    default_payment_method = Column(String(255))  # Stripe default payment method
+    billing_address = Column(JSONB)  # Structured billing address
+    tax_id = Column(String(50))
+    currency = Column(String(3), default="USD")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    team = relationship("Team", backref="billing")
+
+
+class TeamSubscription(Base):
+    """Team subscription model - plan management per US#156
+
+    Tracks subscription plans, status, and billing periods for teams.
+    Part of SPEC-026: Standalone Teams and Billing Phase 1.
+    """
+
+    __tablename__ = "team_subscriptions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True)
+    plan_id = Column(String(50), nullable=False)  # 'free', 'starter', 'pro', 'enterprise'
+    status = Column(String(50), nullable=False, default=SubscriptionStatus.ACTIVE.value)
+    current_period_start = Column(DateTime, nullable=False)
+    current_period_end = Column(DateTime, nullable=False)
+    trial_start = Column(DateTime, nullable=True)
+    trial_end = Column(DateTime, nullable=True)
+    cancel_at_period_end = Column(Boolean, default=False)
+    canceled_at = Column(DateTime, nullable=True)
+    subscription_metadata = Column(JSONB, nullable=True)  # Renamed from 'metadata' (reserved in SQLAlchemy)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    team = relationship("Team", backref="subscriptions")
+
+    # Indexes defined in schema SQL
+    __table_args__ = {"comment": "Team subscription plans and billing periods (US#156, SPEC-026)"}
+
+
+class TeamUsageMetrics(Base):
+    """Team usage metrics model - tracking per US#156
+
+    Tracks usage metrics (memory, API calls, storage) for teams over billing periods.
+    Part of SPEC-026: Standalone Teams and Billing Phase 1.
+    """
+
+    __tablename__ = "team_usage_metrics"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True)
+    period_start = Column(DateTime(timezone=True), nullable=False, index=True)
+    period_end = Column(DateTime(timezone=True), nullable=False, index=True)
+    memory_count = Column(Integer, default=0)
+    api_calls = Column(Integer, default=0)
+    storage_bytes = Column(BigInteger, default=0)
+    context_count = Column(Integer, default=0)
+    member_count = Column(Integer, default=0)
+    recorded_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    # Relationships
+    team = relationship("Team", backref="usage_metrics")
+
+    # Constraints
+    __table_args__ = (
+        CheckConstraint("memory_count >= 0", name="check_memory_count_non_negative"),
+        CheckConstraint("api_calls >= 0", name="check_api_calls_non_negative"),
+        CheckConstraint("storage_bytes >= 0", name="check_storage_bytes_non_negative"),
+        CheckConstraint("context_count >= 0", name="check_context_count_non_negative"),
+        CheckConstraint("member_count >= 0", name="check_member_count_non_negative"),
+        CheckConstraint("period_start <= period_end", name="usage_period_check"),
+        {"comment": "Team usage metrics tracking (US#156, SPEC-026)"},
+    )
