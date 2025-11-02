@@ -325,28 +325,22 @@ export default function TeamBillingPage() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      // Navigate to payment method update page (to be implemented)
-                      alert("Payment method update will be implemented with Stripe Elements");
-                    }}
+                  <Link
+                    href="/team/billing/payment-method"
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >
                     Update Payment Method
-                  </button>
+                  </Link>
                 </div>
               ) : (
                 <div>
                   <p className="text-gray-600 mb-4">No payment method on file</p>
-                  <button
-                    onClick={() => {
-                      // Navigate to add payment method page (to be implemented)
-                      alert("Add payment method will be implemented with Stripe Elements");
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  <Link
+                    href="/team/billing/payment-method"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block text-center"
                   >
                     Add Payment Method
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
