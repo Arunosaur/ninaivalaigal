@@ -508,7 +508,7 @@ class CreditTransaction(Base):
     balance_after = Column(Numeric(10, 2), nullable=False)
     reason = Column(Text, nullable=False)
     performed_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
-    invoice_id = Column(UUID(as_uuid=True), ForeignKey("billing_invoices.id"), nullable=True, index=True)
+    invoice_id = Column(String(255), nullable=True)  # Reference to billing_invoices table (model not yet created)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     # Relationships
@@ -555,4 +555,58 @@ class DiscountCodeUsage(Base):
             name="discount_usage_target_check",
         ),
         {"comment": "Discount code usage tracking (US#157, SPEC-026)"},
+    )
+
+
+# US#158: Non-Profit Application System Models (SPEC-026 Phase 1)
+
+class NonProfitApplicationStatus(str, Enum):
+    """Non-profit application status enum"""
+
+    PENDING = "pending"
+    UNDER_REVIEW = "under_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class NonProfitApplication(Base):
+    """Non-profit application model - application and approval workflow per US#158
+
+    Tracks non-profit applications with status workflow and review tracking.
+    Part of SPEC-026: Standalone Teams and Billing Phase 1.
+    """
+
+    __tablename__ = "nonprofit_applications"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=True, index=True)
+    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True)
+    organization_name = Column(String(255), nullable=False)
+    tax_id = Column(String(50), nullable=False)
+    description = Column(Text, nullable=False)
+    website_url = Column(Text, nullable=True)
+    documentation_urls = Column(JSON, nullable=True)  # Array of URLs for supporting documents
+    status = Column(String(20), default=NonProfitApplicationStatus.PENDING.value, nullable=False, index=True)
+    submitted_at = Column(DateTime, default=datetime.utcnow, index=True)
+    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    review_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    team = relationship("Team", foreign_keys=[team_id])
+    organization = relationship("Organization", foreign_keys=[org_id])
+    reviewer = relationship("User", foreign_keys=[reviewed_by])
+
+    # Constraints
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'approved', 'rejected', 'under_review')", name="check_status_valid"
+        ),
+        CheckConstraint(
+            "(team_id IS NOT NULL AND org_id IS NULL) OR (team_id IS NULL AND org_id IS NOT NULL)",
+            name="nonprofit_target_check",
+        ),
+        {"comment": "Non-profit application workflow (US#158, SPEC-026)"},
     )
