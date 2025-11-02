@@ -111,13 +111,64 @@ class TenancyGuard:
                     return query.filter(False)  # Empty result
                 return query
 
-            # Get entities from query
-            entities = getattr(query, "_entities", [])
-            for entity_desc in entities:
-                # Extract model class from entity
-                entity = entity_desc.entity_zero.entity
-                if hasattr(entity, "__table__"):
+            # Extract entity from query using multiple methods
+            entity = None
+
+            # Method 1: Use column_descriptions (SQLAlchemy 1.x Query)
+            if hasattr(query, "column_descriptions") and query.column_descriptions:
+                try:
+                    desc = query.column_descriptions[0]
+                    if isinstance(desc, dict):
+                        entity = desc.get("entity")
+                    elif hasattr(desc, "entity"):
+                        entity = desc.entity
+                    elif hasattr(desc, "type"):
+                        entity = desc.type
+                except (KeyError, IndexError, AttributeError):
+                    pass
+
+            # Method 2: Try _bind_mapper (SQLAlchemy internal)
+            if not entity and hasattr(query, "_bind_mapper") and query._bind_mapper:
+                entity = query._bind_mapper.class_
+
+            # Method 3: Try _entities (some SQLAlchemy versions)
+            if not entity and hasattr(query, "_entities") and query._entities:
+                try:
+                    entity_desc = query._entities[0]
+                    if hasattr(entity_desc, "entity_zero") and hasattr(entity_desc.entity_zero, "entity"):
+                        entity = entity_desc.entity_zero.entity
+                    elif hasattr(entity_desc, "entity"):
+                        entity = entity_desc.entity
+                    elif hasattr(entity_desc, "mapper"):
+                        entity = entity_desc.mapper.class_
+                except (AttributeError, IndexError):
+                    pass
+
+            # Method 4: Try _primary_entity (SQLAlchemy 1.4+)
+            if not entity and hasattr(query, "_primary_entity") and query._primary_entity:
+                try:
+                    primary = query._primary_entity
+                    if hasattr(primary, "mapper"):
+                        entity = primary.mapper.class_
+                    elif hasattr(primary, "entity"):
+                        entity = primary.entity
+                except AttributeError:
+                    pass
+
+            # Check if we found a valid model entity
+            if (
+                entity
+                and isinstance(entity, type)
+                and (hasattr(entity, "__table__") or hasattr(entity, "__tablename__"))
+            ):
+                model_name = entity.__name__
+                if model_name in self._registered_models:
+                    self.logger.debug(f"Filtering query for registered model: {model_name}")
                     query = self.filter_query(query, entity)
+                else:
+                    self.logger.debug(f"Model {model_name} not registered for tenant filtering, skipping")
+            else:
+                self.logger.debug(f"Could not extract entity from query: {type(query)}")
 
             self.logger.debug(f"Applied tenant filter (tenant_id={tenant_id})")
             return query
@@ -126,6 +177,57 @@ class TenancyGuard:
         def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
             """Intercept SQL execution to add tenant filtering."""
             if not self.enforce_context:
+                return
+
+            # Allow DDL operations (CREATE, DROP, ALTER) and system queries to bypass tenant checks
+            # These are system-level operations that don't need tenant context
+            statement_str = statement if isinstance(statement, str) else str(statement)
+            statement_upper = statement_str.upper()
+
+            # DDL keywords
+            ddl_keywords = [
+                "CREATE TABLE",
+                "DROP TABLE",
+                "ALTER TABLE",
+                "CREATE INDEX",
+                "DROP INDEX",
+                "CREATE SCHEMA",
+                "DROP SCHEMA",
+                "CREATE SEQUENCE",
+                "DROP SEQUENCE",
+                "CREATE VIEW",
+                "DROP VIEW",
+                "CREATE TYPE",
+                "DROP TYPE",
+            ]
+
+            # System/metadata queries
+            system_patterns = [
+                "INFORMATION_SCHEMA",
+                "PG_CATALOG",
+                "SELECT VERSION()",
+                "SELECT CURRENT_",
+                "SELECT PG_",
+                "SELECT 1",  # Health checks
+                "FROM PG_",  # PostgreSQL catalog queries
+                "FROM INFORMATION_SCHEMA",  # Information schema queries
+            ]
+
+            # Root entity operations - Organizations are root entities and don't belong to organizations
+            root_entity_patterns = [
+                "INSERT INTO ORGANIZATIONS",  # Creating organizations doesn't need tenant context
+            ]
+
+            if any(keyword in statement_upper for keyword in ddl_keywords):
+                self.logger.debug("DDL operation detected, bypassing tenant check")
+                return
+
+            if any(pattern in statement_upper for pattern in system_patterns):
+                self.logger.debug("System/metadata query detected, bypassing tenant check")
+                return
+
+            if any(pattern in statement_upper for pattern in root_entity_patterns):
+                self.logger.debug("Root entity operation detected (Organizations), bypassing tenant check")
                 return
 
             tenant_id = _tenant_context.tenant_id or _tenant_context.organization_id
@@ -149,7 +251,8 @@ class TenancyGuard:
             # Model not registered for tenancy, allow access
             return True
 
-        current_tenant = _tenant_context.tenant_id
+        # Use organization_id first (more specific), fallback to tenant_id
+        current_tenant = _tenant_context.organization_id or _tenant_context.tenant_id
         if not current_tenant:
             self.logger.error(f"No tenant context for {operation} operation on {model_name}")
             return False
@@ -164,7 +267,7 @@ class TenancyGuard:
 
         return True
 
-    def filter_query(self, query: Select, model_class: type) -> Select:
+    def filter_query(self, query, model_class: type):
         """Add tenant filtering to query."""
         if not self.enforce_context:
             return query
@@ -175,15 +278,31 @@ class TenancyGuard:
         if not tenant_column:
             return query
 
-        tenant_id = _tenant_context.tenant_id
+        # Use organization_id first (more specific), fallback to tenant_id
+        tenant_id = _tenant_context.organization_id or _tenant_context.tenant_id
         if not tenant_id:
             if self.enforce_context:
                 raise ValueError(f"Tenant context required for querying {model_name}")
             return query
 
         # Add tenant filter
+        # For SQLAlchemy 1.x Query objects, use filter() method
+        # For SQLAlchemy 2.x Select objects, use where() method
         tenant_attr = getattr(model_class, tenant_column)
-        return query.where(tenant_attr == tenant_id)
+
+        # Check if query is SQLAlchemy 1.x Query or 2.x Select
+        if hasattr(query, "filter"):
+            # SQLAlchemy 1.x Query object
+            return query.filter(tenant_attr == tenant_id)
+        elif hasattr(query, "where"):
+            # SQLAlchemy 2.x Select object
+            return query.where(tenant_attr == tenant_id)
+        else:
+            # Fallback: try filter first, then where
+            try:
+                return query.filter(tenant_attr == tenant_id)
+            except AttributeError:
+                return query.where(tenant_attr == tenant_id)
 
 
 # Global tenancy guard

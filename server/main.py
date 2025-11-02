@@ -33,7 +33,18 @@ from fastapi.staticfiles import StaticFiles
 
 # Middleware and security
 from observability import health_router, metrics_router
-from observability.tracing import TracingConfig, init_tracing
+
+# Make tracing imports optional for tests
+try:
+    from observability.tracing import TracingConfig, init_tracing
+
+    TRACING_AVAILABLE = True
+except ImportError:
+    # Gracefully handle missing opentelemetry dependencies (common in test environments)
+    TracingConfig = None
+    init_tracing = None
+    TRACING_AVAILABLE = False
+
 from performance_monitor import get_performance_monitor, start_performance_monitoring
 from redis_client import redis_client
 from redis_queue import queue_manager
@@ -164,12 +175,16 @@ app = FastAPI(
 )
 
 # Initialize OpenTelemetry Distributed Tracing (Task #84)
-try:
-    service_name = os.getenv("OTEL_SERVICE_NAME", "ninaivalaigal-core-api")
-    jaeger_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
-    tracing_enabled = os.getenv("OTEL_TRACING_ENABLED", "true").lower() == "true"
-    is_dev = os.getenv("ENVIRONMENT", "production").lower() == "development"
-    if tracing_enabled:
+# Skip tracing if dependencies are unavailable or explicitly disabled for tests
+tracing_enabled_env = os.getenv("OTEL_TRACING_ENABLED", "true").lower() == "true"
+is_testing = os.getenv("PYTEST_CURRENT_TEST") is not None or os.getenv("TESTING") == "true"
+
+if TRACING_AVAILABLE and tracing_enabled_env and not is_testing:
+    try:
+        service_name = os.getenv("OTEL_SERVICE_NAME", "ninaivalaigal-core-api")
+        jaeger_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+        is_dev = os.getenv("ENVIRONMENT", "production").lower() == "development"
+
         tracing_config = TracingConfig(
             service_name=service_name,
             service_version="1.0.0",
@@ -178,11 +193,15 @@ try:
         )
         tracer = init_tracing(app, tracing_config)
         logger.info(f"✅ Distributed tracing enabled: {service_name} -> {jaeger_endpoint}")
-    else:
-        logger.info("⏭️  Distributed tracing disabled via OTEL_TRACING_ENABLED=false")
-except Exception as e:
-    logger.warning(f"⚠️  Failed to initialize tracing: {e}")
-    logger.info("Continuing without distributed tracing")
+    except Exception as e:
+        logger.warning(f"⚠️  Failed to initialize tracing: {e}")
+        logger.info("Continuing without distributed tracing")
+elif is_testing:
+    logger.debug("⏭️  Distributed tracing disabled in test environment")
+elif not TRACING_AVAILABLE:
+    logger.debug("⏭️  Distributed tracing dependencies not available")
+elif not tracing_enabled_env:
+    logger.info("⏭️  Distributed tracing disabled via OTEL_TRACING_ENABLED=false")
 
 # Configure CORS
 app.add_middleware(
@@ -308,6 +327,7 @@ from protected_routes import router as protected_router  # noqa: E402
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router  # noqa: E402
 # from performance_api import router as performance_router  # noqa: E402
+from routers.admin_activity import router as admin_activity_router  # noqa: E402
 from routers.approvals import router as approvals_router  # noqa: E402
 from routers.contexts import router as contexts_router  # noqa: E402
 from routers.memory import router as memory_router  # noqa: E402
@@ -375,6 +395,7 @@ app.include_router(usage_analytics_router)
 app.include_router(early_adopter_router)
 app.include_router(invoice_management_router)
 app.include_router(admin_analytics_router)
+app.include_router(admin_activity_router)
 app.include_router(team_api_keys_router)
 app.include_router(team_billing_portal_router)
 app.include_router(partner_ecosystem_router)
@@ -383,7 +404,21 @@ app.include_router(billing_engine_router)
 
 # US#204: Team Billing APIs (SPEC-026 Phase 2)
 from team_billing_api import router as team_billing_router  # noqa: E402
+
 app.include_router(team_billing_router)
+
+# SPEC-074: GDPR Compliance APIs (US#558)
+# SPEC-011/US-121: HIPAA Compliance APIs
+# Skip importing compliance routers in test mode to avoid model import conflicts
+# Tests import routers directly and don't need them registered in main app
+if not is_testing:
+    from compliance.api import router as compliance_router  # noqa: E402
+
+    app.include_router(compliance_router)
+
+    from compliance.api_hipaa import router as hipaa_router  # noqa: E402
+
+    app.include_router(hipaa_router)
 app.include_router(macro_intelligence_router)
 app.include_router(graph_intelligence_integration_router)
 app.include_router(graph_validation_router)

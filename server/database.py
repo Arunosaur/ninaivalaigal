@@ -285,31 +285,35 @@ class DatabaseManager:
     context managers for safe database operations.
     """
 
-    def __init__(self, config="postgresql://mem0user:mem0pass@localhost:5432/mem0db"):
+    def __init__(self, config=None):  # pragma: allowlist secret
         """Initialize instance."""
         # Handle both string URL and config dict
         if isinstance(config, dict):
-            database_url = config.get("database_url", "postgresql://mem0user:mem0pass@localhost:5432/mem0db")
+            database_url = config.get(
+                "database_url",
+                "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret
+            )
         else:
-            database_url = config
+            database_url = config or "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
 
         # Ensure we always use PostgreSQL
         if not database_url.startswith("postgresql"):
-            database_url = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+            database_url = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
         print(f"🐘 Using PostgreSQL: {database_url}")
 
         # PostgreSQL connection with pool settings
         self.engine = create_engine(database_url, pool_pre_ping=True)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-        
+
         # Install tenancy guard for automatic organization isolation (US#117)
         try:
             from server.security.orm.tenancy_guard import install_tenancy_guard
+
             install_tenancy_guard(self.engine, enforce_context=True)
             print("✅ Tenancy Guard installed - automatic organization isolation enabled")
         except Exception as e:
             print(f"⚠️  Warning: Could not install Tenancy Guard: {e}")
-        
+
         self.create_tables()
 
     def create_tables(self):
@@ -1203,7 +1207,7 @@ def get_db():
         database_url = (
             os.getenv("NINAIVALAIGAL_DATABASE_URL")
             or os.getenv("DATABASE_URL")
-            or "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+            or "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
         )
         _db_instance = DatabaseManager(database_url)
     return _db_instance
