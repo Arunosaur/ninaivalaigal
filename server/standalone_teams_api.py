@@ -18,7 +18,6 @@ from email.mime.text import MIMEText
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from models.standalone_teams import (
@@ -28,6 +27,8 @@ from models.standalone_teams import (
 )
 from pydantic import BaseModel, EmailStr, validator
 from sqlalchemy.orm import Session
+
+from auth import get_current_user, get_db
 
 # Initialize router
 router = APIRouter(prefix="/teams", tags=["standalone-teams"])
@@ -312,6 +313,59 @@ async def get_my_team(
         created_at=team.created_at,
         created_by_user_id=team.created_by_user_id,
     )
+
+
+@router.post("/invite", response_model=TeamInvitationResponse)
+async def invite_user_to_my_team(
+    invite_data: TeamInviteCreate,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    team_manager: StandaloneTeamManager = Depends(get_team_manager),
+    db: Session = Depends(get_db),
+) -> TeamInvitationResponse:
+    """
+    Invite a user to join the current user's team (US#159)
+
+    Automatically uses the current user's standalone team.
+    Only team admins and contributors can send invitations.
+    """
+    try:
+        # Find user's team (created or member)
+        team = db.query(Team).filter_by(created_by_user_id=current_user.id, is_standalone=True).first()
+
+        if not team:
+            # Check if user is a member of a standalone team
+            membership = (
+                db.query(TeamMembership)
+                .join(Team)
+                .filter(
+                    TeamMembership.user_id == current_user.id,
+                    TeamMembership.status == "active",
+                    Team.is_standalone.is_(True),
+                )
+                .first()
+            )
+
+            if membership:
+                team = membership.team
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User does not have a standalone team",
+                )
+
+        # Use existing invite logic
+        return await invite_user_to_team(
+            team.id, invite_data, background_tasks, current_user, team_manager, db
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to invite user: {str(e)}",
+        )
 
 
 @router.post("/{team_id}/invite", response_model=TeamInvitationResponse)
