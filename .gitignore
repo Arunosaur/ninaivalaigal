@@ -181,3 +181,8 @@ vscode-client/
 go-services/load-tester/bin/
 benchmarks/results/*.csv
 *.importfix
+
+# Test artifacts
+test-results/
+*.coverage.out
+coverage.out
