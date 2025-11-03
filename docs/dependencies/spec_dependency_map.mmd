@@ -1,0 +1,47 @@
+graph TD
+    %% Authentication & Authorization Chain
+    SPEC006[SPEC-006: User Signup & Auth<br/>✅ Authoritative] --> SPEC014[SPEC-014: Auth & Authorization<br/>✅ Complete]
+    SPEC014 --> SPEC008[SPEC-008: Security Middleware<br/>✅ Complete]
+    SPEC014 --> SPEC009[SPEC-009: RBAC Policy<br/>✅ Complete]
+    SPEC008 --> SPEC114[SPEC-114: Auth & Security Integration<br/>✅ Complete]
+    SPEC009 --> SPEC114
+
+    %% Deprecated Auth Chain
+    SPEC002[SPEC-002: User Management<br/>🔴 DEPRECATED] -.superseded by.-> SPEC006
+
+    %% Billing & Payments Flow
+    SPEC026[SPEC-026: Standalone Teams Billing<br/>📋 Planned] --> SPEC027[SPEC-027: Billing Engine<br/>✅ Complete]
+    SPEC027 --> SPEC028[SPEC-028: Invoice Management<br/>🔄 Partial - 65%]
+    SPEC027 -.overlap.-> SPEC028
+
+    %% Memory Sharing Consolidation
+    SPEC049[SPEC-049: Memory Collaboration<br/>✅ Draft] -.superseded by.-> SPEC127[SPEC-127: Context Bridge<br/>🆕 Active]
+    SPEC050[SPEC-050: Cross-Org Sharing<br/>✅ Draft] -.superseded by.-> SPEC127
+    SPEC101[SPEC-101: Memory Federation<br/>✅ Complete] --> SPEC127
+
+    %% Observability Stack
+    SPEC010[SPEC-010: Observability<br/>✅ Complete] --> SPEC022[SPEC-022: Prometheus/Grafana<br/>✅ Complete]
+    SPEC022 --> SPEC070[SPEC-070: Real-Time Dashboard<br/>📋 Planned]
+    SPEC010 --> SPEC118[SPEC-118: Performance Budgets<br/>✅ Complete]
+
+    %% Frontend Migration Trilogy
+    SPEC102[SPEC-102: Frontend Migration Prep<br/>✅ Complete] --> SPEC103[SPEC-103: Next.js 15 Bootstrap<br/>✅ Complete]
+    SPEC103 --> SPEC121[SPEC-121: Shared Library<br/>✅ Complete]
+    SPEC121 --> SPEC122[SPEC-122: Customer Frontend<br/>✅ Complete]
+    SPEC121 --> SPEC123[SPEC-123: Admin Frontend<br/>✅ Complete]
+    SPEC122 --> SPEC124[SPEC-124: Unified Workspace<br/>✅ Complete]
+    SPEC123 --> SPEC124
+    SPEC075[SPEC-075: Unified Frontend Arch<br/>📋 Planned] -.redundant.-> SPEC124
+
+    %% Styling and CSS Classes
+    classDef complete fill:#a8e440,stroke:#333,stroke-width:2px,color:#000
+    classDef partial fill:#ffa500,stroke:#333,stroke-width:2px,color:#000
+    classDef planned fill:#e0e0e0,stroke:#333,stroke-width:2px,color:#000
+    classDef deprecated fill:#ff4444,stroke:#333,stroke-width:2px,color:#fff
+    classDef active fill:#4a9eff,stroke:#333,stroke-width:2px,color:#fff
+
+    class SPEC006,SPEC014,SPEC008,SPEC009,SPEC114,SPEC027,SPEC101,SPEC010,SPEC022,SPEC118,SPEC102,SPEC103,SPEC121,SPEC122,SPEC123,SPEC124 complete
+    class SPEC028 partial
+    class SPEC026,SPEC070,SPEC075 planned
+    class SPEC002 deprecated
+    class SPEC127 active

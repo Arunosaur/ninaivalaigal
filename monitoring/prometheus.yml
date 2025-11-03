@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ninaivalaigal'
+    environment: 'dev'
+
+rule_files:
+  - '/etc/prometheus/alerts.yml'
+  # Note: alerts.yml location in container will be /etc/prometheus/alerts.yml
+  # For Apple Container CLI, copy via: cat alerts.yml | container exec -i ninaivalaigal-dev-prometheus sh -c 'cat > /etc/prometheus/alerts.yml'
+
+scrape_configs:
+  - job_name: 'grpc-gateway'
+    static_configs:
+      - targets: ['host.docker.internal:13395']
+    metrics_path: '/metrics'
+
+  - job_name: 'memory-service'
+    static_configs:
+      - targets: ['host.docker.internal:13393']
+    metrics_path: '/metrics'
+
+  - job_name: 'core-api'
+    static_configs:
+      - targets: ['host.docker.internal:13390']
+    metrics_path: '/metrics'
+
+  - job_name: 'graphops'
+    static_configs:
+      - targets: ['host.docker.internal:13398']
+    metrics_path: '/metrics'

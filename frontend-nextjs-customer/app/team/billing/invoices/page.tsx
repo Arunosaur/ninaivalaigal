@@ -9,7 +9,7 @@
 //
 /**
  * US#211: Invoice List Page
- * 
+ *
  * Invoice list with:
  * - Paginated invoice table
  * - Download PDF button per invoice
@@ -300,4 +300,3 @@ export default function InvoiceListPage() {
     </div>
   );
 }
-

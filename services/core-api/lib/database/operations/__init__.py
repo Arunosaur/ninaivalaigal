@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
+"""
+Database Operations Module
+Modular breakdown of database operations for better maintainability
+"""
+
+from .context_ops import ContextOps as ContextOperations
+from .memory_ops import MemoryOperations
+from .organization_ops import OrganizationOperations
+from .rbac_ops import RBACOperations
+from .user_ops import UserOperations
+from .util_ops import DatabaseUtilities, get_db
+from .vendor_admin import VendorAdminOperations
+
+
+# Main operations class combining all modules
+class DatabaseOperations(
+    DatabaseUtilities,
+    MemoryOperations,
+    UserOperations,
+    ContextOperations,
+    RBACOperations,
+    VendorAdminOperations,
+    OrganizationOperations,
+):
+    """
+    Combined database operations class
+    Inherits from all specialized operation modules
+    """
+
+
+__all__ = [
+    "DatabaseOperations",
+    "DatabaseUtilities",
+    "MemoryOperations",
+    "UserOperations",
+    "ContextOperations",
+    "RBACOperations",
+    "OrganizationOperations",
+    "get_db",
+]

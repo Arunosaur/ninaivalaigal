@@ -13,8 +13,11 @@
 - 📖 **Swagger UI:** http://localhost:13390/docs
 - 📄 **ReDoc:** http://localhost:13390/redoc
 - 📋 **OpenAPI Schema:** http://localhost:13390/openapi.json
+- 📘 **Multipart Upload Guide:** docs/uploads/MULTIPART_UPLOAD_API_GUIDE.md
 
 **Features:** Authentication, Users, Teams, Organizations
+
+- 📚 **Production Runbook:** docs/uploads/UPLOAD_SYSTEM_PRODUCTION_RUNBOOK.md
 
 ---
 

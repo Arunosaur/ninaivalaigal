@@ -1,0 +1,72 @@
+[
+  {
+    "subject": "SPEC-046: CLI Macro Mode Toggle Implementation",
+    "description": "Implement CLI commands for starting and stopping macro recording mode (`e^M macro start`, `e^M macro stop`). This should enable users to toggle macro recording mode via command line interface, with clear status indicators and error handling for invalid states.",
+    "tags": ["spec-046", "cli", "macro", "backend"],
+    "priority": "High",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-046: Native Key/Mouse Automation Capture System",
+    "description": "Develop native automation capture system for recording keyboard and mouse events (AutoHotKey-like functionality). This should capture key presses, mouse clicks, and movement events, serialize them for storage, and support replay capability. Security considerations for sensitive input capture should be implemented.",
+    "tags": ["spec-046", "automation", "capture", "native", "backend"],
+    "priority": "High",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-046: Browser/IDE Plugin for Scoped Macro Capture",
+    "description": "Create browser and IDE plugins that enable scoped macro capture within specific contexts (e.g., browser tabs, IDE windows). This should integrate with the macro system to capture actions within defined scopes, support plugin-to-backend communication, and handle plugin lifecycle management.",
+    "tags": ["spec-046", "plugin", "browser", "ide", "frontend"],
+    "priority": "Medium",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-046: Macro Replay System and Execution Engine",
+    "description": "Implement macro replay system that allows users to execute recorded macros locally via CLI (`e^M macro run <name>`). This should include macro parsing, step-by-step execution, error handling, sandbox isolation for security, and progress reporting during replay.",
+    "tags": ["spec-046", "replay", "execution", "cli", "backend"],
+    "priority": "High",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-046: Macro-to-Memory Context Linking",
+    "description": "Develop system to link recorded macros to specific memory contexts (memory IDs/tags). This enables macros to be associated with relevant memories, allowing users to recall and execute macros based on memory context. Should include bidirectional linking, search capabilities, and context-aware macro suggestions.",
+    "tags": ["spec-046", "memory-linking", "context", "integration", "backend"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-046: Redis-Backed Procedural Memory Cache",
+    "description": "Implement Redis-backed caching system for procedural memory (macros). This should store macro definitions, execution history, metadata, and support fast retrieval. Include TTL management, cache invalidation strategies, and integration with existing Redis infrastructure (SPEC-033).",
+    "tags": ["spec-046", "redis", "caching", "storage", "backend"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-046: Macro Execution Audit Trail",
+    "description": "Create comprehensive audit trail system for macro execution. This should log all macro executions with timestamps, user information, execution context, success/failure status, and any errors encountered. Should integrate with audit logging system (SPEC-071) and support querying and reporting.",
+    "tags": ["spec-046", "audit", "logging", "security", "backend"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-046: Macro Management API Endpoints",
+    "description": "Design and implement REST API endpoints for macro management including create, read, update, delete operations, macro listing, execution triggering, and metadata management. Should include proper authentication, authorization (RBAC), validation, and error handling.",
+    "tags": ["spec-046", "api", "rest", "backend"],
+    "priority": "High",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-046: Macro System Database Schema and Migrations",
+    "description": "Design and implement database schema for storing macro definitions, execution history, and metadata. Should include proper indexes for performance, foreign key relationships, and Alembic migrations. Schema should support versioning and metadata extensions.",
+    "tags": ["spec-046", "database", "schema", "migration", "backend"],
+    "priority": "High",
+    "effort": "2 days"
+  },
+  {
+    "subject": "SPEC-046: Macro System Integration Tests",
+    "description": "Create comprehensive integration test suite for the macro system including CLI command testing, capture/replay validation, Redis cache integration tests, memory context linking tests, and end-to-end macro workflow tests. Should cover repeatable automation scenarios (Excel, browser tasks) as specified in README.",
+    "tags": ["spec-046", "testing", "integration", "quality"],
+    "priority": "Medium",
+    "effort": "4 days"
+  }
+]

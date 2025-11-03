@@ -1,14 +1,19 @@
+from collections.abc import Iterable as _Iterable
+from collections.abc import Mapping as _Mapping
+from typing import ClassVar as _ClassVar
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from common.v1 import errors_pb2 as _errors_pb2
-from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Iterable as _Iterable, Mapping as _Mapping
-from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class RegisterRequest(_message.Message):
     __slots__ = ("email", "password", "full_name", "metadata")
+
     class MetadataEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -16,6 +21,7 @@ class RegisterRequest(_message.Message):
         key: str
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+
     EMAIL_FIELD_NUMBER: _ClassVar[int]
     PASSWORD_FIELD_NUMBER: _ClassVar[int]
     FULL_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -24,7 +30,13 @@ class RegisterRequest(_message.Message):
     password: str
     full_name: str
     metadata: _containers.ScalarMap[str, str]
-    def __init__(self, email: _Optional[str] = ..., password: _Optional[str] = ..., full_name: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(
+        self,
+        email: _Optional[str] = ...,
+        password: _Optional[str] = ...,
+        full_name: _Optional[str] = ...,
+        metadata: _Optional[_Mapping[str, str]] = ...,
+    ) -> None: ...
 
 class LoginRequest(_message.Message):
     __slots__ = ("email", "password")
@@ -64,7 +76,14 @@ class AuthResponse(_message.Message):
     expires_in: int
     token_type: str
     user: User
-    def __init__(self, access_token: _Optional[str] = ..., refresh_token: _Optional[str] = ..., expires_in: _Optional[int] = ..., token_type: _Optional[str] = ..., user: _Optional[_Union[User, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        access_token: _Optional[str] = ...,
+        refresh_token: _Optional[str] = ...,
+        expires_in: _Optional[int] = ...,
+        token_type: _Optional[str] = ...,
+        user: _Optional[_Union[User, _Mapping]] = ...,
+    ) -> None: ...
 
 class ValidateResponse(_message.Message):
     __slots__ = ("valid", "user", "roles", "permissions")
@@ -76,7 +95,13 @@ class ValidateResponse(_message.Message):
     user: User
     roles: _containers.RepeatedScalarFieldContainer[str]
     permissions: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, valid: bool = ..., user: _Optional[_Union[User, _Mapping]] = ..., roles: _Optional[_Iterable[str]] = ..., permissions: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(
+        self,
+        valid: bool = ...,
+        user: _Optional[_Union[User, _Mapping]] = ...,
+        roles: _Optional[_Iterable[str]] = ...,
+        permissions: _Optional[_Iterable[str]] = ...,
+    ) -> None: ...
 
 class LogoutResponse(_message.Message):
     __slots__ = ("success",)
@@ -98,4 +123,12 @@ class User(_message.Message):
     roles: _containers.RepeatedScalarFieldContainer[str]
     is_active: bool
     created_at: str
-    def __init__(self, id: _Optional[str] = ..., email: _Optional[str] = ..., full_name: _Optional[str] = ..., roles: _Optional[_Iterable[str]] = ..., is_active: bool = ..., created_at: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        id: _Optional[str] = ...,
+        email: _Optional[str] = ...,
+        full_name: _Optional[str] = ...,
+        roles: _Optional[_Iterable[str]] = ...,
+        is_active: bool = ...,
+        created_at: _Optional[str] = ...,
+    ) -> None: ...

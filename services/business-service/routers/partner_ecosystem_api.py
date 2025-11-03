@@ -17,10 +17,11 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from auth import get_current_user
 from database import User
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, EmailStr, Field
+
+from auth import get_current_user
 
 # Initialize router
 router = APIRouter(prefix="/partners", tags=["partner-ecosystem"])

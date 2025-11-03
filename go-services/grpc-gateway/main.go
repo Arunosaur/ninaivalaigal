@@ -12,6 +12,7 @@ import (
 
 	"github.com/arunosaur/ninaivalaigal/grpc-gateway/tracing"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
 )
@@ -35,13 +36,15 @@ func (gw *Gateway) setupRoutes() {
 	// Health check endpoint
 	gw.router.HandleFunc("/health", gw.healthHandler).Methods("GET")
 
+	// Prometheus metrics endpoint
+	gw.router.Handle("/metrics", promhttp.Handler()).Methods("GET")
+
 	// API v1 routes - translate REST to gRPC
 	api := gw.router.PathPrefix("/api/v1").Subrouter()
 
 	// Memory service routes
-	api.HandleFunc("/memory/remember", gw.memoryRememberHandler).Methods("POST")
-	api.HandleFunc("/memory/recall", gw.memoryRecallHandler).Methods("GET")
-	api.HandleFunc("/memory/memories", gw.memoryListHandler).Methods("GET")
+	// Memory service routes (handled by enhanced gateway)
+	// These will be set up below if gRPC clients are available
 
 	// GraphOps service routes
 	api.HandleFunc("/graph/query", gw.graphQueryHandler).Methods("POST")
@@ -204,9 +207,16 @@ func main() {
 	if grpcClients != nil {
 		gateway.router.HandleFunc("/health", enhancedGateway.enhancedHealthHandler).Methods("GET")
 		api := gateway.router.PathPrefix("/api/v1").Subrouter()
+		// Memory service routes
 		api.HandleFunc("/memory/remember", enhancedGateway.memoryRememberHandler).Methods("POST")
 		api.HandleFunc("/memory/recall", enhancedGateway.memoryRecallHandler).Methods("GET")
+		api.HandleFunc("/memory/memories", enhancedGateway.memoryListHandler).Methods("GET")
+		// GraphOps service routes
 		api.HandleFunc("/graph/query", enhancedGateway.graphQueryHandler).Methods("POST")
+		api.HandleFunc("/graph/health", enhancedGateway.graphHealthHandler).Methods("GET")
+		// Core API proxy routes
+		api.HandleFunc("/users/me", enhancedGateway.coreAPIProxy).Methods("GET", "PATCH")
+		api.HandleFunc("/auth/login", enhancedGateway.coreAPIProxy).Methods("POST")
 		log.Println("✅ Enhanced handlers with gRPC integration enabled")
 	}
 

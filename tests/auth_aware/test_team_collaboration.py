@@ -13,7 +13,13 @@ from __future__ import annotations
 
 import pytest
 
-from .fixtures import OrgContext, RoleFixtures, build_org_contexts, build_role_fixtures, create_token_bundle
+from .fixtures import (
+    OrgContext,
+    RoleFixtures,
+    build_org_contexts,
+    build_role_fixtures,
+    create_token_bundle,
+)
 from .helpers import collect_role_tokens, ensure_team_context
 from .models import UserRole
 

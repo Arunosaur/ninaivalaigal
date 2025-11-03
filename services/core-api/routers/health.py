@@ -71,6 +71,7 @@ async def check_database() -> Dict[str, Any]:
     """Check PostgreSQL connectivity"""
     try:
         from database import DatabaseManager
+
         from config import get_dynamic_database_url
 
         db = DatabaseManager(get_dynamic_database_url())
@@ -134,6 +135,7 @@ def get_slo_metrics() -> Dict[str, Any]:
     """Get current SLO metrics"""
     try:
         from lib.observability.slo_monitoring import get_slo_summary
+
         return get_slo_summary()
     except ImportError:
         return {"error": "SLO monitoring not available"}
@@ -190,12 +192,9 @@ async def readiness_check():
     """
     # Check all dependencies in parallel
     import asyncio
-    
+
     db_status, redis_status, pgbouncer_status = await asyncio.gather(
-        check_database(),
-        check_redis(),
-        check_pgbouncer(),
-        return_exceptions=True
+        check_database(), check_redis(), check_pgbouncer(), return_exceptions=True
     )
 
     # Handle exceptions
@@ -207,10 +206,7 @@ async def readiness_check():
             dependencies[name] = status
 
     # Determine overall status
-    all_healthy = all(
-        dep.get("status") in ["healthy", "bypassed", "unknown"] 
-        for dep in dependencies.values()
-    )
+    all_healthy = all(dep.get("status") in ["healthy", "bypassed", "unknown"] for dep in dependencies.values())
 
     if not all_healthy:
         logger.warning("readiness_check_failed", dependencies=dependencies)
@@ -245,12 +241,9 @@ async def detailed_health_check():
     """
     # Check all dependencies in parallel
     import asyncio
-    
+
     db_status, redis_status, pgbouncer_status = await asyncio.gather(
-        check_database(),
-        check_redis(),
-        check_pgbouncer(),
-        return_exceptions=True
+        check_database(), check_redis(), check_pgbouncer(), return_exceptions=True
     )
 
     # Handle exceptions
@@ -265,10 +258,7 @@ async def detailed_health_check():
     slo_metrics = get_slo_metrics()
 
     # Determine overall status
-    all_healthy = all(
-        dep.get("status") in ["healthy", "bypassed", "unknown"] 
-        for dep in dependencies.values()
-    )
+    all_healthy = all(dep.get("status") in ["healthy", "bypassed", "unknown"] for dep in dependencies.values())
 
     overall_status = "healthy" if all_healthy else "degraded"
 

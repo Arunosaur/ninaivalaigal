@@ -1,6 +1,6 @@
 # Ninaivalaigal Documentation
 
-**Build with:** Generic Docs Builder Container  
+**Build with:** Generic Docs Builder Container
 **Location:** `~/WorkSpace/dev-containers/docs-builder`
 
 ---

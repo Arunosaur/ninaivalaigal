@@ -1,0 +1,34 @@
+[
+  {
+    "subject": "SPEC-138: Embedding Hook API Design and Implementation",
+    "description": "Design and implement the core embedding hook API that allows external embedding models to be registered and executed. This includes the registration endpoint, hook execution mechanism, and integration with the memory system.\n\n**Requirements:**\n- POST /api/embedding-hooks/register - Register custom embedding model\n- POST /api/embedding-hooks/execute - Execute embedding via registered hook\n- GET /api/embedding-hooks/list - List available embedding hooks\n- Hook validation and error handling\n- Integration with memory creation/update flows\n\n**Acceptance Criteria:**\n- External embedding models can be registered via API\n- Hook execution works for registered models\n- Memory creation uses selected embedding hook\n- Fallback to default pgvector if hook fails\n- API responses include hook metadata and status",
+    "tags": ["spec-138", "embedding", "hooks", "api", "backend"],
+    "priority": "High",
+    "effort": "5 days",
+    "story_ref": "US-280"
+  },
+  {
+    "subject": "SPEC-138: Embedding Model Registry System",
+    "description": "Implement a model registry system that stores metadata about available embedding models, their capabilities, configurations, and versions. This enables model discovery, selection, and management.\n\n**Requirements:**\n- Database schema for model registry\n- Model metadata storage (name, provider, dimensions, capabilities)\n- Model version management\n- Model capability tracking (supports batching, streaming, etc.)\n- Model configuration persistence\n\n**Acceptance Criteria:**\n- Models can be registered with full metadata\n- Model versions are tracked and managed\n- Model capabilities are stored and queryable\n- Model configurations persist across restarts\n- Registry supports model search and filtering",
+    "tags": ["spec-138", "model-registry", "database", "backend"],
+    "priority": "High",
+    "effort": "4 days",
+    "story_ref": "US-281"
+  },
+  {
+    "subject": "SPEC-138: Embedding Pipeline Selection Mechanism",
+    "description": "Implement intelligent pipeline selection that chooses the appropriate embedding model based on context, organization preferences, or user settings. This includes selection logic, fallback strategies, and per-organization customization.\n\n**Requirements:**\n- Selection logic based on context/user/org preferences\n- Per-organization embedding model preferences\n- Per-user embedding model preferences (optional)\n- Fallback chain (custom → org default → system default)\n- Selection caching and performance optimization\n\n**Acceptance Criteria:**\n- Pipeline selection respects organization preferences\n- User preferences override org preferences when set\n- Fallback chain works correctly\n- Selection logic is performant (<10ms overhead)\n- Selection can be overridden per-memory if needed",
+    "tags": ["spec-138", "pipeline", "selection", "preferences", "backend"],
+    "priority": "Medium",
+    "effort": "4 days",
+    "story_ref": "US-282"
+  },
+  {
+    "subject": "SPEC-138: Custom Embedding Integration Tests",
+    "description": "Create comprehensive test suite for SPEC-138 including unit tests for hook API, integration tests for model registry, pipeline selection tests, and end-to-end tests for custom embedding workflows.\n\n**Requirements:**\n- Unit tests for hook registration and execution\n- Integration tests for model registry operations\n- Pipeline selection logic tests\n- E2E tests for memory creation with custom embeddings\n- Performance tests for hook execution overhead\n- Mock embedding providers for testing\n\n**Acceptance Criteria:**\n- Test coverage >85% for hook system\n- All integration tests pass\n- E2E tests cover critical workflows\n- Performance tests validate overhead <20%\n- Mock providers work for all test scenarios",
+    "tags": ["spec-138", "testing", "coverage", "quality", "e2e"],
+    "priority": "Medium",
+    "effort": "3 days",
+    "story_ref": "US-283"
+  }
+]

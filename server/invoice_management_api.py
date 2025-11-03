@@ -17,13 +17,14 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 import stripe
-from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from models.standalone_teams import StandaloneTeamManager, TeamMembership
 from pydantic import BaseModel
-from services import InvoicingService, TaxCalculator
 from sqlalchemy.orm import Session
+
+from auth import get_current_user, get_db
+from services import InvoicingService, TaxCalculator
 
 # Shared invoicing services (US#237-243: SPEC-027/028 refactoring complete)
 # Always use shared services - legacy code removed

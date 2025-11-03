@@ -1,3 +1,10 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
 # Kubernetes Health Probes Configuration
 # Add this to your deployment manifest
 
@@ -22,11 +29,11 @@ spec:
         ports:
         - containerPort: 13390
           name: http
-        
+
         # ========================================
         # HEALTH PROBES
         # ========================================
-        
+
         # Liveness Probe
         # Restarts container if this fails (application completely dead)
         livenessProbe:
@@ -39,7 +46,7 @@ spec:
           timeoutSeconds: 5           # Timeout after 5s
           successThreshold: 1         # Consider healthy after 1 success
           failureThreshold: 3         # Restart after 3 failures (30s)
-        
+
         # Readiness Probe
         # Removes from load balancer if this fails (can't handle traffic)
         readinessProbe:
@@ -52,7 +59,7 @@ spec:
           timeoutSeconds: 3           # Timeout after 3s
           successThreshold: 1         # Add to LB after 1 success
           failureThreshold: 2         # Remove from LB after 2 failures (10s)
-        
+
         # Startup Probe (optional but recommended)
         # Gives slow-starting apps more time before liveness kicks in
         startupProbe:
@@ -65,11 +72,11 @@ spec:
           timeoutSeconds: 3
           successThreshold: 1
           failureThreshold: 30        # Allow 150s for startup (30 * 5s)
-        
+
         # ========================================
         # RESOURCE LIMITS
         # ========================================
-        
+
         resources:
           requests:
             memory: "512Mi"
@@ -77,24 +84,24 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
-        
+
         # ========================================
         # ENVIRONMENT VARIABLES
         # ========================================
-        
+
         env:
         - name: APP_VERSION
           value: "v1.0.0"
         - name: NINAIVALAIGAL_ENV
           value: "production"
-        
+
         # Database connection
         - name: NINAIVALAIGAL_DB_URL
           valueFrom:
             secretKeyRef:
               name: db-credentials
               key: connection-string
-        
+
         # Redis connection
         - name: NINAIVALAIGAL_REDIS_URL
           valueFrom:

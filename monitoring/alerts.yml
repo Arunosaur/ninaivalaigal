@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
+groups:
+  - name: slo_alerts
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{code=~"[45].."}[5m])) / sum(rate(http_requests_total[5m])) > 0.001
+        for: 5m
+        labels:
+          severity: critical
+          slo_type: error_rate
+        annotations:
+          summary: "Error rate exceeds SLO target (0.1%)"
+          description: "Error rate is {{ $value }} which exceeds the SLO target of 0.1%"
+
+      - alert: HighP95Latency
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          slo_type: response_time
+        annotations:
+          summary: "P95 latency exceeds SLO target (200ms)"
+          description: "P95 latency is {{ $value }}s which exceeds the SLO target of 200ms"
+
+      - alert: LowAvailability
+        expr: |
+          slo_uptime_ratio{window="24h"} < 0.999
+        for: 10m
+        labels:
+          severity: critical
+          slo_type: availability
+        annotations:
+          summary: "Availability below SLO target (99.9%)"
+          description: "24h availability is {{ $value }} which is below the SLO target of 0.999 (99.9%)"
+
+      - alert: SLORisk
+        expr: |
+          (sum(rate(http_requests_total{code=~"[45].."}[5m])) / sum(rate(http_requests_total[5m])) > 0.0005) or
+          (histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.15) or
+          (slo_uptime_ratio{window="1h"} < 0.995)
+        for: 5m
+        labels:
+          severity: warning
+          slo_type: general
+        annotations:
+          summary: "SLO at risk - approaching violation thresholds"
+          description: "One or more SLO metrics are approaching violation thresholds"
+
+  - name: service_health_alerts
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"core-api|memory-service|graphops|grpc-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+
+      - alert: HighCPU
+        expr: process_cpu_percent > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.job }}"
+          description: "CPU usage is {{ $value }}% which exceeds 85%"
+
+      - alert: HighMemory
+        expr: process_resident_memory_bytes > 4000000000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.job }}"
+          description: "Memory usage is {{ $value }} bytes which exceeds 4GB (4000000000 bytes)"

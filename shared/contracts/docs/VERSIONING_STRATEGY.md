@@ -3,6 +3,18 @@
 **Purpose:** Version numbering and support policy
 **Audience:** Architecture team, developers
 
+**⚠️ Note**: This document has been superseded by **[SPEC-088: API Versioning Strategy](../../specs/088-api-versioning-strategy/README.md)**.
+
+For the complete and authoritative versioning strategy, please refer to SPEC-088, which includes:
+- Comprehensive versioning approach and rationale
+- Detailed breaking change examples
+- Complete deprecation policy with timelines
+- Migration guide templates
+- Version compatibility matrix
+- Implementation guidelines
+
+**This document is maintained for historical reference only.**
+
 ---
 
 ## Version Scheme

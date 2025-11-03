@@ -36,6 +36,7 @@ class TeamInvitation(Base):
     """Team invitation for secure team joining"""
 
     __tablename__ = "team_invitations"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     team_id = Column(PGUUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
@@ -50,8 +51,9 @@ class TeamInvitation(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
-    # Relationships
-    team = relationship("Team", back_populates="invitations")
+    # Relationships - use backref instead of back_populates to avoid circular dependency
+    # The Team.invitations relationship will be set up by extend_team_model()
+    # Note: team relationship is created via backref in extend_team_model(), don't define here to avoid conflict
     invited_by = relationship("User", foreign_keys=[invited_by_user_id])
     accepted_by = relationship("User", foreign_keys=[accepted_by_user_id])
 
@@ -68,7 +70,7 @@ class TeamMembership(Base):
     """Team membership tracking with roles"""
 
     __tablename__ = "team_memberships"
-
+    __table_args__ = (UniqueConstraint("team_id", "user_id", name="unique_team_membership"), {"extend_existing": True})
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     team_id = Column(PGUUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -80,10 +82,8 @@ class TeamMembership(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # Unique constraint to prevent duplicate memberships
-    __table_args__ = (UniqueConstraint("team_id", "user_id", name="unique_team_membership"),)
-
-    # Relationships
-    team = relationship("Team", back_populates="memberships")
+    # Relationships - use backref instead of back_populates to avoid circular dependency
+    # Note: team relationship is created via backref in extend_team_model(), don't define here to avoid conflict
     user = relationship("User", foreign_keys=[user_id])
     invited_by = relationship("User", foreign_keys=[invited_by_user_id])
 
@@ -100,6 +100,7 @@ class TeamUpgradeHistory(Base):
     """Track team upgrades to organizations"""
 
     __tablename__ = "team_upgrade_history"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     team_id = Column(PGUUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
@@ -119,17 +120,31 @@ class TeamUpgradeHistory(Base):
 # Extend existing Team model with standalone team fields
 def extend_team_model():
     """Add standalone team fields to existing Team model"""
-    # These would be added to the existing Team class in database.py
-    Team.is_standalone = Column(Boolean, default=False)
-    Team.upgrade_eligible = Column(Boolean, default=True)
-    Team.created_by_user_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id"))
-    Team.team_invite_code = Column(String(32), unique=True)
-    Team.max_members = Column(Integer, default=10)
+    # Check if already extended to avoid duplicate attribute errors
+    if hasattr(Team, "_standalone_extended"):
+        return
 
-    # Relationships
-    Team.invitations = relationship("TeamInvitation", back_populates="team", cascade="all, delete-orphan")
-    Team.memberships = relationship("TeamMembership", back_populates="team", cascade="all, delete-orphan")
-    Team.created_by = relationship("User", foreign_keys=[Team.created_by_user_id])
+    # These would be added to the existing Team class in database.py
+    if not hasattr(Team, "is_standalone"):
+        Team.is_standalone = Column(Boolean, default=False)
+    if not hasattr(Team, "upgrade_eligible"):
+        Team.upgrade_eligible = Column(Boolean, default=True)
+    if not hasattr(Team, "created_by_user_id"):
+        Team.created_by_user_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id"))
+    if not hasattr(Team, "team_invite_code"):
+        Team.team_invite_code = Column(String(32), unique=True)
+    if not hasattr(Team, "max_members"):
+        Team.max_members = Column(Integer, default=10)
+
+    # Relationships - use backref to avoid needing TeamInvitation to be fully configured
+    if not hasattr(Team, "invitations"):
+        Team.invitations = relationship("TeamInvitation", backref="team", cascade="all, delete-orphan")
+    if not hasattr(Team, "memberships"):
+        Team.memberships = relationship("TeamMembership", backref="team", cascade="all, delete-orphan")
+    if not hasattr(Team, "created_by"):
+        Team.created_by = relationship("User", foreign_keys=[Team.created_by_user_id])
+
+    Team._standalone_extended = True
 
 
 # Extend existing User model with standalone team reference

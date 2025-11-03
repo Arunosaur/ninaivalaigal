@@ -1,0 +1,42 @@
+[
+  {
+    "subject": "US-228: Customer Invoice Portal Implementation",
+    "description": "# US-228: Customer Invoice Portal Implementation\n\nImplement self-service customer invoice portal with secure access tokens. Features: email-based token delivery, invoice viewing/filtering, PDF downloads, correction requests, mobile-responsive UI. \n\n**Technical Tasks**: Access token system (24-48h expiration), 6 portal API endpoints, portal UI with filters, security (rate limiting, audit logging). \n\n**Acceptance Criteria**: Token-based access, invoice list/view/download, correction requests, audit trail, 30-40% support ticket reduction.\n\n**Effort**: 16-18 hours",
+    "tags": ["spec-028", "customer-portal", "self-service", "tokens", "high-priority"]
+  },
+  {
+    "subject": "US-229: Invoice Correction Workflows",
+    "description": "# US-229: Invoice Correction Workflows\n\nImplement complete correction system: adjustments (modify line items), credit memos (partial refunds), void (cancel invoice). All corrections preserve original invoice for audit trail.\n\n**Technical Tasks**: 3 correction types, 5 API endpoints, database schema, workflow logic, UI components.\n\n**Acceptance Criteria**: Create adjustments/credits/voids, preserve originals, complete audit trail, notifications sent, accounting system updated.\n\n**Effort**: 14-16 hours",
+    "tags": ["spec-028", "corrections", "credit-memos", "adjustments", "high-priority"]
+  },
+  {
+    "subject": "US-230: Multi-Currency Invoice Support",
+    "description": "# US-230: Multi-Currency Invoice Support\n\nImplement real-time currency conversion with historical rate storage. Support 50+ currencies via exchangerate-api.io.\n\n**Technical Tasks**: API integration, conversion logic, exchange_rates table, currency display in PDFs, team default currency.\n\n**Acceptance Criteria**: Real-time conversion, 50+ currencies, 24h rate caching, locked rates at invoice creation, fallback to cached rates.\n\n**Effort**: 12-14 hours",
+    "tags": ["spec-028", "multi-currency", "international", "exchange-rates"]
+  },
+  {
+    "subject": "US-231: Accounting System Export & Integration",
+    "description": "# US-231: Accounting System Export & Integration\n\nImplement CSV/Excel export and QuickBooks/Xero OAuth integrations with automatic sync.\n\n**Technical Tasks**: CSV/Excel export with filtering, QuickBooks OAuth + sync, Xero OAuth + sync, webhook handling, token refresh automation.\n\n**Acceptance Criteria**: Export functionality, OAuth connections, invoice sync, webhook handling, error retry logic.\n\n**Business Value**: Save 10+ hours/month for finance team.\n\n**Effort**: 18-20 hours",
+    "tags": ["spec-028", "accounting", "quickbooks", "xero", "export", "integration"]
+  },
+  {
+    "subject": "US-232: Invoice Management Database Migration",
+    "description": "# US-232: Invoice Management Database Migration\n\nMigrate from mock in-memory stores to production PostgreSQL. Create 8 tables with Alembic migrations.\n\n**Tables**: invoice_preferences, invoice_corrections, invoice_portal_tokens, tax_configurations, tax_exemptions, exchange_rates, accounting_integrations, invoice_audit_log.\n\n**Technical Tasks**: Create SQLAlchemy models, Alembic migrations, refactor all CRUD operations, add indexes.\n\n**Acceptance Criteria**: All mock stores removed, database CRUD operational, <100ms queries, rollback capability.\n\n**Effort**: 12-14 hours",
+    "tags": ["spec-028", "database", "migration", "alembic", "postgresql", "high-priority"]
+  },
+  {
+    "subject": "US-233: Custom Invoice Branding & Styling",
+    "description": "# US-233: Custom Invoice Branding & Styling\n\nImplement custom branding: team logos, colors, footer text, payment instructions, QR codes.\n\n**Technical Tasks**: Branding model, logo upload/resize, color validation, PDF enhancement, preview functionality, UI dashboard.\n\n**Customizable**: Company logo, primary/secondary colors, footer, payment terms, custom fields, QR code.\n\n**Acceptance Criteria**: Upload logos, customize colors, preview changes, accessibility compliance, all invoices use branding.\n\n**Effort**: 10-12 hours",
+    "tags": ["spec-028", "branding", "customization", "logos", "styling"]
+  },
+  {
+    "subject": "US-234: Advanced Tax Configuration UI",
+    "description": "# US-234: Advanced Tax Configuration UI\n\nImplement multi-jurisdiction tax configuration with exemptions and compliance.\n\n**Features**: Multiple tax rates per team, jurisdiction-based selection, tax exemption certificates, reverse charge mechanism, automatic rate lookup.\n\n**Technical Tasks**: Tax configuration UI, exemption management, multi-jurisdiction logic, address-based tax selection, test calculator.\n\n**Acceptance Criteria**: Configure multiple jurisdictions, upload exemption certificates, automatic tax selection, preview calculations.\n\n**Effort**: 10-12 hours",
+    "tags": ["spec-028", "tax-configuration", "compliance", "multi-jurisdiction"]
+  },
+  {
+    "subject": "US-235: SPEC-028 Comprehensive Testing Suite",
+    "description": "# US-235: SPEC-028 Comprehensive Testing Suite\n\nImplement complete test coverage for SPEC-028 unique features (separate from SPEC-027 tests).\n\n**Test Categories**: Unit tests (30-40 tests), integration tests (15-20 tests), E2E tests (5-8 scenarios).\n\n**Coverage Areas**: Customer portal flow, invoice corrections, multi-currency, accounting export, database operations, branding, tax configuration.\n\n**Target**: 80% code coverage for SPEC-028-specific features.\n\n**Acceptance Criteria**: Full test suite, 80% coverage, separate from SPEC-027, CI integration.\n\n**Effort**: 14-16 hours",
+    "tags": ["spec-028", "testing", "unit-tests", "integration-tests", "e2e"]
+  }
+]

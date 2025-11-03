@@ -39,6 +39,7 @@ class RedactionASGIMiddleware:
 
         # Buffer to accumulate request body chunks
         tail = ""
+        detector = self.detector_fn
 
         async def redacting_receive() -> Message:
             nonlocal tail
@@ -51,7 +52,16 @@ class RedactionASGIMiddleware:
                 if body:
                     # Decode current chunk + tail, run detector
                     text = tail + body.decode("utf-8", errors="replace")
-                    redacted = self.detector_fn(text)
+                    try:
+                        redacted = detector(text)
+                    except Exception:
+                        # Fall back to original payload if detector fails
+                        tail = ""
+                        return {
+                            "type": "http.request",
+                            "body": body,
+                            "more_body": more,
+                        }
 
                     # Keep overlap tail for next chunk
                     if len(text) >= self.overlap and more:
@@ -72,8 +82,13 @@ class RedactionASGIMiddleware:
 
                 # Handle final tail if no more body
                 if not more and tail:
-                    final_redacted = self.detector_fn(tail).encode("utf-8", errors="replace")
-                    tail = ""
+                    try:
+                        final_redacted = detector(tail).encode("utf-8", errors="replace")
+                    except Exception:
+                        final_redacted = tail.encode("utf-8", errors="replace")
+                    finally:
+                        tail = ""
+
                     return {
                         "type": "http.request",
                         "body": final_redacted,

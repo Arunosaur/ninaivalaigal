@@ -50,13 +50,59 @@ HOST_IP=${HOST_SERVICE_IP:-$(detect_host_ip)}
 PUBLIC_HOST="${GATEWAY_PUBLIC_HOST_OVERRIDE:-localhost}"
 PUBLIC_PORT="${GATEWAY_PUBLIC_PORT_OVERRIDE:-${HOST_PORT}}"
 
-MEMORY_PORT=${MEMORY_SERVICE_PORT:-13393}
-GRAPHOPS_PORT=${GRAPHOPS_SERVICE_PORT:-13398}
-CORE_API_PORT=${CORE_API_PORT:-13390}
+# Function: Resolve container IP dynamically (Apple Container CLI pattern)
+resolve_container_ip() {
+	local container_name=$1
+	local container_ip
 
-MEMORY_ADDR="${MEMORY_SERVICE_ADDR_OVERRIDE:-${HOST_IP}:${MEMORY_PORT}}"
-GRAPHOPS_ADDR="${GRAPHOPS_SERVICE_ADDR_OVERRIDE:-${HOST_IP}:${GRAPHOPS_PORT}}"
-CORE_API_ADDR="${CORE_API_ADDR_OVERRIDE:-${HOST_IP}:${CORE_API_PORT}}"
+	container_ip=$(container inspect "$container_name" 2>/dev/null \
+		| jq -r '.[0].networks[0].address' \
+		| cut -d'/' -f1)
+
+	if [ -z "$container_ip" ] || [ "$container_ip" = "null" ]; then
+		return 1
+	fi
+
+	echo "$container_ip"
+}
+
+# Resolve dependency container IPs (Apple Container CLI uses IPs, not DNS)
+MEMORY_CONTAINER="ninaivalaigal-${NINA_ENV}-memory-service"
+GRAPHOPS_CONTAINER="ninaivalaigal-${NINA_ENV}-graphops"
+CORE_API_CONTAINER="ninaivalaigal-${NINA_ENV}-core-api"
+
+echo "📡 Resolving dependency container IPs..."
+
+# Memory Service: HTTP on port 8000 (internal container port)
+MEMORY_CONTAINER_IP=$(resolve_container_ip "$MEMORY_CONTAINER" 2>/dev/null || echo "")
+if [ -n "$MEMORY_CONTAINER_IP" ]; then
+	MEMORY_ADDR="${MEMORY_SERVICE_ADDR_OVERRIDE:-${MEMORY_CONTAINER_IP}:8000}"  # Internal HTTP port
+	echo "   Memory Service: $MEMORY_ADDR (HTTP)"
+else
+	MEMORY_ADDR="${MEMORY_SERVICE_ADDR_OVERRIDE:-${HOST_IP}:13393}"  # Fallback to host port
+	echo "   ⚠️  Memory Service: $MEMORY_ADDR (fallback - container not found)"
+fi
+
+# GraphOps: gRPC on port 50051 (internal container port)
+GRAPHOPS_CONTAINER_IP=$(resolve_container_ip "$GRAPHOPS_CONTAINER" 2>/dev/null || echo "")
+if [ -n "$GRAPHOPS_CONTAINER_IP" ]; then
+	GRAPHOPS_ADDR="${GRAPHOPS_SERVICE_ADDR_OVERRIDE:-${GRAPHOPS_CONTAINER_IP}:50051}"  # Internal gRPC port
+	echo "   GraphOps: $GRAPHOPS_ADDR (gRPC)"
+else
+	GRAPHOPS_ADDR="${GRAPHOPS_SERVICE_ADDR_OVERRIDE:-${HOST_IP}:13398}"  # Fallback to host port
+	echo "   ⚠️  GraphOps: $GRAPHOPS_ADDR (fallback - container not found)"
+fi
+
+# Core API: HTTP on port 8000 (internal container port)
+CORE_API_CONTAINER_IP=$(resolve_container_ip "$CORE_API_CONTAINER" 2>/dev/null || echo "")
+if [ -n "$CORE_API_CONTAINER_IP" ]; then
+	CORE_API_ADDR="${CORE_API_ADDR_OVERRIDE:-${CORE_API_CONTAINER_IP}:8000}"  # Internal HTTP port
+	echo "   Core API: $CORE_API_ADDR (HTTP)"
+else
+	CORE_API_ADDR="${CORE_API_ADDR_OVERRIDE:-${HOST_IP}:13390}"  # Fallback to host port
+	echo "   ⚠️  Core API: $CORE_API_ADDR (fallback - container not found)"
+fi
+echo ""
 
 OTEL_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4317}"
 OTEL_ENABLED="${OTEL_TRACING_ENABLED:-true}"

@@ -12,6 +12,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 
 class TestRedisModule:
     """Test Redis module functionality with proper mocking."""
@@ -83,7 +85,7 @@ class TestRedisModule:
             pytest.skip(f"Redis configuration testing failed: {e}")
 
 
-@pytest.mark.unit
+@pytest.mark.integration
 class TestRedisOperations:
     """Test Redis CRUD operations."""
 
@@ -178,7 +180,7 @@ class TestRedisOperations:
             pytest.skip("Redis expiry operations not available")
 
 
-@pytest.mark.unit
+@pytest.mark.integration
 class TestRedisCaching:
     """Test Redis caching functionality."""
 

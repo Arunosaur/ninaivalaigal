@@ -180,22 +180,43 @@ class UniversalAIWrapper:
             elif level == "project" and context.project_context:
                 query_filters["context"] = context.project_context
 
-            # Get memories from database
-            raw_memories = self.db.get_memories(
-                context=query_filters.get("context"),
-                user_id=query_filters.get("user_id"),
-            )
+            memories: list[MemoryContext] = []
+            raw_memories = []
 
-            # Convert to MemoryContext objects
-            memories = []
+            if hasattr(self.db, "get_memories"):
+                try:
+                    raw_memories = self.db.get_memories(
+                        context=query_filters.get("context", level),
+                        user_id=query_filters.get("user_id"),
+                    )
+                except Exception as db_error:  # pragma: no cover - logged below
+                    logger.error(f"Database memory lookup failed: {db_error}")
+
+            if not raw_memories:
+                response = await self._query_mcp_server(
+                    "memories.get",
+                    {
+                        "level": level,
+                        "context": query_filters.get("context", level),
+                        "user_id": query_filters.get("user_id"),
+                        "team_id": query_filters.get("team_id"),
+                        "organization_id": query_filters.get("organization_id"),
+                    },
+                )
+                return self._parse_memories_response(response, level)
+
             for memory in raw_memories:
+                created_at = memory.get("created_at")
+                if created_at and not isinstance(created_at, str):
+                    created_at = getattr(created_at, "isoformat", lambda: str(created_at))()
+
                 memories.append(
                     MemoryContext(
-                        content=memory.get("data", ""),
-                        context_name=memory.get("context", "unknown"),
-                        relevance_score=0.7,  # Will be calculated by ranking
-                        timestamp=datetime.fromisoformat(memory.get("created_at", datetime.now().isoformat())),
-                        memory_type=level,
+                        content=memory.get("content") or memory.get("data", ""),
+                        context_name=memory.get("context", level),
+                        memory_type=memory.get("memory_type", level),
+                        relevance_score=float(memory.get("relevance_score", 0.7)),
+                        created_at=created_at or datetime.now().isoformat(),
                         source=memory.get("source", "database"),
                     )
                 )
@@ -476,6 +497,7 @@ class UniversalAIWrapper:
                 "rest",
             ],
             "database": [
+                "database",
                 "query",
                 "model",
                 "schema",

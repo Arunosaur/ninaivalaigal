@@ -23,9 +23,32 @@ spec:
         app: ninaivalaigal-api
         component: backend
     spec:
+      # Pod Security Context: Run as non-root user
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        # Drop all capabilities
+        capabilities:
+          drop:
+            - ALL
+        # Read-only root filesystem
+        readOnlyRootFilesystem: false  # Set to true if app doesn't need writes
+      # ServiceAccount for RBAC
+      serviceAccountName: ninaivalaigal-api-serviceaccount
       containers:
       - name: api-server
         image: ninaivalaigal/api-server:latest
+        # Container Security Context
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: false  # Set to true if app doesn't need writes
+          runAsNonRoot: true
+          runAsUser: 1000
         ports:
         - containerPort: 13370
           name: http

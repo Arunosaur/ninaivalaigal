@@ -7,17 +7,19 @@
 # See LICENSE file in the server/ directory for details.
 #
 """
-SPEC-042: Memory Health & Orphaned Token Report - API Endpoints
+SPEC-098: Memory Health & Orphaned Tokens - API Endpoints
 
 RESTful API for memory health monitoring and orphaned token management.
 Provides comprehensive health analysis and reporting capabilities.
+
+Note: This implementation is SPEC-098: Memory Health & Orphaned Tokens (Complete).
+SPEC-048 is "Memory Intent Classifier" (Planned, different feature).
 """
 
 from datetime import datetime
 from typing import Any
 
 import structlog
-from auth import get_current_user
 from database import User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from memory_health_engine import (
@@ -27,6 +29,8 @@ from memory_health_engine import (
     get_health_engine,
 )
 from pydantic import BaseModel, Field
+
+from auth import get_current_user
 
 logger = structlog.get_logger(__name__)
 

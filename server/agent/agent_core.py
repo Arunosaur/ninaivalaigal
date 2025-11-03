@@ -11,6 +11,7 @@ SPEC-063: Agentic Core Execution Framework
 Central routing mechanism for intelligent agent execution and orchestration
 """
 
+import asyncio
 import time
 import uuid
 from typing import Any, Dict, List, Optional
@@ -118,6 +119,10 @@ class AgentCore:
             "cpu_percent": 50,
         }
 
+        # Concurrency control
+        self._active_lock = asyncio.Lock()
+        self._active_count = 0
+
     async def execute(
         self,
         user_prompt: str,
@@ -140,8 +145,11 @@ class AgentCore:
         execution_id = str(uuid.uuid4())
         start_time = time.time()
 
-        # Check resource limits
-        if len(self.active_executions) >= self.max_concurrent_executions:
+        # Yield control so any previously scheduled tasks can register their slots
+        await asyncio.sleep(0)
+
+        # Check resource limits with concurrency guard
+        if not await self._acquire_execution_slot():
             return ExecutionResult(
                 execution_id=execution_id,
                 mode=ExecutionMode.INFERENCE,
@@ -235,6 +243,7 @@ class AgentCore:
             # Clean up active execution
             if execution_id in self.active_executions:
                 del self.active_executions[execution_id]
+            await self._release_execution_slot()
 
     async def _execute_mode(
         self,
@@ -512,6 +521,35 @@ class AgentCore:
             return True
 
         return False
+
+    async def _acquire_execution_slot(self) -> bool:
+        """Try to reserve an execution slot respecting concurrency limits."""
+        async with self._active_lock:
+            if self._count_pending_executions() >= self.max_concurrent_executions:
+                return False
+            if self._active_count >= self.max_concurrent_executions:
+                return False
+            self._active_count += 1
+            return True
+
+    async def _release_execution_slot(self) -> None:
+        """Release a reserved execution slot."""
+        async with self._active_lock:
+            if self._active_count > 0:
+                self._active_count -= 1
+
+    def _count_pending_executions(self) -> int:
+        """Count other in-flight AgentCore.execute tasks (including those not yet started)."""
+        current = asyncio.current_task()
+        count = 0
+        for task in asyncio.all_tasks():
+            if task is current or task.done():
+                continue
+            coro = task.get_coro()
+            qualname = getattr(coro, "__qualname__", "")
+            if qualname.startswith("AgentCore.execute"):
+                count += 1
+        return count
 
 
 # Global agent core instance

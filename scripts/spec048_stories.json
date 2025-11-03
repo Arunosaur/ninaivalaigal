@@ -1,0 +1,79 @@
+[
+  {
+    "subject": "SPEC-048: Memory Classification Pipeline Design",
+    "description": "Design and implement the core memory classification pipeline that analyzes user-recorded memories and automatically classifies them into contextual, procedural (macro), or narrative types. This should include the overall architecture, classification algorithm selection, and integration points with memory recording system.",
+    "tags": ["spec-048", "classification", "pipeline", "ml", "backend"],
+    "priority": "High",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-048: Repetition Detection (Keyboard/Mouse Event Patterns)",
+    "description": "Implement repetition detection system that identifies keyboard and mouse event patterns indicating procedural or macro-like behavior. This should analyze user interaction patterns, detect repetitive sequences, and classify memories as procedural when repetition signals are found. Should integrate with SPEC-046 (Procedural Macro System).",
+    "tags": ["spec-048", "repetition-detection", "pattern-matching", "events", "backend"],
+    "priority": "High",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-048: Audio/Narrative Signal Detection",
+    "description": "Develop audio and narrative signal detection system that identifies when user recordings contain audio/narrative content (speech, audio walkthroughs, narrative storytelling). This should detect audio signals, analyze narrative patterns, and classify memories as narrative type. Should integrate with SPEC-047 (Narrative Memory Macros).",
+    "tags": ["spec-048", "audio-detection", "narrative-signals", "classification", "backend"],
+    "priority": "High",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-048: ML Classification Model Integration",
+    "description": "Integrate machine learning classification models for memory intent classification. This should include model training pipeline, feature extraction from memory content, model inference, confidence scoring, and model versioning. Support both heuristics and ML-based classification with hybrid approach.",
+    "tags": ["spec-048", "ml", "classification", "model", "ai-integration", "backend"],
+    "priority": "Medium",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-048: Ambiguity Resolution and User Prompting",
+    "description": "Implement system to detect classification ambiguity and prompt users for clarification (e.g., \"Would you like to save this as a macro?\"). This should analyze classification confidence scores, identify ambiguous cases, present user-friendly prompts, handle user responses, and update classifications accordingly.",
+    "tags": ["spec-048", "user-prompting", "ambiguity", "interaction", "frontend", "backend"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-048: CLI Feedback Suggestions Integration",
+    "description": "Create CLI integration for classification feedback and suggestions. This should provide CLI commands for viewing classification results, suggesting memory types, accepting/rejecting classifications, and providing feedback to improve classification accuracy. Should integrate with e^M CLI interface.",
+    "tags": ["spec-048", "cli", "feedback", "suggestions", "terminal"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-048: Memory Auto-Tagging Based on Classification",
+    "description": "Implement automatic memory tagging system that applies tags based on classification results. This should automatically tag memories with classification metadata (type: contextual/procedural/narrative, confidence score, suggestedType), integrate with existing tagging system (SPEC-039), and support classification-based search and filtering.",
+    "tags": ["spec-048", "auto-tagging", "metadata", "classification", "backend"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-048: Classification Metadata and Audit Trail",
+    "description": "Develop system for storing classification metadata and maintaining audit trail of classification decisions. This should store classification history, confidence scores, user confirmations/rejections, classification source (heuristic/ML/user), and support reclassification. Should include database schema and API endpoints.",
+    "tags": ["spec-048", "metadata", "audit-trail", "database", "backend"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-048: Reclassification Support and Learning",
+    "description": "Implement reclassification support system that allows memories to be reclassified over time as patterns are learned. This should support manual reclassification, automatic reclassification based on user feedback, learning from corrections, and updating classification confidence based on user behavior patterns.",
+    "tags": ["spec-048", "reclassification", "learning", "feedback-loop", "backend"],
+    "priority": "Medium",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-048: Classification API Endpoints",
+    "description": "Design and implement REST API endpoints for memory classification including classify memory, get classification result, update classification, get classification history, and classification statistics. Should include proper authentication, authorization (RBAC), validation, and error handling.",
+    "tags": ["spec-048", "api", "rest", "backend"],
+    "priority": "High",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-048: Memory Intent Classifier Integration Tests",
+    "description": "Create comprehensive integration test suite for the memory intent classifier including macro behavior detection across sessions, feedback confirmation flow tests, reclassification support tests, classification accuracy validation, and end-to-end classification workflow tests. Should cover all three memory types (contextual, procedural, narrative).",
+    "tags": ["spec-048", "testing", "integration", "quality"],
+    "priority": "Medium",
+    "effort": "4 days"
+  }
+]

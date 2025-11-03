@@ -26,15 +26,15 @@ Covers:
 
 import time
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
-from uuid import uuid4, UUID
+from unittest.mock import MagicMock, patch
+from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 
-from server.database import Team, TeamBilling, TeamSubscription, User, TeamMembership
-from server.main import app
+from server.database import Team, TeamBilling, TeamMembership, TeamSubscription, User
 from server.database.models import SubscriptionStatus
+from server.main import app
 
 # Test client
 client = TestClient(app)
@@ -125,7 +125,7 @@ class TestTeamBillingAPIs:
 
         # Would use actual JWT token in real test
         headers = {"Authorization": f"Bearer test_token"}
-        
+
         start_time = time.time()
         response = client.get("/team/billing", headers=headers)
         elapsed_time = (time.time() - start_time) * 1000
@@ -257,4 +257,3 @@ class TestTeamBillingAPIs:
         # Would require team without billing setup
         # This tests the 400 error path
         pass
-

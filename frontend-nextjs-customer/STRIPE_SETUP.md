@@ -29,9 +29,9 @@ STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET_HERE  # Optional for now
 ```
 
 ### Step 4: Test Mode Benefits
-✅ **Free** - No charges for test transactions  
-✅ **Safe** - Test cards don't charge real money  
-✅ **Full Features** - All Stripe features work in test mode  
+✅ **Free** - No charges for test transactions
+✅ **Safe** - Test cards don't charge real money
+✅ **Full Features** - All Stripe features work in test mode
 ✅ **Real Testing** - Test webhooks, subscriptions, invoices, etc.
 
 ### Test Card Numbers
@@ -66,4 +66,3 @@ When ready for production:
 - [Stripe Test Cards](https://stripe.com/docs/testing)
 - [Stripe Elements Docs](https://stripe.com/docs/stripe-js)
 - [Stripe React Components](https://stripe.com/docs/stripe-js/react)
-

@@ -22,6 +22,8 @@ formula:
     ui_external: 8081
     ui_internal: 8181
     em: 8281
+    prometheus: 9090    # Prometheus base port
+    grafana: 3000       # Grafana base port (US-90 maps to 3001)
 
   runtime_offset:
     docker: 0
@@ -44,6 +46,9 @@ matrix:
       ui_external: 8081
       ui_internal: 8181
       em: 8281
+      # Monitoring (US#102) - Following SPEC-086 formula: Base + Runtime Offset + Environment Offset
+      prometheus: 9090          # 9090 + 0 (docker) + 0 (dev) = 9090
+      grafana: 3001             # 3000 + 0 (docker) + 0 (dev) + 1 (US-90 offset) = 3001
     test:
       postgresql: 5532
       pgbouncer: 6532
@@ -52,6 +57,9 @@ matrix:
       ui_external: 8091
       ui_internal: 8191
       em: 8291
+      # Monitoring (US#102) - Following SPEC-086 formula: Base + Runtime Offset + Environment Offset
+      prometheus: 9190          # 9090 + 0 (docker) + 100 (test) = 9190
+      grafana: 3101             # 3000 + 0 (docker) + 100 (test) + 1 (US-90 offset) = 3101
     prod:
       postgresql: 5632
       pgbouncer: 6632
@@ -60,6 +68,9 @@ matrix:
       ui_external: 8101
       ui_internal: 8201
       em: 8301
+      # Monitoring (US#102) - Following SPEC-086 formula: Base + Runtime Offset + Environment Offset
+      prometheus: 9290          # 9090 + 0 (docker) + 200 (prod) = 9290
+      grafana: 3201             # 3000 + 0 (docker) + 200 (prod) + 1 (US-90 offset) = 3201
 
   colima:
     dev:
@@ -70,6 +81,9 @@ matrix:
       ui_external: 8091
       ui_internal: 8191
       em: 8291
+      # Monitoring (US#102) - Following SPEC-086 formula: Base + Runtime Offset + Environment Offset
+      prometheus: 9100          # 9090 + 10 (colima) + 0 (dev) = 9100
+      grafana: 3011             # 3000 + 10 (colima) + 0 (dev) + 1 (US-90 offset) = 3011
     test:
       postgresql: 5542
       pgbouncer: 6542
@@ -78,6 +92,9 @@ matrix:
       ui_external: 8101
       ui_internal: 8201
       em: 8301
+      # Monitoring (US#102) - Following SPEC-086 formula: Base + Runtime Offset + Environment Offset
+      prometheus: 9200          # 9090 + 10 (colima) + 100 (test) = 9200
+      grafana: 3111             # 3000 + 10 (colima) + 100 (test) + 1 (US-90 offset) = 3111
     prod:
       postgresql: 5642
       pgbouncer: 6642
@@ -86,6 +103,9 @@ matrix:
       ui_external: 8111
       ui_internal: 8211
       em: 8311
+      # Monitoring (US#102) - Following SPEC-086 formula: Base + Runtime Offset + Environment Offset
+      prometheus: 9300          # 9090 + 10 (colima) + 200 (prod) = 9300
+      grafana: 3211             # 3000 + 10 (colima) + 200 (prod) + 1 (US-90 offset) = 3211
 
   apple:
     dev:
@@ -114,6 +134,9 @@ matrix:
       jaeger_collector: 14268   # Jaeger HTTP collector
       jaeger_grpc: 14250        # Jaeger gRPC
       zipkin: 9411              # Zipkin compatibility
+      # Monitoring (US#102) - Following SPEC-086 formula: Base + Runtime Offset + Environment Offset
+      prometheus: 9110          # 9090 + 20 (apple) + 0 (dev) = 9110
+      grafana: 3021             # 3000 + 20 (apple) + 0 (dev) + 1 (US-90 offset) = 3021
       # Note: Gateway uses standard ports 80/443 (not in runtime offset)
     test:
       postgresql: 5552
@@ -123,6 +146,9 @@ matrix:
       ui_external: 8111
       ui_internal: 8211
       em: 8311
+      # Monitoring (US#102) - Following SPEC-086 formula: Base + Runtime Offset + Environment Offset
+      prometheus: 9210          # 9090 + 20 (apple) + 100 (test) = 9210
+      grafana: 3121             # 3000 + 20 (apple) + 100 (test) + 1 (US-90 offset) = 3121
     prod:
       postgresql: 5652
       pgbouncer: 6652
@@ -131,6 +157,9 @@ matrix:
       ui_external: 8121
       ui_internal: 8221
       em: 8321
+      # Monitoring (US#102) - Following SPEC-086 formula: Base + Runtime Offset + Environment Offset
+      prometheus: 9310          # 9090 + 20 (apple) + 200 (prod) = 9310
+      grafana: 3221             # 3000 + 20 (apple) + 200 (prod) + 1 (US-90 offset) = 3221
 
 # Naming Conventions (Option A: Full Suffixes)
 # Enables running multiple environments on same host
@@ -290,12 +319,16 @@ services:
 
   graphops:
     description: "GraphOps gRPC Service (Rust) - Graph operations via gRPC"
-    container_port: 8000
-    protocol: "grpc+http"
+    container_port: 50051  # gRPC service port (internal)
+    host_port: 13398       # External access port
+    protocol: "grpc"
+    internal_access: "Use container IP with port 50051 for service-to-service communication"
+    external_access: "Use localhost:13398 for external clients (grpcurl, testing)"
     health_check: "/usr/local/bin/graphops --health-check"
     grpc_reflection: "enabled"
-    explore: "grpcurl -plaintext localhost:{host_port} list"
-    metrics: "http://localhost:{host_port}/metrics"
+    explore: "grpcurl -plaintext localhost:13398 list"
+    metrics: "http://localhost:9090/metrics"
+    note: "Internal services should use container_port (50051), external clients use host_port (13398)"
     note: "Task #49 - gRPC+HTTP service on 13398 (139xx range)"
 
   # Developer A Infrastructure (SPEC-099)
@@ -310,6 +343,27 @@ services:
     container_port: 8080
     protocol: "http"
     health_check: "./cli-tools --version"
+
+  prometheus:
+    description: "Prometheus Metrics Collection - Observability"
+    container_port: 9090
+    host_port: 9090
+    protocol: "http"
+    health_check: "curl -f http://localhost:9090/-/ready"
+    ui: "http://localhost:9090"
+    targets: "http://localhost:9090/targets"
+    alerts: "http://localhost:9090/alerts"
+    note: "US#102 - Metrics collection for all services"
+
+  grafana:
+    description: "Grafana Monitoring Dashboards - Visualization"
+    container_port: 3000
+    host_port: 3001  # US-90 requirement: localhost:3001
+    protocol: "http"
+    health_check: "curl -f http://localhost:3001/api/health"
+    ui: "http://localhost:3001"
+    default_credentials: "admin/admin"
+    note: "US#102 - Real-time monitoring dashboards and SLO tracking"
 
 # Port range reservations
 port_ranges:

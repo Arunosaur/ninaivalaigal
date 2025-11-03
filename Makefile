@@ -858,7 +858,7 @@ test-session-health:
 	@curl -s "http://localhost:13370/auth/session/health" | jq . || echo "❌ API not responding"
 
 # Code Coverage Targets
-.PHONY: test-coverage test-unit test-functional test-integration test-security test-performance coverage-report coverage-html coverage-dashboard
+.PHONY: test test-unit test-integration test-coverage test-load test-load-normal test-load-peak test-load-stress test-circuit-breaker test-security test-performance coverage-report coverage-html coverage-dashboard
 
 test-coverage:
 	@echo "🧪 Running comprehensive test suite with coverage..."
@@ -1823,6 +1823,55 @@ environment-recovery:
 validate-environment: environment-health smoke-tests
 	@echo "Environment validation complete!"
 
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🧪 COMPREHENSIVE API TEST SUITE (US-92, SPEC-086)
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## run comprehensive API test suite
+test-api-comprehensive:
+	@echo "🧪 Running Comprehensive API Test Suite..."
+	@conda run -n nina pytest tests/integration/test_comprehensive_api_suite.py \
+		tests/integration/test_api_authentication_flows.py \
+		tests/integration/test_api_crud_operations.py \
+		tests/integration/test_port_allocation.py \
+		-v --tb=short
+	@echo "✅ Comprehensive API tests completed"
+
+## run comprehensive API test suite with coverage
+test-api-comprehensive-coverage:
+	@echo "🧪 Running Comprehensive API Test Suite with Coverage..."
+	@conda run -n nina pytest tests/integration/test_comprehensive_api_suite.py \
+		tests/integration/test_api_authentication_flows.py \
+		tests/integration/test_api_crud_operations.py \
+		tests/integration/test_port_allocation.py \
+		--cov=server --cov-report=html --cov-report=term \
+		-v --tb=short
+	@echo "✅ Coverage report generated in htmlcov/"
+
+## run only comprehensive API suite (39 tests)
+test-api-suite:
+	@echo "🧪 Running Comprehensive API Suite (39 tests)..."
+	@conda run -n nina pytest tests/integration/test_comprehensive_api_suite.py -v
+
+## run authentication flow tests (6 tests)
+test-api-auth:
+	@echo "🧪 Running Authentication Flow Tests..."
+	@conda run -n nina pytest tests/integration/test_api_authentication_flows.py -v
+
+## run CRUD operation tests (12 tests)
+test-api-crud:
+	@echo "🧪 Running CRUD Operation Tests..."
+	@conda run -n nina pytest tests/integration/test_api_crud_operations.py -v
+
+## run port allocation tests (SPEC-086, 6 tests)
+test-api-ports:
+	@echo "🧪 Running Port Allocation Tests (SPEC-086)..."
+	@conda run -n nina pytest tests/integration/test_port_allocation.py -v
+
+## run all API integration tests
+test-api-all: test-api-comprehensive
+	@echo "✅ All API tests completed"
+
 ## continuous environment monitoring (runs every 5 minutes)
 environment-monitor:
 	@echo "Starting continuous environment monitoring..."
@@ -1920,3 +1969,87 @@ setup-staff: migrate-staff seed-staff
 check-staff:
 	@echo "📊 Checking staff accounts..."
 	@conda run -n nina python -c "from sqlalchemy import create_engine, text; import os; engine = create_engine(os.getenv('DATABASE_URL', 'postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev')); with engine.connect() as conn: result = conn.execute(text('SELECT email, role, is_active FROM staff')); print('\\nStaff Accounts:'); print('-' * 60); [print(f'{row[0]:40} {row[1]:10} {\"Active\" if row[2] else \"Inactive\"}') for row in result]; print('-' * 60)"
+
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 🔥 LOAD TESTING (US#407)
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.PHONY: test-load test-load-normal test-load-peak test-load-stress test-load-realistic test-circuit-breaker test-load-install
+
+## Install load testing dependencies
+test-load-install:
+	@echo "📦 Installing load testing dependencies..."
+	pip install -r tests/load/requirements.txt
+	@echo "✅ Load testing dependencies installed"
+
+## Normal load test (100 users, 30 minutes)
+test-load-normal:
+	@echo "🔥 Running normal load test (100 users, 30 min)..."
+	@mkdir -p reports
+	locust -f tests/load/test_platform_monitoring_load.py \
+		--headless \
+		--users 100 \
+		--spawn-rate 10 \
+		--run-time 30m \
+		--host http://localhost:8000 \
+		--html reports/load_test_normal_$(shell date +%Y%m%d_%H%M%S).html
+	@echo "✅ Normal load test complete. Report: reports/load_test_normal_*.html"
+
+## Peak load test (500 users, 15 minutes)
+test-load-peak:
+	@echo "🔥 Running peak load test (500 users, 15 min)..."
+	@mkdir -p reports
+	locust -f tests/load/test_platform_monitoring_load.py \
+		--headless \
+		--users 500 \
+		--spawn-rate 100 \
+		--run-time 15m \
+		--host http://localhost:8000 \
+		--user-classes BurstTrafficUser \
+		--html reports/load_test_peak_$(shell date +%Y%m%d_%H%M%S).html
+	@echo "✅ Peak load test complete. Report: reports/load_test_peak_*.html"
+
+## Stress test (1000 users, 10 minutes)
+test-load-stress:
+	@echo "🔥 Running stress test (1000 users, 10 min)..."
+	@mkdir -p reports
+	locust -f tests/load/test_platform_monitoring_load.py \
+		--headless \
+		--users 1000 \
+		--spawn-rate 200 \
+		--run-time 10m \
+		--host http://localhost:8000 \
+		--user-classes StressTestUser \
+		--html reports/load_test_stress_$(shell date +%Y%m%d_%H%M%S).html
+	@echo "✅ Stress test complete. Report: reports/load_test_stress_*.html"
+
+## Realistic traffic test (200 users, 1 hour)
+test-load-realistic:
+	@echo "🔥 Running realistic traffic test (200 users, 1 hour)..."
+	@mkdir -p reports
+	locust -f tests/load/test_platform_monitoring_load.py \
+		--headless \
+		--users 200 \
+		--spawn-rate 20 \
+		--run-time 1h \
+		--host http://localhost:8000 \
+		--user-classes RealisticTrafficUser \
+		--html reports/load_test_realistic_$(shell date +%Y%m%d_%H%M%S).html
+	@echo "✅ Realistic traffic test complete. Report: reports/load_test_realistic_*.html"
+
+## Circuit breaker validation test
+test-circuit-breaker:
+	@echo "🔄 Running circuit breaker validation test..."
+	@bash tests/load/circuit_breaker_test.sh redis
+	@echo "✅ Circuit breaker test complete"
+
+## Run all load tests (sequential)
+test-load: test-load-normal test-load-peak test-circuit-breaker
+	@echo "✅ All load tests complete. Check reports/ directory for results."
+
+## Interactive load testing with web UI
+test-load-ui:
+	@echo "🌐 Starting Locust web UI..."
+	@echo "   Open http://localhost:8089 in your browser"
+	locust -f tests/load/test_platform_monitoring_load.py \
+		--host http://localhost:8000

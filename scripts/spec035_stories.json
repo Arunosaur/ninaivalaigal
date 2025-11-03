@@ -1,0 +1,58 @@
+[
+  {
+    "subject": "SPEC-035: Memory Versioning System Implementation",
+    "description": "Implement comprehensive versioning system for memories, enabling version history tracking, version lineage, and version metadata management.\n\n**Requirements:**\n- Design versioning data model (version table schema)\n- Implement version creation and storage\n- Support automatic version creation on memory updates\n- Maintain version lineage and relationships\n- Store version metadata (timestamp, user, change description)\n\n**Acceptance Criteria:**\n- Version table created with proper schema\n- Versions are automatically created on memory updates\n- Version lineage is maintained correctly\n- Version metadata is stored and retrievable\n- API endpoints support version operations\n\n**Dependencies:**\n- SPEC-044 (Memory Drift Detection) - foundation\n- Database schema migration required",
+    "tags": ["spec-035", "versioning", "backend", "database"],
+    "priority": "High",
+    "effort": "6 days"
+  },
+  {
+    "subject": "SPEC-035: Version History Tracking API",
+    "description": "Build API endpoints for retrieving version history, version details, and version comparison functionality.\n\n**Requirements:**\n- GET /memory/{memory_id}/versions - List all versions\n- GET /memory/{memory_id}/versions/{version_id} - Get version details\n- GET /memory/{memory_id}/versions/{version_id}/diff - Compare versions\n- Support pagination and filtering for version history\n- Include version metadata in responses\n\n**Acceptance Criteria:**\n- All version endpoints implemented\n- Version history is paginated\n- Version comparison returns detailed diff\n- API responses include full metadata\n- Performance <200ms for typical queries\n\n**Dependencies:**\n- Versioning system (US#341) must be complete",
+    "tags": ["spec-035", "api", "versioning", "backend"],
+    "priority": "High",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-035: Snapshot Restore and Rollback",
+    "description": "Implement snapshot restore and rollback functionality, allowing users to restore memories to specific snapshots or rollback to previous versions.\n\n**Requirements:**\n- POST /memory/{memory_id}/restore - Restore to specific snapshot\n- POST /memory/{memory_id}/rollback - Rollback to previous version\n- Support selective restore (partial memory restoration)\n- Validate restore operations with ACL checks\n- Create audit log entries for restore operations\n\n**Acceptance Criteria:**\n- Restore to snapshot works correctly\n- Rollback to previous version functions properly\n- ACL permissions are checked before restore\n- Restore operations are logged in audit trail\n- Selective restore supports partial updates\n\n**Dependencies:**\n- SPEC-043 (Memory ACL) - for permission checks\n- SPEC-071 (Audit Logging) - for audit entries",
+    "tags": ["spec-035", "restore", "rollback", "security"],
+    "priority": "High",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-035: Enhanced Snapshot Management API",
+    "description": "Enhance existing snapshot API endpoints to support full snapshot lifecycle management, including snapshot listing, deletion, and metadata management.\n\n**Requirements:**\n- Extend existing POST /drift/snapshot endpoint\n- GET /memory/{memory_id}/snapshots - List all snapshots\n- DELETE /memory/{memory_id}/snapshots/{snapshot_id} - Delete snapshot\n- PUT /memory/{memory_id}/snapshots/{snapshot_id}/metadata - Update snapshot metadata\n- Support snapshot tagging and categorization\n\n**Acceptance Criteria:**\n- All snapshot management endpoints work\n- Snapshot listing is paginated and filterable\n- Snapshot deletion respects ACL permissions\n- Metadata updates are validated\n- Snapshot operations are performant\n\n**Dependencies:**\n- Existing snapshot API (server/memory_drift_api.py)\n- SPEC-043 (ACL) - for permission enforcement",
+    "tags": ["spec-035", "snapshot", "api", "management"],
+    "priority": "Medium",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-035: Version Diff Visualization",
+    "description": "Implement version comparison and diff visualization, showing changes between memory versions with enhanced diff display.\n\n**Requirements:**\n- Enhanced diff algorithm for memory content comparison\n- Visual diff display (text diff, semantic diff)\n- Diff statistics (lines changed, similarity score)\n- Integration with SPEC-044 drift detection for semantic diff\n- API endpoint for diff generation\n\n**Acceptance Criteria:**\n- Diff visualization is accurate\n- Semantic diff uses embedding comparison\n- Diff statistics are calculated correctly\n- Diff display is clear and readable\n- Performance is acceptable (<1s for typical diffs)\n\n**Dependencies:**\n- SPEC-044 (Memory Drift Detection) - for semantic comparison\n- SPEC-031 (Relevance Ranking) - for similarity scoring",
+    "tags": ["spec-035", "diff", "visualization", "comparison"],
+    "priority": "Medium",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-035: Snapshot Versioning UI Components",
+    "description": "Build frontend UI components for snapshot and version management in customer and admin consoles.\n\n**Requirements:**\n- Snapshot list view with version history\n- Version comparison UI component\n- Restore/rollback action buttons\n- Snapshot metadata editor\n- Version timeline visualization\n\n**Acceptance Criteria:**\n- Version history is displayed clearly\n- Users can compare versions visually\n- Restore actions are confirmed before execution\n- Snapshot metadata is editable\n- Version timeline shows progression\n\n**Dependencies:**\n- Backend API endpoints (previous stories)\n- Frontend shared components",
+    "tags": ["spec-035", "ui", "frontend", "versioning"],
+    "priority": "Medium",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-035: CLI Commands for Snapshot Management",
+    "description": "Implement CLI commands for snapshot and version management, enabling command-line operations for power users.\n\n**Requirements:**\n- `mem snapshot create <memory_id>` - Create snapshot\n- `mem snapshot list <memory_id>` - List snapshots\n- `mem version history <memory_id>` - Show version history\n- `mem version restore <memory_id> <version_id>` - Restore version\n- `mem version diff <memory_id> <version1> <version2>` - Compare versions\n\n**Acceptance Criteria:**\n- All CLI commands work correctly\n- Commands provide clear output\n- Error handling is comprehensive\n- Commands support JSON output format\n- Help documentation is complete\n\n**Dependencies:**\n- Backend API endpoints\n- CLI infrastructure",
+    "tags": ["spec-035", "cli", "commands", "tooling"],
+    "priority": "Low",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-035: Snapshot Versioning Test Suite",
+    "description": "Create comprehensive test suite for SPEC-035 features including unit tests, integration tests, and E2E tests.\n\n**Requirements:**\n- Unit tests for versioning operations\n- Integration tests for snapshot workflow\n- E2E tests for restore/rollback scenarios\n- Performance tests for version history queries\n- Edge case testing (concurrent updates, large histories)\n\n**Acceptance Criteria:**\n- Test coverage >90% for versioning code\n- All integration tests pass\n- E2E tests cover critical workflows\n- Performance tests validate query optimization\n- Edge cases are handled correctly\n\n**Dependencies:**\n- All SPEC-035 implementation stories\n- Test infrastructure",
+    "tags": ["spec-035", "testing", "coverage", "quality"],
+    "priority": "Medium",
+    "effort": "4 days"
+  }
+]

@@ -46,7 +46,7 @@ class ApiClient {
   private readonly refreshListeners = new Set<(event: RefreshEvent) => void>();
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:13370';
+    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:13390';
     this.defaultHeaders = { 'Content-Type': 'application/json' };
   }
 

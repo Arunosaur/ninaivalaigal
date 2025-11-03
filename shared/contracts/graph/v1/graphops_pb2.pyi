@@ -1,16 +1,20 @@
 import datetime
+from collections.abc import Iterable as _Iterable
+from collections.abc import Mapping as _Mapping
+from typing import ClassVar as _ClassVar
+from typing import Optional as _Optional
+from typing import Union as _Union
 
-from google.protobuf import timestamp_pb2 as _timestamp_pb2
-from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Iterable as _Iterable, Mapping as _Mapping
-from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from google.protobuf import timestamp_pb2 as _timestamp_pb2
+from google.protobuf.internal import containers as _containers
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class ExecuteQueryRequest(_message.Message):
     __slots__ = ("query", "parameters", "user_id", "timeout_ms")
+
     class ParametersEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -18,6 +22,7 @@ class ExecuteQueryRequest(_message.Message):
         key: str
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+
     QUERY_FIELD_NUMBER: _ClassVar[int]
     PARAMETERS_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -26,7 +31,13 @@ class ExecuteQueryRequest(_message.Message):
     parameters: _containers.ScalarMap[str, str]
     user_id: str
     timeout_ms: int
-    def __init__(self, query: _Optional[str] = ..., parameters: _Optional[_Mapping[str, str]] = ..., user_id: _Optional[str] = ..., timeout_ms: _Optional[int] = ...) -> None: ...
+    def __init__(
+        self,
+        query: _Optional[str] = ...,
+        parameters: _Optional[_Mapping[str, str]] = ...,
+        user_id: _Optional[str] = ...,
+        timeout_ms: _Optional[int] = ...,
+    ) -> None: ...
 
 class ExecuteQueryResponse(_message.Message):
     __slots__ = ("results", "metadata", "status")
@@ -36,7 +47,12 @@ class ExecuteQueryResponse(_message.Message):
     results: _containers.RepeatedCompositeFieldContainer[QueryResult]
     metadata: QueryMetadata
     status: str
-    def __init__(self, results: _Optional[_Iterable[_Union[QueryResult, _Mapping]]] = ..., metadata: _Optional[_Union[QueryMetadata, _Mapping]] = ..., status: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        results: _Optional[_Iterable[_Union[QueryResult, _Mapping]]] = ...,
+        metadata: _Optional[_Union[QueryMetadata, _Mapping]] = ...,
+        status: _Optional[str] = ...,
+    ) -> None: ...
 
 class QueryResult(_message.Message):
     __slots__ = ("columns", "rows")
@@ -44,7 +60,11 @@ class QueryResult(_message.Message):
     ROWS_FIELD_NUMBER: _ClassVar[int]
     columns: _containers.RepeatedCompositeFieldContainer[QueryColumn]
     rows: _containers.RepeatedCompositeFieldContainer[QueryRow]
-    def __init__(self, columns: _Optional[_Iterable[_Union[QueryColumn, _Mapping]]] = ..., rows: _Optional[_Iterable[_Union[QueryRow, _Mapping]]] = ...) -> None: ...
+    def __init__(
+        self,
+        columns: _Optional[_Iterable[_Union[QueryColumn, _Mapping]]] = ...,
+        rows: _Optional[_Iterable[_Union[QueryRow, _Mapping]]] = ...,
+    ) -> None: ...
 
 class QueryColumn(_message.Message):
     __slots__ = ("name", "type")
@@ -72,7 +92,14 @@ class QueryValue(_message.Message):
     double_value: float
     bool_value: bool
     json_value: bytes
-    def __init__(self, string_value: _Optional[str] = ..., int_value: _Optional[int] = ..., double_value: _Optional[float] = ..., bool_value: bool = ..., json_value: _Optional[bytes] = ...) -> None: ...
+    def __init__(
+        self,
+        string_value: _Optional[str] = ...,
+        int_value: _Optional[int] = ...,
+        double_value: _Optional[float] = ...,
+        bool_value: bool = ...,
+        json_value: _Optional[bytes] = ...,
+    ) -> None: ...
 
 class QueryMetadata(_message.Message):
     __slots__ = ("rows_affected", "execution_time_ms", "query_plan", "warnings")
@@ -84,10 +111,17 @@ class QueryMetadata(_message.Message):
     execution_time_ms: int
     query_plan: str
     warnings: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, rows_affected: _Optional[int] = ..., execution_time_ms: _Optional[int] = ..., query_plan: _Optional[str] = ..., warnings: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(
+        self,
+        rows_affected: _Optional[int] = ...,
+        execution_time_ms: _Optional[int] = ...,
+        query_plan: _Optional[str] = ...,
+        warnings: _Optional[_Iterable[str]] = ...,
+    ) -> None: ...
 
 class ExecuteTransactionRequest(_message.Message):
     __slots__ = ("queries", "parameters", "user_id", "timeout_ms")
+
     class ParametersEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -95,6 +129,7 @@ class ExecuteTransactionRequest(_message.Message):
         key: str
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+
     QUERIES_FIELD_NUMBER: _ClassVar[int]
     PARAMETERS_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
@@ -103,7 +138,13 @@ class ExecuteTransactionRequest(_message.Message):
     parameters: _containers.ScalarMap[str, str]
     user_id: str
     timeout_ms: int
-    def __init__(self, queries: _Optional[_Iterable[str]] = ..., parameters: _Optional[_Mapping[str, str]] = ..., user_id: _Optional[str] = ..., timeout_ms: _Optional[int] = ...) -> None: ...
+    def __init__(
+        self,
+        queries: _Optional[_Iterable[str]] = ...,
+        parameters: _Optional[_Mapping[str, str]] = ...,
+        user_id: _Optional[str] = ...,
+        timeout_ms: _Optional[int] = ...,
+    ) -> None: ...
 
 class ExecuteTransactionResponse(_message.Message):
     __slots__ = ("results", "metadata", "status")
@@ -113,7 +154,12 @@ class ExecuteTransactionResponse(_message.Message):
     results: _containers.RepeatedCompositeFieldContainer[QueryResult]
     metadata: TransactionMetadata
     status: str
-    def __init__(self, results: _Optional[_Iterable[_Union[QueryResult, _Mapping]]] = ..., metadata: _Optional[_Union[TransactionMetadata, _Mapping]] = ..., status: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        results: _Optional[_Iterable[_Union[QueryResult, _Mapping]]] = ...,
+        metadata: _Optional[_Union[TransactionMetadata, _Mapping]] = ...,
+        status: _Optional[str] = ...,
+    ) -> None: ...
 
 class TransactionMetadata(_message.Message):
     __slots__ = ("total_queries", "successful_queries", "total_execution_time_ms", "committed")
@@ -125,7 +171,13 @@ class TransactionMetadata(_message.Message):
     successful_queries: int
     total_execution_time_ms: int
     committed: bool
-    def __init__(self, total_queries: _Optional[int] = ..., successful_queries: _Optional[int] = ..., total_execution_time_ms: _Optional[int] = ..., committed: bool = ...) -> None: ...
+    def __init__(
+        self,
+        total_queries: _Optional[int] = ...,
+        successful_queries: _Optional[int] = ...,
+        total_execution_time_ms: _Optional[int] = ...,
+        committed: bool = ...,
+    ) -> None: ...
 
 class GetGraphStatsRequest(_message.Message):
     __slots__ = ("graph_name",)
@@ -151,7 +203,14 @@ class GraphStats(_message.Message):
     node_labels: _containers.RepeatedCompositeFieldContainer[LabelStats]
     edge_labels: _containers.RepeatedCompositeFieldContainer[LabelStats]
     last_updated: _timestamp_pb2.Timestamp
-    def __init__(self, node_count: _Optional[int] = ..., edge_count: _Optional[int] = ..., node_labels: _Optional[_Iterable[_Union[LabelStats, _Mapping]]] = ..., edge_labels: _Optional[_Iterable[_Union[LabelStats, _Mapping]]] = ..., last_updated: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        node_count: _Optional[int] = ...,
+        edge_count: _Optional[int] = ...,
+        node_labels: _Optional[_Iterable[_Union[LabelStats, _Mapping]]] = ...,
+        edge_labels: _Optional[_Iterable[_Union[LabelStats, _Mapping]]] = ...,
+        last_updated: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...,
+    ) -> None: ...
 
 class LabelStats(_message.Message):
     __slots__ = ("label", "count")
@@ -175,7 +234,13 @@ class HealthCheckResponse(_message.Message):
     version: str
     timestamp: _timestamp_pb2.Timestamp
     database: ConnectionStatus
-    def __init__(self, status: _Optional[str] = ..., version: _Optional[str] = ..., timestamp: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., database: _Optional[_Union[ConnectionStatus, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        status: _Optional[str] = ...,
+        version: _Optional[str] = ...,
+        timestamp: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...,
+        database: _Optional[_Union[ConnectionStatus, _Mapping]] = ...,
+    ) -> None: ...
 
 class ConnectionStatus(_message.Message):
     __slots__ = ("connected", "active_connections", "idle_connections", "max_connections")
@@ -187,4 +252,10 @@ class ConnectionStatus(_message.Message):
     active_connections: int
     idle_connections: int
     max_connections: int
-    def __init__(self, connected: bool = ..., active_connections: _Optional[int] = ..., idle_connections: _Optional[int] = ..., max_connections: _Optional[int] = ...) -> None: ...
+    def __init__(
+        self,
+        connected: bool = ...,
+        active_connections: _Optional[int] = ...,
+        idle_connections: _Optional[int] = ...,
+        max_connections: _Optional[int] = ...,
+    ) -> None: ...

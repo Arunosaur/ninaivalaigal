@@ -121,3 +121,15 @@ class EntropyCalculator:
 def calculate_entropy(text: str) -> float:
     """Calculate Shannon entropy of a string"""
     return EntropyCalculator.calculate_shannon_entropy(text)
+
+
+def calculate_base64_entropy(text: str) -> float:
+    """Calculate entropy for base64-like strings."""
+
+    return EntropyCalculator.calculate_base64_entropy(text)
+
+
+def calculate_hex_entropy(text: str) -> float:
+    """Calculate entropy for hexadecimal strings."""
+
+    return EntropyCalculator.calculate_hex_entropy(text)

@@ -21,6 +21,7 @@ import pytest
 # Optional imports for agentic testing
 try:
     from openai import OpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -28,6 +29,7 @@ except ImportError:
 
 try:
     from playwright.async_api import async_playwright
+
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
@@ -112,7 +114,7 @@ async def run_agentic_signup():
 
 @pytest.mark.skipif(
     not OPENAI_AVAILABLE or not PLAYWRIGHT_AVAILABLE,
-    reason="Requires openai and playwright packages for agentic testing"
+    reason="Requires openai and playwright packages for agentic testing",
 )
 @pytest.mark.asyncio
 async def test_agentic_signup():

@@ -230,6 +230,60 @@ class AIToolchain:
             temperature=0.3,  # Lower temperature for more focused summaries
         )
 
+    async def generate_memory_insights(
+        self,
+        network_analysis: Dict,
+        user_prompt: str,
+        context,
+    ) -> str:
+        """Generate narrative insights from memory network analysis results."""
+        if not network_analysis:
+            return "No memory network analysis data available to interpret."
+
+        clusters = network_analysis.get("clusters", []) or []
+        themes = network_analysis.get("themes", []) or []
+        total_memories = network_analysis.get("total_memories")
+        anomalies = network_analysis.get("anomalies", []) or []
+
+        insight_prompt = "You are an AI analyst interpreting a user's memory network analysis results.\n"
+        if total_memories is not None:
+            insight_prompt += f"- Total memories analyzed: {total_memories}\n"
+
+        if clusters:
+            insight_prompt += "- Notable clusters:\n"
+            for cluster in clusters[:10]:  # Limit to 10 clusters
+                cluster_id = cluster.get("id", "unknown")
+                size = cluster.get("size")
+                keywords = ", ".join(cluster.get("keywords", [])[:5]) if cluster.get("keywords") else ""
+                insight_prompt += f"  * Cluster {cluster_id}"
+                if size is not None:
+                    insight_prompt += f" (size: {size})"
+                if keywords:
+                    insight_prompt += f" | key themes: {keywords}"
+                insight_prompt += "\n"
+
+        if themes:
+            insight_prompt += "- Dominant themes: " + ", ".join(map(str, themes[:10])) + "\n"
+
+        if anomalies:
+            insight_prompt += "- Potential anomalies or outliers detected:\n"
+            for anomaly in anomalies[:5]:
+                description = anomaly.get("description") or str(anomaly)
+                insight_prompt += f"  * {description}\n"
+
+        insight_prompt += "\nUser request: " + user_prompt + "\n"
+        insight_prompt += (
+            "Provide concise, actionable insights explaining the memory network structure, highlight trends, and "
+            "recommend next steps for the user."
+        )
+
+        return await self.generate_response(
+            prompt=insight_prompt,
+            user_id=context.user_id,
+            context=context,
+            temperature=0.4,
+        )
+
     async def _apply_safety_filters(self, prompt: str) -> str:
         """Apply safety filters to the input prompt."""
         # Mock implementation - in production, this would use actual safety filters

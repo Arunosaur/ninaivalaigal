@@ -21,7 +21,7 @@ var (
 	GatewayPublicURL string
 	// CoreAPIAddr is the upstream HTTP endpoint for the core API.
 	CoreAPIAddr string
-	// MemoryAddr is the upstream gRPC endpoint for the memory service.
+	// MemoryAddr is the upstream HTTP endpoint for the memory service (HTTP/REST, not gRPC).
 	MemoryAddr string
 	// GraphOpsAddr is the upstream gRPC endpoint for GraphOps.
 	GraphOpsAddr string

@@ -78,10 +78,15 @@ class User(Base):
         back_populates="granted_by_user",
     )
     user_permissions = relationship("ContextPermission", foreign_keys="[ContextPermission.user_id]")
-    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+    refresh_tokens = relationship(
+        "RefreshToken", foreign_keys="[RefreshToken.user_id]", back_populates="user", cascade="all, delete-orphan"
+    )
 
     # RBAC relationships (defined in rbac_models.py)
     # These are added dynamically by rbac_models.py to avoid circular imports
+
+    # GDPR and HIPAA compliance relationships are defined using backref in compliance/models.py
+    # This avoids circular imports and allows models to be loaded in any order
 
 
 class RefreshToken(Base):
@@ -134,7 +139,7 @@ class Organization(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    teams = relationship("Team", back_populates="organization")
+    teams = relationship("Team", foreign_keys="[Team.organization_id]", back_populates="organization")
     contexts = relationship("Context", back_populates="organization")
     permissions = relationship("ContextPermission", back_populates="organization")
 
@@ -177,8 +182,8 @@ class Team(Base):
     members = relationship("TeamMember", back_populates="team")
     contexts = relationship("Context", back_populates="team")
     permissions = relationship("ContextPermission", back_populates="team")
-    invitations = relationship("TeamInvitation", back_populates="team", cascade="all, delete-orphan")
-    memberships = relationship("TeamMembership", back_populates="team", cascade="all, delete-orphan")
+    # invitations and memberships relationships are added dynamically by standalone_teams.py
+    # to avoid circular imports
 
 
 class TeamMember(Base):
@@ -400,6 +405,7 @@ class TeamUsageMetrics(Base):
 
 # US#157: Discount & Credit System Models (SPEC-026 Phase 1)
 
+
 class DiscountCode(Base):
     """Discount code model - discount codes for teams per US#157
 
@@ -501,7 +507,9 @@ class CreditTransaction(Base):
     __tablename__ = "credit_transactions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    team_credit_id = Column(UUID(as_uuid=True), ForeignKey("team_credits.id", ondelete="CASCADE"), nullable=False, index=True)
+    team_credit_id = Column(
+        UUID(as_uuid=True), ForeignKey("team_credits.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     transaction_type = Column(String(20), nullable=False)
     amount = Column(Numeric(10, 2), nullable=False)
     balance_before = Column(Numeric(10, 2), nullable=False)
@@ -535,7 +543,9 @@ class DiscountCodeUsage(Base):
     __tablename__ = "discount_code_usage"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    discount_code_id = Column(UUID(as_uuid=True), ForeignKey("discount_codes.id", ondelete="CASCADE"), nullable=False, index=True)
+    discount_code_id = Column(
+        UUID(as_uuid=True), ForeignKey("discount_codes.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=True, index=True)
     org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True)
     invoice_id = Column(String(255), nullable=True)  # Reference to billing_invoices table (model not yet created)
@@ -559,6 +569,7 @@ class DiscountCodeUsage(Base):
 
 
 # US#158: Non-Profit Application System Models (SPEC-026 Phase 1)
+
 
 class NonProfitApplicationStatus(str, Enum):
     """Non-profit application status enum"""
@@ -601,9 +612,7 @@ class NonProfitApplication(Base):
 
     # Constraints
     __table_args__ = (
-        CheckConstraint(
-            "status IN ('pending', 'approved', 'rejected', 'under_review')", name="check_status_valid"
-        ),
+        CheckConstraint("status IN ('pending', 'approved', 'rejected', 'under_review')", name="check_status_valid"),
         CheckConstraint(
             "(team_id IS NOT NULL AND org_id IS NULL) OR (team_id IS NULL AND org_id IS NOT NULL)",
             name="nonprofit_target_check",

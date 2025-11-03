@@ -15,6 +15,13 @@ This addresses external code review feedback:
 - Improve code organization and maintainability
 """
 
+import importlib
+import sys
+
+# Ensure consistent module aliasing when imported as `database` or `server.database`
+sys.modules.setdefault("database", sys.modules[__name__])
+sys.modules.setdefault("server.database", sys.modules[__name__])
+
 # Import manager and operations
 from .manager import DatabaseManager
 
@@ -27,16 +34,30 @@ from .models import (
     Organization,
     OrganizationRegistration,
     Team,
+    TeamBilling,
     TeamMember,
+    TeamSubscription,
     User,
     UserInvitation,
 )
+
+try:
+    from server.models.standalone_teams import TeamMembership, extend_team_model
+
+    # Extend Team model with standalone team relationships
+    extend_team_model()
+except ImportError:  # Legacy path when imported as top-level `database`
+    standalone_module = importlib.import_module("models.standalone_teams")
+    # Ensure future imports using the fully qualified path reuse the same module instance
+    sys.modules.setdefault("server.models.standalone_teams", standalone_module)
+    TeamMembership = standalone_module.TeamMembership
+    if hasattr(standalone_module, "extend_team_model"):
+        standalone_module.extend_team_model()
 
 # Import RBAC models to register dynamic relationships on User model
 # This MUST come after importing User model
 try:
     import os
-    import sys
 
     # Add server directory to path for rbac_models import
     server_path = os.path.dirname(os.path.dirname(__file__))
@@ -56,7 +77,10 @@ __all__ = [
     "Memory",
     "Organization",
     "Team",
+    "TeamBilling",
     "TeamMember",
+    "TeamMembership",
+    "TeamSubscription",
     "Context",
     "ContextPermission",
     "OrganizationRegistration",

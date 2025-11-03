@@ -126,11 +126,17 @@ container stop "$CONTAINER_NAME" 2>/dev/null && echo "   Stopped" || echo "   No
 container rm "$CONTAINER_NAME" 2>/dev/null && echo "   Removed" || echo "   Not found"
 echo ""
 
-# Step 4: Start the container
+# Step 4: Start the container with resource limits
 echo "🚀 Step 4: Starting Core API container..."
+echo "   Memory Limit: 1GB (Fix #3)"
+echo "   CPU Limit: 1 core"
+echo "   Note: Apple Container CLI doesn't support --restart policy"
+echo "         Manual restart required if container crashes"
 
 container run -d \
     --name "$CONTAINER_NAME" \
+    --memory 1g \
+    --cpus 1 \
     -p "${PORT_EXTERNAL}:${PORT_INTERNAL}" \
     -e NINA_ENV="$NINA_ENV" \
     -e NINA_DB_USER="$NINA_DB_USER" \

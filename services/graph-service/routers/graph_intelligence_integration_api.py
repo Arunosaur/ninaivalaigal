@@ -17,12 +17,13 @@ from datetime import datetime
 from typing import Any, Dict, List
 from uuid import uuid4
 
-from auth import get_current_user, get_db
 from database import Memory, Team, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from redis_client import get_redis_client
 from sqlalchemy.orm import Session
+
+from auth import get_current_user, get_db
 
 # Initialize router
 router = APIRouter(prefix="/graph-intelligence", tags=["graph-intelligence-integration"])

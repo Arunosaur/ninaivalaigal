@@ -4,6 +4,7 @@
 // Authenticated settings page for profile, security, and preferences.
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { AxiosError } from 'axios';
 import { Navigation } from '../components/Navigation';
 import apiClient from '../lib/apiClient';
@@ -79,6 +80,11 @@ export default function Settings() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // Billing data
+  const [teams, setTeams] = useState<Array<{ id: string; name: string; organization_id: string | null; is_external?: boolean }>>([]);
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
+  const [loadingBilling, setLoadingBilling] = useState(true);
+
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
@@ -143,6 +149,41 @@ export default function Settings() {
       controller.abort();
     };
   }, [updateUser, user?.email]);
+
+  // Load billing-related data (teams and organizations)
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    async function loadBillingData() {
+      try {
+        setLoadingBilling(true);
+        const [teamsRes, orgsRes] = await Promise.all([
+          apiClient.get<{ teams: Array<{ id: string; name: string; organization_id: string | null }> }>('/users/me/teams', { signal: controller.signal }).catch(() => ({ data: { teams: [] } })),
+          apiClient.get<{ organizations: Array<{ id: string; name: string }> }>('/users/me/organizations', { signal: controller.signal }).catch(() => ({ data: { organizations: [] } })),
+        ]);
+
+        if (!isMounted) return;
+
+        setTeams(teamsRes.data?.teams || []);
+        setOrganizations(orgsRes.data?.organizations || []);
+      } catch (error) {
+        console.error('Failed to load billing data:', error);
+        // Don't show error - billing section will just be empty
+      } finally {
+        if (isMounted) {
+          setLoadingBilling(false);
+        }
+      }
+    }
+
+    loadBillingData();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, []);
 
   const memberSince = useMemo(() => {
     if (!profile?.created_at) {
@@ -322,6 +363,132 @@ export default function Settings() {
               {changingPassword ? 'Updating…' : 'Update Password'}
             </button>
           </form>
+        </section>
+
+        {/* Billing & Subscriptions Section */}
+        <section className="rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-white">Billing & Subscriptions</h2>
+              <p className="text-slate-400 text-sm mt-1">Manage billing for your account, teams, and organizations</p>
+            </div>
+          </div>
+
+          {loadingBilling ? (
+            <div className="flex items-center space-x-3 text-slate-400">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-400 border-t-transparent"></div>
+              <span>Loading billing information…</span>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Individual Account Billing */}
+              {profile && profile.subscription_tier !== 'free' && (
+                <div className="border border-indigo-500/30 bg-indigo-500/10 rounded-xl p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-white font-medium mb-1">Individual Account</h3>
+                      <p className="text-slate-400 text-sm">Plan: <span className="text-white capitalize">{profile.subscription_tier}</span></p>
+                      <p className="text-slate-500 text-xs mt-1">User-level subscription</p>
+                    </div>
+                    <Link
+                      to="/settings/billing/individual"
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition"
+                    >
+                      Manage Billing →
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {/* Teams Billing - Only Standalone Teams (paid by admin) */}
+              {teams.filter(t => !t.organization_id).length > 0 && (
+                <div>
+                  <h3 className="text-white font-medium mb-3">Teams I'm Paying For</h3>
+                  <p className="text-slate-400 text-xs mb-3">
+                    As a team admin, you pay for these standalone teams using your payment method.
+                  </p>
+                  <div className="space-y-3">
+                    {teams
+                      .filter(team => !team.organization_id)
+                      .map((team) => (
+                        <div key={team.id} className="border border-white/10 bg-slate-900/50 rounded-xl p-4 flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-white font-medium">{team.name}</h4>
+                            <p className="text-slate-400 text-sm mt-1">Paid by you (admin)</p>
+                            <p className="text-slate-500 text-xs mt-1">Standalone team billing</p>
+                          </div>
+                          <Link
+                            to="/team/billing"
+                            state={{ teamId: team.id }}
+                            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition ml-4"
+                          >
+                            Manage Billing →
+                          </Link>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Organization Teams Info */}
+              {teams.filter(t => t.organization_id).length > 0 && (
+                <div className="border border-blue-500/30 bg-blue-500/10 rounded-xl p-4">
+                  <h3 className="text-white font-medium mb-2">Organization Teams</h3>
+                  <p className="text-slate-400 text-sm mb-3">
+                    {teams.filter(t => t.organization_id).length} team(s) are part of organizations.
+                    Their billing is managed at the organization level.
+                  </p>
+                  <div className="space-y-2">
+                    {teams
+                      .filter(team => team.organization_id)
+                      .map((team) => (
+                        <div key={team.id} className="text-slate-400 text-sm">
+                          • {team.name} (covered by organization billing)
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Organizations Billing */}
+              {organizations.length > 0 && (
+                <div>
+                  <h3 className="text-white font-medium mb-3">My Organizations</h3>
+                  <div className="space-y-3">
+                    {organizations.map((org) => (
+                      <div key={org.id} className="border border-white/10 bg-slate-900/50 rounded-xl p-4 flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-white font-medium">{org.name}</h4>
+                          <p className="text-slate-400 text-sm mt-1">Organization-level billing</p>
+                        </div>
+                        <Link
+                          to={`/organizations/${org.id}/billing`}
+                          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition ml-4"
+                        >
+                          Billing →
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {teams.filter(t => !t.organization_id).length === 0 && organizations.length === 0 && profile?.subscription_tier === 'free' && (
+                <div className="text-center py-8 text-slate-400">
+                  <p className="mb-2">No billable subscriptions</p>
+                  <p className="text-sm">
+                    <Link to="/teams" className="text-indigo-400 hover:text-indigo-300">
+                      Create a standalone team
+                    </Link> to get started with billing, or upgrade your individual account.
+                  </p>
+                  <p className="text-xs mt-2 text-slate-500">
+                    Note: Organization teams are billed at the organization level.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         <section className="rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl p-6 sm:p-8">

@@ -36,19 +36,19 @@ from .security_scenarios import SecurityScenarioEngine
 def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
     """
     Intercept httpx.AsyncClient calls so tests can run without network access.
-    
+
     This fixture provides a mock HTTP client that captures all requests and
     returns appropriate stubbed responses for common auth endpoints.
-    
+
     Usage:
         async def test_something(stubbed_http):
             # Make calls that would normally hit the API
             result = await some_function_that_uses_httpx()
-            
+
             # Verify the calls
             assert len(stubbed_http["post"]) == 1
             assert stubbed_http["post"][0]["path"] == "/auth/login"
-    
+
     Returns:
         Dict tracking all HTTP calls by method:
         {
@@ -343,9 +343,7 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
 
             role = _role_from_headers(headers)
             team = _team_from_headers(headers)
-            status_code, payload = _status_for_request(
-                "POST", normalized, role, team, body=json
-            )
+            status_code, payload = _status_for_request("POST", normalized, role, team, body=json)
             return _StubResponse(status_code, payload)
 
         async def put(
@@ -360,9 +358,7 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
             normalized = _normalize_path(path)
             role = _role_from_headers(headers)
             team = _team_from_headers(headers)
-            status_code, payload = _status_for_request(
-                "PUT", normalized, role, team, body=json
-            )
+            status_code, payload = _status_for_request("PUT", normalized, role, team, body=json)
             return _StubResponse(status_code, payload)
 
         async def get(
@@ -377,9 +373,7 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
             normalized = _normalize_path(path)
             role = _role_from_headers(headers)
             team = _team_from_headers(headers)
-            status_code, payload = _status_for_request(
-                "GET", normalized, role, team, params=params
-            )
+            status_code, payload = _status_for_request("GET", normalized, role, team, params=params)
             return _StubResponse(status_code, payload)
 
         async def delete(
@@ -393,9 +387,7 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
             normalized = _normalize_path(path)
             role = _role_from_headers(headers)
             team = _team_from_headers(headers)
-            status_code, payload = _status_for_request(
-                "DELETE", normalized, role, team
-            )
+            status_code, payload = _status_for_request("DELETE", normalized, role, team)
             return _StubResponse(status_code, payload)
 
         async def aclose(self) -> None:
@@ -405,6 +397,7 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
     # Patch httpx.AsyncClient at the httpx module level
     # This makes all imports of httpx.AsyncClient use our stub
     import httpx as httpx_module
+
     monkeypatch.setattr(httpx_module, "AsyncClient", _StubAsyncClient)
 
     return calls

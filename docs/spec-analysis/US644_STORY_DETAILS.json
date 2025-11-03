@@ -1,0 +1,101 @@
+{
+  "due_date": null,
+  "due_date_reason": "",
+  "due_date_status": "not_set",
+  "total_comments": 0,
+  "tags": [
+    [
+      "spec-144",
+      null
+    ],
+    [
+      "context-feedback",
+      null
+    ],
+    [
+      "ai-feedback",
+      null
+    ],
+    [
+      "phase-3",
+      "#33FF57"
+    ],
+    [
+      "intelligence",
+      null
+    ]
+  ],
+  "attachments": [],
+  "status": 1,
+  "status_extra_info": {
+    "name": "New",
+    "color": "#70728F",
+    "is_closed": false
+  },
+  "assigned_to": null,
+  "assigned_to_extra_info": null,
+  "owner": 5,
+  "owner_extra_info": {
+    "username": "admin",
+    "full_name_display": "admin",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "13f78fc2dee81f3e168ec69ebac45d22",
+    "is_active": true,
+    "id": 5
+  },
+  "is_watcher": false,
+  "total_watchers": 0,
+  "is_voter": false,
+  "total_voters": 0,
+  "project": 1,
+  "project_extra_info": {
+    "name": "ninaivalaigal",
+    "slug": "ninaivalaigal",
+    "logo_small_url": null,
+    "id": 1
+  },
+  "id": 674,
+  "ref": 645,
+  "milestone": null,
+  "milestone_slug": null,
+  "milestone_name": null,
+  "is_closed": false,
+  "points": {
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1
+  },
+  "backlog_order": 1762078358319368,
+  "sprint_order": 1762078358319423,
+  "kanban_order": 1762078358347951,
+  "created_date": "2025-11-02T10:12:38.347Z",
+  "modified_date": "2025-11-02T10:12:38.355Z",
+  "finish_date": null,
+  "subject": "SPEC-144: Context-Aware Feedback System",
+  "client_requirement": false,
+  "team_requirement": false,
+  "generated_from_issue": null,
+  "generated_from_task": null,
+  "from_task_ref": null,
+  "external_reference": null,
+  "tribe_gig": null,
+  "version": 1,
+  "watchers": [],
+  "is_blocked": false,
+  "blocked_note": "",
+  "total_points": null,
+  "comment": "",
+  "origin_issue": null,
+  "origin_task": null,
+  "epics": null,
+  "epic_order": null,
+  "tasks": [],
+  "total_attachments": 0,
+  "swimlane": null,
+  "assigned_users": [],
+  "blocked_note_html": "",
+  "description": "**SPEC-144: Context-Aware Feedback System**\n\n**Status:** \ud83d\udccb **PLANNED**\n**Phase:** Phase 3\n**Priority:** High\n**Category:** Intelligence / AI Feedback\n\n---\n\n## \ud83c\udfaf Overview\n\n**Context-Aware Feedback System** is a meta-feedback layer that sits above memory-centric feedback (SPEC-040), focused on **AI reasoning context itself** rather than individual memory relevance. This system learns not just which memories are good, but how **context composition** affects the AI's downstream quality.\n\n**Distinction from SPEC-040:**\n- **SPEC-040:** Memory-centric feedback (users score individual memories, adjust memory relevance) \u2705 Complete\n- **SPEC-144:** Context-aware feedback (feedback on context composition, reasoning quality, prompt optimization) \ud83d\udccb Planned\n\n---\n\n## \ud83e\udde0 Core Purpose\n\n**Ninaivalaigal is evolving into a context intelligence engine, not just a memory repository.** Context-aware feedback enables the system to learn:\n- Which context windows work best for different query types\n- How to prioritize graph nodes for reasoning\n- How to auto-tune prompt windows based on feedback\n- How to balance context length, relevance, and tone\n\nWithout context-aware feedback:\n- GraphOps layer can't learn which nodes to prioritize for reasoning\n- Reasoner can't auto-tune its prompt window\n- The e^M Feedback Loop stays static \u2014 it improves recall, but not reasoning context\n\n---\n\n## \ud83d\udccb Key Features\n\n### 1. Context Quality Feedback Collection\n- Context length feedback (\"Response feels off-topic\" \u2192 Reduce window)\n- Context relevance feedback (\"You ignored my last summary\" \u2192 Boost recall)\n- Tone/alignment feedback (\"Too technical\" \u2192 Adjust weighting)\n- Retrieval bias feedback (\"Keeps surfacing one user's memories\" \u2192 Apply fairness)\n\n### 2. Context Composition Scorer\n- Analyzes context composition quality before sending to LLM\n- Scores based on memory diversity, temporal distribution, relevance, tone, length\n\n### 3. Context Compression Model\n- Intelligently compresses context when too long\n- Prioritizes memories based on feedback patterns and query type\n\n### 4. LLM Telemetry Correlation\n- Correlates feedback with LLM output quality\n- Tracks response relevance, user satisfaction, error rates\n\n### 5. Adaptive Context Gating\n- Dynamic context window sizing based on task type\n- Query classification and context weighting adjustment\n\n---\n\n## \ud83d\udd17 Dependencies\n\n### Required (Complete)\n- **SPEC-040:** Feedback Loop System (provides memory feedback ground truth) \u2705\n- **SPEC-031:** Memory Relevance Ranking (context relevance calculation) \u2705\n- **SPEC-033:** Redis Integration (event storage and processing) \u2705\n- **SPEC-061:** Graph Intelligence (graph node prioritization) \u2705\n\n### Related (Planned)\n- **SPEC-063:** Agentic Core Execution (context injection points)\n- **SPEC-135:** Multi-Agent Expert Protocol (agent context coordination)\n\n---\n\n## \ud83d\udcca Implementation Phases\n\n### Phase 1: Foundation (Weeks 1-4)\n- [ ] Context feedback collection API\n- [ ] Basic context composition scoring\n- [ ] Database schema for context feedback\n- [ ] Integration with SPEC-040 feedback data\n\n### Phase 2: Analysis (Weeks 5-8)\n- [ ] LLM telemetry correlation\n- [ ] Context compression model (basic)\n- [ ] Context quality dashboard\n- [ ] Feedback pattern analysis\n\n### Phase 3: Optimization (Weeks 9-12)\n- [ ] Adaptive context gating\n- [ ] Advanced context compression\n- [ ] Query type classification\n- [ ] Context composition recommendations\n\n### Phase 4: Integration (Weeks 13-16)\n- [ ] GraphOps integration (node prioritization)\n- [ ] Reasoner integration (prompt window tuning)\n- [ ] Full e^M feedback loop integration\n- [ ] Performance optimization\n\n---\n\n## \ud83d\udca1 Benefits\n\n**Immediate:**\n- Better context composition before LLM calls\n- Reduced token usage while maintaining quality\n- Improved response relevance\n\n**Long-term:**\n- Self-improving context intelligence layer\n- GraphOps learns optimal node prioritization\n- Reasoner auto-tunes prompt windows\n- e^M feedback loop becomes truly dynamic\n\n---\n\n## \ud83d\udd17 Related SPECs\n\n- **SPEC-040:** Feedback Loop System (Memory Accuracy + Relevance Signals) - \u2705 Complete\n- **SPEC-097:** Feedback Loop for AI Context - \u26a0\ufe0f Unclear scope (may be duplicate of SPEC-040)\n\n---\n\n## \ud83d\udcda Documentation\n\n**SPEC Location:** `specs/144-context-aware-feedback-system/README.md`\n\n**Full Specification:** See SPEC README for complete details including architecture, API endpoints, database schema, and implementation roadmap.\n\n---\n\n**Status:** \ud83d\udccb PLANNED - Context-aware feedback for reasoning & prompt optimization  \n**Next Step:** Define detailed architecture and acceptance criteria  \n**ETA:** Phase 3 (after SPEC-040 stabilization)\n\n---\n\n*This SPEC represents the natural Phase 3+ evolution beyond SPEC-040's memory-centric feedback, enabling Ninaivalaigal to become a true context intelligence engine.*",
+  "description_html": "<p><strong>SPEC-144: Context-Aware Feedback System</strong></p>\n<p><strong>Status:</strong> \ud83d\udccb <strong>PLANNED</strong><br>\n<strong>Phase:</strong> Phase 3<br>\n<strong>Priority:</strong> High<br>\n<strong>Category:</strong> Intelligence / AI Feedback</p>\n<hr>\n<h2 id=\"overview\">\ud83c\udfaf Overview</h2>\n<p><strong>Context-Aware Feedback System</strong> is a meta-feedback layer that sits above memory-centric feedback (SPEC-040), focused on <strong>AI reasoning context itself</strong> rather than individual memory relevance. This system learns not just which memories are good, but how <strong>context composition</strong> affects the AI's downstream quality.</p>\n<p><strong>Distinction from SPEC-040:</strong><br>\n- <strong>SPEC-040:</strong> Memory-centric feedback (users score individual memories, adjust memory relevance) \u2705 Complete<br>\n- <strong>SPEC-144:</strong> Context-aware feedback (feedback on context composition, reasoning quality, prompt optimization) \ud83d\udccb Planned</p>\n<hr>\n<h2 id=\"core-purpose\">\ud83e\udde0 Core Purpose</h2>\n<p><strong>Ninaivalaigal is evolving into a context intelligence engine, not just a memory repository.</strong> Context-aware feedback enables the system to learn:<br>\n- Which context windows work best for different query types<br>\n- How to prioritize graph nodes for reasoning<br>\n- How to auto-tune prompt windows based on feedback<br>\n- How to balance context length, relevance, and tone</p>\n<p>Without context-aware feedback:<br>\n- GraphOps layer can't learn which nodes to prioritize for reasoning<br>\n- Reasoner can't auto-tune its prompt window<br>\n- The e^M Feedback Loop stays static \u2014 it improves recall, but not reasoning context</p>\n<hr>\n<h2 id=\"key-features\">\ud83d\udccb Key Features</h2>\n<h3 id=\"1-context-quality-feedback-collection\">1. Context Quality Feedback Collection</h3>\n<ul>\n<li>Context length feedback (\"Response feels off-topic\" \u2192 Reduce window)</li>\n<li>Context relevance feedback (\"You ignored my last summary\" \u2192 Boost recall)</li>\n<li>Tone/alignment feedback (\"Too technical\" \u2192 Adjust weighting)</li>\n<li>Retrieval bias feedback (\"Keeps surfacing one user's memories\" \u2192 Apply fairness)</li>\n</ul>\n<h3 id=\"2-context-composition-scorer\">2. Context Composition Scorer</h3>\n<ul>\n<li>Analyzes context composition quality before sending to LLM</li>\n<li>Scores based on memory diversity, temporal distribution, relevance, tone, length</li>\n</ul>\n<h3 id=\"3-context-compression-model\">3. Context Compression Model</h3>\n<ul>\n<li>Intelligently compresses context when too long</li>\n<li>Prioritizes memories based on feedback patterns and query type</li>\n</ul>\n<h3 id=\"4-llm-telemetry-correlation\">4. LLM Telemetry Correlation</h3>\n<ul>\n<li>Correlates feedback with LLM output quality</li>\n<li>Tracks response relevance, user satisfaction, error rates</li>\n</ul>\n<h3 id=\"5-adaptive-context-gating\">5. Adaptive Context Gating</h3>\n<ul>\n<li>Dynamic context window sizing based on task type</li>\n<li>Query classification and context weighting adjustment</li>\n</ul>\n<hr>\n<h2 id=\"dependencies\">\ud83d\udd17 Dependencies</h2>\n<h3 id=\"required-complete\">Required (Complete)</h3>\n<ul>\n<li><strong>SPEC-040:</strong> Feedback Loop System (provides memory feedback ground truth) \u2705</li>\n<li><strong>SPEC-031:</strong> Memory Relevance Ranking (context relevance calculation) \u2705</li>\n<li><strong>SPEC-033:</strong> Redis Integration (event storage and processing) \u2705</li>\n<li><strong>SPEC-061:</strong> Graph Intelligence (graph node prioritization) \u2705</li>\n</ul>\n<h3 id=\"related-planned\">Related (Planned)</h3>\n<ul>\n<li><strong>SPEC-063:</strong> Agentic Core Execution (context injection points)</li>\n<li><strong>SPEC-135:</strong> Multi-Agent Expert Protocol (agent context coordination)</li>\n</ul>\n<hr>\n<h2 id=\"implementation-phases\">\ud83d\udcca Implementation Phases</h2>\n<h3 id=\"phase-1-foundation-weeks-1-4\">Phase 1: Foundation (Weeks 1-4)</h3>\n<ul class=\"task-list\">\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Context feedback collection API</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Basic context composition scoring</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Database schema for context feedback</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Integration with SPEC-040 feedback data</li>\n</ul>\n<h3 id=\"phase-2-analysis-weeks-5-8\">Phase 2: Analysis (Weeks 5-8)</h3>\n<ul class=\"task-list\">\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> LLM telemetry correlation</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Context compression model (basic)</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Context quality dashboard</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Feedback pattern analysis</li>\n</ul>\n<h3 id=\"phase-3-optimization-weeks-9-12\">Phase 3: Optimization (Weeks 9-12)</h3>\n<ul class=\"task-list\">\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Adaptive context gating</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Advanced context compression</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Query type classification</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Context composition recommendations</li>\n</ul>\n<h3 id=\"phase-4-integration-weeks-13-16\">Phase 4: Integration (Weeks 13-16)</h3>\n<ul class=\"task-list\">\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> GraphOps integration (node prioritization)</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Reasoner integration (prompt window tuning)</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Full e^M feedback loop integration</li>\n<li class=\"task-list-item\"><label class=\"task-list-control\"><input type=\"checkbox\"><span class=\"task-list-indicator\"></span></label> Performance optimization</li>\n</ul>\n<hr>\n<h2 id=\"benefits\">\ud83d\udca1 Benefits</h2>\n<p><strong>Immediate:</strong><br>\n- Better context composition before LLM calls<br>\n- Reduced token usage while maintaining quality<br>\n- Improved response relevance</p>\n<p><strong>Long-term:</strong><br>\n- Self-improving context intelligence layer<br>\n- GraphOps learns optimal node prioritization<br>\n- Reasoner auto-tunes prompt windows<br>\n- e^M feedback loop becomes truly dynamic</p>\n<hr>\n<h2 id=\"related-specs\">\ud83d\udd17 Related SPECs</h2>\n<ul>\n<li><strong>SPEC-040:</strong> Feedback Loop System (Memory Accuracy + Relevance Signals) - \u2705 Complete</li>\n<li><strong>SPEC-097:</strong> Feedback Loop for AI Context - \u26a0\ufe0f Unclear scope (may be duplicate of SPEC-040)</li>\n</ul>\n<hr>\n<h2 id=\"documentation\">\ud83d\udcda Documentation</h2>\n<p><strong>SPEC Location:</strong> <code>specs/144-context-aware-feedback-system/README.md</code></p>\n<p><strong>Full Specification:</strong> See SPEC README for complete details including architecture, API endpoints, database schema, and implementation roadmap.</p>\n<hr>\n<p><strong>Status:</strong> \ud83d\udccb PLANNED - Context-aware feedback for reasoning &amp; prompt optimization<br>\n<strong>Next Step:</strong> Define detailed architecture and acceptance criteria<br>\n<strong>ETA:</strong> Phase 3 (after SPEC-040 stabilization)</p>\n<hr>\n<p><em>This SPEC represents the natural Phase 3+ evolution beyond SPEC-040's memory-centric feedback, enabling Ninaivalaigal to become a true context intelligence engine.</em></p>"
+}

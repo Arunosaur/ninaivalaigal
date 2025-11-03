@@ -27,6 +27,7 @@ import pytest
 # Optional imports for agentic testing
 try:
     from openai import OpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -34,14 +35,19 @@ except ImportError:
 
 try:
     from playwright.async_api import async_playwright
+
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
     async_playwright = None
 
 try:
-    from .utils.playwright_helpers import get_simplified_dom, wait_for_navigation_or_change
+    from .utils.playwright_helpers import (
+        get_simplified_dom,
+        wait_for_navigation_or_change,
+    )
     from .utils.prompts import SYSTEM_PROMPT, get_user_prompt
+
     UTILS_AVAILABLE = True
 except ImportError:
     UTILS_AVAILABLE = False

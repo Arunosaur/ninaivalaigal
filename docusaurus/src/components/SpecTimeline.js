@@ -37,19 +37,19 @@ export default function SpecTimeline() {
       <div className="container margin-vert--lg">
         <h1>📈 SPEC Phase Progress</h1>
         <p>Completion percentage by phase across all SPECs</p>
-        
+
         <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={phases} layout="vertical" margin={{ left: 100, right: 30 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                type="number" 
-                domain={[0, 100]} 
+              <XAxis
+                type="number"
+                domain={[0, 100]}
                 tickFormatter={(v) => `${v}%`}
                 label={{ value: 'Completion %', position: 'insideBottom', offset: -5 }}
               />
               <YAxis dataKey="phase" type="category" width={150} />
-              <Tooltip 
+              <Tooltip
                 formatter={(value, name) => {
                   if (name === 'percent') return `${value}%`;
                   return value;
@@ -89,7 +89,7 @@ export default function SpecTimeline() {
                   <div style={{
                     height: '100%',
                     width: `${phase.percent}%`,
-                    backgroundColor: phase.percent >= 75 ? '#4ade80' : 
+                    backgroundColor: phase.percent >= 75 ? '#4ade80' :
                                    phase.percent >= 50 ? '#fbbf24' : '#f87171',
                     transition: 'width 0.3s ease'
                   }} />

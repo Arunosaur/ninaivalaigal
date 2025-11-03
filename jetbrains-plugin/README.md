@@ -1,6 +1,7 @@
-# mem0 JetBrains Plugin
+# Ninaivalaigal JetBrains Plugin
 
-A memory layer for JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, etc.) that integrates with the mem0 system.
+Native ninaivalaigal integration for JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm, etc.).
+Connects to ninaivalaigal's native MCP server for context-aware memory management.
 
 ## Features
 
@@ -34,39 +35,34 @@ cd jetbrains-plugin
    ```
 
 2. **Configure plugin:**
-   - Go to: Settings → Tools → mem0
-   - Set server URL (default: `http://127.0.0.1:13370`)
-   - Optionally set mem0 CLI path and default context
+   - Go to: Settings → Tools → Ninaivalaigal
+   - Set MCP server path (default: `server/run_mcp_server.py` relative to ninaivalaigal root)
+   - Optionally set default context and enable/disable auto-detect
 
 ## Usage
 
 ### Keyboard Shortcuts
-- **Ctrl+Shift+M**: Remember selected text/code
-- **Ctrl+Shift+R**: Recall memories for current context
+- **Ctrl+Shift+M**: Remember selected text/code to ninaivalaigal
+- **Ctrl+Shift+R**: Recall memories from ninaivalaigal for current context
 
 ### Context Menu
 - Right-click in editor → "Remember Selection"
-- Tools menu → mem0 actions
-
-### Tool Window
-- View → Tool Windows → mem0
-- Shows current context and recent memories
+- Tools menu → Ninaivalaigal actions
 
 ### Context Management
 ```bash
-# Via Tools menu or tool window:
-- Start new context
-- Switch between contexts
+# Via Tools menu:
+- Start new ninaivalaigal context
 - List all contexts
+- Switch between contexts (via settings)
 ```
 
 ## Configuration
 
-### IDE Settings (Settings → Tools → mem0)
+### IDE Settings (Settings → Tools → Ninaivalaigal)
 ```
-Server URL: http://127.0.0.1:13370
-mem0 CLI Path: /path/to/mem0/client/mem0 (auto-detected)
-Default Context: my-project (optional)
+MCP Server Path: /path/to/ninaivalaigal/server/run_mcp_server.py
+Default Context: my-project (optional, if auto-detect disabled)
 Auto-detect Context: ✓ (uses project folder name)
 ```
 
@@ -150,19 +146,20 @@ SQLite/PostgreSQL
 ## Troubleshooting
 
 ### Plugin Not Working
-1. Check mem0 server: `curl http://127.0.0.1:13370/`
-2. Verify mem0 CLI path in settings
+1. Check ninaivalaigal MCP server: Verify `server/run_mcp_server.py` exists and is executable
+2. Verify MCP server path in plugin settings
 3. Check IDE logs: Help → Show Log in Finder
+4. Ensure Python 3 is available in PATH
 
 ### Context Issues
-1. Check current context in tool window
-2. Manually set context: Tools → mem0 → Start Context
-3. Verify project folder name detection
+1. Manually set context: Tools → Ninaivalaigal → Start Context
+2. Verify project folder name detection (if auto-detect enabled)
+3. Check default context in settings
 
 ### Server Connection
-1. Confirm server URL in settings
-2. Test network connectivity
-3. Check firewall settings
+1. Confirm MCP server path in settings points to ninaivalaigal server
+2. Ensure ninaivalaigal server is running and accessible
+3. Check Python environment and dependencies
 
 ## Distribution
 

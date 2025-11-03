@@ -17,7 +17,10 @@ from alembic import context  # type: ignore
 config = context.config
 config.set_main_option(
     "sqlalchemy.url",
-    os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"),
+    os.getenv(
+        "NINAIVALAIGAL_DATABASE_URL",
+        os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"),
+    ),
 )
 target_metadata = None
 

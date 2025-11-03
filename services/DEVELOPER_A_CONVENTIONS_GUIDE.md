@@ -1,7 +1,7 @@
 # Developer A - Naming Conventions & Apple Container CLI Guide
 
-**For:** Rust Memory Service & Graph Service Development  
-**Updated:** Oct 16, 2025  
+**For:** Rust Memory Service & Graph Service Development
+**Updated:** Oct 16, 2025
 **Reference:** SPEC-086, ports.nv.yaml v2.1
 
 ---
@@ -115,7 +115,7 @@ container run -p 13393:8000 --name ninaivalaigal-dev-memory-service ...
 container run -p 13394:8000 --name ninaivalaigal-dev-graph-service ...
 ```
 
-**Internal Port:** Always use **8000** inside your container  
+**Internal Port:** Always use **8000** inside your container
 **External Port:** Use assigned canonical port (13393 or 13394)
 
 ---
@@ -428,13 +428,13 @@ struct Claims {
 
 fn extract_user_id(token: &str) -> Result<String, Error> {
     let jwt_secret = std::env::var("NINAIVALAIGAL_JWT_SECRET")?;
-    
+
     let token_data = decode::<Claims>(
         token,
         &DecodingKey::from_secret(jwt_secret.as_bytes()),
         &Validation::default(),
     )?;
-    
+
     Ok(token_data.claims.user_id)
 }
 ```

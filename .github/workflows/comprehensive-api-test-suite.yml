@@ -1,0 +1,253 @@
+name: 🧪 Comprehensive API Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'server/**'
+      - 'tests/integration/test_comprehensive_api_suite.py'
+      - 'tests/integration/test_api_*.py'
+      - 'tests/integration/test_port_allocation.py'
+      - '.github/workflows/comprehensive-api-test-suite.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'server/**'
+      - 'tests/integration/test_comprehensive_api_suite.py'
+      - 'tests/integration/test_api_*.py'
+      - 'tests/integration/test_port_allocation.py'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - comprehensive
+          - authentication
+          - crud
+          - port_allocation
+
+env:
+  PYTHON_VERSION: '3.11'
+  TEST_API_BASE_URL: 'http://localhost:13390'
+  TEST_API_TIMEOUT: 30
+  NINA_RUNTIME: 'docker'
+  NINA_ENV: 'dev'
+
+jobs:
+  comprehensive-api-tests:
+    name: 🧪 Comprehensive API Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg15
+        env:
+          POSTGRES_USER: nina
+          POSTGRES_PASSWORD: test_password_123  # pragma: allowlist secret
+          POSTGRES_DB: ninaivalaigal_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov pytest-html pytest-xdist requests
+
+      - name: 🔧 Set up environment variables
+        run: |
+          echo "TEST_API_BASE_URL=${{ env.TEST_API_BASE_URL }}" >> $GITHUB_ENV
+          echo "TEST_API_TIMEOUT=${{ env.TEST_API_TIMEOUT }}" >> $GITHUB_ENV
+          echo "NINA_RUNTIME=${{ env.NINA_RUNTIME }}" >> $GITHUB_ENV
+          echo "NINA_ENV=${{ env.NINA_ENV }}" >> $GITHUB_ENV
+          echo "API_PORT=13390" >> $GITHUB_ENV
+          echo "PGBOUNCER_PORT=6432" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgresql://nina:test_password_123@localhost:5432/ninaivalaigal_test" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:6379/0" >> $GITHUB_ENV
+          echo "JWT_SECRET=test-jwt-secret-for-ci" >> $GITHUB_ENV
+
+      - name: 🗄️ Set up database
+        run: |
+          # Wait for PostgreSQL to be ready
+          until pg_isready -h localhost -p 5432 -U nina; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+          # Create test database if it doesn't exist
+          PGPASSWORD=test_password_123 createdb -h localhost -U nina ninaivalaigal_test || true
+
+          # Run migrations if needed
+          if [ -f alembic.ini ]; then
+            echo "Running database migrations..."
+            alembic upgrade head || echo "Migrations skipped or failed"
+          fi
+
+      - name: 🚀 Start API server
+        run: |
+          cd server
+          python -m uvicorn main:app --host 0.0.0.0 --port 13390 &
+          echo $! > api_server.pid
+
+          # Wait for API to be ready
+          timeout 120 bash -c 'until curl -f http://localhost:13390/health; do sleep 2; done' || true
+
+      - name: 🧪 Run Comprehensive API Test Suite
+        id: comprehensive_tests
+        run: |
+          TEST_SUITE="${{ github.event.inputs.test_suite || 'all' }}"
+
+          case $TEST_SUITE in
+            comprehensive)
+              pytest tests/integration/test_comprehensive_api_suite.py -v --tb=short --junit-xml=test-results-comprehensive.xml
+              ;;
+            authentication)
+              pytest tests/integration/test_api_authentication_flows.py -v --tb=short --junit-xml=test-results-auth.xml
+              ;;
+            crud)
+              pytest tests/integration/test_api_crud_operations.py -v --tb=short --junit-xml=test-results-crud.xml
+              ;;
+            port_allocation)
+              pytest tests/integration/test_port_allocation.py -v --tb=short --junit-xml=test-results-port.xml
+              ;;
+            all|*)
+              pytest tests/integration/test_comprehensive_api_suite.py \
+                     tests/integration/test_api_authentication_flows.py \
+                     tests/integration/test_api_crud_operations.py \
+                     tests/integration/test_port_allocation.py \
+                     -v --tb=short --junit-xml=test-results-all.xml --html=test-report.html --self-contained-html
+              ;;
+          esac
+
+      - name: 🛑 Stop API server
+        if: always()
+        run: |
+          if [ -f server/api_server.pid ]; then
+            kill $(cat server/api_server.pid) || true
+          fi
+
+      - name: 📊 Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprehensive-api-test-results-${{ github.run_number }}
+          path: |
+            test-results-*.xml
+            test-report.html
+            server/api_server.log
+
+      - name: 📈 Generate test summary
+        if: always()
+        run: |
+          echo "## 🧪 Comprehensive API Test Suite Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f test-results-all.xml ]; then
+            echo "### Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Extract test statistics from JUnit XML
+            TOTAL_TESTS=$(grep -o 'tests="[0-9]*"' test-results-all.xml | grep -o '[0-9]*' | head -1 || echo "0")
+            FAILURES=$(grep -o 'failures="[0-9]*"' test-results-all.xml | grep -o '[0-9]*' | head -1 || echo "0")
+            ERRORS=$(grep -o 'errors="[0-9]*"' test-results-all.xml | grep -o '[0-9]*' | head -1 || echo "0")
+            PASSED=$((TOTAL_TESTS - FAILURES - ERRORS))
+
+            echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Total Tests | $TOTAL_TESTS |" >> $GITHUB_STEP_SUMMARY
+            echo "| Passed | ✅ $PASSED |" >> $GITHUB_STEP_SUMMARY
+            echo "| Failed | ❌ $FAILURES |" >> $GITHUB_STEP_SUMMARY
+            echo "| Errors | ⚠️ $ERRORS |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$FAILURES" -eq 0 ] && [ "$ERRORS" -eq 0 ]; then
+              echo "🎉 **All tests passed!**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Some tests failed. Please review the test results.**" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ Test results file not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 💬 Comment PR with test results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comment = '## 🧪 Comprehensive API Test Suite Results\n\n';
+
+            if (fs.existsSync('test-results-all.xml')) {
+              const xml = fs.readFileSync('test-results-all.xml', 'utf8');
+
+              // Extract test statistics
+              const totalMatch = xml.match(/tests="(\d+)"/);
+              const failuresMatch = xml.match(/failures="(\d+)"/);
+              const errorsMatch = xml.match(/errors="(\d+)"/);
+
+              const total = totalMatch ? parseInt(totalMatch[1]) : 0;
+              const failures = failuresMatch ? parseInt(failuresMatch[1]) : 0;
+              const errors = errorsMatch ? parseInt(errorsMatch[1]) : 0;
+              const passed = total - failures - errors;
+
+              comment += `### Test Execution Summary\n\n`;
+              comment += `| Metric | Count |\n`;
+              comment += `|--------|-------|\n`;
+              comment += `| Total Tests | ${total} |\n`;
+              comment += `| ✅ Passed | ${passed} |\n`;
+              comment += `| ❌ Failed | ${failures} + ${errors} errors |\n\n`;
+
+              if (failures === 0 && errors === 0) {
+                comment += `🎉 **All tests passed!** Ready for merge.\n\n`;
+              } else {
+                comment += `❌ **Some tests failed.** Please review the test results in the workflow artifacts.\n\n`;
+              }
+
+              comment += `### Test Coverage\n\n`;
+              comment += `- ✅ Comprehensive API Suite (39 tests)\n`;
+              comment += `- ✅ Authentication Flows (6 tests)\n`;
+              comment += `- ✅ CRUD Operations (12 tests)\n`;
+              comment += `- ✅ Port Allocation (6 tests)\n`;
+            } else {
+              comment += '⚠️ Test results not available. Check workflow logs for details.\n';
+            }
+
+            comment += '\n\n---\n*This comment was automatically generated by the Comprehensive API Test Suite workflow.*';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

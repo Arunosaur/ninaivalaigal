@@ -22,7 +22,9 @@ This is the **Customer App** - the end-user experience for individuals, teams, a
 - ✅ Protected routing + landing redirect guards
 - ✅ Memory recording UI
 - ✅ MCP configuration
-- ✅ Billing pages
+- ✅ **Team Management** (create, dashboard, invite, upgrade)
+- ✅ **Billing & Subscriptions** (plans, payment methods, invoices)
+- ✅ **Usage Analytics** (memory, API calls, storage)
 - ✅ Public API docs (gated by sign-in)
 
 ## Development
@@ -52,7 +54,12 @@ Create a `.env` file:
 ```env
 VITE_API_URL=http://localhost:13390
 VITE_API_VERSION=v1
+
+# Stripe Configuration (optional, for payment method management)
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 ```
+
+See `STRIPE_SETUP.md` for Stripe configuration details.
 
 ## Project Structure
 
@@ -64,7 +71,15 @@ src/
 ├── __tests__/auth/      # Vitest + Testing Library suites (auth flows)
 ├── components/          # Reusable UI building blocks
 ├── lib/                 # API client + auth persistence helpers
-├── pages/               # Routed pages (Landing, Login, Signup, Dashboard)
+├── pages/               # Routed pages
+│   ├── Landing.tsx      # Landing page
+│   ├── Login.tsx        # Login page
+│   ├── Signup.tsx       # Signup page
+│   ├── Dashboard.tsx    # User dashboard
+│   ├── MemoryBrowser.tsx # Memory browser
+│   ├── Teams.tsx        # Teams list
+│   ├── Team*.tsx        # Team management pages (create, dashboard, billing, etc.)
+│   └── Settings.tsx     # Settings page
 ├── styles/              # Tailwind overrides
 ├── types/               # Shared TypeScript contracts
 ├── utils/               # Cross-cutting utilities

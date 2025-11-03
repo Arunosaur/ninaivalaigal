@@ -1,0 +1,54 @@
+PROPRIETARY LICENSE
+
+Copyright (c) 2025 Medhasys LLC. All rights reserved.
+
+This software and associated documentation files (the "Software") contain
+proprietary and confidential information owned by Medhasys LLC.
+
+## Restrictions
+
+The Software is protected by copyright law and international copyright treaties,
+as well as other intellectual property laws and treaties.
+
+You MAY NOT:
+- Use this Software without a valid commercial license from Medhasys LLC
+- Copy, modify, merge, publish, distribute, sublicense, or sell copies of the Software
+- Reverse engineer, decompile, or disassemble the Software
+- Remove or alter any proprietary notices or labels on the Software
+
+## Commercial Licensing
+
+To obtain a commercial license for this Software, please contact:
+
+Medhasys LLC
+Email: licensing@medhasys.com
+Website: https://medhasys.com
+
+## Components
+
+This proprietary license applies to the following server components:
+
+- Core e^M Algorithms (`memory_core/`)
+- Graph Reasoning Engine (`graph/`)
+- Adaptive Learning & Feedback Systems (`feedback/`)
+- Monetization & Billing Logic (`monetization/`)
+- Authentication & Security (`auth/`)
+- Internal Admin APIs (`api/internal_routes/`)
+
+## Public APIs
+
+Note: Public-facing API routes (`api/public_routes/`) are licensed separately
+under Apache 2.0. See the LICENSE file in that directory for details.
+
+## Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+MEDHASYS LLC BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+**For licensing inquiries**: licensing@medhasys.com

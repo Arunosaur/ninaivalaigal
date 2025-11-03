@@ -16,6 +16,8 @@ resources:
   - postgres.yaml
   - api.yaml
   - ghcr-secret.yaml
+  - networkpolicies.yaml
+  - rbac-security.yaml
   - test-nginx-deployment.yaml
   - test-nginx-service.yaml
 

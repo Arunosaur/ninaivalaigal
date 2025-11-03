@@ -1,6 +1,8 @@
+from typing import ClassVar as _ClassVar
+from typing import Optional as _Optional
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Optional as _Optional
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -14,7 +16,13 @@ class PageRequest(_message.Message):
     page_size: int
     sort_by: str
     sort_order: str
-    def __init__(self, page: _Optional[int] = ..., page_size: _Optional[int] = ..., sort_by: _Optional[str] = ..., sort_order: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        page: _Optional[int] = ...,
+        page_size: _Optional[int] = ...,
+        sort_by: _Optional[str] = ...,
+        sort_order: _Optional[str] = ...,
+    ) -> None: ...
 
 class PageInfo(_message.Message):
     __slots__ = ("total", "pages", "current_page", "page_size", "has_next", "has_previous")
@@ -30,7 +38,15 @@ class PageInfo(_message.Message):
     page_size: int
     has_next: bool
     has_previous: bool
-    def __init__(self, total: _Optional[int] = ..., pages: _Optional[int] = ..., current_page: _Optional[int] = ..., page_size: _Optional[int] = ..., has_next: bool = ..., has_previous: bool = ...) -> None: ...
+    def __init__(
+        self,
+        total: _Optional[int] = ...,
+        pages: _Optional[int] = ...,
+        current_page: _Optional[int] = ...,
+        page_size: _Optional[int] = ...,
+        has_next: bool = ...,
+        has_previous: bool = ...,
+    ) -> None: ...
 
 class CursorRequest(_message.Message):
     __slots__ = ("cursor", "limit")
@@ -48,4 +64,6 @@ class CursorInfo(_message.Message):
     next_cursor: str
     previous_cursor: str
     has_more: bool
-    def __init__(self, next_cursor: _Optional[str] = ..., previous_cursor: _Optional[str] = ..., has_more: bool = ...) -> None: ...
+    def __init__(
+        self, next_cursor: _Optional[str] = ..., previous_cursor: _Optional[str] = ..., has_more: bool = ...
+    ) -> None: ...

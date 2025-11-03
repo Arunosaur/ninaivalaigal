@@ -15,12 +15,13 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
-from auth import get_current_user, get_db
 from database import User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from models.standalone_teams import StandaloneTeamManager
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
+
+from auth import get_current_user, get_db
 
 # Initialize router
 router = APIRouter(prefix="/early-adopter", tags=["early-adopter-program"])

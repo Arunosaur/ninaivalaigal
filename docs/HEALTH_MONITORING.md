@@ -1,7 +1,7 @@
 # Health Monitoring & Kubernetes Probes
 
-**Status:** ✅ Production Ready  
-**Version:** 1.0.0  
+**Status:** ✅ Production Ready
+**Version:** 1.0.0
 **Last Updated:** October 13, 2025
 
 ---
@@ -23,8 +23,8 @@ The Ninaivalaigal API includes comprehensive health monitoring endpoints designe
 GET /health
 ```
 
-**Purpose:** Simple health check  
-**Response:** `{"status": "ok"}`  
+**Purpose:** Simple health check
+**Response:** `{"status": "ok"}`
 **Use Case:** Basic connectivity testing
 
 **Example:**
@@ -39,8 +39,8 @@ curl http://localhost:13390/health
 GET /health/live
 ```
 
-**Purpose:** Kubernetes liveness probe  
-**Response:** `{"status": "ok"}` (always 200 if app is running)  
+**Purpose:** Kubernetes liveness probe
+**Response:** `{"status": "ok"}` (always 200 if app is running)
 **Use Case:** K8s uses this to restart completely unresponsive pods
 
 **Behavior:**
@@ -72,8 +72,8 @@ livenessProbe:
 GET /health/ready
 ```
 
-**Purpose:** Kubernetes readiness probe  
-**Response:** 
+**Purpose:** Kubernetes readiness probe
+**Response:**
 - `200 {"status": "ok"}` if ready to serve traffic
 - `503 {"status": "unhealthy", "reason": "..."}` if not ready
 
@@ -118,7 +118,7 @@ readinessProbe:
 GET /health/detailed
 ```
 
-**Purpose:** Comprehensive health metrics for monitoring dashboards  
+**Purpose:** Comprehensive health metrics for monitoring dashboards
 **Response:** Full system status with SLO metrics
 
 **Example Response:**
@@ -401,7 +401,7 @@ curl -X POST https://hooks.slack.com/services/YOUR/WEBHOOK/URL \
 
 ### **Liveness Probe Failing**
 
-**Symptom:** Pods continuously restarting  
+**Symptom:** Pods continuously restarting
 **Cause:** Application completely unresponsive
 
 **Debug:**
@@ -426,7 +426,7 @@ curl http://localhost:13390/health/live
 
 ### **Readiness Probe Failing**
 
-**Symptom:** Pods running but not receiving traffic  
+**Symptom:** Pods running but not receiving traffic
 **Cause:** Database or dependencies unavailable
 
 **Debug:**
@@ -452,14 +452,14 @@ kubectl exec -it deployment/ninaivalaigal-api -- env | grep DB
 
 ### **High Latency**
 
-**Symptom:** `latency_ms_p95` consistently high  
+**Symptom:** `latency_ms_p95` consistently high
 **Cause:** Database slow queries, resource constraints
 
 **Debug:**
 ```bash
 # Check database slow queries
-SELECT * FROM pg_stat_statements 
-ORDER BY mean_exec_time DESC 
+SELECT * FROM pg_stat_statements
+ORDER BY mean_exec_time DESC
 LIMIT 10;
 
 # Check resource usage
@@ -608,14 +608,14 @@ Health endpoints are **public** (no authentication required) because:
 
 ## 📞 **Support**
 
-**Documentation:** `/docs/HEALTH_MONITORING.md`  
-**K8s Manifest:** `/deployment/k8s-health-probes.yaml`  
+**Documentation:** `/docs/HEALTH_MONITORING.md`
+**K8s Manifest:** `/deployment/k8s-health-probes.yaml`
 **Source Code:** `/server/observability/health.py`
 
 **Questions?** Check `/docs/` or ask in #infrastructure Slack channel.
 
 ---
 
-**Status:** ✅ Production Ready  
-**Last Tested:** October 13, 2025  
+**Status:** ✅ Production Ready
+**Last Tested:** October 13, 2025
 **Maintained By:** Developer C

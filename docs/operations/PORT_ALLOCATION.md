@@ -1,6 +1,6 @@
 # 🔌 Port Allocation Guide
 
-**Updated:** October 13, 2025  
+**Updated:** October 13, 2025
 **Purpose:** Avoid port conflicts between Developer A and Developer B work
 
 ---
@@ -153,6 +153,6 @@ npm start -- --port 3600
 
 ---
 
-**Last Updated:** October 13, 2025  
-**Dashboard Port:** 3500  
+**Last Updated:** October 13, 2025
+**Dashboard Port:** 3500
 **Status:** ✅ No conflicts

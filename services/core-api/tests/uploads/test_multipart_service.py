@@ -8,15 +8,28 @@
 #
 from __future__ import annotations
 
+import asyncio
 import sys
 from pathlib import Path
 
 import pytest
 
-# Add lib directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "lib"))
+# Ensure service library and shared storage packages are importable
+LIB_DIR = Path(__file__).parent.parent.parent / "lib"
+if str(LIB_DIR) not in sys.path:
+    sys.path.insert(0, str(LIB_DIR))
+
+STORAGE_DIR = Path(__file__).resolve().parents[4] / "shared" / "storage"
+if str(STORAGE_DIR) not in sys.path:
+    sys.path.insert(0, str(STORAGE_DIR))
 
 from uploads import InMemoryMultipartUploadStore, MultipartUploadService  # noqa: E402
+
+
+def _run(coro):
+    """Execute an async coroutine synchronously for tests."""
+
+    return asyncio.run(coro)
 
 
 class FakeMultipartBackend:
@@ -65,58 +78,57 @@ class FakeMultipartBackend:
         ]
 
 
-@pytest.mark.asyncio
-async def test_start_session_persists_metadata():
+def test_start_session_persists_metadata():
     backend = FakeMultipartBackend()
     store = InMemoryMultipartUploadStore()
     service = MultipartUploadService(backend=backend, store=store, default_part_size=5)
 
-    session = await service.start_session(
-        object_key="uploads/foo.bin",
-        filename="foo.bin",
-        content_type="application/octet-stream",
-        metadata={"origin": "unit-test"},
-        total_size=10,
-        part_size=5,
-        initiated_by="tester",
+    session = _run(
+        service.start_session(
+            object_key="uploads/foo.bin",
+            filename="foo.bin",
+            content_type="application/octet-stream",
+            metadata={"origin": "unit-test"},
+            total_size=10,
+            part_size=5,
+            initiated_by="tester",
+        )
     )
 
     assert session.status == "in_progress"
-    restored = await store.get(session.session_id)
+    restored = _run(store.get(session.session_id))
     assert restored is not None
     assert restored.metadata["origin"] == "unit-test"
     assert restored.part_count == 2
 
 
-@pytest.mark.asyncio
-async def test_complete_session_marks_success():
+def test_complete_session_marks_success():
     backend = FakeMultipartBackend()
     store = InMemoryMultipartUploadStore()
     service = MultipartUploadService(backend=backend, store=store)
 
-    session = await service.start_session(object_key="uploads/demo.bin", total_size=12, part_size=6)
+    session = _run(service.start_session(object_key="uploads/demo.bin", total_size=12, part_size=6))
 
-    await service.register_uploaded_part(session.session_id, part_number=1, etag="etag-1", size=6)
-    await service.register_uploaded_part(session.session_id, part_number=2, etag="etag-2", size=6)
+    _run(service.register_uploaded_part(session.session_id, part_number=1, etag="etag-1", size=6))
+    _run(service.register_uploaded_part(session.session_id, part_number=2, etag="etag-2", size=6))
 
-    result = await service.complete_session(session.session_id)
+    result = _run(service.complete_session(session.session_id))
 
     assert result["etag"] == "final-etag"
-    saved = await store.get(session.session_id)
+    saved = _run(store.get(session.session_id))
     assert saved is not None
     assert saved.status == "completed"
     assert saved.result_etag == "final-etag"
 
 
-@pytest.mark.asyncio
-async def test_abort_session_records_state():
+def test_abort_session_records_state():
     backend = FakeMultipartBackend()
     store = InMemoryMultipartUploadStore()
     service = MultipartUploadService(backend=backend, store=store)
 
-    session = await service.start_session(object_key="uploads/sample.bin")
-    await service.abort_session(session.session_id)
+    session = _run(service.start_session(object_key="uploads/sample.bin"))
+    _run(service.abort_session(session.session_id))
 
-    saved = await store.get(session.session_id)
+    saved = _run(store.get(session.session_id))
     assert saved is None
     assert session.upload_id in backend.aborted

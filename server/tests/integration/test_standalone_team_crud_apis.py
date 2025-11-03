@@ -234,7 +234,16 @@ class TestStandaloneTeamCRUDAPIs:
     def test_endpoint_response_times(self):
         """Test that all endpoints respond within 200ms P95"""
         endpoints = [
-            ("POST", "/auth/signup/team-create", {"email": f"perf_{uuid4().hex[:8]}@example.com", "password": "SecurePass123!", "name": "Perf Test", "team_name": "Perf Team"}),
+            (
+                "POST",
+                "/auth/signup/team-create",
+                {
+                    "email": f"perf_{uuid4().hex[:8]}@example.com",
+                    "password": "SecurePass123!",
+                    "name": "Perf Test",
+                    "team_name": "Perf Team",
+                },
+            ),
             ("GET", "/teams/my", None),
             ("POST", "/teams/invite", {"email": "test@example.com", "role": "contributor"}),
         ]
@@ -268,7 +277,10 @@ class TestStandaloneTeamCRUDAPIs:
 
             # All should require auth (401) except signup endpoint
             if "/auth/signup" not in endpoint:
-                assert response.status_code in [401, 403], f"{method} {endpoint} should require auth, got {response.status_code}"
+                assert response.status_code in [
+                    401,
+                    403,
+                ], f"{method} {endpoint} should require auth, got {response.status_code}"
 
     def test_error_handling_comprehensive(self):
         """Test comprehensive error handling (400, 401, 403, 404, 500)"""
@@ -281,6 +293,7 @@ class TestStandaloneTeamCRUDAPIs:
         assert response.status_code == 401, "Should return 401 for missing auth"
 
         # Test 404 - Not Found (for valid endpoints with invalid IDs)
-        response = client.post(f"/teams/{uuid4()}/upgrade-to-org", json={"organization_name": "Test", "size": "startup"})
+        response = client.post(
+            f"/teams/{uuid4()}/upgrade-to-org", json={"organization_name": "Test", "size": "startup"}
+        )
         assert response.status_code in [401, 404], "Should return 401 or 404"
-

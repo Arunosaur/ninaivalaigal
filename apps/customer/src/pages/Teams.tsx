@@ -5,6 +5,7 @@
 // Unauthorized copying, modification, or distribution is prohibited.
 //
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { AxiosError } from 'axios';
 import { Toast } from '../components/Toast';
 import { Navigation } from '../components/Navigation';
@@ -243,17 +244,38 @@ export default function Teams() {
                       }`}
                     >
                       <div className="flex items-start justify-between">
-                        <div>
+                        <div className="flex-1">
                           <h4 className="text-white font-medium">{team.name}</h4>
                           <p className="text-slate-400 text-sm mt-1">
                             {team.member_count} member{team.member_count !== 1 ? 's' : ''}
                           </p>
                         </div>
-                        {team.is_external && (
-                          <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">
-                            External
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {/* Only show billing button for standalone teams (not organization teams) */}
+                          {!team.organization_id && (
+                            <Link
+                              to="/team/billing"
+                              state={{ teamId: team.id }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                selectTeam(team);
+                              }}
+                              className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition"
+                            >
+                              💳 Billing
+                            </Link>
+                          )}
+                          {team.organization_id && (
+                            <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded" title="Billed at organization level">
+                              🏢 Org Team
+                            </span>
+                          )}
+                          {team.is_external && (
+                            <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">
+                              External
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </button>
                   ))}
@@ -283,12 +305,30 @@ export default function Teams() {
                       )}
                     </div>
                   </div>
-                  <button
-                    onClick={() => setShowInviteModal(true)}
-                    className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition text-sm"
-                  >
-                    + Invite Member
-                  </button>
+                  <div className="flex gap-2">
+                    {/* Only show billing button for standalone teams */}
+                    {!selectedTeam.organization_id && (
+                      <Link
+                        to="/team/billing"
+                        state={{ teamId: selectedTeam.id }}
+                        className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-medium transition text-sm"
+                      >
+                        💳 Billing
+                      </Link>
+                    )}
+                    {selectedTeam.organization_id && (
+                      <div className="bg-blue-500/20 border border-blue-500/30 text-blue-300 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
+                        <span>🏢</span>
+                        <span>Organization billing</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setShowInviteModal(true)}
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition text-sm"
+                    >
+                      + Invite Member
+                    </button>
+                  </div>
                 </div>
 
                 {/* Pending Invitations */}

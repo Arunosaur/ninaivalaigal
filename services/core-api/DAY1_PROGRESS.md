@@ -111,7 +111,7 @@ shared/                    # Shared across all services
 
 ## 🎉 Day 1 Achievement
 
-**Core API service extracted from monolith!** 
+**Core API service extracted from monolith!**
 - 6 routers extracted
 - Shared utilities organized
 - Docker setup complete
@@ -119,6 +119,6 @@ shared/                    # Shared across all services
 
 ---
 
-**Time Spent**: ~6 hours  
-**Status**: ✅ On track for Day 2 goal (users signing up)  
+**Time Spent**: ~6 hours
+**Status**: ✅ On track for Day 2 goal (users signing up)
 **Next**: Fix imports and test endpoints

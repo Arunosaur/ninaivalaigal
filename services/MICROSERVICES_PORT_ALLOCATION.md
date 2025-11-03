@@ -1,7 +1,7 @@
 # Microservices Port Allocation Plan
 
-**Reference:** `config/ports.nv.yaml` (SPEC-086)  
-**Environment:** Apple Container - Dev  
+**Reference:** `config/ports.nv.yaml` (SPEC-086)
+**Environment:** Apple Container - Dev
 **Updated:** Oct 16, 2025
 
 ---
@@ -56,7 +56,7 @@ ninaivalaigal-{env}-{service}
 
 ## Internal Container Ports
 
-All services use **port 8000** internally (container port).  
+All services use **port 8000** internally (container port).
 External ports are mapped according to the allocation table above.
 
 **Port Mapping Pattern:**

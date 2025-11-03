@@ -35,7 +35,7 @@ class IntentionRouter:
         self.intent_patterns = {
             ExecutionMode.SEARCH: [
                 r"\b(find|search|look\s+for|locate|discover)\b",
-                r"\b(what|where|when|who)\b.*\?",
+                r"\b(what(?!\s+do\s+you\s+think)|where|when|who)\b.*\?",
                 r"\bshow\s+me\b",
                 r"\blist\b.*\b(all|everything)\b",
             ],
@@ -48,7 +48,7 @@ class IntentionRouter:
             ],
             ExecutionMode.ANALYTICS: [
                 r"\b(analyze|analysis|insights|trends|patterns)\b",
-                r"\b(statistics|stats|metrics|data)\b",
+                r"\b(statistics|stats|metrics|datasets?)\b",
                 r"\bhow\s+(many|much|often)\b",
                 r"\b(compare|comparison|versus|vs)\b",
                 r"\b(performance|efficiency|effectiveness)\b",
@@ -61,17 +61,17 @@ class IntentionRouter:
                 r"\bcome\s+up\s+with\b",
             ],
             ExecutionMode.MEMORY_ANALYSIS: [
-                r"\bmemory\s+(analysis|network|connections)\b",
-                r"\bhow\s+are.*\bconnected\b",
-                r"\brelationships?\s+between\b",
-                r"\bmemory\s+(patterns|structure)\b",
-                r"\banalyze\s+my\s+memories\b",
+                r"\bmemory\s+(analysis|network|connections?)\b",
+                r"\bmemory\s+(patterns|structure|graph)\b",
+                r"\bmemories\s+(network|graph|connected)\b",
+                r"\banalyze\s+(my\s+)?memories\b",
             ],
             ExecutionMode.GRAPH_REASONING: [
                 r"\b(reasoning|logic|inference|deduce)\b",
                 r"\bwhy\s+(did|would|should)\b",
                 r"\bexplain\s+the\s+(connection|relationship)\b",
-                r"\bhow\s+does.*\brelate\s+to\b",
+                r"\bhow\s+(are|does).*\b(relate|connected)\b",
+                r"\brelationships?\s+between\b",
                 r"\bwhat\s+led\s+to\b",
                 r"\bgraph\s+(reasoning|analysis)\b",
             ],
@@ -264,8 +264,8 @@ class IntentionRouter:
             semantic_scores[ExecutionMode.GRAPH_REASONING] = 1
         elif word_count < 5:
             # Short prompts often need search or simple inference
-            semantic_scores[ExecutionMode.SEARCH] = 1
-            semantic_scores[ExecutionMode.INFERENCE] = 1
+            semantic_scores[ExecutionMode.SEARCH] = semantic_scores.get(ExecutionMode.SEARCH, 0) + 1
+            semantic_scores[ExecutionMode.INFERENCE] = semantic_scores.get(ExecutionMode.INFERENCE, 0) + 2
 
         # Complexity indicators
         complex_indicators = [

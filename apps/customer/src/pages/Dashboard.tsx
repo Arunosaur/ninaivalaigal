@@ -6,6 +6,7 @@
 // See LICENSE file in the server/ directory for details.
 //
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import type { AxiosError } from 'axios'
 import { Navigation } from '../components/Navigation'
 import apiClient from '../lib/apiClient'
@@ -173,13 +174,15 @@ export default function Dashboard() {
                 trend="+8%"
                 trendUp={true}
               />
-              <StatCard
-                title="Plan"
-                value={(stats?.subscription_tier ?? 'pro').toUpperCase()}
-                icon="⭐"
-                trend="Upgrade available"
-                trendUp={false}
-              />
+              <Link to="/team/billing">
+                <StatCard
+                  title="Plan"
+                  value={(stats?.subscription_tier ?? 'pro').toUpperCase()}
+                  icon="⭐"
+                  trend="Upgrade available →"
+                  trendUp={false}
+                />
+              </Link>
             </div>
 
             {/* Recent Activity */}
@@ -225,13 +228,13 @@ function StatCard({ title, value, icon, trend, trendUp }: {
   trendUp: boolean
 }) {
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all hover:scale-105">
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
       <div className="flex items-start justify-between mb-4">
         <p className="text-gray-400 text-sm font-medium">{title}</p>
         <span className="text-2xl">{icon}</span>
       </div>
       <p className="text-3xl font-bold text-white mb-2">{value}</p>
-      <p className={`text-sm ${trendUp ? 'text-green-400' : 'text-gray-400'}`}>
+      <p className={`text-sm ${trendUp ? 'text-green-400' : 'text-indigo-400'}`}>
         {trend}
       </p>
     </div>

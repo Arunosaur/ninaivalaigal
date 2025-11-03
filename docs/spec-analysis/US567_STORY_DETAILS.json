@@ -1,0 +1,107 @@
+{
+  "due_date": null,
+  "due_date_reason": "",
+  "due_date_status": "not_set",
+  "total_comments": 0,
+  "tags": [
+    [
+      "spec-087",
+      null
+    ]
+  ],
+  "attachments": [],
+  "status": 5,
+  "status_extra_info": {
+    "name": "Done",
+    "color": "#A8E440",
+    "is_closed": true
+  },
+  "assigned_to": 8,
+  "assigned_to_extra_info": {
+    "username": "developer-c",
+    "full_name_display": "Developer C",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "a7fd573307db95be8a81909c52564853",
+    "is_active": true,
+    "id": 8
+  },
+  "owner": 5,
+  "owner_extra_info": {
+    "username": "admin",
+    "full_name_display": "admin",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "13f78fc2dee81f3e168ec69ebac45d22",
+    "is_active": true,
+    "id": 5
+  },
+  "is_watcher": false,
+  "total_watchers": 0,
+  "is_voter": false,
+  "total_voters": 0,
+  "project": 1,
+  "project_extra_info": {
+    "name": "ninaivalaigal",
+    "slug": "ninaivalaigal",
+    "logo_small_url": null,
+    "id": 1
+  },
+  "id": 596,
+  "ref": 567,
+  "milestone": null,
+  "milestone_slug": null,
+  "milestone_name": null,
+  "is_closed": true,
+  "points": {
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1
+  },
+  "backlog_order": 1762059528274536,
+  "sprint_order": 1762059528274555,
+  "kanban_order": 1762059528295872,
+  "created_date": "2025-11-02T04:58:48.295Z",
+  "modified_date": "2025-11-02T04:58:48.299Z",
+  "finish_date": "2025-11-02T04:58:48.316Z",
+  "subject": "SPEC-087: API Surface Contracts",
+  "client_requirement": false,
+  "team_requirement": false,
+  "generated_from_issue": null,
+  "generated_from_task": null,
+  "from_task_ref": null,
+  "external_reference": null,
+  "tribe_gig": null,
+  "version": 1,
+  "watchers": [],
+  "is_blocked": false,
+  "blocked_note": "",
+  "total_points": null,
+  "comment": "",
+  "origin_issue": null,
+  "origin_task": null,
+  "epics": null,
+  "epic_order": null,
+  "tasks": [],
+  "total_attachments": 0,
+  "swimlane": null,
+  "assigned_users": [
+    8
+  ],
+  "blocked_note_html": "",
+  "description": "**SPEC-087: API Surface Contracts**\n\n**Status in SPEC_INDEX.md**: \ud83d\udd04 Partial\n**Phase**: Phase 2B\n\n**Objective**: API Surface Contracts\n\n**Details**: See SPEC documentation for full details.\n\n```\n# SPEC-087: API Surface Contracts (Public vs Internal OpenAPI)\n\n**Status:** \ud83d\udd04 PARTIAL (role-scoped docs implemented, CI gates pending)\n**Owner:** Platform Engineering + API Lead\n**Effective:** Upon merge\n**Related:** SPEC-083 (Product Surface Split), SPEC-052 (Test Coverage), SPEC-042 (Auth-aware Testing)\n\n---\n\n## 1) Purpose\n\nEstablish and enforce **public vs internal OpenAPI** split with CI policy gates to prevent accidental exposure of internal endpoints.\n\n---\n\n## 2) Goals\n\n### Two OpenAPI specs\n- **Public (Customer):** filtered allow-list of tags/paths\n- **Internal (Admin):** full schema; docs behind Tailnet/SSO\n\n### Docs visibility\n- **Customer docs:** sign-in required (external role)\n- **Vendor docs:** staff only (RBAC)\n\n### CI policy tests\n- Fail if an internal path leaks into public schema\n- Fail if any route lacks an explicit tag (forces classification)\n\n---\n\n## 3) Implementation\n\n### OpenAPI Generation\n```python\n# server/openapi_filter.py (already implemented)\ndef get_filtered_openapi_schema(role: Role | None) -> dict:\n    \"\"\"Generate role-filtered OpenAPI schema.\"\"\"\n    full_schema = app.openapi()\n\n    if role is None:\n        return {\"error\": \"Authentication required\"}\n\n    allowed_tags = ROLE_TAG_ALLOWLIST.get(role, set())\n\n    # Filter paths by tags\n    filtered_paths = {}\n    for path, methods in full_schema[\"paths\"].items():\n        for method, operation in methods.items():\n            tags = operation.get(\"tags\", [])\n```",
+  "description_html": "<p><strong>SPEC-087: API Surface Contracts</strong></p>\n<p><strong>Status in SPEC_INDEX.md</strong>: \ud83d\udd04 Partial<br>\n<strong>Phase</strong>: Phase 2B</p>\n<p><strong>Objective</strong>: API Surface Contracts</p>\n<p><strong>Details</strong>: See SPEC documentation for full details.</p>\n<div class=\"codehilite\"><pre><span></span><code><span class=\"err\">#</span><span class=\"w\"> </span><span class=\"nx\">SPEC</span><span class=\"o\">-</span><span class=\"mi\">087</span><span class=\"p\">:</span><span class=\"w\"> </span><span class=\"nx\">API</span><span class=\"w\"> </span><span class=\"nx\">Surface</span><span class=\"w\"> </span><span class=\"nx\">Contracts</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">Public</span><span class=\"w\"> </span><span class=\"nx\">vs</span><span class=\"w\"> </span><span class=\"nx\">Internal</span><span class=\"w\"> </span><span class=\"nx\">OpenAPI</span><span class=\"p\">)</span>\n\n<span class=\"o\">**</span><span class=\"nx\">Status</span><span class=\"p\">:</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"err\">\ud83d\udd04</span><span class=\"w\"> </span><span class=\"nx\">PARTIAL</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">role</span><span class=\"o\">-</span><span class=\"nx\">scoped</span><span class=\"w\"> </span><span class=\"nx\">docs</span><span class=\"w\"> </span><span class=\"nx\">implemented</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"nx\">CI</span><span class=\"w\"> </span><span class=\"nx\">gates</span><span class=\"w\"> </span><span class=\"nx\">pending</span><span class=\"p\">)</span>\n<span class=\"o\">**</span><span class=\"nx\">Owner</span><span class=\"p\">:</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"nx\">Platform</span><span class=\"w\"> </span><span class=\"nx\">Engineering</span><span class=\"w\"> </span><span class=\"o\">+</span><span class=\"w\"> </span><span class=\"nx\">API</span><span class=\"w\"> </span><span class=\"nx\">Lead</span>\n<span class=\"o\">**</span><span class=\"nx\">Effective</span><span class=\"p\">:</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"nx\">Upon</span><span class=\"w\"> </span><span class=\"nx\">merge</span>\n<span class=\"o\">**</span><span class=\"nx\">Related</span><span class=\"p\">:</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"nx\">SPEC</span><span class=\"o\">-</span><span class=\"mi\">083</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">Product</span><span class=\"w\"> </span><span class=\"nx\">Surface</span><span class=\"w\"> </span><span class=\"nx\">Split</span><span class=\"p\">),</span><span class=\"w\"> </span><span class=\"nx\">SPEC</span><span class=\"o\">-</span><span class=\"mi\">052</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">Test</span><span class=\"w\"> </span><span class=\"nx\">Coverage</span><span class=\"p\">),</span><span class=\"w\"> </span><span class=\"nx\">SPEC</span><span class=\"o\">-</span><span class=\"mi\">042</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">Auth</span><span class=\"o\">-</span><span class=\"nx\">aware</span><span class=\"w\"> </span><span class=\"nx\">Testing</span><span class=\"p\">)</span>\n\n<span class=\"o\">---</span>\n\n<span class=\"err\">##</span><span class=\"w\"> </span><span class=\"mi\">1</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"nx\">Purpose</span>\n\n<span class=\"nx\">Establish</span><span class=\"w\"> </span><span class=\"k\">and</span><span class=\"w\"> </span><span class=\"nx\">enforce</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"nx\">public</span><span class=\"w\"> </span><span class=\"nx\">vs</span><span class=\"w\"> </span><span class=\"nx\">internal</span><span class=\"w\"> </span><span class=\"nx\">OpenAPI</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"nx\">split</span><span class=\"w\"> </span><span class=\"nx\">with</span><span class=\"w\"> </span><span class=\"nx\">CI</span><span class=\"w\"> </span><span class=\"nx\">policy</span><span class=\"w\"> </span><span class=\"nx\">gates</span><span class=\"w\"> </span><span class=\"nx\">to</span><span class=\"w\"> </span><span class=\"nx\">prevent</span><span class=\"w\"> </span><span class=\"nx\">accidental</span><span class=\"w\"> </span><span class=\"nx\">exposure</span><span class=\"w\"> </span><span class=\"nx\">of</span><span class=\"w\"> </span><span class=\"nx\">internal</span><span class=\"w\"> </span><span class=\"nx\">endpoints</span><span class=\"p\">.</span>\n\n<span class=\"o\">---</span>\n\n<span class=\"err\">##</span><span class=\"w\"> </span><span class=\"mi\">2</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"nx\">Goals</span>\n\n<span class=\"err\">###</span><span class=\"w\"> </span><span class=\"nx\">Two</span><span class=\"w\"> </span><span class=\"nx\">OpenAPI</span><span class=\"w\"> </span><span class=\"nx\">specs</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"nx\">Public</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">Customer</span><span class=\"p\">):</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"nx\">filtered</span><span class=\"w\"> </span><span class=\"nx\">allow</span><span class=\"o\">-</span><span class=\"nx\">list</span><span class=\"w\"> </span><span class=\"nx\">of</span><span class=\"w\"> </span><span class=\"nx\">tags</span><span class=\"o\">/</span><span class=\"nx\">paths</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"nx\">Internal</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">Admin</span><span class=\"p\">):</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"nx\">full</span><span class=\"w\"> </span><span class=\"nx\">schema</span><span class=\"p\">;</span><span class=\"w\"> </span><span class=\"nx\">docs</span><span class=\"w\"> </span><span class=\"nx\">behind</span><span class=\"w\"> </span><span class=\"nx\">Tailnet</span><span class=\"o\">/</span><span class=\"nx\">SSO</span>\n\n<span class=\"err\">###</span><span class=\"w\"> </span><span class=\"nx\">Docs</span><span class=\"w\"> </span><span class=\"nx\">visibility</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"nx\">Customer</span><span class=\"w\"> </span><span class=\"nx\">docs</span><span class=\"p\">:</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"nx\">sign</span><span class=\"o\">-</span><span class=\"k\">in</span><span class=\"w\"> </span><span class=\"nx\">required</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"kd\">external</span><span class=\"w\"> </span><span class=\"nx\">role</span><span class=\"p\">)</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"nx\">Vendor</span><span class=\"w\"> </span><span class=\"nx\">docs</span><span class=\"p\">:</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"nx\">staff</span><span class=\"w\"> </span><span class=\"nx\">only</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">RBAC</span><span class=\"p\">)</span>\n\n<span class=\"err\">###</span><span class=\"w\"> </span><span class=\"nx\">CI</span><span class=\"w\"> </span><span class=\"nx\">policy</span><span class=\"w\"> </span><span class=\"nx\">tests</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"nx\">Fail</span><span class=\"w\"> </span><span class=\"k\">if</span><span class=\"w\"> </span><span class=\"nx\">an</span><span class=\"w\"> </span><span class=\"nx\">internal</span><span class=\"w\"> </span><span class=\"nx\">path</span><span class=\"w\"> </span><span class=\"nx\">leaks</span><span class=\"w\"> </span><span class=\"nx\">into</span><span class=\"w\"> </span><span class=\"nx\">public</span><span class=\"w\"> </span><span class=\"nx\">schema</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"nx\">Fail</span><span class=\"w\"> </span><span class=\"k\">if</span><span class=\"w\"> </span><span class=\"nx\">any</span><span class=\"w\"> </span><span class=\"nx\">route</span><span class=\"w\"> </span><span class=\"nx\">lacks</span><span class=\"w\"> </span><span class=\"nx\">an</span><span class=\"w\"> </span><span class=\"nx\">explicit</span><span class=\"w\"> </span><span class=\"nx\">tag</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">forces</span><span class=\"w\"> </span><span class=\"nx\">classification</span><span class=\"p\">)</span>\n\n<span class=\"o\">---</span>\n\n<span class=\"err\">##</span><span class=\"w\"> </span><span class=\"mi\">3</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"nx\">Implementation</span>\n\n<span class=\"err\">###</span><span class=\"w\"> </span><span class=\"nx\">OpenAPI</span><span class=\"w\"> </span><span class=\"nx\">Generation</span>\n<span class=\"err\">```</span><span class=\"nx\">python</span>\n<span class=\"err\">#</span><span class=\"w\"> </span><span class=\"nx\">server</span><span class=\"o\">/</span><span class=\"nx\">openapi_filter</span><span class=\"p\">.</span><span class=\"nx\">py</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"nx\">already</span><span class=\"w\"> </span><span class=\"nx\">implemented</span><span class=\"p\">)</span>\n<span class=\"nx\">def</span><span class=\"w\"> </span><span class=\"nx\">get_filtered_openapi_schema</span><span class=\"p\">(</span><span class=\"nx\">role</span><span class=\"p\">:</span><span class=\"w\"> </span><span class=\"nx\">Role</span><span class=\"w\"> </span><span class=\"o\">|</span><span class=\"w\"> </span><span class=\"nx\">None</span><span class=\"p\">)</span><span class=\"w\"> </span><span class=\"o\">-&gt;</span><span class=\"w\"> </span><span class=\"nx\">dict</span><span class=\"p\">:</span>\n<span class=\"w\">    </span><span class=\"s\">&quot;&quot;&quot;Generate role-filtered OpenAPI schema.&quot;&quot;&quot;</span>\n<span class=\"w\">    </span><span class=\"nx\">full_schema</span><span class=\"w\"> </span><span class=\"p\">=</span><span class=\"w\"> </span><span class=\"nx\">app</span><span class=\"p\">.</span><span class=\"nx\">openapi</span><span class=\"p\">()</span>\n\n<span class=\"w\">    </span><span class=\"k\">if</span><span class=\"w\"> </span><span class=\"nx\">role</span><span class=\"w\"> </span><span class=\"k\">is</span><span class=\"w\"> </span><span class=\"nx\">None</span><span class=\"p\">:</span>\n<span class=\"w\">        </span><span class=\"k\">return</span><span class=\"w\"> </span><span class=\"p\">{</span><span class=\"s\">&quot;error&quot;</span><span class=\"p\">:</span><span class=\"w\"> </span><span class=\"s\">&quot;Authentication required&quot;</span><span class=\"p\">}</span>\n\n<span class=\"w\">    </span><span class=\"nx\">allowed_tags</span><span class=\"w\"> </span><span class=\"p\">=</span><span class=\"w\"> </span><span class=\"nx\">ROLE_TAG_ALLOWLIST</span><span class=\"p\">.</span><span class=\"nx\">get</span><span class=\"p\">(</span><span class=\"nx\">role</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"nx\">set</span><span class=\"p\">())</span>\n\n<span class=\"w\">    </span><span class=\"err\">#</span><span class=\"w\"> </span><span class=\"nx\">Filter</span><span class=\"w\"> </span><span class=\"nx\">paths</span><span class=\"w\"> </span><span class=\"nx\">by</span><span class=\"w\"> </span><span class=\"nx\">tags</span>\n<span class=\"w\">    </span><span class=\"nx\">filtered_paths</span><span class=\"w\"> </span><span class=\"p\">=</span><span class=\"w\"> </span><span class=\"p\">{}</span>\n<span class=\"w\">    </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"nx\">path</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"nx\">methods</span><span class=\"w\"> </span><span class=\"k\">in</span><span class=\"w\"> </span><span class=\"nx\">full_schema</span><span class=\"p\">[</span><span class=\"s\">&quot;paths&quot;</span><span class=\"p\">].</span><span class=\"nx\">items</span><span class=\"p\">():</span>\n<span class=\"w\">        </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"nx\">method</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"nx\">operation</span><span class=\"w\"> </span><span class=\"k\">in</span><span class=\"w\"> </span><span class=\"nx\">methods</span><span class=\"p\">.</span><span class=\"nx\">items</span><span class=\"p\">():</span>\n<span class=\"w\">            </span><span class=\"nx\">tags</span><span class=\"w\"> </span><span class=\"p\">=</span><span class=\"w\"> </span><span class=\"nx\">operation</span><span class=\"p\">.</span><span class=\"nx\">get</span><span class=\"p\">(</span><span class=\"s\">&quot;tags&quot;</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"p\">[])</span>\n</code></pre></div>",
+  "neighbors": {
+    "previous": {
+      "id": 595,
+      "ref": 566,
+      "subject": "SPEC-084: Agentic UI Testing Framework"
+    },
+    "next": {
+      "id": 597,
+      "ref": 568,
+      "subject": "SPEC-088: API Versioning Strategy"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 # Developer A - Memory Service Progress
 
-**Last Updated:** Oct 16, 2025 @ 1:10 PM  
-**Service:** Memory Service (Rust)  
+**Last Updated:** Oct 16, 2025 @ 1:10 PM
+**Service:** Memory Service (Rust)
 **Port:** 13393
 
 ---
@@ -76,7 +76,7 @@
    ```bash
    # Health check
    curl http://localhost:13393/health
-   
+
    # Should return: {"status": "healthy"}
    ```
 
@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS memory.memories (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_memories_user 
+CREATE INDEX IF NOT EXISTS idx_memories_user
   ON memory.memories(user_id);
 ```
 

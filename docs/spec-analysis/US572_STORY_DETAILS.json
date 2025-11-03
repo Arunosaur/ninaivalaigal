@@ -1,0 +1,107 @@
+{
+  "due_date": null,
+  "due_date_reason": "",
+  "due_date_status": "not_set",
+  "total_comments": 0,
+  "tags": [
+    [
+      "spec-092",
+      null
+    ]
+  ],
+  "attachments": [],
+  "status": 5,
+  "status_extra_info": {
+    "name": "Done",
+    "color": "#A8E440",
+    "is_closed": true
+  },
+  "assigned_to": 8,
+  "assigned_to_extra_info": {
+    "username": "developer-c",
+    "full_name_display": "Developer C",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "a7fd573307db95be8a81909c52564853",
+    "is_active": true,
+    "id": 8
+  },
+  "owner": 5,
+  "owner_extra_info": {
+    "username": "admin",
+    "full_name_display": "admin",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "13f78fc2dee81f3e168ec69ebac45d22",
+    "is_active": true,
+    "id": 5
+  },
+  "is_watcher": false,
+  "total_watchers": 0,
+  "is_voter": false,
+  "total_voters": 0,
+  "project": 1,
+  "project_extra_info": {
+    "name": "ninaivalaigal",
+    "slug": "ninaivalaigal",
+    "logo_small_url": null,
+    "id": 1
+  },
+  "id": 601,
+  "ref": 572,
+  "milestone": null,
+  "milestone_slug": null,
+  "milestone_name": null,
+  "is_closed": true,
+  "points": {
+    "4": 1,
+    "1": 1,
+    "2": 1,
+    "3": 1
+  },
+  "backlog_order": 1762059530879134,
+  "sprint_order": 1762059530879153,
+  "kanban_order": 1762059530946377,
+  "created_date": "2025-11-02T04:58:50.946Z",
+  "modified_date": "2025-11-02T04:58:50.955Z",
+  "finish_date": "2025-11-02T04:58:50.986Z",
+  "subject": "SPEC-092: Middleware Resilience Follow-up",
+  "client_requirement": false,
+  "team_requirement": false,
+  "generated_from_issue": null,
+  "generated_from_task": null,
+  "from_task_ref": null,
+  "external_reference": null,
+  "tribe_gig": null,
+  "version": 1,
+  "watchers": [],
+  "is_blocked": false,
+  "blocked_note": "",
+  "total_points": null,
+  "comment": "",
+  "origin_issue": null,
+  "origin_task": null,
+  "epics": null,
+  "epic_order": null,
+  "tasks": [],
+  "total_attachments": 0,
+  "swimlane": null,
+  "assigned_users": [
+    8
+  ],
+  "blocked_note_html": "",
+  "description": "**SPEC-092: Middleware Resilience Follow-up**\n\n**Status in SPEC_INDEX.md**: Planned\n**Phase**: Phase 3\n\n**Objective**: Middleware Resilience Follow-up\n\n**Details**: See SPEC documentation for full details.\n\n```\n---\ntitle: Untitled SPEC\n---\n\n\n# SPEC-092: Middleware Resilience Follow-up\n\nStatus: Reserved for future expansion.\n\n```",
+  "description_html": "<p><strong>SPEC-092: Middleware Resilience Follow-up</strong></p>\n<p><strong>Status in SPEC_INDEX.md</strong>: Planned<br>\n<strong>Phase</strong>: Phase 3</p>\n<p><strong>Objective</strong>: Middleware Resilience Follow-up</p>\n<p><strong>Details</strong>: See SPEC documentation for full details.</p>\n<div class=\"codehilite\"><pre><span></span><code><span class=\"o\">---</span>\n<span class=\"nv\">title</span>:<span class=\"w\"> </span><span class=\"nv\">Untitled</span><span class=\"w\"> </span><span class=\"nv\">SPEC</span>\n<span class=\"o\">---</span>\n\n\n#<span class=\"w\"> </span><span class=\"nv\">SPEC</span><span class=\"o\">-</span><span class=\"mi\">092</span>:<span class=\"w\"> </span><span class=\"nv\">Middleware</span><span class=\"w\"> </span><span class=\"nv\">Resilience</span><span class=\"w\"> </span><span class=\"nv\">Follow</span><span class=\"o\">-</span><span class=\"nv\">up</span>\n\n<span class=\"nv\">Status</span>:<span class=\"w\"> </span><span class=\"nv\">Reserved</span><span class=\"w\"> </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"nv\">future</span><span class=\"w\"> </span><span class=\"nv\">expansion</span>.\n</code></pre></div>",
+  "neighbors": {
+    "previous": {
+      "id": 600,
+      "ref": 571,
+      "subject": "SPEC-091: Agent-to-Agent Context Propagation (A2A)"
+    },
+    "next": {
+      "id": 602,
+      "ref": 573,
+      "subject": "SPEC-095: Memory Graph State Reconciliation"
+    }
+  }
+}

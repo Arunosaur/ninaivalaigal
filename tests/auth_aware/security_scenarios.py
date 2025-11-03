@@ -944,6 +944,7 @@ class SecurityScenarioEngine:
 
         try:
             async with httpx.AsyncClient() as client:
+
                 async def _invoke_request() -> Dict[str, Any]:
                     response = await client.get(
                         f"{self.base_url}/api/v1/memories",

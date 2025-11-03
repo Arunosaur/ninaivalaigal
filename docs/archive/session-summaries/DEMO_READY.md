@@ -1,6 +1,6 @@
 # 🎉 SPEC Dashboard Demo - Ready to Show!
 
-**Date:** October 13, 2025  
+**Date:** October 13, 2025
 **Status:** ✅ LIVE DEMO READY
 
 ---
@@ -34,7 +34,7 @@ A **live, interactive SPEC documentation portal** with:
 Once server starts:
 ```
 http://localhost:3000/dashboard
-http://localhost:3000/timeline  
+http://localhost:3000/timeline
 http://localhost:3000/timeline-gantt
 http://localhost:3000/specs
 ```

@@ -7,7 +7,7 @@
 # See LICENSE file in the server/ directory for details.
 #
 """
-SPEC-042: Memory Health & Orphaned Token Report Engine
+SPEC-098: Memory Health & Orphaned Tokens
 
 Provides comprehensive health monitoring and analysis of the memory system:
 - Orphaned token detection and cleanup
@@ -22,6 +22,9 @@ Key Features:
 - Quality scoring algorithms
 - Automated cleanup recommendations
 - Health trend analysis
+
+Note: This implementation is SPEC-098: Memory Health & Orphaned Tokens (Complete).
+SPEC-048 is "Memory Intent Classifier" (Planned, different feature).
 """
 
 import json

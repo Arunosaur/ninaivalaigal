@@ -6,10 +6,13 @@
 # Unauthorized copying, modification, or distribution is prohibited.
 # See LICENSE file in the server/ directory for details.
 #
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from server.health.config_hash_guard import compute_hash, router
+
+pytestmark = pytest.mark.unit
 
 
 def test_health_config_hash_endpoint_exposes_hash(monkeypatch):

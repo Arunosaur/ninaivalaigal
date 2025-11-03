@@ -13,7 +13,70 @@ Extracted from main.py for better code organization
 
 import json
 import os
-from typing import Any
+from dataclasses import dataclass
+from functools import lru_cache
+from typing import Any, Optional
+
+
+def _get_canonical_port(service: str, fallback: str) -> str:
+    """Resolve canonical port using ports.nv.yaml offsets via get-port script."""
+    nina_env = os.getenv("NINA_ENV", "dev")
+    nina_runtime = os.getenv("NINA_RUNTIME", "docker")
+    script_path = os.path.join(os.path.dirname(__file__), "..", "scripts", "get-port.sh")
+
+    try:
+        import subprocess
+
+        result = subprocess.run(  # nosec B603
+            [script_path, service, nina_env, nina_runtime],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        port = result.stdout.strip()
+        if port:
+            return port
+    except Exception:
+        pass
+
+    return fallback
+
+
+def _build_default_database_url(*, mode: str = "transaction") -> str:
+    """Construct PgBouncer-backed database URL honoring session/transaction modes."""
+
+    host = os.getenv("PGBOUNCER_HOST") or os.getenv("POSTGRES_HOST", "localhost")
+    user = os.getenv("NINA_DB_USER") or os.getenv("POSTGRES_USER", "nina")
+    password = os.getenv("NINA_DB_PASSWORD") or os.getenv("POSTGRES_PASSWORD", "dev_password_change_in_production")
+    db_name = os.getenv("NINA_DB_NAME") or os.getenv("POSTGRES_DB", "ninaivalaigal_dev")
+
+    if mode == "session":
+        port_env_vars = ["PGBOUNCER_SESS_PORT", "PGBOUNCER_SESSION_PORT", "PGBOUNCER_PORT_SESSION"]
+    else:
+        port_env_vars = ["PGBOUNCER_TX_PORT", "PGBOUNCER_PORT", "PGBOUNCER_TRANSACTION_PORT"]
+
+    port: Optional[str] = None
+    for var in port_env_vars:
+        value = os.getenv(var)
+        if value:
+            port = value
+            break
+
+    if not port:
+        canonical = _get_canonical_port("pgbouncer", "6432")
+        if mode == "session":
+            try:
+                port = str(int(canonical) + 1)
+            except ValueError:
+                port = "6433"
+        else:
+            port = canonical
+
+    return f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
+
+
+DEFAULT_RUST_DATABASE_URL = _build_default_database_url(mode="transaction")
+DEFAULT_RUST_DATABASE_URL_SESSION = _build_default_database_url(mode="session")
 
 
 def load_config() -> dict[str, Any]:
@@ -25,9 +88,9 @@ def load_config() -> dict[str, Any]:
     default_config = {
         "storage": {
             "type": "postgresql",
-            "url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret  # noqa: E501
+            "url": DEFAULT_RUST_DATABASE_URL,
         },
-        "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret  # noqa: E501
+        "database_url": DEFAULT_RUST_DATABASE_URL,
     }
 
     # Load from environment variables first (highest priority)
@@ -53,6 +116,42 @@ def load_config() -> dict[str, Any]:
         config["jwt_secret"] = env_jwt_secret
 
     return config
+
+
+@dataclass(frozen=True)
+class RuntimeConfig:
+    """Lightweight configuration object used by auxiliary services during tests."""
+
+    database_url: str
+    graph_name: str
+    db_name: str
+    service_port: int
+    service_name: str
+    redis_url: str | None
+
+
+@lru_cache(maxsize=1)
+def get_config() -> RuntimeConfig:
+    """Return memoized runtime configuration with sensible fallbacks."""
+
+    base = load_config()
+
+    database_url = base.get("database_url") or os.getenv("DATABASE_URL") or DEFAULT_RUST_DATABASE_URL
+
+    graph_name = os.getenv("GRAPHOPS_GRAPH", "ninaivalaigal_graph")
+    db_name = os.getenv("NINA_DB_NAME") or os.getenv("POSTGRES_DB", "ninaivalaigal_dev")
+    service_port = int(os.getenv("GRAPHOPS_PORT", "13398"))
+    service_name = os.getenv("GRAPHOPS_SERVICE_NAME", "graphops")
+    redis_url = os.getenv("REDIS_URL") or os.getenv("NINAIVALAIGAL_REDIS_URL")
+
+    return RuntimeConfig(
+        database_url=database_url,
+        graph_name=graph_name,
+        db_name=db_name,
+        service_port=service_port,
+        service_name=service_name,
+        redis_url=redis_url,
+    )
 
 
 def get_dynamic_database_url() -> str:

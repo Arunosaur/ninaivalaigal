@@ -22,6 +22,7 @@ from collections.abc import Callable
 from fastapi import APIRouter, Request, Response
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
+    REGISTRY,
     Counter,
     Gauge,
     Histogram,
@@ -30,10 +31,34 @@ from prometheus_client import (
 from starlette.middleware.base import BaseHTTPMiddleware
 
 # Prometheus metrics
-REQUESTS = Counter("http_requests_total", "Total HTTP requests", ["route", "method", "code"])
-DURATION = Histogram("http_request_duration_seconds", "Request latency", ["route", "method"])
-ERRORS = Counter("app_errors_total", "Application errors", ["type"])
-UPTIME_S = Gauge("app_uptime_seconds", "Process uptime (s)")
+
+
+def _get_or_create_metric(name: str, factory, *args, **kwargs):
+    """Reuse existing collector when module imports multiple times during tests."""
+
+    registry = kwargs.pop("registry", REGISTRY)
+    existing = registry._names_to_collectors.get(name)  # type: ignore[attr-defined]
+    if existing is not None:
+        return existing
+
+    kwargs["registry"] = registry
+    return factory(name, *args, **kwargs)
+
+
+REQUESTS = _get_or_create_metric(
+    "http_requests_total",
+    Counter,
+    "Total HTTP requests",
+    ["route", "method", "code"],
+)
+DURATION = _get_or_create_metric(
+    "http_request_duration_seconds",
+    Histogram,
+    "Request latency",
+    ["route", "method"],
+)
+ERRORS = _get_or_create_metric("app_errors_total", Counter, "Application errors", ["type"])
+UPTIME_S = _get_or_create_metric("app_uptime_seconds", Gauge, "Process uptime (s)")
 
 # Context for request tracking
 request_id_ctx = contextvars.ContextVar("request_id", default="-")

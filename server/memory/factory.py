@@ -10,11 +10,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import os
+from collections.abc import Mapping
 from typing import Any
 
 import httpx
+
+from server.config import DEFAULT_RUST_DATABASE_URL_SESSION
 
 from .interfaces import MemoryItem, MemoryProvider, MemoryProviderError
 from .providers.postgres import PostgresMemoryProvider
@@ -174,22 +176,35 @@ class RustMemoryProvider:
             return False
 
 
-def get_memory_provider(provider_type: str | None = None, **kwargs: Any) -> MemoryProvider:
-    if provider_type is None:
-        provider_type = os.getenv("MEMORY_PROVIDER", "rust")
+def _flag_enabled(value: str | None, *, default: bool = False) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
-    if provider_type == "rust":
+
+def get_memory_provider(provider_type: str | None = None, **kwargs: Any) -> MemoryProvider:
+    resolved_provider = provider_type or os.getenv("MEMORY_PROVIDER")
+    if resolved_provider:
+        provider_choice = resolved_provider.strip().lower()
+    else:
+        provider_choice = "rust" if _flag_enabled(os.getenv("USE_RUST_MEMORY"), default=False) else "postgres"
+
+    if provider_choice == "rust":
         rust_url = kwargs.get("base_url") or os.getenv("MEMORY_SERVICE_URL", "http://localhost:13393")
         return RustMemoryProvider(base_url=rust_url, **kwargs)
-    if provider_type == "postgres":
+    if provider_choice == "postgres":
         return PostgresMemoryProvider(
             database_url=kwargs.get("database_url")
+            or os.getenv("DATABASE_URL_SESSION")
             or os.getenv("NINAIVALAIGAL_DATABASE_URL")
-            or os.getenv("DATABASE_URL"),
+            or os.getenv("DATABASE_URL")
+            or DEFAULT_RUST_DATABASE_URL_SESSION,
             **kwargs,
         )
+    if provider_choice in {"mem0", "http"}:
+        raise RuntimeError("Legacy mem0 providers are no longer supported. Use MEMORY_PROVIDER=rust or postgres.")
 
-    raise ValueError(f"Unknown memory provider type: {provider_type}. Use 'rust' or 'postgres'.")
+    raise ValueError(f"Unknown memory provider type: {provider_choice}. Use 'rust' or 'postgres'.")
 
 
 _provider_instance: MemoryProvider | None = None

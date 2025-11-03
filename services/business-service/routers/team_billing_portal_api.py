@@ -14,11 +14,12 @@ Self-service billing dashboard for teams with plan management, invoices, and usa
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+from auth import get_current_user, get_db
 
 # Initialize router
 router = APIRouter(prefix="/teams", tags=["billing"])

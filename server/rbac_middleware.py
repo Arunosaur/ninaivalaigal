@@ -65,6 +65,25 @@ class RBACContext:
         subject_ctx = self.to_subject_context()
         return effective_role(subject_ctx, team_id)
 
+    def to_context_sensitive(self) -> "ContextSensitiveRBACContext":
+        """Convert to context-sensitive RBAC context
+
+        Returns a ContextSensitiveRBACContext instance that extends this
+        context with sensitivity tier awareness (SPEC-009).
+
+        Returns:
+            ContextSensitiveRBACContext instance
+        """
+        from rbac.policy.context_sensitive import ContextSensitiveRBACContext
+
+        return ContextSensitiveRBACContext(
+            user_id=self.user_id,
+            email=self.email,
+            roles=self.roles,
+            org_id=self.org_id,
+            team_ids=self.team_ids,
+        )
+
 
 class RBACMiddleware:
     """FastAPI middleware for RBAC integration"""

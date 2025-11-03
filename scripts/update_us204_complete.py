@@ -15,23 +15,23 @@ import sys
 from datetime import datetime
 
 # Add tasks/scripts to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'tasks', 'scripts'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tasks", "scripts"))
 
 from taiga_import_tasks import TaigaImporter
 
 
 def main():
     """Update US#204 story in Taiga"""
-    taiga_url = os.getenv('TAIGA_URL', 'http://localhost:9000')
-    username = os.getenv('TAIGA_USERNAME', 'admin')
-    password = os.getenv('TAIGA_PASSWORD', 'admin123')
+    taiga_url = os.getenv("TAIGA_URL", "http://localhost:9000")
+    username = os.getenv("TAIGA_USERNAME", "admin")
+    password = os.getenv("TAIGA_PASSWORD", "admin123")
 
-    importer = TaigaImporter(f'{taiga_url}/api/v1', username=username, password=password)
+    importer = TaigaImporter(f"{taiga_url}/api/v1", username=username, password=password)
     importer._get_auth_token()
 
     # US#204 is story #160 in Taiga
     story_ref = 160
-    story = importer.get_user_story('ninaivalaigal', story_ref)
+    story = importer.get_user_story("ninaivalaigal", story_ref)
 
     if not story:
         print(f"❌ Story US#{story_ref} not found in Taiga")
@@ -41,7 +41,7 @@ def main():
 
     # Completion details
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
     completion_details = f"""
 
 ---
@@ -125,11 +125,11 @@ def main():
 """
 
     # Append to description
-    current_desc = story.get('description', '')
+    current_desc = story.get("description", "")
     new_desc = current_desc + completion_details
 
     try:
-        result = importer.append_to_story_description('ninaivalaigal', story_ref, completion_details)
+        result = importer.append_to_story_description("ninaivalaigal", story_ref, completion_details)
         if result:
             print(f"✅ Successfully updated US#{story_ref} description")
         else:
@@ -140,4 +140,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

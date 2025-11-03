@@ -1,0 +1,99 @@
+[
+  {
+    "subject": "US-275: Memory Attachments Database Schema",
+    "description": "# US-275: Memory Attachments Database Schema\n\n## Objective\nCreate database schema for memory attachments to support file attachments to memory tokens.\n\n## Technical Tasks\n- Create Alembic migration for memory_attachments table\n- Define SQLAlchemy model class\n- Add foreign key relationship to memory_tokens\n- Add indexes for performance\n- Add constraints (type check, not null)\n\n## Acceptance Criteria\n- [ ] Migration created and tested\n- [ ] Model class defined with relationships\n- [ ] Indexes created for performance\n- [ ] Foreign key constraints enforced\n- [ ] Type check constraint working\n\n## Dependencies\n- SPEC-001: Core Memory System\n- Database migration system (Alembic)\n\n## Estimated Effort\n4-6 hours (0.5-0.75 days)",
+    "tags": [
+      "spec-032",
+      "database",
+      "schema",
+      "migration",
+      "p0"
+    ]
+  },
+  {
+    "subject": "US-276: Memory Attachment Upload Endpoint",
+    "description": "# US-276: Memory Attachment Upload Endpoint\n\n## Objective\nImplement POST endpoint to upload and attach files to memory tokens.\n\n## Technical Tasks\n- Create POST /memory/{memory_id}/attachments endpoint\n- Handle multipart/form-data file uploads\n- Integrate with storage backend (EPIC#022)\n- Validate file type and size\n- Store attachment metadata in database\n- Generate pre-signed URLs\n- Apply ACL permission checks\n\n## Acceptance Criteria\n- [ ] Endpoint accepts multipart file uploads\n- [ ] Files stored in S3/MinIO\n- [ ] Metadata stored in database\n- [ ] File validation working\n- [ ] ACL checks enforced\n- [ ] Proper error handling\n- [ ] Unit and integration tests\n\n## Dependencies\n- EPIC#022: Storage backend (US#295)\n- SPEC-008: Security middleware\n- SPEC-043: ACL engine\n- US-275: Database schema\n\n## Estimated Effort\n12-16 hours (1.5-2 days)",
+    "tags": [
+      "spec-032",
+      "api",
+      "endpoint",
+      "upload",
+      "p0"
+    ]
+  },
+  {
+    "subject": "US-277: Memory Attachment Retrieval Endpoints",
+    "description": "# US-277: Memory Attachment Retrieval Endpoints\n\n## Objective\nImplement GET endpoints to list and retrieve memory attachment details.\n\n## Technical Tasks\n- Create GET /memory/{memory_id}/attachments (list)\n- Create GET /memory/{memory_id}/attachments/{attachment_id} (single)\n- Return attachment metadata\n- Generate pre-signed URLs\n- Apply ACL permission checks\n- Support pagination\n\n## Acceptance Criteria\n- [ ] List endpoint returns attachments\n- [ ] Single attachment endpoint working\n- [ ] Pre-signed URLs generated\n- [ ] ACL checks enforced\n- [ ] Pagination working\n- [ ] Error handling\n- [ ] Unit and integration tests\n\n## Dependencies\n- EPIC#022: Storage backend\n- SPEC-043: ACL engine\n- US-275: Database schema\n\n## Estimated Effort\n8-12 hours (1-1.5 days)",
+    "tags": [
+      "spec-032",
+      "api",
+      "endpoint",
+      "retrieval",
+      "p0"
+    ]
+  },
+  {
+    "subject": "US-278: Memory Attachment Deletion Endpoint",
+    "description": "# US-278: Memory Attachment Deletion Endpoint\n\n## Objective\nImplement DELETE endpoint to remove attachments from memories.\n\n## Technical Tasks\n- Create DELETE /memory/{memory_id}/attachments/{attachment_id}\n- Delete file from storage backend\n- Remove attachment record\n- Apply ACL permission checks\n- Clean up storage resources\n\n## Acceptance Criteria\n- [ ] Endpoint deletes attachment\n- [ ] File removed from storage\n- [ ] ACL checks enforced\n- [ ] Error handling\n- [ ] Idempotent\n- [ ] Unit and integration tests\n\n## Dependencies\n- EPIC#022: Storage backend\n- SPEC-043: ACL engine\n- US-275: Database schema\n\n## Estimated Effort\n4-6 hours (0.5-0.75 days)",
+    "tags": [
+      "spec-032",
+      "api",
+      "endpoint",
+      "deletion",
+      "p0"
+    ]
+  },
+  {
+    "subject": "US-279: File Type Validation and Size Limits",
+    "description": "# US-279: File Type Validation and Size Limits\n\n## Objective\nImplement comprehensive file validation including type checking, size limits, and security validation.\n\n## Technical Tasks\n- Implement MIME type whitelist validation\n- Add magic number validation\n- Enforce size limits per file type\n- Integrate with SPEC-008 security middleware\n- Add virus scanning integration (if available)\n\n## Acceptance Criteria\n- [ ] MIME type whitelist enforced\n- [ ] Magic number validation working\n- [ ] Size limits enforced\n- [ ] Masquerading files detected\n- [ ] Clear error messages\n- [ ] Unit tests for validation\n- [ ] Integration tests\n\n## Dependencies\n- SPEC-008: Security middleware\n- EPIC#022: File upload infrastructure\n\n## Estimated Effort\n8-12 hours (1-1.5 days)",
+    "tags": [
+      "spec-032",
+      "security",
+      "validation",
+      "p1"
+    ]
+  },
+  {
+    "subject": "US-280: ACL Integration for Memory Attachments",
+    "description": "# US-280: ACL Integration for Memory Attachments\n\n## Objective\nIntegrate SPEC-043 ACL engine with memory attachment endpoints to enforce access control.\n\n## Technical Tasks\n- Apply ACL checks to all attachment endpoints\n- Use SPEC-043 ACL engine for permission evaluation\n- Enforce READ permission for retrieval\n- Enforce WRITE permission for upload/delete\n- Support user/team/organization scoping\n\n## Acceptance Criteria\n- [ ] ACL checks applied to all endpoints\n- [ ] READ permission required for retrieval\n- [ ] WRITE permission required for upload/delete\n- [ ] Team member access working\n- [ ] Organization-level access working\n- [ ] Proper 403 errors\n- [ ] Unit and integration tests\n\n## Dependencies\n- SPEC-043: ACL engine\n- Memory ownership model\n\n## Estimated Effort\n6-8 hours (0.75-1 day)",
+    "tags": [
+      "spec-032",
+      "acl",
+      "security",
+      "integration",
+      "p1"
+    ]
+  },
+  {
+    "subject": "US-281: Memory Attachment UI Components",
+    "description": "# US-281: Memory Attachment UI Components\n\n## Objective\nCreate frontend UI components for uploading, viewing, and managing memory attachments.\n\n## Technical Tasks\n- Create AttachmentUpload component\n- Create AttachmentPreview components (PDF, image, video, code)\n- Create AttachmentList component\n- Integrate with memory view/edit pages\n- Add drag-and-drop file upload\n- Show upload progress\n\n## Acceptance Criteria\n- [ ] Upload component functional\n- [ ] Preview components for all types\n- [ ] List component displays attachments\n- [ ] Drag-and-drop working\n- [ ] Upload progress visible\n- [ ] Error handling in UI\n- [ ] Responsive design\n- [ ] Unit tests\n\n## Dependencies\n- Backend API endpoints (US-276, US-277, US-278)\n- Frontend framework\n\n## Estimated Effort\n16-24 hours (2-3 days)",
+    "tags": [
+      "spec-032",
+      "ui",
+      "frontend",
+      "components",
+      "p2"
+    ]
+  },
+  {
+    "subject": "US-282: Memory Attachment CLI Commands",
+    "description": "# US-282: Memory Attachment CLI Commands\n\n## Objective\nImplement CLI commands for managing memory attachments via eM CLI tool.\n\n## Technical Tasks\n- Implement eM attach command\n- Implement eM attachments list command\n- Implement eM attachments delete command\n- Add file upload support\n- Add progress indicators\n\n## Acceptance Criteria\n- [ ] em attach command working\n- [ ] em attachments list working\n- [ ] em attachments delete working\n- [ ] File upload progress visible\n- [ ] Error handling\n- [ ] Help text and examples\n- [ ] Unit tests\n\n## Dependencies\n- Backend API endpoints\n- CLI framework\n\n## Estimated Effort\n8-12 hours (1-1.5 days)",
+    "tags": [
+      "spec-032",
+      "cli",
+      "commands",
+      "p2"
+    ]
+  },
+  {
+    "subject": "US-283: MCP Integration for Memory Attachments",
+    "description": "# US-283: MCP Integration for Memory Attachments\n\n## Objective\nIntegrate memory attachments into MCP responses to enable AI access to attachment content.\n\n## Technical Tasks\n- Include attachment metadata in MCP responses\n- Add file summaries or inline snippets\n- Implement memory score boost for attachments\n- Support inline parsed contents (OCR, PDF to text)\n\n## Acceptance Criteria\n- [ ] Attachment metadata included in MCP responses\n- [ ] Memory score boost working\n- [ ] File summaries included (if implemented)\n- [ ] Integration tested\n- [ ] Performance impact acceptable\n\n## Dependencies\n- Backend API endpoints (US-277)\n- MCP API implementation\n- Optional: OCR/PDF parsing libraries\n\n## Estimated Effort\n12-16 hours (1.5-2 days)",
+    "tags": [
+      "spec-032",
+      "mcp",
+      "integration",
+      "ai",
+      "p2"
+    ]
+  }
+]

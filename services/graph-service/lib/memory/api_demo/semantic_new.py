@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
+"""Semantic New module."""
+
+import os
+
+from fastapi import APIRouter
+from memory.stores.postgres_store import PGConfig, PostgresStore
+from pydantic import BaseModel
+
+router = APIRouter(prefix="/demo/memory", tags=["memory-demo"])
+
+
+class DemoWrite(BaseModel):
+    """DemoWrite class."""
+
+    scope: str = "personal"
+    user_id: str
+    team_id: str | None = None
+    org_id: str | None = None
+    kind: str = "note"
+    text: str
+    metadata: dict = {}
+
+
+class DemoSemanticQuery(BaseModel):
+    """DemoSemanticQuery class."""
+
+    scope: str = "personal"
+    user_id: str | None = None
+    team_id: str | None = None
+    org_id: str | None = None
+    semantic_query: str
+    limit: int = 5
+
+
+def store() -> PostgresStore:
+    """store function."""
+
+    return PostgresStore(
+        PGConfig(dsn=os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"))
+    )
+
+
+@router.post("/write")
+async def demo_write(body: DemoWrite):
+    """demo_write function."""
+
+    s = store()
+    row = await s.write(body.dict())
+    return {"id": row["id"], "kind": row["kind"], "text": row["text"]}
+
+
+@router.post("/semantic_search")
+async def demo_semantic_search(q: DemoSemanticQuery):
+    """demo_semantic_search function."""
+
+    s = store()
+    rows = await s.query(q.dict())
+    return {"count": len(rows), "results": rows}

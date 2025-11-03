@@ -1,0 +1,107 @@
+{
+  "due_date": null,
+  "due_date_reason": "",
+  "due_date_status": "not_set",
+  "total_comments": 0,
+  "tags": [
+    [
+      "spec-089",
+      null
+    ]
+  ],
+  "attachments": [],
+  "status": 2,
+  "status_extra_info": {
+    "name": "Ready",
+    "color": "#E44057",
+    "is_closed": false
+  },
+  "assigned_to": 8,
+  "assigned_to_extra_info": {
+    "username": "developer-c",
+    "full_name_display": "Developer C",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "a7fd573307db95be8a81909c52564853",
+    "is_active": true,
+    "id": 8
+  },
+  "owner": 5,
+  "owner_extra_info": {
+    "username": "admin",
+    "full_name_display": "admin",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "13f78fc2dee81f3e168ec69ebac45d22",
+    "is_active": true,
+    "id": 5
+  },
+  "is_watcher": false,
+  "total_watchers": 0,
+  "is_voter": false,
+  "total_voters": 0,
+  "project": 1,
+  "project_extra_info": {
+    "name": "ninaivalaigal",
+    "slug": "ninaivalaigal",
+    "logo_small_url": null,
+    "id": 1
+  },
+  "id": 598,
+  "ref": 569,
+  "milestone": null,
+  "milestone_slug": null,
+  "milestone_name": null,
+  "is_closed": false,
+  "points": {
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1
+  },
+  "backlog_order": 1762059528987219,
+  "sprint_order": 1762059528987237,
+  "kanban_order": 1762074762754008,
+  "created_date": "2025-11-02T04:58:49.001Z",
+  "modified_date": "2025-11-02T09:23:06.886Z",
+  "finish_date": null,
+  "subject": "SPEC-089: Breaking Change Management",
+  "client_requirement": false,
+  "team_requirement": false,
+  "generated_from_issue": null,
+  "generated_from_task": null,
+  "from_task_ref": null,
+  "external_reference": null,
+  "tribe_gig": null,
+  "version": 6,
+  "watchers": [],
+  "is_blocked": false,
+  "blocked_note": "",
+  "total_points": null,
+  "comment": "",
+  "origin_issue": null,
+  "origin_task": null,
+  "epics": null,
+  "epic_order": null,
+  "tasks": [],
+  "total_attachments": 0,
+  "swimlane": null,
+  "assigned_users": [
+    8
+  ],
+  "blocked_note_html": "",
+  "description": "**SPEC-089: Breaking Change Management**\n\n**Status:** \ud83d\udccb PLANNED (Implementation: ~70% complete, SPEC directory created)\n**Phase:** Phase 3\n**Completion:** ~75%\n\n---\n\n## \u2705 Current Status\n\nSPEC-089 is **PARTIALLY COMPLETE** with implementation done and SPEC directory structure now created. Breaking change detection and policy documentation are complete, and cross-references with SPEC-088 are established.\n\n---\n\n## \u2705 What Exists\n\n### 1. SPEC Directory Structure \u2705\n**Directory:** `specs/089-breaking-change-management/`\n- \u2705 `README.md` - Complete SPEC documentation with:\n  - Definition of breaking changes\n  - 8-step process for breaking changes\n  - Breaking change detection details\n  - Examples and review checklist\n  - Coordination with SPEC-088\n- \u2705 `migration-guide-template.md` - Template for migration guides\n- \u2705 Cross-references with SPEC-088 established\n\n### 2. Breaking Change Detection Script \u2705\n**File:** `ci/check-breaking-changes.py` (175 lines)\n- \u2705 Detects breaking changes in OpenAPI specifications\n- \u2705 Compares contracts between git refs\n- \u2705 Checks for removed endpoints, methods, required parameters, schemas\n- \u2705 Creates CI marker file\n- \u2705 Integrated with `.github/workflows/contract-validation.yml`\n\n### 3. Breaking Change Documentation \u2705\n**File:** `shared/contracts/docs/BREAKING_CHANGES.md` (98 lines)\n- \u2705 Comprehensive 8-step process\n- \u2705 Definition and examples\n- \u2705 Review checklist\n- \u2705 Policy and guidelines\n\n### 4. CI Integration \u2705\n**File:** `.github/workflows/contract-validation.yml`\n- \u2705 Breaking change detection runs on PR/push\n- \u2705 Fails build on breaking changes without version bump\n\n### 5. Cross-References Established \u2705\n- \u2705 SPEC-089 references SPEC-088 for versioning scheme\n- \u2705 SPEC-088 references SPEC-089 for breaking change process\n- \u2705 `specs/088-api-versioning-strategy/breaking-changes.md` updated to reference SPEC-089\n- \u2705 `specs/088-api-versioning-strategy/README.md` updated with cross-references\n\n---\n\n## \u274c What's Missing\n\n### 1. Directory Mismatch Resolved \u2705\n- \u2705 SPEC directory created: `specs/089-breaking-change-management/`\n- \u26a0\ufe0f Old directory `specs/089-white-label-platform/` still exists (should be removed - contains SPEC-140 content)\n\n### 2. Enhanced Detection \ud83d\udd04\n- \ud83d\udd04 Database schema breaking change detection\n- \ud83d\udd04 Protocol Buffer breaking change detection\n- \ud83d\udd04 Additional breaking change patterns\n\n### 3. Migration Tools \u274c\n- \u274c Automated migration script generation\n- \u274c Client SDK migration helpers\n\n---\n\n## \ud83d\udccb Implementation Evidence\n\n### Files Created\n- `specs/089-breaking-change-management/README.md` - Complete SPEC documentation\n- `specs/089-breaking-change-management/migration-guide-template.md` - Migration template\n\n### Files Updated\n- `specs/088-api-versioning-strategy/README.md` - Added cross-references to SPEC-089\n- `specs/088-api-versioning-strategy/breaking-changes.md` - Now references SPEC-089\n\n### Implementation\n- **Script:** `ci/check-breaking-changes.py` (175 lines, complete)\n- **Workflow:** `.github/workflows/contract-validation.yml` (integrated)\n- **Documentation:** `shared/contracts/docs/BREAKING_CHANGES.md` (98 lines, complete)\n\n**Total Implementation:** ~273 lines (script + doc) + SPEC documentation\n\n---\n\n## \ud83d\udcca Acceptance Criteria Status\n\n### Breaking Change Detection\n- \u2705 Automated detection script - COMPLETE\n- \u2705 CI integration - COMPLETE\n- \u2705 Error reporting - COMPLETE\n\n### Breaking Change Policy\n- \u2705 Definition of breaking changes - COMPLETE\n- \u2705 Process documentation - COMPLETE\n- \u2705 Review checklist - COMPLETE\n- \u2705 Examples - COMPLETE\n\n### SPEC Structure\n- \u2705 SPEC directory - CREATED\n- \u2705 SPEC README - COMPLETE\n- \u2705 Cross-references - ESTABLISHED\n\n**Overall Completion:** ~75% (implementation complete, SPEC structure complete, enhancements pending)\n\n---\n\n## \ud83d\udd17 Coordination with SPEC-088\n\n**Cross-References Established:**\n- \u2705 SPEC-089 references SPEC-088 for versioning scheme\n- \u2705 SPEC-088 references SPEC-089 for breaking change process\n- \u2705 Clear boundaries defined:\n  - **SPEC-088:** Versioning scheme and infrastructure (HOW to version)\n  - **SPEC-089:** Breaking change detection and management process (WHEN and HOW to manage changes)\n\n**Files Updated:**\n- `specs/088-api-versioning-strategy/README.md` - Sections now reference SPEC-089\n- `specs/088-api-versioning-strategy/breaking-changes.md` - Updated to reference SPEC-089\n\n---\n\n## \ud83c\udfaf Next Steps\n\n### High Priority\n1. \u2705 **SPEC Directory Created** - COMPLETE\n2. \u2705 **Cross-References Established** - COMPLETE\n3. \u26a0\ufe0f **Remove Misnumbered Directory** - Remove `specs/089-white-label-platform/` (contains SPEC-140 content)\n\n### Medium Priority\n4. **Enhanced Detection**\n   - Database schema breaking change detection\n   - Protocol Buffer breaking change detection\n   - Additional breaking change patterns\n\n5. **Migration Tools**\n   - Automated migration script generation\n   - Client SDK migration helpers\n\n---\n\n## \ud83d\udcdd Files Created/Updated\n\n### Created\n- `specs/089-breaking-change-management/README.md` - Complete SPEC documentation\n- `specs/089-breaking-change-management/migration-guide-template.md` - Migration template\n\n### Updated\n- `specs/088-api-versioning-strategy/README.md` - Cross-references added\n- `specs/088-api-versioning-strategy/breaking-changes.md` - References SPEC-089\n\n---\n\n## \u26a0\ufe0f Important Notes\n\n1. **Directory Status:**\n   - \u2705 `specs/089-breaking-change-management/` - CREATED (correct)\n   - \u26a0\ufe0f `specs/089-white-label-platform/` - Still exists (should be removed - misnumbered)\n\n2. **Coordination:**\n   - \u2705 Cross-references established between SPEC-088 and SPEC-089\n   - \u2705 Clear boundaries defined\n   - \u2705 Both SPECs reference each other appropriately\n\n3. **Implementation:**\n   - \u2705 Breaking change detection script is COMPLETE and working\n   - \u2705 Documentation is COMPLETE in SPEC structure\n   - \u2705 CI integration is COMPLETE\n\n---\n\n**Status:** \ud83d\udccb Planned - Implementation ~75% complete, SPEC structure created  \n**Next Steps:** Remove misnumbered directory, enhance detection capabilities\n\n---\n\n**For detailed analysis, see**: `docs/spec-analysis/SPEC_089_COMPREHENSIVE_ANALYSIS.md`",
+  "description_html": "<p><strong>SPEC-089: Breaking Change Management</strong></p>\n<p><strong>Status:</strong> \ud83d\udccb PLANNED (Implementation: ~70% complete, SPEC directory created)<br>\n<strong>Phase:</strong> Phase 3<br>\n<strong>Completion:</strong> ~75%</p>\n<hr>\n<h2 id=\"current-status\">\u2705 Current Status</h2>\n<p>SPEC-089 is <strong>PARTIALLY COMPLETE</strong> with implementation done and SPEC directory structure now created. Breaking change detection and policy documentation are complete, and cross-references with SPEC-088 are established.</p>\n<hr>\n<h2 id=\"what-exists\">\u2705 What Exists</h2>\n<h3 id=\"1-spec-directory-structure\">1. SPEC Directory Structure \u2705</h3>\n<p><strong>Directory:</strong> <code>specs/089-breaking-change-management/</code><br>\n- \u2705 <code>README.md</code> - Complete SPEC documentation with:<br>\n  - Definition of breaking changes<br>\n  - 8-step process for breaking changes<br>\n  - Breaking change detection details<br>\n  - Examples and review checklist<br>\n  - Coordination with SPEC-088<br>\n- \u2705 <code>migration-guide-template.md</code> - Template for migration guides<br>\n- \u2705 Cross-references with SPEC-088 established</p>\n<h3 id=\"2-breaking-change-detection-script\">2. Breaking Change Detection Script \u2705</h3>\n<p><strong>File:</strong> <code>ci/check-breaking-changes.py</code> (175 lines)<br>\n- \u2705 Detects breaking changes in OpenAPI specifications<br>\n- \u2705 Compares contracts between git refs<br>\n- \u2705 Checks for removed endpoints, methods, required parameters, schemas<br>\n- \u2705 Creates CI marker file<br>\n- \u2705 Integrated with <code>.github/workflows/contract-validation.yml</code></p>\n<h3 id=\"3-breaking-change-documentation\">3. Breaking Change Documentation \u2705</h3>\n<p><strong>File:</strong> <code>shared/contracts/docs/BREAKING_CHANGES.md</code> (98 lines)<br>\n- \u2705 Comprehensive 8-step process<br>\n- \u2705 Definition and examples<br>\n- \u2705 Review checklist<br>\n- \u2705 Policy and guidelines</p>\n<h3 id=\"4-ci-integration\">4. CI Integration \u2705</h3>\n<p><strong>File:</strong> <code>.github/workflows/contract-validation.yml</code><br>\n- \u2705 Breaking change detection runs on PR/push<br>\n- \u2705 Fails build on breaking changes without version bump</p>\n<h3 id=\"5-cross-references-established\">5. Cross-References Established \u2705</h3>\n<ul>\n<li>\u2705 SPEC-089 references SPEC-088 for versioning scheme</li>\n<li>\u2705 SPEC-088 references SPEC-089 for breaking change process</li>\n<li>\u2705 <code>specs/088-api-versioning-strategy/breaking-changes.md</code> updated to reference SPEC-089</li>\n<li>\u2705 <code>specs/088-api-versioning-strategy/README.md</code> updated with cross-references</li>\n</ul>\n<hr>\n<h2 id=\"whats-missing\">\u274c What's Missing</h2>\n<h3 id=\"1-directory-mismatch-resolved\">1. Directory Mismatch Resolved \u2705</h3>\n<ul>\n<li>\u2705 SPEC directory created: <code>specs/089-breaking-change-management/</code></li>\n<li>\u26a0\ufe0f Old directory <code>specs/089-white-label-platform/</code> still exists (should be removed - contains SPEC-140 content)</li>\n</ul>\n<h3 id=\"2-enhanced-detection\">2. Enhanced Detection \ud83d\udd04</h3>\n<ul>\n<li>\ud83d\udd04 Database schema breaking change detection</li>\n<li>\ud83d\udd04 Protocol Buffer breaking change detection</li>\n<li>\ud83d\udd04 Additional breaking change patterns</li>\n</ul>\n<h3 id=\"3-migration-tools\">3. Migration Tools \u274c</h3>\n<ul>\n<li>\u274c Automated migration script generation</li>\n<li>\u274c Client SDK migration helpers</li>\n</ul>\n<hr>\n<h2 id=\"implementation-evidence\">\ud83d\udccb Implementation Evidence</h2>\n<h3 id=\"files-created\">Files Created</h3>\n<ul>\n<li><code>specs/089-breaking-change-management/README.md</code> - Complete SPEC documentation</li>\n<li><code>specs/089-breaking-change-management/migration-guide-template.md</code> - Migration template</li>\n</ul>\n<h3 id=\"files-updated\">Files Updated</h3>\n<ul>\n<li><code>specs/088-api-versioning-strategy/README.md</code> - Added cross-references to SPEC-089</li>\n<li><code>specs/088-api-versioning-strategy/breaking-changes.md</code> - Now references SPEC-089</li>\n</ul>\n<h3 id=\"implementation\">Implementation</h3>\n<ul>\n<li><strong>Script:</strong> <code>ci/check-breaking-changes.py</code> (175 lines, complete)</li>\n<li><strong>Workflow:</strong> <code>.github/workflows/contract-validation.yml</code> (integrated)</li>\n<li><strong>Documentation:</strong> <code>shared/contracts/docs/BREAKING_CHANGES.md</code> (98 lines, complete)</li>\n</ul>\n<p><strong>Total Implementation:</strong> ~273 lines (script + doc) + SPEC documentation</p>\n<hr>\n<h2 id=\"acceptance-criteria-status\">\ud83d\udcca Acceptance Criteria Status</h2>\n<h3 id=\"breaking-change-detection\">Breaking Change Detection</h3>\n<ul>\n<li>\u2705 Automated detection script - COMPLETE</li>\n<li>\u2705 CI integration - COMPLETE</li>\n<li>\u2705 Error reporting - COMPLETE</li>\n</ul>\n<h3 id=\"breaking-change-policy\">Breaking Change Policy</h3>\n<ul>\n<li>\u2705 Definition of breaking changes - COMPLETE</li>\n<li>\u2705 Process documentation - COMPLETE</li>\n<li>\u2705 Review checklist - COMPLETE</li>\n<li>\u2705 Examples - COMPLETE</li>\n</ul>\n<h3 id=\"spec-structure\">SPEC Structure</h3>\n<ul>\n<li>\u2705 SPEC directory - CREATED</li>\n<li>\u2705 SPEC README - COMPLETE</li>\n<li>\u2705 Cross-references - ESTABLISHED</li>\n</ul>\n<p><strong>Overall Completion:</strong> ~75% (implementation complete, SPEC structure complete, enhancements pending)</p>\n<hr>\n<h2 id=\"coordination-with-spec-088\">\ud83d\udd17 Coordination with SPEC-088</h2>\n<p><strong>Cross-References Established:</strong><br>\n- \u2705 SPEC-089 references SPEC-088 for versioning scheme<br>\n- \u2705 SPEC-088 references SPEC-089 for breaking change process<br>\n- \u2705 Clear boundaries defined:<br>\n  - <strong>SPEC-088:</strong> Versioning scheme and infrastructure (HOW to version)<br>\n  - <strong>SPEC-089:</strong> Breaking change detection and management process (WHEN and HOW to manage changes)</p>\n<p><strong>Files Updated:</strong><br>\n- <code>specs/088-api-versioning-strategy/README.md</code> - Sections now reference SPEC-089<br>\n- <code>specs/088-api-versioning-strategy/breaking-changes.md</code> - Updated to reference SPEC-089</p>\n<hr>\n<h2 id=\"next-steps\">\ud83c\udfaf Next Steps</h2>\n<h3 id=\"high-priority\">High Priority</h3>\n<ol>\n<li>\u2705 <strong>SPEC Directory Created</strong> - COMPLETE</li>\n<li>\u2705 <strong>Cross-References Established</strong> - COMPLETE</li>\n<li>\u26a0\ufe0f <strong>Remove Misnumbered Directory</strong> - Remove <code>specs/089-white-label-platform/</code> (contains SPEC-140 content)</li>\n</ol>\n<h3 id=\"medium-priority\">Medium Priority</h3>\n<ol>\n<li>\n<p><strong>Enhanced Detection</strong><br>\n   - Database schema breaking change detection<br>\n   - Protocol Buffer breaking change detection<br>\n   - Additional breaking change patterns</p>\n</li>\n<li>\n<p><strong>Migration Tools</strong><br>\n   - Automated migration script generation<br>\n   - Client SDK migration helpers</p>\n</li>\n</ol>\n<hr>\n<h2 id=\"files-createdupdated\">\ud83d\udcdd Files Created/Updated</h2>\n<h3 id=\"created\">Created</h3>\n<ul>\n<li><code>specs/089-breaking-change-management/README.md</code> - Complete SPEC documentation</li>\n<li><code>specs/089-breaking-change-management/migration-guide-template.md</code> - Migration template</li>\n</ul>\n<h3 id=\"updated\">Updated</h3>\n<ul>\n<li><code>specs/088-api-versioning-strategy/README.md</code> - Cross-references added</li>\n<li><code>specs/088-api-versioning-strategy/breaking-changes.md</code> - References SPEC-089</li>\n</ul>\n<hr>\n<h2 id=\"important-notes\">\u26a0\ufe0f Important Notes</h2>\n<ol>\n<li>\n<p><strong>Directory Status:</strong><br>\n   - \u2705 <code>specs/089-breaking-change-management/</code> - CREATED (correct)<br>\n   - \u26a0\ufe0f <code>specs/089-white-label-platform/</code> - Still exists (should be removed - misnumbered)</p>\n</li>\n<li>\n<p><strong>Coordination:</strong><br>\n   - \u2705 Cross-references established between SPEC-088 and SPEC-089<br>\n   - \u2705 Clear boundaries defined<br>\n   - \u2705 Both SPECs reference each other appropriately</p>\n</li>\n<li>\n<p><strong>Implementation:</strong><br>\n   - \u2705 Breaking change detection script is COMPLETE and working<br>\n   - \u2705 Documentation is COMPLETE in SPEC structure<br>\n   - \u2705 CI integration is COMPLETE</p>\n</li>\n</ol>\n<hr>\n<p><strong>Status:</strong> \ud83d\udccb Planned - Implementation ~75% complete, SPEC structure created<br>\n<strong>Next Steps:</strong> Remove misnumbered directory, enhance detection capabilities</p>\n<hr>\n<p><strong>For detailed analysis, see</strong>: <code>docs/spec-analysis/SPEC_089_COMPREHENSIVE_ANALYSIS.md</code></p>",
+  "neighbors": {
+    "previous": {
+      "id": 597,
+      "ref": 568,
+      "subject": "SPEC-088: API Versioning Strategy"
+    },
+    "next": {
+      "id": 599,
+      "ref": 570,
+      "subject": "SPEC-090: Approval Chain Processing (ACP)"
+    }
+  }
+}

@@ -294,7 +294,12 @@ func (ht *HTTPTester) recordError(err error, duration time.Duration) {
 
 // collectMetrics collects real-time metrics
 func (ht *HTTPTester) collectMetrics(ctx context.Context) {
-	ticker := time.NewTicker(ht.config.ReportInterval)
+	// Ensure ReportInterval is valid before creating ticker
+	interval := ht.config.ReportInterval
+	if interval <= 0 {
+		interval = 1 * time.Second // Default to 1 second if not set
+	}
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
@@ -316,7 +321,12 @@ func (ht *HTTPTester) collectMetrics(ctx context.Context) {
 
 // reportProgress reports real-time progress
 func (ht *HTTPTester) reportProgress(ctx context.Context) {
-	ticker := time.NewTicker(ht.config.ReportInterval)
+	// Ensure ReportInterval is valid before creating ticker
+	interval := ht.config.ReportInterval
+	if interval <= 0 {
+		interval = 1 * time.Second // Default to 1 second if not set
+	}
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	lastTotal := int64(0)

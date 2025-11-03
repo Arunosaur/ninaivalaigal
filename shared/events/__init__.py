@@ -10,6 +10,7 @@ using Redis Streams for async, event-driven communication between
 microservices.
 """
 
+from .consumer import EventConsumer
 from .publisher import EventPublisher, get_event_publisher
 from .schema import Event, EventMetadata
 from .types import EventType, StreamTopic
@@ -20,5 +21,6 @@ __all__ = [
     "EventPublisher",
     "EventType",
     "StreamTopic",
+    "EventConsumer",
     "get_event_publisher",
 ]

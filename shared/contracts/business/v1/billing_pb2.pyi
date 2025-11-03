@@ -1,11 +1,15 @@
+from collections.abc import Iterable as _Iterable
+from collections.abc import Mapping as _Mapping
+from typing import ClassVar as _ClassVar
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from common.v1 import errors_pb2 as _errors_pb2
 from common.v1 import pagination_pb2 as _pagination_pb2
-from google.protobuf.internal import containers as _containers
-from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Iterable as _Iterable, Mapping as _Mapping
-from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -24,6 +28,7 @@ class SubscriptionStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SUBSCRIPTION_STATUS_CANCELLED: _ClassVar[SubscriptionStatus]
     SUBSCRIPTION_STATUS_EXPIRED: _ClassVar[SubscriptionStatus]
     SUBSCRIPTION_STATUS_TRIAL: _ClassVar[SubscriptionStatus]
+
 SUBSCRIPTION_TIER_UNSPECIFIED: SubscriptionTier
 SUBSCRIPTION_TIER_FREE: SubscriptionTier
 SUBSCRIPTION_TIER_STARTER: SubscriptionTier
@@ -45,7 +50,13 @@ class CreateSubscriptionRequest(_message.Message):
     organization_id: str
     tier: SubscriptionTier
     payment_method_id: str
-    def __init__(self, user_id: _Optional[str] = ..., organization_id: _Optional[str] = ..., tier: _Optional[_Union[SubscriptionTier, str]] = ..., payment_method_id: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        user_id: _Optional[str] = ...,
+        organization_id: _Optional[str] = ...,
+        tier: _Optional[_Union[SubscriptionTier, str]] = ...,
+        payment_method_id: _Optional[str] = ...,
+    ) -> None: ...
 
 class GetSubscriptionRequest(_message.Message):
     __slots__ = ("subscription_id",)
@@ -59,7 +70,9 @@ class UpdateSubscriptionRequest(_message.Message):
     NEW_TIER_FIELD_NUMBER: _ClassVar[int]
     subscription_id: str
     new_tier: SubscriptionTier
-    def __init__(self, subscription_id: _Optional[str] = ..., new_tier: _Optional[_Union[SubscriptionTier, str]] = ...) -> None: ...
+    def __init__(
+        self, subscription_id: _Optional[str] = ..., new_tier: _Optional[_Union[SubscriptionTier, str]] = ...
+    ) -> None: ...
 
 class CancelSubscriptionRequest(_message.Message):
     __slots__ = ("subscription_id", "immediate", "reason")
@@ -69,7 +82,9 @@ class CancelSubscriptionRequest(_message.Message):
     subscription_id: str
     immediate: bool
     reason: str
-    def __init__(self, subscription_id: _Optional[str] = ..., immediate: bool = ..., reason: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self, subscription_id: _Optional[str] = ..., immediate: bool = ..., reason: _Optional[str] = ...
+    ) -> None: ...
 
 class CancelSubscriptionResponse(_message.Message):
     __slots__ = ("success", "ends_at")
@@ -87,7 +102,9 @@ class GetUsageRequest(_message.Message):
     organization_id: str
     start_date: str
     end_date: str
-    def __init__(self, organization_id: _Optional[str] = ..., start_date: _Optional[str] = ..., end_date: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self, organization_id: _Optional[str] = ..., start_date: _Optional[str] = ..., end_date: _Optional[str] = ...
+    ) -> None: ...
 
 class ListInvoicesRequest(_message.Message):
     __slots__ = ("organization_id", "page")
@@ -95,10 +112,25 @@ class ListInvoicesRequest(_message.Message):
     PAGE_FIELD_NUMBER: _ClassVar[int]
     organization_id: str
     page: _pagination_pb2.PageRequest
-    def __init__(self, organization_id: _Optional[str] = ..., page: _Optional[_Union[_pagination_pb2.PageRequest, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        organization_id: _Optional[str] = ...,
+        page: _Optional[_Union[_pagination_pb2.PageRequest, _Mapping]] = ...,
+    ) -> None: ...
 
 class Subscription(_message.Message):
-    __slots__ = ("id", "user_id", "organization_id", "tier", "status", "started_at", "ends_at", "cancelled_at", "monthly_price", "currency")
+    __slots__ = (
+        "id",
+        "user_id",
+        "organization_id",
+        "tier",
+        "status",
+        "started_at",
+        "ends_at",
+        "cancelled_at",
+        "monthly_price",
+        "currency",
+    )
     ID_FIELD_NUMBER: _ClassVar[int]
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     ORGANIZATION_ID_FIELD_NUMBER: _ClassVar[int]
@@ -119,7 +151,19 @@ class Subscription(_message.Message):
     cancelled_at: str
     monthly_price: float
     currency: str
-    def __init__(self, id: _Optional[str] = ..., user_id: _Optional[str] = ..., organization_id: _Optional[str] = ..., tier: _Optional[_Union[SubscriptionTier, str]] = ..., status: _Optional[_Union[SubscriptionStatus, str]] = ..., started_at: _Optional[str] = ..., ends_at: _Optional[str] = ..., cancelled_at: _Optional[str] = ..., monthly_price: _Optional[float] = ..., currency: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        id: _Optional[str] = ...,
+        user_id: _Optional[str] = ...,
+        organization_id: _Optional[str] = ...,
+        tier: _Optional[_Union[SubscriptionTier, str]] = ...,
+        status: _Optional[_Union[SubscriptionStatus, str]] = ...,
+        started_at: _Optional[str] = ...,
+        ends_at: _Optional[str] = ...,
+        cancelled_at: _Optional[str] = ...,
+        monthly_price: _Optional[float] = ...,
+        currency: _Optional[str] = ...,
+    ) -> None: ...
 
 class UsageReport(_message.Message):
     __slots__ = ("organization_id", "api_calls", "memory_count", "storage_bytes", "cost", "period_start", "period_end")
@@ -137,7 +181,16 @@ class UsageReport(_message.Message):
     cost: float
     period_start: str
     period_end: str
-    def __init__(self, organization_id: _Optional[str] = ..., api_calls: _Optional[int] = ..., memory_count: _Optional[int] = ..., storage_bytes: _Optional[int] = ..., cost: _Optional[float] = ..., period_start: _Optional[str] = ..., period_end: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        organization_id: _Optional[str] = ...,
+        api_calls: _Optional[int] = ...,
+        memory_count: _Optional[int] = ...,
+        storage_bytes: _Optional[int] = ...,
+        cost: _Optional[float] = ...,
+        period_start: _Optional[str] = ...,
+        period_end: _Optional[str] = ...,
+    ) -> None: ...
 
 class InvoiceList(_message.Message):
     __slots__ = ("invoices", "page_info")
@@ -145,7 +198,11 @@ class InvoiceList(_message.Message):
     PAGE_INFO_FIELD_NUMBER: _ClassVar[int]
     invoices: _containers.RepeatedCompositeFieldContainer[Invoice]
     page_info: _pagination_pb2.PageInfo
-    def __init__(self, invoices: _Optional[_Iterable[_Union[Invoice, _Mapping]]] = ..., page_info: _Optional[_Union[_pagination_pb2.PageInfo, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        invoices: _Optional[_Iterable[_Union[Invoice, _Mapping]]] = ...,
+        page_info: _Optional[_Union[_pagination_pb2.PageInfo, _Mapping]] = ...,
+    ) -> None: ...
 
 class Invoice(_message.Message):
     __slots__ = ("id", "organization_id", "amount", "currency", "status", "due_date", "paid_at", "pdf_url")
@@ -165,4 +222,14 @@ class Invoice(_message.Message):
     due_date: str
     paid_at: str
     pdf_url: str
-    def __init__(self, id: _Optional[str] = ..., organization_id: _Optional[str] = ..., amount: _Optional[float] = ..., currency: _Optional[str] = ..., status: _Optional[str] = ..., due_date: _Optional[str] = ..., paid_at: _Optional[str] = ..., pdf_url: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        id: _Optional[str] = ...,
+        organization_id: _Optional[str] = ...,
+        amount: _Optional[float] = ...,
+        currency: _Optional[str] = ...,
+        status: _Optional[str] = ...,
+        due_date: _Optional[str] = ...,
+        paid_at: _Optional[str] = ...,
+        pdf_url: _Optional[str] = ...,
+    ) -> None: ...

@@ -1,0 +1,58 @@
+[
+  {
+    "subject": "SPEC-042: SSO Integration Testing with Mock SAML/OIDC Providers",
+    "description": "Implement comprehensive SSO integration testing with mock SAML and OIDC providers to validate enterprise authentication flows. This includes creating mock identity providers, testing SSO flows, validating provider verification, and ensuring secure token exchange. Target: <2s end-to-end SSO auth time.",
+    "tags": ["spec-042", "sso", "saml", "oidc", "enterprise", "testing", "auth"],
+    "priority": "High",
+    "effort": "8 days"
+  },
+  {
+    "subject": "SPEC-042: Enhanced OAuth Flow Testing",
+    "description": "Enhance existing OAuth flow testing to provide comprehensive coverage of OAuth 2.0 and OpenID Connect flows, including authorization code, implicit, client credentials, and device flows. Validate token refresh, revocation, and error scenarios. Ensure all OAuth grant types are tested.",
+    "tags": ["spec-042", "oauth", "oidc", "testing", "auth"],
+    "priority": "Medium",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-042: Comprehensive Compliance Testing (SOC2, GDPR, ISO 27001)",
+    "description": "Expand compliance testing to provide comprehensive validation for SOC2 Type II, GDPR data access patterns, and ISO 27001 requirements. Include automated compliance report generation, data access audit validation, privacy policy enforcement testing, and security control verification.",
+    "tags": ["spec-042", "compliance", "soc2", "gdpr", "iso27001", "enterprise", "testing"],
+    "priority": "High",
+    "effort": "10 days"
+  },
+  {
+    "subject": "SPEC-042: Admin Console Security Testing",
+    "description": "Implement comprehensive admin console security testing including admin-specific RBAC scenarios, privilege escalation prevention for admin operations, admin action audit validation, and admin-only endpoint access control. Ensure all admin operations are properly secured and audited.",
+    "tags": ["spec-042", "admin", "security", "rbac", "testing", "enterprise"],
+    "priority": "High",
+    "effort": "6 days"
+  },
+  {
+    "subject": "SPEC-042: Billing System Auth Integration Testing",
+    "description": "Create comprehensive authentication and authorization testing for billing system integration, including subscription security validation, payment method access control, invoice access permissions, and billing operation audit trails. Ensure billing data is properly protected.",
+    "tags": ["spec-042", "billing", "auth", "integration", "testing", "enterprise"],
+    "priority": "Medium",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-042: API Rate Limiting and Abuse Prevention Testing",
+    "description": "Verify and enhance API rate limiting testing to validate abuse prevention mechanisms. Include concurrent request testing, rate limit enforcement validation, backoff strategy testing, and abuse pattern detection. Ensure rate limiting works correctly under load.",
+    "tags": ["spec-042", "rate-limiting", "security", "testing", "performance"],
+    "priority": "Medium",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-042: Enhanced Security Audit Trail Validation",
+    "description": "Expand security audit trail testing to provide comprehensive validation of all security events, including authentication events, authorization decisions, permission changes, admin actions, and compliance-related events. Ensure 100% audit trail accuracy and completeness.",
+    "tags": ["spec-042", "audit", "security", "compliance", "testing", "enterprise"],
+    "priority": "Medium",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-042: Comprehensive Multi-Tenant Isolation Validation",
+    "description": "Enhance multi-tenant isolation testing to provide comprehensive validation of data separation across tenants, including cross-tenant access prevention, data leakage prevention, tenant-level RBAC enforcement, and isolation performance testing. Ensure zero cross-tenant data access.",
+    "tags": ["spec-042", "multi-tenant", "isolation", "security", "testing", "enterprise"],
+    "priority": "High",
+    "effort": "6 days"
+  }
+]

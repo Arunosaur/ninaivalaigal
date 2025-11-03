@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any
 
 from fastapi import HTTPException, status
 from starlette.formparsers import MultiPartParser
@@ -61,14 +62,18 @@ async def scan_with_starlette(
 ) -> None:
     """Scan multipart request with Starlette parser and invoke handlers with size limits."""
     try:
-        parser = MultiPartParser(headers=request.headers, stream=request.stream())
+        if hasattr(request, "iter_parts") and getattr(request, "_fake_multipart_parts", None) is not None:
+            part_iterable = request.iter_parts()  # type: ignore[assignment]
+        else:
+            parser = MultiPartParser(headers=request.headers, stream=request.stream())
+            part_iterable = parser.parse()
     except Exception as e:
         _emit_multipart_reject(REASON_ENGINE_ERROR)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"invalid multipart: {e}") from e
 
     part_count = 0
 
-    async for part in parser.parse():
+    async for part in part_iterable:
         part_count += 1
         if part_count >= max_parts_per_request:
             _emit_multipart_reject(REASON_TOO_MANY_PARTS)
@@ -166,3 +171,47 @@ async def scan_with_starlette(
                 )
 
             await binary_handler(head, headers)
+
+
+async def process_multipart_securely(
+    request: Request,
+    *,
+    text_processor: Callable[[str], str] | None = None,
+    allow_binary: bool = False,
+    max_parts: int | None = None,
+    max_text_part_bytes: int = DEFAULT_MAX_TEXT_PART_BYTES,
+    max_binary_part_bytes: int = DEFAULT_MAX_BINARY_PART_BYTES,
+) -> dict[str, list[dict[str, Any]]]:
+    """Process multipart/form-data payload with security validations.
+
+    Returns a structured dictionary containing sanitized text parts and optionally
+    binary parts (when ``allow_binary`` is True). Each entry retains the part's
+    headers to give downstream handlers necessary context.
+    """
+
+    processed: dict[str, list[dict[str, Any]]] = {"text_parts": [], "binary_parts": []}
+
+    async def _handle_text(content: str, headers: dict) -> None:
+        sanitized = text_processor(content) if text_processor else content
+        processed["text_parts"].append({"content": sanitized, "headers": headers})
+
+    async def _handle_binary(content: bytes, headers: dict) -> None:
+        if not allow_binary:
+            _emit_multipart_reject(REASON_POLICY_DENIED)
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="Binary uploads not supported on this endpoint",
+            )
+
+        processed["binary_parts"].append({"content": content, "headers": headers})
+
+    await scan_with_starlette(
+        request,
+        text_handler=_handle_text,
+        binary_handler=_handle_binary if allow_binary else None,
+        max_text_part_bytes=max_text_part_bytes,
+        max_binary_part_bytes=max_binary_part_bytes,
+        max_parts_per_request=max_parts or DEFAULT_MAX_PARTS_PER_REQUEST,
+    )
+
+    return processed

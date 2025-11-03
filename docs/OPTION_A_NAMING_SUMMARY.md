@@ -1,6 +1,6 @@
 # Option A: Full Suffixes - Implementation Summary
 
-**Decision Date:** Oct 16, 2025  
+**Decision Date:** Oct 16, 2025
 **Status:** ✅ IMPLEMENTED
 
 ---
@@ -179,7 +179,7 @@ SELECT create_graph('ninaivalaigal_intelligence_test');
 # Development
 DATABASE_URL = "postgresql://nina:password@host:6432/ninaivalaigal_dev"
 
-# Test  
+# Test
 DATABASE_URL = "postgresql://nina:password@host:6532/ninaivalaigal_test"
 
 # Production
@@ -227,9 +227,9 @@ SELECT create_graph('ninaivalaigal_intelligence_dev');
 ## 🎯 Key Principle
 
 > **Option A = Full Suffixes Everywhere**
-> 
+>
 > Container name has env → Database name has env → Graph name has env
-> 
+>
 > This enables multi-environment support on same host and provides
 > maximum clarity at every layer of the stack.
 

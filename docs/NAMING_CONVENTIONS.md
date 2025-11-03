@@ -1,7 +1,7 @@
 # Ninaivalaigal Naming Conventions
 
-**Version:** 1.0  
-**Updated:** Oct 16, 2025  
+**Version:** 1.0
+**Updated:** Oct 16, 2025
 **Reference:** SPEC-086, ports.nv.yaml v2.1
 
 ---
@@ -83,7 +83,7 @@ ninaivalaigal_prod     -- Production database
 -- Inside ninaivalaigal_dev database
 ninaivalaigal_intelligence_dev
 
--- Inside ninaivalaigal_test database  
+-- Inside ninaivalaigal_test database
 ninaivalaigal_intelligence_test
 
 -- Inside ninaivalaigal_prod database
@@ -430,8 +430,8 @@ When creating a new service, verify:
 
 ---
 
-**Key Principle:** 
-> All services in the same environment share ONE database (`ninaivalaigal_{env}`).  
+**Key Principle:**
+> All services in the same environment share ONE database (`ninaivalaigal_{env}`).
 > Use schemas or table prefixes to separate service data within the shared database.
 
 **Why?**
@@ -442,5 +442,5 @@ When creating a new service, verify:
 
 ---
 
-**Last Updated:** Oct 16, 2025  
+**Last Updated:** Oct 16, 2025
 **Maintained By:** Developer C (Python Services) + Developer A (Rust Services)

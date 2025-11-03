@@ -1,0 +1,8 @@
+target/
+.env
+.env.local
+.git
+.gitignore
+README.md
+tests/
+*.md

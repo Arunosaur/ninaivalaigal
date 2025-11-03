@@ -15,6 +15,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
+from uuid import UUID
 
 import asyncpg
 
@@ -41,9 +42,9 @@ class UnifiedContextOps:
         name: str,
         description: Optional[str] = None,
         scope: ContextScope = "personal",
-        owner_id: Optional[int] = None,
-        team_id: Optional[int] = None,
-        organization_id: Optional[int] = None,
+        owner_id: Optional[UUID] = None,
+        team_id: Optional[UUID] = None,
+        organization_id: Optional[UUID] = None,
         visibility: ContextVisibility = "private",
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
@@ -101,7 +102,7 @@ class UnifiedContextOps:
             logger.info(f"Created {scope} context '{name}' with ID {result['id']}")
             return dict(result)
 
-    async def get_context(self, context_id: int, user_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+    async def get_context(self, context_id: UUID, user_id: Optional[UUID] = None) -> Optional[Dict[str, Any]]:
         """Get context by ID with access validation"""
         async with self.pool.acquire() as conn:
             # Check user access to context
@@ -121,7 +122,7 @@ class UnifiedContextOps:
 
     async def list_contexts(
         self,
-        user_id: Optional[int] = None,
+        user_id: Optional[UUID] = None,
         scope: Optional[ContextScope] = None,
         limit: int = 100,
         offset: int = 0,
@@ -165,8 +166,8 @@ class UnifiedContextOps:
 
     async def update_context(
         self,
-        context_id: int,
-        user_id: int,
+        context_id: UUID,
+        user_id: UUID,
         name: Optional[str] = None,
         description: Optional[str] = None,
         visibility: Optional[ContextVisibility] = None,
@@ -223,7 +224,7 @@ class UnifiedContextOps:
 
             return success
 
-    async def delete_context(self, context_id: int, user_id: int) -> bool:
+    async def delete_context(self, context_id: UUID, user_id: UUID) -> bool:
         """Soft delete context with permission validation"""
         async with self.pool.acquire() as conn:
             # Check admin/owner permission
@@ -246,11 +247,11 @@ class UnifiedContextOps:
 
     async def grant_permission(
         self,
-        context_id: int,
-        granted_by: int,
-        user_id: Optional[int] = None,
-        team_id: Optional[int] = None,
-        organization_id: Optional[int] = None,
+        context_id: UUID,
+        granted_by: UUID,
+        user_id: Optional[UUID] = None,
+        team_id: Optional[UUID] = None,
+        organization_id: Optional[UUID] = None,
         permission_level: PermissionLevel = "read",
         expires_at: Optional[datetime] = None,
     ) -> bool:
@@ -273,11 +274,11 @@ class UnifiedContextOps:
 
     async def revoke_permission(
         self,
-        context_id: int,
-        revoked_by: int,
-        user_id: Optional[int] = None,
-        team_id: Optional[int] = None,
-        organization_id: Optional[int] = None,
+        context_id: UUID,
+        revoked_by: UUID,
+        user_id: Optional[UUID] = None,
+        team_id: Optional[UUID] = None,
+        organization_id: Optional[UUID] = None,
     ) -> bool:
         """Revoke permission from user, team, or organization"""
         async with self.pool.acquire() as conn:
@@ -319,11 +320,11 @@ class UnifiedContextOps:
 
     async def share_context(
         self,
-        context_id: int,
-        shared_by: int,
-        shared_with_user_id: Optional[int] = None,
-        shared_with_team_id: Optional[int] = None,
-        shared_with_organization_id: Optional[int] = None,
+        context_id: UUID,
+        shared_by: UUID,
+        shared_with_user_id: Optional[UUID] = None,
+        shared_with_team_id: Optional[UUID] = None,
+        shared_with_organization_id: Optional[UUID] = None,
         permission_level: Literal["read", "write"] = "read",
         message: Optional[str] = None,
         expires_at: Optional[datetime] = None,
@@ -390,8 +391,8 @@ class UnifiedContextOps:
     async def _check_context_access(
         self,
         conn: asyncpg.Connection,
-        context_id: int,
-        user_id: int,
+        context_id: UUID,
+        user_id: UUID,
         min_level: PermissionLevel = "read",
     ) -> bool:
         """Check if user has minimum permission level for context"""
@@ -411,12 +412,12 @@ class UnifiedContextOps:
     async def _grant_permission(
         self,
         conn: asyncpg.Connection,
-        context_id: int,
-        user_id: Optional[int] = None,
-        team_id: Optional[int] = None,
-        organization_id: Optional[int] = None,
+        context_id: UUID,
+        user_id: Optional[UUID] = None,
+        team_id: Optional[UUID] = None,
+        organization_id: Optional[UUID] = None,
         permission_level: PermissionLevel = "read",
-        granted_by: Optional[int] = None,
+        granted_by: Optional[UUID] = None,
         expires_at: Optional[datetime] = None,
     ) -> bool:
         """Internal method to grant permission"""
@@ -446,7 +447,7 @@ class UnifiedContextOps:
 
         return True
 
-    async def get_context_permissions(self, context_id: int, user_id: int) -> List[Dict[str, Any]]:
+    async def get_context_permissions(self, context_id: UUID, user_id: UUID) -> List[Dict[str, Any]]:
         """Get all permissions for a context (admin only)"""
         async with self.pool.acquire() as conn:
             if not await self._check_context_access(conn, context_id, user_id, min_level="admin"):

@@ -127,8 +127,9 @@ class TestSignupFunctionality:
 
     def test_signup_validation_invalid_email(self):
         """Test signup with invalid email format"""
-        from auth import validate_email
         from fastapi import HTTPException
+
+        from auth import validate_email
 
         # Test invalid email formats
         invalid_emails = [

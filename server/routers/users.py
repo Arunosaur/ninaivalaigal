@@ -14,10 +14,11 @@ Extracted from main.py for better code organization
 from typing import Optional
 from uuid import UUID
 
-from auth import get_current_user
 from database import DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
+
+from auth import get_current_user
 
 
 # Database manager dependency
@@ -54,6 +55,7 @@ class UserProfileResponse(BaseModel):
 
     class Config:
         """Pydantic config"""
+
         from_attributes = True
 
 

@@ -339,3 +339,12 @@ class CombinedSecretDetector:
     def _matches_overlap(self, match1: SecretMatch, match2: SecretMatch) -> bool:
         """Check if two matches overlap"""
         return not (match1.end_pos <= match2.start_pos or match2.end_pos <= match1.start_pos)
+
+
+class SecretDetector(CombinedSecretDetector):
+    """Backward-compatible detector that exposes detect_secrets API."""
+
+    def detect_secrets(self, text: str) -> list[SecretMatch]:
+        """Detect secrets using combined detection strategies."""
+
+        return self.detect_all_secrets(text)

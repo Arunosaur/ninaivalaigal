@@ -14,12 +14,13 @@ Internal operations dashboard with comprehensive business intelligence
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
-from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, Depends, HTTPException, Query
 from models.standalone_teams import TeamMembership
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+from auth import get_current_user, get_db
 
 # Initialize router
 router = APIRouter(prefix="/admin-analytics", tags=["admin"])

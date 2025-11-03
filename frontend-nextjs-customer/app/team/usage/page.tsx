@@ -9,7 +9,7 @@
 //
 /**
  * US#211: Usage Analytics Page
- * 
+ *
  * Usage analytics with:
  * - Memory usage graph (line chart)
  * - API calls graph (bar chart)
@@ -287,4 +287,3 @@ export default function TeamUsagePage() {
     </div>
   );
 }
-

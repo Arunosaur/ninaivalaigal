@@ -17,6 +17,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@nina/ui': path.resolve(__dirname, '../../packages/ui/src'),
     },
+    dedupe: ['react', 'react-dom'],
   },
   server: {
     port: 8101,

@@ -75,6 +75,11 @@ class RedactionAuditEvent:
         }
 
 
+# Backwards compatibility aliases for legacy imports
+RedactionEvent = RedactionAuditEvent
+RedactionEventType = AuditEventType
+
+
 class RedactionAuditLogger:
     """Audit logger for redaction events"""
 

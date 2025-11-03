@@ -1,0 +1,44 @@
+[
+  {
+    "subject": "SPEC-034: Hierarchical Memory Tag System",
+    "description": "Implement hierarchical tag system for memories, allowing nested tags and tag categories to organize memories across user, team, and organization contexts.\n\n**Requirements:**\n- Support nested tag structures (parent-child relationships)\n- Tag category management\n- Tag hierarchy visualization\n- Multi-level tag filtering\n\n**Acceptance Criteria:**\n- Users can create hierarchical tags\n- Tags can be nested up to 3 levels\n- Tag hierarchy is preserved across contexts\n- API endpoints support hierarchical tag operations",
+    "tags": ["spec-034", "memory-tags", "hierarchical", "backend"],
+    "priority": "High",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-034: Advanced Search by Labels API",
+    "description": "Implement advanced search functionality that allows users to search memories by multiple labels/tags with boolean operators (AND, OR, NOT).\n\n**Requirements:**\n- Multi-tag search with boolean logic\n- Label-based filtering\n- Search result ranking by relevance\n- Performance optimization for large tag sets\n\n**Acceptance Criteria:**\n- Users can search with multiple tags using AND/OR/NOT\n- Search queries support complex boolean expressions\n- Results are ranked by relevance\n- Search response time <500ms for typical queries",
+    "tags": ["spec-034", "search", "labels", "api"],
+    "priority": "High",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-034: Multi-Context Tag Management",
+    "description": "Enable tag management across different contexts (user-level, team-level, organization-level) with proper access control and visibility.\n\n**Requirements:**\n- Context-aware tag creation and management\n- Tag visibility based on context scope\n- Tag inheritance and sharing mechanisms\n- ACL integration for tag access control\n\n**Acceptance Criteria:**\n- Tags can be created at user/team/org levels\n- Tag visibility respects context boundaries\n- Tag sharing between contexts works correctly\n- ACL policies apply to tag operations",
+    "tags": ["spec-034", "tags", "multi-context", "acl"],
+    "priority": "Medium",
+    "effort": "6 days"
+  },
+  {
+    "subject": "SPEC-034: Tag Filter UI Components",
+    "description": "Build frontend UI components for tag filtering, tag selection, and tag-based memory browsing in the customer and admin consoles.\n\n**Requirements:**\n- Tag filter dropdown/selector\n- Multi-select tag filtering\n- Tag cloud visualization\n- Tag-based memory list view\n\n**Acceptance Criteria:**\n- Users can filter memories by tags in UI\n- Tag selector supports multi-select\n- Tag cloud displays popular tags\n- Filtered results update in real-time",
+    "tags": ["spec-034", "ui", "frontend", "filters"],
+    "priority": "Medium",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-034: Tag ACL and Visibility Rules",
+    "description": "Implement access control and visibility rules for tags, ensuring users can only see and manage tags they have permission to access.\n\n**Requirements:**\n- Tag-level ACL enforcement\n- Visibility rules based on context\n- Permission checks for tag operations\n- Integration with SPEC-043 (Memory ACL)\n\n**Acceptance Criteria:**\n- Users can only see tags they have access to\n- Tag creation respects permission boundaries\n- Tag modifications require appropriate permissions\n- ACL rules are enforced across all tag operations",
+    "tags": ["spec-034", "acl", "permissions", "security"],
+    "priority": "High",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-034: Tag Management Tests",
+    "description": "Create comprehensive test suite for SPEC-034 features including unit tests, integration tests, and E2E tests for tag operations.\n\n**Requirements:**\n- Unit tests for tag hierarchy operations\n- Integration tests for search functionality\n- E2E tests for tag management workflows\n- Performance tests for large tag sets\n\n**Acceptance Criteria:**\n- Test coverage >90% for tag operations\n- All integration tests pass\n- E2E tests cover critical workflows\n- Performance tests validate query optimization",
+    "tags": ["spec-034", "testing", "coverage", "quality"],
+    "priority": "Medium",
+    "effort": "3 days"
+  }
+]

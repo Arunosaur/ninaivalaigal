@@ -11,13 +11,16 @@ Organization Management Router
 Extracted from main.py for better code organization
 """
 
-from auth import get_current_user
+from uuid import UUID as UUIDType
+
+from admin.helpers import get_admin_user_id_from_request, log_admin_action_async
 from database import DatabaseManager, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from models.api_models import OrganizationCreate
-from rbac_middleware import get_rbac_context, require_permission
-from security_integration import log_admin_action
+from rbac_middleware import require_permission
+from routers.admin_activity import get_activity_logger
 
+from auth import get_current_user
 from rbac.permissions import Action, Resource
 
 # Initialize router
@@ -39,19 +42,30 @@ async def create_organization(
     org_data: OrganizationCreate,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
+    activity_logger=Depends(get_activity_logger),
 ):
     """Create a new organization"""
     try:
-        # Log admin action
-        rbac_context = get_rbac_context(request)
-        await log_admin_action(
-            rbac_context,
-            "create_organization",
-            f"organization:{org_data.name}",
-            {"organization_name": org_data.name, "description": org_data.description},
-        )
-
         org = db.create_organization(org_data.name, org_data.description)
+
+        # Log admin action (non-blocking)
+        admin_user_id = get_admin_user_id_from_request(
+            {"user_id": str(current_user.id) if hasattr(current_user, "id") else current_user.get("user_id")}
+        )
+        if admin_user_id:
+            await log_admin_action_async(
+                activity_logger,
+                admin_user_id=admin_user_id,
+                action="create_organization",
+                target_type="organization",
+                target_id=UUIDType(str(org.id)) if hasattr(org, "id") else None,
+                details={
+                    "organization_name": org_data.name,
+                    "description": org_data.description,
+                },
+                request=request,
+            )
+
         return {
             "id": org.id,
             "name": org.name,

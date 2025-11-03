@@ -3,12 +3,17 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
+from fastapi import HTTPException
+
+os.environ.setdefault("NINAIVALAIGAL_JWT_SECRET", "test-secret")
+os.environ.setdefault("NINAIVALAIGAL_JWT_EXPIRATION_HOURS", "24")
 
 CORE_API_DIR = Path(__file__).resolve().parents[2]
 core_api_str = str(CORE_API_DIR)
@@ -112,6 +117,20 @@ class TestSignupFlow:
         assert isinstance(stored_hash, str)
         assert stored_hash != signup.password
         assert password_utils.verify_password(signup.password, stored_hash)
+
+    def test_signup_rejects_weak_password(self):
+        signup = auth.IndividualUserSignup(
+            email="weak@example.com",
+            password="password",  # Missing digits, should fail validation
+            full_name="Weak Password",
+        )
+
+        with pytest.raises(HTTPException) as exc:
+            auth.create_individual_user(signup)
+
+        assert exc.value.status_code == 400
+        assert "Password" in exc.value.detail
+        assert self.fake_db.created_payload is None
 
 
 @pytest.mark.usefixtures("_ensure_jwt_secret")

@@ -23,9 +23,9 @@ os.environ["NINAIVALAIGAL_USER_TOKEN"] = (
 os.environ["NINAIVALAIGAL_USER_ID"] = "8"
 os.environ["NINAIVALAIGAL_DATABASE_URL"] = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
 
-from auth import load_config  # noqa: E402
 from database import DatabaseManager  # noqa: E402
 
+from auth import load_config  # noqa: E402
 from mcp_server import context_start, get_user_from_jwt  # noqa: E402
 
 

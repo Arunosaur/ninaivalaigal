@@ -41,9 +41,9 @@ container stop ninaivalaigal-dev-memory-service
 
 ## 📋 Naming Rules
 
-**Container:** `ninaivalaigal-dev-{service}`  
-**Database:** `ninaivalaigal_dev` (shared, don't create new!)  
-**Port:** Internal `8000` → External `13393` or `13394`  
+**Container:** `ninaivalaigal-dev-{service}`
+**Database:** `ninaivalaigal_dev` (shared, don't create new!)
+**Port:** Internal `8000` → External `13393` or `13394`
 **Scripts:** `nv-{service}-start.sh`, `nv-{service}-stop.sh`
 
 ---
@@ -143,6 +143,6 @@ See: `services/DEVELOPER_A_CONVENTIONS_GUIDE.md` (1000+ lines)
 
 ---
 
-**Port Matrix:** `config/ports.nv.yaml`  
-**Example Scripts:** `services/core-api/nv-core-api-start.sh`  
+**Port Matrix:** `config/ports.nv.yaml`
+**Example Scripts:** `services/core-api/nv-core-api-start.sh`
 **Credentials:** `.env.dev`

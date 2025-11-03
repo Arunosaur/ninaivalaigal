@@ -15,23 +15,23 @@ import sys
 from datetime import datetime
 
 # Add tasks/scripts to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'tasks', 'scripts'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tasks", "scripts"))
 
 from taiga_import_tasks import TaigaImporter
 
 
 def main():
     """Update US#204 story in Taiga - mark as ready for review"""
-    taiga_url = os.getenv('TAIGA_URL', 'http://localhost:9000')
-    username = os.getenv('TAIGA_USERNAME', 'admin')
-    password = os.getenv('TAIGA_PASSWORD', 'admin123')
+    taiga_url = os.getenv("TAIGA_URL", "http://localhost:9000")
+    username = os.getenv("TAIGA_USERNAME", "admin")
+    password = os.getenv("TAIGA_PASSWORD", "admin123")
 
-    importer = TaigaImporter(f'{taiga_url}/api/v1', username=username, password=password)
+    importer = TaigaImporter(f"{taiga_url}/api/v1", username=username, password=password)
     importer._get_auth_token()
 
     # US#204 is story #160 in Taiga
     story_ref = 160
-    story = importer.get_user_story('ninaivalaigal', story_ref)
+    story = importer.get_user_story("ninaivalaigal", story_ref)
 
     if not story:
         print(f"❌ Story US#{story_ref} not found in Taiga")
@@ -41,7 +41,7 @@ def main():
 
     # Review-ready details
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
+
     review_details = f"""
 
 ---
@@ -103,7 +103,7 @@ def main():
 
     # Append to description
     try:
-        result = importer.append_to_story_description('ninaivalaigal', story_ref, review_details)
+        result = importer.append_to_story_description("ninaivalaigal", story_ref, review_details)
         if result:
             print(f"✅ Successfully updated US#{story_ref} - Ready for Review")
             print(f"📋 Story is ready to be assigned to a reviewer")
@@ -115,4 +115,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

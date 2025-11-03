@@ -1,0 +1,73 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ninaivalaigal-api-networkpolicy
+  labels:
+    app: ninaivalaigal-api
+    component: backend
+spec:
+  podSelector:
+    matchLabels:
+      app: ninaivalaigal-api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow ingress from Ingress Controller (nginx ingress)
+    - from:
+        # Common nginx ingress controller selectors
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+          podSelector:
+            matchLabels:
+              app: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 13370
+    # Allow ingress from API pods for health checks/internal communication
+    - from:
+        - podSelector:
+            matchLabels:
+              app: ninaivalaigal-api
+      ports:
+        - protocol: TCP
+          port: 13370
+  egress:
+    # Allow egress to PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow egress to Redis
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow egress to external API endpoints (for integrations)
+    - {}

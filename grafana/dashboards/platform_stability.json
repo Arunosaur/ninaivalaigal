@@ -1,0 +1,703 @@
+{
+  "dashboard": {
+    "title": "Platform Stability & Container Health",
+    "tags": ["platform", "stability", "health", "spec-051"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Platform Health Overview",
+        "type": "stat",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "platform_health_status",
+            "refId": "A",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "horizontal",
+          "textMode": "value_and_name",
+          "colorMode": "background",
+          "graphMode": "none"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "healthy": {
+                    "text": "HEALTHY",
+                    "color": "green"
+                  },
+                  "degraded": {
+                    "text": "DEGRADED",
+                    "color": "yellow"
+                  },
+                  "unhealthy": {
+                    "text": "UNHEALTHY",
+                    "color": "red"
+                  }
+                }
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": null,
+                  "color": "green"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Service Health Status",
+        "type": "table",
+        "gridPos": {
+          "x": 0,
+          "y": 4,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "container_health_status",
+            "refId": "A",
+            "format": "table",
+            "instant": true,
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          }
+        ],
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "displayName": "Service",
+              "desc": false
+            }
+          ]
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "left",
+              "displayMode": "color-background"
+            },
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "healthy": {
+                    "text": "✅ Healthy",
+                    "color": "green"
+                  },
+                  "degraded": {
+                    "text": "⚠️ Degraded",
+                    "color": "yellow"
+                  },
+                  "unhealthy": {
+                    "text": "❌ Unhealthy",
+                    "color": "red"
+                  },
+                  "unknown": {
+                    "text": "❓ Unknown",
+                    "color": "gray"
+                  }
+                }
+              }
+            ]
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "service"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 200
+                }
+              ]
+            }
+          ]
+        },
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {
+                "service": 0,
+                "status": 1,
+                "response_time_ms": 2,
+                "uptime_seconds": 3
+              },
+              "renameByName": {
+                "service": "Service",
+                "status": "Status",
+                "response_time_ms": "Response Time (ms)",
+                "uptime_seconds": "Uptime (s)"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Circuit Breaker States",
+        "type": "table",
+        "gridPos": {
+          "x": 12,
+          "y": 4,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "circuit_breaker_state",
+            "refId": "A",
+            "format": "table",
+            "instant": true,
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          }
+        ],
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "displayName": "Service",
+              "desc": false
+            }
+          ]
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "left",
+              "displayMode": "color-background"
+            },
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "closed": {
+                    "text": "✅ Closed",
+                    "color": "green"
+                  },
+                  "half_open": {
+                    "text": "🔄 Half-Open",
+                    "color": "yellow"
+                  },
+                  "open": {
+                    "text": "🚫 Open",
+                    "color": "red"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "renameByName": {
+                "service": "Service",
+                "state": "State",
+                "failure_count": "Failures",
+                "success_count": "Successes"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Service Response Times",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 0,
+          "y": 12,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "container_response_time_ms",
+            "refId": "A",
+            "legendFormat": "{{service}}",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          },
+          {
+            "expr": "performance_baseline_response_time_ms",
+            "refId": "B",
+            "legendFormat": "{{service}} baseline",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          }
+        ],
+        "options": {
+          "tooltip": {
+            "mode": "multi",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "calcs": ["mean", "max", "last"]
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10,
+              "drawStyle": "line",
+              "lineInterpolation": "smooth"
+            },
+            "unit": "ms",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": null,
+                  "color": "green"
+                },
+                {
+                  "value": 100,
+                  "color": "yellow"
+                },
+                {
+                  "value": 200,
+                  "color": "red"
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*baseline.*"
+              },
+              "properties": [
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "dash": [10, 10],
+                    "fill": "dash"
+                  }
+                },
+                {
+                  "id": "custom.lineWidth",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 5,
+        "title": "Memory Usage",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 12,
+          "y": 12,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "container_memory_mb",
+            "refId": "A",
+            "legendFormat": "{{service}}",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          },
+          {
+            "expr": "performance_baseline_memory_mb",
+            "refId": "B",
+            "legendFormat": "{{service}} baseline",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          }
+        ],
+        "options": {
+          "tooltip": {
+            "mode": "multi",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "calcs": ["mean", "max", "last"]
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10,
+              "drawStyle": "line",
+              "lineInterpolation": "smooth"
+            },
+            "unit": "decmbytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": null,
+                  "color": "green"
+                },
+                {
+                  "value": 512,
+                  "color": "yellow"
+                },
+                {
+                  "value": 1024,
+                  "color": "red"
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*baseline.*"
+              },
+              "properties": [
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "dash": [10, 10],
+                    "fill": "dash"
+                  }
+                },
+                {
+                  "id": "custom.lineWidth",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 6,
+        "title": "Service Uptime",
+        "type": "stat",
+        "gridPos": {
+          "x": 0,
+          "y": 20,
+          "w": 24,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "container_uptime_seconds",
+            "refId": "A",
+            "legendFormat": "{{service}}",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "horizontal",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "none"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": null,
+                  "color": "red"
+                },
+                {
+                  "value": 3600,
+                  "color": "yellow"
+                },
+                {
+                  "value": 86400,
+                  "color": "green"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Dependency Health Matrix",
+        "type": "heatmap",
+        "gridPos": {
+          "x": 0,
+          "y": 24,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "dependency_health_status",
+            "refId": "A",
+            "format": "time_series",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          }
+        ],
+        "options": {
+          "calculate": false,
+          "cellGap": 2,
+          "color": {
+            "mode": "scheme",
+            "scheme": "RdYlGn",
+            "steps": 3
+          },
+          "yAxis": {
+            "axisPlacement": "left"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "hideFrom": {
+                "tooltip": false,
+                "viz": false,
+                "legend": false
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Active Alerts",
+        "type": "table",
+        "gridPos": {
+          "x": 12,
+          "y": 24,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "platform_alerts",
+            "refId": "A",
+            "format": "table",
+            "instant": true,
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          }
+        ],
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "displayName": "Severity",
+              "desc": true
+            }
+          ]
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "left",
+              "displayMode": "color-background"
+            },
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "critical": {
+                    "text": "🔴 Critical",
+                    "color": "red"
+                  },
+                  "warning": {
+                    "text": "🟡 Warning",
+                    "color": "yellow"
+                  },
+                  "info": {
+                    "text": "🔵 Info",
+                    "color": "blue"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "renameByName": {
+                "severity": "Severity",
+                "service": "Service",
+                "title": "Alert",
+                "timestamp": "Time"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Performance Baseline Deviations",
+        "type": "bargauge",
+        "gridPos": {
+          "x": 0,
+          "y": 32,
+          "w": 24,
+          "h": 6
+        },
+        "targets": [
+          {
+            "expr": "performance_baseline_deviation_percent",
+            "refId": "A",
+            "legendFormat": "{{service}} - {{metric}}",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${DS_PROMETHEUS}"
+            }
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient",
+          "showUnfilled": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": null,
+                  "color": "green"
+                },
+                {
+                  "value": 50,
+                  "color": "yellow"
+                },
+                {
+                  "value": 100,
+                  "color": "red"
+                }
+              ]
+            },
+            "max": 200,
+            "min": -50
+          }
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "DS_PROMETHEUS",
+          "type": "datasource",
+          "query": "prometheus",
+          "current": {
+            "value": "Prometheus",
+            "text": "Prometheus"
+          }
+        },
+        {
+          "name": "service",
+          "type": "query",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "query": "label_values(container_health_status, service)",
+          "multi": true,
+          "includeAll": true,
+          "refresh": 1
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "enable": true,
+          "expr": "deployment_event",
+          "iconColor": "blue",
+          "tagKeys": "service,version"
+        },
+        {
+          "name": "Alerts",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "enable": true,
+          "expr": "platform_alert_created",
+          "iconColor": "red",
+          "tagKeys": "severity,service"
+        }
+      ]
+    }
+  }
+}

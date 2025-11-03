@@ -117,12 +117,12 @@ jobs:
           if [ -f "$REPORT_FILE" ]; then
             HEALTH_SCORE=$(grep -oP '\*\*Health Score\*\*: \K\d+' "$REPORT_FILE" | head -1 || echo "0")
             echo "health_score=$HEALTH_SCORE" >> $GITHUB_OUTPUT
-            
+
             if [ "$HEALTH_SCORE" -lt 70 ]; then
               echo "⚠️ Health score is below 70: $HEALTH_SCORE/100"
               echo "::warning::SPEC health score is below target (70/100)"
             fi
-            
+
             if [ "$HEALTH_SCORE" -lt 60 ]; then
               echo "🚨 Health score is critically low: $HEALTH_SCORE/100"
               echo "::error::SPEC health score is critically low (below 60/100)"
@@ -143,4 +143,3 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "📅 Next run: 1st of next month at 9:00 AM UTC" >> $GITHUB_STEP_SUMMARY
-

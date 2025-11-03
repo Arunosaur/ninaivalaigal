@@ -1,0 +1,107 @@
+{
+  "due_date": null,
+  "due_date_reason": "",
+  "due_date_status": "not_set",
+  "total_comments": 0,
+  "tags": [
+    [
+      "spec-096",
+      null
+    ]
+  ],
+  "attachments": [],
+  "status": 5,
+  "status_extra_info": {
+    "name": "Done",
+    "color": "#A8E440",
+    "is_closed": true
+  },
+  "assigned_to": 8,
+  "assigned_to_extra_info": {
+    "username": "developer-c",
+    "full_name_display": "Developer C",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "a7fd573307db95be8a81909c52564853",
+    "is_active": true,
+    "id": 8
+  },
+  "owner": 5,
+  "owner_extra_info": {
+    "username": "admin",
+    "full_name_display": "admin",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "13f78fc2dee81f3e168ec69ebac45d22",
+    "is_active": true,
+    "id": 5
+  },
+  "is_watcher": false,
+  "total_watchers": 0,
+  "is_voter": false,
+  "total_voters": 0,
+  "project": 1,
+  "project_extra_info": {
+    "name": "ninaivalaigal",
+    "slug": "ninaivalaigal",
+    "logo_small_url": null,
+    "id": 1
+  },
+  "id": 603,
+  "ref": 574,
+  "milestone": null,
+  "milestone_slug": null,
+  "milestone_name": null,
+  "is_closed": true,
+  "points": {
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1
+  },
+  "backlog_order": 1762059531673063,
+  "sprint_order": 1762059531673080,
+  "kanban_order": 1762059531685902,
+  "created_date": "2025-11-02T04:58:51.685Z",
+  "modified_date": "2025-11-02T04:58:51.689Z",
+  "finish_date": "2025-11-02T04:58:51.704Z",
+  "subject": "SPEC-096: Frontend Quality Enforcement & CI/CD",
+  "client_requirement": false,
+  "team_requirement": false,
+  "generated_from_issue": null,
+  "generated_from_task": null,
+  "from_task_ref": null,
+  "external_reference": null,
+  "tribe_gig": null,
+  "version": 1,
+  "watchers": [],
+  "is_blocked": false,
+  "blocked_note": "",
+  "total_points": null,
+  "comment": "",
+  "origin_issue": null,
+  "origin_task": null,
+  "epics": null,
+  "epic_order": null,
+  "tasks": [],
+  "total_attachments": 0,
+  "swimlane": null,
+  "assigned_users": [
+    8
+  ],
+  "blocked_note_html": "",
+  "description": "**SPEC-096: Frontend Quality Enforcement & CI/CD**\n\n**Status in SPEC_INDEX.md**: **Complete**\n**Phase**: Phase 2B\n\n**Objective**: Frontend Quality Enforcement & CI/CD\n\n**Details**: See SPEC documentation for full details.\n\n```\n---\n{}\n---\n\n\n\n\n## \ud83c\udfaf Core Purpose\n\n**Enforce automated, backend-level quality discipline across the frontend** \u2014 ensuring:\n- \u2705 Zero violations\n- \u2705 Zero regressions\n- \u2705 Continuous performance auditing\n\n**Result**: Frontend achieves 10/10 quality parity with backend.\n\n---\n\n## \ud83d\udcca Current State\n\n### \u2705 Existing Foundation (Strong)\n- Next.js 14 + React 18 + TypeScript 5.2\n- Tailwind CSS 3.3 with design tokens\n- Storybook v7.5 with a11y addon\n- ESLint + Prettier configured\n- Jest + Testing Library installed\n- Agentic UI testing (SPEC-084)\n\n### \u274c Gaps (Quality Enforcement)\n- No pre-commit hooks for frontend code\n- No CI/CD workflows for UI quality\n- No Lighthouse CI for performance monitoring\n- No bundle size tracking\n- No test coverage enforcement (80%+ target)\n- No automated accessibility audits\n\n---\n\n## \ud83c\udfd7\ufe0f Architecture\n\n### Quality Enforcement Layers\n\n```\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502  Layer 1: Pre-commit (Local - Husky)            \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502  \u2713 ESLint (linting + a11y + security)           \u2502\n\u2502  \u2713 Prettier (formatting)                        \u2502\n\u2502  \u2713 TypeScript (type checking)                   \u2502\n\u2502  \u2713 Jest (unit tests - changed files)            \u2502\n```",
+  "description_html": "<p><strong>SPEC-096: Frontend Quality Enforcement &amp; CI/CD</strong></p>\n<p><strong>Status in SPEC_INDEX.md</strong>: <strong>Complete</strong><br>\n<strong>Phase</strong>: Phase 2B</p>\n<p><strong>Objective</strong>: Frontend Quality Enforcement &amp; CI/CD</p>\n<p><strong>Details</strong>: See SPEC documentation for full details.</p>\n<div class=\"codehilite\"><pre><span></span><code><span class=\"o\">---</span>\n<span class=\"p\">{}</span>\n<span class=\"o\">---</span>\n\n\n\n\n<span class=\"p\">##</span><span class=\"w\"> </span><span class=\"err\">\ud83c\udfaf</span><span class=\"w\"> </span><span class=\"n\">Core</span><span class=\"w\"> </span><span class=\"n\">Purpose</span>\n\n<span class=\"o\">**</span><span class=\"n\">Enforce</span><span class=\"w\"> </span><span class=\"n\">automated</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"n\">backend</span><span class=\"o\">-</span><span class=\"n\">level</span><span class=\"w\"> </span><span class=\"n\">quality</span><span class=\"w\"> </span><span class=\"n\">discipline</span><span class=\"w\"> </span><span class=\"n\">across</span><span class=\"w\"> </span><span class=\"n\">the</span><span class=\"w\"> </span><span class=\"n\">frontend</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"err\">\u2014</span><span class=\"w\"> </span><span class=\"nl\">ensuring:</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"err\">\u2705</span><span class=\"w\"> </span><span class=\"n\">Zero</span><span class=\"w\"> </span><span class=\"n\">violations</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"err\">\u2705</span><span class=\"w\"> </span><span class=\"n\">Zero</span><span class=\"w\"> </span><span class=\"n\">regressions</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"err\">\u2705</span><span class=\"w\"> </span><span class=\"n\">Continuous</span><span class=\"w\"> </span><span class=\"n\">performance</span><span class=\"w\"> </span><span class=\"n\">auditing</span>\n\n<span class=\"o\">**</span><span class=\"n\">Result</span><span class=\"o\">**:</span><span class=\"w\"> </span><span class=\"n\">Frontend</span><span class=\"w\"> </span><span class=\"n\">achieves</span><span class=\"w\"> </span><span class=\"mh\">10</span><span class=\"o\">/</span><span class=\"mh\">10</span><span class=\"w\"> </span><span class=\"n\">quality</span><span class=\"w\"> </span><span class=\"n\">parity</span><span class=\"w\"> </span><span class=\"n\">with</span><span class=\"w\"> </span><span class=\"n\">backend</span><span class=\"p\">.</span>\n\n<span class=\"o\">---</span>\n\n<span class=\"p\">##</span><span class=\"w\"> </span><span class=\"err\">\ud83d\udcca</span><span class=\"w\"> </span><span class=\"n\">Current</span><span class=\"w\"> </span><span class=\"n\">State</span>\n\n<span class=\"p\">###</span><span class=\"w\"> </span><span class=\"err\">\u2705</span><span class=\"w\"> </span><span class=\"n\">Existing</span><span class=\"w\"> </span><span class=\"n\">Foundation</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">Strong</span><span class=\"p\">)</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">Next</span><span class=\"p\">.</span><span class=\"n\">js</span><span class=\"w\"> </span><span class=\"mh\">14</span><span class=\"w\"> </span><span class=\"o\">+</span><span class=\"w\"> </span><span class=\"n\">React</span><span class=\"w\"> </span><span class=\"mh\">18</span><span class=\"w\"> </span><span class=\"o\">+</span><span class=\"w\"> </span><span class=\"n\">TypeScript</span><span class=\"w\"> </span><span class=\"mf\">5.2</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">Tailwind</span><span class=\"w\"> </span><span class=\"n\">CSS</span><span class=\"w\"> </span><span class=\"mf\">3.3</span><span class=\"w\"> </span><span class=\"n\">with</span><span class=\"w\"> </span><span class=\"n\">design</span><span class=\"w\"> </span><span class=\"n\">tokens</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">Storybook</span><span class=\"w\"> </span><span class=\"n\">v7</span><span class=\"mf\">.5</span><span class=\"w\"> </span><span class=\"n\">with</span><span class=\"w\"> </span><span class=\"n\">a11y</span><span class=\"w\"> </span><span class=\"n\">addon</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">ESLint</span><span class=\"w\"> </span><span class=\"o\">+</span><span class=\"w\"> </span><span class=\"n\">Prettier</span><span class=\"w\"> </span><span class=\"n\">configured</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">Jest</span><span class=\"w\"> </span><span class=\"o\">+</span><span class=\"w\"> </span><span class=\"n\">Testing</span><span class=\"w\"> </span><span class=\"n\">Library</span><span class=\"w\"> </span><span class=\"n\">installed</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">Agentic</span><span class=\"w\"> </span><span class=\"n\">UI</span><span class=\"w\"> </span><span class=\"n\">testing</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">SPEC</span><span class=\"o\">-</span><span class=\"mh\">084</span><span class=\"p\">)</span>\n\n<span class=\"p\">###</span><span class=\"w\"> </span><span class=\"err\">\u274c</span><span class=\"w\"> </span><span class=\"n\">Gaps</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">Quality</span><span class=\"w\"> </span><span class=\"n\">Enforcement</span><span class=\"p\">)</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">No</span><span class=\"w\"> </span><span class=\"n\">pre</span><span class=\"o\">-</span><span class=\"n\">commit</span><span class=\"w\"> </span><span class=\"n\">hooks</span><span class=\"w\"> </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"n\">frontend</span><span class=\"w\"> </span><span class=\"n\">code</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">No</span><span class=\"w\"> </span><span class=\"n\">CI</span><span class=\"o\">/</span><span class=\"n\">CD</span><span class=\"w\"> </span><span class=\"n\">workflows</span><span class=\"w\"> </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"n\">UI</span><span class=\"w\"> </span><span class=\"n\">quality</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">No</span><span class=\"w\"> </span><span class=\"n\">Lighthouse</span><span class=\"w\"> </span><span class=\"n\">CI</span><span class=\"w\"> </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"n\">performance</span><span class=\"w\"> </span><span class=\"n\">monitoring</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">No</span><span class=\"w\"> </span><span class=\"n\">bundle</span><span class=\"w\"> </span><span class=\"n\">size</span><span class=\"w\"> </span><span class=\"n\">tracking</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">No</span><span class=\"w\"> </span><span class=\"n\">test</span><span class=\"w\"> </span><span class=\"n\">coverage</span><span class=\"w\"> </span><span class=\"n\">enforcement</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"mh\">80</span><span class=\"o\">%+</span><span class=\"w\"> </span><span class=\"n\">target</span><span class=\"p\">)</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">No</span><span class=\"w\"> </span><span class=\"n\">automated</span><span class=\"w\"> </span><span class=\"n\">accessibility</span><span class=\"w\"> </span><span class=\"n\">audits</span>\n\n<span class=\"o\">---</span>\n\n<span class=\"p\">##</span><span class=\"w\"> </span><span class=\"err\">\ud83c\udfd7\ufe0f</span><span class=\"w\"> </span><span class=\"n\">Architecture</span>\n\n<span class=\"p\">###</span><span class=\"w\"> </span><span class=\"n\">Quality</span><span class=\"w\"> </span><span class=\"n\">Enforcement</span><span class=\"w\"> </span><span class=\"n\">Layers</span>\n</code></pre></div>\n\n<p>\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510<br>\n\u2502  Layer 1: Pre-commit (Local - Husky)            \u2502<br>\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524<br>\n\u2502  \u2713 ESLint (linting + a11y + security)           \u2502<br>\n\u2502  \u2713 Prettier (formatting)                        \u2502<br>\n\u2502  \u2713 TypeScript (type checking)                   \u2502<br>\n\u2502  \u2713 Jest (unit tests - changed files)            \u2502<br>\n```</p>",
+  "neighbors": {
+    "previous": {
+      "id": 602,
+      "ref": 573,
+      "subject": "SPEC-095: Memory Graph State Reconciliation"
+    },
+    "next": {
+      "id": 604,
+      "ref": 575,
+      "subject": "SPEC-098: Memory Health & Orphaned Tokens"
+    }
+  }
+}

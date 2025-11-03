@@ -1,0 +1,107 @@
+{
+  "due_date": null,
+  "due_date_reason": "",
+  "due_date_status": "not_set",
+  "total_comments": 0,
+  "tags": [
+    [
+      "spec-088",
+      null
+    ]
+  ],
+  "attachments": [],
+  "status": 5,
+  "status_extra_info": {
+    "name": "Done",
+    "color": "#A8E440",
+    "is_closed": true
+  },
+  "assigned_to": 8,
+  "assigned_to_extra_info": {
+    "username": "developer-c",
+    "full_name_display": "Developer C",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "a7fd573307db95be8a81909c52564853",
+    "is_active": true,
+    "id": 8
+  },
+  "owner": 5,
+  "owner_extra_info": {
+    "username": "admin",
+    "full_name_display": "admin",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "13f78fc2dee81f3e168ec69ebac45d22",
+    "is_active": true,
+    "id": 5
+  },
+  "is_watcher": false,
+  "total_watchers": 0,
+  "is_voter": false,
+  "total_voters": 0,
+  "project": 1,
+  "project_extra_info": {
+    "name": "ninaivalaigal",
+    "slug": "ninaivalaigal",
+    "logo_small_url": null,
+    "id": 1
+  },
+  "id": 597,
+  "ref": 568,
+  "milestone": null,
+  "milestone_slug": null,
+  "milestone_name": null,
+  "is_closed": true,
+  "points": {
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1
+  },
+  "backlog_order": 1762059528688925,
+  "sprint_order": 1762059528688949,
+  "kanban_order": 1762059528710842,
+  "created_date": "2025-11-02T04:58:48.710Z",
+  "modified_date": "2025-11-02T09:02:10.850Z",
+  "finish_date": "2025-11-02T04:58:48.757Z",
+  "subject": "SPEC-088: API Versioning Strategy",
+  "client_requirement": false,
+  "team_requirement": false,
+  "generated_from_issue": null,
+  "generated_from_task": null,
+  "from_task_ref": null,
+  "external_reference": null,
+  "tribe_gig": null,
+  "version": 2,
+  "watchers": [],
+  "is_blocked": false,
+  "blocked_note": "",
+  "total_points": null,
+  "comment": "",
+  "origin_issue": null,
+  "origin_task": null,
+  "epics": null,
+  "epic_order": null,
+  "tasks": [],
+  "total_attachments": 0,
+  "swimlane": null,
+  "assigned_users": [
+    8
+  ],
+  "blocked_note_html": "",
+  "description": "**SPEC-088: API Versioning Strategy**\n\n**Status:** \ud83d\udccb PLANNED/DRAFT (Documentation incomplete, partial implementation)\n**Phase:** Phase 3\n**Completion:** ~10-15%\n\n---\n\n## \ud83d\udcca Current Status Summary\n\nSPEC-088 is **INCOMPLETE** with mostly empty documentation (stubs only), partial ad-hoc implementation, and no versioning infrastructure. There is comprehensive versioning documentation elsewhere, but SPEC-088 itself is not complete.\n\n---\n\n## \u2705 What Exists (Partial)\n\n### 1. Documentation Files (Stubs)\n- **README.md**: Contains only section headers (no content)\n- **format.md**: Partial content (request/response examples)\n- **breaking-changes.md**: Headers only\n- **deprecation-policy.md**: Headers only\n- **CHANGELOG-template.md**: Exists\n- **migration-guide-template.md**: Exists\n\n### 2. Partial Implementation\n- **Some `/api/v1/` endpoints exist:**\n  - `server/compliance/api_hipaa.py`: `prefix=\"/api/v1/compliance/hipaa\"`\n  - `server/compliance/api.py`: `prefix=\"/api/v1/compliance\"`\n- **Ad-hoc versioning:** Not systematic\n\n### 3. Related Documentation (External)\n- **`shared/contracts/docs/VERSIONING_STRATEGY.md`**: Comprehensive versioning strategy\n  - 194 lines of complete versioning strategy\n  - Path-based versioning: `/api/v1/users`, `/api/v2/users`\n  - Support policy, lifecycle, deprecation, etc.\n  - **Note:** This appears to be the actual strategy, but it's not in SPEC-088\n\n---\n\n## \u274c What's Missing\n\n### 1. Documentation Gaps\n- \u274c **SPEC README content** - Only headers, no actual content\n- \u274c **Breaking changes content** - Stub only\n- \u274c **Deprecation policy content** - Stub only\n- \u274c **Format recommendations** - Partial\n\n### 2. Implementation Gaps\n- \u274c **Versioning infrastructure** - No `server/versioning/` module\n- \u274c **Version routing middleware** - Not implemented\n- \u274c **Version detection logic** - Not implemented\n- \u274c **Deprecation warnings** - Not implemented\n- \u274c **Migration tools** - Not implemented\n- \u274c **Compatibility tests** - Not implemented\n\n### 3. Status Mismatches\n- \u274c **README frontmatter** claims `status: Complete` (should be `Planned`)\n- \u274c **Taiga story** marked \"Done\" (should be \"Planned\")\n- \u2705 **SPEC_INDEX.md** correctly shows \"Planned\"\n\n### 4. Documentation Consolidation Needed\n- \u26a0\ufe0f **Duplication concern:** `shared/contracts/docs/VERSIONING_STRATEGY.md` contains comprehensive versioning strategy\n- **Question:** Which is authoritative - SPEC-088 or the external doc?\n- **Recommendation:** Consolidate or cross-reference appropriately\n\n---\n\n## \ud83d\udccb Acceptance Criteria Status\n\n### Define Versioning Scheme\n- \u2705 Decision made: URL path versioning (documented elsewhere)\n- \u274c Not documented in SPEC-088 README\n\n### Implement Version Negotiation\n- \u274c Not implemented (no middleware/routing)\n\n### Create Deprecation Policy\n- \u2705 Policy exists (in external doc)\n- \u274c Not documented in SPEC-088 deprecation-policy.md\n\n### Document Migration Guides\n- \u2705 Template exists\n- \u274c No actual migration guides\n\n### Set Up Automated Compatibility Tests\n- \u274c Not implemented\n\n**Overall Completion:** ~10-15%\n\n---\n\n## \ud83c\udfaf Next Steps (Priority Order)\n\n### High Priority\n1. **Complete SPEC README** - Fill in all section content\n2. **Complete Supporting Docs** - Fill in breaking-changes.md and deprecation-policy.md\n3. **Fix Status Mismatches** - Update README frontmatter and Taiga story\n4. **Consolidate Documentation** - Decide authoritative source, cross-reference\n\n### Medium Priority\n5. **Implement Versioning Infrastructure** - Create `server/versioning/` module\n6. **Systematize `/api/v1/` Usage** - Audit and ensure consistency\n\n### Low Priority\n7. **Migration Tools** - Compatibility checker, migration scripts\n\n---\n\n## \ud83d\udcdd Files That Need Work\n\n### Documentation Files (Fill Content)\n- `specs/088-api-versioning-strategy/README.md` - Main spec (headers only)\n- `specs/088-api-versioning-strategy/breaking-changes.md` - Headers only\n- `specs/088-api-versioning-strategy/deprecation-policy.md` - Headers only\n- `specs/088-api-versioning-strategy/format.md` - Partial (complete recommendations)\n\n### Implementation Files (Create)\n- `server/versioning/` - Module for versioning infrastructure\n- `server/versioning/router.py` - Version routing\n- `server/versioning/middleware.py` - Version detection and deprecation warnings\n\n---\n\n## \ud83d\udd17 Related SPECs\n\n- **SPEC-087:** API Surface Contracts - Complementary (different concern)\n- **SPEC-089:** Breaking Change Management - Related (may overlap on deprecation)\n- **SPEC-003:** Core API Architecture - Complementary (foundation)\n- **SPEC-100:** API Container Modularization - Complementary (different concern)\n\n**Potential Overlap:** SPEC-089 may duplicate deprecation/migration content. Should coordinate.\n\n---\n\n## \u26a0\ufe0f Important Notes\n\n1. **Status Discrepancies:**\n   - README frontmatter: Claims \"Complete\" (incorrect)\n   - SPEC_INDEX.md: Shows \"Planned\" (correct)\n   - Taiga story: Marked \"Done\" (incorrect)\n   - **All should be \"Planned\"**\n\n2. **Documentation Duplication:**\n   - `shared/contracts/docs/VERSIONING_STRATEGY.md` has comprehensive versioning strategy\n   - This creates confusion about which is authoritative\n   - Need to consolidate or cross-reference\n\n3. **Implementation Status:**\n   - Some endpoints use `/api/v1/` but this is ad-hoc\n   - No systematic versioning infrastructure\n   - No deprecation warnings or migration tools\n\n---\n\n**Status Alignment:**\n- SPEC_INDEX.md: \u2705 \"Planned\" (CORRECT)\n- SPEC README: \u274c \"Complete\" (INCORRECT - should be \"Planned\")\n- This Story: \u274c \"Done\" (INCORRECT - should be \"Planned\")\n\n**Recommendation:** Update all statuses to \"Planned\", complete documentation, then prioritize infrastructure implementation.\n\n---\n\n**For detailed analysis, see**: `docs/spec-analysis/SPEC_088_COMPREHENSIVE_ANALYSIS.md`",
+  "description_html": "<p><strong>SPEC-088: API Versioning Strategy</strong></p>\n<p><strong>Status:</strong> \ud83d\udccb PLANNED/DRAFT (Documentation incomplete, partial implementation)<br>\n<strong>Phase:</strong> Phase 3<br>\n<strong>Completion:</strong> ~10-15%</p>\n<hr>\n<h2 id=\"current-status-summary\">\ud83d\udcca Current Status Summary</h2>\n<p>SPEC-088 is <strong>INCOMPLETE</strong> with mostly empty documentation (stubs only), partial ad-hoc implementation, and no versioning infrastructure. There is comprehensive versioning documentation elsewhere, but SPEC-088 itself is not complete.</p>\n<hr>\n<h2 id=\"what-exists-partial\">\u2705 What Exists (Partial)</h2>\n<h3 id=\"1-documentation-files-stubs\">1. Documentation Files (Stubs)</h3>\n<ul>\n<li><strong>README.md</strong>: Contains only section headers (no content)</li>\n<li><strong>format.md</strong>: Partial content (request/response examples)</li>\n<li><strong>breaking-changes.md</strong>: Headers only</li>\n<li><strong>deprecation-policy.md</strong>: Headers only</li>\n<li><strong>CHANGELOG-template.md</strong>: Exists</li>\n<li><strong>migration-guide-template.md</strong>: Exists</li>\n</ul>\n<h3 id=\"2-partial-implementation\">2. Partial Implementation</h3>\n<ul>\n<li><strong>Some <code>/api/v1/</code> endpoints exist:</strong></li>\n<li><code>server/compliance/api_hipaa.py</code>: <code>prefix=\"/api/v1/compliance/hipaa\"</code></li>\n<li><code>server/compliance/api.py</code>: <code>prefix=\"/api/v1/compliance\"</code></li>\n<li><strong>Ad-hoc versioning:</strong> Not systematic</li>\n</ul>\n<h3 id=\"3-related-documentation-external\">3. Related Documentation (External)</h3>\n<ul>\n<li><strong><code>shared/contracts/docs/VERSIONING_STRATEGY.md</code></strong>: Comprehensive versioning strategy</li>\n<li>194 lines of complete versioning strategy</li>\n<li>Path-based versioning: <code>/api/v1/users</code>, <code>/api/v2/users</code></li>\n<li>Support policy, lifecycle, deprecation, etc.</li>\n<li><strong>Note:</strong> This appears to be the actual strategy, but it's not in SPEC-088</li>\n</ul>\n<hr>\n<h2 id=\"whats-missing\">\u274c What's Missing</h2>\n<h3 id=\"1-documentation-gaps\">1. Documentation Gaps</h3>\n<ul>\n<li>\u274c <strong>SPEC README content</strong> - Only headers, no actual content</li>\n<li>\u274c <strong>Breaking changes content</strong> - Stub only</li>\n<li>\u274c <strong>Deprecation policy content</strong> - Stub only</li>\n<li>\u274c <strong>Format recommendations</strong> - Partial</li>\n</ul>\n<h3 id=\"2-implementation-gaps\">2. Implementation Gaps</h3>\n<ul>\n<li>\u274c <strong>Versioning infrastructure</strong> - No <code>server/versioning/</code> module</li>\n<li>\u274c <strong>Version routing middleware</strong> - Not implemented</li>\n<li>\u274c <strong>Version detection logic</strong> - Not implemented</li>\n<li>\u274c <strong>Deprecation warnings</strong> - Not implemented</li>\n<li>\u274c <strong>Migration tools</strong> - Not implemented</li>\n<li>\u274c <strong>Compatibility tests</strong> - Not implemented</li>\n</ul>\n<h3 id=\"3-status-mismatches\">3. Status Mismatches</h3>\n<ul>\n<li>\u274c <strong>README frontmatter</strong> claims <code>status: Complete</code> (should be <code>Planned</code>)</li>\n<li>\u274c <strong>Taiga story</strong> marked \"Done\" (should be \"Planned\")</li>\n<li>\u2705 <strong>SPEC_INDEX.md</strong> correctly shows \"Planned\"</li>\n</ul>\n<h3 id=\"4-documentation-consolidation-needed\">4. Documentation Consolidation Needed</h3>\n<ul>\n<li>\u26a0\ufe0f <strong>Duplication concern:</strong> <code>shared/contracts/docs/VERSIONING_STRATEGY.md</code> contains comprehensive versioning strategy</li>\n<li><strong>Question:</strong> Which is authoritative - SPEC-088 or the external doc?</li>\n<li><strong>Recommendation:</strong> Consolidate or cross-reference appropriately</li>\n</ul>\n<hr>\n<h2 id=\"acceptance-criteria-status\">\ud83d\udccb Acceptance Criteria Status</h2>\n<h3 id=\"define-versioning-scheme\">Define Versioning Scheme</h3>\n<ul>\n<li>\u2705 Decision made: URL path versioning (documented elsewhere)</li>\n<li>\u274c Not documented in SPEC-088 README</li>\n</ul>\n<h3 id=\"implement-version-negotiation\">Implement Version Negotiation</h3>\n<ul>\n<li>\u274c Not implemented (no middleware/routing)</li>\n</ul>\n<h3 id=\"create-deprecation-policy\">Create Deprecation Policy</h3>\n<ul>\n<li>\u2705 Policy exists (in external doc)</li>\n<li>\u274c Not documented in SPEC-088 deprecation-policy.md</li>\n</ul>\n<h3 id=\"document-migration-guides\">Document Migration Guides</h3>\n<ul>\n<li>\u2705 Template exists</li>\n<li>\u274c No actual migration guides</li>\n</ul>\n<h3 id=\"set-up-automated-compatibility-tests\">Set Up Automated Compatibility Tests</h3>\n<ul>\n<li>\u274c Not implemented</li>\n</ul>\n<p><strong>Overall Completion:</strong> ~10-15%</p>\n<hr>\n<h2 id=\"next-steps-priority-order\">\ud83c\udfaf Next Steps (Priority Order)</h2>\n<h3 id=\"high-priority\">High Priority</h3>\n<ol>\n<li><strong>Complete SPEC README</strong> - Fill in all section content</li>\n<li><strong>Complete Supporting Docs</strong> - Fill in breaking-changes.md and deprecation-policy.md</li>\n<li><strong>Fix Status Mismatches</strong> - Update README frontmatter and Taiga story</li>\n<li><strong>Consolidate Documentation</strong> - Decide authoritative source, cross-reference</li>\n</ol>\n<h3 id=\"medium-priority\">Medium Priority</h3>\n<ol>\n<li><strong>Implement Versioning Infrastructure</strong> - Create <code>server/versioning/</code> module</li>\n<li><strong>Systematize <code>/api/v1/</code> Usage</strong> - Audit and ensure consistency</li>\n</ol>\n<h3 id=\"low-priority\">Low Priority</h3>\n<ol>\n<li><strong>Migration Tools</strong> - Compatibility checker, migration scripts</li>\n</ol>\n<hr>\n<h2 id=\"files-that-need-work\">\ud83d\udcdd Files That Need Work</h2>\n<h3 id=\"documentation-files-fill-content\">Documentation Files (Fill Content)</h3>\n<ul>\n<li><code>specs/088-api-versioning-strategy/README.md</code> - Main spec (headers only)</li>\n<li><code>specs/088-api-versioning-strategy/breaking-changes.md</code> - Headers only</li>\n<li><code>specs/088-api-versioning-strategy/deprecation-policy.md</code> - Headers only</li>\n<li><code>specs/088-api-versioning-strategy/format.md</code> - Partial (complete recommendations)</li>\n</ul>\n<h3 id=\"implementation-files-create\">Implementation Files (Create)</h3>\n<ul>\n<li><code>server/versioning/</code> - Module for versioning infrastructure</li>\n<li><code>server/versioning/router.py</code> - Version routing</li>\n<li><code>server/versioning/middleware.py</code> - Version detection and deprecation warnings</li>\n</ul>\n<hr>\n<h2 id=\"related-specs\">\ud83d\udd17 Related SPECs</h2>\n<ul>\n<li><strong>SPEC-087:</strong> API Surface Contracts - Complementary (different concern)</li>\n<li><strong>SPEC-089:</strong> Breaking Change Management - Related (may overlap on deprecation)</li>\n<li><strong>SPEC-003:</strong> Core API Architecture - Complementary (foundation)</li>\n<li><strong>SPEC-100:</strong> API Container Modularization - Complementary (different concern)</li>\n</ul>\n<p><strong>Potential Overlap:</strong> SPEC-089 may duplicate deprecation/migration content. Should coordinate.</p>\n<hr>\n<h2 id=\"important-notes\">\u26a0\ufe0f Important Notes</h2>\n<ol>\n<li>\n<p><strong>Status Discrepancies:</strong><br>\n   - README frontmatter: Claims \"Complete\" (incorrect)<br>\n   - SPEC_INDEX.md: Shows \"Planned\" (correct)<br>\n   - Taiga story: Marked \"Done\" (incorrect)<br>\n   - <strong>All should be \"Planned\"</strong></p>\n</li>\n<li>\n<p><strong>Documentation Duplication:</strong><br>\n   - <code>shared/contracts/docs/VERSIONING_STRATEGY.md</code> has comprehensive versioning strategy<br>\n   - This creates confusion about which is authoritative<br>\n   - Need to consolidate or cross-reference</p>\n</li>\n<li>\n<p><strong>Implementation Status:</strong><br>\n   - Some endpoints use <code>/api/v1/</code> but this is ad-hoc<br>\n   - No systematic versioning infrastructure<br>\n   - No deprecation warnings or migration tools</p>\n</li>\n</ol>\n<hr>\n<p><strong>Status Alignment:</strong><br>\n- SPEC_INDEX.md: \u2705 \"Planned\" (CORRECT)<br>\n- SPEC README: \u274c \"Complete\" (INCORRECT - should be \"Planned\")<br>\n- This Story: \u274c \"Done\" (INCORRECT - should be \"Planned\")</p>\n<p><strong>Recommendation:</strong> Update all statuses to \"Planned\", complete documentation, then prioritize infrastructure implementation.</p>\n<hr>\n<p><strong>For detailed analysis, see</strong>: <code>docs/spec-analysis/SPEC_088_COMPREHENSIVE_ANALYSIS.md</code></p>",
+  "neighbors": {
+    "previous": {
+      "id": 596,
+      "ref": 567,
+      "subject": "SPEC-087: API Surface Contracts"
+    },
+    "next": {
+      "id": 598,
+      "ref": 569,
+      "subject": "SPEC-089: Breaking Change Management"
+    }
+  }
+}

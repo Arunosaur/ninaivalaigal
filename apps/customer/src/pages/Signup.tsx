@@ -51,7 +51,7 @@ export function Signup() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
+
     // Validate common fields
     if (!form.name || !form.email || !form.password) {
       setError('Name, email, and password are required');
@@ -70,7 +70,7 @@ export function Signup() {
 
     try {
       let result;
-      
+
       if (form.accountType === 'organization') {
         result = await signupOrganization({
           email: form.email.trim(),

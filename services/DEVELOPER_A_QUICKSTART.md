@@ -1,7 +1,7 @@
 # Developer A - Quick Start Guide
 
-**Your Role:** Rust Memory Service & Graph Service Development  
-**Updated:** Oct 16, 2025  
+**Your Role:** Rust Memory Service & Graph Service Development
+**Updated:** Oct 16, 2025
 **Status:** Ready to Start
 
 ---
@@ -12,10 +12,10 @@
 
 The database infrastructure is **already set up** and **ready to use**:
 
-✅ **Database:** `ninaivalaigal_dev` (running in `ninaivalaigal-dev-db`)  
-✅ **AGE Graph:** `ninaivalaigal_intelligence_dev` (created and ready)  
-✅ **PgBouncer:** Connection pooling ready  
-✅ **Redis:** Cache ready  
+✅ **Database:** `ninaivalaigal_dev` (running in `ninaivalaigal-dev-db`)
+✅ **AGE Graph:** `ninaivalaigal_intelligence_dev` (created and ready)
+✅ **PgBouncer:** Connection pooling ready
+✅ **Redis:** Cache ready
 
 **Your job:** Connect your Rust services to the **existing** infrastructure.
 
@@ -75,8 +75,8 @@ Canonical port assignments and naming patterns
 
 ### Memory Service (Rust)
 
-**Port:** 13393  
-**Container:** `ninaivalaigal-dev-memory-service`  
+**Port:** 13393
+**Container:** `ninaivalaigal-dev-memory-service`
 **Purpose:** Memory CRUD operations in Rust
 
 **Database Connection:**
@@ -96,8 +96,8 @@ GRAPHOPS_GRAPH=ninaivalaigal_intelligence_dev
 
 ### Graph Service (Rust)
 
-**Port:** 13394  
-**Container:** `ninaivalaigal-dev-graph-service`  
+**Port:** 13394
+**Container:** `ninaivalaigal-dev-graph-service`
 **Purpose:** Graph intelligence operations in Rust
 
 **Same database and graph as Memory Service!**
@@ -139,7 +139,7 @@ public schema:
   - users (from Core API)
   - teams (from Core API)
   - organizations (from Core API)
-  
+
 Your schemas (create as needed):
   - memory schema (for Memory Service tables)
   - graph schema (for Graph Service tables)
@@ -177,7 +177,7 @@ nv-memory-service-start.sh   # Build and start container
 nv-memory-service-stop.sh    # Stop container
 nv-memory-service-status.sh  # Check status
 
-# Graph Service  
+# Graph Service
 nv-graph-service-start.sh    # Build and start container
 nv-graph-service-stop.sh     # Stop container
 nv-graph-service-status.sh   # Check status
@@ -195,13 +195,13 @@ use sqlx::PgPool;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get DATABASE_URL from environment
     let database_url = std::env::var("DATABASE_URL")?;
-    
+
     // Connect to existing database
     let pool = PgPool::connect(&database_url).await?;
-    
+
     // Your service code here
     // ...
-    
+
     Ok(())
 }
 ```
@@ -240,13 +240,13 @@ struct Claims {
 
 fn validate_token(token: &str) -> Result<String, Error> {
     let jwt_secret = std::env::var("NINAIVALAIGAL_JWT_SECRET")?;
-    
+
     let token_data = decode::<Claims>(
         token,
         &DecodingKey::from_secret(jwt_secret.as_bytes()),
         &Validation::default(),
     )?;
-    
+
     Ok(token_data.claims.user_id)
 }
 ```
@@ -451,11 +451,11 @@ You're set up correctly when:
 
 ## 🚀 Ready to Start!
 
-**Infrastructure:** ✅ Ready  
-**Database:** ✅ Created  
-**AGE Graph:** ✅ Created  
-**Documentation:** ✅ Complete  
-**Examples:** ✅ Available (Core API)  
+**Infrastructure:** ✅ Ready
+**Database:** ✅ Created
+**AGE Graph:** ✅ Created
+**Documentation:** ✅ Complete
+**Examples:** ✅ Available (Core API)
 
 **Your next step:** Read the 5 documents, then start coding your Rust services!
 

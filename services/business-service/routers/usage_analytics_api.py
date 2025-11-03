@@ -15,7 +15,6 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 from uuid import UUID
 
-from auth import get_current_user, get_db
 from database import Team, User
 from fastapi import APIRouter, Depends, HTTPException, Query
 from models.standalone_teams import (
@@ -26,6 +25,8 @@ from models.standalone_teams import (
 from pydantic import BaseModel
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
+
+from auth import get_current_user, get_db
 
 # Initialize router
 router = APIRouter(prefix="/analytics", tags=["usage-analytics"])

@@ -14,10 +14,12 @@ Extracted from main.py for better code organization
 from typing import List, Optional
 from uuid import UUID
 
+from admin.helpers import get_admin_user_id_from_request, log_admin_action_async
 from database import DatabaseManager, Team, TeamMember, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from rbac_middleware import require_permission
+from routers.admin_activity import get_activity_logger
 
 from auth import get_current_user
 from rbac.permissions import Action, Resource
@@ -158,11 +160,12 @@ def list_teams(
 
 @router.post("", response_model=TeamResponse)
 @require_permission(Resource.TEAM, Action.CREATE)
-def create_team(
+async def create_team(
     request: Request,
     team_data: TeamCreateRequest,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
+    activity_logger=Depends(get_activity_logger),
 ):
     """
     Create a new team
@@ -200,6 +203,25 @@ def create_team(
 
         session.commit()
         session.refresh(team)
+
+        # Log admin action (if user is system admin)
+        admin_user_id = get_admin_user_id_from_request(
+            {"user_id": str(current_user.id) if hasattr(current_user, "id") else current_user.get("user_id", "")}
+        )
+        if admin_user_id and activity_logger:
+            await log_admin_action_async(
+                activity_logger,
+                admin_user_id=admin_user_id,
+                action="create_team",
+                target_type="team",
+                target_id=team.id,
+                details={
+                    "team_name": team_data.name,
+                    "organization_id": str(team_data.organization_id) if team_data.organization_id else None,
+                    "governance_type": governance_type,
+                },
+                request=request,
+            )
 
         return TeamResponse(
             id=team.id,
@@ -346,11 +368,13 @@ def get_team(
 
 
 @router.patch("/{team_id}", response_model=TeamResponse)
-def update_team(
+async def update_team(
+    request: Request,
     team_id: UUID,
     team_data: TeamUpdateRequest,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
+    activity_logger=Depends(get_activity_logger),
 ):
     """
     Update team details
@@ -383,6 +407,24 @@ def update_team(
         session.commit()
         session.refresh(team)
 
+        # Log admin action (if user is system admin)
+        admin_user_id = get_admin_user_id_from_request(
+            {"user_id": str(current_user.id) if hasattr(current_user, "id") else current_user.get("user_id", "")}
+        )
+        if admin_user_id and activity_logger:
+            await log_admin_action_async(
+                activity_logger,
+                admin_user_id=admin_user_id,
+                action="update_team",
+                target_type="team",
+                target_id=team_id,
+                details={
+                    "name": team_data.name,
+                    "description": team_data.description,
+                },
+                request=request,
+            )
+
         member_count = session.query(TeamMember).filter(TeamMember.team_id == team_id).count()
 
         return TeamResponse(
@@ -409,10 +451,12 @@ def update_team(
 
 
 @router.delete("/{team_id}")
-def delete_team(
+async def delete_team(
+    request: Request,
     team_id: UUID,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
+    activity_logger=Depends(get_activity_logger),
 ):
     """
     Delete a team
@@ -436,11 +480,29 @@ def delete_team(
         if not team:
             raise HTTPException(status_code=404, detail="Team not found")
 
+        team_name = team.name  # Save for logging before delete
         # Delete team (cascade will delete members)
         session.delete(team)
         session.commit()
 
-        return {"success": True, "message": f"Team '{team.name}' deleted successfully"}
+        # Log admin action (if user is system admin)
+        admin_user_id = get_admin_user_id_from_request(
+            {"user_id": str(current_user.id) if hasattr(current_user, "id") else current_user.get("user_id", "")}
+        )
+        if admin_user_id and activity_logger:
+            await log_admin_action_async(
+                activity_logger,
+                admin_user_id=admin_user_id,
+                action="delete_team",
+                target_type="team",
+                target_id=team_id,
+                details={
+                    "team_name": team_name,
+                },
+                request=request,
+            )
+
+        return {"success": True, "message": f"Team '{team_name}' deleted successfully"}
     except HTTPException:
         session.rollback()
         raise
@@ -504,12 +566,13 @@ def get_team_members(
 
 @router.post("/{team_id}/members", response_model=TeamMemberResponse)
 @require_permission(Resource.TEAM, Action.ADMINISTER)
-def add_team_member(
+async def add_team_member(
     request: Request,
     team_id: UUID,
     member_data: TeamMemberAddRequest,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
+    activity_logger=Depends(get_activity_logger),
 ):
     """
     Add a member to the team
@@ -554,6 +617,24 @@ def add_team_member(
         session.commit()
         session.refresh(membership)
 
+        # Log admin action (if user is system admin)
+        admin_user_id = get_admin_user_id_from_request(
+            {"user_id": str(current_user.id) if hasattr(current_user, "id") else current_user.get("user_id", "")}
+        )
+        if admin_user_id and activity_logger:
+            await log_admin_action_async(
+                activity_logger,
+                admin_user_id=admin_user_id,
+                action="add_team_member",
+                target_type="team",
+                target_id=team_id,
+                details={
+                    "member_user_id": str(member_data.user_id),
+                    "role": member_data.role,
+                },
+                request=request,
+            )
+
         return TeamMemberResponse(
             id=membership.id,
             user_id=user.id,
@@ -574,13 +655,14 @@ def add_team_member(
 
 @router.patch("/{team_id}/members/{user_id}", response_model=TeamMemberResponse)
 @require_permission(Resource.TEAM, Action.ADMINISTER)
-def update_team_member_role(
+async def update_team_member_role(
     request: Request,
     team_id: UUID,
     user_id: UUID,
     member_data: TeamMemberUpdateRequest,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
+    activity_logger=Depends(get_activity_logger),
 ):
     """
     Update a team member's role
@@ -613,12 +695,32 @@ def update_team_member_role(
         if membership.role == "owner" and member_data.role != "owner":
             raise HTTPException(status_code=400, detail="Cannot change owner role")
 
+        old_role = membership.role  # Save for logging
         # Update role
         membership.role = member_data.role
         session.commit()
         session.refresh(membership)
 
         user = session.query(User).filter(User.id == user_id).first()
+
+        # Log admin action (if user is system admin)
+        admin_user_id = get_admin_user_id_from_request(
+            {"user_id": str(current_user.id) if hasattr(current_user, "id") else current_user.get("user_id", "")}
+        )
+        if admin_user_id and activity_logger:
+            await log_admin_action_async(
+                activity_logger,
+                admin_user_id=admin_user_id,
+                action="change_team_role",
+                target_type="team",
+                target_id=team_id,
+                details={
+                    "member_user_id": str(user_id),
+                    "old_role": old_role,
+                    "new_role": member_data.role,
+                },
+                request=request,
+            )
 
         return TeamMemberResponse(
             id=membership.id,
@@ -640,12 +742,13 @@ def update_team_member_role(
 
 @router.delete("/{team_id}/members/{user_id}")
 @require_permission(Resource.TEAM, Action.ADMINISTER)
-def remove_team_member(
+async def remove_team_member(
     request: Request,
     team_id: UUID,
     user_id: UUID,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
+    activity_logger=Depends(get_activity_logger),
 ):
     """
     Remove a member from the team
@@ -678,9 +781,27 @@ def remove_team_member(
         if membership.role == "owner":
             raise HTTPException(status_code=400, detail="Cannot remove team owner")
 
+        member_user_id = membership.user_id  # Save for logging
         # Remove member
         session.delete(membership)
         session.commit()
+
+        # Log admin action (if user is system admin)
+        admin_user_id = get_admin_user_id_from_request(
+            {"user_id": str(current_user.id) if hasattr(current_user, "id") else current_user.get("user_id", "")}
+        )
+        if admin_user_id and activity_logger:
+            await log_admin_action_async(
+                activity_logger,
+                admin_user_id=admin_user_id,
+                action="remove_team_member",
+                target_type="team",
+                target_id=team_id,
+                details={
+                    "member_user_id": str(member_user_id),
+                },
+                request=request,
+            )
 
         return {
             "success": True,

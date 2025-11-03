@@ -1,0 +1,57 @@
+[
+  {
+    "subject": "US-270: Memory Relevance Ranking API Endpoint",
+    "description": "# US-270: Memory Relevance Ranking API Endpoint\n\n## Objective\nImplement the  API endpoint as specified in SPEC-031.\n\n## Technical Tasks\n- Create GET /memory/relevant endpoint\n- Add query parameters: context, limit, context_id\n- Integrate with relevance engine\n- Return memories with relevance scores\n- Handle errors gracefully\n\n## Acceptance Criteria\n- [ ] Endpoint implemented\n- [ ] Response time <5ms\n- [ ] Proper error handling\n- [ ] Unit tests\n\n## Estimated Effort\n8-12 hours (1-1.5 days)",
+    "tags": [
+      "spec-031",
+      "api",
+      "endpoint",
+      "relevance",
+      "p0"
+    ]
+  },
+  {
+    "subject": "US-271: Memory API Relevance Score Integration",
+    "description": "# US-271: Memory API Relevance Score Integration\n\n## Objective\nIntegrate relevance score updates into existing memory API operations.\n\n## Technical Tasks\n- Update /memory/remember to update scores\n- Update /memory/recall to track access\n- Add relevance scores to responses\n- Async score updates\n\n## Acceptance Criteria\n- [ ] Both endpoints updated\n- [ ] Scores included in responses\n- [ ] No performance degradation\n- [ ] Graceful error handling\n\n## Estimated Effort\n12-16 hours (1.5-2 days)",
+    "tags": [
+      "spec-031",
+      "integration",
+      "memory-api",
+      "relevance",
+      "p0"
+    ]
+  },
+  {
+    "subject": "US-272: Enhanced Context Matching for Relevance Ranking",
+    "description": "# US-272: Enhanced Context Matching\n\n## Objective\nEnhance context matching algorithm for better relevance scoring.\n\n## Technical Tasks\n- Implement TF-IDF scoring\n- Add phrase matching\n- Add stemming/lemmatization\n- Optional semantic similarity\n- Hybrid scoring approach\n\n## Acceptance Criteria\n- [ ] Enhanced matching implemented\n- [ ] Performance <10ms\n- [ ] Backward compatible\n- [ ] Unit tests\n\n## Estimated Effort\n16-24 hours (2-3 days)",
+    "tags": [
+      "spec-031",
+      "context-matching",
+      "algorithm",
+      "enhancement",
+      "p1"
+    ]
+  },
+  {
+    "subject": "US-273: Performance Testing and Validation for Relevance Ranking",
+    "description": "# US-273: Performance Testing\n\n## Objective\nCreate performance tests to validate SLO requirements.\n\n## Technical Tasks\n- Test 10K keys latency <5ms\n- Test top-N retrieval\n- Test concurrent access\n- Validate memory usage <10MB per 10K users\n- Load testing\n\n## Acceptance Criteria\n- [ ] All SPEC requirements validated\n- [ ] Benchmark results documented\n- [ ] SLO compliance confirmed\n\n## Estimated Effort\n12-16 hours (1.5-2 days)",
+    "tags": [
+      "spec-031",
+      "testing",
+      "performance",
+      "validation",
+      "p1"
+    ]
+  },
+  {
+    "subject": "US-274: Relevance Statistics API Endpoint",
+    "description": "# US-274: Relevance Statistics API\n\n## Objective\nAdd observability endpoint for relevance engine statistics.\n\n## Technical Tasks\n- Create GET /memory/relevance/stats endpoint\n- Return comprehensive statistics\n- Admin access control\n\n## Acceptance Criteria\n- [ ] Endpoint implemented\n- [ ] Admin access working\n- [ ] Unit tests\n\n## Estimated Effort\n4-6 hours (0.5-1 day)",
+    "tags": [
+      "spec-031",
+      "api",
+      "stats",
+      "observability",
+      "p2"
+    ]
+  }
+]

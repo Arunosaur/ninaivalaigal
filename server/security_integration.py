@@ -53,6 +53,7 @@ class SecurityManager:
         # Falls back to Redis rate limiter if enhanced limiter unavailable
         try:
             from security.middleware.rate_limiting import RateLimitMiddleware
+
             app.add_middleware(RateLimitMiddleware)
             logger = structlog.get_logger(__name__)
             logger.info("✅ Enhanced RBAC-aware rate limiting enabled")

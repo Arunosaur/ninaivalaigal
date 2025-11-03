@@ -185,7 +185,9 @@ def upgrade():
         sa.Column("org_id", UUID(as_uuid=True), sa.ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True),
         sa.Column("amount", sa.Numeric(10, 2), nullable=False),
         sa.Column("used_amount", sa.Numeric(10, 2), server_default="0", nullable=False),
-        sa.Column("remaining_amount", sa.Numeric(10, 2), server_computed=sa.text("amount - used_amount"), nullable=True),
+        sa.Column(
+            "remaining_amount", sa.Numeric(10, 2), server_computed=sa.text("amount - used_amount"), nullable=True
+        ),
         sa.Column("granted_by", UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=True),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("reason", sa.Text, nullable=False),
@@ -200,7 +202,9 @@ def upgrade():
         ),
         comment="Team credits for billing (US#157, SPEC-026)",
     )
-    op.create_index("idx_team_credits_team_id", "team_credits", ["team_id"], postgresql_where=text("team_id IS NOT NULL"))
+    op.create_index(
+        "idx_team_credits_team_id", "team_credits", ["team_id"], postgresql_where=text("team_id IS NOT NULL")
+    )
     op.create_index("idx_team_credits_org_id", "team_credits", ["org_id"], postgresql_where=text("org_id IS NOT NULL"))
     op.create_index("idx_team_credits_expires_at", "team_credits", ["expires_at"])
 
@@ -226,7 +230,9 @@ def upgrade():
         sa.CheckConstraint("amount > 0", name="check_amount_positive"),
         sa.CheckConstraint("balance_before >= 0", name="check_balance_before_non_negative"),
         sa.CheckConstraint("balance_after >= 0", name="check_balance_after_non_negative"),
-        sa.CheckConstraint("transaction_type IN ('grant', 'deduct', 'expire', 'refund')", name="check_transaction_type"),
+        sa.CheckConstraint(
+            "transaction_type IN ('grant', 'deduct', 'expire', 'refund')", name="check_transaction_type"
+        ),
         sa.CheckConstraint(
             "(transaction_type = 'grant' AND balance_after = balance_before + amount) OR "
             "(transaction_type = 'deduct' AND balance_after = balance_before - amount) OR "
@@ -250,7 +256,12 @@ def upgrade():
         ["invoice_id"],
         postgresql_where=text("invoice_id IS NOT NULL"),
     )
-    op.create_index("idx_credit_transactions_created_at", "credit_transactions", ["created_at"], postgresql_ops={"created_at": "DESC"})
+    op.create_index(
+        "idx_credit_transactions_created_at",
+        "credit_transactions",
+        ["created_at"],
+        postgresql_ops={"created_at": "DESC"},
+    )
 
     # Discount code usage tracking
     op.create_table(
@@ -277,7 +288,10 @@ def upgrade():
     )
     op.create_index("idx_discount_code_usage_code_id", "discount_code_usage", ["discount_code_id"])
     op.create_index(
-        "idx_discount_code_usage_team_id", "discount_code_usage", ["team_id"], postgresql_where=text("team_id IS NOT NULL")
+        "idx_discount_code_usage_team_id",
+        "discount_code_usage",
+        ["team_id"],
+        postgresql_where=text("team_id IS NOT NULL"),
     )
     op.create_index(
         "idx_discount_code_usage_org_id", "discount_code_usage", ["org_id"], postgresql_where=text("org_id IS NOT NULL")
@@ -337,4 +351,3 @@ def downgrade():
     op.drop_table("team_usage_metrics")
     op.drop_table("team_subscriptions")
     op.drop_table("team_billing")
-

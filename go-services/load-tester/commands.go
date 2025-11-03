@@ -343,14 +343,15 @@ func runPredefinedScenario(ctx context.Context, name string, target TestTarget, 
 	color.White("Description: %s", profile.Description)
 	color.White("Target: %s", target.BaseURL)
 
-	// Apply profile configuration
-	*config = profile.Config
+	// Create config from profile
+	testConfig := profile.Config
+	testConfig.URL = target.BaseURL
 
-	return runTargetScenario(ctx, target)
+	return runTargetScenarioWithConfig(ctx, target, testConfig)
 }
 
-// runTargetScenario executes a test scenario against a target
-func runTargetScenario(ctx context.Context, target TestTarget) error {
+// runTargetScenarioWithConfig executes a test scenario with given config
+func runTargetScenarioWithConfig(ctx context.Context, target TestTarget, testConfig LoadTestConfig) error {
 	color.Cyan("🚀 Starting scenario test against %s", target.Name)
 
 	// Test each endpoint
@@ -359,10 +360,10 @@ func runTargetScenario(ctx context.Context, target TestTarget) error {
 			i+1, len(target.Endpoints), endpoint.Method, endpoint.Path)
 
 		// Configure for this endpoint
-		testConfig := *config
-		testConfig.URL = target.BaseURL + endpoint.Path
-		testConfig.Method = endpoint.Method
-		testConfig.Body = endpoint.Body
+		endpointConfig := testConfig
+		endpointConfig.URL = target.BaseURL + endpoint.Path
+		endpointConfig.Method = endpoint.Method
+		endpointConfig.Body = endpoint.Body
 
 		// Set headers
 		headers := make([]string, 0, len(target.Headers)+len(endpoint.Headers))
@@ -372,44 +373,31 @@ func runTargetScenario(ctx context.Context, target TestTarget) error {
 		for key, value := range endpoint.Headers {
 			headers = append(headers, fmt.Sprintf("%s: %s", key, value))
 		}
-		testConfig.Headers = headers
+		endpointConfig.Headers = headers
 
-		// Adjust concurrency and rate limit based on weight
+		// Use weight for total requests if specified, otherwise default
 		if endpoint.Weight > 0 {
-			if config.Concurrency > 0 {
-				testConfig.Concurrency = config.Concurrency * endpoint.Weight / 100
-				if testConfig.Concurrency < 1 {
-					testConfig.Concurrency = 1
-				}
-			}
-
-			if config.RateLimit > 0 {
-				rate := config.RateLimit * endpoint.Weight / 100
-				if rate < 1 {
-					rate = 1
-				}
-				testConfig.RateLimit = rate
-			}
-
-			if config.TotalRequests > 0 {
-				reqs := config.TotalRequests * endpoint.Weight / 100
-				if reqs < 1 {
-					reqs = 1
-				}
-				testConfig.TotalRequests = reqs
-			}
+			endpointConfig.TotalRequests = endpoint.Weight
+		} else if endpointConfig.TotalRequests == 0 {
+			endpointConfig.TotalRequests = 10 // Default
 		}
 
-		// Run the test
-		tester := NewHTTPTester(&testConfig)
+		tester := NewHTTPTester(&endpointConfig)
 		if err := tester.Run(ctx); err != nil {
-			color.Red("❌ Endpoint test failed: %v", err)
-			continue
+			color.Red("❌ Endpoint failed: %v", err)
+			// Continue with other endpoints
 		}
 	}
 
-	color.Green("✅ Scenario test completed!")
+	color.Green("\n✅ Scenario test completed!")
 	return nil
+}
+
+// runTargetScenario executes a test scenario against a target
+func runTargetScenario(ctx context.Context, target TestTarget) error {
+	// Use default config (original logic preserved)
+	defaultConfig := NewLoadTestConfig()
+	return runTargetScenarioWithConfig(ctx, target, *defaultConfig)
 }
 
 // Add helper commands for quick testing

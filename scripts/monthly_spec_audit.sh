@@ -75,4 +75,3 @@ if [ -f "$SCRIPT_DIR/generate_monthly_spec_report.py" ]; then
     echo "  - governance/reports/SPEC_STATUS_MONTHLY_$(date +%Y-%m).md"
 fi
 echo ""
-

@@ -1,0 +1,79 @@
+[
+  {
+    "subject": "SPEC-047: Screen + Audio Recording Integration (OBS/Browser/FFmpeg)",
+    "description": "Implement screen and audio recording integration supporting multiple backends (OBS, browser MediaRecorder API, FFmpeg). This should enable users to start/stop recording from UI or CLI (`e^M demo start`), capture screen content and microphone audio simultaneously, and handle different recording formats and quality settings.",
+    "tags": ["spec-047", "recording", "screen-capture", "audio", "integration", "backend"],
+    "priority": "High",
+    "effort": "6 days"
+  },
+  {
+    "subject": "SPEC-047: Demo Memory Storage and Type System",
+    "description": "Develop storage system for narrative memory macros (demos) with type `demo` in the memory database. This should store demo metadata (title, description, author, tags), associate video/audio files with memory records, integrate with object storage (S3/MinIO), and support memory type classification for demo memories.",
+    "tags": ["spec-047", "storage", "database", "memory-types", "backend"],
+    "priority": "High",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-047: Audio Transcription and Timeline Generation",
+    "description": "Implement audio transcription service integration and timeline generation for recorded demos. This should transcribe audio to text, generate timestamped timeline of events, associate transcription segments with video timestamps, and store transcription data alongside demo memory. Support multiple transcription providers (Whisper, Google, etc.).",
+    "tags": ["spec-047", "transcription", "timeline", "ai-integration", "backend"],
+    "priority": "High",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-047: Demo Metadata Management (Tagging, Title, Description)",
+    "description": "Create system for managing demo metadata including tagging, title, description, author attribution, and custom metadata fields. This should integrate with existing memory tagging system (SPEC-039), support rich metadata editing, and enable search/filtering by metadata fields.",
+    "tags": ["spec-047", "metadata", "tagging", "search", "backend"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-047: Web Viewer for Demo Replay",
+    "description": "Develop web-based viewer/player for replaying narrative memory macros (demos). This should display video playback, show synchronized transcription and timeline, support playback controls (play, pause, seek, speed adjustment), and provide interactive timeline navigation. Should work in both web UI and embeddable player.",
+    "tags": ["spec-047", "player", "web-viewer", "frontend", "ui"],
+    "priority": "High",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-047: CLI Demo Recording Commands",
+    "description": "Implement CLI commands for demo recording including `e^M demo start`, `e^M demo stop`, `e^M demo list`, `e^M demo play <name>`, and `e^M demo upload <file>`. This should integrate with screen/audio recording, provide status feedback, and enable command-line demo management.",
+    "tags": ["spec-047", "cli", "commands", "terminal"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-047: Demo Upload and Processing Pipeline",
+    "description": "Create upload and processing pipeline for demo files uploaded from local storage. This should handle file upload (video/audio formats), validate file types and sizes, process uploaded files (transcode if needed), generate thumbnails, and integrate with transcription and timeline generation.",
+    "tags": ["spec-047", "upload", "processing", "pipeline", "backend"],
+    "priority": "Medium",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-047: Demo API Endpoints and Management",
+    "description": "Design and implement REST API endpoints for demo management including create, read, update, delete operations, demo listing, playback URL generation, transcription retrieval, and metadata management. Should include proper authentication, authorization (RBAC), validation, and error handling.",
+    "tags": ["spec-047", "api", "rest", "backend"],
+    "priority": "High",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-047: Demo-to-Memory Context Linking",
+    "description": "Develop system to link demo recordings to specific memory contexts (memory IDs/tags). This enables demos to be associated with relevant memories, allowing users to find and play demos based on memory context. Should include bidirectional linking and context-aware demo suggestions.",
+    "tags": ["spec-047", "memory-linking", "context", "integration", "backend"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-047: Demo Database Schema and Storage",
+    "description": "Design and implement database schema for storing demo memories, video/audio file references, transcriptions, timelines, and metadata. Should include proper indexes for performance, foreign key relationships, Alembic migrations, and integration with existing memory schema. Support for `type: \"demo\"` memory records.",
+    "tags": ["spec-047", "database", "schema", "migration", "backend"],
+    "priority": "High",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-047: Demo System Integration Tests",
+    "description": "Create comprehensive integration test suite for the demo/narrative memory macro system including recording tests, upload validation tests, transcription accuracy tests, timeline generation tests, playback functionality tests, and end-to-end demo workflow tests. Should cover repeatable scenarios (training walkthroughs, demos) as specified in README.",
+    "tags": ["spec-047", "testing", "integration", "quality"],
+    "priority": "Medium",
+    "effort": "4 days"
+  }
+]

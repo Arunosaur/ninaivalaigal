@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
+"""app factory patch module."""
+
+from typing import Any
+
+from fastapi import APIRouter, Depends, FastAPI
+from memory.store_factory import get_memory_store
+from pydantic import BaseModel
+
+
+class WriteBody(BaseModel):
+    """WriteBody class."""
+
+    scope: str = "personal"
+    user_id: str
+    team_id: str | None = None
+    org_id: str | None = None
+    kind: str = "note"
+    text: str
+    metadata: dict[str, Any] = {}
+
+
+def wire_memory_store(app: FastAPI) -> None:
+    """Function implementation."""
+    app.state.memory_store = get_memory_store()
+    router = APIRouter(prefix="/mem-demo", tags=["memory-factory-demo"])
+
+    def store_dep():
+        """Function implementation."""
+        return app.state.memory_store
+
+    @router.post("/write")
+    async def write(body: WriteBody, store=Depends(store_dep)):
+        row = await store.write(body.dict())
+        return {"id": row.get("id"), "kind": row.get("kind"), "text": row.get("text")}
+
+    app.include_router(router)
+
+    @app.get("/healthz/memory")
+    async def healthz_memory():
+        return {"backend": type(app.state.memory_store).__name__}

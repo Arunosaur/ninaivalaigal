@@ -24,6 +24,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 # Import models from local auth module
 from auth import IndividualUserSignup, TokenData
+from config import DEFAULT_RUST_DATABASE_URL
 from utils.password import hash_password, verify_password
 
 
@@ -48,7 +49,7 @@ def load_config():
         pass  # Config file parsing is optional - fail silently
 
     # PRIORITY 3: Fallback (should not be used in container)
-    return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
+    return DEFAULT_RUST_DATABASE_URL
 
 
 # Database helper to avoid circular imports

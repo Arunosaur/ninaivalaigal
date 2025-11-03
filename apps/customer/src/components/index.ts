@@ -5,5 +5,11 @@
  * Shared Components - Barrel Export
  */
 
-export { Navigation, SidebarNavigation, MobileNavigation } from './Navigation';
+export { default as AuthLayout } from './AuthLayout';
 export { MarketingNavigation } from './MarketingNavigation';
+export { MatrixRainSides } from './MatrixRainSides';
+export type { MatrixRainSidesProps } from './MatrixRainSides';
+export { Navigation, SidebarNavigation, MobileNavigation } from './Navigation';
+export { default as ProtectedRoute } from './ProtectedRoute';
+export { Toast } from './Toast';
+export type { ToastProps } from './Toast';

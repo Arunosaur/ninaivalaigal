@@ -63,8 +63,8 @@ cd ~/WorkSpace/dev-containers/docs-builder
 
 ### **Location:** `~/WorkSpace/dev-tools/spec-dashboard-generator/`
 
-**Purpose:** Generate JSON analytics from SPEC front-matter  
-**Output:** `spec_dashboard.json` with phase completion, timeline, Gantt data  
+**Purpose:** Generate JSON analytics from SPEC front-matter
+**Output:** `spec_dashboard.json` with phase completion, timeline, Gantt data
 **Used by:** Docusaurus visualization components
 
 **Usage:**
@@ -96,5 +96,5 @@ Candidates for `~/WorkSpace/dev-tools/` or `~/WorkSpace/dev-containers/`:
 
 ---
 
-**Last Updated:** October 13, 2025  
+**Last Updated:** October 13, 2025
 **Organization:** Medhasys

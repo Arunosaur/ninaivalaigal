@@ -1,0 +1,39 @@
+{
+  "test_suite": "RBAC Integration Tests",
+  "timestamp": "2025-09-15T22:41:27.554651",
+  "total_tests": 5,
+  "passed_tests": 0,
+  "failed_tests": 5,
+  "results": [
+    {
+      "test": "Authentication with RBAC",
+      "success": false,
+      "message": "Login failed with status 405: {\"detail\":\"Method Not Allowed\"}",
+      "timestamp": "2025-09-15T22:41:27.554620"
+    },
+    {
+      "test": "RBAC Middleware",
+      "success": false,
+      "message": "No auth token available",
+      "timestamp": "2025-09-15T22:41:27.554638"
+    },
+    {
+      "test": "Permission Decorators",
+      "success": false,
+      "message": "No auth token available",
+      "timestamp": "2025-09-15T22:41:27.554641"
+    },
+    {
+      "test": "RBAC API Endpoints",
+      "success": false,
+      "message": "No auth token available",
+      "timestamp": "2025-09-15T22:41:27.554643"
+    },
+    {
+      "test": "Database Integration",
+      "success": false,
+      "message": "No auth token available",
+      "timestamp": "2025-09-15T22:41:27.554645"
+    }
+  ]
+}

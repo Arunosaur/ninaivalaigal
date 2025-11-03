@@ -10,6 +10,8 @@
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
 from server.utils.filename_sanitizer import (
     is_archive_extension,
     normalize_content_disposition_filename,

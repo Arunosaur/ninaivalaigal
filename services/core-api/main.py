@@ -92,6 +92,37 @@ async def lifespan(app: FastAPI):
         logger.warning("Events will not be published")
         app.state.event_publisher = None
 
+    # Initialize container health monitoring (SPEC-051)
+    try:
+        from lib.observability.circuit_breaker import (
+            initialize_service_circuit_breakers,
+        )
+        from lib.observability.container_health import initialize_container_monitoring
+        from lib.observability.platform_alerting import (
+            initialize_platform_stability_alerting,
+        )
+
+        # Initialize circuit breakers for all services
+        circuit_breaker_registry = initialize_service_circuit_breakers()
+        app.state.circuit_breaker_registry = circuit_breaker_registry
+        logger.info("✅ Circuit breakers initialized")
+
+        # Start container health monitoring
+        container_monitor = await initialize_container_monitoring()
+        app.state.container_monitor = container_monitor
+        logger.info("✅ Container health monitoring started")
+
+        # Start platform stability alerting
+        platform_alerter = await initialize_platform_stability_alerting()
+        app.state.platform_alerter = platform_alerter
+        logger.info("✅ Platform stability alerting started")
+    except Exception as e:
+        logger.warning(f"⚠️  Container health monitoring initialization failed: {e}")
+        logger.warning("Platform stability monitoring will be limited")
+        app.state.container_monitor = None
+        app.state.circuit_breaker_registry = None
+        app.state.platform_alerter = None
+
     logger.info("✅ Core API Service started successfully")
 
     yield
@@ -101,6 +132,14 @@ async def lifespan(app: FastAPI):
     if hasattr(app.state, "event_publisher") and app.state.event_publisher:
         await app.state.event_publisher.disconnect()
         logger.info("Event publisher disconnected")
+
+    if hasattr(app.state, "container_monitor") and app.state.container_monitor:
+        await app.state.container_monitor.stop_monitoring()
+        logger.info("Container health monitoring stopped")
+
+    if hasattr(app.state, "platform_alerter") and app.state.platform_alerter:
+        await app.state.platform_alerter.stop_monitoring()
+        logger.info("Platform stability alerting stopped")
 
 
 # Create FastAPI app
@@ -119,6 +158,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add Prometheus metrics middleware (must be before other middleware to track all requests)
+from lib.observability.metrics import MetricsMiddleware
+
+app.add_middleware(MetricsMiddleware)
 
 # Enforce JWT authentication + RBAC context extraction for protected routes
 app.middleware("http")(rbac_middleware)
@@ -205,14 +249,17 @@ async def health():
 
 # Import and include SPEC-100 routers
 from routers import health as health_router  # noqa: E402
-from routers import metrics as metrics_router  # noqa: E402
-from lib.observability import memory_health  # noqa: E402
+
+from lib.api import container_health_api  # noqa: E402
 from lib.api import monitoring_api  # noqa: E402
+from lib.observability import memory_health  # noqa: E402
+from lib.observability import metrics as metrics_module  # noqa: E402
 
 app.include_router(health_router.router)
-app.include_router(metrics_router.router)
+app.include_router(metrics_module.router)
 app.include_router(memory_health.router)
 app.include_router(monitoring_api.router)
+app.include_router(container_health_api.router)  # SPEC-051 Platform Stability
 
 # from routers import memory_api  # noqa: E402  # REMOVED - redundant with Rust
 # Import team management routers

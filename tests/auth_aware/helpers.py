@@ -16,7 +16,13 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import httpx
 
-from .fixtures import OrgContext, RoleFixtures, TokenBundle, build_role_fixtures, create_token_bundle
+from .fixtures import (
+    OrgContext,
+    RoleFixtures,
+    TokenBundle,
+    build_role_fixtures,
+    create_token_bundle,
+)
 from .models import PermissionTestResult, TestUser, UserRole
 
 __all__ = [
@@ -112,9 +118,7 @@ async def ensure_team_context(
         )
 
         if response.status_code not in {200, 201, 204}:
-            raise AuthHelperError(
-                f"ensure_team_context failed for {context.team_id}: HTTP {response.status_code}"
-            )
+            raise AuthHelperError(f"ensure_team_context failed for {context.team_id}: HTTP {response.status_code}")
     finally:
         if owns_client:
             await http_client.aclose()
@@ -196,10 +200,7 @@ async def collect_role_tokens(
 
     async with get_client(base_url, timeout) as client:
         bundles = await asyncio.gather(
-            *[
-                login_as_user(base_url, user, timeout=timeout, client=client)
-                for user in fixtures.all_active()
-            ]
+            *[login_as_user(base_url, user, timeout=timeout, client=client) for user in fixtures.all_active()]
         )
 
     return list(bundles)

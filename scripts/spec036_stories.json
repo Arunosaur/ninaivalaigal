@@ -1,0 +1,44 @@
+[
+  {
+    "subject": "SPEC-036: Memory Injection Rules UI Components",
+    "description": "Build frontend UI components for memory injection rule management in customer and admin consoles, enabling users to create, edit, and manage injection rules.\n\n**Requirements:**\n- Rule creation form with trigger type, strategy, and priority selection\n- Rule list view with filtering and sorting\n- Rule editor for updating existing rules\n- Rule activation/deactivation toggle\n- Rule performance visualization\n\n**Acceptance Criteria:**\n- Users can create new injection rules through UI\n- Rule list displays all user rules with status\n- Rule editor allows updating rule properties\n- Rules can be activated/deactivated via toggle\n- Performance metrics are displayed for each rule\n\n**Dependencies:**\n- Backend API endpoints (already implemented)\n- Frontend shared components",
+    "tags": ["spec-036", "ui", "frontend", "rules"],
+    "priority": "High",
+    "effort": "5 days"
+  },
+  {
+    "subject": "SPEC-036: Injection Analytics Dashboard UI",
+    "description": "Implement analytics dashboard UI component showing memory injection performance metrics, rule effectiveness, and user feedback visualization.\n\n**Requirements:**\n- Dashboard showing total injections, success rate, and trends\n- Rule performance comparison view\n- User feedback visualization\n- Injection timeline chart\n- Top performing rules list\n\n**Acceptance Criteria:**\n- Dashboard displays comprehensive injection analytics\n- Charts show trends over time\n- Rule performance is comparable side-by-side\n- User feedback data is visualized clearly\n- All metrics are up-to-date and accurate\n\n**Dependencies:**\n- Backend analytics API (already implemented)\n- Frontend charting library",
+    "tags": ["spec-036", "ui", "dashboard", "analytics"],
+    "priority": "Medium",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-036: CLI Commands for Rule Management",
+    "description": "Implement CLI commands for memory injection rule management, enabling power users to manage rules from command line.\n\n**Requirements:**\n- `mem injection rule create` - Create new injection rule\n- `mem injection rule list` - List user's injection rules\n- `mem injection rule show <rule_id>` - Show rule details\n- `mem injection rule update <rule_id>` - Update rule\n- `mem injection rule delete <rule_id>` - Delete rule\n- `mem injection rule enable/disable <rule_id>` - Toggle rule status\n- `mem injection analytics` - Show injection analytics\n\n**Acceptance Criteria:**\n- All CLI commands work correctly\n- Commands provide clear output\n- Error handling is comprehensive\n- Commands support JSON output format\n- Help documentation is complete\n\n**Dependencies:**\n- Backend API endpoints (already implemented)\n- CLI infrastructure",
+    "tags": ["spec-036", "cli", "commands", "tooling"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-036: Memory Injection Rules Test Suite",
+    "description": "Create comprehensive test suite for SPEC-036 features including unit tests, integration tests, and E2E tests for rule management and injection operations.\n\n**Requirements:**\n- Unit tests for rule engine and evaluation logic\n- Integration tests for API endpoints\n- E2E tests for rule creation and injection workflows\n- Performance tests for rule evaluation\n- Edge case testing (conflicting rules, invalid triggers, etc.)\n\n**Acceptance Criteria:**\n- Test coverage >90% for injection rule code\n- All integration tests pass\n- E2E tests cover critical workflows\n- Performance tests validate rule evaluation speed\n- Edge cases are handled correctly\n\n**Dependencies:**\n- All SPEC-036 implementation (backend complete)\n- Test infrastructure",
+    "tags": ["spec-036", "testing", "coverage", "quality"],
+    "priority": "High",
+    "effort": "4 days"
+  },
+  {
+    "subject": "SPEC-036: Rule Validation and Error Handling",
+    "description": "Enhance rule validation logic and error handling for memory injection rules, ensuring robust rule creation and execution.\n\n**Requirements:**\n- Comprehensive validation for rule conditions\n- Validation for trigger type and strategy combinations\n- Error messages for invalid rule configurations\n- Rule conflict detection\n- Graceful handling of rule execution failures\n\n**Acceptance Criteria:**\n- Invalid rules are rejected with clear error messages\n- Rule conflicts are detected and reported\n- Rule execution failures are logged appropriately\n- Users receive helpful feedback on rule issues\n- System remains stable with invalid rules\n\n**Dependencies:**\n- Rule engine (already implemented)\n- Validation logic enhancement needed",
+    "tags": ["spec-036", "validation", "error-handling", "robustness"],
+    "priority": "Medium",
+    "effort": "3 days"
+  },
+  {
+    "subject": "SPEC-036: Documentation and Usage Examples",
+    "description": "Create comprehensive documentation for SPEC-036 including API documentation, usage examples, rule creation patterns, and best practices.\n\n**Requirements:**\n- Complete API documentation for all endpoints\n- Usage examples for common scenarios\n- Rule creation pattern library\n- Best practices guide\n- Troubleshooting guide\n\n**Acceptance Criteria:**\n- All API endpoints are documented\n- Examples cover common use cases\n- Rule patterns are clearly explained\n- Best practices are documented\n- Documentation is up-to-date\n\n**Dependencies:**\n- All SPEC-036 features (backend complete)\n- Documentation system",
+    "tags": ["spec-036", "documentation", "examples", "guide"],
+    "priority": "Low",
+    "effort": "2 days"
+  }
+]

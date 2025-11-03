@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
+"""main min module."""
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/ping")
+async def ping():
+    """Health check endpoint returning pong response."""
+    return {"msg": "pong"}

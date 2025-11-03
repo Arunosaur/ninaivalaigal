@@ -1,0 +1,79 @@
+{
+  "stories": [
+    {
+      "subject": "US-P0: Add Comprehensive Test Coverage for Go Services (0% → 80%+)",
+      "description": "Critical: All 16 Go service files currently lack tests. Implement comprehensive test coverage for:\n- CLI tools (`go-services/cli-tools/`)\n- gRPC Gateway (`go-services/grpc-gateway/`)\n- Load Tester (`go-services/load-tester/`)\n\n**Acceptance Criteria:**\n- All Go service files have corresponding `*_test.go` files\n- Minimum 80% code coverage for Go services\n- Unit tests for all public functions\n- Integration tests for CLI commands and API endpoints\n- CI/CD validation of Go test coverage\n\n**Priority:** P0 - Critical\n**Effort:** 3-5 days\n**Language:** Go\n**Current Coverage:** 0% (0/16 files)\n**Target Coverage:** 80%+",
+      "tags": ["test-coverage", "go", "p0-critical", "spec-052"],
+      "priority": "High",
+      "effort": 15
+    },
+    {
+      "subject": "US-P0: Add Test Coverage for Java/JetBrains Plugin (0% → 70%+)",
+      "description": "Critical: All 3 Java files (JetBrains plugin) lack tests. Implement test coverage for:\n- JetBrains plugin functionality\n- Plugin integration tests\n- Plugin API validation\n\n**Acceptance Criteria:**\n- All Java plugin files have corresponding JUnit tests\n- Minimum 70% code coverage for Java code\n- Unit tests for plugin core functionality\n- Integration tests for IDE plugin behavior\n- CI/CD validation of Java test coverage\n\n**Priority:** P0 - Critical\n**Effort:** 2-3 days\n**Language:** Java\n**Current Coverage:** 0% (0/3 files)\n**Target Coverage:** 70%+",
+      "tags": ["test-coverage", "java", "p0-critical", "spec-052"],
+      "priority": "High",
+      "effort": 10
+    },
+    {
+      "subject": "US-P0: Improve TypeScript Test Coverage - Critical Paths (10.3% → 50%+)",
+      "description": "Critical: Only 10.3% TypeScript files have tests (24/232). Prioritize critical paths:\n- Authentication components/hooks\n- Core UI components (forms, modals, navigation)\n- API client utilities\n- State management (Zustand stores)\n- Error handling utilities\n\n**Acceptance Criteria:**\n- All critical TypeScript paths have Jest/Vitest tests\n- Minimum 50% coverage for frontend-critical paths\n- Component tests for core UI elements\n- Hook testing for custom React hooks\n- API client integration tests\n- CI/CD validation of TypeScript test coverage\n\n**Priority:** P0 - Critical\n**Effort:** 5-7 days\n**Language:** TypeScript\n**Current Coverage:** 10.3% (24/232 files)\n**Target Coverage:** 50%+ (critical paths)",
+      "tags": ["test-coverage", "typescript", "p0-critical", "spec-052", "frontend"],
+      "priority": "High",
+      "effort": 21
+    },
+    {
+      "subject": "US-P1: Improve Python Test Coverage - Security & Auth APIs (48.9% → 70%+)",
+      "description": "Important: 757 Python files lack tests. Prioritize security-critical areas:\n- Authentication middleware (`server/rbac_middleware.py`, `server/auth_middleware.py`)\n- Security APIs (`server/security/`)\n- ACL engine (`server/acl_engine.py`)\n- Token validation and JWT handling\n- Rate limiting and security policies\n\n**Acceptance Criteria:**\n- All security and auth APIs have comprehensive tests\n- Minimum 90% coverage for security-critical code\n- Security vulnerability testing (OWASP Top 10)\n- Authentication flow integration tests\n- ACL permission matrix tests\n- CI/CD validation blocks on security test failures\n\n**Priority:** P1 - Important\n**Effort:** 4-5 days\n**Language:** Python\n**Current Coverage:** 48.9% (725/1,482 files)\n**Target Coverage:** 70%+ (overall), 90%+ (security)",
+      "tags": ["test-coverage", "python", "p1-important", "spec-052", "security"],
+      "priority": "Normal",
+      "effort": 15
+    },
+    {
+      "subject": "US-P1: Improve Rust Test Coverage to 90%+ (69.6% → 90%+)",
+      "description": "Important: Rust has good coverage (69.6%) but can improve to 90%+:\n- Add missing tests for 7 Rust files without tests\n- Improve edge case coverage\n- Add integration tests for Rust services\n- Performance benchmarking tests\n\n**Acceptance Criteria:**\n- All Rust source files have corresponding tests\n- Minimum 90% code coverage for Rust services\n- Unit tests for all public modules\n- Integration tests for service boundaries\n- Performance regression tests\n- CI/CD validation with coverage thresholds\n\n**Priority:** P1 - Important\n**Effort:** 2-3 days\n**Language:** Rust\n**Current Coverage:** 69.6% (16/23 files)\n**Target Coverage:** 90%+",
+      "tags": ["test-coverage", "rust", "p1-important", "spec-052"],
+      "priority": "Normal",
+      "effort": 10
+    },
+    {
+      "subject": "US-P1: Establish TypeScript Test Coverage - Core Components (10.3% → 70%+)",
+      "description": "Important: Expand TypeScript test coverage beyond critical paths:\n- Shared components library (`frontend-shared/src/`)\n- Admin console components\n- Customer frontend core features\n- Utility functions and helpers\n- Type definitions and validation\n\n**Acceptance Criteria:**\n- Core TypeScript components have Jest/Vitest tests\n- Minimum 70% coverage for core TypeScript files\n- Component snapshot tests\n- Storybook integration for visual testing\n- E2E tests for critical user flows\n- CI/CD validation of TypeScript test coverage\n\n**Priority:** P1 - Important\n**Effort:** 7-10 days\n**Language:** TypeScript\n**Current Coverage:** 10.3% (24/232 files)\n**Target Coverage:** 70%+ (core components)",
+      "tags": ["test-coverage", "typescript", "p1-important", "spec-052", "frontend"],
+      "priority": "Normal",
+      "effort": 28
+    },
+    {
+      "subject": "US-P2: Improve Python Test Coverage - Core APIs & Engines (48.9% → 75%+)",
+      "description": "Medium-term: Expand Python test coverage for core functionality:\n- Memory system APIs (`server/memory_api.py`, `server/memory_system.py`)\n- Intelligence engines (relevance, feedback, suggestions)\n- Graph operations and query APIs\n- Database models and migrations\n- Business logic services\n\n**Acceptance Criteria:**\n- Core Python APIs have comprehensive test coverage\n- Minimum 75% overall coverage for Python codebase\n- Integration tests for API endpoints\n- Database migration validation tests\n- Service boundary tests\n- CI/CD coverage thresholds enforced\n\n**Priority:** P2 - Medium-term\n**Effort:** 10-14 days\n**Language:** Python\n**Current Coverage:** 48.9% (725/1,482 files)\n**Target Coverage:** 75%+",
+      "tags": ["test-coverage", "python", "p2-medium", "spec-052"],
+      "priority": "Low",
+      "effort": 42
+    },
+    {
+      "subject": "US-P2: Complete TypeScript Test Coverage - All Frontend Files (10.3% → 80%+)",
+      "description": "Medium-term: Achieve comprehensive TypeScript test coverage:\n- All remaining TypeScript/JavaScript files\n- Edge cases and error handling\n- Accessibility testing\n- Performance testing for components\n- Cross-browser compatibility tests\n\n**Acceptance Criteria:**\n- All TypeScript files have corresponding tests\n- Minimum 80% coverage for all TypeScript code\n- Complete test suite for frontend\n- Accessibility (a11y) testing\n- Performance benchmarking\n- CI/CD validation with coverage gates\n\n**Priority:** P2 - Medium-term\n**Effort:** 14-21 days\n**Language:** TypeScript\n**Current Coverage:** 10.3% (24/232 files)\n**Target Coverage:** 80%+",
+      "tags": ["test-coverage", "typescript", "p2-medium", "spec-052", "frontend"],
+      "priority": "Low",
+      "effort": 56
+    },
+    {
+      "subject": "US-P2: Establish CI/CD Coverage Thresholds & Enforcement",
+      "description": "Medium-term: Implement automated coverage validation across all languages:\n- Set language-specific coverage thresholds\n- Pre-commit hooks for new code test validation\n- CI/CD coverage gates that block merges\n- Coverage reporting dashboard\n- Trend tracking and regression prevention\n\n**Acceptance Criteria:**\n- Coverage thresholds defined for each language:\n  - Python: 85% (overall), 90% (security)\n  - TypeScript: 80% (overall), 90% (critical paths)\n  - Rust: 90% (overall)\n  - Go: 80% (overall)\n  - Java: 70% (overall)\n- Pre-commit hooks validate new files have tests\n- CI/CD blocks merges below thresholds\n- Coverage reports generated per PR\n- Historical coverage trend tracking\n\n**Priority:** P2 - Medium-term\n**Effort:** 3-4 days\n**Languages:** All (Python, TypeScript, Rust, Go, Java)\n**Tags:** CI/CD, Automation, Quality Gates",
+      "tags": ["test-coverage", "cicd", "p2-medium", "spec-052", "automation"],
+      "priority": "Low",
+      "effort": 12
+    },
+    {
+      "subject": "US-P2: Create Test Templates & Documentation for All Languages",
+      "description": "Medium-term: Create standardized test templates and documentation:\n- Test templates for each language (Python, TypeScript, Rust, Go, Java)\n- Testing best practices documentation\n- Test coverage guidelines per language\n- Example test files for common patterns\n- Developer onboarding guide for testing\n\n**Acceptance Criteria:**\n- Test templates created for:\n  - Python: pytest unit/integration/E2E templates\n  - TypeScript: Jest/Vitest component/hook templates\n  - Rust: cargo test unit/integration templates\n  - Go: standard test patterns with examples\n  - Java: JUnit test templates\n- Comprehensive testing documentation\n- Code examples and best practices\n- Developer guide for writing tests\n- Templates integrated into project scaffolding\n\n**Priority:** P2 - Medium-term\n**Effort:** 2-3 days\n**Languages:** All (Python, TypeScript, Rust, Go, Java)\n**Tags:** Documentation, Templates, Developer Experience",
+      "tags": ["test-coverage", "documentation", "p2-medium", "spec-052", "templates"],
+      "priority": "Low",
+      "effort": 10
+    }
+  ],
+  "epic": {
+    "name": "EPIC#028: Multi-Language Test Coverage Improvement",
+    "description": "Comprehensive test coverage improvement initiative across all languages (Python, TypeScript, Rust, Go, Java). Addresses critical gaps in Go (0%) and Java (0%), improves TypeScript coverage (10.3%), and establishes quality gates for all languages.",
+    "tags": ["test-coverage", "multi-language", "spec-052", "quality"]
+  }
+}

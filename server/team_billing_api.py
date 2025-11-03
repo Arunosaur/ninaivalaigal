@@ -11,15 +11,15 @@ US#204: Team Billing APIs (SPEC-026 Phase 2)
 REST API endpoints for team billing management with Stripe integration.
 """
 
-import os
 import logging
+import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import stripe
-from database import Team, TeamBilling, TeamSubscription, User
-from fastapi import APIRouter, Depends, HTTPException, Query
+from database.models import Team, TeamBilling, TeamSubscription, User
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from models.standalone_teams import StandaloneTeamManager
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -61,6 +61,7 @@ STRIPE_PRICE_MAPPING = {
     },
 }
 
+
 # Initialize team manager
 def get_team_manager(db: Session = Depends(get_db)) -> StandaloneTeamManager:
     """Get standalone team manager instance"""
@@ -70,6 +71,7 @@ def get_team_manager(db: Session = Depends(get_db)) -> StandaloneTeamManager:
 # Pydantic Models
 class BillingInfoResponse(BaseModel):
     """Billing information response"""
+
     team_id: str
     team_name: str
     subscription_status: str  # active, trialing, past_due, canceled, unpaid
@@ -87,12 +89,14 @@ class BillingInfoResponse(BaseModel):
 
 class PaymentMethodRequest(BaseModel):
     """Request to add/update payment method"""
+
     payment_method_id: str = Field(..., description="Stripe payment method ID")
     set_as_default: bool = Field(default=True, description="Set as default payment method")
 
 
 class InvoiceListItem(BaseModel):
     """Invoice list item response"""
+
     id: str
     invoice_number: str
     date: datetime
@@ -108,6 +112,7 @@ class InvoiceListItem(BaseModel):
 
 class InvoiceListResponse(BaseModel):
     """Paginated invoice list response"""
+
     invoices: List[InvoiceListItem]
     total: int
     page: int
@@ -117,6 +122,7 @@ class InvoiceListResponse(BaseModel):
 
 class ChangePlanRequest(BaseModel):
     """Request to change subscription plan"""
+
     new_plan_id: str = Field(..., description="New plan ID (free, starter, team_pro, etc.)")
     prorate: bool = Field(default=True, description="Apply proration for plan changes")
     billing_cycle_anchor: Optional[datetime] = Field(None, description="Anchor date for billing cycle")
@@ -124,6 +130,7 @@ class ChangePlanRequest(BaseModel):
 
 class ChangePlanResponse(BaseModel):
     """Response after changing plan"""
+
     success: bool
     message: str
     new_plan: str
@@ -133,12 +140,14 @@ class ChangePlanResponse(BaseModel):
 
 class CancelSubscriptionRequest(BaseModel):
     """Request to cancel subscription"""
+
     cancel_immediately: bool = Field(default=False, description="Cancel immediately or at period end")
     reason: Optional[str] = Field(None, max_length=500, description="Cancellation reason")
 
 
 class CancelSubscriptionResponse(BaseModel):
     """Response after canceling subscription"""
+
     success: bool
     message: str
     canceled_at: datetime
@@ -169,10 +178,7 @@ def get_team_subscription(team_id: UUID, db: Session) -> Optional[TeamSubscripti
     """Get active team subscription"""
     return (
         db.query(TeamSubscription)
-        .filter(
-            TeamSubscription.team_id == team_id,
-            TeamSubscription.status.in_(["active", "trialing", "past_due"])
-        )
+        .filter(TeamSubscription.team_id == team_id, TeamSubscription.status.in_(["active", "trialing", "past_due"]))
         .order_by(TeamSubscription.created_at.desc())
         .first()
     )
@@ -203,6 +209,7 @@ def sync_payment_method_from_stripe(team_billing: TeamBilling) -> Optional[Dict[
 
 
 # API Endpoints
+
 
 @router.get("", response_model=BillingInfoResponse)
 async def get_team_billing_info(
@@ -292,12 +299,9 @@ async def add_update_payment_method(
 
     # Get or create team billing record
     team_billing = get_team_billing(team.id, db)
-    
+
     if not team_billing or not team_billing.stripe_customer_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Team billing not set up. Please create a subscription first."
-        )
+        raise HTTPException(status_code=400, detail="Team billing not set up. Please create a subscription first.")
 
     try:
         # Attach payment method to Stripe customer
@@ -348,7 +352,7 @@ async def list_team_invoices(
 
     # Get team billing to find Stripe customer
     team_billing = get_team_billing(team.id, db)
-    
+
     invoices: List[InvoiceListItem] = []
 
     if team_billing and team_billing.stripe_customer_id:
@@ -370,7 +374,9 @@ async def list_team_invoices(
                         amount_paid=inv.amount_paid / 100.0,
                         currency=inv.currency,
                         status=inv.status,
-                        period_start=datetime.fromtimestamp(inv.period_start) if inv.period_start else datetime.utcnow(),
+                        period_start=(
+                            datetime.fromtimestamp(inv.period_start) if inv.period_start else datetime.utcnow()
+                        ),
                         period_end=datetime.fromtimestamp(inv.period_end) if inv.period_end else datetime.utcnow(),
                         pdf_url=inv.invoice_pdf,
                         stripe_invoice_url=inv.hosted_invoice_url,
@@ -432,18 +438,20 @@ async def change_subscription_plan(
         stripe_subscription_id = None
         if subscription.subscription_metadata:
             stripe_subscription_id = subscription.subscription_metadata.get("stripe_subscription_id")
-        
+
         if not stripe_subscription_id:
-            raise HTTPException(status_code=400, detail="Stripe subscription ID not found. Please create a subscription first.")
+            raise HTTPException(
+                status_code=400, detail="Stripe subscription ID not found. Please create a subscription first."
+            )
 
         # Determine billing cycle from current subscription (default to monthly)
         billing_cycle = "monthly"  # Would be determined from subscription
         new_price_id = STRIPE_PRICE_MAPPING.get(request.new_plan_id, {}).get(billing_cycle)
-        
+
         if not new_price_id:
             raise HTTPException(
                 status_code=400,
-                detail=f"Stripe price ID not configured for plan {request.new_plan_id} ({billing_cycle})"
+                detail=f"Stripe price ID not configured for plan {request.new_plan_id} ({billing_cycle})",
             )
 
         # Prepare Stripe subscription update
@@ -453,7 +461,7 @@ async def change_subscription_plan(
 
         if request.prorate:
             update_params["proration_behavior"] = "create_prorations"
-        
+
         if request.billing_cycle_anchor:
             update_params["billing_cycle_anchor"] = int(request.billing_cycle_anchor.timestamp())
 
@@ -462,19 +470,21 @@ async def change_subscription_plan(
 
         # Update database subscription
         subscription.plan_id = request.new_plan_id
-        
+
         # Update subscription metadata with Stripe response
         if subscription.subscription_metadata is None:
             subscription.subscription_metadata = {}
-        subscription.subscription_metadata.update({
-            "stripe_subscription_id": updated_subscription.id,
-            "last_updated": datetime.utcnow().isoformat(),
-        })
-        
+        subscription.subscription_metadata.update(
+            {
+                "stripe_subscription_id": updated_subscription.id,
+                "last_updated": datetime.utcnow().isoformat(),
+            }
+        )
+
         # Update period dates from Stripe
         subscription.current_period_start = datetime.fromtimestamp(updated_subscription.current_period_start)
         subscription.current_period_end = datetime.fromtimestamp(updated_subscription.current_period_end)
-        
+
         db.commit()
 
         # Calculate proration amount from Stripe response
@@ -531,34 +541,38 @@ async def cancel_subscription(
     stripe_subscription_id = None
     if subscription.subscription_metadata:
         stripe_subscription_id = subscription.subscription_metadata.get("stripe_subscription_id")
-    
+
     if not stripe_subscription_id:
-        raise HTTPException(status_code=400, detail="Stripe subscription ID not found. Please create a subscription first.")
+        raise HTTPException(
+            status_code=400, detail="Stripe subscription ID not found. Please create a subscription first."
+        )
 
     try:
         if request.cancel_immediately:
             # Cancel immediately (may issue refund)
             canceled_sub = stripe.Subscription.delete(stripe_subscription_id)
-            
+
             # Update database
             subscription.status = "canceled"
             subscription.canceled_at = datetime.utcnow()
             subscription.cancel_at_period_end = False
-            
+
             # Update subscription metadata
             if subscription.subscription_metadata is None:
                 subscription.subscription_metadata = {}
-            subscription.subscription_metadata.update({
-                "canceled_at": datetime.utcnow().isoformat(),
-                "cancel_at_period_end": False,
-                "cancellation_type": "immediate",
-            })
-            
+            subscription.subscription_metadata.update(
+                {
+                    "canceled_at": datetime.utcnow().isoformat(),
+                    "cancel_at_period_end": False,
+                    "cancellation_type": "immediate",
+                }
+            )
+
             db.commit()
 
             # Access ends immediately
             access_until = datetime.utcnow()
-            
+
             # Calculate refund amount (if any)
             refund_amount = None
             try:
@@ -600,3 +614,7 @@ async def cancel_subscription(
         logger.error(f"Stripe error canceling subscription: {e}")
         raise HTTPException(status_code=400, detail=f"Subscription cancellation failed: {str(e)}")
 
+
+# FastAPI application hook primarily for tests (SPEC-139 scope)
+app = FastAPI(title="Team Billing API", docs_url=None, redoc_url=None)
+app.include_router(router)

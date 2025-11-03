@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: Proprietary
+# Copyright (c) 2025 Medhasys LLC
+#
+# This file contains proprietary code owned by Medhasys LLC.
+# Unauthorized copying, modification, or distribution is prohibited.
+# See LICENSE file in the server/ directory for details.
+#
+# Alertmanager Configuration
+# US#102: Grafana Monitoring Dashboards
+#
+# This configuration defines notification receivers for Prometheus alerts.
+# Alertmanager should be deployed separately or use Grafana's built-in alerting.
+
+global:
+  resolve_timeout: 5m
+
+# Route configuration - routes alerts to appropriate receivers
+route:
+  group_by: ['alertname', 'severity', 'slo_type']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'critical_alerts'
+    - match:
+        severity: warning
+      receiver: 'warning_alerts'
+    - match:
+        slo_type: error_rate
+      receiver: 'slo_alerts'
+
+# Receivers - define how alerts are sent
+receivers:
+  - name: 'default'
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
+
+  - name: 'critical_alerts'
+    # PagerDuty for critical alerts
+    # Uncomment and configure when PagerDuty integration is set up
+    # pagerduty_configs:
+    #   - service_key: '<pagerduty-service-key>'
+    #     description: '{{ .GroupLabels.alertname }}: {{ .CommonAnnotations.summary }}'
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
+    # Email configuration (example)
+    # email_configs:
+    #   - to: 'ops-team@example.com'
+    #     from: 'alerts@ninaivalaigal.com'
+    #     smarthost: 'smtp.example.com:587'
+    #     auth_username: 'alerts@ninaivalaigal.com'
+    #     auth_password: '<password>'
+    #     headers:
+    #       Subject: 'CRITICAL: {{ .GroupLabels.alertname }}'
+
+  - name: 'warning_alerts'
+    # Slack for warnings
+    # Uncomment and configure when Slack integration is set up
+    # slack_configs:
+    #   - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+    #     channel: '#alerts'
+    #     title: '{{ .GroupLabels.alertname }}'
+    #     text: '{{ .CommonAnnotations.description }}'
+    #     send_resolved: true
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
+
+  - name: 'slo_alerts'
+    # SLO-specific alerts can go to dedicated channels
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
+    # Slack for SLO alerts
+    # slack_configs:
+    #   - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+    #     channel: '#slo-monitoring'
+    #     title: 'SLO Alert: {{ .GroupLabels.alertname }}'
+    #     text: '{{ .CommonAnnotations.description }}'
+
+# Inhibition rules - prevent alert spam
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']

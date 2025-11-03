@@ -30,6 +30,7 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
+from config import DEFAULT_RUST_DATABASE_URL
 from utils.password import hash_password, verify_password
 
 _auth_spec = importlib.util.spec_from_file_location("local_auth", Path(__file__).parent / "auth.py")
@@ -129,7 +130,7 @@ def load_config():
             continue
 
     # PRIORITY 3: Local developer fallback (should not be relied upon in runtime)
-    return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
+    return DEFAULT_RUST_DATABASE_URL
 
 
 # Database helper to avoid circular imports

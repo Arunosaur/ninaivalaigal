@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Proprietary
 # Copyright (c) 2025 Medhasys LLC
-#
-# This file contains proprietary code owned by Medhasys LLC.
-# Unauthorized copying, modification, or distribution is prohibited.
-# See LICENSE file in the server/ directory for details.
-#
 """
 Authentication and user management for Ninaivalaigal
 Supports individual users, team members, and organization creators
@@ -13,16 +8,19 @@ Supports individual users, team members, and organization creators
 
 import hashlib
 import json
+import logging
 import os
 import re
 import secrets
 from datetime import datetime, timedelta
+from typing import Any
 
 import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, validator
 
+from config import DEFAULT_RUST_DATABASE_URL
 from utils.password import hash_password, verify_password
 
 
@@ -35,7 +33,6 @@ class TokenData(BaseModel):
 
     @validator("user_id", pre=True)
     def _coerce_user_id(cls, value: object) -> str:
-        """Ensure user_id always stored as string for UUID support."""
         if value is None:
             raise ValueError("user_id is required")
         return str(value)
@@ -71,7 +68,7 @@ def load_config():
         pass  # Config file parsing is optional - fail silently
 
     # PRIORITY 3: Fallback (should not be used in container)
-    return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
+    return DEFAULT_RUST_DATABASE_URL
 
 
 # Database helper to avoid circular imports
@@ -264,11 +261,18 @@ def create_individual_user(signup_data: IndividualUserSignup):
     session = db.get_session()
 
     try:
+        raw_name = getattr(signup_data, "full_name", None) or getattr(signup_data, "name", None)
+        if not raw_name or not raw_name.strip():
+            raise HTTPException(status_code=400, detail="Full name is required")
+
+        if not validate_password(signup_data.password):
+            raise HTTPException(status_code=400, detail="Password does not meet complexity requirements")
+
         # Validate input data
         validated_data = {
             "email": validate_email(signup_data.email),
             "password": signup_data.password,
-            "name": signup_data.full_name,
+            "name": raw_name.strip(),
             "account_type": signup_data.account_type,
         }
 
@@ -318,6 +322,9 @@ def create_individual_user(signup_data: IndividualUserSignup):
             "verification_token": verification_token,
         }
 
+    except HTTPException:
+        session.rollback()
+        raise
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")

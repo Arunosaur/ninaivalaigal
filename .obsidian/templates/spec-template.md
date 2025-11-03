@@ -12,9 +12,9 @@ sidebar_position: {{SPEC_NUMBER}}
 
 # SPEC-{{SPEC_NUMBER}}: {{SPEC_TITLE}}
 
-**Status:** Draft  
-**Phase:** Research  
-**Owner:** medhasys  
+**Status:** Draft
+**Phase:** Research
+**Owner:** medhasys
 **Updated:** {{SPEC_DATE}}
 
 ---

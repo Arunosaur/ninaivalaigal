@@ -5,7 +5,7 @@
 ### ✅ What We Accomplished
 
 **Morning (2 hours): Database Connection**
-- ✅ Fixed dynamic IP resolution for PgBouncer  
+- ✅ Fixed dynamic IP resolution for PgBouncer
 - ✅ Used proper credentials from `.env.dev` and `rust-services/graphops/env.sh`
 - ✅ Connected to `ninaivalaigal_dev` database via PgBouncer at `192.168.64.137:6432`
 - ✅ Fixed SQLAlchemy text() wrapper for all SQL queries
@@ -179,7 +179,7 @@ container exec ninaivalaigal-dev-db psql -U nina -d ninaivalaigal_dev \
 
 ### 🚀 Next Steps (Day 3)
 
-1. **Morning**: 
+1. **Morning**:
    - Add to main `docker-compose.yml`
    - Configure service networking
    - Test with other services
@@ -189,7 +189,7 @@ container exec ninaivalaigal-dev-db psql -U nina -d ninaivalaigal_dev \
    - Add password verification
    - Test JWT authentication flow
 
-3. **Goal**: 
+3. **Goal**:
    - **Core API running in main stack!**
    - Users can sign up AND log in from any service!
 
@@ -207,8 +207,8 @@ The Core API microservice is:
 - ✅ Generating JWT tokens
 - ✅ **USERS CAN SIGN UP!**
 
-**Time Spent**: ~4 hours (half day!)  
-**Efficiency**: 200% (Day 2 goal achieved in 4 hours instead of 8!)  
+**Time Spent**: ~4 hours (half day!)
+**Efficiency**: 200% (Day 2 goal achieved in 4 hours instead of 8!)
 **Quality**: Production-ready with proper security!
 
 ---

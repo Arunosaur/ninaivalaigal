@@ -1,0 +1,107 @@
+{
+  "due_date": null,
+  "due_date_reason": "",
+  "due_date_status": "not_set",
+  "total_comments": 0,
+  "tags": [
+    [
+      "spec-091",
+      null
+    ]
+  ],
+  "attachments": [],
+  "status": 5,
+  "status_extra_info": {
+    "name": "Done",
+    "color": "#A8E440",
+    "is_closed": true
+  },
+  "assigned_to": 8,
+  "assigned_to_extra_info": {
+    "username": "developer-c",
+    "full_name_display": "Developer C",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "a7fd573307db95be8a81909c52564853",
+    "is_active": true,
+    "id": 8
+  },
+  "owner": 5,
+  "owner_extra_info": {
+    "username": "admin",
+    "full_name_display": "admin",
+    "photo": null,
+    "big_photo": null,
+    "gravatar_id": "13f78fc2dee81f3e168ec69ebac45d22",
+    "is_active": true,
+    "id": 5
+  },
+  "is_watcher": false,
+  "total_watchers": 0,
+  "is_voter": false,
+  "total_voters": 0,
+  "project": 1,
+  "project_extra_info": {
+    "name": "ninaivalaigal",
+    "slug": "ninaivalaigal",
+    "logo_small_url": null,
+    "id": 1
+  },
+  "id": 600,
+  "ref": 571,
+  "milestone": null,
+  "milestone_slug": null,
+  "milestone_name": null,
+  "is_closed": true,
+  "points": {
+    "1": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1
+  },
+  "backlog_order": 1762059529988242,
+  "sprint_order": 1762059529988260,
+  "kanban_order": 1762059530025587,
+  "created_date": "2025-11-02T04:58:50.025Z",
+  "modified_date": "2025-11-02T04:58:50.041Z",
+  "finish_date": "2025-11-02T04:58:50.083Z",
+  "subject": "SPEC-091: Agent-to-Agent Context Propagation (A2A)",
+  "client_requirement": false,
+  "team_requirement": false,
+  "generated_from_issue": null,
+  "generated_from_task": null,
+  "from_task_ref": null,
+  "external_reference": null,
+  "tribe_gig": null,
+  "version": 1,
+  "watchers": [],
+  "is_blocked": false,
+  "blocked_note": "",
+  "total_points": null,
+  "comment": "",
+  "origin_issue": null,
+  "origin_task": null,
+  "epics": null,
+  "epic_order": null,
+  "tasks": [],
+  "total_attachments": 0,
+  "swimlane": null,
+  "assigned_users": [
+    8
+  ],
+  "blocked_note_html": "",
+  "description": "**SPEC-091: Agent-to-Agent Context Propagation (A2A)**\n\n**Status in SPEC_INDEX.md**: Planned\n**Phase**: Phase 3\n\n**Objective**: Agent-to-Agent Context Propagation (A2A)\n\n**Details**: See SPEC documentation for full details.\n\n```\n---\ntitle: Untitled SPEC\n---\n\n\n# SPEC-091: Agent-to-Agent Context Propagation (A2A)\n\n## \ud83c\udfaf Objective\nEnable seamless **context propagation** between autonomous agents in the Ninaivalaigal ecosystem to support multi-agent collaboration, intent transfer, and memory synchronization.\n\n## \ud83e\udde9 Context\nAs multiple agents interact (Reasoner, Pragna, FluxMind, GraphOps, etc.), they need shared understanding of current state and goals. A2A establishes standardized context exchange protocols.\n\n## \ud83c\udfd7\ufe0f Architecture Overview\n1. **Context Envelope** \u2014 signed payload carrying agent intent, scope, and constraints.\n2. **Propagation Bus** \u2014 message broker-based transport layer (Redis streams or Kafka-like interface).\n3. **Agent Context Registry (ACR)** \u2014 persistence service for context versions and lineage.\n4. **Validation Layer** \u2014 ensures schema and permission compliance before delivery.\n\n## \u2699\ufe0f Key Components\n- `a2a_context_manager.py`\n- `agent_context_registry` table\n- A2A protocol spec for signing and TTL enforcement\n\n## \ud83d\udd12 Security\n- Encrypted agent communication channels.\n- Context expiry and revocation policies.\n\n## \ud83e\udde0 Dependencies\n- SPEC\u2011012 (Memory Substrate)\n- SPEC\u2011040 (AI Feedback System)\n- SPEC\u2011063 (Agentic Core Execution Framework)\n\n## \ud83e\uddea Deliverables\n- A2A REST and message APIs.\n- CLI simulation tool (`a2a-tester`).\n- Monitoring dashboard for context exchange latency.\n\n## \ud83c\udfc1 Status\nPlanned \u2013 To be implemented with Phase 3 (Agent Intelligence Expansion).\n\n```",
+  "description_html": "<p><strong>SPEC-091: Agent-to-Agent Context Propagation (A2A)</strong></p>\n<p><strong>Status in SPEC_INDEX.md</strong>: Planned<br>\n<strong>Phase</strong>: Phase 3</p>\n<p><strong>Objective</strong>: Agent-to-Agent Context Propagation (A2A)</p>\n<p><strong>Details</strong>: See SPEC documentation for full details.</p>\n<div class=\"codehilite\"><pre><span></span><code><span class=\"o\">---</span>\n<span class=\"n\">title</span><span class=\"p\">:</span><span class=\"w\"> </span><span class=\"n\">Untitled</span><span class=\"w\"> </span><span class=\"n\">SPEC</span>\n<span class=\"o\">---</span>\n\n\n<span class=\"c1\"># SPEC-091: Agent-to-Agent Context Propagation (A2A)</span>\n\n<span class=\"c1\">## \ud83c\udfaf Objective</span>\n<span class=\"n\">Enable</span><span class=\"w\"> </span><span class=\"n\">seamless</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"n\">context</span><span class=\"w\"> </span><span class=\"n\">propagation</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"n\">between</span><span class=\"w\"> </span><span class=\"n\">autonomous</span><span class=\"w\"> </span><span class=\"n\">agents</span><span class=\"w\"> </span><span class=\"ow\">in</span><span class=\"w\"> </span><span class=\"n\">the</span><span class=\"w\"> </span><span class=\"n\">Ninaivalaigal</span><span class=\"w\"> </span><span class=\"n\">ecosystem</span><span class=\"w\"> </span><span class=\"n\">to</span><span class=\"w\"> </span><span class=\"n\">support</span><span class=\"w\"> </span><span class=\"n\">multi</span><span class=\"o\">-</span><span class=\"n\">agent</span><span class=\"w\"> </span><span class=\"n\">collaboration</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"n\">intent</span><span class=\"w\"> </span><span class=\"n\">transfer</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"ow\">and</span><span class=\"w\"> </span><span class=\"n\">memory</span><span class=\"w\"> </span><span class=\"n\">synchronization</span><span class=\"o\">.</span>\n\n<span class=\"c1\">## \ud83e\udde9 Context</span>\n<span class=\"n\">As</span><span class=\"w\"> </span><span class=\"n\">multiple</span><span class=\"w\"> </span><span class=\"n\">agents</span><span class=\"w\"> </span><span class=\"n\">interact</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">Reasoner</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"n\">Pragna</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"n\">FluxMind</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"n\">GraphOps</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"n\">etc</span><span class=\"o\">.</span><span class=\"p\">),</span><span class=\"w\"> </span><span class=\"n\">they</span><span class=\"w\"> </span><span class=\"n\">need</span><span class=\"w\"> </span><span class=\"n\">shared</span><span class=\"w\"> </span><span class=\"n\">understanding</span><span class=\"w\"> </span><span class=\"n\">of</span><span class=\"w\"> </span><span class=\"n\">current</span><span class=\"w\"> </span><span class=\"n\">state</span><span class=\"w\"> </span><span class=\"ow\">and</span><span class=\"w\"> </span><span class=\"n\">goals</span><span class=\"o\">.</span><span class=\"w\"> </span><span class=\"n\">A2A</span><span class=\"w\"> </span><span class=\"n\">establishes</span><span class=\"w\"> </span><span class=\"n\">standardized</span><span class=\"w\"> </span><span class=\"n\">context</span><span class=\"w\"> </span><span class=\"n\">exchange</span><span class=\"w\"> </span><span class=\"n\">protocols</span><span class=\"o\">.</span>\n\n<span class=\"c1\">## \ud83c\udfd7\ufe0f Architecture Overview</span>\n<span class=\"mf\">1.</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"n\">Context</span><span class=\"w\"> </span><span class=\"n\">Envelope</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"err\">\u2014</span><span class=\"w\"> </span><span class=\"n\">signed</span><span class=\"w\"> </span><span class=\"n\">payload</span><span class=\"w\"> </span><span class=\"n\">carrying</span><span class=\"w\"> </span><span class=\"n\">agent</span><span class=\"w\"> </span><span class=\"n\">intent</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"n\">scope</span><span class=\"p\">,</span><span class=\"w\"> </span><span class=\"ow\">and</span><span class=\"w\"> </span><span class=\"n\">constraints</span><span class=\"o\">.</span>\n<span class=\"mf\">2.</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"n\">Propagation</span><span class=\"w\"> </span><span class=\"n\">Bus</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"err\">\u2014</span><span class=\"w\"> </span><span class=\"n\">message</span><span class=\"w\"> </span><span class=\"n\">broker</span><span class=\"o\">-</span><span class=\"n\">based</span><span class=\"w\"> </span><span class=\"n\">transport</span><span class=\"w\"> </span><span class=\"n\">layer</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">Redis</span><span class=\"w\"> </span><span class=\"n\">streams</span><span class=\"w\"> </span><span class=\"ow\">or</span><span class=\"w\"> </span><span class=\"n\">Kafka</span><span class=\"o\">-</span><span class=\"n\">like</span><span class=\"w\"> </span><span class=\"n\">interface</span><span class=\"p\">)</span><span class=\"o\">.</span>\n<span class=\"mf\">3.</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"n\">Agent</span><span class=\"w\"> </span><span class=\"n\">Context</span><span class=\"w\"> </span><span class=\"n\">Registry</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">ACR</span><span class=\"p\">)</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"err\">\u2014</span><span class=\"w\"> </span><span class=\"n\">persistence</span><span class=\"w\"> </span><span class=\"n\">service</span><span class=\"w\"> </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"n\">context</span><span class=\"w\"> </span><span class=\"n\">versions</span><span class=\"w\"> </span><span class=\"ow\">and</span><span class=\"w\"> </span><span class=\"n\">lineage</span><span class=\"o\">.</span>\n<span class=\"mf\">4.</span><span class=\"w\"> </span><span class=\"o\">**</span><span class=\"n\">Validation</span><span class=\"w\"> </span><span class=\"n\">Layer</span><span class=\"o\">**</span><span class=\"w\"> </span><span class=\"err\">\u2014</span><span class=\"w\"> </span><span class=\"n\">ensures</span><span class=\"w\"> </span><span class=\"n\">schema</span><span class=\"w\"> </span><span class=\"ow\">and</span><span class=\"w\"> </span><span class=\"n\">permission</span><span class=\"w\"> </span><span class=\"n\">compliance</span><span class=\"w\"> </span><span class=\"n\">before</span><span class=\"w\"> </span><span class=\"n\">delivery</span><span class=\"o\">.</span>\n\n<span class=\"c1\">## \u2699\ufe0f Key Components</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"err\">`</span><span class=\"n\">a2a_context_manager</span><span class=\"o\">.</span><span class=\"n\">py</span><span class=\"err\">`</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"err\">`</span><span class=\"n\">agent_context_registry</span><span class=\"err\">`</span><span class=\"w\"> </span><span class=\"n\">table</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">A2A</span><span class=\"w\"> </span><span class=\"n\">protocol</span><span class=\"w\"> </span><span class=\"n\">spec</span><span class=\"w\"> </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"n\">signing</span><span class=\"w\"> </span><span class=\"ow\">and</span><span class=\"w\"> </span><span class=\"n\">TTL</span><span class=\"w\"> </span><span class=\"n\">enforcement</span>\n\n<span class=\"c1\">## \ud83d\udd12 Security</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">Encrypted</span><span class=\"w\"> </span><span class=\"n\">agent</span><span class=\"w\"> </span><span class=\"n\">communication</span><span class=\"w\"> </span><span class=\"n\">channels</span><span class=\"o\">.</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">Context</span><span class=\"w\"> </span><span class=\"n\">expiry</span><span class=\"w\"> </span><span class=\"ow\">and</span><span class=\"w\"> </span><span class=\"n\">revocation</span><span class=\"w\"> </span><span class=\"n\">policies</span><span class=\"o\">.</span>\n\n<span class=\"c1\">## \ud83e\udde0 Dependencies</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">SPEC</span><span class=\"err\">\u2011</span><span class=\"mi\">012</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">Memory</span><span class=\"w\"> </span><span class=\"n\">Substrate</span><span class=\"p\">)</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">SPEC</span><span class=\"err\">\u2011</span><span class=\"mi\">040</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">AI</span><span class=\"w\"> </span><span class=\"n\">Feedback</span><span class=\"w\"> </span><span class=\"n\">System</span><span class=\"p\">)</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">SPEC</span><span class=\"err\">\u2011</span><span class=\"mi\">063</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">Agentic</span><span class=\"w\"> </span><span class=\"n\">Core</span><span class=\"w\"> </span><span class=\"n\">Execution</span><span class=\"w\"> </span><span class=\"n\">Framework</span><span class=\"p\">)</span>\n\n<span class=\"c1\">## \ud83e\uddea Deliverables</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">A2A</span><span class=\"w\"> </span><span class=\"n\">REST</span><span class=\"w\"> </span><span class=\"ow\">and</span><span class=\"w\"> </span><span class=\"n\">message</span><span class=\"w\"> </span><span class=\"n\">APIs</span><span class=\"o\">.</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">CLI</span><span class=\"w\"> </span><span class=\"n\">simulation</span><span class=\"w\"> </span><span class=\"k\">tool</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"err\">`</span><span class=\"n\">a2a</span><span class=\"o\">-</span><span class=\"n\">tester</span><span class=\"err\">`</span><span class=\"p\">)</span><span class=\"o\">.</span>\n<span class=\"o\">-</span><span class=\"w\"> </span><span class=\"n\">Monitoring</span><span class=\"w\"> </span><span class=\"n\">dashboard</span><span class=\"w\"> </span><span class=\"k\">for</span><span class=\"w\"> </span><span class=\"n\">context</span><span class=\"w\"> </span><span class=\"n\">exchange</span><span class=\"w\"> </span><span class=\"n\">latency</span><span class=\"o\">.</span>\n\n<span class=\"c1\">## \ud83c\udfc1 Status</span>\n<span class=\"n\">Planned</span><span class=\"w\"> </span><span class=\"err\">\u2013</span><span class=\"w\"> </span><span class=\"n\">To</span><span class=\"w\"> </span><span class=\"n\">be</span><span class=\"w\"> </span><span class=\"n\">implemented</span><span class=\"w\"> </span><span class=\"n\">with</span><span class=\"w\"> </span><span class=\"n\">Phase</span><span class=\"w\"> </span><span class=\"mi\">3</span><span class=\"w\"> </span><span class=\"p\">(</span><span class=\"n\">Agent</span><span class=\"w\"> </span><span class=\"n\">Intelligence</span><span class=\"w\"> </span><span class=\"n\">Expansion</span><span class=\"p\">)</span><span class=\"o\">.</span>\n</code></pre></div>",
+  "neighbors": {
+    "previous": {
+      "id": 599,
+      "ref": 570,
+      "subject": "SPEC-090: Approval Chain Processing (ACP)"
+    },
+    "next": {
+      "id": 601,
+      "ref": 572,
+      "subject": "SPEC-092: Middleware Resilience Follow-up"
+    }
+  }
+}

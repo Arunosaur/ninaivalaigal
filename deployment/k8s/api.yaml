@@ -43,11 +43,34 @@ spec:
       labels:
         app: ninaivalaigal-api
     spec:
+      # Pod Security Context: Run as non-root user
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        # Drop all capabilities
+        capabilities:
+          drop:
+            - ALL
+        # Read-only root filesystem (set to false if app needs writes)
+        readOnlyRootFilesystem: false
+      # ServiceAccount for RBAC
+      serviceAccountName: ninaivalaigal-api-serviceaccount
       imagePullSecrets:
       - name: ghcr-pull-secret
       containers:
       - name: api
         image: ghcr.io/arunosaur/ninaivalaigal-api:latest
+        # Container Security Context
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: false  # Set to true if app doesn't need writes
+          runAsNonRoot: true
+          runAsUser: 1000
         ports:
         - containerPort: 8000
         envFrom:
