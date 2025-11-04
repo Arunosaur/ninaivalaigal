@@ -7,8 +7,8 @@
 # See LICENSE file in the server/ directory for details.
 #
 """
-GitHub Copilot + mem0 MCP Integration Wrapper
-Enhances Copilot prompts with relevant memories from mem0 via MCP protocol
+GitHub Copilot + Ninaivalaigal MCP Integration Wrapper
+Enhances Copilot prompts with relevant memories from ninaivalaigal via MCP protocol
 """
 
 import asyncio
@@ -43,8 +43,8 @@ class CopilotContext:
     project_context: str | None = None
 
 
-class Mem0CopilotWrapper:
-    """Wrapper that enhances Copilot with mem0 memories via MCP"""
+class NinaivalaigalCopilotWrapper:
+    """Wrapper that enhances Copilot with ninaivalaigal memories via MCP"""
 
     def __init__(self):
         """Initialize instance."""
@@ -320,14 +320,14 @@ class Mem0CopilotWrapper:
 
 
 class VSCodeCopilotBridge:
-    """Bridge between VS Code, Copilot, and mem0"""
+    """Bridge between VS Code, Copilot, and ninaivalaigal"""
 
     def __init__(self):
         """Initialize instance."""
-        self.wrapper = Mem0CopilotWrapper()
+        self.wrapper = NinaivalaigalCopilotWrapper()
 
     async def handle_copilot_request(self, request_data: dict[str, Any]) -> dict[str, Any]:
-        """Handle Copilot completion request with mem0 enhancement"""
+        """Handle Copilot completion request with ninaivalaigal enhancement"""
         try:
             # Extract context from VS Code request
             context = CopilotContext(
@@ -384,7 +384,7 @@ if __name__ == "__main__":
             project_context="auth-system",
         )
 
-        wrapper = Mem0CopilotWrapper()
+        wrapper = NinaivalaigalCopilotWrapper()
         enhanced = await wrapper.enhance_copilot_prompt(context, "Complete the user authentication function")
 
         print("Enhanced prompt:")

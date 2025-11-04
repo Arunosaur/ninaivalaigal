@@ -23,7 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code (directly to /app, not ./core-api/)
 COPY services/core-api/ .
-COPY config/mem0.config.json .
+# Note: Configuration is now handled via environment variables
+# Legacy mem0.config.json references removed
 
 # Copy Alembic migrations and configuration
 COPY alembic.ini .
@@ -40,8 +41,8 @@ COPY python-clients/graphops/graphops_client /app/graphops_client
 ENV PYTHONPATH=/app:/app/shared/contracts
 
 # Create non-root user
-RUN useradd -m -u 1000 mem0user && chown -R mem0user:mem0user /app
-USER mem0user
+RUN useradd -m -u 1000 nina && chown -R nina:nina /app
+USER nina
 
 # Expose port
 EXPOSE 8000

@@ -37,8 +37,6 @@ func TestGRPCClientsTestConnectionsWithNilClients(t *testing.T) {
 		GraphOpsClient: nil,
 	}
 
-	ctx := context.Background()
-
 	// Should handle nil clients gracefully
 	err := clients.testConnections()
 

@@ -7,7 +7,7 @@
 # See LICENSE file in the server/ directory for details.
 #
 """
-Token refresh and graceful expiration handling for mem0
+Token refresh and graceful expiration handling for ninaivalaigal
 Prevents memory loss during active recording sessions
 """
 

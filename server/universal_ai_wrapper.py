@@ -7,7 +7,7 @@
 # See LICENSE file in the server/ directory for details.
 #
 """
-Universal AI Wrapper for mem0 MCP Integration
+Universal AI Wrapper for ninaivalaigal MCP Integration
 Works with any AI model (Copilot, Claude, GPT, etc.) via clean MCP architecture
 No IDE extensions required - pure MCP protocol integration
 """
@@ -91,7 +91,7 @@ class UniversalAIWrapper:
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
     async def enhance_ai_prompt(self, context: AIContext, original_prompt: str) -> dict[str, Any]:
-        """Enhance any AI prompt with relevant mem0 memories"""
+        """Enhance any AI prompt with relevant ninaivalaigal memories"""
         try:
             # Get relevant memories from all levels
             memories = await self._get_hierarchical_memories(context)
@@ -238,7 +238,7 @@ class UniversalAIWrapper:
             return []
 
     async def _query_mcp_server(self, tool: str, params: dict[str, Any]) -> str:
-        """Query mem0 MCP server"""
+        """Query ninaivalaigal MCP server"""
         try:
             # Build MCP request
             mcp_request = {
@@ -536,7 +536,7 @@ class MCPAIEnhancer:
         self.wrapper = UniversalAIWrapper()
 
     async def enhance_prompt(self, **kwargs) -> str:
-        """MCP tool to enhance AI prompts with mem0 memories"""
+        """MCP tool to enhance AI prompts with ninaivalaigal memories"""
         try:
             # Parse context from MCP arguments
             context = AIContext(

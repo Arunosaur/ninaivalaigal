@@ -7,7 +7,7 @@
 # See LICENSE file in the server/ directory for details.
 #
 """
-Test script for mem0 MCP server
+Test script for ninaivalaigal MCP server
 """
 
 import asyncio
@@ -18,7 +18,7 @@ from mcp_server import context_start, list_contexts, recall, remember
 
 async def test_mcp_tools():
     """Test MCP server tools"""
-    print("Testing mem0 MCP Server Tools...")
+    print("Testing ninaivalaigal MCP Server Tools...")
 
     # Test context start
     print("\n1. Testing context_start...")

@@ -10,12 +10,8 @@ import (
 // TestGraphHealthHandlerNoClients is defined in graph_health_handler_test.go
 // This test is removed to avoid duplicate declaration
 
-func TestGraphHealthHandlerPlaceholder(t *testing.T) {
-	// Placeholder - actual test in graph_health_handler_test.go
-	if rec.Body.Len() == 0 {
-		t.Error("Handler should write error response body")
-	}
-}
+// TestGraphHealthHandlerPlaceholder - placeholder removed
+// Actual test is in graph_health_handler_test.go
 
 func TestGraphHealthHandlerWithClientsButError(t *testing.T) {
 	gateway := NewGateway()

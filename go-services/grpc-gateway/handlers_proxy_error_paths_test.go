@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"io"
 	"net/http/httptest"
 	"testing"
 )
@@ -119,27 +117,8 @@ func TestCoreAPIProxyMultipleResponseHeaders(t *testing.T) {
 	}
 }
 
-func TestCoreAPIProxyRequestCreationError(t *testing.T) {
-	gateway := NewGateway()
-	enhanced := &EnhancedGateway{
-		Gateway:     gateway,
-		grpcClients: nil,
-	}
+// TestCoreAPIProxyRequestCreationError is defined in handlers_core_proxy_detailed_test.go
+// This test is removed to avoid duplicate declaration
 
-	// Test with invalid body
-	req := httptest.NewRequest("POST", "/api/v1/auth/login", bytes.NewBufferString("test"))
-	rec := httptest.NewRecorder()
-
-	enhanced.coreAPIProxy(rec, req)
-
-	if rec.Code == 0 {
-		t.Error("Proxy should set a status code")
-	}
-}
-
-// errorReaderProxy is a reader that errors for proxy tests
-type errorReaderProxy struct{}
-
-func (e *errorReaderProxy) Read(p []byte) (n int, err error) {
-	return 0, io.ErrUnexpectedEOF
-}
+// errorReaderProxy is defined in handlers_core_proxy_detailed_test.go
+// This type is removed to avoid duplicate declaration

@@ -6,7 +6,7 @@
 # Unauthorized copying, modification, or distribution is prohibited.
 # See LICENSE file in the server/ directory for details.
 #
-"""Database models and operations for mem0."""
+"""Database models and operations for ninaivalaigal."""
 
 import json
 import os
@@ -291,14 +291,14 @@ class DatabaseManager:
         if isinstance(config, dict):
             database_url = config.get(
                 "database_url",
-                "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret
+                "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev",  # pragma: allowlist secret
             )
         else:
-            database_url = config or "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
+            database_url = config or "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
 
         # Ensure we always use PostgreSQL
         if not database_url.startswith("postgresql"):
-            database_url = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
+            database_url = "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
         print(f"🐘 Using PostgreSQL: {database_url}")
 
         # PostgreSQL connection with pool settings
@@ -324,7 +324,7 @@ class DatabaseManager:
         """Create and return a new database session."""
         return self.SessionLocal()
 
-    def migrate_from_json(self, json_file="mem0_data.json"):
+    def migrate_from_json(self, json_file="ninaivalaigal_data.json"):
         """Migrate existing JSON data to database"""
         if not os.path.exists(json_file):
             return
@@ -1207,7 +1207,7 @@ def get_db():
         database_url = (
             os.getenv("NINAIVALAIGAL_DATABASE_URL")
             or os.getenv("DATABASE_URL")
-            or "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
+            or "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
         )
         _db_instance = DatabaseManager(database_url)
     return _db_instance

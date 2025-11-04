@@ -3,9 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 

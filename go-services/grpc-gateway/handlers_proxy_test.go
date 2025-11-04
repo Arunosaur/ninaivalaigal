@@ -27,24 +27,13 @@ func TestCoreAPIProxyWithBody(t *testing.T) {
 	}
 }
 
-func TestCoreAPIProxyWithQueryParams(t *testing.T) {
-	gateway := NewGateway()
-	enhanced := &EnhancedGateway{
-		Gateway:     gateway,
-		grpcClients: nil,
-	}
+// TestCoreAPIProxyWithQueryParams is defined in handlers_core_proxy_detailed_test.go
+// This test is removed to avoid duplicate declaration
 
-	req := httptest.NewRequest("GET", "/api/v1/users/me?include=profile&fields=name,email", nil)
-	rec := httptest.NewRecorder()
+// TestCoreAPIProxyHeaderCopying is defined in handlers_core_proxy_detailed_test.go
+// This test is removed to avoid duplicate declaration
 
-	enhanced.coreAPIProxy(rec, req)
-
-	if rec.Code == 0 {
-		t.Error("Proxy should set a status code")
-	}
-}
-
-func TestCoreAPIProxyHeaderCopying(t *testing.T) {
+func TestCoreAPIProxyHeaderCopyingDuplicate(t *testing.T) {
 	gateway := NewGateway()
 	enhanced := &EnhancedGateway{
 		Gateway:     gateway,

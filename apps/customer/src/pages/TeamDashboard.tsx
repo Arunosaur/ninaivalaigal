@@ -26,6 +26,7 @@ interface Team {
   id: string;
   name: string;
   is_standalone: boolean;
+  organization_id?: string | null;
   team_invite_code?: string;
   max_members: number;
   current_members: number;

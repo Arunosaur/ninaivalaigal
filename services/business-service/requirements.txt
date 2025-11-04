@@ -6,10 +6,10 @@ pydantic-settings==2.1.0
 email-validator==2.1.0
 
 # Shared Contracts (SPEC-100 Task #79)
--e ../../shared/contracts
+# Note: Installed separately in Dockerfile via: pip install -e /app/shared/contracts
 
 # Database
-sqlalchemy==0.23
+sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.12.1
 asyncpg==0.29.0

@@ -6,13 +6,17 @@
 # Unauthorized copying, modification, or distribution is prohibited.
 # See LICENSE file in the server/ directory for details.
 #
-"""Deprecated placeholder for the legacy mem0 HTTP provider."""
+"""Deprecated placeholder for the legacy HTTP memory provider."""
 
 from ..interfaces import MemoryProvider
 
 
 class Mem0HttpMemoryProvider(MemoryProvider):
-    """Placeholder that blocks legacy mem0 usage."""
+    """Deprecated placeholder that blocks legacy HTTP provider usage.
+    
+    This class is kept for backwards compatibility but will always raise an error.
+    Use the Rust memory service or PostgreSQL provider instead.
+    """
 
     def __init__(self, *args, **kwargs):
-        raise RuntimeError("mem0 HTTP providers have been removed. Configure the Rust memory service instead.")
+        raise RuntimeError("Legacy HTTP memory providers have been removed. Configure the Rust memory service or PostgreSQL provider instead.")

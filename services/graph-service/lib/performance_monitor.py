@@ -7,7 +7,7 @@
 # See LICENSE file in the server/ directory for details.
 #
 """
-mem0 Performance Monitoring and Metrics Collection
+ninaivalaigal Performance Monitoring and Metrics Collection
 Provides comprehensive performance monitoring for server, database, client, and shell components
 """
 
@@ -48,7 +48,7 @@ class PerformanceSnapshot:
 
 
 class PerformanceMonitor:
-    """Central performance monitoring system for mem0"""
+    """Central performance monitoring system for ninaivalaigal"""
 
     def __init__(self, retention_hours: int = 24):
         """Initialize instance."""

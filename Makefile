@@ -188,7 +188,7 @@ test-crash-recovery:
 stack-up:
 	@$(SCRIPTS)/nv-stack-start.sh
 
-## stop stack: UI → API → Mem0 → PgBouncer → Redis → DB
+## stop stack: UI → API → eM → PgBouncer → Redis → DB
 stack-down:
 	@$(SCRIPTS)/nv-stack-stop.sh
 

@@ -47,7 +47,7 @@ def load_config():
         pass  # Config file parsing is optional - fail silently
 
     # PRIORITY 3: Fallback (should not be used in container)
-    return "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
+    return "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
 
 
 # Database helper to avoid circular imports

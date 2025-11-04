@@ -14,7 +14,6 @@ func TestExtractUserIDFromBearerToken(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/api/v1/users/me", nil)
 	req.Header.Set("Authorization", "Bearer test-user-id-123")
-	rec := httptest.NewRecorder()
 
 	userID := enhanced.extractUserID(req)
 
@@ -36,7 +35,6 @@ func TestExtractUserIDNoAuthHeader(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/api/v1/users/me", nil)
 	// No Authorization header
-	rec := httptest.NewRecorder()
 
 	userID := enhanced.extractUserID(req)
 
@@ -55,7 +53,6 @@ func TestExtractUserIDInvalidFormat(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/api/v1/users/me", nil)
 	req.Header.Set("Authorization", "InvalidFormat token")
-	rec := httptest.NewRecorder()
 
 	userID := enhanced.extractUserID(req)
 
@@ -74,7 +71,6 @@ func TestExtractUserIDBearerWithoutToken(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/api/v1/users/me", nil)
 	req.Header.Set("Authorization", "Bearer ")
-	rec := httptest.NewRecorder()
 
 	userID := enhanced.extractUserID(req)
 
@@ -94,7 +90,6 @@ func TestExtractUserIDMultipleHeaders(t *testing.T) {
 	req := httptest.NewRequest("GET", "/api/v1/users/me", nil)
 	req.Header.Add("Authorization", "Bearer token1")
 	req.Header.Add("Authorization", "Bearer token2")
-	rec := httptest.NewRecorder()
 
 	userID := enhanced.extractUserID(req)
 

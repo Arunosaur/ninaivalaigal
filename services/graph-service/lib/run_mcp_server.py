@@ -7,7 +7,7 @@
 # See LICENSE file in the server/ directory for details.
 #
 """
-MCP Server Runner for mem0
+MCP Server Runner for ninaivalaigal
 Runs the MCP server with proper stdio transport
 """
 

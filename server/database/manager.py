@@ -85,7 +85,7 @@ class DatabaseManager:
         """Get a new database session"""
         return self.SessionLocal()
 
-    def migrate_from_json(self, json_file="mem0_data.json"):
+    def migrate_from_json(self, json_file="ninaivalaigal_data.json"):
         """Migrate existing JSON data to database"""
         if not os.path.exists(json_file):
             return

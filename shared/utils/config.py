@@ -25,9 +25,9 @@ def load_config() -> dict[str, Any]:
     default_config = {
         "storage": {
             "type": "postgresql",
-            "url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret  # noqa: E501
+            "url": "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev",  # pragma: allowlist secret  # noqa: E501
         },
-        "database_url": "postgresql://mem0user:mem0pass@localhost:5432/mem0db",  # pragma: allowlist secret  # noqa: E501
+        "database_url": "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev",  # pragma: allowlist secret  # noqa: E501
     }
 
     # Load from environment variables first (highest priority)

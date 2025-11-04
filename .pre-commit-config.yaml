@@ -136,6 +136,14 @@ repos:
         types: [python]
         files: ^(specs/|server/).*\.py$
         stages: [commit]
+      - id: validate-document-placement
+        name: Validate Document Placement
+        entry: python scripts/validate_document_placement.py
+        language: system
+        types: [markdown]
+        pass_filenames: true
+        stages: [commit]
+        description: "Ensures documents are placed in correct directories per organization rules"
 
   # API Contract Validation
   - repo: local

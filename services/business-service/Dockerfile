@@ -11,7 +11,7 @@ WORKDIR /app
 
 # Install system dependencies required for build/runtime
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gcc postgresql-client \
+    && apt-get install -y --no-install-recommends gcc python3-dev libc6-dev postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy shared contracts first for better caching

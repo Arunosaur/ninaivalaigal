@@ -48,7 +48,7 @@ class DatabaseManager:
 
         # Ensure we always use PostgreSQL
         if not database_url.startswith("postgresql"):
-            database_url = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"  # pragma: allowlist secret
+            database_url = "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
         print(f"🐘 Using PostgreSQL: {database_url}")
 
         # PostgreSQL connection with pool settings
@@ -64,7 +64,7 @@ class DatabaseManager:
         """Get a new database session"""
         return self.SessionLocal()
 
-    def migrate_from_json(self, json_file="mem0_data.json"):
+    def migrate_from_json(self, json_file="ninaivalaigal_data.json"):
         """Migrate existing JSON data to database"""
         if not os.path.exists(json_file):
             return

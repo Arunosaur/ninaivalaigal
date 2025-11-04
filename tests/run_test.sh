@@ -11,7 +11,7 @@ LOG_FILE="test.log"
 EXPORT_FILE="export_test.md"
 
 # Start with a clean slate
-rm -f $LOG_FILE $EXPORT_FILE .server.pid mem0_data.json
+rm -f $LOG_FILE $EXPORT_FILE .server.pid ninaivalaigal_data.json
 
 # Start the server
 echo "--- STARTING SERVER ---" >> $LOG_FILE
