@@ -1,0 +1,194 @@
+# SPDX-License-Identifier: Elastic-2.0
+# Copyright (c) 2025 Medhasys LLC
+#
+# Default values for ninaivalaigal-billing
+# This is a YAML-formatted file.
+
+replicaCount: 1
+
+image:
+  repository: ninaivalaigal/billing
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Celery Worker Configuration
+celeryWorker:
+  enabled: true
+  replicas: 3
+  concurrency: 4
+  queues: "billing,stripe,notify"
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+    targetQueueDepth: 100
+
+# Celery Beat Configuration
+celeryBeat:
+  enabled: true
+  replicas: 1  # Single instance globally (leader election)
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  leaderElection:
+    enabled: true
+    region: "us-east-1"
+    ttl: 60
+
+# Redis Configuration
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: "standard"
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+# Database Configuration
+database:
+  host: "postgresql.default.svc.cluster.local"
+  port: 5432
+  name: "ninaivalaigal"
+  username: "billing"
+  passwordSecret: "billing-db-password"
+  passwordKey: "password"
+
+# Environment Variables
+env:
+  - name: REDIS_URL
+    value: "redis://billing-redis:6379/0"
+  - name: DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: billing-db-secret
+        key: url
+  - name: STRIPE_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: billing-stripe-secret
+        key: secret-key
+  - name: STRIPE_WEBHOOK_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: billing-stripe-secret
+        key: webhook-secret
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod Security Context
+podSecurityContext:
+  fsGroup: 2000
+
+# Security Context
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Service Monitor for Prometheus
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  labels:
+    app: ninaivalaigal-billing
+    release: prometheus
+
+# Prometheus Metrics
+prometheus:
+  enabled: true
+  port: 9090
+  path: "/metrics"
+
+# Resource Limits
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+# Node Selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Annotations
+annotations: {}
+
+# Labels
+labels: {}
+
+# Ingress (if needed for health checks)
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: billing.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Health Checks
+healthCheck:
+  enabled: true
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 8080
+    initialDelaySeconds: 10
+    periodSeconds: 5
+
+# Multi-Region Support
+multiRegion:
+  enabled: false
+  regions:
+    - us-east-1
+    - us-west-2
+    - eu-west-1

@@ -832,13 +832,77 @@ This way:
 ### Related SPECs
 - **SPEC-020:** Memory Provider Architecture (Provider registry pattern)
 - **SPEC-099:** Rust Migration Strategy (Runtime specialization)
-- **SPEC-101:** Unified Observability (Service monitoring)
+- **SPEC-118:** Observability & Performance Budgets (Unified observability stack)
+- **SPEC-119:** Automated SLO Enforcement (SLO monitoring)
 
 ### Taiga Tasks
 - **US#144:** Architecture Documentation: Hybrid Compute-Cognitive Architecture
 
 ---
 
-**Last Updated:** October 30, 2025 (Validation Complete + Cross-References Added)
+## Contract Validation Metrics Integration
+
+### Prometheus Metrics for Contract Compliance
+
+To monitor contract validation status across federated services, expose Prometheus metrics:
+
+```python
+# ci/validate-contracts.py
+from prometheus_client import Counter, Gauge
+
+validation_success = Gauge('contract_validation_success', 'Contract validation status', ['service'])
+breaking_changes = Counter('contract_breaking_changes_total', 'Breaking changes detected', ['service'])
+
+def validate_contracts():
+    result = subprocess.run(["buf", "breaking", "--against", ".git#branch=main"], capture_output=True)
+    validation_success.labels(service="all").set(1 if result.returncode == 0 else 0)
+    if result.returncode != 0:
+        breaking_changes.labels(service="all").inc()
+    return result.returncode == 0
+```
+
+### Alerting Rules for Contract Validation
+
+```yaml
+# prometheus/alerts.yml
+groups:
+  - name: contract_compliance
+    rules:
+      - alert: ContractValidationFailed
+        expr: contract_validation_success == 0
+        for: 5m
+        annotations:
+          summary: "API contract validation failed"
+          description: "Contract validation failed for service {{ $labels.service }}"
+
+      - alert: BreakingChangeDetected
+        expr: contract_breaking_changes_total > 0
+        for: 1m
+        annotations:
+          summary: "Breaking API change detected"
+          description: "Breaking change detected in service {{ $labels.service }}"
+```
+
+### Contract Compliance Dashboard
+
+**Grafana Dashboard Panel:**
+- Contract validation status (pass/fail)
+- Schema version drift over time
+- Breaking changes detected (count)
+- API version compatibility matrix
+- Service-by-service compliance status
+
+**Purpose**: Ensure contract-driven federation (SPEC-100) maintains schema compatibility across services and runtimes.
+
+**Taiga Tracking:**
+- **US#87:** Schema Drift Prevention CI - Extended to include contract validation observability (Prometheus metrics, alerting, Grafana dashboard)
+
+**Implementation Status:**
+- ✅ Contract validation CI working (US#87 Phase 1)
+- ⏳ Contract validation metrics (Prometheus) - **Added to US#87**
+- ⏳ Contract validation alerting (Prometheus rules) - **Added to US#87**
+- ⏳ Contract compliance dashboard (Grafana) - **Added to US#87**
+
+**Last Updated:** November 3, 2025 (Contract validation metrics added, US#87 extended)
 **Next Review:** Q1 2026 (after observability stack deployment)
-**Status:** Implemented ✅ + Validated ✅
+**Status:** Implemented ✅ + Validated ✅ (CI validation) + Observability Pending (US#87)

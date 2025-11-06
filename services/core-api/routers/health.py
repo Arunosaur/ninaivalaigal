@@ -18,8 +18,8 @@ from datetime import datetime
 from typing import Any, Dict
 
 import structlog
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field
 
 # Service metadata
 SERVICE_NAME = "core-api"
@@ -141,6 +141,18 @@ def get_slo_metrics() -> Dict[str, Any]:
         return {"error": "SLO monitoring not available"}
     except Exception as e:
         return {"error": str(e)}
+
+
+class SLOComplianceResponse(BaseModel):
+    """SLO compliance response model"""
+
+    status: str = Field(description="Overall SLO compliance status")
+    window: str = Field(description="Time window for SLO metrics")
+    targets: Dict[str, Any] = Field(description="SLO targets")
+    current: Dict[str, Any] = Field(description="Current metrics")
+    compliance: Dict[str, bool] = Field(description="Compliance status for each SLO")
+    overall_compliant: bool = Field(description="Whether all SLOs are compliant")
+    timestamp: str = Field(description="Timestamp of the check")
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -271,3 +283,43 @@ async def detailed_health_check():
         slo_metrics=slo_metrics,
         timestamp=datetime.utcnow().isoformat(),
     )
+
+
+@router.get("/health/slo-compliance", response_model=SLOComplianceResponse)
+async def slo_compliance_check(
+    window: str = Query(default="1h", pattern="^(1h|24h|7d)$", description="Time window for SLO metrics")
+):
+    """
+    SLO Compliance Check (SPEC-018 compliant)
+
+    US#141: SLO Monitoring & Compliance Tracking
+
+    Returns SLO metrics and compliance status for:
+    - Availability SLO (99.9% uptime, 30-day window)
+    - Response time SLO (P95 < 200ms, 24-hour window)
+    - Error rate SLO (< 0.1%, 24-hour window)
+
+    Supports time windows: 1h, 24h, 7d
+    """
+    try:
+        from lib.observability.slo_monitoring import get_slo_status
+
+        slo_status = get_slo_status(window)
+
+        if "error" in slo_status:
+            raise HTTPException(status_code=500, detail=slo_status["error"])
+
+        return SLOComplianceResponse(
+            status=slo_status["overall_status"],
+            window=slo_status["window"],
+            targets=slo_status["targets"],
+            current=slo_status["current"],
+            compliance=slo_status["compliance"],
+            overall_compliant=slo_status["compliance"].get("overall", False),
+            timestamp=slo_status["timestamp"],
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("slo_compliance_check_failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to get SLO compliance: {str(e)}")

@@ -5,6 +5,13 @@
 
 
 
+
+> **⚠️ ARCHITECTURE UPDATE (2025-11-02):**
+> This SPEC has been updated to reflect the current architecture decision: **FastAPI + Jinja2 templates** instead of Next.js.
+> **See:** `docs/FRONTEND_ARCHITECTURE_DECISION.md` for current customer UI architecture.
+>
+> **Note:** The code examples below show the Next.js approach for historical reference. Current implementation uses FastAPI templates with Jinja2.
+
 ## 🏗️ Architecture
 
 ```mermaid

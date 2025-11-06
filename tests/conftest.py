@@ -165,3 +165,59 @@ def paced_tests():
     if "smoke" in os.environ.get("PYTEST_CURRENT_TEST", ""):
         time.sleep(0.3)
     yield
+
+
+# ==============================================================
+# Rust memory provider integration gating
+# ==============================================================
+
+
+def _bool_from_env(value: str | None) -> bool:
+    if value is None:
+        return False
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def pytest_addoption(parser):
+    """Add CLI switch to opt into Rust integration tests."""
+
+    group = parser.getgroup("rust integration")
+    group.addoption(
+        "--run-rust-integration",
+        action="store_true",
+        default=False,
+        help=(
+            "Run tests marked with @pytest.mark.rust_integration. "
+            "Without this flag the suite is skipped unless PYTEST_RUN_RUST_INTEGRATION=1."
+        ),
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip Rust integration tests unless explicitly enabled."""
+
+    env_enabled = _bool_from_env(os.getenv("PYTEST_RUN_RUST_INTEGRATION"))
+    flag_enabled = _bool_from_env(os.getenv("USE_RUST_MEMORY"))
+    cli_enabled = config.getoption("--run-rust-integration")
+
+    if env_enabled or flag_enabled or cli_enabled:
+        return
+
+    skip_reason = (
+        "Rust integration suite gated. Set PYTEST_RUN_RUST_INTEGRATION=1, "
+        "USE_RUST_MEMORY=1, or pass --run-rust-integration to execute it."
+    )
+    skip_rust = pytest.mark.skip(reason=skip_reason)
+    deselected = []
+    kept = []
+
+    for item in items:
+        if "rust_integration" in item.keywords:
+            deselected.append(item)
+            item.add_marker(skip_rust)
+        else:
+            kept.append(item)
+
+    if deselected:
+        items[:] = kept
+        config.hook.pytest_deselected(items=deselected)

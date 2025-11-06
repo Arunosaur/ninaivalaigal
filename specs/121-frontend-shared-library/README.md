@@ -1,5 +1,10 @@
 ---
 {}
+
+> **⚠️ ARCHITECTURE UPDATE (2025-11-02):**
+> **This SPEC is DEPRECATED** - The React component library approach described here is no longer needed.
+> **Current Direction:** FastAPI + Jinja2 templates. Shared components are Jinja2 macros/partials, not React components.
+> **See:** `docs/ADMIN_UI_FASTAPI_ANALYSIS.md` for template-based component reuse patterns.
 ---
 
 
@@ -162,5 +167,30 @@ See implementation stubs:
 
 ---
 
-**Status**: Ready for implementation
-**Next Steps**: Begin extraction of UI components from `/frontend-nextjs/`
+## 11. Implementation Status
+
+**Status:** ⚠️ **DEPRECATED** - Superseded by FastAPI templating approach
+
+**Deprecation Date:** November 2, 2025
+
+**Current Direction:** FastAPI + Jinja2 templates. Shared components are Jinja2 macros/partials, not React components.
+
+**See:** `docs/ADMIN_UI_FASTAPI_ANALYSIS.md` for template-based component reuse patterns.
+
+**Legacy Implementation:**
+- `frontend-shared/` directory exists with working implementation
+- 17 components, 3 hooks, 3 Zustand stores implemented
+- Currently used by `frontend-nextjs-customer`
+- **Status:** Legacy code - may need migration to Jinja2 templates
+
+**Replacement SPECs:**
+- **SPEC-005**: Admin Dashboard (FastAPI templating)
+- **SPEC-146**: Customer UI (FastAPI templating)
+
+**Note:** If migration work is needed for `frontend-shared/`, create separate stories (not tied to SPEC-121, which is deprecated).
+
+---
+
+**Status**: ⚠️ **DEPRECATED** - Superseded by FastAPI templating approach
+**Implementation Date:** October 2025 (legacy implementation)
+**Last Updated:** November 2, 2025 (deprecated)

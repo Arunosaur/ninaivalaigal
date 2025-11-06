@@ -5,7 +5,12 @@
 
 
 
-## 2) Solution
+> **⚠️ ARCHITECTURE UPDATE (2025-11-02):**
+> **This SPEC is DEPRECATED** - The Next.js + Vercel deployment described here is no longer the direction.
+> **Current Direction:** FastAPI + Jinja2 templates for customer UI.
+> **See:** `docs/FRONTEND_ARCHITECTURE_DECISION.md` for the current customer UI architecture decision.
+
+## 2) Solution (DEPRECATED - Next.js Approach)
 
 Deploy `frontend-nextjs-customer` to **Vercel** with:
 - Automatic deployments from `main` branch
@@ -235,5 +240,35 @@ NEXT_PUBLIC_FEATURE_FLAGS_URL=https://unleash.ninaivalaigal.com
 
 ---
 
-**Status**: Ready for implementation
-**Next Steps**: Configure Vercel project and deploy staging environment
+---
+
+## 12. Implementation Status
+
+**Status:** ⚠️ **DEPRECATED** - Superseded by FastAPI templating approach
+
+**Deprecation Date:** November 2, 2025
+
+**Current Direction:** FastAPI + Jinja2 templates. Customer UI is served by FastAPI, not a separate Next.js app.
+
+**See:** `docs/FRONTEND_ARCHITECTURE_DECISION.md` for the current customer UI architecture decision.
+
+**Legacy Implementation:**
+- `frontend-nextjs-customer/` directory exists with working implementation
+- Next.js 15, React 19, TypeScript application
+- Currently being developed (Phase-5 Active Development)
+- Vercel deployment configuration exists
+- **Status:** Legacy code - may need migration to FastAPI templates
+
+**Replacement SPEC:**
+- **SPEC-146**: Customer UI (FastAPI templating)
+
+**Note:** If migration work is needed for `frontend-nextjs-customer/`, create separate stories (not tied to SPEC-122, which is deprecated).
+
+**Related Story:**
+- **US#101 (US-89)**: Customer UI Auth Integration (mentioned in SPEC - needs review for legacy status)
+
+---
+
+**Status**: ⚠️ **DEPRECATED** - Superseded by FastAPI templating approach
+**Implementation Date:** Legacy implementation exists
+**Last Updated:** November 2, 2025 (deprecated)

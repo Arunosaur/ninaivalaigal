@@ -9,8 +9,15 @@
 """
 Unit tests for Discount & Credit Models (US#157, SPEC-026 Phase 1)
 
-Tests for DiscountCode, TeamCredit, CreditTransaction, and DiscountCodeUsage models.
-Achieves 90%+ coverage as required by US#157 acceptance criteria.
+⚠️  DEPRECATED: These tests are for old SPEC-026 models.
+SPEC-147 has replaced these models with a unified billing architecture.
+
+New models:
+- DiscountCode → server.billing.models.DiscountCode (SPEC-147)
+- DiscountCodeUsage → server.billing.models.DiscountApplication (SPEC-147)
+- TeamCredit → server.billing.models.CreditBalance (SPEC-147)
+
+TODO: Update tests to use SPEC-147 models or mark as deprecated.
 """
 
 from datetime import datetime, timedelta
@@ -18,11 +25,13 @@ from uuid import uuid4
 
 import pytest
 
+# New SPEC-147 imports
+from server.billing.models import DiscountApplication, DiscountCode
+
+# Old SPEC-026 imports - models removed
 from server.database.models import (
     CreditTransaction,
     CreditTransactionType,
-    DiscountCode,
-    DiscountCodeUsage,
     Organization,
     Team,
     TeamCredit,
@@ -341,8 +350,13 @@ class TestCreditTransaction:
 
 
 class TestDiscountCodeUsage:
-    """Tests for DiscountCodeUsage model"""
+    """Tests for DiscountCodeUsage model
 
+    ⚠️  DEPRECATED: DiscountCodeUsage model removed in SPEC-147.
+    Use DiscountApplication from server.billing.models instead.
+    """
+
+    @pytest.mark.skip(reason="DiscountCodeUsage model removed - use SPEC-147 DiscountApplication")
     def test_discount_code_usage_creation(self, db_session):
         """Test creating a DiscountCodeUsage record"""
         team = Team(
@@ -373,6 +387,7 @@ class TestDiscountCodeUsage:
         assert usage.team_id == team.id
         assert usage.amount_discounted == 10.00
 
+    @pytest.mark.skip(reason="DiscountCodeUsage model removed - use SPEC-147 DiscountApplication")
     def test_discount_code_usage_relationship(self, db_session):
         """Test DiscountCodeUsage relationship with DiscountCode"""
         discount = DiscountCode(
@@ -400,6 +415,7 @@ class TestDiscountCodeUsage:
 
         assert discount.usages[0].id == usage.id
 
+    @pytest.mark.skip(reason="DiscountCodeUsage model removed - use SPEC-147 DiscountApplication")
     def test_discount_code_usage_target_check(self, db_session):
         """Test that either team_id or org_id must be set, but not both"""
         discount = DiscountCode(
@@ -418,4 +434,3 @@ class TestDiscountCodeUsage:
 
         with pytest.raises(Exception):  # CheckConstraint violation
             db_session.commit()
-

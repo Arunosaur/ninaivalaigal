@@ -1,0 +1,98 @@
+# SPDX-License-Identifier: Elastic-2.0
+# Copyright (c) 2025 Medhasys LLC
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "billing.fullname" . }}-beat
+  labels:
+    {{- include "billing.labels" . | nindent 4 }}
+    component: celery-beat
+spec:
+  replicas: {{ .Values.celeryBeat.replicas }}
+  selector:
+    matchLabels:
+      {{- include "billing.selectorLabels" . | nindent 6 }}
+      component: celery-beat
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "billing.selectorLabels" . | nindent 8 }}
+        component: celery-beat
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "billing.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: celery-beat
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+          - celery
+          - -A
+          - server.billing.worker
+          - beat
+          - --loglevel=info
+          {{- if .Values.celeryBeat.leaderElection.enabled }}
+          - --scheduler=server.billing.leader_election.LeaderElectionBeatScheduler
+          {{- end }}
+        env:
+          {{- toYaml .Values.env | nindent 10 }}
+          - name: BEAT_NAME
+            value: "{{ include "billing.fullname" . }}-beat"
+          {{- if .Values.celeryBeat.leaderElection.enabled }}
+          - name: LEADER_ELECTION_REGION
+            value: {{ .Values.celeryBeat.leaderElection.region | quote }}
+          - name: LEADER_ELECTION_TTL
+            value: {{ .Values.celeryBeat.leaderElection.ttl | quote }}
+          {{- end }}
+        resources:
+          {{- toYaml .Values.celeryBeat.resources | nindent 10 }}
+        volumeMounts:
+        - name: beat-schedule
+          mountPath: /var/lib/celery
+        {{- if .Values.healthCheck.enabled }}
+        livenessProbe:
+          exec:
+            command:
+              - celery
+              - -A
+              - server.billing.worker
+              - inspect
+              - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+              - celery
+              - -A
+              - server.billing.worker
+              - inspect
+              - ping
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        {{- end }}
+      volumes:
+      - name: beat-schedule
+        emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

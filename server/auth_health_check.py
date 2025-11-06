@@ -151,7 +151,7 @@ class AuthHealthChecker:
         try:
             from database.simple_operations import SimpleDatabaseOperations
 
-            from config import load_config
+            from server.config import load_config
 
             start_time = time.time()
 

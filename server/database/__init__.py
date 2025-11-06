@@ -26,6 +26,7 @@ sys.modules.setdefault("server.database", sys.modules[__name__])
 from .manager import DatabaseManager
 
 # Import all models for backward compatibility
+from .models import TeamMember  # Team membership model (was TeamMembership)
 from .models import (
     Base,
     Context,
@@ -35,24 +36,10 @@ from .models import (
     OrganizationRegistration,
     Team,
     TeamBilling,
-    TeamMember,
     TeamSubscription,
     User,
     UserInvitation,
 )
-
-try:
-    from server.models.standalone_teams import TeamMembership, extend_team_model
-
-    # Extend Team model with standalone team relationships
-    extend_team_model()
-except ImportError:  # Legacy path when imported as top-level `database`
-    standalone_module = importlib.import_module("models.standalone_teams")
-    # Ensure future imports using the fully qualified path reuse the same module instance
-    sys.modules.setdefault("server.models.standalone_teams", standalone_module)
-    TeamMembership = standalone_module.TeamMembership
-    if hasattr(standalone_module, "extend_team_model"):
-        standalone_module.extend_team_model()
 
 # Import RBAC models to register dynamic relationships on User model
 # This MUST come after importing User model
@@ -78,8 +65,7 @@ __all__ = [
     "Organization",
     "Team",
     "TeamBilling",
-    "TeamMember",
-    "TeamMembership",
+    "TeamMembership",  # Consolidated model
     "TeamSubscription",
     "Context",
     "ContextPermission",

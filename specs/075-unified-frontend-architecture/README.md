@@ -20,9 +20,11 @@ title: 'SPEC-075: Unified Frontend Architecture'
 - Professional color palette with accessibility-compliant contrast ratios
 
 ### **Production-Ready Component Library**
-- `frontend/components/Button.tsx` - Complete Button component with 4 variants, TypeScript
-- `frontend/components/Button.stories.tsx` - 15+ Storybook examples with accessibility testing
+- `templates/_partials/button.html` - Reusable Jinja2 button macro with variants
+- `templates/_partials/modal.html` - Modal component macro
+- `static/js/ui-core.js` - Shared JavaScript for common UI patterns (toasts, confirms)
 - WCAG AA compliant with loading states, icons, and full keyboard navigation
+- Optional React widgets in `static/js/widgets/` for complex visualizations
 
 ### **Development Infrastructure**
 - `frontend/.storybook/` - Complete Storybook v7.5 configuration with a11y addon
@@ -32,19 +34,24 @@ title: 'SPEC-075: Unified Frontend Architecture'
 
 ### **AI-Ready Architecture**
 - Design tokens provide single source of truth for AI styling consistency
-- Component patterns establish consistent architecture for AI code generation
-- Comprehensive Storybook examples guide AI usage patterns and best practices
-- TypeScript types ensure AI-generated code is type-safe and maintainable
+- Jinja2 macro patterns establish consistent architecture for AI template generation
+- Shared CSS classes and Tailwind utilities ensure visual consistency
+- Template inheritance patterns guide AI usage and best practices
+
+> **⚠️ ARCHITECTURE UPDATE (2025-11-02):**
+> This SPEC has been updated to reflect the current architecture decision: **FastAPI + Jinja2 templates** with optional React micro-widgets.
+> **See:** `docs/ADMIN_UI_FASTAPI_ANALYSIS.md` and `docs/FRONTEND_ARCHITECTURE_DECISION.md`
 
 ## Key Features
 
-- **Unified Component Library**: Standardized React components across all interfaces
-- **D3 Integration**: Seamless data visualization capabilities
-- **Responsive Design**: Mobile-first, adaptive layouts
-- **State Management**: Centralized state with Redux/Zustand
-- **Performance Optimization**: Code splitting, lazy loading, caching strategies
+- **Unified Component System**: Standardized Jinja2 macros/partials across all interfaces
+- **Optional React Widgets**: Vite-built React micro-widgets for complex visualizations only
+- **D3 Integration**: Seamless data visualization capabilities (via React widgets when needed)
+- **Responsive Design**: Mobile-first, adaptive layouts (TailwindCSS)
+- **Client-Side Interactivity**: Alpine.js for lightweight state management
+- **Performance Optimization**: Server-side rendering, template caching, CDN for static assets
 - **Accessibility**: WCAG 2.1 AA compliance
-- **Testing Framework**: Comprehensive unit, integration, and E2E testing
+- **Testing Framework**: Comprehensive unit, integration, and E2E testing (Playwright)
 
 ## Implementation Goals
 

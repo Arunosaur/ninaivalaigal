@@ -87,6 +87,22 @@ Provide standalone teams with:
 
 ## Technical Design
 
+> **⚠️ IMPORTANT UPDATE (January 2025):**
+>
+> **Billing Infrastructure Deprecation**: This SPEC's billing schema portions have been **deprecated** in favor of **SPEC-147: Clean Billing Schema**, which provides a unified, polymorphic billing architecture supporting Organizations, Teams, and Users.
+>
+> **What's Deprecated**:
+> - `team_billing`, `team_subscriptions`, `team_usage_metrics` tables → Use `billing_accounts`, `usage_quotas`, `usage_events` from SPEC-147
+> - Team-specific billing logic → Use SPEC-147's unified billing infrastructure
+>
+> **What's Preserved** (Unique to SPEC-026):
+> - ✅ Standalone team creation (without organization requirement)
+> - ✅ Non-profit application workflow (`nonprofit_applications` table)
+> - ✅ Team upgrade path to organization
+> - ✅ Team-specific RBAC and permissions
+>
+> **Implementation**: When implementing SPEC-026, use SPEC-147's billing infrastructure and add SPEC-026's unique features on top. See [SPEC-026 vs SPEC-147 Comparison](../../docs/spec-analysis/SPEC-026-vs-SPEC-147-COMPARISON.md) for details.
+
 ### Architecture
 
 ```
@@ -124,39 +140,44 @@ Provide standalone teams with:
     └──────────┘  └──────────┘ └───────┘  └─────────┘
 ```
 
+**Note**: Billing infrastructure uses **SPEC-147's unified schema** (billing_accounts, usage_quotas, etc.)
+
 ### Components
 
 #### 1. Database Schema
 
-**New Tables:**
+> **⚠️ DEPRECATED**: The following billing schema tables are deprecated. Use SPEC-147's unified billing schema instead. See [SPEC-147 Clean Billing Schema](../../docs/specs/SPEC-147-Clean-Billing-Schema.md).
+
+**Deprecated Tables (Use SPEC-147 Instead):**
 ```sql
--- Team billing configuration
-CREATE TABLE team_billing (
+-- ❌ DEPRECATED: Use billing_accounts from SPEC-147
+CREATE TABLE team_billing (...);
+
+-- ❌ DEPRECATED: Use billing_accounts + billing_periods from SPEC-147
+CREATE TABLE team_subscriptions (...);
+
+-- ❌ DEPRECATED: Use usage_events from SPEC-147
+CREATE TABLE team_usage_metrics (...);
+```
+
+**Preserved Tables (Unique to SPEC-026):**
+```sql
+-- ✅ PRESERVED: Non-profit application workflow (unique feature)
+CREATE TABLE nonprofit_applications (
     id UUID PRIMARY KEY,
     team_id UUID REFERENCES teams(id),
-    stripe_customer_id VARCHAR(255),
-    subscription_tier VARCHAR(50), -- 'free', 'team', 'pro', 'enterprise'
-    billing_email VARCHAR(255),
-    payment_method_type VARCHAR(50),
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ
+    organization_name VARCHAR(255),
+    tax_id VARCHAR(100),
+    mission_statement TEXT,
+    documentation_url TEXT,
+    status VARCHAR(50), -- 'pending', 'approved', 'rejected'
+    reviewed_by UUID REFERENCES users(id),
+    reviewed_at TIMESTAMPTZ,
+    rejection_reason TEXT,
+    created_at TIMESTAMPTZ
 );
 
--- Team subscriptions
-CREATE TABLE team_subscriptions (
-    id UUID PRIMARY KEY,
-    team_billing_id UUID REFERENCES team_billing(id),
-    stripe_subscription_id VARCHAR(255),
-    plan_id VARCHAR(100),
-    status VARCHAR(50), -- 'active', 'past_due', 'canceled', 'trialing'
-    current_period_start TIMESTAMPTZ,
-    current_period_end TIMESTAMPTZ,
-    cancel_at_period_end BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ
-);
-
--- Discount codes
+-- ✅ PRESERVED: Discount codes (enhanced to use billing_account_id from SPEC-147)
 CREATE TABLE discount_codes (
     id UUID PRIMARY KEY,
     code VARCHAR(50) UNIQUE,
@@ -172,10 +193,12 @@ CREATE TABLE discount_codes (
     is_active BOOLEAN DEFAULT TRUE
 );
 
--- Team credits
+-- ✅ PRESERVED: Credit system (enhanced to use billing_account_id from SPEC-147)
+-- Note: SPEC-147 has credit_balances table, but this preserves team-specific credit logic
 CREATE TABLE team_credits (
     id UUID PRIMARY KEY,
     team_id UUID REFERENCES teams(id),
+    billing_account_id UUID REFERENCES billing_accounts(id), -- Link to SPEC-147
     balance DECIMAL(10,2) DEFAULT 0.00,
     currency VARCHAR(3) DEFAULT 'USD',
     updated_at TIMESTAMPTZ
@@ -191,34 +214,13 @@ CREATE TABLE credit_transactions (
     performed_by UUID REFERENCES users(id),
     created_at TIMESTAMPTZ
 );
-
--- Non-profit applications
-CREATE TABLE nonprofit_applications (
-    id UUID PRIMARY KEY,
-    team_id UUID REFERENCES teams(id),
-    organization_name VARCHAR(255),
-    tax_id VARCHAR(100),
-    mission_statement TEXT,
-    documentation_url TEXT,
-    status VARCHAR(50), -- 'pending', 'approved', 'rejected'
-    reviewed_by UUID REFERENCES users(id),
-    reviewed_at TIMESTAMPTZ,
-    rejection_reason TEXT,
-    created_at TIMESTAMPTZ
-);
-
--- Team usage metrics
-CREATE TABLE team_usage_metrics (
-    id UUID PRIMARY KEY,
-    team_id UUID REFERENCES teams(id),
-    period_start TIMESTAMPTZ,
-    period_end TIMESTAMPTZ,
-    memory_count INT DEFAULT 0,
-    api_calls INT DEFAULT 0,
-    storage_bytes BIGINT DEFAULT 0,
-    recorded_at TIMESTAMPTZ
-);
 ```
+
+**Integration with SPEC-147**:
+- Teams use `billing_accounts` with `account_type='team'` and `account_id=team_id`
+- Usage tracking uses SPEC-147's `usage_events` table
+- Quota enforcement uses SPEC-147's `usage_quotas` table
+- Invoices use SPEC-147's `invoices` table
 
 #### 2. API Endpoints
 

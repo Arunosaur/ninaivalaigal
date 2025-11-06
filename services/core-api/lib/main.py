@@ -249,11 +249,13 @@ app.include_router(metrics_router)
 # Router imports placed here intentionally to avoid import-time database connections
 # This prevents circular dependencies and allows proper app initialization first
 from admin_analytics_api import router as admin_analytics_router  # noqa: E402
+from admin_frontend import router as admin_frontend_router  # noqa: E402
 from ai_feedback_api import router as ai_feedback_router  # noqa: E402
 from api.upload_api import router as upload_router  # noqa: E402
 from auth_working import router as auth_working_router  # noqa: E402
 from billing_console_api import router as billing_console_router  # noqa: E402
 from billing_engine_integration_api import router as billing_engine_router  # noqa: E402
+from customer_frontend import router as customer_frontend_router  # noqa: E402
 from dashboard_widgets_api import router as dashboard_router  # noqa: E402
 from discussion_api import router as discussion_router  # noqa: E402
 from early_adopter_api import router as early_adopter_router  # noqa: E402
@@ -345,6 +347,8 @@ app.include_router(usage_analytics_router)
 app.include_router(early_adopter_router)
 app.include_router(invoice_management_router)
 app.include_router(admin_analytics_router)
+app.include_router(admin_frontend_router)  # US#821-824: Admin frontend migration
+app.include_router(customer_frontend_router)  # US#825-839: Customer frontend migration
 app.include_router(team_api_keys_router)
 app.include_router(team_billing_portal_router)
 app.include_router(partner_ecosystem_router)

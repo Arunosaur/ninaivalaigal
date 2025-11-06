@@ -109,36 +109,54 @@ export function Signup() {
     }
   };
 
+  const errorId = 'signup-error';
+  const successId = 'signup-success';
+  const accountTypeId = 'signup-account-type';
+
   return (
     <AuthLayout>
-      <h2 className="text-center text-2xl font-semibold text-white">Create your workspace</h2>
+      <main id="main-content">
+      <h1 className="text-center text-2xl font-semibold text-white">Create your workspace</h1>
       <p className="text-center text-sm text-slate-400">
         Unlock guided memory capture and institutional intelligence
       </p>
 
       {error ? (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div
+          id={errorId}
+          role="alert"
+          aria-live="polite"
+          className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+        >
           {error}
         </div>
       ) : null}
 
       {successMessage ? (
-        <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        <div
+          id={successId}
+          role="status"
+          aria-live="polite"
+          className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+        >
           {successMessage}
         </div>
       ) : null}
 
-      <form className="mt-6 space-y-5" onSubmit={handleSubmit} noValidate>
+      <form className="mt-6 space-y-5" onSubmit={handleSubmit} noValidate aria-label="Signup form">
         {/* Account Type Selector */}
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <fieldset className="space-y-2">
+          <legend className="block text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
             Account Type
-          </label>
-          <div className="flex gap-3">
+          </legend>
+          <div className="flex gap-3" role="radiogroup" aria-labelledby={accountTypeId}>
             <button
               type="button"
               onClick={() => setForm((prev) => ({ ...prev, accountType: 'individual' }))}
-              className={`flex-1 rounded-xl px-4 py-3 text-sm font-medium transition ${
+              role="radio"
+              aria-checked={form.accountType === 'individual'}
+              aria-label="Individual account"
+              className={`flex-1 rounded-xl px-4 py-3 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
                 form.accountType === 'individual'
                   ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
                   : 'bg-slate-800/50 text-slate-300 hover:bg-slate-800'
@@ -149,7 +167,10 @@ export function Signup() {
             <button
               type="button"
               onClick={() => setForm((prev) => ({ ...prev, accountType: 'organization' }))}
-              className={`flex-1 rounded-xl px-4 py-3 text-sm font-medium transition ${
+              role="radio"
+              aria-checked={form.accountType === 'organization'}
+              aria-label="Organization account"
+              className={`flex-1 rounded-xl px-4 py-3 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
                 form.accountType === 'organization'
                   ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
                   : 'bg-slate-800/50 text-slate-300 hover:bg-slate-800'
@@ -158,7 +179,8 @@ export function Signup() {
               🏢 Organization
             </button>
           </div>
-        </div>
+          <span id={accountTypeId} className="sr-only">Select account type</span>
+        </fieldset>
 
         {/* Common Fields */}
         <div className="space-y-2">
@@ -174,6 +196,10 @@ export function Signup() {
             className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
             autoComplete="name"
             required
+            aria-required="true"
+            aria-invalid={error && !form.name ? 'true' : 'false'}
+            aria-describedby={error && !form.name ? errorId : undefined}
+            aria-label="Your full name"
           />
         </div>
 
@@ -190,6 +216,10 @@ export function Signup() {
             className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
             autoComplete="email"
             required
+            aria-required="true"
+            aria-invalid={error && !form.email ? 'true' : 'false'}
+            aria-describedby={error && !form.email ? errorId : undefined}
+            aria-label="Email address"
           />
         </div>
 
@@ -206,6 +236,10 @@ export function Signup() {
             className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
             autoComplete="new-password"
             required
+            aria-required="true"
+            aria-invalid={error && !form.password ? 'true' : 'false'}
+            aria-describedby={error && !form.password ? errorId : undefined}
+            aria-label="Password"
           />
         </div>
 
@@ -224,6 +258,10 @@ export function Signup() {
                 onChange={(event) => setForm((prev) => ({ ...prev, organizationName: event.target.value }))}
                 className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
                 required
+                aria-required="true"
+                aria-invalid={error && form.accountType === 'organization' && !form.organizationName ? 'true' : 'false'}
+                aria-describedby={error && form.accountType === 'organization' && !form.organizationName ? errorId : undefined}
+                aria-label="Organization name"
               />
             </div>
 
@@ -288,7 +326,13 @@ export function Signup() {
         <button
           type="submit"
           disabled={submitting}
-          className="brand-gradient flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:shadow-indigo-600/45 disabled:cursor-not-allowed disabled:opacity-70"
+          className="brand-gradient flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:shadow-indigo-600/45 disabled:cursor-not-allowed disabled:opacity-70 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+          aria-label={
+            submitting
+              ? 'Creating account, please wait'
+              : `Sign up as ${form.accountType === 'organization' ? 'organization' : 'individual'}`
+          }
+          aria-busy={submitting}
         >
           {submitting ? 'Creating account...' : `Sign Up as ${form.accountType === 'organization' ? 'Organization' : 'Individual'}`}
         </button>
@@ -296,10 +340,15 @@ export function Signup() {
 
       <p className="text-center text-sm text-slate-400">
         Already have an account?{' '}
-        <Link to="/login" className="font-semibold text-slate-200 transition hover:text-white">
+        <Link
+          to="/login"
+          className="font-semibold text-slate-200 transition hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 rounded"
+          aria-label="Log in to your existing account"
+        >
           Log in
         </Link>
       </p>
+      </main>
     </AuthLayout>
   );
 }

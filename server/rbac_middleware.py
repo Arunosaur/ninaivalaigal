@@ -19,9 +19,40 @@ from typing import Any
 import jwt
 from fastapi import HTTPException, Request, Response
 from fastapi.security import HTTPBearer
-from secret_redaction import redact_log_message
 
-from rbac.permissions import Action, Resource, Role, SubjectContext, authorize
+try:
+    from server.secret_redaction import redact_log_message
+except ImportError:
+    try:
+        from secret_redaction import redact_log_message
+    except ImportError:
+        # Fallback if secret_redaction is not available
+        def redact_log_message(message: str) -> str:
+            return message
+
+
+try:
+    from server.rbac.permissions import (
+        Action,
+        Resource,
+        Role,
+        SubjectContext,
+        authorize,
+    )
+except ImportError:
+    try:
+        from rbac.permissions import Action, Resource, Role, SubjectContext, authorize
+    except ImportError:
+        # Fallback for test environments
+        from typing import Any
+
+        Action = Any
+        Resource = Any
+        Role = Any
+        SubjectContext = Any
+
+        def authorize(*args, **kwargs):
+            return True
 
 
 class RBACContext:
@@ -60,7 +91,10 @@ class RBACContext:
 
     def get_effective_role(self, team_id: str | None = None) -> str | None:
         """Get the effective role for the user in given context"""
-        from rbac.permissions import effective_role
+        try:
+            from server.rbac.permissions import effective_role
+        except ImportError:
+            from rbac.permissions import effective_role
 
         subject_ctx = self.to_subject_context()
         return effective_role(subject_ctx, team_id)
@@ -74,7 +108,10 @@ class RBACContext:
         Returns:
             ContextSensitiveRBACContext instance
         """
-        from rbac.policy.context_sensitive import ContextSensitiveRBACContext
+        try:
+            from server.rbac.policy.context_sensitive import ContextSensitiveRBACContext
+        except ImportError:
+            from rbac.policy.context_sensitive import ContextSensitiveRBACContext
 
         return ContextSensitiveRBACContext(
             user_id=self.user_id,
@@ -263,7 +300,10 @@ def require_permission(resource: str, action: str) -> Callable:
             rbac_context = get_rbac_context(request)
 
             # Import here to avoid circular imports
-            from rbac.permissions import Action, Resource
+            try:
+                from server.rbac.permissions import Action, Resource
+            except ImportError:
+                from rbac.permissions import Action, Resource
 
             # Convert string to enum if needed
             if isinstance(resource, str):

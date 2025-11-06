@@ -40,7 +40,15 @@ class MemoryCreate(BaseModel):
 
 
 def _serialize_memory(record: Memory) -> dict[str, Any]:
-    payload = record.data or {}
+    # Handle both string and dict data due to VIEW mapping
+    if isinstance(record.data, str):
+        try:
+            payload = json.loads(record.data) if record.data else {}
+        except (json.JSONDecodeError, TypeError):
+            payload = {"content": record.data or "Untitled memory"}
+    else:
+        payload = record.data or {}
+
     content = payload.get("content") or payload.get("text") or payload.get("body") or "Untitled memory"
 
     tags = payload.get("tags")
@@ -150,5 +158,159 @@ def create_memory(
         session.rollback()
         print(f"[ERROR] Failed to create memory: {exc}")
         raise HTTPException(status_code=500, detail=f"Failed to create memory: {str(exc)}")
+    finally:
+        session.close()
+
+
+class MemoryUpdate(BaseModel):
+    """Request model for updating a memory"""
+
+    content: Optional[str] = Field(None, min_length=1, description="Memory content")
+    context: Optional[str] = Field(None, description="Memory context/category")
+    tags: Optional[List[str]] = Field(None, description="Tags for the memory")
+    pinned: Optional[bool] = Field(None, description="Whether to pin this memory")
+    archived: Optional[bool] = Field(None, description="Whether to archive this memory")
+
+
+@router.get("/memories/{memory_id}")
+def get_memory(
+    memory_id: str,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """Get a specific memory by ID for the authenticated user."""
+
+    session = db.get_session()
+    try:
+        # Parse UUID
+        try:
+            mem_uuid = uuid.UUID(memory_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid memory ID format")
+
+        # Query memory with user isolation
+        memory = session.query(Memory).filter(Memory.id == mem_uuid, Memory.user_id == current_user.id).first()
+
+        if not memory:
+            raise HTTPException(status_code=404, detail="Memory not found")
+
+        return {"success": True, "memory": _serialize_memory(memory)}
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve memory: {str(exc)}")
+    finally:
+        session.close()
+
+
+@router.put("/memories/{memory_id}")
+def update_memory(
+    memory_id: str,
+    memory_data: MemoryUpdate,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """Update a specific memory for the authenticated user."""
+
+    session = db.get_session()
+    try:
+        # Parse UUID
+        try:
+            mem_uuid = uuid.UUID(memory_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid memory ID format")
+
+        # Query memory with user isolation
+        memory = session.query(Memory).filter(Memory.id == mem_uuid, Memory.user_id == current_user.id).first()
+
+        if not memory:
+            raise HTTPException(status_code=404, detail="Memory not found")
+
+        # Update memory data payload - handle string data from VIEW
+        if isinstance(memory.data, str):
+            try:
+                data_payload = json.loads(memory.data) if memory.data else {}
+            except (json.JSONDecodeError, TypeError):
+                data_payload = {"content": memory.data or "Untitled memory"}
+        else:
+            data_payload = memory.data or {}
+
+        # Update fields if provided
+        if memory_data.content is not None:
+            data_payload["content"] = memory_data.content
+
+        if memory_data.tags is not None:
+            data_payload["tags"] = memory_data.tags
+
+        if memory_data.pinned is not None:
+            data_payload["pinned"] = memory_data.pinned
+
+        if memory_data.archived is not None:
+            data_payload["archived"] = memory_data.archived
+
+        # Update memory record
+        memory.data = data_payload
+        if memory_data.context is not None:
+            memory.context = memory_data.context
+        memory.updated_at = datetime.utcnow()
+
+        session.commit()
+        session.refresh(memory)
+
+        print(f"[DEBUG] Updated memory {memory.id} for user {current_user.id}")
+
+        return {
+            "success": True,
+            "memory": _serialize_memory(memory),
+            "message": "Memory updated successfully",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        session.rollback()
+        print(f"[ERROR] Failed to update memory: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to update memory: {str(exc)}")
+    finally:
+        session.close()
+
+
+@router.delete("/memories/{memory_id}")
+def delete_memory(
+    memory_id: str,
+    current_user: User = Depends(get_current_user),
+    db: DatabaseManager = Depends(get_db),
+):
+    """Delete a specific memory for the authenticated user."""
+
+    session = db.get_session()
+    try:
+        # Parse UUID
+        try:
+            mem_uuid = uuid.UUID(memory_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid memory ID format")
+
+        # Query memory with user isolation
+        memory = session.query(Memory).filter(Memory.id == mem_uuid, Memory.user_id == current_user.id).first()
+
+        if not memory:
+            raise HTTPException(status_code=404, detail="Memory not found")
+
+        # Delete the memory
+        session.delete(memory)
+        session.commit()
+
+        print(f"[DEBUG] Deleted memory {memory_id} for user {current_user.id}")
+
+        return {"success": True, "message": "Memory deleted successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        session.rollback()
+        print(f"[ERROR] Failed to delete memory: {exc}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete memory: {str(exc)}")
     finally:
         session.close()

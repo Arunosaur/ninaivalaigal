@@ -21,10 +21,11 @@ updated: 2025-10-13
 
 # SPEC-127: Context Bridge & Memory Federation System
 
-**Status**: 🆕 Active Development
+**Status**: 📋 Planned (Not Implemented - 0%)
 **Phase**: Phase 3
 **Priority**: High
 **Created**: October 13, 2025
+**Last Updated**: January 2025
 **Owner**: To be assigned
 
 ---
@@ -289,8 +290,66 @@ See: [`database-schema.md`](./database-schema.md)
 - **SPEC-043**: Memory ACL System (foundation)
 - **SPEC-050**: Cross-Org Memory Sharing (consolidated)
 - **SPEC-049**: Memory Sharing Collaboration (consolidated)
-- **SPEC-101**: Memory Federation (consolidated)
 - **SPEC-061**: Property Graph Intelligence (GraphOps)
+
+---
+
+## 🔄 Relationship to SPEC-101 (Memory Federation)
+
+**SPEC-127 (Context Bridge)** and **SPEC-101 (Memory Federation)** are **complementary but distinct** systems that serve different purposes:
+
+### Key Differences
+
+| Aspect | SPEC-101 (Federation) | SPEC-127 (Context Bridge) |
+|--------|----------------------|---------------------------|
+| **Boundary** | Cross-instance | Within-instance |
+| **Scale** | Organization ↔ Organization | Team ↔ Team, User ↔ User |
+| **Trust Model** | External (federation trust) | Internal (organizational trust) |
+| **Protocol** | API-to-API (external) | Internal service calls |
+| **Use Case** | "Share with partner company" | "Share with another team" |
+| **Trust Level** | External federation trust | Internal trust scoring (0-100) |
+| **Sharing Modes** | N/A | Reference, Clone, Hybrid |
+
+### When to Use Which
+
+**Use Context Bridge (SPEC-127)** when:
+- ✅ Sharing between teams in the same organization
+- ✅ Sharing between users in the same team
+- ✅ Internal collaboration scenarios
+- ✅ Need zero duplication (reference mode)
+- ✅ Need isolated copies (clone mode)
+- ✅ Need sync triggers (hybrid mode)
+- ✅ Trust scoring for internal sharing decisions
+
+**Use Memory Federation (SPEC-101)** when:
+- ✅ Sharing with external organizations
+- ✅ Cross-instance synchronization
+- ✅ Partner/vendor collaboration
+- ✅ API-to-API communication between instances
+- ✅ External federation protocols
+
+### Integration Example
+
+```
+Organization A (instance1.ninaivalaigal.com)
+├── Team 1 ──[Context Bridge (SPEC-127)]──> Team 2
+│   └── Reference Mode: Live link, no duplication
+└── Organization ──[Federation (SPEC-101)]──> Organization B
+    └── External API-to-API sharing
+```
+
+### Code Reuse Considerations
+
+While both systems involve memory sharing, they should **remain separate**:
+
+- **Don't confuse them**: Federation is for external orgs, context bridges are for internal teams
+- **Potential code reuse**: Some patterns from `MemoryFederationEngine` might be useful:
+  - Trust scoring concepts (adapted for internal use)
+  - Access control patterns
+  - Synchronization logic
+- **Keep them separate**: Different trust models, different protocols, different use cases
+
+**Conclusion**: Context bridges are for internal collaboration; federation is for external partnerships. They complement each other but serve different purposes.
 
 ---
 
@@ -318,5 +377,63 @@ See: [`database-schema.md`](./database-schema.md)
 
 ---
 
-**Status**: Ready for implementation
-**Next Steps**: Assign to Developer B for detailed specification writing
+## 16. Implementation Status
+
+**Status:** ⚠️ **Not Implemented** (0% implemented)
+
+**Last Updated:** January 2025
+
+### Current Status
+
+**Not Implemented:**
+- ❌ **Database Schema** - context_bridges, trust_scores, bridge_access_history, sync_policies tables not created
+- ❌ **Core Classes** - ReferenceLink, MemoryClone, HybridSync, TrustScoreCalculator, ContextBridgeResolver not implemented
+- ❌ **API Endpoints** - All 8 endpoints from api-contracts.md not implemented
+- ❌ **Reference Mode** - Not implemented
+- ❌ **Clone Mode** - Not implemented
+- ❌ **Hybrid Mode** - Not implemented
+- ❌ **Trust Scoring System** - Not implemented
+- ❌ **GraphOps Integration** - Graph edges and federated queries not implemented
+- ❌ **Audit Logging** - Not implemented
+
+**Dependencies Status:**
+- ✅ **SPEC-043**: Memory ACL System - Complete - Ready
+- ✅ **SPEC-061**: Property Graph Intelligence - Complete - Ready
+
+**Note:** SPEC-127 is a comprehensive specification that consolidates SPEC-049 and SPEC-050. SPEC-101 (Memory Federation) is a complementary system for external organization sharing, but SPEC-127 is for internal context sharing. All dependencies are complete, ready to start implementation.
+
+---
+
+## 17. Implementation Stories
+
+The following Taiga stories have been created to implement SPEC-127:
+
+**Phase 1: Foundation (2 weeks)**
+- **US#841**: SPEC-127 Phase 1: Foundation - Database Schema & Trust Scoring (unassigned)
+  - Database schema, trust score calculator, basic reference mode, audit logging
+
+**Phase 2: Modes (2 weeks)**
+- **US#842**: SPEC-127 Phase 2: Clone & Hybrid Modes (unassigned)
+  - Clone mode, hybrid mode, mode switching, bridge lifecycle management
+
+**Phase 3: GraphOps (2 weeks)**
+- **US#843**: SPEC-127 Phase 3: GraphOps Federation (unassigned)
+  - Graph edge creation, federated query engine, performance optimization
+
+**Phase 4: Trust System (1 week)**
+- **US#844**: SPEC-127 Phase 4: Trust System Enhancement (unassigned)
+  - Advanced trust scoring, dynamic trust adjustment, trust-based ACL
+
+**Phase 5: API & Testing (1 week)**
+- **US#845**: SPEC-127 Phase 5: API & Testing (unassigned)
+  - Complete API implementation, e*M integration, comprehensive testing
+
+All stories are tagged with `spec-127` and are unassigned (can be picked up by any developer).
+
+**Total Estimated Effort:** 8 weeks (40 working days)
+
+**Status**: ✅ Created successfully (January 2025)
+
+---
+
+**Next Steps**: Begin Phase 1 implementation (US#841)

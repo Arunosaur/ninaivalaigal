@@ -53,7 +53,7 @@ class OrganizationUpdateRequest(BaseModel):
 # Database manager dependency
 def get_db():
     """Get database manager with dynamic configuration"""
-    from config import get_dynamic_database_url
+    from server.config import get_dynamic_database_url
 
     return DatabaseManager(get_dynamic_database_url())
 

@@ -13,33 +13,52 @@ SPEC-005: Admin Dashboard
 US-100: Admin Activity Logging System
 """
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID, uuid4
 
 import pytest
+import pytest_asyncio
 
 from server.admin.activity_logger import AdminAction, AdminActivityLogger
 from server.admin.helpers import get_admin_user_id_from_request, log_admin_action_async
 
 
 @pytest.fixture
-async def mock_db_pool():
+def mock_db_pool():
     """Mock database connection pool"""
-    pool = AsyncMock()
+    # Create a connection mock that will be returned by the context manager
     conn = AsyncMock()
-    pool.acquire = AsyncMock(return_value=AsyncMock(__aenter__=AsyncMock(return_value=conn), __aexit__=AsyncMock()))
     conn.execute = AsyncMock(return_value="INSERT 0 1")
     conn.fetch = AsyncMock(return_value=[])
     conn.fetchrow = AsyncMock(return_value={"total": 0})
+
+    # Create a proper async context manager that returns the connection
+    class AsyncContextManager:
+        def __init__(self, connection):
+            self.conn = connection
+
+        async def __aenter__(self):
+            return self.conn
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            return None
+
+    # Create pool mock - acquire() should return the context manager directly
+    pool = MagicMock()
+    pool.acquire = MagicMock(return_value=AsyncContextManager(conn))
     return pool
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def activity_logger(mock_db_pool):
     """Create AdminActivityLogger instance"""
     logger = AdminActivityLogger(mock_db_pool, retention_days=90)
-    return logger
+    await logger.start_services()
+    yield logger
+    # Cleanup: stop background services
+    await logger.stop_services()
 
 
 @pytest.mark.asyncio
@@ -58,9 +77,11 @@ async def test_log_activity(activity_logger, mock_db_pool):
         user_agent="Mozilla/5.0",
     )
 
-    # Verify execute was called
-    conn = await mock_db_pool.acquire().__aenter__()
-    assert conn.execute.called
+    # Verify execute was called on the connection
+    # The activity_logger uses async with pool.acquire() as conn, then conn.execute()
+    # So we check that the connection's execute was called
+    async with mock_db_pool.acquire() as conn:
+        assert conn.execute.called
 
 
 @pytest.mark.asyncio
@@ -69,22 +90,24 @@ async def test_get_activity_logs(activity_logger, mock_db_pool):
     admin_user_id = uuid4()
 
     # Mock fetch to return sample log
-    conn = await mock_db_pool.acquire().__aenter__()
-    conn.fetch = AsyncMock(
-        return_value=[
-            {
-                "id": uuid4(),
-                "admin_user_id": admin_user_id,
-                "action": "create_organization",
-                "target_type": "organization",
-                "target_id": uuid4(),
-                "details": {"organization_name": "Test Org"},
-                "ip_address": "127.0.0.1",
-                "user_agent": "Mozilla/5.0",
-                "timestamp": datetime.now(timezone.utc),
-            }
-        ]
-    )
+    # Set up the mock connection before the activity_logger uses it
+    async with mock_db_pool.acquire() as conn:
+        conn.fetch = AsyncMock(
+            return_value=[
+                {
+                    "id": uuid4(),
+                    "admin_user_id": admin_user_id,
+                    "action": "create_organization",
+                    "target_type": "organization",
+                    "target_id": uuid4(),
+                    "details": {"organization_name": "Test Org"},
+                    "ip_address": "127.0.0.1",
+                    "user_agent": "Mozilla/5.0",
+                    "timestamp": datetime.now(timezone.utc),
+                }
+            ]
+        )
+        conn.fetchrow = AsyncMock(return_value={"total": 1})
 
     logs = await activity_logger.get_activity_logs(
         admin_user_id=admin_user_id,
@@ -99,16 +122,21 @@ async def test_get_activity_logs(activity_logger, mock_db_pool):
 @pytest.mark.asyncio
 async def test_get_activity_summary(activity_logger, mock_db_pool):
     """Test getting activity summary"""
-    conn = await mock_db_pool.acquire().__aenter__()
-
-    # Mock summary queries
-    conn.fetchrow = AsyncMock(return_value={"total": 50})
-    conn.fetch = AsyncMock(
-        return_value=[
+    # Mock summary queries - set up before calling the method
+    async with mock_db_pool.acquire() as conn:
+        conn.fetchrow = AsyncMock(return_value={"total": 50})
+        # First fetch returns action distribution
+        # Second fetch returns most active admins (needs admin_user_id and count)
+        action_distribution = [
             {"action": "create_user", "count": 30},
             {"action": "update_user", "count": 20},
         ]
-    )
+        admin_rows = [
+            {"admin_user_id": uuid4(), "count": 10},
+            {"admin_user_id": uuid4(), "count": 5},
+        ]
+        # Mock fetch to return action distribution first, then admin rows
+        conn.fetch = AsyncMock(side_effect=[action_distribution, admin_rows])
 
     summary = await activity_logger.get_activity_summary(days=30)
 
@@ -178,8 +206,9 @@ async def test_log_admin_action_async_with_none_logger():
 @pytest.mark.asyncio
 async def test_cleanup_old_logs(activity_logger, mock_db_pool):
     """Test cleanup of old logs"""
-    conn = await mock_db_pool.acquire().__aenter__()
-    conn.execute = AsyncMock(return_value="DELETE 5")
+    # Set up the mock connection before cleanup runs
+    async with mock_db_pool.acquire() as conn:
+        conn.execute = AsyncMock(return_value="DELETE 5")
 
     await activity_logger._cleanup_old_logs()
 

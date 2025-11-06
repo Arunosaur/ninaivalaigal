@@ -1,5 +1,10 @@
 ---
 {}
+
+> **⚠️ DEPRECATED (November 2025):**
+> **This SPEC is DEPRECATED** - Turborepo and Next.js stack removed. CI/CD covered by SPEC-016.
+> **Current Direction:** FastAPI handles both frontend rendering (templating) and backend APIs. All CI/CD orchestration is under SPEC-016.
+> **See:** `specs/016-cicd-pipeline-architecture/spec.md` for current CI/CD architecture.
 ---
 
 
@@ -104,3 +109,40 @@ See implementation stub with pipeline definitions
 - Turbo cache hit rate (target > 80%)
 - Build duration (track via GitHub Actions)
 - Test execution time
+
+---
+
+## 8. Implementation Status
+
+**Status:** ⚠️ **DEPRECATED** - Superseded by SPEC-016
+
+**Deprecation Date:** November 2025
+
+### Deprecation Rationale
+
+**Original Purpose (Now Obsolete):**
+- Turborepo orchestration for Next.js frontend apps
+- Workspace structure: `frontend-shared`, `frontend-nextjs-customer`, `frontend-nextjs-admin`
+- Tight coupling with SPEC-121/122/123 (all deprecated)
+
+**New Reality:**
+- **Frontend strategy dropped**: No active Next.js layer
+- **Unified FastAPI**: Handles both frontend rendering (templating/UI) and backend APIs
+- **CI/CD handled entirely under SPEC-016**, which already:
+  - Manages multi-service builds (nv-api, nv-redis, nv-db, rust memory provider, etc.)
+  - Has 28 validated workflows
+  - Provides caching, parallelization, lint/test/build stages
+  - Works with Apple Container CLI + GitHub Actions instead of Turborepo
+
+**Conclusion:**
+The purpose of SPEC-124 (Turborepo orchestration) has been fully absorbed into SPEC-016 and is functionally redundant.
+
+**Replaced By:**
+- **SPEC-016**: CI/CD Pipeline Architecture (Complete)
+  - All CI/CD, caching, and workflow automation covered there
+  - Historical note: SPEC-124 (Turborepo) deprecated after FastAPI migration, November 2025
+
+---
+
+**Status**: ⚠️ **DEPRECATED** - Superseded by SPEC-016 (CI/CD Pipeline Architecture)
+**Deprecation Date:** November 2025

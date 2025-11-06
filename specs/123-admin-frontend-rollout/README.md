@@ -5,7 +5,12 @@
 
 
 
-## 2) Solution
+> **⚠️ ARCHITECTURE UPDATE (2025-11-02):**
+> **This SPEC is DEPRECATED** - The Next.js admin app deployment described here is no longer the direction.
+> **Current Direction:** FastAPI + Jinja2 templates for admin UI (served directly by FastAPI).
+> **See:** `docs/ADMIN_UI_FASTAPI_ANALYSIS.md` for the current admin UI architecture.
+
+## 2) Solution (DEPRECATED - Next.js Approach)
 
 Deploy `frontend-nextjs-admin` to **internal server** with:
 - Nginx reverse proxy (SSL termination)
@@ -92,3 +97,32 @@ pm2 startup
 - Listen on port 443 (SSL)
 - Proxy to localhost:3001
 - IP whitelist in `nginx.conf`
+
+---
+
+## 8. Implementation Status
+
+**Status:** ⚠️ **DEPRECATED** - Superseded by FastAPI templating approach
+
+**Deprecation Date:** November 2, 2025
+
+**Current Direction:** FastAPI + Jinja2 templates. Admin UI is served by FastAPI, not a separate Next.js app.
+
+**See:** `docs/ADMIN_UI_FASTAPI_ANALYSIS.md` for the current admin UI architecture.
+
+**Stub Files:**
+- `nginx.conf` - Nginx reverse proxy configuration stub (not deployed)
+- `ecosystem.config.js` - PM2 process manager configuration stub (not deployed)
+- `frontend-nextjs-admin/` - Placeholder directory (initialized, not implemented)
+- **Status:** Historical reference only - not for production use
+
+**Replacement SPEC:**
+- **SPEC-005**: Admin Dashboard (FastAPI templating)
+
+**Note:** If migration work is needed, create separate stories (not tied to SPEC-123, which is deprecated).
+
+---
+
+**Status**: ⚠️ **DEPRECATED** - Superseded by FastAPI templating approach
+**Implementation Date:** Stub files created (not deployed)
+**Last Updated:** November 2, 2025 (deprecated)

@@ -52,9 +52,9 @@ class NinaivalaigalCopilotWrapper:
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
     async def enhance_copilot_prompt(self, context: CopilotContext, original_prompt: str) -> str:
-        """Enhance Copilot prompt with relevant mem0 memories"""
+        """Enhance Copilot prompt with relevant ninaivalaigal memories"""
         try:
-            # Get relevant memories from mem0
+            # Get relevant memories from ninaivalaigal
             relevant_memories = await self._get_relevant_memories(context)
 
             if not relevant_memories:
@@ -218,12 +218,12 @@ class NinaivalaigalCopilotWrapper:
         memories: list[dict[str, Any]],
         context: CopilotContext,
     ) -> str:
-        """Build enhanced prompt with mem0 memories"""
+        """Build enhanced prompt with ninaivalaigal memories"""
         if not memories:
             return original_prompt
 
         # Build memory context
-        memory_context = "# Relevant Context from mem0:\n"
+        memory_context = "# Relevant Context from Ninaivalaigal:\n"
         for i, memory in enumerate(memories, 1):
             memory_context += f"{i}. {memory['content']}\n"
 
@@ -344,7 +344,7 @@ class VSCodeCopilotBridge:
             # Get original prompt (this would come from Copilot's internal prompt)
             original_prompt = request_data.get("prompt", "Generate code completion")
 
-            # Enhance prompt with mem0 memories
+            # Enhance prompt with ninaivalaigal memories
             enhanced_prompt = await self.wrapper.enhance_copilot_prompt(context, original_prompt)
 
             return {
@@ -367,14 +367,14 @@ copilot_bridge = VSCodeCopilotBridge()
 
 
 async def enhance_copilot_with_mem0(request_data: dict[str, Any]) -> dict[str, Any]:
-    """Main function to enhance Copilot with mem0 memories"""
+    """Main function to enhance Copilot with ninaivalaigal memories"""
     return await copilot_bridge.handle_copilot_request(request_data)
 
 
 if __name__ == "__main__":
     # Test the wrapper
     async def test_wrapper():
-        """Test the Mem0 Copilot wrapper with sample context."""
+        """Test the Ninaivalaigal Copilot wrapper with sample context."""
         context = CopilotContext(
             file_path="test.ts",
             language="typescript",

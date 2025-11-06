@@ -34,7 +34,9 @@ func TestCoreAPIProxyWriteErrorInStreaming(t *testing.T) {
 	// Create a mock server that returns a response body
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("test response body"))
+		if _, err := w.Write([]byte("test response body")); err != nil {
+			t.Errorf("Failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -71,7 +73,9 @@ func TestCoreAPIProxyReadErrorNonEOF(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		// Write some data, then the connection will fail
-		w.Write([]byte("partial data"))
+		if _, err := w.Write([]byte("partial data")); err != nil {
+			t.Errorf("Failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -142,7 +146,9 @@ func TestCoreAPIProxyHeaderCopyingMultipleValues(t *testing.T) {
 			t.Errorf("Expected multiple header values, got %d", len(values))
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		if _, err := w.Write([]byte("ok")); err != nil {
+			t.Errorf("Failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -177,7 +183,9 @@ func TestCoreAPIProxyResponseHeaderForwardingMultiple(t *testing.T) {
 		w.Header().Add("X-Custom-1", "value2")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		if _, err := w.Write([]byte("ok")); err != nil {
+			t.Errorf("Failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -213,7 +221,9 @@ func TestCoreAPIProxyRequestBodyForwarding(t *testing.T) {
 			t.Errorf("Expected body %s, got %s", bodyContent, string(receivedBody))
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		if _, err := w.Write([]byte("ok")); err != nil {
+			t.Errorf("Failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -247,7 +257,9 @@ func TestCoreAPIProxyLargeResponseBody(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write(largeBody)
+		if _, err := w.Write(largeBody); err != nil {
+			t.Errorf("Failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 

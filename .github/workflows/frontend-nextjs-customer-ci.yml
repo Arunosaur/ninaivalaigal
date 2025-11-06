@@ -1,14 +1,17 @@
 name: Frontend Next.js Customer CI
 
+# ⚠️ DEPRECATED: This workflow is disabled because frontend-nextjs-customer has been archived
+# See: .archive/deprecated/frontend-nextjs-customer-2025-01-31/
+# Active frontend: apps/customer/ (Vite + React Router)
+
 on:
-  push:
-    paths:
-      - 'frontend-nextjs-customer/**'
-      - '.github/workflows/frontend-nextjs-customer-ci.yml'
-  pull_request:
-    paths:
-      - 'frontend-nextjs-customer/**'
-      - '.github/workflows/frontend-nextjs-customer-ci.yml'
+  workflow_dispatch:  # Manual trigger only - disabled for automatic runs
+  # push:
+  #   paths:
+  #     - 'frontend-nextjs-customer/**'  # DEPRECATED - folder archived
+  # pull_request:
+  #   paths:
+  #     - 'frontend-nextjs-customer/**'  # DEPRECATED - folder archived
 
 permissions:
   contents: read

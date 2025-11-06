@@ -17,12 +17,15 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 echo "🚀 Starting ninaivalaigal Core API Service"
 echo "==========================================="
 
-# Load environment variables from .env.dev
-if [ -f "$PROJECT_ROOT/.env.dev" ]; then
-    source "$PROJECT_ROOT/.env.dev"
-    echo "✅ Loaded environment from .env.dev"
+# Load environment variables from configs/env-{env}.env (STANDARDS COMPLIANCE)
+NINA_ENV=${NINA_ENV:-dev}
+ENV_FILE="$PROJECT_ROOT/configs/env-${NINA_ENV}.env"
+if [ -f "$ENV_FILE" ]; then
+    source "$ENV_FILE"
+    echo "✅ Loaded environment from $ENV_FILE"
 else
-    echo "⚠️  .env.dev not found, using defaults"
+    echo "⚠️  $ENV_FILE not found, using defaults"
+    NINA_ENV=${NINA_ENV:-dev}
 fi
 
 # Set defaults

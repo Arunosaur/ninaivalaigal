@@ -164,9 +164,9 @@ export default function TeamDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Navigation variant="dark" className="sticky top-0 z-10" />
-      <main className="container mx-auto px-6 py-8">
+      <main id="main-content" className="container mx-auto px-6 py-8">
         {/* Header */}
-        <div className="mb-8 glass-surface rounded-2xl p-6 border border-gray-700/50">
+        <header className="mb-8 glass-surface rounded-2xl p-6 border border-gray-700/50">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white">{team.name}</h1>
@@ -175,106 +175,117 @@ export default function TeamDashboard() {
             <div className="flex gap-4">
               <Link
                 to="/team/create"
-                className="px-4 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800 transition"
+                className="px-4 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                aria-label="Create another team"
               >
                 Create Another Team
               </Link>
               <Link
                 to={`/team/${team.id}/upgrade`}
-                className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition"
+                className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                aria-label="Upgrade team to organization"
               >
                 Upgrade to Organization
               </Link>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Quick Navigation */}
-        <div className="mb-6 flex flex-wrap gap-3">
+        <nav className="mb-6 flex flex-wrap gap-3" aria-label="Team quick actions">
           {!team.organization_id && (
             <Link
               to="/team/billing"
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+              aria-label="View team billing"
             >
-              💳 Billing
+              <span aria-hidden="true">💳</span> Billing
             </Link>
           )}
           {!team.organization_id && (
             <Link
               to="/team/usage"
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition"
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+              aria-label="View team usage analytics"
             >
-              📈 Usage Analytics
+              <span aria-hidden="true">📈</span> Usage Analytics
             </Link>
           )}
           {!team.organization_id && (
             <Link
               to="/team/billing/invoices"
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition"
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+              aria-label="View team invoices"
             >
-              📄 Invoices
+              <span aria-hidden="true">📄</span> Invoices
             </Link>
           )}
           <Link
             to={`/team/${team.id}/invite`}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+            aria-label="Invite members to team"
           >
-            👥 Invite Members
+            <span aria-hidden="true">👥</span> Invite Members
           </Link>
           {team.is_standalone && (
             <Link
               to={`/team/${team.id}/upgrade`}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+              aria-label="Upgrade team to organization"
             >
-              🚀 Upgrade to Org
+              <span aria-hidden="true">🚀</span> Upgrade to Org
             </Link>
           )}
-        </div>
+        </nav>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="glass-surface rounded-2xl p-6 border border-gray-700/50">
-            <h3 className="text-sm font-medium text-slate-400 mb-2">Members</h3>
-            <p className="text-3xl font-bold text-white">
-              {team.current_members} / {team.max_members}
-            </p>
-          </div>
+        <section aria-labelledby="team-stats-heading">
+          <h2 id="team-stats-heading" className="sr-only">Team Statistics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" role="list">
+            <article className="glass-surface rounded-2xl p-6 border border-gray-700/50" role="listitem">
+              <h3 className="text-sm font-medium text-slate-400 mb-2">Members</h3>
+              <p className="text-3xl font-bold text-white" aria-label={`${team.current_members} out of ${team.max_members} members`}>
+                {team.current_members} / {team.max_members}
+              </p>
+            </article>
 
-          <div className="glass-surface rounded-2xl p-6 border border-gray-700/50">
-            <h3 className="text-sm font-medium text-slate-400 mb-2">Memories</h3>
-            <p className="text-3xl font-bold text-white">{usage.memory_count || 0}</p>
-          </div>
+            <article className="glass-surface rounded-2xl p-6 border border-gray-700/50" role="listitem">
+              <h3 className="text-sm font-medium text-slate-400 mb-2">Memories</h3>
+              <p className="text-3xl font-bold text-white" aria-label={`${usage.memory_count || 0} memories`}>{usage.memory_count || 0}</p>
+            </article>
 
-          <div className="glass-surface rounded-2xl p-6 border border-gray-700/50">
-            <h3 className="text-sm font-medium text-slate-400 mb-2">Contexts</h3>
-            <p className="text-3xl font-bold text-white">{usage.context_count || 0}</p>
-          </div>
+            <article className="glass-surface rounded-2xl p-6 border border-gray-700/50" role="listitem">
+              <h3 className="text-sm font-medium text-slate-400 mb-2">Contexts</h3>
+              <p className="text-3xl font-bold text-white" aria-label={`${usage.context_count || 0} contexts`}>{usage.context_count || 0}</p>
+            </article>
 
-          <div className="glass-surface rounded-2xl p-6 border border-gray-700/50">
-            <h3 className="text-sm font-medium text-slate-400 mb-2">API Calls</h3>
-            <p className="text-3xl font-bold text-white">{usage.api_calls || 0}</p>
+            <article className="glass-surface rounded-2xl p-6 border border-gray-700/50" role="listitem">
+              <h3 className="text-sm font-medium text-slate-400 mb-2">API Calls</h3>
+              <p className="text-3xl font-bold text-white" aria-label={`${usage.api_calls || 0} API calls`}>{usage.api_calls || 0}</p>
+            </article>
           </div>
-        </div>
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Members List */}
-          <div className="glass-surface rounded-2xl border border-gray-700/50">
+          <section className="glass-surface rounded-2xl border border-gray-700/50" aria-labelledby="members-heading">
             <div className="px-6 py-4 border-b border-gray-700/50 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">Team Members</h2>
+              <h2 id="members-heading" className="text-lg font-semibold text-white">Team Members</h2>
               <Link
                 to={`/team/${team.id}/invite`}
-                className="text-sm text-indigo-400 hover:text-indigo-300"
+                className="text-sm text-indigo-400 hover:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 rounded"
+                aria-label="Invite a new team member"
               >
                 + Invite Member
               </Link>
             </div>
             <div className="p-6">
               {members.length === 0 ? (
-                <p className="text-slate-400 text-center py-8">No members yet</p>
+                <p className="text-slate-400 text-center py-8" role="status">No members yet</p>
               ) : (
-                <ul className="space-y-4">
+                <ul className="space-y-4" role="list">
                   {members.map((member) => (
-                    <li key={member.id} className="flex items-center justify-between">
+                    <li key={member.id} className="flex items-center justify-between" role="listitem">
                       <div>
                         <p className="font-medium text-white">{member.user_name}</p>
                         <p className="text-sm text-slate-400">{member.user_email}</p>
@@ -285,6 +296,7 @@ export default function TeamDashboard() {
                             ? 'bg-blue-500/20 text-blue-300'
                             : 'bg-slate-700 text-slate-300'
                         }`}
+                        aria-label={`Role: ${member.role}`}
                       >
                         {member.role}
                       </span>
@@ -293,42 +305,44 @@ export default function TeamDashboard() {
                 </ul>
               )}
             </div>
-          </div>
+          </section>
 
           {/* Team Info */}
-          <div className="glass-surface rounded-2xl border border-gray-700/50">
+          <section className="glass-surface rounded-2xl border border-gray-700/50" aria-labelledby="team-info-heading">
             <div className="px-6 py-4 border-b border-gray-700/50">
-              <h2 className="text-lg font-semibold text-white">Team Information</h2>
+              <h2 id="team-info-heading" className="text-lg font-semibold text-white">Team Information</h2>
             </div>
-            <div className="p-6 space-y-4">
+            <dl className="p-6 space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-slate-400">Invite Code</h3>
-                <p className="text-lg font-mono text-white mt-1">
+                <dt className="text-sm font-medium text-slate-400">Invite Code</dt>
+                <dd className="text-lg font-mono text-white mt-1">
                   {team.team_invite_code || 'N/A'}
-                </p>
+                </dd>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-slate-400">Created</h3>
-                <p className="text-white mt-1">{new Date(team.created_at).toLocaleDateString()}</p>
+                <dt className="text-sm font-medium text-slate-400">Created</dt>
+                <dd className="text-white mt-1">
+                  <time dateTime={team.created_at}>{new Date(team.created_at).toLocaleDateString()}</time>
+                </dd>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-slate-400">Status</h3>
-                <p className="text-white mt-1">
+                <dt className="text-sm font-medium text-slate-400">Status</dt>
+                <dd className="text-white mt-1">
                   {team.is_standalone ? 'Standalone Team' : 'Organization Team'}
-                </p>
+                </dd>
               </div>
-            </div>
-          </div>
+            </dl>
+          </section>
         </div>
 
         {/* Upgrade CTA */}
         {team.is_standalone && (
-          <div className="mt-8 brand-gradient rounded-2xl shadow-lg p-6 text-white">
+          <section className="mt-8 brand-gradient rounded-2xl shadow-lg p-6 text-white" aria-labelledby="upgrade-cta-heading">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold mb-2">Ready to Scale?</h3>
+                <h3 id="upgrade-cta-heading" className="text-xl font-bold mb-2">Ready to Scale?</h3>
                 <p className="text-white/90">
                   Upgrade to an organization for advanced features, better collaboration, and
                   enterprise support.
@@ -336,12 +350,13 @@ export default function TeamDashboard() {
               </div>
               <Link
                 to={`/team/${team.id}/upgrade`}
-                className="px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition"
+                className="px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600"
+                aria-label="Upgrade team to organization"
               >
                 Upgrade Now
               </Link>
             </div>
-          </div>
+          </section>
         )}
 
         {toast && (

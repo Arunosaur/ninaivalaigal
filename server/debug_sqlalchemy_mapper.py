@@ -56,17 +56,17 @@ def step3_check_team_relationships():
 
 def step4_import_team_invitation():
     """Test TeamInvitation import"""
-    from models.standalone_teams import TeamInvitation
+    from database import UserInvitation
 
-    return f"TeamInvitation imported: {TeamInvitation}"
+    return f"TeamInvitation imported: {UserInvitation}"
 
 
 def step5_check_team_invitation_relationships():
     """Check TeamInvitation's relationships"""
-    from models.standalone_teams import TeamInvitation
+    from database import UserInvitation
     from sqlalchemy import inspect
 
-    mapper = inspect(TeamInvitation)
+    mapper = inspect(UserInvitation)
     relationships = [rel.key for rel in mapper.relationships]
     return f"TeamInvitation relationships: {relationships}"
 
@@ -87,10 +87,10 @@ def step7_configure_mappers():
 
 def step8_check_back_populates():
     """Check if any relationships have back_populates='invitations'"""
-    from models.standalone_teams import TeamInvitation
+    from database import UserInvitation
     from sqlalchemy import inspect
 
-    mapper = inspect(TeamInvitation)
+    mapper = inspect(UserInvitation)
     for rel in mapper.relationships:
         if hasattr(rel, "back_populates"):
             print(f"  {rel.key} -> back_populates: {rel.back_populates}")

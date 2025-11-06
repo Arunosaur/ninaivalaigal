@@ -8,6 +8,7 @@ Includes database connection and user registration
 
 import os
 import sys
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -16,9 +17,10 @@ from typing import Any
 import jwt
 import structlog
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # Import models from shared contracts (SPEC-100 Task #79)
 from auth.v1.models import UserLogin
@@ -37,12 +39,22 @@ os.environ.setdefault("NINAIVALAIGAL_JWT_SECRET", "dev_jwt_secret_change_in_prod
 os.environ.setdefault("NINA_JWT_SECRET", "dev_jwt_secret_change_in_production")
 
 from database import DatabaseManager  # noqa: E402
+from lib.auth_audit import (  # noqa: E402
+    log_login_attempt,
+    log_rate_limit_exceeded,
+    log_signup_attempt,
+)
 from routers import health as health_router  # noqa: E402
 from routers import metrics as metrics_router  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
 from utils.auth import hash_password, verify_password  # noqa: E402
 from utils.config import get_dynamic_database_url  # noqa: E402
+from utils.login_security import (  # noqa: E402
+    clear_failed_attempts,
+    is_account_locked,
+    record_failed_attempt,
+)
 
 # Get database URL dynamically (resolves PgBouncer IP automatically)
 DATABASE_URL = get_dynamic_database_url()
@@ -58,6 +70,12 @@ structlog.configure(
 )
 
 logger = structlog.get_logger(__name__)
+
+
+from utils.rate_limiting import AuthRateLimiter  # noqa: E402
+
+# Global rate limiter instance
+auth_rate_limiter = AuthRateLimiter()
 
 
 # Pydantic models
@@ -106,6 +124,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# US-91: API Rate Limiting Middleware
+try:
+    from middleware.api_rate_limit_middleware import APIRateLimitMiddleware
+
+    app.add_middleware(APIRateLimitMiddleware)
+    logger.info("✅ API Rate Limiting Middleware enabled (US-91)")
+except Exception as e:
+    logger.warning(f"⚠️  Could not enable API Rate Limiting Middleware: {e}")
 
 # Include SPEC-100 compliant routers
 app.include_router(health_router.router)
@@ -113,15 +139,40 @@ app.include_router(metrics_router.router)
 
 
 @app.post("/auth/signup")
-async def signup(user_data: UserSignup) -> dict[str, Any]:
+async def signup(user_data: UserSignup, request: Request) -> dict[str, Any]:
     """
     User signup endpoint - Day 2 Goal!
     Creates a new user account
+
+    SPEC-114: Rate limited to 3 attempts per 10 minutes per IP
     """
     logger.info(f"📝 Signup request for: {user_data.email}")
 
     if not app.state.db:
         raise HTTPException(status_code=503, detail="Database not available")
+
+    # Rate limiting check (SPEC-114: 3 attempts per 10 minutes)
+    client_ip = (
+        request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.headers.get("X-Real-IP", "")
+        or (request.client.host if request.client else "unknown")
+    )
+    rate_limit_key = f"{client_ip}:{user_data.email}"
+    is_allowed, error_msg, rate_info = auth_rate_limiter.is_allowed(rate_limit_key, endpoint="signup")
+
+    if not is_allowed:
+        logger.warning(f"❌ Signup rate limit exceeded: {user_data.email} from {client_ip}")
+        await log_rate_limit_exceeded(request, "signup", rate_limit_key)
+        raise HTTPException(
+            status_code=429,
+            detail=error_msg or "Rate limit exceeded",
+            headers={
+                "X-RateLimit-Limit": str(rate_info["limit"]),
+                "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Reset": str(int(rate_info["reset_time"])),
+                "Retry-After": str(rate_info["retry_after"]),
+            },
+        )
 
     try:
         session = app.state.db.get_session()
@@ -132,6 +183,7 @@ async def signup(user_data: UserSignup) -> dict[str, Any]:
         ).fetchone()
 
         if existing_user:
+            await log_signup_attempt(request, user_data.email, success=False, error_reason="user_already_exists")
             raise HTTPException(status_code=400, detail="User already exists")
 
         # Hash password
@@ -165,6 +217,9 @@ async def signup(user_data: UserSignup) -> dict[str, Any]:
 
         logger.info(f"✅ User created: {user.email}")
 
+        # Audit log successful signup
+        await log_signup_attempt(request, user_data.email, success=True, user_id=str(user.id))
+
         return {
             "success": True,
             "message": "User created successfully!",
@@ -177,19 +232,56 @@ async def signup(user_data: UserSignup) -> dict[str, Any]:
         raise
     except Exception as e:
         logger.error(f"❌ Signup failed: {e}")
+        await log_signup_attempt(request, user_data.email, success=False, error_reason=str(e))
         raise HTTPException(status_code=500, detail=f"Signup failed: {str(e)}")
 
 
 @app.post("/auth/login")
-async def login(login_data: UserLogin) -> dict[str, Any]:
+async def login(login_data: UserLogin, request: Request) -> dict[str, Any]:
     """
-    User login endpoint
-    Authenticates user and returns JWT token
+    User login endpoint with enhanced security features
+    - Password verification with bcrypt
+    - Account lockout after failed attempts
+    - Failed attempt tracking and audit logging
+    - JWT token generation on success
+    - SPEC-114: Rate limited to 5 attempts per 15 minutes
     """
     logger.info(f"🔐 Login request for: {login_data.email}")
 
     if not app.state.db:
         raise HTTPException(status_code=503, detail="Database not available")
+
+    # Rate limiting check (SPEC-114: 5 attempts per 15 minutes)
+    client_ip = (
+        request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.headers.get("X-Real-IP", "")
+        or (request.client.host if request.client else "unknown")
+    )
+    rate_limit_key = f"{client_ip}:{login_data.email}"
+    is_allowed, error_msg, rate_info = auth_rate_limiter.is_allowed(rate_limit_key, endpoint="login")
+
+    if not is_allowed:
+        logger.warning(f"❌ Login rate limit exceeded: {login_data.email} from {client_ip}")
+        await log_rate_limit_exceeded(request, "login", rate_limit_key)
+        raise HTTPException(
+            status_code=429,
+            detail=error_msg or "Rate limit exceeded",
+            headers={
+                "X-RateLimit-Limit": str(rate_info["limit"]),
+                "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Reset": str(int(rate_info["reset_time"])),
+                "Retry-After": str(rate_info["retry_after"]),
+            },
+        )
+
+    # Check if account is locked
+    is_locked, lock_until = is_account_locked(login_data.email)
+    if is_locked:
+        logger.warning(f"❌ Login blocked: account locked for {login_data.email}", lock_until=lock_until)
+        raise HTTPException(
+            status_code=423,
+            detail=f"Account temporarily locked due to multiple failed login attempts. Please try again later.",
+        )
 
     try:
         session = app.state.db.get_session()
@@ -201,21 +293,34 @@ async def login(login_data: UserLogin) -> dict[str, Any]:
         ).fetchone()
 
         if not user:
+            # Record failed attempt (even for non-existent users to prevent enumeration)
+            record_failed_attempt(login_data.email)
             logger.warning(f"❌ Login failed: user not found: {login_data.email}")
+            await log_login_attempt(request, login_data.email, success=False, error_reason="user_not_found")
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
         # Verify password with bcrypt
         if not verify_password(login_data.password, user.password_hash):
-            logger.warning(f"❌ Login failed: invalid password: {login_data.email}")
+            # Record failed attempt
+            record_failed_attempt(login_data.email)
+            logger.warning(f"❌ Login failed: invalid password: {login_data.email}", user_id=str(user.id))
+            await log_login_attempt(
+                request, login_data.email, success=False, user_id=str(user.id), error_reason="invalid_password"
+            )
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
+        # Successful login - clear failed attempts
+        clear_failed_attempts(login_data.email)
         logger.info(f"✅ Password verified for: {login_data.email}")
 
         # Generate JWT token
         token_data = {"user_id": str(user.id), "email": user.email, "exp": datetime.utcnow() + timedelta(hours=168)}
         jwt_token = jwt.encode(token_data, os.getenv("NINAIVALAIGAL_JWT_SECRET"), algorithm="HS256")
 
-        logger.info(f"✅ Login successful: {user.email}")
+        logger.info(f"✅ Login successful: {user.email}", user_id=str(user.id), account_type=user.account_type)
+
+        # Audit log successful login
+        await log_login_attempt(request, login_data.email, success=True, user_id=str(user.id))
 
         return {
             "success": True,
@@ -228,7 +333,7 @@ async def login(login_data: UserLogin) -> dict[str, Any]:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Login failed: {e}")
+        logger.error(f"❌ Login failed: {e}", email=login_data.email, error=str(e))
         raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 

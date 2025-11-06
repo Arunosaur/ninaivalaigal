@@ -5,7 +5,7 @@
 # ============================================================================
 # Stage 1: Builder - Compile Rust binary with static linking
 # ============================================================================
-FROM rust:1.76-alpine AS builder
+FROM rustlang/rust:nightly-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache \
@@ -17,8 +17,9 @@ RUN apk add --no-cache \
 
 WORKDIR /build
 
-# Copy dependency manifests first for layer caching
+# Copy dependency manifests and benchmarks first for layer caching
 COPY Cargo.toml Cargo.lock ./
+COPY benches ./benches
 
 # Create dummy main to cache dependencies
 RUN mkdir src && \
@@ -28,7 +29,6 @@ RUN mkdir src && \
 
 # Copy actual source code
 COPY src ./src
-COPY benchmarks ./benchmarks
 
 # Touch main.rs to force rebuild
 RUN touch src/main.rs

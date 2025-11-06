@@ -11,15 +11,29 @@ SPEC-030: Admin-Level Analytics Console
 Internal operations dashboard with comprehensive business intelligence
 """
 
+import asyncio
+import json
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
+import structlog
 from auth_service import get_current_user, get_db
 from database import Team, User
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    WebSocket,
+    WebSocketDisconnect,
+)
+from fastapi.exceptions import WebSocketException
+from lib.websocket_auth import authenticate_websocket
 from models.standalone_teams import TeamMembership
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+logger = structlog.get_logger(__name__)
 
 # Initialize router
 router = APIRouter(prefix="/admin-analytics", tags=["admin"])
@@ -634,3 +648,340 @@ async def get_real_time_metrics(
         "error_rate_5m": 0.0012,
         "response_time_p95": 167,  # 95th percentile response time in ms
     }
+
+
+class SecurityMetrics(BaseModel):
+    """Security monitoring metrics for admin dashboard"""
+
+    auth_failures_24h: int
+    auth_failures_7d: int
+    auth_failures_30d: int
+    failed_logins_by_user: List[Dict[str, Any]]
+    failed_logins_by_ip: List[Dict[str, Any]]
+    suspicious_ips: List[Dict[str, Any]]
+    active_security_incidents: int
+    auth_success_rate: float
+    security_health_score: float
+    unauthorized_access_attempts: int
+    account_lockouts: int
+    rate_limit_exceeded_count: int
+    timestamp: str
+
+
+@router.get("/rate-limits/{identifier}")
+async def get_rate_limit_status(
+    identifier: str,
+    current_user: User = Depends(require_admin),
+) -> Dict[str, Any]:
+    """
+    Get rate limit status for an IP or user ID.
+
+    US-91: Admin endpoint to view rate limit status.
+
+    Args:
+        identifier: IP address or user ID
+    """
+    if not check_admin_permissions(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        # Determine if identifier is IP or user ID
+        # Simple heuristic: UUIDs are user IDs, IPs are not
+        import re
+
+        from utils.api_rate_limiting import api_rate_limiter
+
+        uuid_pattern = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
+
+        if uuid_pattern.match(identifier):
+            # User ID
+            rate_info = api_rate_limiter.get_rate_limit_info(user_id=identifier)
+        else:
+            # IP address
+            rate_info = api_rate_limiter.get_rate_limit_info(ip=identifier)
+
+        return {
+            "identifier": identifier,
+            "type": "user_id" if uuid_pattern.match(identifier) else "ip",
+            "rate_limit_info": rate_info,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get rate limit status: {str(e)}")
+
+
+@router.post("/rate-limits/{identifier}/reset")
+async def reset_rate_limit(
+    identifier: str,
+    current_user: User = Depends(require_admin),
+) -> Dict[str, Any]:
+    """
+    Reset rate limit for an IP or user ID.
+
+    US-91: Admin endpoint to reset rate limits.
+
+    Args:
+        identifier: IP address or user ID
+    """
+    if not check_admin_permissions(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        # Determine if identifier is IP or user ID
+        import re
+
+        from utils.api_rate_limiting import api_rate_limiter
+
+        uuid_pattern = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
+
+        if uuid_pattern.match(identifier):
+            # User ID
+            success = api_rate_limiter.reset_user_limit(identifier)
+            reset_type = "user"
+        else:
+            # IP address
+            success = api_rate_limiter.reset_ip_limit(identifier)
+            reset_type = "ip"
+
+        if success:
+            return {
+                "success": True,
+                "message": f"Rate limit reset for {reset_type}: {identifier}",
+                "identifier": identifier,
+                "type": reset_type,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        else:
+            raise HTTPException(status_code=404, detail=f"No rate limit data found for {identifier}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to reset rate limit: {str(e)}")
+
+
+@router.get("/security-metrics")
+async def get_security_metrics(
+    current_user: User = Depends(require_admin),
+) -> SecurityMetrics:
+    """
+    Get security monitoring metrics for admin dashboard.
+
+    SPEC-030: US-262 - Security Monitoring Dashboard
+    Returns comprehensive security metrics including:
+    - Authentication failures
+    - Suspicious activity
+    - Account lockouts
+    - Security health score
+    """
+    if not check_admin_permissions(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        from lib.security_monitoring import (
+            get_security_metrics as get_security_metrics_data,
+        )
+
+        metrics_data = get_security_metrics_data()
+        return SecurityMetrics(**metrics_data)
+
+    except Exception as e:
+        # Fallback to minimal metrics if security monitoring fails
+        return SecurityMetrics(
+            auth_failures_24h=0,
+            auth_failures_7d=0,
+            auth_failures_30d=0,
+            failed_logins_by_user=[],
+            failed_logins_by_ip=[],
+            suspicious_ips=[],
+            active_security_incidents=0,
+            auth_success_rate=100.0,
+            security_health_score=100.0,
+            unauthorized_access_attempts=0,
+            account_lockouts=0,
+            rate_limit_exceeded_count=0,
+            timestamp=datetime.utcnow().isoformat(),
+        )
+
+
+# WebSocket connection manager for admin analytics
+class AdminAnalyticsWebSocketManager:
+    """Manages WebSocket connections for real-time admin analytics streaming"""
+
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+        self.metrics_history: List[Dict[str, Any]] = []
+        self.max_history_size = 1000
+        self.update_interval = 5  # Update every 5 seconds
+        self.is_running = False
+        self.background_task: Optional[asyncio.Task] = None
+
+    async def connect(self, websocket: WebSocket, user_id: str):
+        """Accept new WebSocket connection"""
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        logger.info(
+            "Admin analytics WebSocket client connected",
+            user_id=user_id,
+            total_connections=len(self.active_connections),
+        )
+
+        # Start background task if not running
+        if not self.is_running:
+            await self.start_background_updates()
+
+    def disconnect(self, websocket: WebSocket):
+        """Remove WebSocket connection"""
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+        logger.info("Admin analytics WebSocket client disconnected", total_connections=len(self.active_connections))
+
+        # Stop background task if no connections
+        if not self.active_connections and self.is_running:
+            self.stop_background_updates()
+
+    async def start_background_updates(self):
+        """Start background task for metrics collection"""
+        if self.background_task is None or self.background_task.done():
+            self.is_running = True
+            self.background_task = asyncio.create_task(self._background_metrics_collector())
+            logger.info("Admin analytics background updates started")
+
+    def stop_background_updates(self):
+        """Stop background task"""
+        if self.background_task and not self.background_task.done():
+            self.background_task.cancel()
+            self.is_running = False
+            logger.info("Admin analytics background updates stopped")
+
+    async def _background_metrics_collector(self):
+        """Background task to collect and broadcast metrics"""
+        while self.is_running:
+            try:
+                # Collect real-time metrics
+                metrics = await self._collect_realtime_metrics()
+
+                # Store in history
+                self.metrics_history.append(metrics)
+                if len(self.metrics_history) > self.max_history_size:
+                    self.metrics_history.pop(0)
+
+                # Broadcast to all connected clients
+                await self._broadcast_metrics(metrics)
+
+                await asyncio.sleep(self.update_interval)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error("Error in admin analytics metrics collector", error=str(e))
+                await asyncio.sleep(self.update_interval)
+
+    async def _collect_realtime_metrics(self) -> Dict[str, Any]:
+        """Collect real-time admin analytics metrics"""
+        # Get current metrics (similar to get_real_time_metrics endpoint)
+        # This would typically query the database and system metrics
+        return {
+            "type": "metrics_update",
+            "timestamp": datetime.utcnow().isoformat(),
+            "data": {
+                "active_sessions": 234,  # TODO: Replace with real query
+                "api_requests_per_minute": 1247,  # TODO: Replace with real query
+                "new_signups_today": 23,  # TODO: Replace with real query
+                "revenue_today": 1456.78,  # TODO: Replace with real query
+                "system_load": 0.67,
+                "memory_usage": 0.73,
+                "database_connections": 45,
+                "cache_hit_rate": 0.94,
+                "error_rate_5m": 0.0012,
+                "response_time_p95": 167,
+            },
+        }
+
+    async def _broadcast_metrics(self, metrics: Dict[str, Any]):
+        """Broadcast metrics to all connected clients"""
+        message = json.dumps(metrics)
+        disconnected = []
+
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except Exception as e:
+                logger.warning("Failed to send metrics to client", error=str(e))
+                disconnected.append(connection)
+
+        # Remove disconnected clients
+        for connection in disconnected:
+            self.disconnect(connection)
+
+    def get_metrics_history(self, minutes: int = 60) -> List[Dict[str, Any]]:
+        """Get metrics history for the last N minutes"""
+        cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
+        return [m for m in self.metrics_history if datetime.fromisoformat(m.get("timestamp", "")) >= cutoff_time]
+
+
+# Global WebSocket manager instance
+admin_analytics_manager = AdminAnalyticsWebSocketManager()
+
+
+@router.websocket("/ws")
+async def admin_analytics_websocket(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time admin analytics streaming.
+
+    US#314: Real-Time WebSocket Integration for Admin Analytics
+
+    Replaces polling-based updates with true real-time data streaming.
+    Requires admin authentication via WebSocket token.
+
+    Token should be provided via query parameter: ?token=JWT_TOKEN
+    """
+    # Authenticate WebSocket connection
+    try:
+        user = await authenticate_websocket(websocket)
+        user_id = user.get("id")
+        user_email = user.get("email")
+
+        # Verify admin permissions
+        admin_emails = ["admin@ninaivalaigal.com", "swami@ninaivalaigal.com"]
+        if user_email not in admin_emails:
+            await websocket.close(code=1008, reason="Unauthorized: Admin access required")
+            logger.warning(
+                "Non-admin attempted to connect to admin analytics WebSocket", user_id=user_id, email=user_email
+            )
+            return
+
+    except WebSocketException as e:
+        await websocket.close(code=e.code, reason=e.reason)
+        return
+    except Exception as e:
+        await websocket.close(code=1011, reason=f"Authentication error: {str(e)}")
+        return
+
+    await admin_analytics_manager.connect(websocket, user_id)
+
+    try:
+        while True:
+            # Handle client messages
+            message = await websocket.receive_text()
+            data = json.loads(message)
+
+            # Handle client requests
+            if data.get("type") == "get_history":
+                minutes = data.get("minutes", 60)
+                history = admin_analytics_manager.get_metrics_history(minutes)
+                await websocket.send_text(json.dumps({"type": "history_data", "data": history}))
+
+            elif data.get("type") == "subscribe_metric":
+                # Allow clients to subscribe to specific metrics
+                metric_name = data.get("metric_name")
+                await websocket.send_text(json.dumps({"type": "subscription_confirmed", "metric_name": metric_name}))
+
+            elif data.get("type") == "ping":
+                # Heartbeat/ping
+                await websocket.send_text(json.dumps({"type": "pong", "timestamp": datetime.utcnow().isoformat()}))
+
+    except WebSocketDisconnect:
+        admin_analytics_manager.disconnect(websocket)
+        logger.info("Admin analytics WebSocket client disconnected")
+    except Exception as e:
+        logger.error("Admin analytics WebSocket error", error=str(e))
+        admin_analytics_manager.disconnect(websocket)

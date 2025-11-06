@@ -34,6 +34,9 @@ from uuid import uuid4
 import pytest
 import requests
 
+# Mark all tests in this file as rust_integration
+pytestmark = pytest.mark.rust_integration
+
 # Configuration
 MEMORY_SERVICE_URL = "http://localhost:13393"
 CORE_API_URL = "http://localhost:13390"  # For JWT token generation

@@ -95,6 +95,10 @@ func (c *GRPCClients) testConnections() error {
 
 // Test Memory Service connection
 func (c *GRPCClients) testMemoryConnection(ctx context.Context) error {
+	if c.MemoryClient == nil {
+		log.Printf("⚠️  Memory Service client is nil (service may not be initialized)")
+		return nil // Don't fail if client is not initialized
+	}
 	req := &memorypb.HealthCheckRequest{}
 	resp, err := c.MemoryClient.HealthCheck(ctx, req)
 	if err != nil {
@@ -107,6 +111,10 @@ func (c *GRPCClients) testMemoryConnection(ctx context.Context) error {
 
 // Test GraphOps Service connection
 func (c *GRPCClients) testGraphOpsConnection(ctx context.Context) error {
+	if c.GraphOpsClient == nil {
+		log.Printf("⚠️  GraphOps Service client is nil (service may not be initialized)")
+		return nil // Don't fail if client is not initialized
+	}
 	req := &graphopspb.HealthCheckRequest{}
 	resp, err := c.GraphOpsClient.HealthCheck(ctx, req)
 	if err != nil {

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Management - Ninaivalaigal Admin Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-900">
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-white">Nina Admin Console</h1>
+                <nav class="flex space-x-4">
+                    <a href="/admin/analytics" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        Analytics
+                    </a>
+                    <a href="/admin/teams" class="text-blue-400 hover:text-blue-300 px-3 py-2 rounded-md text-sm font-medium">
+                        Teams
+                    </a>
+                    <a href="/admin/users" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        Users
+                    </a>
+                    <a href="/admin/logout" class="text-gray-400 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        Logout
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-white mb-2">Team Management</h2>
+            <p class="text-gray-400">Monitor and manage all teams on the platform</p>
+        </div>
+
+        <!-- Teams Table -->
+        <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-700">
+                <thead class="bg-gray-750">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Team</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Members</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Plan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">MRR</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="teams-table-body" class="divide-y divide-gray-700">
+                    <!-- Teams will be loaded here via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // Get admin token from cookie
+        function getAdminToken() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'admin_token') {
+                    return value;
+                }
+            }
+            return null;
+        }
+
+        // Fetch teams list
+        async function fetchTeams() {
+            const token = getAdminToken();
+            if (!token) {
+                window.location.href = '/admin/login';
+                return;
+            }
+
+            try {
+                // TODO: Replace with actual API endpoint when available
+                // For now, use mock data
+                const teams = [
+                    { id: '1', name: 'Acme Corp', members: 12, plan: 'Enterprise', status: 'Active', mrr: 500 },
+                    { id: '2', name: 'Tech Startup', members: 5, plan: 'Pro', status: 'Active', mrr: 29 },
+                    { id: '3', name: 'Design Agency', members: 8, plan: 'Pro', status: 'Trial', mrr: 0 },
+                ];
+
+                const tbody = document.getElementById('teams-table-body');
+                tbody.innerHTML = teams.map(team => `
+                    <tr class="hover:bg-gray-750">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${team.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${team.members}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${team.plan}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${team.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                ${team.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">$${team.mrr}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-400 hover:text-blue-300 cursor-pointer">
+                            View Details
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to fetch teams:', error);
+            }
+        }
+
+        // Fetch teams on page load
+        fetchTeams();
+    </script>
+</body>
+</html>

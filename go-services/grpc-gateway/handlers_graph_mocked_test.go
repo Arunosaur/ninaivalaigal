@@ -160,7 +160,9 @@ func TestGraphQueryHandlerIntValueConversion(t *testing.T) {
 	enhanced.graphQueryHandler(rec, req)
 
 	var response GraphQueryResponse
-	json.NewDecoder(rec.Body).Decode(&response)
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	if val, ok := response.Results[0].Rows[0].Values[0].(float64); !ok || int64(val) != 42 {
 		t.Errorf("Expected int value 42, got %v", response.Results[0].Rows[0].Values[0])
@@ -204,7 +206,9 @@ func TestGraphQueryHandlerDoubleValueConversion(t *testing.T) {
 	enhanced.graphQueryHandler(rec, req)
 
 	var response GraphQueryResponse
-	json.NewDecoder(rec.Body).Decode(&response)
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	if val, ok := response.Results[0].Rows[0].Values[0].(float64); !ok || val != 3.14159 {
 		t.Errorf("Expected double value 3.14159, got %v", response.Results[0].Rows[0].Values[0])
@@ -248,7 +252,9 @@ func TestGraphQueryHandlerBoolValueConversion(t *testing.T) {
 	enhanced.graphQueryHandler(rec, req)
 
 	var response GraphQueryResponse
-	json.NewDecoder(rec.Body).Decode(&response)
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	if val, ok := response.Results[0].Rows[0].Values[0].(bool); !ok || !val {
 		t.Errorf("Expected bool value true, got %v", response.Results[0].Rows[0].Values[0])
@@ -292,7 +298,9 @@ func TestGraphQueryHandlerJsonValueConversion(t *testing.T) {
 	enhanced.graphQueryHandler(rec, req)
 
 	var response GraphQueryResponse
-	json.NewDecoder(rec.Body).Decode(&response)
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	// JsonValue should be converted to json.RawMessage, but JSON encoding converts it to map
 	// Check if it's either json.RawMessage or a map (after JSON encoding)
@@ -349,7 +357,9 @@ func TestGraphQueryHandlerNilValueConversion(t *testing.T) {
 	enhanced.graphQueryHandler(rec, req)
 
 	var response GraphQueryResponse
-	json.NewDecoder(rec.Body).Decode(&response)
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	// Nil value should be converted to nil
 	if response.Results[0].Rows[0].Values[0] != nil {
@@ -414,7 +424,9 @@ func TestGraphQueryHandlerMultipleValueTypes(t *testing.T) {
 	}
 
 	var response GraphQueryResponse
-	json.NewDecoder(rec.Body).Decode(&response)
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	// Verify metadata conversion
 	if response.Metadata.RowsAffected != 1 {
@@ -462,7 +474,9 @@ func TestGraphQueryHandlerEmptyResultsMocked(t *testing.T) {
 	enhanced.graphQueryHandler(rec, req)
 
 	var response GraphQueryResponse
-	json.NewDecoder(rec.Body).Decode(&response)
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	if len(response.Results[0].Rows) != 0 {
 		t.Errorf("Expected 0 rows, got %d", len(response.Results[0].Rows))
@@ -504,7 +518,9 @@ func TestGraphQueryHandlerMultipleResultsMocked(t *testing.T) {
 	enhanced.graphQueryHandler(rec, req)
 
 	var response GraphQueryResponse
-	json.NewDecoder(rec.Body).Decode(&response)
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
 
 	if len(response.Results[0].Rows) != 3 {
 		t.Errorf("Expected 3 rows, got %d", len(response.Results[0].Rows))

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Analytics - Ninaivalaigal Admin Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-900">
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-white">Ninaivalaigal Admin Console</h1>
+                <nav class="flex space-x-4">
+                    <a href="/admin/analytics" class="text-blue-400 hover:text-blue-300 px-3 py-2 rounded-md text-sm font-medium">
+                        Analytics
+                    </a>
+                    <a href="/admin/teams" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        Teams
+                    </a>
+                    <a href="/admin/users" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        Users
+                    </a>
+                    <a href="/admin/logout" class="text-gray-400 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        Logout
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-white mb-2">Platform Analytics</h2>
+            <p class="text-gray-400">Real-time insights and business intelligence</p>
+        </div>
+
+        <!-- Error Banner -->
+        <div id="error-banner" class="mb-6 bg-yellow-900/20 border border-yellow-700 rounded-lg p-4 hidden">
+            <p class="text-yellow-400 text-sm" id="error-message"></p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="flex items-center justify-center h-64">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div id="metrics-container" class="hidden">
+            <!-- Primary Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <p class="text-gray-400 text-sm mb-1">Total Users</p>
+                    <p class="text-3xl font-bold text-white mb-2" id="total-users">0</p>
+                    <p class="text-sm text-green-400">+12% from last month</p>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <p class="text-gray-400 text-sm mb-1">Active Teams</p>
+                    <p class="text-3xl font-bold text-white mb-2" id="total-teams">0</p>
+                    <p class="text-sm text-green-400">+8% from last month</p>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <p class="text-gray-400 text-sm mb-1">MRR</p>
+                    <p class="text-3xl font-bold text-white mb-2" id="total-revenue">$0</p>
+                    <p class="text-sm text-green-400">+23% from last month</p>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <p class="text-gray-400 text-sm mb-1">Churn Rate</p>
+                    <p class="text-3xl font-bold text-white mb-2" id="churn-rate">0%</p>
+                    <p class="text-sm text-red-400">-0.5% from last month</p>
+                </div>
+            </div>
+
+            <!-- Additional Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <h3 class="text-sm font-medium text-gray-400 mb-2">Platform Health</h3>
+                    <div class="flex items-end space-x-2">
+                        <span class="text-3xl font-bold text-green-400" id="platform-health">0</span>
+                        <span class="text-gray-400 mb-1">/100</span>
+                    </div>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <h3 class="text-sm font-medium text-gray-400 mb-2">New Signups (30d)</h3>
+                    <span class="text-3xl font-bold text-white" id="new-signups">0</span>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <h3 class="text-sm font-medium text-gray-400 mb-2">Avg Team Size</h3>
+                    <span class="text-3xl font-bold text-white" id="avg-team-size">0</span>
+                </div>
+            </div>
+
+            <!-- Charts Placeholder -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold text-white mb-4">User Growth</h3>
+                    <div class="h-64 flex items-center justify-center text-gray-500">
+                        Chart: User growth over time
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold text-white mb-4">Revenue Trends</h3>
+                    <div class="h-64 flex items-center justify-center text-gray-500">
+                        Chart: Revenue trends
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Get admin token from cookie
+        function getAdminToken() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'admin_token') {
+                    return value;
+                }
+            }
+            return null;
+        }
+
+        // Fetch platform metrics
+        async function fetchMetrics() {
+            const token = getAdminToken();
+            if (!token) {
+                window.location.href = '/admin/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin-analytics/platform-overview', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = '/admin/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch metrics');
+                }
+
+                const data = await response.json();
+
+                // Update metrics display
+                document.getElementById('total-users').textContent = data.total_users?.toLocaleString() || '0';
+                document.getElementById('total-teams').textContent = data.total_teams?.toLocaleString() || '0';
+                document.getElementById('total-revenue').textContent = `$${(data.total_revenue_30d || 0).toLocaleString()}`;
+
+                const churnPercent = ((data.churn_rate || 0) * 100).toFixed(1);
+                document.getElementById('churn-rate').textContent = `${churnPercent}%`;
+
+                document.getElementById('platform-health').textContent = (data.platform_health_score || 0).toFixed(1);
+                document.getElementById('new-signups').textContent = (data.new_signups_30d || 0).toLocaleString();
+                document.getElementById('avg-team-size').textContent = (data.avg_team_size || 0).toFixed(1);
+
+                // Hide loading, show metrics
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('metrics-container').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Failed to fetch metrics:', error);
+
+                // Show error with fallback to mock data
+                const errorBanner = document.getElementById('error-banner');
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = 'Failed to load analytics data. Using mock data.';
+                errorBanner.classList.remove('hidden');
+
+                // Fallback to mock data
+                document.getElementById('total-users').textContent = '2,847';
+                document.getElementById('total-teams').textContent = '634';
+                document.getElementById('total-revenue').textContent = '$28,450';
+                document.getElementById('churn-rate').textContent = '3.5%';
+                document.getElementById('platform-health').textContent = '87.5';
+                document.getElementById('new-signups').textContent = '342';
+                document.getElementById('avg-team-size').textContent = '4.2';
+
+                // Hide loading, show metrics
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('metrics-container').classList.remove('hidden');
+            }
+        }
+
+        // Fetch metrics on page load
+        fetchMetrics();
+
+        // Refresh metrics every 60 seconds
+        setInterval(fetchMetrics, 60000);
+    </script>
+</body>
+</html>

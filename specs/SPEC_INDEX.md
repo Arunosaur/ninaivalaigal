@@ -1,6 +1,6 @@
 # Ninaivalaigal SPEC Index
 
-**Last Updated:** November 2, 2025 (SPEC-139 gating updates recorded)
+**Last Updated:** November 5, 2025 (SPEC-139 curl verification recorded)
 **Total SPECs:** 139 specifications
 **Health Score:** 75/100 (Improved from 72 - [2025 Q4 Analysis](../governance/reports/SPEC_ANALYSIS_EXECUTIVE_SUMMARY_2025Q4.md))
 
@@ -15,6 +15,7 @@
 - Critical Issues: 3 identified, 2 under refactoring
 
 **Priority Actions:**
+- ✅ SPEC-139 | Rust Memory Integration Gate — curl evidence recorded 2025-11-05
 - ✅ Complete SPEC-027/028 refactoring (US-237→243) - **DONE**
 - 🔴 Create SPEC-026 Taiga stories (US-200→215)
 - ✅ Deprecate SPEC-049/050 → SPEC-127 - **DONE** (US#291)
@@ -71,7 +72,7 @@ This index catalogs all technical specifications for the ninaivalaigal AI memory
   | 023 | Helm Charts | Complete | Phase 2B |
   | 024 | Monitoring Stack | Planned | Phase 3 |
   | 025 | Vendor Admin Console | Complete | Phase 2A |
-  | 026 | Standalone Teams and Billing | Planned | Phase 3 |
+  | 026 | Standalone Teams and Billing | Planned | Phase 3 | ⚠️ Billing schema deprecated - uses SPEC-147 |
   | 027 | Billing Engine Integration | Complete | Phase 2A |
   | 028 | Invoice Management System | Complete | Phase 2A |
   | 029 | Subscription Management | Complete | Phase 2A |
@@ -171,9 +172,9 @@ This index catalogs all technical specifications for the ninaivalaigal AI memory
 | SPEC | Title | Status | Phase | Notes |
 |------|-------|--------|-------|-------|
   | 100 | API Container Modularization & Runtime-Agnostic Federation | In Progress | Phase 2B | Service decomposition & runtime-agnostic federation (~65% complete) |
-| 101 | Unified Observability and Performance Governance | Planned | Phase 3 | Follow-up to SPEC-100 |
-| 102 | Frontend Migration Preparation | Complete | Phase 2B | Migration Trilogy v1 - Legacy freeze |
-| 103 | Next.js 15 Bootstrap & Component Port | Complete | Phase 2B | Migration Trilogy v1 - Modernization |
+  | 101 | ~~Unified Observability and Performance Governance~~ | Deprecated | Phase 3 | Features migrated to SPEC-118/119/100/120 |
+  | 102 | ~~Frontend Migration Preparation~~ | Deprecated | Phase 2B | Superseded by FastAPI templating (SPEC-005, SPEC-146) |
+  | 103 | ~~Next.js 15 Bootstrap & Component Port~~ | Deprecated | Phase 2B | Superseded by FastAPI templating (SPEC-005, SPEC-146) |
 | 104 | Post-Migration Quality Verification | Proposed | Phase 3 | Migration Trilogy v1 - Quality audit |
 | 105 | Backend Integration & Database Connectivity | Complete | Phase 2B | Migration Trilogy v1 - Full-stack bridge |
 | 106 | Frontend Linting & Formatting Standard | Complete | Phase 2B | DevOps Foundation - UI consistency |
@@ -190,20 +191,20 @@ This index catalogs all technical specifications for the ninaivalaigal AI memory
 | 112 | E2E Tests with Playwright | Complete | Phase 3 | Comprehensive E2E testing |
 | 113 | Profile & Settings Pages | Complete | Phase 3 | User profile management |
 | 114 | Auth & Security Integration | Complete | Phase 3 | JWT + RS256 + RBAC |
-| 115 | Real-Time Features (WebSocket/SSE) | Complete | Phase 3 | Redis pub/sub + WebSockets |
-| 116 | Internal Frontend Migration | Complete | Phase 3 | Admin & customer app split |
+| 115 | Real-Time Features (WebSocket/SSE) | In Progress (40%) | Phase 3 | Hybrid Redis Streams + pub/sub model planned per review 2025-11-04 |
+| 116 | Internal Frontend Migration | Deprecated | Phase 3 | Superseded by FastAPI templating (SPEC-005, SPEC-146) |
 | 117 | Feature Flags & Progressive Rollout | In Progress | Phase 4 | LaunchDarkly/Unleash integration |
-| 118 | Observability & Performance Budgets | Complete | Phase 4 | Prometheus + Grafana + budgets |
-| 119 | Automated SLO Enforcement | Complete | Phase 4 | Alert rules + incident automation |
-| 120 | Cost Optimization & Governance | Complete | Phase 4 | FinOps guard + resource limits |
-| 121 | Frontend Shared Library Implementation | Complete | Phase 5 | Zustand + Storybook + Atomic Design |
-| 122 | Customer Frontend Rollout (Vercel) | Complete | Phase 5 | NextAuth + Vercel Analytics |
-| 123 | Admin Frontend Rollout (Internal) | Complete | Phase 5 | VPN + RBAC + PM2 + Nginx |
-| 124 | Unified Workspace & CI/CD Pipelines | Complete | Phase 5 | Turborepo + GitHub Actions |
-| 125 | Frontend Documentation & Monitoring | Complete | Phase 5 | Docs + Grafana + Runbooks |
+| 118 | Observability & Performance Budgets | In Progress (60%) | Phase 4 | Prometheus + Grafana deployed (US#102), Loki/Tempo/CI enforcement pending |
+| 119 | Automated SLO Enforcement | In Progress (70%) | Phase 4 | Alert rules + SLO monitoring working, AlertManager/GitHub integration pending |
+| 120 | Cost Optimization & Governance | In Progress (50%) | Phase 4 | Resource limits partial, FinOps guard/cost metrics/dashboard pending |
+| 121 | Frontend Shared Library Implementation | Deprecated | Phase 5 | Superseded by FastAPI templating (SPEC-005, SPEC-146) |
+| 122 | Customer Frontend Rollout (Vercel) | Deprecated | Phase 5 | Superseded by FastAPI templating (SPEC-146) |
+| 123 | Admin Frontend Rollout (Internal) | Deprecated | Phase 5 | Superseded by FastAPI templating (SPEC-005) |
+| 124 | Unified Workspace & CI/CD Pipelines | Deprecated | Phase 5 | Superseded by SPEC-016 (CI/CD Pipeline Architecture). Next.js stack discontinued; FastAPI now primary |
+| 125 | Frontend Documentation & Monitoring | Complete | Phase 5 | US#597 Done, frontend docs created (FastAPI templating) - January 2025 |
 | 126 | ML Model Training & Fine-Tuning Pipeline | Planned | Phase 4 | MLOps + Kubeflow + MLflow |
-| 127 | Context Bridge & Memory Federation System | In Progress | Phase 3 | Unified inter-context sharing |
-| 128 | Memory Sharing & Transfer Architecture | Proposed | Phase 3 | Cross-entity memory sharing (renumbered from conflict) |
+| 127 | Context Bridge & Memory Federation System | Not Implemented (0%) | Phase 3 | Unified inter-context sharing - Stories US#841-845 created |
+| 128 | Memory Sharing & Transfer Architecture | Partially Implemented (30%) | Phase 3 | Basic sharing via ACL exists, transfer/copy/approval workflows missing - Stories US#846-850 created |
 | 129 | External AI Memory API Integration | Planned | Phase 3 | External AI system integration (renumbered from conflict) |
 | 130 | Terminal/CLI Auto Context Capture | Planned | Phase 3 | Automated CLI context capture (renumbered from conflict) |
 | 131 | Memory Router Rationalization | Planned | Phase 3 | Selective Rust migration for performance |
@@ -214,12 +215,13 @@ This index catalogs all technical specifications for the ninaivalaigal AI memory
 | 136 | Execution System Backends | Planned | Phase 3 | Backend execution systems |
 | 137 | Agent Plan Reflection Loop | Planned | Phase 3 | Agentic planning and reflection |
 | 138 | Custom Embedding Integration Hooks | Planned | Phase 2C | Hook system for external/fine-tuned embedding models |
-  | 139 | Audit Reconciliation & Rust Integration Readiness | Proposed | Phase 3 |
+  | 139 | Audit Reconciliation & Rust Integration Readiness | Complete | Phase 3 |
   | 140 | White-Label Platform | Planned | Phase 3 |
   | 141 | Mobile App Support | Planned | Phase 4 |
   | 142 | Offline Mode | Planned | Phase 4 |
   | 143 | Progressive Web App | Planned | Phase 4 |
   | 144 | Context-Aware Feedback System | Planned | Phase 3 | Context composition & reasoning quality feedback |
+  | 147 | Clean Billing Schema | In Progress | Phase 3 | Unified billing architecture (polymorphic Org/Team/User) |
 
   ## Reference (999)
 

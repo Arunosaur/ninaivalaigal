@@ -17,9 +17,9 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 import stripe
-from database import Team, User
+from database import Team, TeamMembership, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
-from models.standalone_teams import StandaloneTeamManager, TeamMembership
+from models.standalone_teams import StandaloneTeamManager
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 

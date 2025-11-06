@@ -1,9 +1,12 @@
-# SPEC-084: Memory Sharing & Transfer Architecture
+# SPEC-128: Memory Sharing & Transfer Architecture
 
-**Status:** Proposed
-**Owner:** Platform Architecture Team
-**Effective:** Upon approval
+**Status:** ⚠️ **Partially Implemented** (30% implemented)  
+**Owner:** Platform Architecture Team  
+**Effective:** Upon approval  
+**Last Updated:** January 2025  
 **Related:** SPEC-083 (Product Surface Split), SPEC-026 (Standalone Teams), SPEC-002 (Multi-User Auth)
+
+**Note:** This SPEC was renumbered from SPEC-084 to SPEC-128.
 
 ---
 
@@ -319,10 +322,106 @@ Define comprehensive memory visibility, sharing, and transfer rules across indiv
 
 ---
 
+---
+
+## 17. Implementation Status
+
+**Status:** ⚠️ **Partially Implemented** (30% implemented)
+
+**Last Updated:** January 2025
+
+### Current Status
+
+**Partially Implemented (30%):**
+- ✅ Basic sharing via ACL (SPEC-043) - Complete
+  - POST `/acl/memory/{memory_id}/share` - Share memory with user
+  - DELETE `/acl/memory/{memory_id}/share/{user_id}` - Revoke access
+  - Visibility levels: PRIVATE, TEAM, ORGANIZATION, PUBLIC
+- ✅ Sharing Contracts (SPEC-049) - Partially implemented
+  - `MemorySharingContractManager` class exists
+  - Visibility levels: PRIVATE, SHARED, TEAM, ORG, PUBLIC
+  - Share permissions: VIEW, COMMENT, EDIT, SHARE, ADMIN
+
+**Missing (70%):**
+- ❌ Transfer ownership functionality
+- ❌ Copy operation (duplicate creation)
+- ❌ Approval workflows (Personal → Team, Team → External, Org → External)
+- ❌ Rate limits (sharing/transfer limits, abuse prevention)
+- ❌ Comprehensive audit trail
+- ❌ M&A scenario support (org-to-org transfer, bulk operations)
+
+**Dependencies Status:**
+- ✅ **SPEC-043**: Memory ACL System - Complete - Ready
+- ⚠️ **SPEC-026**: Standalone Teams - Needs verification
+- ⚠️ **SPEC-002**: Multi-User Auth - Needs verification
+
+---
+
+## 18. Relationship to Other SPECs
+
+### SPEC-127 (Context Bridge System)
+
+**SPEC-128 (Policy/Rules Layer)** and **SPEC-127 (Technical Implementation Layer)** are **complementary**:
+
+- **SPEC-128**: Defines **WHAT** can be shared (visibility rules), **WHO** can share/transfer (permissions), **HOW** sharing works semantically (Share vs Transfer vs Copy)
+- **SPEC-127**: Implements **HOW** sharing works technically (Reference/Clone/Hybrid modes, trust scoring, GraphOps integration)
+
+**They work together:**
+- SPEC-128 defines the rules (what can be shared, transfer semantics)
+- SPEC-127 implements the technical mechanisms (how sharing works with bridges)
+- SPEC-043 enforces access control (who can access)
+
+### SPEC-043 (Memory ACL System)
+
+**SPEC-128** builds on **SPEC-043**:
+- SPEC-043 provides access control enforcement
+- SPEC-128 defines sharing/transfer rules and policies
+- They work together: SPEC-043 enforces what SPEC-128 defines
+
+---
+
+## 19. Implementation Stories
+
+**Status**: ✅ **Stories Created** (January 2025)
+
+The following Taiga stories have been created to implement SPEC-128:
+
+**Phase 1: Transfer & Copy Operations (3 weeks, HIGH)**
+- **US#846**: SPEC-128 Phase 1: Transfer & Copy Operations (unassigned)
+  - Transfer ownership, copy operations, immutable transfer history
+
+**Phase 2: Approval Workflows (2 weeks, MEDIUM)**
+- **US#847**: SPEC-128 Phase 2: Approval Workflows (unassigned)
+  - Personal → Team, Team → External, Org → External approval workflows
+
+**Phase 3: Rate Limits & Audit (2 weeks, MEDIUM)**
+- **US#848**: SPEC-128 Phase 3: Rate Limits & Audit (unassigned)
+  - Rate limit enforcement, abuse prevention, comprehensive audit trail
+
+**Phase 4: M&A Support (2 weeks, LOW)**
+- **US#849**: SPEC-128 Phase 4: M&A Support (unassigned)
+  - Org-to-org transfer, bulk operations, team migration
+
+**Phase 5: Visibility Enhancement (1 week, LOW)**
+- **US#850**: SPEC-128 Phase 5: Visibility Enhancement (unassigned)
+  - Database schema, visibility rules, Public/Unlisted classification
+
+All stories are tagged with `spec-128` and are unassigned (can be picked up by any developer).
+
+**Total Estimated Effort:** 10 weeks (46 story points)
+
+**Status**: ✅ Created successfully (January 2025)
+
+**Note:** US#599 was incorrectly associated with SPEC-128. It actually belongs to SPEC-090 (Approval Chain Processing). All SPEC-128 stories have been created as US#846-850.
+
+---
+
 **Next Steps:**
-1. Review and approve SPEC-084
-2. Design database schema for sharing/transfer
-3. Implement API endpoints with permission checks
-4. Build UI components for sharing workflows
-5. Add comprehensive audit logging
-6. Test M&A scenario end-to-end
+1. ✅ Stories created (US#846-850)
+2. Assign Phase 1 (US#846) to developer(s)
+3. Begin Phase 1 implementation (transfer and copy operations)
+4. Design database schema for sharing/transfer
+5. Implement API endpoints with permission checks
+6. Build UI components for sharing workflows
+7. Add comprehensive audit logging
+8. Test M&A scenario end-to-end

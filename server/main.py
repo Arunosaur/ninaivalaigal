@@ -52,7 +52,7 @@ from security_integration import configure_security
 from spec_kit import SpecKitContextManager
 
 # Configuration and core services
-from config import get_database_url, load_config
+from server.config import get_database_url, load_config
 
 # Routers will be imported after app initialization to avoid import-time database connections
 
@@ -222,6 +222,29 @@ try:
 except Exception as e:
     logger.warning(f"⚠️  Could not install tenant middleware: {e}")
 
+# SPEC-147: Usage Metering Middleware (BILL-002)
+# Add after tenant middleware to ensure billing account context is available
+try:
+    from server.billing.usage_middleware import UsageMeteringMiddleware
+
+    # Enable middleware with configuration
+    usage_metering_enabled = os.getenv("BILLING_USAGE_METERING_ENABLED", "true").lower() == "true"
+    if usage_metering_enabled:
+        app.add_middleware(
+            UsageMeteringMiddleware,
+            enabled=True,
+            track_storage=True,
+            track_retrievals=True,
+            track_tokens=True,
+        )
+        logger.info("✅ SPEC-147 usage metering middleware installed")
+    else:
+        logger.info("⏭️  SPEC-147 usage metering middleware disabled via BILLING_USAGE_METERING_ENABLED=false")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not install SPEC-147 usage metering middleware: {e}")
+except Exception as e:
+    logger.warning(f"⚠️  Error installing SPEC-147 usage metering middleware: {e}")
+
 # Add custom middleware - ALL DISABLED FOR DEBUGGING
 # app.middleware("http")(rate_limit_middleware)
 # app.middleware("http")(rbac_middleware)  # THIS WAS BLOCKING - NOT ASYNC!
@@ -328,9 +351,13 @@ from protected_routes import router as protected_router  # noqa: E402
 # from agentic_api import router as agentic_router  # noqa: E402
 # from performance_api import router as performance_router  # noqa: E402
 from routers.admin_activity import router as admin_activity_router  # noqa: E402
+from routers.admin_organizations import (  # noqa: E402
+    router as admin_organizations_router,
+)
 from routers.approvals import router as approvals_router  # noqa: E402
 from routers.contexts import router as contexts_router  # noqa: E402
 from routers.memory import router as memory_router  # noqa: E402
+from routers.memory_browser_api import router as memory_browser_router  # noqa: E402
 from routers.organizations import router as organizations_router  # noqa: E402
 from routers.recording import router as recording_router  # noqa: E402
 from routers.teams import router as teams_router  # noqa: E402
@@ -381,6 +408,7 @@ app.include_router(teams_router)
 app.include_router(users_router)
 app.include_router(contexts_router)
 app.include_router(memory_router)
+app.include_router(memory_browser_router)  # MEMORY BROWSER API - /api/v1/memory/memories
 app.include_router(approvals_router)
 app.include_router(recording_router)
 app.include_router(vendor_admin_router)
@@ -396,11 +424,61 @@ app.include_router(early_adopter_router)
 app.include_router(invoice_management_router)
 app.include_router(admin_analytics_router)
 app.include_router(admin_activity_router)
+app.include_router(admin_organizations_router)  # SPEC-005: Organization Admin Management API (US#663)
 app.include_router(team_api_keys_router)
 app.include_router(team_billing_portal_router)
 app.include_router(partner_ecosystem_router)
 app.include_router(standalone_teams_billing_router)
 app.include_router(billing_engine_router)
+
+# SPEC-147: Billing API (BILL-001, BILL-002, BILL-003)
+try:
+    from server.billing.api import router as spec147_billing_router  # noqa: E402
+
+    app.include_router(spec147_billing_router)
+    logger.info("✅ SPEC-147 billing API router registered")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register SPEC-147 billing API router: {e}")
+
+# SPEC-147: Stripe Integration API (BILL-004)
+try:
+    from server.billing.stripe_api import router as stripe_billing_router  # noqa: E402
+
+    app.include_router(stripe_billing_router)
+    logger.info("✅ SPEC-147 Stripe billing API router registered")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register SPEC-147 Stripe billing API router: {e}")
+
+# SPEC-147: Invoice Generation API (BILL-005)
+try:
+    from server.billing.invoice_api import (  # noqa: E402
+        router as invoice_billing_router,
+    )
+
+    app.include_router(invoice_billing_router)
+    logger.info("✅ SPEC-147 invoice generation API router registered")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register SPEC-147 invoice generation API router: {e}")
+
+# SPEC-147: Billing Management API (BILL-015)
+try:
+    from server.billing.admin_api import router as billing_admin_router  # noqa: E402
+
+    app.include_router(billing_admin_router)
+    logger.info("✅ SPEC-147 billing management API router registered")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register SPEC-147 billing management API router: {e}")
+
+# SPEC-147: Payment Transfer API (BILL-006)
+try:
+    from server.billing.payment_transfer_api import (  # noqa: E402
+        router as payment_transfer_router,
+    )
+
+    app.include_router(payment_transfer_router)
+    logger.info("✅ SPEC-147 payment transfer API router registered")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register SPEC-147 payment transfer API router: {e}")
 
 # US#204: Team Billing APIs (SPEC-026 Phase 2)
 from team_billing_api import router as team_billing_router  # noqa: E402

@@ -43,8 +43,8 @@ done
 # Configuration from ports.nv.yaml
 CONTAINER_NAME="ninaivalaigal-${NINA_ENV}-memory-service"
 # Image name - check both with and without tag
-IMAGE_NAME="ninaivalaigal-memory-service:arm64"
-IMAGE_NAME_ALT="ninaivalaigal-memory-service"
+IMAGE_NAME="ninaivalaigal-memory-service"
+IMAGE_NAME_ALT="ninaivalaigal-memory-service:arm64"
 # Use PgBouncer Session Mode for prepared statements (SQLx compatibility)
 PGBOUNCER_SESS_CONTAINER="ninaivalaigal-${NINA_ENV}-pgbouncer-sess"
 REDIS_CONTAINER="ninaivalaigal-${NINA_ENV}-redis"
@@ -123,19 +123,18 @@ echo "  Database URL: postgresql://${NINA_DB_USER}:***@${PGBOUNCER_IP}:${PGBOUNC
 echo "  Redis URL: ${REDIS_URL}"
 echo ""
 
-# Check if image exists (try both names)
+# Check if image exists and get proper name:tag format
 echo "Checking for image..."
-if container image list | grep -q "$IMAGE_NAME"; then
-    echo "  ✅ Image found: $IMAGE_NAME"
-    FINAL_IMAGE_NAME="docker.io/library/$IMAGE_NAME"
-elif container image list | grep -q "$IMAGE_NAME_ALT"; then
-    echo "  ✅ Image found: $IMAGE_NAME_ALT"
-    FINAL_IMAGE_NAME="docker.io/library/$IMAGE_NAME_ALT"
+FOUND_IMAGE=$(container image list | grep ninaivalaigal-memory-service | awk '{print $1 ":" $2}' | head -1)
+
+if [ -n "$FOUND_IMAGE" ]; then
+    echo "  ✅ Image found: $FOUND_IMAGE"
+    FINAL_IMAGE_NAME="$FOUND_IMAGE"
 else
-    echo "❌ Image not found: $IMAGE_NAME or $IMAGE_NAME_ALT"
+    echo "❌ Image not found: ninaivalaigal-memory-service"
     echo ""
     echo "Build and deploy the image first:"
-    echo "   cd services/memory-service-rust"
+    echo "   cd rust-services/memory-service"
     echo "   docker build --no-cache --platform linux/arm64 -t ninaivalaigal-memory-service:arm64 ."
     echo "   docker save ninaivalaigal-memory-service:arm64 -o /tmp/memory-service.tar"
     echo "   container image load -i /tmp/memory-service.tar"

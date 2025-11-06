@@ -10,7 +10,7 @@
  *
  * Provides consistent navigation across all customer-facing pages.
  */
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/authContext';
 
@@ -23,8 +23,16 @@ export function Navigation({ variant = 'default', className = '' }: NavigationPr
   const location = useLocation();
   const navigate = useNavigate();
   const { user, clearAuthState } = useAuth();
+  const navRef = useRef<HTMLElement>(null);
+  const navItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
+
+  // Check if we're on a team or settings sub-page to highlight parent nav
+  const isTeamPage = location.pathname.startsWith('/team/');
+  const isSettingsPage = location.pathname.startsWith('/settings') || location.pathname === '/discounts';
 
   const isActive = (path: string) => {
+    if (path === '/teams' && isTeamPage) return true;
+    if (path === '/settings' && isSettingsPage) return true;
     return location.pathname === path;
   };
 
@@ -51,51 +59,90 @@ export function Navigation({ variant = 'default', className = '' }: NavigationPr
     navigate('/login', { replace: true });
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      const nextIndex = event.key === 'ArrowRight'
+        ? Math.min(index + 1, navItems.length - 1)
+        : Math.max(index - 1, 0);
+      navItemsRef.current[nextIndex]?.focus();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      navItemsRef.current[0]?.focus();
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      navItemsRef.current[navItems.length - 1]?.focus();
+    }
+  };
+
   const userLabel = user?.name || user?.email;
 
   return (
-    <nav className={`${getNavStyle()} ${className}`}>
+    <nav
+      ref={navRef}
+      className={`${getNavStyle()} ${className} sticky top-0 z-50`}
+      role="navigation"
+      aria-label="Main navigation"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <Link to="/dashboard" className="flex items-center space-x-3 hover:opacity-80 transition" aria-label="Ninaivalaigal">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+            <Link
+              to="/dashboard"
+              className="flex items-center space-x-3 hover:opacity-80 transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-600 rounded"
+              aria-label="Ninaivalaigal - Go to dashboard"
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg transition-transform duration-300 hover:rotate-3">
                 <span className="text-white font-semibold text-[1.35rem]" aria-hidden="true">நி</span>
               </div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-2xl font-bold text-white transition-all duration-300">
                 Ninaivalaigal <span lang="ta" className="ml-2 text-xl font-medium text-white/85">(நினைவலைகள்)</span>
               </h1>
             </Link>
           </div>
 
           {/* Navigation Links */}
-          <div className="flex items-center space-x-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`
-                  flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
-                  ${
-                    isActive(item.path)
-                      ? 'bg-white/20 text-white border border-white/30 shadow-lg'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }
-                `}
-              >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
+          <ul className="flex items-center space-x-1 list-none" role="menubar">
+            {navItems.map((item, index) => (
+              <li key={item.path} role="none">
+                <Link
+                  ref={(el) => {
+                    navItemsRef.current[index] = el;
+                  }}
+                  to={item.path}
+                  role="menuitem"
+                  aria-current={isActive(item.path) ? 'page' : undefined}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  className={`
+                    flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300
+                    transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-600
+                    ${
+                      isActive(item.path)
+                        ? 'bg-white/20 text-white border border-white/30 shadow-lg scale-105'
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                  aria-label={`Navigate to ${item.label}`}
+                >
+                  <span className="transition-transform duration-300" aria-hidden="true">{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
 
           {/* User Actions */}
           <div className="flex items-center space-x-4 text-white/80">
-            {userLabel ? <span className="text-sm">{userLabel}</span> : null}
+            {userLabel ? (
+              <span className="text-sm transition-opacity duration-300 hover:opacity-100 opacity-90" aria-label={`Logged in as ${userLabel}`}>
+                {userLabel}
+              </span>
+            ) : null}
             <button
               onClick={handleLogout}
-              className="hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              className="hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-600"
+              aria-label="Log out of your account"
             >
               Logout
             </button>

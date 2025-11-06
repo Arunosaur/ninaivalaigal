@@ -7,6 +7,8 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { AxiosError } from 'axios';
 import { Navigation } from '../components/Navigation';
+import { MemoryInjectionRules } from '../components/MemoryInjectionRules';
+import { InvoiceBrandingSettings } from '../components/InvoiceBrandingSettings';
 import apiClient from '../lib/apiClient';
 import { useAuth } from '../lib/authContext';
 
@@ -250,7 +252,7 @@ export default function Settings() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       <Navigation variant="dark" className="sticky top-0 z-20" />
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <main id="main-content" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         <header className="space-y-2">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Settings
@@ -261,16 +263,16 @@ export default function Settings() {
         </header>
 
         {usingFallback ? (
-          <div className="rounded-3xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <div className="rounded-3xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200" role="alert" aria-live="polite">
             API connection failed ({profileError}). Displaying sample profile and workspace preferences so the experience stays navigable while services are offline.
           </div>
         ) : null}
 
-        <section className="rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl p-6 sm:p-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Profile Overview</h2>
+        <section className="rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl p-6 sm:p-8" aria-labelledby="profile-overview-heading">
+          <h2 id="profile-overview-heading" className="text-xl font-semibold text-white mb-4">Profile Overview</h2>
           {loadingProfile ? (
-            <div className="flex items-center space-x-3 text-slate-400">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-400 border-t-transparent"></div>
+            <div className="flex items-center space-x-3 text-slate-400" role="status" aria-live="polite" aria-label="Loading profile">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" aria-hidden="true"></div>
               <span>Loading profile…</span>
             </div>
           ) : profile ? (
@@ -305,20 +307,23 @@ export default function Settings() {
           )}
         </section>
 
-        <section className="rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl p-6 sm:p-8">
+        <section className="rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl p-6 sm:p-8" aria-labelledby="change-password-heading">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-xl font-semibold text-white">Change Password</h2>
-            {passwordStatus ? <span className="text-emerald-300 text-sm font-medium">{passwordStatus}</span> : null}
+            <h2 id="change-password-heading" className="text-xl font-semibold text-white">Change Password</h2>
+            {passwordStatus ? (
+              <span className="text-emerald-300 text-sm font-medium" role="status" aria-live="polite">{passwordStatus}</span>
+            ) : null}
           </div>
           {passwordError ? (
-            <div className="mb-4 rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            <div className="mb-4 rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200" role="alert" aria-live="polite">
               {passwordError}
             </div>
           ) : null}
-          <form className="grid gap-5" onSubmit={handlePasswordSubmit} noValidate>
-            <label className="grid gap-2">
+          <form className="grid gap-5" onSubmit={handlePasswordSubmit} noValidate aria-label="Change password form">
+            <label htmlFor="current-password" className="grid gap-2">
               <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Current Password</span>
               <input
+                id="current-password"
                 type="password"
                 value={passwordForm.currentPassword}
                 onChange={(event) =>
@@ -327,11 +332,15 @@ export default function Settings() {
                 className="rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
                 autoComplete="current-password"
                 required
+                aria-required="true"
+                aria-invalid={passwordError ? 'true' : 'false'}
+                aria-describedby={passwordError ? 'password-error' : undefined}
               />
             </label>
-            <label className="grid gap-2">
+            <label htmlFor="new-password" className="grid gap-2">
               <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">New Password</span>
               <input
+                id="new-password"
                 type="password"
                 value={passwordForm.newPassword}
                 onChange={(event) =>
@@ -340,11 +349,15 @@ export default function Settings() {
                 className="rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
                 autoComplete="new-password"
                 required
+                aria-required="true"
+                aria-invalid={passwordError ? 'true' : 'false'}
+                aria-describedby={passwordError ? 'password-error' : undefined}
               />
             </label>
-            <label className="grid gap-2">
+            <label htmlFor="confirm-password" className="grid gap-2">
               <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Confirm Password</span>
               <input
+                id="confirm-password"
                 type="password"
                 value={passwordForm.confirmPassword}
                 onChange={(event) =>
@@ -390,12 +403,20 @@ export default function Settings() {
                       <p className="text-slate-400 text-sm">Plan: <span className="text-white capitalize">{profile.subscription_tier}</span></p>
                       <p className="text-slate-500 text-xs mt-1">User-level subscription</p>
                     </div>
-                    <Link
-                      to="/settings/billing/individual"
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition"
-                    >
-                      Manage Billing →
-                    </Link>
+                    <div className="flex items-center space-x-2">
+                      <Link
+                        to="/settings/billing/individual"
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition"
+                      >
+                        Manage Billing →
+                      </Link>
+                      <Link
+                        to="/discounts"
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition"
+                      >
+                        Discounts →
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )}
@@ -551,6 +572,15 @@ export default function Settings() {
               {savingPreferences ? 'Saving…' : 'Save Preferences'}
             </button>
           </form>
+        </section>
+
+        {/* Memory Injection Rules Section */}
+        <section className="rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl p-6 sm:p-8">
+          <div className="flex flex-col gap-2 mb-6">
+            <h2 className="text-xl font-semibold text-white">Memory Injection Rules</h2>
+            <p className="text-sm text-slate-400">Configure automatic memory injection behavior</p>
+          </div>
+          <MemoryInjectionRules />
         </section>
 
         {/* JWT Token & API Access Section */}

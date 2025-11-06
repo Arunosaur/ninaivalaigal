@@ -46,8 +46,13 @@ def load_config():
     except Exception:  # nosec B110
         pass  # Config file parsing is optional - fail silently
 
-    # PRIORITY 3: Fallback (should not be used in container)
-    return "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
+    # PRIORITY 3: Build from environment variables (fallback)
+    host = os.getenv("PGBOUNCER_HOST") or os.getenv("POSTGRES_HOST", "localhost")
+    user = os.getenv("NINA_DB_USER") or os.getenv("POSTGRES_USER", "nina")
+    password = os.getenv("NINA_DB_PASSWORD") or os.getenv("POSTGRES_PASSWORD", "dev_password_change_in_production")
+    db_name = os.getenv("NINA_DB_NAME") or os.getenv("POSTGRES_DB", "ninaivalaigal_dev")
+    port = os.getenv("PGBOUNCER_PORT") or os.getenv("PGBOUNCER_TX_PORT", "6432")
+    return f"postgresql://{user}:{password}@{host}:{port}/{db_name}"  # pragma: allowlist secret
 
 
 # Database helper to avoid circular imports

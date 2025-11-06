@@ -48,7 +48,7 @@ from signup_api import router as signup_router
 from spec_kit import SpecKitContextManager
 
 # Configuration and core services
-from config import get_database_url, load_config
+from server.config import get_database_url, load_config
 
 # Initialize logger
 logger = structlog.get_logger(__name__)

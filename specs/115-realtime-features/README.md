@@ -498,6 +498,75 @@ spec:
 
 ---
 
-**Status:** ✅ Complete
+## 16. Implementation Status
+
+**Status:** ⚠️ **In Progress** (Partially Implemented - 40%)
+
+**Partially Implemented (Nov 4, 2025):**
+
+### ✅ Completed (40%)
+- ✅ WebSocket endpoints for specific use cases - **WORKING**
+  - `/dashboard/ws` - For monitoring metrics streaming
+  - `/dashboard-widgets/ws/{user_id}` - For dashboard widget updates
+- ✅ Event publisher infrastructure - **WORKING** (but uses Redis Streams, not pub/sub)
+- ⚠️ Basic WebSocket connection management - **PARTIAL** (widget-specific only)
+
+### ❌ Missing (60%)
+- ❌ General-purpose FastAPI WebSocket router (`server/realtime/websocket.py`) - **NOT IMPLEMENTED**
+- ❌ ConnectionManager class with Redis pub/sub - **NOT IMPLEMENTED**
+- ❌ User-specific event channels (`events:user:{user_id}`) - **NOT IMPLEMENTED**
+- ❌ Global event channels (`events:global`) - **NOT IMPLEMENTED**
+- ❌ EventPublisher for Redis pub/sub - **NOT IMPLEMENTED** (only Redis Streams exists)
+- ❌ WebSocket authentication with token validation - **NOT IMPLEMENTED**
+- ❌ Auto-reconnect with exponential backoff (frontend) - **NOT IMPLEMENTED**
+- ❌ SSE fallback for older browsers - **NOT IMPLEMENTED**
+- ⚠️ Frontend real-time integration - **PARTIAL** (FastAPI templates use native WebSocket API or Alpine.js, not Next.js hooks)
+
+**Note:** Current implementation has WebSocket endpoints for specific use cases (monitoring dashboards), but the general-purpose real-time infrastructure described in SPEC-115 is missing. Also, current implementation uses Redis Streams (from SPEC-100) instead of Redis pub/sub as SPEC-115 requires.
+
+---
+
+## 17. Implementation Stories
+
+The following Taiga stories have been created to complete SPEC-115 implementation:
+
+**Priority P1 (Foundation):**
+- **US#788**: Implement general-purpose FastAPI WebSocket router (unassigned)
+- **US#789**: Implement ConnectionManager class with Redis pub/sub integration (unassigned)
+
+**Priority P2 (Core Integration):**
+- **US#790**: Implement user-specific and global event channels (unassigned)
+- **US#792**: Implement WebSocket authentication with token validation (unassigned)
+
+**Priority P3 (Enhancements):**
+- **US#791**: Implement EventPublisher for Redis pub/sub (unassigned)
+- **US#793**: Implement auto-reconnect with exponential backoff (frontend) (unassigned)
+- **US#794**: Implement SSE fallback for older browsers (unassigned)
+
+All stories are tagged with `spec-115` and priority tags (`priority-p1`, `priority-p2`, `priority-p3`). All stories are unassigned (can be picked up by any developer).
+
+**Status**: ✅ Created successfully (January 2025)
+
+**Implementation Wave:** These stories can be treated as the "SPEC-115 Implementation Wave" for the next sprint, with P1 stories forming the foundation for P2 and P3 stories.
+
+---
+
+## 18. Architecture Decision: Redis Pub/Sub vs Redis Streams
+
+**Issue**: SPEC-115 requires Redis pub/sub, but current implementation uses Redis Streams (from SPEC-100).
+
+**Decision Needed**:
+1. **Implement Redis pub/sub** as SPEC requires (for real-time WebSocket delivery)
+2. **Use Redis Streams** and update SPEC to reflect architecture
+3. **Hybrid approach**: Use Redis Streams for event bus, add pub/sub layer for WebSocket delivery
+
+**Recommendation**: Option 3 (hybrid) - Keep Redis Streams for backend event bus (SPEC-100), add Redis pub/sub for real-time WebSocket delivery to frontend (SPEC-115). This provides best of both worlds.
+
+---
+
+**Status:** ⚠️ **In Progress** (Partially Implemented - 40%)
 **Implementation Date:** October 11, 2025
-**Last Updated:** October 11, 2025
+**Last Updated:** November 4, 2025 (validation, stories created with priorities, SPEC_INDEX.md updated)
+
+**Review Status:** ✅ Approved - Transition to In Progress in Taiga
+**Next Sprint Focus:** Redis pub/sub delivery and authentication (US#788, US#789, US#792)

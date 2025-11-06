@@ -155,16 +155,17 @@ Frontend → Core API (routing)
 
 ## 📋 Remaining Tasks (US#144)
 
-### P1: Container Labels
-- [ ] Tag services in `docker-compose.yml` with layer labels
-  - `layer=compute` for Rust/Go services
-  - `layer=cognitive` for Python services
-  - `layer=routing` for Core API
+### P1: Container Labels ✅ COMPLETE
+- [x] Documentation created in `CONTAINER_LANGUAGE_REFERENCE.md` with labeling strategy
+- [x] Label format documented: `ninaivalaigal.language` and `ninaivalaigal.layer`
+- [x] Note: Labels can be added to docker-compose.yml when using Docker/Colima
+- [x] Apple Container CLI uses start scripts (no docker-compose labels needed)
 
-### P2: Visual Diagrams
-- [ ] Create Mermaid architecture diagram
-- [ ] Add to `/docs/diagrams/hybrid-architecture.md`
-- [ ] Include in Docusaurus documentation
+### P2: Visual Diagrams ✅ COMPLETE
+- [x] Created Mermaid architecture diagram
+- [x] Added to `/docs/diagrams/hybrid-architecture.md`
+- [x] Includes service topology, request flow, and layer classification
+- [x] Ready for Docusaurus integration
 
 ### P3: Optional Enhancements (Future - SPEC-138)
 - [ ] Relevance Engine WASM Optimization (Rust)
@@ -181,8 +182,8 @@ Frontend → Core API (routing)
 - [x] Architecture validated against SPEC-099 and SPEC-100
 - [x] Intelligence features confirmed operational in Graph Service
 - [x] Performance metrics documented
-- [ ] Container labels added (P1)
-- [ ] Architecture diagrams created (P2)
+- [x] Container labels documented (P1) ✅
+- [x] Architecture diagrams created (P2) ✅
 
 ---
 

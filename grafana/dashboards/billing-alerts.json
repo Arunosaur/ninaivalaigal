@@ -1,0 +1,159 @@
+{
+  "dashboard": {
+    "title": "Billing Alerts Configuration",
+    "tags": ["billing", "alerts", "spec-147"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "High Queue Depth Alert",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "billing_celery_queue_depth > 1000",
+            "legendFormat": "High Queue Depth",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 0, "y": 0},
+        "alert": {
+          "name": "High Celery Queue Depth",
+          "message": "Celery queue depth exceeds 1000 tasks",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [1000],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"]
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "frequency": "10s",
+          "handler": 1,
+          "noDataState": "no_data",
+          "executionErrorState": "alerting"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Stripe Sync Errors Alert",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(billing_stripe_sync_errors_total[5m]) > 0.1",
+            "legendFormat": "{{error_type}} - {{sync_type}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 12, "y": 0},
+        "alert": {
+          "name": "High Stripe Sync Error Rate",
+          "message": "Stripe sync error rate exceeds 0.1 errors/second",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [0.1],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"]
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      },
+      {
+        "id": 3,
+        "title": "Invoice Generation Failures",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(billing_invoice_generation_total{status=\"failed\"}[5m])",
+            "legendFormat": "Failed Invoices",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 0, "y": 6},
+        "alert": {
+          "name": "Invoice Generation Failures",
+          "message": "Invoice generation failures detected",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [0],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"]
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      },
+      {
+        "id": 4,
+        "title": "High Grace Period Count",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "billing_grace_periods_active",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 12, "y": 6},
+        "alert": {
+          "name": "High Grace Period Count",
+          "message": "Multiple active grace periods detected",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [10],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"]
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ]
+        }
+      }
+    ],
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    }
+  }
+}

@@ -55,20 +55,35 @@ export function Login() {
     }
   };
 
+  const errorId = 'login-error';
+  const emailErrorId = 'login-email-error';
+  const passwordErrorId = 'login-password-error';
+
   return (
     <AuthLayout>
-      <h2 className="text-center text-2xl font-semibold text-white">Log In</h2>
+      <main id="main-content">
+      <h1 className="text-center text-2xl font-semibold text-white">Log In</h1>
       <p className="text-center text-sm text-slate-400">
         Access your exponential memory workspace
       </p>
 
       {error ? (
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div
+          id={errorId}
+          role="alert"
+          aria-live="polite"
+          className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+        >
           {error}
         </div>
       ) : null}
 
-      <form className="mt-6 space-y-5" onSubmit={handleSubmit} noValidate>
+      <form
+        className="mt-6 space-y-5"
+        onSubmit={handleSubmit}
+        noValidate
+        aria-label="Login form"
+      >
         <div className="space-y-2">
           <label
             htmlFor="login-email"
@@ -85,7 +100,16 @@ export function Login() {
             className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
             autoComplete="email"
             required
+            aria-required="true"
+            aria-invalid={error ? 'true' : 'false'}
+            aria-describedby={error ? `${errorId} ${emailErrorId}` : undefined}
+            aria-label="Email address"
           />
+          {error && form.email === '' && (
+            <div id={emailErrorId} className="sr-only">
+              Email is required
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -104,13 +128,24 @@ export function Login() {
             className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
             autoComplete="current-password"
             required
+            aria-required="true"
+            aria-invalid={error ? 'true' : 'false'}
+            aria-describedby={error ? `${errorId} ${passwordErrorId}` : undefined}
+            aria-label="Password"
           />
+          {error && form.password === '' && (
+            <div id={passwordErrorId} className="sr-only">
+              Password is required
+            </div>
+          )}
         </div>
 
         <button
           type="submit"
           disabled={submitting}
-          className="brand-gradient flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:shadow-indigo-600/45 disabled:cursor-not-allowed disabled:opacity-70"
+          className="brand-gradient flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:shadow-indigo-600/45 disabled:cursor-not-allowed disabled:opacity-70 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+          aria-label={submitting ? 'Signing in, please wait' : 'Log in to your account'}
+          aria-busy={submitting}
         >
           {submitting ? 'Signing in...' : 'Log In'}
         </button>
@@ -118,10 +153,15 @@ export function Login() {
 
       <p className="text-center text-sm text-slate-400">
         Don't have an account?{' '}
-        <Link to="/signup" className="font-semibold text-slate-200 transition hover:text-white">
+        <Link
+          to="/signup"
+          className="font-semibold text-slate-200 transition hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 rounded"
+          aria-label="Sign up for a new account"
+        >
           Sign up
         </Link>
       </p>
+      </main>
     </AuthLayout>
   );
 }

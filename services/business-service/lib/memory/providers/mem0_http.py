@@ -13,10 +13,12 @@ from ..interfaces import MemoryProvider
 
 class Mem0HttpMemoryProvider(MemoryProvider):
     """Deprecated placeholder that blocks legacy HTTP provider usage.
-    
+
     This class is kept for backwards compatibility but will always raise an error.
     Use the Rust memory service or PostgreSQL provider instead.
     """
 
     def __init__(self, *args, **kwargs):
-        raise RuntimeError("Legacy HTTP memory providers have been removed. Configure the Rust memory service or PostgreSQL provider instead.")
+        raise RuntimeError(
+            "Legacy HTTP memory providers have been removed. Configure the Rust memory service or PostgreSQL provider instead."
+        )

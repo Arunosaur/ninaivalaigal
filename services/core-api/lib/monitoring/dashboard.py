@@ -18,9 +18,16 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 import structlog
-from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+    WebSocketException,
+)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from lib.websocket_auth import authenticate_websocket
 
 from ..performance import get_performance_manager
 
@@ -339,7 +346,23 @@ async def get_active_alerts():
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for real-time metrics streaming."""
+    """
+    WebSocket endpoint for real-time metrics streaming.
+
+    SPEC-115: WebSocket authentication with token validation.
+    Token should be provided via query parameter: ?token=JWT_TOKEN
+    """
+    # Authenticate WebSocket connection
+    try:
+        user = await authenticate_websocket(websocket)
+        user_id = user["id"]
+    except WebSocketException as e:
+        await websocket.close(code=e.code, reason=e.reason)
+        return
+    except Exception as e:
+        await websocket.close(code=1011, reason=f"Authentication error: {str(e)}")
+        return
+
     await dashboard_manager.connect(websocket)
 
     try:

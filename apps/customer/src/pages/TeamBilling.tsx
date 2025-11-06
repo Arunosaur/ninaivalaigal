@@ -21,6 +21,7 @@ import { Link } from 'react-router-dom';
 import type { AxiosError } from 'axios';
 import { Navigation } from '../components/Navigation';
 import { Toast } from '../components/Toast';
+import { InvoiceBrandingSettings } from '../components/InvoiceBrandingSettings';
 import apiClient from '../lib/apiClient';
 import { useAuth } from '../lib/authContext';
 
@@ -456,8 +457,26 @@ export default function TeamBilling() {
           </div>
         )}
 
+        {/* Invoice Branding Settings */}
+        {billing.team_id && (
+          <div className="mt-8 glass-surface rounded-2xl border border-gray-700/50">
+            <div className="px-6 py-4 border-b border-gray-700/50">
+              <h2 className="text-xl font-semibold text-white">Invoice Branding</h2>
+              <p className="text-slate-400 text-sm mt-1">Customize your invoice appearance</p>
+            </div>
+            <div className="px-6 py-6">
+              <InvoiceBrandingSettings
+                teamId={billing.team_id}
+                onBrandingUpdated={() => {
+                  // Branding updated
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Quick Links */}
-        <div className="mt-8 flex space-x-4">
+        <div className="mt-8 flex flex-wrap gap-4">
           <Link
             to="/team/usage"
             className="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition"

@@ -1,0 +1,96 @@
+# SPDX-License-Identifier: Elastic-2.0
+# Copyright (c) 2025 Medhasys LLC
+#
+# Production values for ninaivalaigal-billing
+
+replicaCount: 1
+
+image:
+  repository: ninaivalaigal/billing
+  pullPolicy: Always
+  tag: "production"
+
+# Celery Worker Configuration (Production)
+celeryWorker:
+  enabled: true
+  replicas: 5
+  concurrency: 8
+  queues: "billing,stripe,notify"
+  maxTasksPerChild: 2000
+  resources:
+    requests:
+      cpu: "1000m"
+      memory: "1Gi"
+    limits:
+      cpu: "4000m"
+      memory: "4Gi"
+  autoscaling:
+    enabled: true
+    minReplicas: 5
+    maxReplicas: 50
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+    targetQueueDepth: 200
+
+# Celery Beat Configuration (Production)
+celeryBeat:
+  enabled: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  leaderElection:
+    enabled: true
+    region: "us-east-1"
+    ttl: 60
+
+# Redis Configuration (Production)
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+  persistence:
+    enabled: true
+    size: 32Gi
+    storageClass: "ssd"
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+
+# Service Monitor
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  scrapeTimeout: 10s
+
+# Prometheus Metrics
+prometheus:
+  enabled: true
+  port: 9090
+  path: "/metrics"
+
+# Resource Limits (Production)
+resources:
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+# Multi-Region Support
+multiRegion:
+  enabled: true
+  regions:
+    - us-east-1
+    - us-west-2
+    - eu-west-1

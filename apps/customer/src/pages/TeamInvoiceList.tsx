@@ -20,6 +20,8 @@ import { Link } from 'react-router-dom';
 import type { AxiosError } from 'axios';
 import { Navigation } from '../components/Navigation';
 import { Toast } from '../components/Toast';
+import { InvoiceCorrectionModal } from '../components/InvoiceCorrectionModal';
+import type { Invoice as InvoiceType } from '../components/InvoiceCorrectionModal';
 import apiClient from '../lib/apiClient';
 
 interface Invoice {
@@ -60,6 +62,7 @@ export default function TeamInvoiceList() {
   const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
   const [downloading, setDownloading] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+  const [correctionInvoice, setCorrectionInvoice] = useState<Invoice | null>(null);
 
   useEffect(() => {
     loadInvoices();
@@ -290,16 +293,26 @@ export default function TeamInvoiceList() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleDownloadPDF(invoice)}
-                            disabled={
-                              downloading === invoice.id ||
-                              (!invoice.pdf_url && !invoice.stripe_invoice_url)
-                            }
-                            className="text-indigo-400 hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                          >
-                            {downloading === invoice.id ? 'Downloading...' : 'Download PDF'}
-                          </button>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => handleDownloadPDF(invoice)}
+                              disabled={
+                                downloading === invoice.id ||
+                                (!invoice.pdf_url && !invoice.stripe_invoice_url)
+                              }
+                              className="text-indigo-400 hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            >
+                              {downloading === invoice.id ? 'Downloading...' : 'Download PDF'}
+                            </button>
+                            {invoice.status !== 'void' && (
+                              <button
+                                onClick={() => setCorrectionInvoice(invoice)}
+                                className="text-purple-400 hover:text-purple-300 transition"
+                              >
+                                Correct
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -339,6 +352,18 @@ export default function TeamInvoiceList() {
             message={toast.message}
             type={toast.type}
             onClose={() => setToast(null)}
+          />
+        )}
+
+        {/* Invoice Correction Modal */}
+        {correctionInvoice && (
+          <InvoiceCorrectionModal
+            invoice={correctionInvoice as InvoiceType}
+            onClose={() => setCorrectionInvoice(null)}
+            onCorrectionApplied={() => {
+              setCorrectionInvoice(null);
+              loadInvoices();
+            }}
           />
         )}
       </main>

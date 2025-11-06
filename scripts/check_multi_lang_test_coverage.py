@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 Medhasys LLC
+#
 """
 Multi-Language Test Coverage Checker
 
@@ -218,7 +221,39 @@ class MultiLangTestChecker:
         new_files = self.get_staged_files()
         missing_tests = {}
 
+        # Patterns that indicate a file is a test file itself
+        test_file_indicators = [
+            "test",
+            "spec",
+            "__tests__",
+            ".test.",
+            ".spec.",
+            "_test.",
+            "_spec.",
+            "_test.go",
+            "_test.rs",
+            "_test.java",
+            "_test.py",
+        ]
+
+        # Exclude test runner scripts (these are test harnesses, not modules under test)
+        test_runner_patterns = [
+            "run_memory_tests.py",
+            "validate_memory_tests.py",
+            "run_.*_tests.py",
+            "validate_.*_tests.py",
+        ]
+
         for new_file in new_files:
+            # Skip test files themselves
+            if any(indicator in str(new_file) for indicator in test_file_indicators):
+                continue
+
+            # Skip test runner scripts
+            import re
+            if any(re.search(pattern, new_file.name) for pattern in test_runner_patterns):
+                continue
+
             language = self.detect_language(new_file)
             if not language:
                 continue
@@ -317,12 +352,24 @@ class MultiLangTestChecker:
                 lang_config = self.languages.get(language, {})
                 test_patterns = lang_config.get("test_patterns", [])
                 if test_patterns:
-                    suggested = test_patterns[0].format(
-                        name=source_file.stem,
-                        dir=str(source_file.parent.relative_to(self.root)),
-                        ext=source_file.suffix[1:] if source_file.suffix else "ts",
-                    )
-                    print(f"     💡 Expected: {suggested}")
+                    try:
+                        # Normalize path: make it absolute if relative
+                        source_path = source_file if source_file.is_absolute() else (self.root / source_file)
+                        parent_dir = str(source_path.parent.relative_to(self.root))
+                        suggested = test_patterns[0].format(
+                            name=source_file.stem,
+                            dir=parent_dir,
+                            ext=source_file.suffix[1:] if source_file.suffix else "ts",
+                        )
+                        print(f"     💡 Expected: {suggested}")
+                    except (ValueError, TypeError):
+                        # If path can't be made relative, use the source file name directly
+                        suggested = test_patterns[0].format(
+                            name=source_file.stem,
+                            dir=".",
+                            ext=source_file.suffix[1:] if source_file.suffix else "ts",
+                        )
+                        print(f"     💡 Expected: {suggested}")
             print()
 
         print("⚠️  Please add test files before committing.")

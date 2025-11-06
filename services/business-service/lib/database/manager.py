@@ -21,6 +21,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from ..config import DEFAULT_RUST_DATABASE_URL
 from .models import Base, Context, Memory, User
 
 
@@ -30,13 +31,7 @@ class DatabaseManager:
     def __init__(self, config=None):
         """Initialize instance."""
         # Get database URL from environment or use default
-        default_url = os.getenv(
-            "DATABASE_URL",
-            os.getenv(
-                "NINAIVALAIGAL_DATABASE_URL",
-                "postgresql://nina:change_me_securely@localhost:6432/nina",  # pragma: allowlist secret
-            ),
-        )
+        default_url = os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL") or DEFAULT_RUST_DATABASE_URL
 
         # Handle both string URL and config dict
         if isinstance(config, dict):
@@ -48,7 +43,7 @@ class DatabaseManager:
 
         # Ensure we always use PostgreSQL
         if not database_url.startswith("postgresql"):
-            database_url = "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
+            database_url = default_url
         print(f"🐘 Using PostgreSQL: {database_url}")
 
         # PostgreSQL connection with pool settings

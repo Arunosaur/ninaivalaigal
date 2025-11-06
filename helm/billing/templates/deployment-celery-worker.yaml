@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: Elastic-2.0
+# Copyright (c) 2025 Medhasys LLC
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "billing.fullname" . }}-worker
+  labels:
+    {{- include "billing.labels" . | nindent 4 }}
+    component: celery-worker
+spec:
+  replicas: {{ .Values.celeryWorker.replicas }}
+  selector:
+    matchLabels:
+      {{- include "billing.selectorLabels" . | nindent 6 }}
+      component: celery-worker
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "billing.selectorLabels" . | nindent 8 }}
+        component: celery-worker
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "billing.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: celery-worker
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+          - celery
+          - -A
+          - server.billing.worker
+          - worker
+          - --loglevel=info
+          - --queues={{ .Values.celeryWorker.queues }}
+          - --concurrency={{ .Values.celeryWorker.concurrency }}
+          - --max-tasks-per-child={{ .Values.celeryWorker.maxTasksPerChild | default 1000 }}
+        env:
+          {{- toYaml .Values.env | nindent 10 }}
+          - name: WORKER_NAME
+            value: "{{ include "billing.fullname" . }}-worker"
+        resources:
+          {{- toYaml .Values.celeryWorker.resources | nindent 10 }}
+        {{- if .Values.healthCheck.enabled }}
+        livenessProbe:
+          exec:
+            command:
+              - celery
+              - -A
+              - server.billing.worker
+              - inspect
+              - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+              - celery
+              - -A
+              - server.billing.worker
+              - inspect
+              - ping
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

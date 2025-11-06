@@ -82,23 +82,42 @@ build_service() {
 
     print_step "Building $service_name..."
 
-    # Try Docker build first (more reliable for DNS)
-    if docker build --platform linux/arm64 --no-cache -t "$image_name" -f "$dockerfile_path" "$build_context" 2>&1 | tee /tmp/build-${service_name}.log; then
-        print_success "$service_name built successfully"
+    # Use the standardized Docker→Apple Container CLI migration script
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    MIGRATION_SCRIPT="$SCRIPT_DIR/docker-to-apple-container.sh"
 
-        # Export and load into Apple Container CLI
-        print_step "Exporting $service_name to Apple Container CLI..."
-        TARBALL="/tmp/${service_name}-$(date +%Y%m%d-%H%M%S).tar"
-        if docker save "$image_name" -o "$TARBALL" && container image load --input "$TARBALL"; then
-            print_success "$service_name loaded into Apple Container CLI"
-            rm -f "$TARBALL"
+    if [ -f "$MIGRATION_SCRIPT" ]; then
+        print_step "Using Docker→Apple Container CLI migration script..."
+        if "$MIGRATION_SCRIPT" "$service_name" \
+            --dockerfile "$dockerfile_path" \
+            --context "$build_context" \
+            --tag arm64 \
+            --platform linux/arm64; then
+            print_success "$service_name migrated successfully"
         else
-            print_error "Failed to export/load $service_name"
+            print_error "Failed to migrate $service_name"
             return 1
         fi
     else
-        print_error "Failed to build $service_name"
-        return 1
+        # Fallback to manual workflow if script not available
+        print_warning "Migration script not found, using manual workflow..."
+        if docker build --platform linux/arm64 --no-cache -t "$image_name" -f "$dockerfile_path" "$build_context" 2>&1 | tee /tmp/build-${service_name}.log; then
+            print_success "$service_name built successfully"
+
+            # Export and load into Apple Container CLI
+            print_step "Exporting $service_name to Apple Container CLI..."
+            TARBALL="/tmp/${service_name}-$(date +%Y%m%d-%H%M%S).tar"
+            if docker save "$image_name" -o "$TARBALL" && container image load --input "$TARBALL"; then
+                print_success "$service_name loaded into Apple Container CLI"
+                rm -f "$TARBALL"
+            else
+                print_error "Failed to export/load $service_name"
+                return 1
+            fi
+        else
+            print_error "Failed to build $service_name"
+            return 1
+        fi
     fi
 }
 

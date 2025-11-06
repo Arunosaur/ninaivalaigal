@@ -23,10 +23,15 @@ import TeamUpgrade from './pages/TeamUpgrade'
 import ProtectedRoute from './components/ProtectedRoute'
 import EMC2Prototype from './pages/prototypes/EMC2Prototype'
 import Settings from './pages/Settings'
+import InjectionAnalytics from './pages/InjectionAnalytics'
+import DiscountNonProfit from './pages/DiscountNonProfit'
+import DemoReplayViewer from './pages/DemoReplayViewer'
+import { SkipToContent } from './components'
 
 function App() {
   return (
     <BrowserRouter>
+      <SkipToContent />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<Signup />} />
@@ -45,6 +50,9 @@ function App() {
           <Route path="/team/:teamId/invite" element={<TeamInvite />} />
           <Route path="/team/:teamId/upgrade" element={<TeamUpgrade />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/injection-analytics" element={<InjectionAnalytics />} />
+          <Route path="/discounts" element={<DiscountNonProfit />} />
+          <Route path="/demo/:memoryId" element={<DemoReplayViewer />} />
         </Route>
       </Routes>
     </BrowserRouter>

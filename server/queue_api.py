@@ -9,6 +9,14 @@
 """
 Redis Queue API Endpoints - SPEC-033
 RESTful API for background task management and monitoring
+
+⚠️  DEPRECATED: This router has been migrated to Rust Memory Service
+⚠️  Migration Date: 2025-01-31
+⚠️  Removal Date: 2025-04-30 (3 months grace period)
+⚠️  New Endpoint: http://localhost:13393/queue/*
+⚠️  See: tasks/active/US_93_95_PYTHON_DEPRECATION_PLAN.md
+
+This router will be removed in Phase 3. Please migrate to Rust endpoints.
 """
 
 from typing import Any

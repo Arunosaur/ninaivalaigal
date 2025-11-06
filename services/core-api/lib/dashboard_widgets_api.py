@@ -18,7 +18,14 @@ from enum import Enum
 from typing import Any, Dict, List
 
 from auth_utils import get_current_user
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    WebSocketException,
+)
 
 # Import our existing intelligence systems
 from graph_rank import get_dashboard_insights
@@ -26,6 +33,7 @@ from insights_api import (
     get_memory_intelligence_insights,
     get_team_productivity_insights,
 )
+from lib.websocket_auth import authenticate_websocket
 from pydantic import BaseModel
 from tag_suggester import get_ai_performance_metrics
 
@@ -487,9 +495,29 @@ async def get_dashboard_layout(role: str, user: Dict[str, Any] = Depends(get_cur
 
 @router.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
-    """WebSocket endpoint for real-time dashboard updates"""
+    """
+    WebSocket endpoint for real-time dashboard updates.
 
-    await manager.connect(websocket, user_id)
+    SPEC-115: WebSocket authentication with token validation.
+    Token should be provided via query parameter: ?token=JWT_TOKEN
+    """
+    # Authenticate WebSocket connection
+    try:
+        user = await authenticate_websocket(websocket)
+        authenticated_user_id = user["id"]
+
+        # Verify the user_id in path matches authenticated user
+        if authenticated_user_id != user_id:
+            await websocket.close(code=1008, reason="Unauthorized: User ID mismatch")
+            return
+    except WebSocketException as e:
+        await websocket.close(code=e.code, reason=e.reason)
+        return
+    except Exception as e:
+        await websocket.close(code=1011, reason=f"Authentication error: {str(e)}")
+        return
+
+    await manager.connect(websocket, authenticated_user_id)
 
     try:
         while True:
@@ -509,7 +537,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
                     await websocket.send_text(json.dumps({"type": "subscription_confirmed", "widget_id": widget_id}))
 
     except WebSocketDisconnect:
-        manager.disconnect(user_id)
+        manager.disconnect(authenticated_user_id)
 
 
 # Background task for real-time updates

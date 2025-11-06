@@ -15,7 +15,11 @@ import json
 import time
 from uuid import uuid4
 
+import pytest
 import requests
+
+# Mark all tests in this file as rust_integration
+pytestmark = pytest.mark.rust_integration
 
 MEMORY_SERVICE_URL = "http://localhost:13393"
 

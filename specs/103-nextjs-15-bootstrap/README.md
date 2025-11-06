@@ -1,11 +1,20 @@
 ---
 {}
+
+> **⚠️ ARCHITECTURE UPDATE (2025-11-02):**
+> **This SPEC is DEPRECATED** - Next.js 15 bootstrap is no longer the direction.
+> **Current Direction:** FastAPI + Jinja2 templates for all UI (customer and admin).
+> **See:**
+> - `docs/FRONTEND_ARCHITECTURE_DECISION.md` (customer UI)
+> - `docs/ADMIN_UI_FASTAPI_ANALYSIS.md` (admin UI)
+>
+> **Status:** This SPEC is kept for historical reference but should not be used for new development.
 ---
 
 
 
 
-## Problem Statement
+## Problem Statement (DEPRECATED - Next.js Context)
 
 ### Current Situation
 
@@ -21,43 +30,55 @@ Legacy Stack Issues:
 └── Fragmented component structure
 ```
 
-### Migration Opportunity
+### Migration Opportunity (DEPRECATED)
 
-Next.js 15 provides:
-- App Router (file-based routing)
-- Server Components (automatic optimization)
-- Server Actions (replace API routes)
-- Zero-config build system
-- Automatic code splitting
-- Built-in performance optimization
-- TypeScript + Tailwind native support
+~~Next.js 15 provides:~~ **DEPRECATED - FastAPI templating is the current direction**
+- ~~App Router (file-based routing)~~ **DEPRECATED**
+- ~~Server Components (automatic optimization)~~ **DEPRECATED**
+- ~~Server Actions (replace API routes)~~ **DEPRECATED**
+- ~~Zero-config build system~~ **DEPRECATED**
+- ~~Automatic code splitting~~ **DEPRECATED**
+- ~~Built-in performance optimization~~ **DEPRECATED**
+- ~~TypeScript + Tailwind native support~~ **DEPRECATED**
 
----
-
-## Objectives
-
-### Primary Objectives
-
-1. **Bootstrap Next.js 15 Project** - Create clean modern application
-2. **Port Keeper Components** - Migrate 17 files (0 legacy baggage)
-3. **Integrate Quality Tools** - ESLint + Prettier + Husky + pre-commit
-4. **Establish Component Library** - Organized structure for scale
-5. **Configure CI/CD** - GitHub Actions for Next.js
-
-### Success Metrics
-
-- Next.js 15 project created with App Router
-- 17 keeper files successfully ported
-- ESLint shows &lt;20 issues (vs 201 in legacy)
-- Pre-commit hooks operational
-- CI/CD pipeline green
-- Storybook integrated for component development
+**Current Approach:** FastAPI + Jinja2 templates provides:
+- Server-side rendering (Jinja2 templates)
+- No separate build process (templates served directly)
+- Alpine.js for client-side interactivity
+- TailwindCSS for styling
+- Simpler architecture (no Node.js/npm dependency)
 
 ---
 
-## Architecture
+## Objectives (DEPRECATED)
 
-### Next.js 15 Project Structure
+### Primary Objectives (DEPRECATED)
+
+1. ~~**Bootstrap Next.js 15 Project**~~ **DEPRECATED**
+2. ~~**Port Keeper Components**~~ **DEPRECATED (React components not needed)**
+3. **Integrate Quality Tools** - ESLint + Prettier + Husky + pre-commit (still valid)
+4. ~~**Establish Component Library**~~ **DEPRECATED (Jinja2 macros instead)**
+5. ~~**Configure CI/CD** - GitHub Actions for Next.js~~ **DEPRECATED**
+
+**Current Objectives:**
+- Convert HTML to Jinja2 templates
+- Replace JavaScript with Alpine.js
+- Use FastAPI templating (no separate frontend build)
+
+### Success Metrics (DEPRECATED)
+
+- ~~Next.js 15 project created with App Router~~ **DEPRECATED**
+- ~~17 keeper files successfully ported~~ **DEPRECATED**
+- ~~ESLint shows <20 issues (vs 201 in legacy)~~ **DEPRECATED**
+- Pre-commit hooks operational (still valid)
+- ~~CI/CD pipeline green~~ **DEPRECATED (FastAPI deployment)**
+- ~~Storybook integrated for component development~~ **DEPRECATED**
+
+---
+
+## Architecture (DEPRECATED - Next.js Approach)
+
+### Next.js 15 Project Structure (DEPRECATED)
 
 ```
 ninaivalaigal-next/
@@ -777,23 +798,29 @@ npx lighthouse http://localhost:3000 --view
 
 **Prepared By**: Cascade AI + Arunosaur
 **Date**: October 9, 2025
-**Status**: Awaiting Approval
+**Status**: ⚠️ **DEPRECATED** - Superseded by FastAPI templating approach (November 2, 2025)
 
-**Approvals Required**:
-- [ ] Technical Lead
-- [ ] Frontend Architect
-- [ ] DevOps Engineer
-- [ ] Project Manager
+**Approvals Required** (DEPRECATED):
+- ~~[ ] Technical Lead~~ **DEPRECATED**
+- ~~[ ] Frontend Architect~~ **DEPRECATED**
+- ~~[ ] DevOps Engineer~~ **DEPRECATED**
+- ~~[ ] Project Manager~~ **DEPRECATED**
 
-**Next Steps After Approval**:
-1. Verify SPEC-102 completion
-2. Create feature branch: `feature/spec-103-nextjs-bootstrap`
-3. Execute Phases 1-2 (Bootstrap + Config)
-4. Execute Phases 3-4 (Components + Storybook)
-5. Execute Phases 5-6 (Pages + CI/CD)
-6. Merge to main with tag: `spec-103-nextjs-complete`
-7. Proceed to SPEC-104
+**Next Steps After Approval** (DEPRECATED):
+1. ~~Verify SPEC-102 completion~~ **DEPRECATED**
+2. ~~Create feature branch: `feature/spec-103-nextjs-bootstrap`~~ **DEPRECATED**
+3. ~~Execute Phases 1-2 (Bootstrap + Config)~~ **DEPRECATED**
+4. ~~Execute Phases 3-4 (Components + Storybook)~~ **DEPRECATED**
+5. ~~Execute Phases 5-6 (Pages + CI/CD)~~ **DEPRECATED**
+6. ~~Merge to main with tag: `spec-103-nextjs-complete`~~ **DEPRECATED**
+7. ~~Proceed to SPEC-104~~ **DEPRECATED**
+
+**Current Next Steps:**
+- See `docs/FRONTEND_ARCHITECTURE_DECISION.md` for customer UI approach
+- See `docs/ADMIN_UI_FASTAPI_ANALYSIS.md` for admin UI approach
+- Use FastAPI + Jinja2 templates instead of Next.js
 
 ---
 
-*Last Updated: October 9, 2025*
+*Last Updated: November 2, 2025 (deprecated)*
+*Original: October 9, 2025*

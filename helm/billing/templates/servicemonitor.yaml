@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: Elastic-2.0
+# Copyright (c) 2025 Medhasys LLC
+#
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "billing.fullname" . }}
+  labels:
+    {{- include "billing.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "billing.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: metrics
+    interval: {{ .Values.serviceMonitor.interval }}
+    scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+    path: {{ .Values.prometheus.path | default "/metrics" }}
+{{- end }}

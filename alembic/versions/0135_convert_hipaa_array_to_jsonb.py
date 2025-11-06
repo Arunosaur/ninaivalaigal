@@ -29,7 +29,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0135_convert_hipaa_array_to_jsonb"
-down_revision = "0134_add_team_governance_status"
+down_revision = "0134_add_password_reset_columns"
 branch_labels = None
 depends_on = None
 

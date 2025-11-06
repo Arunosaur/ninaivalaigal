@@ -41,11 +41,24 @@ class RustMemoryProvider:
             await self.client.aclose()
 
     @staticmethod
-    def _build_headers(bearer_token: str | None) -> dict[str, str]:
-        # Always forward the caller-provided Authorization header to the Rust service.
-        if not bearer_token:
+    def _build_headers(bearer_token: str | None, required: bool = True) -> dict[str, str]:
+        """Build headers for Rust service requests.
+
+        Args:
+            bearer_token: Authorization token (optional for health_check)
+            required: Whether bearer_token is required (default True)
+
+        Returns:
+            Headers dict with Authorization if token provided or required
+
+        Raises:
+            MemoryProviderError: If bearer_token is required but not provided
+        """
+        if required and not bearer_token:
             raise MemoryProviderError("Authorization token required for Rust memory provider requests")
-        return {"Authorization": bearer_token}
+        if bearer_token:
+            return {"Authorization": bearer_token}
+        return {}
 
     @staticmethod
     def _map_memory(data: dict[str, Any]) -> MemoryItem:
@@ -151,6 +164,16 @@ class RustMemoryProvider:
         user_id: str | None = None,
         bearer_token: str | None = None,
     ) -> bool:
+        """Delete a memory item by ID.
+
+        Args:
+            id: Memory item ID to delete
+            user_id: Optional user ID (for multi-tenancy)
+            bearer_token: Authorization token
+
+        Returns:
+            True if deleted, False if not found
+        """
         response = await self.client.delete(
             f"/memory/memories/{id}",
             headers=self._build_headers(bearer_token),
@@ -169,6 +192,10 @@ class RustMemoryProvider:
         return False
 
     async def health_check(self) -> bool:
+        """Check if the Rust memory service is healthy.
+
+        Health check doesn't require authentication, so we don't use bearer_token.
+        """
         try:
             response = await self.client.get("/health")
             return response.status_code == 200

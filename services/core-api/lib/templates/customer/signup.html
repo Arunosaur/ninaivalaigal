@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Ninaivalaigal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .brand-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md px-6">
+        <div class="rounded-[28px] border border-white/10 p-[1px] bg-gradient-to-r from-indigo-500/20 to-purple-500/20">
+            <div class="rounded-[26px] bg-slate-950/60 p-10 shadow-[0_40px_60px_-45px_rgba(15,23,42,0.95)]">
+                <div class="mb-8 flex flex-col items-center text-center">
+                    <div class="brand-gradient flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg shadow-indigo-500/40">
+                        <span class="text-[1.45rem] font-semibold text-white" aria-hidden="true">நி</span>
+                    </div>
+                    <h1 class="mt-4 text-2xl font-semibold text-white">
+                        Ninaivalaigal <span lang="ta" class="ml-2 text-xl font-medium text-white/85">(நினைவலைகள்)</span>
+                    </h1>
+                    <p class="mt-2 text-sm font-medium text-slate-400">
+                        e<sup>M</sup> — Exponential Memory System
+                    </p>
+                </div>
+
+                <main id="main-content" class="space-y-6">
+                    <h2 class="text-center text-2xl font-semibold text-white">Create your workspace</h2>
+                    <p class="text-center text-sm text-slate-400">
+                        Unlock guided memory capture and institutional intelligence
+                    </p>
+
+                    {% if error %}
+                    <div id="signup-error" role="alert" aria-live="polite" class="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+
+                    {% if success %}
+                    <div id="signup-success" role="status" aria-live="polite" class="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                        {{ success }}
+                    </div>
+                    {% endif %}
+
+                    <form id="signup-form" class="mt-6 space-y-5" method="POST" action="/signup" aria-label="Signup form">
+                        <!-- Account Type Selector -->
+                        <fieldset class="space-y-2">
+                            <legend class="block text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                Account Type
+                            </legend>
+                            <div class="flex gap-3" role="radiogroup">
+                                <button
+                                    type="button"
+                                    id="account-type-individual"
+                                    onclick="setAccountType('individual')"
+                                    class="flex-1 rounded-xl px-4 py-3 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-indigo-500 text-white shadow-lg shadow-indigo-500/30"
+                                >
+                                    👤 Individual
+                                </button>
+                                <button
+                                    type="button"
+                                    id="account-type-organization"
+                                    onclick="setAccountType('organization')"
+                                    class="flex-1 rounded-xl px-4 py-3 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-800/50 text-slate-300 hover:bg-slate-800"
+                                >
+                                    🏢 Organization
+                                </button>
+                            </div>
+                        </fieldset>
+
+                        <input type="hidden" id="account-type" name="account_type" value="individual" />
+
+                        <!-- Common Fields -->
+                        <div class="space-y-2">
+                            <label for="signup-name" class="block text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                Your Name
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Jane Doe"
+                                id="signup-name"
+                                name="name"
+                                required
+                                class="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
+                                autoComplete="name"
+                                aria-label="Your full name"
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="signup-email" class="block text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                placeholder="you@example.com"
+                                id="signup-email"
+                                name="email"
+                                required
+                                class="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
+                                autoComplete="email"
+                                aria-label="Email address"
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="signup-password" class="block text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                placeholder="••••••••"
+                                id="signup-password"
+                                name="password"
+                                required
+                                class="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
+                                autoComplete="new-password"
+                                aria-label="Password"
+                            />
+                        </div>
+
+                        <!-- Organization Fields -->
+                        <div id="org-fields" class="hidden space-y-5">
+                            <div class="space-y-2">
+                                <label for="org-name" class="block text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                    Organization Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Acme Corporation"
+                                    id="org-name"
+                                    name="organization_name"
+                                    class="w-full rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            id="submit-btn"
+                            class="brand-gradient flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:shadow-indigo-600/45 disabled:cursor-not-allowed disabled:opacity-70 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                            aria-label="Create your account"
+                        >
+                            <span id="submit-text">Create Account</span>
+                            <span id="submit-loading" class="hidden">Creating...</span>
+                        </button>
+                    </form>
+
+                    <p class="text-center text-sm text-slate-400">
+                        Already have an account?{' '}
+                        <a
+                            href="/login"
+                            class="font-semibold text-slate-200 transition hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 rounded"
+                            aria-label="Log in to your account"
+                        >
+                            Log in
+                        </a>
+                    </p>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setAccountType(type) {
+            document.getElementById('account-type').value = type;
+            const orgFields = document.getElementById('org-fields');
+            const individualBtn = document.getElementById('account-type-individual');
+            const orgBtn = document.getElementById('account-type-organization');
+
+            if (type === 'organization') {
+                orgFields.classList.remove('hidden');
+                individualBtn.classList.remove('bg-indigo-500', 'text-white', 'shadow-lg', 'shadow-indigo-500/30');
+                individualBtn.classList.add('bg-slate-800/50', 'text-slate-300');
+                orgBtn.classList.add('bg-indigo-500', 'text-white', 'shadow-lg', 'shadow-indigo-500/30');
+                orgBtn.classList.remove('bg-slate-800/50', 'text-slate-300');
+            } else {
+                orgFields.classList.add('hidden');
+                individualBtn.classList.add('bg-indigo-500', 'text-white', 'shadow-lg', 'shadow-indigo-500/30');
+                individualBtn.classList.remove('bg-slate-800/50', 'text-slate-300');
+                orgBtn.classList.remove('bg-indigo-500', 'text-white', 'shadow-lg', 'shadow-indigo-500/30');
+                orgBtn.classList.add('bg-slate-800/50', 'text-slate-300');
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('signup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitLoading = document.getElementById('submit-loading');
+
+            submitBtn.disabled = true;
+            submitText.classList.add('hidden');
+            submitLoading.classList.remove('hidden');
+
+            const formData = new FormData(this);
+            const accountType = formData.get('account_type');
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+            };
+
+            if (accountType === 'organization') {
+                data.organization_name = formData.get('organization_name');
+            }
+
+            try {
+                const endpoint = accountType === 'organization' ? '/signup/organization' : '/signup/individual';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.token) {
+                    localStorage.setItem('customer_token', result.token);
+                    window.location.href = '/dashboard';
+                } else {
+                    alert(result.detail || 'Signup failed. Please try again.');
+                }
+            } catch (error) {
+                alert('Signup failed. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitText.classList.remove('hidden');
+                submitLoading.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

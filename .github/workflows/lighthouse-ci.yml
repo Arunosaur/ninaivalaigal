@@ -1,14 +1,19 @@
 name: Lighthouse CI
 
+# ⚠️ DEPRECATED: This workflow is disabled because frontend-nextjs has been archived
+# See: .archive/deprecated/frontend-nextjs-2025-01-31/
+# Active frontend: apps/customer/ (Vite + React Router)
+
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'frontend-nextjs/**'
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - 'frontend-nextjs/**'
+  workflow_dispatch:  # Manual trigger only - disabled for automatic runs
+  # push:
+  #   branches: [main, develop]
+  #   paths:
+  #     - 'frontend-nextjs/**'  # DEPRECATED - folder archived
+  # pull_request:
+  #   branches: [main, develop]
+  #   paths:
+  #     - 'frontend-nextjs/**'  # DEPRECATED - folder archived
   workflow_dispatch:
 
 jobs:

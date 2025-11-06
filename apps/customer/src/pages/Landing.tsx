@@ -180,11 +180,12 @@ export function Landing() {
         }
       />
 
-      <main style={{ paddingTop: navOffset }}>
+      <main id="main-content" style={{ paddingTop: navOffset }}>
         <section
           id="product"
           className="relative overflow-hidden bg-gradient-to-b from-[#05070f] via-[#0d1422] to-[#101a2c] text-gray-100"
           style={{ scrollMarginTop: sectionScrollMargin }}
+          aria-labelledby="product-heading"
         >
           <NeuralBackdrop />
           <MatrixRainSides variant="landing" speedMultiplier={0.32} densityMultiplier={1.1} />
@@ -192,14 +193,14 @@ export function Landing() {
             <div className="grid items-center gap-16 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="section-stack text-left">
                 <Badge pill text="Exponential Memory OS" />
-                <h1 className="text-display max-w-xl text-left leading-[1.05]">
+                <h1 id="product-heading" className="text-display max-w-xl text-left leading-[1.05]">
                   Capture knowledge once. Recall it forever.
                 </h1>
                 <p className="text-body max-w-xl text-left">
-                  Ninaivalaigal <span lang="ta" className="ml-1 font-medium text-white/85">(நினைவலைகள்)</span> orchestrates your organization's
+                  Ninaivalaigal <span lang="ta" className="ml-1 font-medium text-white">(நினைவலைகள்)</span> orchestrates your organization's
                   collective intelligence into an adaptive memory graph so teams stay aligned, insights surface faster, and context never slips.
                 </p>
-                <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-gray-200/80">
+                <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-gray-200">
                   <Badge pill text="★★★★★ Rated by knowledge-first teams" />
                   <Badge pill text="SOC 2 | HIPAA Ready" />
                 </div>
@@ -207,12 +208,14 @@ export function Landing() {
                   <Link
                     to="/signup"
                     className="brand-gradient inline-flex items-center justify-center rounded-full px-9 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/40 transition-transform duration-300 ease-[cubic-bezier(.4,0,.2,1)] hover:-translate-y-1 hover:shadow-indigo-600/55 focus-visible:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 active:translate-y-0 active:shadow-indigo-600/40 active:brightness-95"
+                    aria-label="Start your free trial of Ninaivalaigal"
                   >
                     Start Your Free Trial
                   </Link>
                   <Link
                     to="/login"
                     className="inline-flex items-center justify-center rounded-full border border-white/15 px-9 py-3 text-sm font-semibold text-gray-200 transition-transform duration-300 ease-[cubic-bezier(.4,0,.2,1)] hover:-translate-y-1 hover:border-white/30 hover:text-white focus-visible:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:text-white active:translate-y-0 active:border-white/25 active:brightness-95"
+                    aria-label="Explore live demo of Ninaivalaigal"
                   >
                     Explore Live Demo
                   </Link>
@@ -224,8 +227,8 @@ export function Landing() {
                 <div className="pointer-events-none absolute -bottom-20 right-0 h-72 w-72 rounded-full bg-indigo-500/25 blur-[120px]" />
                 <div className="glass-surface gradient-outline relative overflow-hidden rounded-[34px] border border-white/8 p-[1px] transition-transform duration-300 ease-[cubic-bezier(.4,0,.2,1)] will-change-transform hover:-translate-y-1 focus-within:-translate-y-1">
                   <div className="relative rounded-[32px] bg-slate-950/75 p-10 shadow-2xl">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-indigo-200/80">
-                      <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-indigo-200">
+                      <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
                       Memory Health Pulse
                     </div>
                     <div className="mt-8 grid gap-6 text-left sm:grid-cols-3">
@@ -380,7 +383,7 @@ export function Landing() {
                 From frontier research to scaled product organizations, Ninaivalaigal adapts to your ambition with hardened security, measurable velocity gains,
                 and a narrative of proof you can show to stakeholders.
               </p>
-              <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-gray-300/80">
+              <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-gray-300">
                 <Badge text="Life sciences" />
                 <Badge text="Aerospace" />
                 <Badge text="Frontier AI" />
@@ -446,7 +449,7 @@ export function Landing() {
                 </div>
 
                 <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.32em] text-indigo-100/80">The living equation</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.32em] text-indigo-100">The living equation</p>
                   <div className="mt-5 flex flex-wrap gap-4 text-[1.65rem] font-semibold md:text-[1.95rem]">
                     {EQUATION_STEPS.map((step, index) => {
                       const isActive = index === activeEquationIndex;
@@ -456,7 +459,7 @@ export function Landing() {
                           className={
                             isActive
                               ? 'text-white drop-shadow-[0_0_22px_rgba(165,180,252,0.55)] transition-colors duration-700 ease-[cubic-bezier(.4,0,.2,1)]'
-                              : 'text-white/35 transition-colors duration-700 ease-[cubic-bezier(.4,0,.2,1)]'
+                              : 'text-gray-400 transition-colors duration-700 ease-[cubic-bezier(.4,0,.2,1)]'
                           }
                         >
                           {step}
@@ -464,8 +467,8 @@ export function Landing() {
                       );
                     })}
                   </div>
-                  <p className="mt-5 text-[0.92rem] leading-relaxed text-gray-200/80">
-                    Metaphorical adaptation inspired by Einstein’s equation — a poetic framing of how intelligence emerges from memory and context.
+                  <p className="mt-5 text-[0.92rem] leading-relaxed text-gray-200">
+                    Metaphorical adaptation inspired by Einstein's equation — a poetic framing of how intelligence emerges from memory and context.
                   </p>
                 </div>
               </div>
@@ -509,7 +512,7 @@ export function Landing() {
               Build the memory infrastructure your future deserves
             </h2>
             <p className="text-body mx-auto max-w-2xl">
-              Partner with Ninaivalaigal <span lang="ta" className="ml-1 font-medium text-white/85">நினைவலைகள்</span> to transform how your teams capture,
+              Partner with Ninaivalaigal <span lang="ta" className="ml-1 font-medium text-white">நினைவலைகள்</span> to transform how your teams capture,
               synthesize, and operationalize insight. Deployment architects take you from pilot to enterprise scale in weeks, not quarters.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -526,7 +529,7 @@ export function Landing() {
                 Schedule a Strategy Lab -&gt;
               </Link>
             </div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400/80">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-300">
               SOC 2 | HIPAA Readiness | Enterprise SLA | Dedicated Customer Research Pods
             </p>
           </div>
@@ -534,18 +537,18 @@ export function Landing() {
       </main>
 
       <footer className="border-t border-white/5 bg-[#0b0f1d]">
-        <div className="layout-container section-padding grid gap-12 text-sm text-gray-400 lg:grid-cols-4">
+        <div className="layout-container section-padding grid gap-12 text-sm text-gray-300 lg:grid-cols-4">
           <div className="section-stack">
             <Link to="/" className="flex items-center gap-3" aria-label="Ninaivalaigal">
               <span className="brand-gradient inline-flex h-11 w-11 items-center justify-center rounded-2xl text-lg font-semibold text-white" aria-hidden="true">நி</span>
               <span className="text-base font-semibold text-gray-100">
-                Ninaivalaigal <span lang="ta" className="ml-1 font-medium text-gray-300/85">நினைவலைகள்</span>
+                Ninaivalaigal <span lang="ta" className="ml-1 font-medium text-gray-300">நினைவலைகள்</span>
               </span>
             </Link>
             <p className="text-body max-w-xs">
               AI-first memory operating system for institutions advancing science, product, and policy.
             </p>
-            <p className="text-xs text-gray-500">© {new Date().getFullYear()} Medhasys LLC. All rights reserved.</p>
+            <p className="text-xs text-gray-400">© {new Date().getFullYear()} Medhasys LLC. All rights reserved.</p>
           </div>
 
           <FooterColumn
@@ -593,9 +596,9 @@ function StatCard({ value, label, trend }: StatCardProps) {
       tabIndex={0}
       className="rounded-2xl border border-white/5 bg-slate-900/60 p-6 text-left transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] will-change-transform hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-indigo-500/10 focus-visible:-translate-y-1 focus-visible:border-indigo-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gray-400/90">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gray-300">{label}</p>
       <p className="mt-3 text-3xl font-semibold text-white sm:text-4xl">{value}</p>
-      <p className="mt-3 text-sm text-gray-400">{trend}</p>
+      <p className="mt-3 text-sm text-gray-300">{trend}</p>
     </article>
   );
 }
@@ -614,8 +617,8 @@ function FeatureCard({ eyebrow, icon, title, description, bulletPoints }: Featur
       tabIndex={0}
       className="section-stack rounded-3xl border border-white/8 bg-slate-950/70 p-8 text-left shadow-lg shadow-slate-900/40 transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] will-change-transform hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-indigo-500/10 focus-visible:-translate-y-1 focus-visible:border-indigo-500/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
     >
-      <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-indigo-200/80">
-        <span className="text-lg">{icon}</span>
+      <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-indigo-200">
+        <span className="text-lg" aria-hidden="true">{icon}</span>
         {eyebrow}
       </div>
       <h3 className="text-xl font-semibold text-white">{title}</h3>
@@ -645,7 +648,7 @@ function ProofPoint({ headline, subheading, body }: ProofPointProps) {
       className="rounded-3xl border border-white/8 bg-slate-950/70 p-6 shadow-lg shadow-slate-900/30 transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] will-change-transform hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-indigo-500/10 focus-visible:-translate-y-1 focus-visible:border-indigo-500/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
     >
       <p className="text-3xl font-semibold text-white">{headline}</p>
-      <p className="mt-2 text-xs font-semibold uppercase tracking-[0.26em] text-indigo-200/80">{subheading}</p>
+      <p className="mt-2 text-xs font-semibold uppercase tracking-[0.26em] text-indigo-200">{subheading}</p>
       <p className="mt-3 text-sm text-gray-300">{body}</p>
     </article>
   );
@@ -657,7 +660,7 @@ function EquationStoryCard({ keyword, equation, description }: EquationStory) {
       tabIndex={0}
       className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-950/70 p-8 text-left shadow-lg shadow-cyan-500/10 transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_bottom,_rgba(14,165,233,0.12),_transparent_65%)] hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-cyan-400/20 focus-visible:-translate-y-1 focus-visible:border-cyan-300/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.26em] text-cyan-200/80">{keyword}</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.26em] text-cyan-200">{keyword}</p>
       <h3 className="mt-3 text-lg font-semibold text-white">{equation}</h3>
       <p className="mt-4 text-sm leading-relaxed text-gray-300">{description}</p>
     </article>
@@ -676,7 +679,7 @@ function FlowStep({ step, headline, body }: FlowStepProps) {
       tabIndex={0}
       className="section-stack rounded-3xl border border-white/10 bg-slate-950/70 p-8 text-left shadow-lg shadow-slate-900/35 transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] will-change-transform hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-indigo-500/10 focus-visible:-translate-y-1 focus-visible:border-indigo-500/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
     >
-      <span className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200/80">{step}</span>
+      <span className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200">{step}</span>
       <h4 className="text-lg font-semibold text-white">{headline}</h4>
       <p className="text-sm text-gray-300">{body}</p>
     </article>
@@ -705,8 +708,8 @@ interface FooterColumnProps {
 function FooterColumn({ title, links }: FooterColumnProps) {
   return (
     <div className="section-stack">
-      <h5 className="text-xs font-semibold uppercase tracking-[0.26em] text-gray-300/80">{title}</h5>
-      <ul className="space-y-3 text-gray-400">
+      <h5 className="text-xs font-semibold uppercase tracking-[0.26em] text-gray-300">{title}</h5>
+      <ul className="space-y-3 text-gray-300">
         {links.map((link) => (
           <li key={link.label}>
             <a className="transition hover:text-white/85" href={link.href}>
@@ -727,7 +730,7 @@ interface BadgeProps {
 function Badge({ text, pill = false }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center justify-center border border-white/10 bg-white/5 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-gray-300/80 ${
+      className={`inline-flex items-center justify-center border border-white/10 bg-white/5 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-gray-300 ${
         pill ? 'rounded-full' : 'rounded-xl'
       }`}
     >

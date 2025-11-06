@@ -4,6 +4,8 @@
 
 This specification defines the Continuous Integration and Continuous Deployment (CI/CD) pipeline architecture for ninaivalaigal, providing automated testing, building, and deployment workflows with multi-architecture support and comprehensive quality gates.
 
+> **Historical Note:** SPEC-124 (Turborepo monorepo orchestration) was deprecated in November 2025 after the FastAPI migration. All CI/CD, caching, and workflow automation is now covered under SPEC-016. The original Turborepo approach was designed for Next.js frontend apps, which are no longer part of the architecture.
+
 ## Motivation
 
 - **Automated Quality Assurance**: Comprehensive testing on every code change

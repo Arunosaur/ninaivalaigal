@@ -14,6 +14,11 @@ Provides comprehensive health analysis and reporting capabilities.
 
 Note: This implementation is SPEC-098: Memory Health & Orphaned Tokens (Complete).
 SPEC-048 is "Memory Intent Classifier" (Planned, different feature).
+
+⚠️  NOTE: Basic health endpoint available in Rust Memory Service
+⚠️  Rust Endpoint: http://localhost:13393/health
+⚠️  This Python router provides additional health analysis features (SPEC-098)
+⚠️  See: tasks/active/US_93_95_PYTHON_DEPRECATION_PLAN.md
 """
 
 from datetime import datetime

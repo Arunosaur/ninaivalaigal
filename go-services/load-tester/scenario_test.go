@@ -71,8 +71,14 @@ func TestRunScenarioWithInvalidJSON(t *testing.T) {
 	tmpDir := t.TempDir()
 	scenarioFile := filepath.Join(tmpDir, "invalid.json")
 
-	os.WriteFile(scenarioFile, []byte("invalid json"), 0644)
-	defer os.Remove(scenarioFile)
+	if err := os.WriteFile(scenarioFile, []byte("invalid json"), 0644); err != nil {
+		t.Fatalf("Failed to write scenario file: %v", err)
+	}
+	defer func() {
+		if err := os.Remove(scenarioFile); err != nil {
+			t.Logf("Failed to remove scenario file: %v", err)
+		}
+	}()
 
 	// Should return error for invalid JSON
 	err := runScenario(ctx, scenarioFile)

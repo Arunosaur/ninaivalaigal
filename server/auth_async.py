@@ -20,6 +20,8 @@ import bcrypt
 import jwt
 from database.simple_operations import SimpleDatabaseOperations
 
+from server.config import load_config
+
 logger = logging.getLogger(__name__)
 
 # JWT Configuration
@@ -56,8 +58,6 @@ async def authenticate_user_async(email: str, password: str) -> Optional[Dict[st
             """Synchronous authentication logic"""
             try:
                 # Use the working SimpleDatabaseOperations
-                from config import load_config
-
                 database_url = load_config()
                 db = SimpleDatabaseOperations(database_url)
 
@@ -118,7 +118,6 @@ def authenticate_user_sync(email: str, password: str) -> Optional[Dict[str, Any]
     This is the working version we tested earlier
     """
     try:
-        from config import load_config
 
         database_url = load_config()
         db = SimpleDatabaseOperations(database_url)
@@ -174,8 +173,6 @@ async def create_user_async(
 
         def _sync_create():
             try:
-                from config import load_config
-
                 database_url = load_config()
                 db = SimpleDatabaseOperations(database_url)
 

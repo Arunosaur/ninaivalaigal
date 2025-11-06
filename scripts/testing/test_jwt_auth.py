@@ -17,11 +17,15 @@ import sys
 sys.path.append("/Users/asrajag/Workspace/mem0/server")
 
 # Set environment variables for testing
+# pragma: allowlist secret
 os.environ["NINAIVALAIGAL_USER_TOKEN"] = (
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo4LCJlbWFpbCI6ImR1cmFpQGV4YW1wbGUuY29tIiwiYWNjb3VudF90eXBlIjoiaW5kaXZpZHVhbCIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzU3ODc5NjI5fQ.FQulmDLPK2WaBLuW-NIZ5TsKutnqP4E7iMKigVKoWaI"
 )
 os.environ["NINAIVALAIGAL_USER_ID"] = "8"
-os.environ["NINAIVALAIGAL_DATABASE_URL"] = "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"
+# pragma: allowlist secret
+os.environ["NINAIVALAIGAL_DATABASE_URL"] = (
+    "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"
+)
 
 from database import DatabaseManager  # noqa: E402
 
@@ -48,9 +52,20 @@ async def test_jwt_authentication():
     print("\n3. Testing create_context directly...")
     config = load_config()
     if isinstance(config, dict):
-        database_url = config.get("database_url", "sqlite:///./mem0.db")
+        database_url = (
+            config.get("database_url") or os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL")
+        )
     else:
-        database_url = "postgresql://mem0user:mem0pass@localhost:5432/mem0db"
+        database_url = config or os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL")
+
+    if not database_url:
+        # Build from environment variables as last resort
+        host = os.getenv("PGBOUNCER_HOST") or os.getenv("POSTGRES_HOST", "localhost")
+        user = os.getenv("NINA_DB_USER") or os.getenv("POSTGRES_USER", "nina")
+        password = os.getenv("NINA_DB_PASSWORD") or os.getenv("POSTGRES_PASSWORD", "dev_password_change_in_production")
+        db_name = os.getenv("NINA_DB_NAME") or os.getenv("POSTGRES_DB", "ninaivalaigal_dev")
+        port = os.getenv("PGBOUNCER_PORT") or os.getenv("PGBOUNCER_TX_PORT", "6432")
+        database_url = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
     db = DatabaseManager(database_url)
 
     # Call create_context directly with user_id

@@ -30,7 +30,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0135_add_team_lead_user"
-down_revision = "0134_add_team_governance_status"
+down_revision = "0134_add_password_reset_columns"
 branch_labels = None
 depends_on = None
 

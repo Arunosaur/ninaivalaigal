@@ -156,22 +156,26 @@ export default function TeamCreate() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Navigation variant="dark" className="sticky top-0 z-10" />
-      <main className="container mx-auto px-6 py-8">
+      <main id="main-content" className="container mx-auto px-6 py-8">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <Link to="/teams" className="text-indigo-400 hover:text-indigo-300 mb-4 inline-block">
+          <header className="text-center mb-8">
+            <Link
+              to="/teams"
+              className="text-indigo-400 hover:text-indigo-300 mb-4 inline-block focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+              aria-label="Go back to teams list"
+            >
               ← Back to Teams
             </Link>
             <h1 className="text-3xl font-bold text-white mb-2">Create Your Team</h1>
             <p className="text-slate-400">Set up your team in 3 simple steps</p>
-          </div>
+          </header>
 
           {/* Progress Indicator */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
+          <nav aria-label="Team creation progress" className="mb-8">
+            <div className="flex items-center justify-between" role="list">
               {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center flex-1">
+                <div key={step} className="flex items-center flex-1" role="listitem">
                   <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
                       step === currentStep
@@ -180,6 +184,8 @@ export default function TeamCreate() {
                           ? 'bg-green-500 border-green-500 text-white'
                           : 'bg-slate-700 border-slate-600 text-slate-400'
                     }`}
+                    aria-label={`Step ${step}: ${step === 1 ? 'Team Info' : step === 2 ? 'Invite Members' : 'Review'}`}
+                    aria-current={step === currentStep ? 'step' : undefined}
                   >
                     {step < currentStep ? '✓' : step}
                   </div>
@@ -198,19 +204,19 @@ export default function TeamCreate() {
               <span>Invite Members</span>
               <span>Review</span>
             </div>
-          </div>
+          </nav>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/40 text-red-200 rounded-lg">
+            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/40 text-red-200 rounded-lg" role="alert" aria-live="polite">
               {error}
             </div>
           )}
 
           {/* Step 1: Team Information */}
           {currentStep === 1 && (
-            <div className="glass-surface rounded-2xl p-6 space-y-6">
-              <h2 className="text-xl font-semibold text-white">Team Information</h2>
+            <section className="glass-surface rounded-2xl p-6 space-y-6" aria-labelledby="step1-heading">
+              <h2 id="step1-heading" className="text-xl font-semibold text-white">Team Information</h2>
 
               <div>
                 <label htmlFor="teamName" className="block text-sm font-medium text-slate-300 mb-2">
@@ -221,13 +227,17 @@ export default function TeamCreate() {
                   id="teamName"
                   value={teamData.name}
                   onChange={(e) => setTeamData({ ...teamData, name: e.target.value })}
-                  className="w-full bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
                   placeholder="Enter team name"
                   required
+                  aria-required="true"
                   minLength={2}
                   maxLength={100}
+                  aria-describedby="team-name-help"
                 />
-                <p className="mt-1 text-sm text-slate-400">{teamData.name.length}/100 characters</p>
+                <p id="team-name-help" className="mt-1 text-sm text-slate-400" role="status" aria-live="polite">
+                  {teamData.name.length}/100 characters
+                </p>
               </div>
 
               <div>
@@ -241,12 +251,13 @@ export default function TeamCreate() {
                   id="teamDescription"
                   value={teamData.description}
                   onChange={(e) => setTeamData({ ...teamData, description: e.target.value })}
-                  className="w-full bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
                   placeholder="Describe your team's purpose..."
                   rows={4}
                   maxLength={500}
+                  aria-describedby="team-description-help"
                 />
-                <p className="mt-1 text-sm text-slate-400">
+                <p id="team-description-help" className="mt-1 text-sm text-slate-400" role="status" aria-live="polite">
                   {teamData.description.length}/500 characters
                 </p>
               </div>
@@ -265,35 +276,42 @@ export default function TeamCreate() {
                   onChange={(e) =>
                     setTeamData({ ...teamData, max_members: parseInt(e.target.value) || 10 })
                   }
-                  className="w-full bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
                   min={2}
                   max={50}
+                  aria-describedby="max-members-help"
                 />
-                <p className="mt-1 text-sm text-slate-400">Between 2 and 50 members</p>
+                <p id="max-members-help" className="mt-1 text-sm text-slate-400">Between 2 and 50 members</p>
               </div>
-            </div>
+            </section>
           )}
 
           {/* Step 2: Invite Members */}
           {currentStep === 2 && (
-            <div className="glass-surface rounded-2xl p-6 space-y-6">
-              <h2 className="text-xl font-semibold text-white">Invite Team Members</h2>
+            <section className="glass-surface rounded-2xl p-6 space-y-6" aria-labelledby="step2-heading">
+              <h2 id="step2-heading" className="text-xl font-semibold text-white">Invite Team Members</h2>
               <p className="text-slate-400">
                 You can invite members now or later from the team dashboard.
               </p>
 
               <div className="flex gap-2">
+                <label htmlFor="invite-email" className="sr-only">Email address</label>
                 <input
+                  id="invite-email"
                   type="email"
                   value={newInviteEmail}
                   onChange={(e) => setNewInviteEmail(e.target.value)}
-                  className="flex-1 bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none"
+                  className="flex-1 bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
                   placeholder="Enter email address"
+                  aria-label="Email address for team member invitation"
                 />
+                <label htmlFor="invite-role" className="sr-only">Member role</label>
                 <select
+                  id="invite-role"
                   value={newInviteRole}
                   onChange={(e) => setNewInviteRole(e.target.value as TeamInvite['role'])}
-                  className="bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none"
+                  className="bg-slate-900 text-white rounded-lg px-4 py-2 border border-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  aria-label="Select member role"
                 >
                   <option value="admin">Admin</option>
                   <option value="contributor">Contributor</option>
@@ -301,7 +319,8 @@ export default function TeamCreate() {
                 </select>
                 <button
                   onClick={addInvite}
-                  className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition"
+                  className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  aria-label="Add team member invitation"
                 >
                   Add
                 </button>
@@ -310,34 +329,38 @@ export default function TeamCreate() {
               {invites.length > 0 && (
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium text-slate-300">Invitations ({invites.length})</h3>
-                  {invites.map((invite, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50"
-                    >
-                      <div>
-                        <span className="font-medium text-white">{invite.email}</span>
-                        <span className="ml-2 text-sm text-slate-400 capitalize">
-                          ({invite.role})
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => removeInvite(invite.email)}
-                        className="text-red-400 hover:text-red-300"
+                  <ul className="space-y-2" role="list">
+                    {invites.map((invite, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50"
+                        role="listitem"
                       >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
+                        <div>
+                          <span className="font-medium text-white">{invite.email}</span>
+                          <span className="ml-2 text-sm text-slate-400 capitalize" aria-label={`Role: ${invite.role}`}>
+                            ({invite.role})
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => removeInvite(invite.email)}
+                          className="text-red-400 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 rounded"
+                          aria-label={`Remove invitation for ${invite.email}`}
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
-            </div>
+            </section>
           )}
 
           {/* Step 3: Review */}
           {currentStep === 3 && (
-            <div className="glass-surface rounded-2xl p-6 space-y-6">
-              <h2 className="text-xl font-semibold text-white">Review Your Team</h2>
+            <section className="glass-surface rounded-2xl p-6 space-y-6" aria-labelledby="step3-heading">
+              <h2 id="step3-heading" className="text-xl font-semibold text-white">Review Your Team</h2>
 
               <div className="space-y-4">
                 <div>
@@ -376,12 +399,13 @@ export default function TeamCreate() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="mt-8 flex justify-between">
+          <nav className="mt-8 flex justify-between" aria-label="Team creation navigation">
             <div>
               {currentStep > 1 && (
                 <button
                   onClick={handleBack}
-                  className="px-6 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800 transition"
+                  className="px-6 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  aria-label="Go back to previous step"
                 >
                   Back
                 </button>
@@ -390,14 +414,16 @@ export default function TeamCreate() {
             <div className="flex gap-4">
               <Link
                 to="/dashboard"
-                className="px-6 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800 transition"
+                className="px-6 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                aria-label="Cancel team creation and return to dashboard"
               >
                 Cancel
               </Link>
               {currentStep < 3 ? (
                 <button
                   onClick={handleNext}
-                  className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition"
+                  className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  aria-label="Continue to next step"
                 >
                   Next
                 </button>
@@ -405,13 +431,15 @@ export default function TeamCreate() {
                 <button
                   onClick={handleCreateTeam}
                   disabled={loading}
-                  className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  aria-label={loading ? 'Creating team, please wait' : 'Create team'}
+                  aria-busy={loading}
                 >
                   {loading ? 'Creating...' : 'Create Team'}
                 </button>
               )}
             </div>
-          </div>
+          </nav>
         </div>
 
         {toast && (

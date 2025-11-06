@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ninaivalaigal Admin Console - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for admin login */
+        body {
+            background: linear-gradient(to bottom right, #111827, #1f2937, #111827);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+        <div class="max-w-md w-full">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-2">Ninaivalaigal Admin Console</h1>
+                    <p class="text-gray-400">Platform Operations & Analytics</p>
+                </div>
+
+                {% if error %}
+                <div id="error-message" class="bg-red-900/20 border border-red-700 rounded-lg p-3 mb-4">
+                    <p class="text-red-400 text-sm">{{ error }}</p>
+                </div>
+                {% endif %}
+
+                <form id="login-form" method="POST" action="/admin/login" class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
+                            Admin Email
+                        </label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="admin@ninaivalaigal.com"
+                        />
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-300 mb-2">
+                            Password
+                        </label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="••••••••"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="submit-btn"
+                        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-lg hover:shadow-xl"
+                    >
+                        <span id="submit-text">Sign In to Admin Console</span>
+                        <span id="submit-loading" class="hidden">Signing in...</span>
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center text-sm text-gray-400">
+                    <p>Authorized personnel only</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle form submission
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitLoading = document.getElementById('submit-loading');
+            const errorMessage = document.getElementById('error-message');
+
+            // Disable form
+            submitBtn.disabled = true;
+            submitText.classList.add('hidden');
+            submitLoading.classList.remove('hidden');
+
+            // Hide previous error
+            if (errorMessage) {
+                errorMessage.style.display = 'none';
+            }
+
+            const formData = new FormData(this);
+            const email = formData.get('email');
+            const password = formData.get('password');
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    // Store token
+                    localStorage.setItem('admin_token', data.access_token);
+                    // Redirect to analytics dashboard
+                    window.location.href = '/admin/analytics';
+                } else {
+                    // Show error
+                    const errorDiv = document.createElement('div');
+                    errorDiv.id = 'error-message';
+                    errorDiv.className = 'bg-red-900/20 border border-red-700 rounded-lg p-3 mb-4';
+                    errorDiv.innerHTML = `<p class="text-red-400 text-sm">${data.detail || 'Login failed. Please check your credentials.'}</p>`;
+
+                    const form = document.getElementById('login-form');
+                    form.parentNode.insertBefore(errorDiv, form);
+                }
+            } catch (error) {
+                // Show error
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'error-message';
+                errorDiv.className = 'bg-red-900/20 border border-red-700 rounded-lg p-3 mb-4';
+                errorDiv.innerHTML = '<p class="text-red-400 text-sm">Login failed. Please check your credentials.</p>';
+
+                const form = document.getElementById('login-form');
+                form.parentNode.insertBefore(errorDiv, form);
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitText.classList.remove('hidden');
+                submitLoading.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

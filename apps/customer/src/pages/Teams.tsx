@@ -203,46 +203,49 @@ export default function Teams() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Navigation variant="dark" className="sticky top-0 z-10" />
       <main className="container mx-auto px-6 py-8">
-        <div className="mb-8 flex justify-between items-center">
+        <header className="mb-8 flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold text-white mb-2">Teams</h2>
+            <h1 className="text-3xl font-bold text-white mb-2">Teams</h1>
             <p className="text-slate-400">Collaborate with your teammates</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium transition"
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+            aria-label="Create a new team"
           >
             + Create Team
           </button>
-        </div>
+        </header>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/40 text-red-200 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-500/10 border border-red-500/40 text-red-200 px-4 py-3 rounded-lg mb-6" role="alert" aria-live="polite">
             {error}
           </div>
         )}
 
         <div className="grid grid-cols-12 gap-6">
           {/* Teams List */}
-          <div className="col-span-4">
+          <aside className="col-span-4" aria-label="Teams list">
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-              <h3 className="text-xl font-semibold text-white mb-4">Your Teams</h3>
+              <h2 className="text-xl font-semibold text-white mb-4">Your Teams</h2>
               {teams.length === 0 ? (
-                <p className="text-slate-400 text-sm">
+                <p className="text-slate-400 text-sm" role="status">
                   No teams yet. Create your first team to get started!
                 </p>
               ) : (
-                <div className="space-y-3">
+                <ul className="space-y-3" role="list">
                   {teams.map((team) => (
-                    <button
-                      key={team.id}
-                      onClick={() => selectTeam(team)}
-                      className={`w-full text-left p-4 rounded-lg transition ${
-                        selectedTeam?.id === team.id
-                          ? 'bg-indigo-500/20 border border-indigo-500/50'
-                          : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50'
-                      }`}
-                    >
+                    <li key={team.id} role="listitem">
+                      <button
+                        onClick={() => selectTeam(team)}
+                        className={`w-full text-left p-4 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+                          selectedTeam?.id === team.id
+                            ? 'bg-indigo-500/20 border border-indigo-500/50'
+                            : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50'
+                        }`}
+                        aria-label={`Select team ${team.name}`}
+                        aria-pressed={selectedTeam?.id === team.id}
+                      >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="text-white font-medium">{team.name}</h4>
@@ -277,20 +280,21 @@ export default function Teams() {
                           )}
                         </div>
                       </div>
-                    </button>
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </div>
-          </div>
+          </aside>
 
           {/* Team Details & Members */}
-          <div className="col-span-8">
+          <section className="col-span-8" aria-label="Team details">
             {selectedTeam ? (
               <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-                <div className="flex justify-between items-start mb-6">
+                <header className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-2xl font-bold text-white mb-2">{selectedTeam.name}</h3>
+                    <h2 className="text-2xl font-bold text-white mb-2">{selectedTeam.name}</h2>
                     {selectedTeam.description && (
                       <p className="text-slate-400">{selectedTeam.description}</p>
                     )}
@@ -324,22 +328,24 @@ export default function Teams() {
                     )}
                     <button
                       onClick={() => setShowInviteModal(true)}
-                      className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition text-sm"
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                      aria-label="Invite a new member to this team"
                     >
                       + Invite Member
                     </button>
                   </div>
-                </div>
+                </header>
 
                 {/* Pending Invitations */}
                 {invitations.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="text-lg font-semibold text-white mb-4">Pending Invitations</h4>
-                    <div className="space-y-3">
+                  <section className="mt-6" aria-labelledby="pending-invitations-heading">
+                    <h3 id="pending-invitations-heading" className="text-lg font-semibold text-white mb-4">Pending Invitations</h3>
+                    <ul className="space-y-3" role="list">
                       {invitations.map((invitation) => (
-                        <div
+                        <li
                           key={invitation.id}
                           className="flex items-center justify-between p-4 bg-amber-900/10 rounded-lg border border-amber-700/30"
+                          role="listitem"
                         >
                           <div>
                             <h5 className="text-white font-medium">{invitation.email}</h5>
@@ -353,28 +359,32 @@ export default function Teams() {
                             </span>
                             <button
                               onClick={() => cancelInvitation(invitation.id)}
-                              className="text-red-400 hover:text-red-300 text-sm"
+                              className="text-red-400 hover:text-red-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 rounded"
+                              aria-label={`Cancel invitation for ${invitation.email}`}
                             >
                               Cancel
                             </button>
                           </div>
-                        </div>
+                        </li>
                       ))}
-                    </div>
-                  </div>
+                    </ul>
+                  </section>
                 )}
 
                 {/* Members List */}
-                <div className="mt-6">
-                  <h4 className="text-lg font-semibold text-white mb-4">Team Members</h4>
-                  <div className="space-y-3">
+                <section className="mt-6" aria-labelledby="team-members-heading">
+                  <h3 id="team-members-heading" className="text-lg font-semibold text-white mb-4">Team Members</h3>
+                  <ul className="space-y-3" role="list">
                     {members.length === 0 ? (
-                      <p className="text-slate-400 text-sm">No members yet</p>
+                      <li role="listitem">
+                        <p className="text-slate-400 text-sm" role="status">No members yet</p>
+                      </li>
                     ) : (
                       members.map((member) => (
-                      <div
+                      <li
                         key={member.id}
                         className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700/50"
+                        role="listitem"
                       >
                         <div>
                           <h5 className="text-white font-medium">{member.user_name}</h5>

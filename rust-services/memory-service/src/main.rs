@@ -1,6 +1,8 @@
+mod api;
 mod auth;
 mod cache;
 mod models;
+mod services;
 mod storage;
 mod telemetry;
 
@@ -102,11 +104,27 @@ async fn main() {
         .expect("PORT must be a valid u16");
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
+    // Injection API routes (US#93/US#95: Memory Router Rationalization)
+    let injection_routes = Router::new()
+        .route("/memory/injection/analyze", post(api::injection::analyze_injection_opportunities))
+        .route("/memory/injection/execute", post(api::injection::execute_memory_injection))
+        .route("/memory/injection/bulk", post(api::injection::bulk_inject_memories));
+
+    // Queue API routes (US#93/US#95: Memory Router Rationalization)
+    let queue_routes = Router::new()
+        .route("/queue/tasks", post(api::queue::enqueue_task))
+        .route("/queue/jobs/:job_id", get(api::queue::get_job_status))
+        .route("/queue/stats", get(api::queue::get_queue_stats))
+        .route("/queue/memory/:memory_id/process", post(api::queue::process_memory_async))
+        .route("/queue/health", get(api::queue::queue_health));
+
     let protected = Router::new()
         .route("/memory/remember", post(remember))
         .route("/memory/recall", post(recall))
         .route("/memory/memories", get(list_memories))
         .route("/memory/memories/:id", delete(delete_memory))
+        .merge(injection_routes)
+        .merge(queue_routes)
         .layer(middleware::from_fn_with_state(
             Arc::clone(&state),
             require_jwt,

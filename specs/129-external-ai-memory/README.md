@@ -1,9 +1,20 @@
+# SPEC-129: External AI Memory API Integration
+
+**Status:** 📋 Planned  
+**Priority:** High  
+**Owner:** Architecture / Platform  
+**Version:** 0.1 (Draft)  
+**Last Updated:** January 2025
+
+**Note:** This SPEC was renumbered from SPEC-085 to SPEC-129.
+
 ---
-{}
+
+## 🎯 Objective
+
+Enable Ninaivalaigal to integrate with **external AI vendor memory APIs** (Claude Memory Tool, OpenAI Threads, GitHub Copilot memory, etc.) while ensuring Nina remains the **authoritative source of truth** for enterprise memory.
+
 ---
-
-
-
 
 ## 🔑 Scope
 
@@ -203,9 +214,72 @@ async def query_federated_memories(
 
 ---
 
-**Related SPECs:**
-- SPEC-012: Memory Substrate
-- SPEC-020: Memory Provider Architecture
-- SPEC-060/061: Graph Intelligence
-- SPEC-080: Trust Score System
-- SPEC-082: Narrative Analytics
+## 17. Implementation Status
+
+**Status:** ⚠️ **Not Implemented** (0% implemented)
+
+**Last Updated:** January 2025
+
+### Current Status
+
+**Not Implemented:**
+- ❌ **Adapter Layer** - No `ExternalMemoryAdapter` base class or vendor adapters
+- ❌ **Federation** - No federated query function or origin tagging
+- ❌ **Governance & Security** - No RBAC/security middleware for vendor memory
+- ❌ **Admin & Transparency** - No admin UI or origin tracking in logs/analytics
+- ❌ **Security Infrastructure** - No API key management or rate limiting for vendors
+
+**Dependencies Status:**
+- ✅ **SPEC-012**: Memory Substrate - Complete - Ready
+- ✅ **SPEC-020**: Memory Provider Architecture - Complete - Ready
+- ✅ **SPEC-060/061**: Graph Intelligence & Reasoning - Complete - Ready
+- ⚠️ **SPEC-080**: Trust Score System - **Planned** - Not blocking (can implement basic trust scoring)
+- ⚠️ **SPEC-082**: Narrative Analytics Layer - **Planned** - Not blocking (can use SPEC-030 for basic analytics)
+- ✅ **SPEC-009**: RBAC Policy Enforcement - Complete - Ready
+- ✅ **SPEC-008**: Security Middleware - Complete - Ready
+- ✅ **SPEC-011**: Data Lifecycle Management - Complete - Ready
+- ✅ **SPEC-054**: Secret Management - Complete - Ready
+
+**Note:** Basic AI integration code exists (`ai_integrations.py`) but is for general AI tool usage (queries/responses), not memory federation. SPEC-129 requires fetching memories from external vendor APIs and federating them with Nina memories.
+
+**Dependency Assessment:**
+- **SPEC-080 (Trust Score)**: Planned, not implemented. Can proceed with basic trust scoring (0.0-1.0) for vendors without full SPEC-080 implementation.
+- **SPEC-082 (Narrative Analytics)**: Planned, not implemented. Can use SPEC-030 (Admin Analytics Console) for basic origin tracking until SPEC-082 is available.
+
+---
+
+## 18. Implementation Stories
+
+**Status**: ✅ **Stories Created** (January 2025)
+
+The following Taiga stories have been created to implement SPEC-129:
+
+**Phase 1: Adapter Layer (3 weeks, HIGH)**
+- **US#851**: SPEC-129 Phase 1: Adapter Layer (Claude + OpenAI) (unassigned)
+  - `ExternalMemoryAdapter` base class, Claude adapter, OpenAI adapter, normalization
+
+**Phase 2: Federation & Origin Tagging (2 weeks, HIGH)**
+- **US#852**: SPEC-129 Phase 2: Federation & Origin Tagging (unassigned)
+  - Federated query function, origin tagging, Graph Intelligence integration, trust-based ranking
+
+**Phase 3: Governance & Admin UI (3 weeks, MEDIUM)**
+- **US#853**: SPEC-129 Phase 3: Governance & Admin UI (unassigned)
+  - RBAC application, security middleware, trust scores, admin UI toggles, analytics updates
+
+**Phase 4: Security Infrastructure & Expansion (2 weeks, MEDIUM)**
+- **US#854**: SPEC-129 Phase 4: Security Infrastructure & Expansion (unassigned)
+  - API key management, rate limiting, audit trail, GitHub Copilot adapter
+
+All stories are tagged with `spec-129` and are unassigned (can be picked up by any developer).
+
+**Total Estimated Effort:** 10 weeks (50 story points)
+
+**Status**: ✅ Created successfully (January 2025)
+
+---
+
+**Next Steps:**
+1. ✅ Complete SPEC README document (done)
+2. ✅ Verify dependencies (done - SPEC-080 and SPEC-082 are Planned, not blocking)
+3. 📝 Create stories for implementation phases
+4. 📋 Begin Phase 1 implementation (adapters)

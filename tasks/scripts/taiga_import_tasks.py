@@ -271,6 +271,58 @@ class TaigaImporter:
         """
         return self.update_user_story(story_id, version, {"assigned_to": assigned_to_id})
 
+    def create_user_story(
+        self,
+        project_id: int,
+        subject: str,
+        description: str = "",
+        priority: str = "Normal",
+        tags: List[str] = None,
+        story_points: int = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a new user story.
+
+        Args:
+            project_id: Project ID
+            subject: Story subject/title
+            description: Story description
+            priority: Priority level (Low/Normal/High)
+            tags: List of tags
+            story_points: Story points
+
+        Returns:
+            Created story dict or None if failed
+        """
+        url = f"{self.base_url}/userstories"
+        headers = self._get_headers()
+
+        # Map priority to ID
+        priority_map = {"Low": 1, "Normal": 2, "High": 3}
+        priority_id = priority_map.get(priority, 2)
+
+        payload = {
+            "project": project_id,
+            "subject": subject,
+            "description": description,
+            "priority": priority_id,
+            "tags": tags or [],
+            "status": 1,  # New status
+        }
+
+        # Add story points if provided
+        if story_points:
+            # Map story points to Taiga points ID
+            points_map = {1: 1, 2: 2, 3: 3, 5: 4, 8: 5, 13: 6, 21: 7}
+            points_id = points_map.get(story_points, 2)
+            payload["role_points"] = [{"role_id": 1, "points_id": points_id}]
+
+        response = self._session.post(url, headers=headers, json=payload)
+        if response.status_code == 201:
+            return response.json()
+        else:
+            raise Exception(f"Failed to create user story: {response.status_code} - {response.text}")
+
 
 if __name__ == "__main__":
     # Example usage

@@ -6,9 +6,9 @@
 
 
 # SPEC-108: Image Backup & Disaster Recovery (Enhanced)
-**Status:** Complete (Enhanced Oct 11, 2025)
+**Status:** ⚠️ **In Progress** (Specification Complete, Implementation Pending)
 **Owner:** Platform SRE
-**Last Updated:** 2025-10-11
+**Last Updated:** November 4, 2025 (status corrected - implementation incomplete)
 
 > **Scope:** Automate comprehensive backups of all `ninaivalaigal-dev-*` images, critical volumes, databases, and configurations with integrity verification and proven 1-click restore.
 
@@ -507,10 +507,37 @@ restore-drill:
 ---
 
 **Enhancements Added (Oct 11, 2025):**
-- ✅ PostgreSQL PITR with WAL archiving
-- ✅ Redis RDB + AOF persistence strategy
-- ✅ Apache AGE graph export procedures
-- ✅ Encrypted secrets backup
-- ✅ Off-site replication (3-2-1 rule)
-- ✅ Comprehensive monitoring and alerting
-- ✅ Disaster recovery runbook with RTO/RPO targets
+- ✅ PostgreSQL PITR with WAL archiving (specification)
+- ✅ Redis RDB + AOF persistence strategy (specification)
+- ✅ Apache AGE graph export procedures (specification)
+- ✅ Encrypted secrets backup (specification)
+- ✅ Off-site replication (3-2-1 rule) (specification)
+- ✅ Comprehensive monitoring and alerting (specification)
+- ✅ Disaster recovery runbook with RTO/RPO targets (specification)
+
+**Implementation Status (Nov 4, 2025):**
+- ⚠️ **Implementation Incomplete** - Validation showed missing implementation items
+- ✅ Basic backup scripts exist (`backup-db.sh`, `restore-db.sh`)
+- ❌ Missing: `/scripts/backup/` directory structure
+- ❌ Missing: PostgreSQL WAL archiving configuration
+- ❌ Missing: Redis RDB/AOF persistence scripts
+- ❌ Missing: Comprehensive `backup-all.sh` script
+- ❌ Missing: PITR restore scripts
+- ❌ Missing: Automated cron jobs
+- ❌ Missing: Off-site replication
+- ❌ Missing: Backup monitoring/alerts
+- ❌ Missing: Restore drills
+
+**Implementation Stories Created (Nov 4, 2025):**
+- **US#683**: Install backup scripts in /scripts/backup/ directory
+- **US#684**: Configure PostgreSQL WAL archiving for PITR
+- **US#685**: Create pg_basebackup.sh script for PITR base backups
+- **US#686**: Configure Redis RDB + AOF persistence
+- **US#687**: Create comprehensive backup-all.sh script
+- **US#688**: Set up cron jobs for automated backups
+- **US#689**: Configure S3/NAS for off-site replication
+- **US#690**: Set up backup monitoring and alerts
+- **US#691**: Create comprehensive restore-all.sh script
+- **US#692**: Conduct first restore drill and document RTO/RPO
+
+All stories assigned to Developer C and tagged with `spec-108`.

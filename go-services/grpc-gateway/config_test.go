@@ -15,8 +15,14 @@ func TestGetEnvDefault(t *testing.T) {
 
 func TestGetEnvFromEnvironment(t *testing.T) {
 	// Set environment variable
-	os.Setenv("TEST_VAR", "test-value")
-	defer os.Unsetenv("TEST_VAR")
+	if err := os.Setenv("TEST_VAR", "test-value"); err != nil {
+		t.Fatalf("Failed to set env var: %v", err)
+	}
+	defer func() {
+		if err := os.Unsetenv("TEST_VAR"); err != nil {
+			t.Fatalf("Failed to unset env var: %v", err)
+		}
+	}()
 
 	value := getEnv("TEST_VAR", "default-value")
 	if value != "test-value" {

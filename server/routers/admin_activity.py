@@ -29,10 +29,8 @@ except ImportError:
         from auth_utils import get_current_user
     except ImportError:
         from auth import get_current_user
-try:
-    from ..config import get_dynamic_database_url
-except ImportError:
-    from config import get_dynamic_database_url
+from server.config import get_dynamic_database_url
+
 try:
     from ..admin.activity_logger import AdminActivityLogger
 except ImportError:

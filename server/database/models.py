@@ -404,46 +404,8 @@ class TeamUsageMetrics(Base):
 
 
 # US#157: Discount & Credit System Models (SPEC-026 Phase 1)
-
-
-class DiscountCode(Base):
-    """Discount code model - discount codes for teams per US#157
-
-    Supports both percentage and fixed amount discounts.
-    Part of SPEC-026: Standalone Teams and Billing Phase 1.
-    """
-
-    __tablename__ = "discount_codes"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    code = Column(String(50), unique=True, nullable=False, index=True)
-    percent_off = Column(Integer, nullable=True)  # 1-100
-    amount_off = Column(Integer, nullable=True)  # in cents
-    expires_at = Column(DateTime, nullable=True, index=True)
-    usage_limit = Column(Integer, nullable=True)
-    used_count = Column(Integer, default=0)
-    is_active = Column(Boolean, default=True)
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relationships
-    creator = relationship("User", foreign_keys=[created_by])
-    usages = relationship("DiscountCodeUsage", back_populates="discount_code", cascade="all, delete-orphan")
-
-    # Constraints
-    __table_args__ = (
-        CheckConstraint("percent_off >= 1 AND percent_off <= 100", name="check_percent_off_range"),
-        CheckConstraint("amount_off >= 1", name="check_amount_off_positive"),
-        CheckConstraint("usage_limit >= 1", name="check_usage_limit_positive"),
-        CheckConstraint("used_count >= 0", name="check_used_count_non_negative"),
-        CheckConstraint(
-            "(percent_off IS NOT NULL AND amount_off IS NULL) OR (percent_off IS NULL AND amount_off IS NOT NULL)",
-            name="discount_type_check",
-        ),
-        CheckConstraint("usage_limit IS NULL OR used_count <= usage_limit", name="usage_limit_check"),
-        {"comment": "Discount codes for billing (US#157, SPEC-026)"},
-    )
+# NOTE: DiscountCode moved to server/billing/models.py (SPEC-147)
+# Use: from server.billing.models import DiscountCode
 
 
 class TeamCredit(Base):
@@ -533,39 +495,8 @@ class CreditTransaction(Base):
     )
 
 
-class DiscountCodeUsage(Base):
-    """Discount code usage tracking model
-
-    Tracks when and how discount codes are applied.
-    Part of SPEC-026: Standalone Teams and Billing Phase 1.
-    """
-
-    __tablename__ = "discount_code_usage"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    discount_code_id = Column(
-        UUID(as_uuid=True), ForeignKey("discount_codes.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=True, index=True)
-    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True)
-    invoice_id = Column(String(255), nullable=True)  # Reference to billing_invoices table (model not yet created)
-    amount_discounted = Column(Numeric(10, 2), nullable=False)
-    used_at = Column(DateTime, default=datetime.utcnow)
-
-    # Relationships
-    discount_code = relationship("DiscountCode", back_populates="usages")
-    team = relationship("Team", foreign_keys=[team_id])
-    organization = relationship("Organization", foreign_keys=[org_id])
-
-    # Constraints
-    __table_args__ = (
-        CheckConstraint("amount_discounted >= 0", name="check_amount_discounted_non_negative"),
-        CheckConstraint(
-            "(team_id IS NOT NULL AND org_id IS NULL) OR (team_id IS NULL AND org_id IS NOT NULL)",
-            name="discount_usage_target_check",
-        ),
-        {"comment": "Discount code usage tracking (US#157, SPEC-026)"},
-    )
+# NOTE: DiscountCodeUsage removed - replaced by DiscountApplication in SPEC-147
+# Use: from server.billing.models import DiscountApplication
 
 
 # US#158: Non-Profit Application System Models (SPEC-026 Phase 1)

@@ -12,8 +12,12 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { GuidedTourCarousel, type Memory } from '@nina/ui';
 import { Navigation } from '../components/Navigation';
+import { TagFilter, type Tag } from '../components/TagFilter';
+import { MemoryAttachmentUpload, MemoryAttachmentList, type MemoryAttachment } from '../components/MemoryAttachmentUpload';
+import { MemorySnapshotVersioning } from '../components/MemorySnapshotVersioning';
 import apiClient from '../lib/apiClient';
 import '../styles/memory-browser.css';
 
@@ -32,13 +36,54 @@ export default function MemoryBrowser() {
   const [filterPinned, setFilterPinned] = useState(false);
   const [filterArchived, setFilterArchived] = useState(false);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [memoryAttachmentsMap, setMemoryAttachmentsMap] = useState<Record<string, MemoryAttachment[]>>({});
 
   const PAGE_SIZE = 12;
 
   // Load memories from API
   useEffect(() => {
     loadMemories();
+    loadTags();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load tags for filtering
+  const loadTags = async () => {
+    try {
+      const response = await apiClient.get<{ tags: Tag[] }>('/api/v1/memory/tags');
+      setAvailableTags(response.data.tags || []);
+    } catch (err) {
+      // Tags API might not exist yet, use empty array
+      setAvailableTags([]);
+    }
+  };
+
+  // Load attachments for selected memory
+  useEffect(() => {
+    if (selectedMemory) {
+      loadAttachments(selectedMemory.id);
+    }
+  }, [selectedMemory]);
+
+  const loadAttachments = async (memoryId: string) => {
+    try {
+      const response = await apiClient.get<{ attachments: MemoryAttachment[] }>(
+        `/api/v1/memory/${memoryId}/attachments`
+      );
+      setMemoryAttachmentsMap(prev => ({
+        ...prev,
+        [memoryId]: response.data.attachments || []
+      }));
+    } catch (err) {
+      // Attachments API might not exist yet
+      setMemoryAttachmentsMap(prev => ({
+        ...prev,
+        [memoryId]: []
+      }));
+    }
+  };
 
   const loadMemories = async () => {
     try {
@@ -92,6 +137,13 @@ export default function MemoryBrowser() {
       filtered = filtered.filter((m) => !m.archived);
     }
 
+    // Tag filter
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((m) =>
+        m.tags && m.tags.some((tag) => selectedTags.includes(tag))
+      );
+    }
+
     // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -112,7 +164,7 @@ export default function MemoryBrowser() {
 
     setFilteredMemories(filtered);
     setCurrentPage(1); // Reset to first page on filter change
-  }, [searchTerm, sortBy, filterContext, filterPinned, filterArchived, memories]);
+  }, [searchTerm, sortBy, filterContext, filterPinned, filterArchived, selectedTags, memories]);
 
   // Pagination
   const totalPages = Math.ceil(filteredMemories.length / PAGE_SIZE);
@@ -155,10 +207,11 @@ export default function MemoryBrowser() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" role="status" aria-live="polite" aria-label="Loading memories">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto" aria-hidden="true"></div>
           <p className="mt-4 text-gray-600">Loading memories...</p>
+          <span className="sr-only">Loading memory browser, please wait</span>
         </div>
       </div>
     );
@@ -170,10 +223,10 @@ export default function MemoryBrowser() {
       <Navigation variant="dark" className="sticky top-0 z-10" />
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main id="main-content" className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4" role="alert" aria-live="polite">
             <p className="text-yellow-800">
               ⚠️ API connection failed. Showing sample data for development.
             </p>
@@ -181,12 +234,14 @@ export default function MemoryBrowser() {
         )}
 
         {/* Search and Filters */}
-        <div className="card-shadow rounded-lg p-6 mb-6" style={{ background: 'rgba(31, 41, 55, 0.5)', backdropFilter: 'blur(10px)' }}>
+        <section aria-labelledby="search-filters-heading" className="card-shadow rounded-lg p-6 mb-6" style={{ background: 'rgba(31, 41, 55, 0.5)', backdropFilter: 'blur(10px)' }}>
+          <h2 id="search-filters-heading" className="sr-only">Search and Filter Memories</h2>
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl">
+              <label htmlFor="memory-search" className="sr-only">Search memories</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" aria-hidden="true">
                   <svg
                     className="h-5 w-5 text-gray-400"
                     fill="none"
@@ -202,21 +257,26 @@ export default function MemoryBrowser() {
                   </svg>
                 </div>
                 <input
+                  id="memory-search"
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-800 text-gray-100 placeholder-gray-400"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-800 text-gray-100 placeholder-gray-400 focus:outline-none"
                   placeholder="Search memories by content, tags, or context..."
+                  aria-label="Search memories by content, tags, or context"
                 />
               </div>
             </div>
 
             {/* Filter Controls */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3" role="group" aria-label="Memory browser controls">
+              <label htmlFor="memory-sort" className="sr-only">Sort memories by</label>
               <select
+                id="memory-sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-800 text-gray-100"
+                className="px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-800 text-gray-100 focus:outline-none"
+                aria-label="Sort memories by"
               >
                 <option value="created_desc">Newest First</option>
                 <option value="created_asc">Oldest First</option>
@@ -227,84 +287,126 @@ export default function MemoryBrowser() {
 
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors border border-slate-600"
+                className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors border border-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                aria-label={showFilters ? 'Hide filters' : 'Show filters'}
+                aria-expanded={showFilters}
               >
-                🔍 Filters
+                <span aria-hidden="true">🔍</span> Filters
               </button>
 
               {/* Guided Mode Toggle (SPEC-076) */}
               <button
                 onClick={handleStartGuidedTour}
                 disabled={guidedMode}
-                className={`btn-primary flex items-center space-x-2 ${guidedMode ? 'opacity-75' : ''}`}
+                className={`btn-primary flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${guidedMode ? 'opacity-75' : ''}`}
+                aria-label={guidedMode ? 'Guided mode is active' : 'Start guided tour'}
+                aria-pressed={guidedMode}
               >
-                <span>📖</span>
+                <span aria-hidden="true">📖</span>
                 <span>{guidedMode ? 'Guided Mode Active' : 'Guided Mode'}</span>
               </button>
 
+              <Link
+                to="/injection-analytics"
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition border border-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                aria-label="View injection analytics"
+              >
+                <span aria-hidden="true">📊</span> Injection Analytics
+              </Link>
+
               <button
                 onClick={loadMemories}
-                className="btn-secondary"
+                className="btn-secondary focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                aria-label="Refresh memory list"
               >
-                🔄 Refresh
+                <span aria-hidden="true">🔄</span> Refresh
               </button>
             </div>
           </div>
 
           {/* Expanded Filters */}
           {showFilters && (
-            <div className="mt-4 pt-4 border-t border-slate-700 flex flex-wrap gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Context</label>
-                <select
-                  value={filterContext}
-                  onChange={(e) => setFilterContext(e.target.value)}
-                  className="px-3 py-2 bg-slate-800 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                >
-                  <option value="all">All Contexts</option>
-                  {uniqueContexts.map((ctx) => (
-                    <option key={ctx} value={ctx}>
-                      {ctx.replace(/-/g, ' ')}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="mt-4 pt-4 border-t border-slate-700" role="region" aria-label="Advanced filters">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Context Filter */}
+                <div>
+                  <label htmlFor="filter-context" className="block text-sm font-medium text-slate-300 mb-2">Context</label>
+                  <select
+                    id="filter-context"
+                    value={filterContext}
+                    onChange={(e) => setFilterContext(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    aria-label="Filter by context"
+                  >
+                    <option value="all">All Contexts</option>
+                    {uniqueContexts.map((ctx) => (
+                      <option key={ctx} value={ctx}>
+                        {ctx.replace(/-/g, ' ')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="flex items-end space-x-2">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={filterPinned}
-                    onChange={(e) => setFilterPinned(e.target.checked)}
-                    className="rounded text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className="text-sm text-gray-300">Pinned Only</span>
-                </label>
+                {/* Tag Filter */}
+                {availableTags.length > 0 && (
+                  <div className="lg:col-span-2">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Tags</label>
+                    <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-600 bg-slate-800/50 p-3">
+                      <TagFilter
+                        tags={availableTags}
+                        selectedTags={selectedTags}
+                        onTagsChange={setSelectedTags}
+                      />
+                    </div>
+                  </div>
+                )}
 
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={filterArchived}
-                    onChange={(e) => setFilterArchived(e.target.checked)}
-                    className="rounded text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className="text-sm text-gray-300">Show Archived</span>
-                </label>
+                {/* Quick Filters */}
+                <div className="flex items-end space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="filter-pinned"
+                      checked={filterPinned}
+                      onChange={(e) => setFilterPinned(e.target.checked)}
+                      className="rounded text-purple-600 focus:ring-purple-500 focus:outline-none"
+                      aria-label="Show only pinned memories"
+                    />
+                    <span className="text-sm text-gray-300">Pinned Only</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="filter-archived"
+                      checked={filterArchived}
+                      onChange={(e) => setFilterArchived(e.target.checked)}
+                      className="rounded text-purple-600 focus:ring-purple-500 focus:outline-none"
+                      aria-label="Include archived memories"
+                    />
+                    <span className="text-sm text-gray-300">Show Archived</span>
+                  </label>
+                </div>
               </div>
             </div>
           )}
-        </div>
+        </section>
 
         {/* Memory Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-          {paginatedMemories.map((memory) => (
-            <MemoryCard key={memory.id} memory={memory} onViewDetails={setSelectedMemory} />
-          ))}
-        </div>
+        <section aria-labelledby="memories-heading" aria-live="polite">
+          <h2 id="memories-heading" className="sr-only">Memory List</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6" role="list">
+            {paginatedMemories.map((memory) => (
+              <div key={memory.id} role="listitem">
+                <MemoryCard memory={memory} onViewDetails={setSelectedMemory} />
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* Empty State */}
         {filteredMemories.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-12" role="status" aria-live="polite">
             <p className="text-gray-500 text-lg">No memories found</p>
             <p className="text-gray-400 mt-2">Try adjusting your search or filters</p>
           </div>
@@ -312,27 +414,29 @@ export default function MemoryBrowser() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center space-x-4">
+          <nav aria-label="Memory pagination" className="flex justify-center items-center space-x-4">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              aria-label="Go to previous page"
             >
               ← Previous
             </button>
-            <span className="text-gray-600">
+            <span className="text-gray-600" aria-live="polite" aria-atomic="true">
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              aria-label="Go to next page"
             >
               Next →
             </button>
-          </div>
+          </nav>
         )}
-      </div>
+      </main>
 
       {/* Guided Tour Carousel Overlay */}
       {guidedMode && (
@@ -349,6 +453,9 @@ export default function MemoryBrowser() {
         <MemoryDetailSidePanel
           memory={selectedMemory}
           onClose={() => setSelectedMemory(null)}
+          memoryAttachmentsMap={memoryAttachmentsMap}
+          setMemoryAttachmentsMap={setMemoryAttachmentsMap}
+          loadAttachments={loadAttachments}
         />
       )}
     </div>
@@ -436,9 +543,18 @@ function MemoryCard({ memory, onViewDetails }: MemoryCardProps) {
 interface MemoryDetailSidePanelProps {
   memory: Memory;
   onClose: () => void;
+  memoryAttachmentsMap: Record<string, MemoryAttachment[]>;
+  setMemoryAttachmentsMap: React.Dispatch<React.SetStateAction<Record<string, MemoryAttachment[]>>>;
+  loadAttachments: (memoryId: string) => Promise<void>;
 }
 
-function MemoryDetailSidePanel({ memory, onClose }: MemoryDetailSidePanelProps) {
+function MemoryDetailSidePanel({
+  memory,
+  onClose,
+  memoryAttachmentsMap,
+  setMemoryAttachmentsMap,
+  loadAttachments
+}: MemoryDetailSidePanelProps) {
   return (
     <>
       {/* Overlay */}
@@ -530,6 +646,50 @@ function MemoryDetailSidePanel({ memory, onClose }: MemoryDetailSidePanelProps) 
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Attachments Section */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-3">Attachments</label>
+            <div className="space-y-4">
+              <MemoryAttachmentUpload
+                memoryId={memory.id}
+                onAttachmentAdded={(attachment) => {
+                  setMemoryAttachmentsMap((prev: Record<string, MemoryAttachment[]>) => ({
+                    ...prev,
+                    [memory.id]: [...(prev[memory.id] || []), attachment]
+                  }));
+                }}
+                onError={(error) => {
+                  console.error('Attachment upload error:', error);
+                }}
+              />
+              <MemoryAttachmentList
+                attachments={memoryAttachmentsMap[memory.id] || []}
+                onAttachmentDeleted={(attachmentId) => {
+                  setMemoryAttachmentsMap((prev: Record<string, MemoryAttachment[]>) => ({
+                    ...prev,
+                    [memory.id]: (prev[memory.id] || []).filter((a: MemoryAttachment) => a.id !== attachmentId)
+                  }));
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Snapshot Versioning Section */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-3">Snapshots</label>
+            <MemorySnapshotVersioning
+              memoryId={memory.id}
+              onSnapshotCreated={(snapshot) => {
+                console.log('Snapshot created:', snapshot);
+              }}
+              onSnapshotRestored={async (snapshotId) => {
+                console.log('Snapshot restored:', snapshotId);
+                // Reload attachments for the restored memory
+                await loadAttachments(memory.id);
+              }}
+            />
           </div>
         </div>
       </div>

@@ -28,6 +28,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
+from server.config import DEFAULT_RUST_DATABASE_URL
+
 Base = declarative_base()
 
 
@@ -63,15 +65,19 @@ class User(Base):
     default_role = Column(String(50), default="MEMBER")
     is_system_admin = Column(Boolean, default=False)
 
+    # Standalone team reference (SPEC-066)
+    standalone_team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)
+
     # Relationships for sharing system
     owned_contexts = relationship("Context", foreign_keys="[Context.owner_id]", back_populates="owner")
-    team_memberships = relationship("TeamMember", back_populates="user")
+    team_memberships = relationship("TeamMembership", back_populates="user")
     granted_permissions = relationship(
         "ContextPermission",
         foreign_keys="[ContextPermission.granted_by]",
         back_populates="granted_by_user",
     )
     user_permissions = relationship("ContextPermission", foreign_keys="[ContextPermission.user_id]")
+    standalone_team = relationship("Team", foreign_keys=[standalone_team_id])
 
 
 class Memory(Base):
@@ -135,33 +141,20 @@ class Team(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Standalone team fields (SPEC-066)
+    is_standalone = Column(Boolean, default=False)
+    upgrade_eligible = Column(Boolean, default=True)
+    created_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    team_invite_code = Column(String(32), unique=True, nullable=True)
+    max_members = Column(Integer, default=10)
+
     # Relationships
     organization = relationship("Organization", back_populates="teams")
-    members = relationship("TeamMember", back_populates="team")
+    members = relationship("TeamMembership", back_populates="team")
     contexts = relationship("Context", back_populates="team")
     permissions = relationship("ContextPermission", back_populates="team")
-    invitations = relationship("TeamInvitation", back_populates="team", cascade="all, delete-orphan")
-    memberships = relationship("TeamMembership", back_populates="team", cascade="all, delete-orphan")
-
-
-class TeamMember(Base):
-    """Team membership association model.
-
-    Links users to teams with role-based permissions (owner, admin, member, viewer)
-    and tracks join timestamps.
-    """
-
-    __tablename__ = "team_members"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    role = Column(String(50), nullable=False, default="member")  # owner, admin, member, viewer
-    joined_at = Column(DateTime, default=datetime.utcnow)
-
-    # Relationships
-    team = relationship("Team", back_populates="members")
-    user = relationship("User", back_populates="team_memberships")
+    invitations = relationship("UserInvitation", back_populates="team", cascade="all, delete-orphan")
+    created_by = relationship("User", foreign_keys=[created_by_user_id])
 
 
 class ContextPermission(Base):
@@ -237,6 +230,7 @@ class UserInvitation(Base):
     status = Column(String(50), nullable=False, default="pending")  # pending, accepted, expired, cancelled
     expires_at = Column(DateTime, nullable=False)
     accepted_at = Column(DateTime, nullable=True)
+    accepted_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)  # Who accepted the invitation
     invitation_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -244,7 +238,8 @@ class UserInvitation(Base):
     # Relationships
     organization = relationship("Organization")
     team = relationship("Team")
-    inviter = relationship("User")
+    inviter = relationship("User", foreign_keys=[invited_by])
+    accepted_by_user = relationship("User", foreign_keys=[accepted_by])
 
 
 # Update existing models to support sharing
@@ -287,18 +282,18 @@ class DatabaseManager:
 
     def __init__(self, config=None):  # pragma: allowlist secret
         """Initialize instance."""
+        # Get default database URL from environment variables
+        default_url = os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL") or DEFAULT_RUST_DATABASE_URL
+
         # Handle both string URL and config dict
         if isinstance(config, dict):
-            database_url = config.get(
-                "database_url",
-                "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev",  # pragma: allowlist secret
-            )
+            database_url = config.get("database_url", default_url)
         else:
-            database_url = config or "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
+            database_url = config or default_url
 
         # Ensure we always use PostgreSQL
         if not database_url.startswith("postgresql"):
-            database_url = "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
+            database_url = default_url
         print(f"🐘 Using PostgreSQL: {database_url}")
 
         # PostgreSQL connection with pool settings
@@ -1204,10 +1199,6 @@ def get_db():
     global _db_instance
     if _db_instance is None:
         # Get database URL from environment
-        database_url = (
-            os.getenv("NINAIVALAIGAL_DATABASE_URL")
-            or os.getenv("DATABASE_URL")
-            or "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev"  # pragma: allowlist secret
-        )
+        database_url = os.getenv("NINAIVALAIGAL_DATABASE_URL") or os.getenv("DATABASE_URL") or DEFAULT_RUST_DATABASE_URL
         _db_instance = DatabaseManager(database_url)
     return _db_instance

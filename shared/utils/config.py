@@ -16,18 +16,32 @@ import os
 from typing import Any
 
 
+def _build_default_database_url() -> str:
+    """Build database URL from environment variables."""
+    host = os.getenv("PGBOUNCER_HOST") or os.getenv("POSTGRES_HOST", "localhost")
+    user = os.getenv("NINA_DB_USER") or os.getenv("POSTGRES_USER", "nina")
+    password = os.getenv("NINA_DB_PASSWORD") or os.getenv("POSTGRES_PASSWORD", "dev_password_change_in_production")
+    db_name = os.getenv("NINA_DB_NAME") or os.getenv("POSTGRES_DB", "ninaivalaigal_dev")
+
+    # Try PgBouncer port first, then direct PostgreSQL
+    port = os.getenv("PGBOUNCER_PORT") or os.getenv("PGBOUNCER_TX_PORT", "6432")
+
+    return f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
+
+
 def load_config() -> dict[str, Any]:
     """
     Load configuration from file and environment variables
     Environment variables take precedence over file configuration
     """
     config_path = "../ninaivalaigal.config.json"
+    default_db_url = _build_default_database_url()
     default_config = {
         "storage": {
             "type": "postgresql",
-            "url": "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev",  # pragma: allowlist secret  # noqa: E501
+            "url": default_db_url,
         },
-        "database_url": "postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev",  # pragma: allowlist secret  # noqa: E501
+        "database_url": default_db_url,
     }
 
     # Load from environment variables first (highest priority)

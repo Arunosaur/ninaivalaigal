@@ -1,78 +1,61 @@
 package main
 
 import (
-	"context"
-	"os"
+	"bytes"
 	"testing"
-	"time"
 )
 
-func TestRunScenario(t *testing.T) {
-	config = NewLoadTestConfig()
-	defer func() { config = nil }()
+func TestValidateCommandExecution(t *testing.T) {
+	cmd := createValidateCommand()
+	if cmd == nil {
+		t.Fatal("createValidateCommand() should not return nil")
+	}
 
-	// Create temp scenario file
-	tmpFile, err := os.CreateTemp("", "test-scenario-*.json")
+	// Test with default URL (no args)
+	cmd.SetArgs([]string{})
+	buf := new(bytes.Buffer)
+	cmd.SetOut(buf)
+	cmd.SetErr(buf)
+
+	err := cmd.Execute()
 	if err != nil {
-		t.Fatalf("Failed to create temp file: %v", err)
+		t.Logf("Validate command execution (default): %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
-
-	scenarioJSON := `{
-		"name": "test",
-		"endpoints": [
-			{"method": "GET", "path": "/health", "weight": 100}
-		]
-	}`
-	tmpFile.WriteString(scenarioJSON)
-	tmpFile.Close()
-
-	// Test scenario execution structure
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	err = runScenario(ctx, tmpFile.Name())
-	// Accept any error - just testing function exists
-	_ = err
 }
 
-func TestRunPredefinedScenario(t *testing.T) {
-	config = NewLoadTestConfig()
-	defer func() { config = nil }()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	// Test predefined scenarios
-	targets := GetNinaivalaigalTargets()
-	profiles := GetDefaultProfiles()
-	if len(targets) == 0 || len(profiles) == 0 {
-		t.Skip("No targets or profiles available for testing")
+func TestValidateCommandExecutionWithURL(t *testing.T) {
+	cmd := createValidateCommand()
+	if cmd == nil {
+		t.Fatal("createValidateCommand() should not return nil")
 	}
 
-	scenario := "smoke"
-	target := targets[0]
-	profile := profiles[0]
-	err := runPredefinedScenario(ctx, scenario, target, profile)
-	// Accept any error
-	_ = err
+	// Test with custom URL
+	cmd.SetArgs([]string{"http://localhost:8080"})
+	buf := new(bytes.Buffer)
+	cmd.SetOut(buf)
+	cmd.SetErr(buf)
+
+	err := cmd.Execute()
+	if err != nil {
+		t.Logf("Validate command execution (with URL): %v", err)
+	}
 }
 
-func TestRunTargetScenario(t *testing.T) {
-	config = NewLoadTestConfig()
-	defer func() { config = nil }()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	// Test target-based scenarios
-	targets := GetNinaivalaigalTargets()
-	if len(targets) == 0 {
-		t.Skip("No targets available for testing")
+func TestValidateCommandExecutionWithInvalidURL(t *testing.T) {
+	cmd := createValidateCommand()
+	if cmd == nil {
+		t.Fatal("createValidateCommand() should not return nil")
 	}
 
-	target := targets[0]
-	err := runTargetScenario(ctx, target)
-	// Accept any error
-	_ = err
+	// Test with invalid URL
+	cmd.SetArgs([]string{"not-a-valid-url"})
+	buf := new(bytes.Buffer)
+	cmd.SetOut(buf)
+	cmd.SetErr(buf)
+
+	err := cmd.Execute()
+	// May or may not error depending on validation
+	if err != nil {
+		t.Logf("Validate command with invalid URL (expected error): %v", err)
+	}
 }

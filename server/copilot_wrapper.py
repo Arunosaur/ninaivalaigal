@@ -218,7 +218,7 @@ class NinaivalaigalCopilotWrapper:
         memories: list[dict[str, Any]],
         context: CopilotContext,
     ) -> str:
-        """Build enhanced prompt with mem0 memories"""
+        """Build enhanced prompt with ninaivalaigal memories"""
         if not memories:
             return original_prompt
 
@@ -344,7 +344,7 @@ class VSCodeCopilotBridge:
             # Get original prompt (this would come from Copilot's internal prompt)
             original_prompt = request_data.get("prompt", "Generate code completion")
 
-            # Enhance prompt with mem0 memories
+            # Enhance prompt with ninaivalaigal memories
             enhanced_prompt = await self.wrapper.enhance_copilot_prompt(context, original_prompt)
 
             return {

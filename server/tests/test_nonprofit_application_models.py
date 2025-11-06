@@ -197,4 +197,3 @@ class TestNonProfitApplication:
 
         assert len(application.documentation_urls) == 2
         assert "https://example.com/doc1.pdf" in application.documentation_urls
-

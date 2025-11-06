@@ -20,6 +20,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Boolean,
     Column,
     DateTime,
@@ -28,7 +29,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -378,3 +379,29 @@ class TeamMembership(Base):
     team = relationship("Team", back_populates="memberships")
     user = relationship("User", foreign_keys=[user_id])
     invited_by = relationship("User", foreign_keys=[invited_by_user_id])
+
+
+class MemoryAttachment(Base):
+    """Memory Attachment model for SPEC-032
+
+    Stores metadata about files attached to memory tokens.
+    The actual files are stored in the storage backend (S3/MinIO).
+    """
+
+    __tablename__ = "memory_attachments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    memory_id = Column(Text, nullable=False, index=True)
+    user_id = Column(Text, nullable=False, index=True)
+    filename = Column(Text, nullable=False)
+    content_type = Column(Text, nullable=False)
+    size = Column(BigInteger, nullable=False)
+    storage_key = Column(Text, nullable=False, unique=True, index=True)
+    storage_backend = Column(Text, nullable=False, server_default="s3")
+    attachment_metadata = Column(JSONB, server_default="{}")  # Renamed from 'metadata' (SQLAlchemy reserved)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Note: Foreign key to memory_tokens not enforced via FK constraint
+    # because memory_id is TEXT (memory IDs may come from external providers)
+    # Indexes provide fast lookups without FK constraints

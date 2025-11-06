@@ -10,6 +10,7 @@
 Middleware package for performance optimization and request processing.
 """
 
-from .response_cache import CacheManager, ResponseCacheMiddleware
+# from .response_cache import CacheManager, ResponseCacheMiddleware  # Commented out due to structlog dependency
+from .api_rate_limit_middleware import APIRateLimitMiddleware
 
-__all__ = ["ResponseCacheMiddleware", "CacheManager"]
+__all__ = ["APIRateLimitMiddleware"]  # Updated to include rate limiting middleware

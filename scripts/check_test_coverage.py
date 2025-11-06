@@ -44,29 +44,51 @@ def find_test_file(source_file: Path, root: Path = None) -> Path | None:
         try:
             relative = source_file.relative_to(root / "server")
 
+            # Handle __init__.py files specially
+            if relative.name == "__init__.py":
+                # For server/billing/__init__.py -> tests/test_billing_init.py
+                module_name = relative.parent.name if relative.parent != Path(".") else "server"
+                test_name = f"test_{module_name}_init.py"
+            else:
+                test_name = f"test_{relative.name}"
+
             # Try direct test file: tests/test_file.py
-            test_path = root / "tests" / f"test_{relative.name}"
+            test_path = root / "tests" / test_name
             if test_path.exists():
                 return test_path
 
             # Try module-specific: tests/module/test_file.py
             if relative.parent != Path("."):
-                test_path = root / "tests" / relative.parent / f"test_{relative.name}"
+                if relative.name == "__init__.py":
+                    # For server/billing/__init__.py -> tests/billing/test_billing_init.py
+                    module_name = relative.parent.name
+                    test_path = root / "tests" / relative.parent / f"test_{module_name}_init.py"
+                else:
+                    test_path = root / "tests" / relative.parent / f"test_{relative.name}"
                 if test_path.exists():
                     return test_path
 
             # Try unit test directory
-            test_path = root / "tests" / "unit" / f"test_{relative.name}"
+            if relative.name == "__init__.py":
+                test_path = root / "tests" / "unit" / test_name
+            else:
+                test_path = root / "tests" / "unit" / f"test_{relative.name}"
             if test_path.exists():
                 return test_path
 
             # Try integration test directory
-            test_path = root / "tests" / "integration" / f"test_{relative.name}"
+            if relative.name == "__init__.py":
+                test_path = root / "tests" / "integration" / test_name
+            else:
+                test_path = root / "tests" / "integration" / f"test_{relative.name}"
             if test_path.exists():
                 return test_path
 
             # Try intelligence test directory
-            test_path = root / "tests" / "intelligence" / f"test_{relative.name}"
+            if relative.name == "__init__.py":
+                test_path = root / "tests" / "intelligence" / test_name
+            else:
+                test_path = root / "tests" / "intelligence" / f"test_{relative.name}"
             if test_path.exists():
                 return test_path
 
@@ -90,10 +112,27 @@ def find_test_file(source_file: Path, root: Path = None) -> Path | None:
         try:
             relative = source_file.relative_to(root / "services")
 
+            # For services/core-api/lib/file.py or services/core-api/utils/file.py
+            # Look for tests/test_file.py (flattened structure)
+            test_name = f"test_{relative.name}"
+            test_path = root / "tests" / test_name
+            if test_path.exists():
+                return test_path
+
             # Try service-specific test directory
             service_name = relative.parts[0] if len(relative.parts) > 1 else None
             if service_name:
                 test_path = root / "tests" / service_name / f"test_{relative.name}"
+                if test_path.exists():
+                    return test_path
+
+            # For services/core-api/lib/auth_audit.py -> tests/test_auth_audit.py
+            # Extract just the filename without path
+            if len(relative.parts) > 1:
+                # services/core-api/lib/auth_audit.py -> auth_audit.py
+                filename = relative.parts[-1]
+                test_name = f"test_{filename}"
+                test_path = root / "tests" / test_name
                 if test_path.exists():
                     return test_path
         except ValueError:
@@ -141,6 +180,14 @@ def check_new_files() -> bool:
     root = Path.cwd()
     new_files = get_staged_files()
 
+    # Exclude test runner scripts and utility scripts
+    test_runner_patterns = [
+        "run_memory_tests.py",
+        "validate_memory_tests.py",
+        "run_.*_tests.py",
+        "validate_.*_tests.py",
+    ]
+
     missing_tests = []
     for new_file in new_files:
         # Only check files in server/ or services/
@@ -149,6 +196,11 @@ def check_new_files() -> bool:
 
         # Skip test files themselves
         if "test_" in new_file.name or "tests/" in str(new_file):
+            continue
+
+        # Skip test runner scripts (these are test harnesses, not modules under test)
+        import re
+        if any(re.search(pattern, new_file.name) for pattern in test_runner_patterns):
             continue
 
         test_file = find_test_file(new_file, root)
@@ -162,9 +214,15 @@ def check_new_files() -> bool:
             print(f"  📄 {source}")
             # Suggest test file location
             if "server/" in str(source):
-                relative = Path(source).relative_to(root / "server")
-                suggested = root / "tests" / f"test_{relative.name}"
-                print(f"     💡 Expected: {suggested.relative_to(root)}")
+                try:
+                    # Normalize path: make it absolute if relative
+                    source_path = source if source.is_absolute() else (root / source)
+                    relative = source_path.relative_to(root / "server")
+                    suggested = root / "tests" / f"test_{relative.name}"
+                    print(f"     💡 Expected: {suggested.relative_to(root)}")
+                except (ValueError, TypeError):
+                    # If path can't be made relative, just suggest a generic test location
+                    print(f"     💡 Expected: tests/test_{source.name}")
             print()
         print("⚠️  Please add test files before committing.")
         print("💡 Example: Create a test file with at least basic coverage.")

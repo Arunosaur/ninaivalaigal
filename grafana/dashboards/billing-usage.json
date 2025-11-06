@@ -1,0 +1,68 @@
+{
+  "dashboard": {
+    "title": "Billing Usage Metrics",
+    "tags": ["billing", "usage", "spec-147"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Usage by Resource Type",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(billing_usage_quantity) by (resource_type)",
+            "legendFormat": "{{resource_type}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Quota Usage Percentage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "billing_quota_usage_percentage",
+            "legendFormat": "{{billing_account_id}} - {{resource_type}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+      },
+      {
+        "id": 3,
+        "title": "Usage Aggregation Lag",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(billing_usage_aggregation_lag_seconds_bucket[5m]))",
+            "legendFormat": "p95 - {{resource_type}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 4,
+        "title": "Billing Accounts by Plan Tier",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(billing_accounts_total) by (plan_tier)",
+            "legendFormat": "{{plan_tier}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      }
+    ],
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    }
+  }
+}

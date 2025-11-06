@@ -1,11 +1,28 @@
 # SPEC-101: Unified Observability and Performance Governance
 
-**Status:** 📋 PLANNED (Follow-up to SPEC-100)
-**Priority:** HIGH
+**Status:** 🚫 **DEPRECATED** (November 3, 2025)
+**Priority:** N/A (Deprecated)
 **Category:** Observability & Performance Management
 **Phase:** Post-Federation Stabilization
 **Author:** Platform Engineering Team
-**Date:** October 2025
+**Date:** October 2025 (Deprecated: November 3, 2025)
+
+---
+
+## ⚠️ **DEPRECATION NOTICE**
+
+**SPEC-101 is DEPRECATED.** This spec has significant overlap with already-complete SPECs. Unique features have been migrated to appropriate existing SPECs.
+
+**See:** [DEPRECATION_NOTE.md](./DEPRECATION_NOTE.md) for details.
+
+**For observability and performance governance, refer to:**
+- **SPEC-118** (Complete): Observability & Performance Budgets - Full observability stack
+- **SPEC-119** (Complete): Automated SLO Enforcement - SLO monitoring
+- **SPEC-010** (Complete): Observability and Telemetry - Core observability infrastructure
+- **SPEC-100** (In Progress): Contract validation metrics - Added from SPEC-101
+- **SPEC-120** (Complete): Cost analyzer features - Added from SPEC-101
+
+**Migration Status:** ✅ Complete - All unique features migrated
 
 ---
 

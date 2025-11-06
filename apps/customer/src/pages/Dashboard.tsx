@@ -112,106 +112,189 @@ export default function Dashboard() {
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
   }
 
+  const errorId = 'dashboard-error';
+  const loadingId = 'dashboard-loading';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Navigation */}
       <Navigation variant="dark" className="sticky top-0 z-10" />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Welcome Back
-          </h2>
+          </h1>
           <p className="text-gray-400 text-lg">Your enterprise memory management at a glance</p>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div
+            id={loadingId}
+            className="flex items-center justify-center h-64"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading dashboard data"
+          >
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" aria-hidden="true"></div>
+            <span className="sr-only">Loading dashboard...</span>
           </div>
         ) : stats ? (
           <>
             {usingFallback ? (
-              <div className="mb-8 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+              <div
+                role="alert"
+                aria-live="polite"
+                className="mb-8 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"
+              >
                 API connection failed ({error}). Displaying sample enterprise telemetry for development.
               </div>
             ) : null}
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              <StatCard
-                title="Total Memories"
-                value={stats?.total_memories.toLocaleString() || '0'}
-                icon="💾"
-                trend="+12%"
-                trendUp={true}
-              />
-              <StatCard
-                title="Active Sessions"
-                value={stats?.active_sessions.toString() || '0'}
-                icon="⚡"
-                trend="+5%"
-                trendUp={true}
-              />
-              <StatCard
-                title="Team Members"
-                value={stats?.team_members.toString() || '0'}
-                icon="👥"
-                trend="2 new"
-                trendUp={true}
-              />
-              <StatCard
-                title="Storage Used"
-                value={`${((stats?.storage_used_mb || 0)).toFixed(2)} MB`}
-                icon="📊"
-                trend="Daily snapshot"
-                trendUp={false}
-              />
-              <StatCard
-                title="API Calls Today"
-                value={stats?.api_calls_today.toLocaleString() || '0'}
-                icon="🔄"
-                trend="+8%"
-                trendUp={true}
-              />
-              <Link to="/team/billing">
-                <StatCard
-                  title="Plan"
-                  value={(stats?.subscription_tier ?? 'pro').toUpperCase()}
-                  icon="⭐"
-                  trend="Upgrade available →"
-                  trendUp={false}
-                />
-              </Link>
-            </div>
+            <section aria-labelledby="dashboard-stats-heading">
+              <h2 id="dashboard-stats-heading" className="sr-only">Dashboard Statistics</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" role="list">
+                <div role="listitem">
+                  <StatCard
+                    title="Total Memories"
+                    value={stats?.total_memories.toLocaleString() || '0'}
+                    icon="💾"
+                    trend="+12%"
+                    trendUp={true}
+                  />
+                </div>
+                <div role="listitem">
+                  <StatCard
+                    title="Active Sessions"
+                    value={stats?.active_sessions.toString() || '0'}
+                    icon="⚡"
+                    trend="+5%"
+                    trendUp={true}
+                  />
+                </div>
+                <div role="listitem">
+                  <StatCard
+                    title="Team Members"
+                    value={stats?.team_members.toString() || '0'}
+                    icon="👥"
+                    trend="2 new"
+                    trendUp={true}
+                  />
+                </div>
+                <div role="listitem">
+                  <StatCard
+                    title="Storage Used"
+                    value={`${((stats?.storage_used_mb || 0)).toFixed(2)} MB`}
+                    icon="📊"
+                    trend="Daily snapshot"
+                    trendUp={false}
+                  />
+                </div>
+                <div role="listitem">
+                  <StatCard
+                    title="API Calls Today"
+                    value={stats?.api_calls_today.toLocaleString() || '0'}
+                    icon="🔄"
+                    trend="+8%"
+                    trendUp={true}
+                  />
+                </div>
+                <div role="listitem">
+                  <Link to="/team/billing" aria-label="View billing plan and upgrade options">
+                    <StatCard
+                      title="Plan"
+                      value={(stats?.subscription_tier ?? 'pro').toUpperCase()}
+                      icon="⭐"
+                      trend="Upgrade available →"
+                      trendUp={false}
+                    />
+                  </Link>
+                </div>
+              </div>
+            </section>
+
+            {/* Quick Actions */}
+            <section aria-labelledby="quick-actions-heading">
+              <h2 id="quick-actions-heading" className="sr-only">Quick Actions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" role="list">
+                <div role="listitem">
+                  <Link
+                    to="/memory-browser"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl p-4 text-center transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 block"
+                    aria-label="Open Memory Browser"
+                  >
+                    <div className="text-2xl mb-2" aria-hidden="true">📖</div>
+                    <div className="font-semibold">Memory Browser</div>
+                  </Link>
+                </div>
+                <div role="listitem">
+                  <Link
+                    to="/teams"
+                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl p-4 text-center transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 block"
+                    aria-label="Manage Teams"
+                  >
+                    <div className="text-2xl mb-2" aria-hidden="true">👥</div>
+                    <div className="font-semibold">Teams</div>
+                  </Link>
+                </div>
+                <div role="listitem">
+                  <Link
+                    to="/injection-analytics"
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl p-4 text-center transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 block"
+                    aria-label="View Injection Analytics"
+                  >
+                    <div className="text-2xl mb-2" aria-hidden="true">📊</div>
+                    <div className="font-semibold">Injection Analytics</div>
+                  </Link>
+                </div>
+                <div role="listitem">
+                  <Link
+                    to="/settings"
+                    className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white rounded-xl p-4 text-center transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-gray-800 block"
+                    aria-label="Open Settings"
+                  >
+                    <div className="text-2xl mb-2" aria-hidden="true">⚙️</div>
+                    <div className="font-semibold">Settings</div>
+                  </Link>
+                </div>
+              </div>
+            </section>
 
             {/* Recent Activity */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-2xl">
-              <h3 className="text-xl font-semibold text-white mb-4">Recent Activity</h3>
-              <div className="space-y-3">
-                {recentMemories.length > 0 ? (
-                  recentMemories.slice(0, 3).map((memory) => (
-                    <ActivityItem
-                      key={memory.id}
-                      action="Memory created"
-                      details={memory.content.substring(0, 60) + (memory.content.length > 60 ? '...' : '')}
-                      time={formatTimeAgo(memory.created_at)}
-                    />
-                  ))
-                ) : (
-                  <>
+            <section aria-labelledby="recent-activity-heading">
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-2xl">
+                <h2 id="recent-activity-heading" className="text-xl font-semibold text-white mb-4">
+                  Recent Activity
+                </h2>
+                <div className="space-y-3" role="list" aria-live="polite">
+                  {recentMemories.length > 0 ? (
+                    recentMemories.slice(0, 3).map((memory) => (
+                      <ActivityItem
+                        key={memory.id}
+                        action="Memory created"
+                        details={memory.content.substring(0, 60) + (memory.content.length > 60 ? '...' : '')}
+                        time={formatTimeAgo(memory.created_at)}
+                      />
+                    ))
+                  ) : (
                     <ActivityItem
                       action="No recent activity"
                       details="Create your first memory to get started"
                       time="—"
                     />
-                  </>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            </section>
           </>
         ) : (
-          <div className="flex items-center justify-center h-64">
+          <div
+            id={errorId}
+            role="alert"
+            aria-live="polite"
+            className="flex items-center justify-center h-64"
+          >
             <p className="text-rose-300 text-sm font-medium">{error ?? 'Unable to load dashboard stats'}</p>
           </div>
         )}
@@ -228,16 +311,16 @@ function StatCard({ title, value, icon, trend, trendUp }: {
   trendUp: boolean
 }) {
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
+    <article className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all hover:scale-105 cursor-pointer focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-800">
       <div className="flex items-start justify-between mb-4">
-        <p className="text-gray-400 text-sm font-medium">{title}</p>
-        <span className="text-2xl">{icon}</span>
+        <h3 className="text-gray-400 text-sm font-medium">{title}</h3>
+        <span className="text-2xl" aria-hidden="true">{icon}</span>
       </div>
-      <p className="text-3xl font-bold text-white mb-2">{value}</p>
-      <p className={`text-sm ${trendUp ? 'text-green-400' : 'text-indigo-400'}`}>
+      <p className="text-3xl font-bold text-white mb-2" aria-label={`${title}: ${value}`}>{value}</p>
+      <p className={`text-sm ${trendUp ? 'text-green-400' : 'text-indigo-400'}`} aria-label={`Trend: ${trend}`}>
         {trend}
       </p>
-    </div>
+    </article>
   )
 }
 
@@ -247,13 +330,13 @@ function ActivityItem({ action, details, time }: {
   time: string
 }) {
   return (
-    <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-700/30 transition">
-      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+    <article className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-700/30 transition" role="listitem">
+      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" aria-hidden="true"></div>
       <div className="flex-1">
         <p className="text-white font-medium">{action}</p>
         <p className="text-gray-400 text-sm">{details}</p>
       </div>
-      <span className="text-gray-500 text-xs">{time}</span>
-    </div>
+      <time className="text-gray-500 text-xs" dateTime={time}>{time}</time>
+    </article>
   )
 }

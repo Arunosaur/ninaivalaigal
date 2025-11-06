@@ -15,7 +15,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from admin.helpers import get_admin_user_id_from_request, log_admin_action_async
-from database import DatabaseManager, Team, TeamMember, User
+from database import DatabaseManager, Team, TeamMembershipship, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from rbac_middleware import require_permission
@@ -72,20 +72,20 @@ class TeamResponse(BaseModel):
         from_attributes = True
 
 
-class TeamMemberAddRequest(BaseModel):
+class TeamMembershipAddRequest(BaseModel):
     """Request model for adding a team member"""
 
     user_id: UUID
     role: str = Field(default="member", pattern="^(owner|admin|member|viewer)$")
 
 
-class TeamMemberUpdateRequest(BaseModel):
+class TeamMembershipUpdateRequest(BaseModel):
     """Request model for updating a team member's role"""
 
     role: str = Field(..., pattern="^(owner|admin|member|viewer)$")
 
 
-class TeamMemberResponse(BaseModel):
+class TeamMembershipResponse(BaseModel):
     """Response model for team member data"""
 
     id: UUID
@@ -108,7 +108,7 @@ router = APIRouter(prefix="/teams", tags=["teams"])
 # Database manager dependency
 def get_db():
     """Get database manager with dynamic configuration"""
-    from config import get_dynamic_database_url
+    from server.config import get_dynamic_database_url
 
     return DatabaseManager(get_dynamic_database_url())
 
@@ -127,13 +127,13 @@ def list_teams(
         session = db.get_session()
 
         # Get teams where user is a member
-        memberships = session.query(TeamMember).filter(TeamMember.user_id == current_user.id).all()
+        memberships = session.query(TeamMembership).filter(TeamMembership.user_id == current_user.id).all()
 
         teams = []
         for membership in memberships:
             team = session.query(Team).filter(Team.id == membership.team_id).first()
             if team:
-                member_count = session.query(TeamMember).filter(TeamMember.team_id == team.id).count()
+                member_count = session.query(TeamMembership).filter(TeamMembership.team_id == team.id).count()
 
                 teams.append(
                     TeamResponse(
@@ -194,7 +194,7 @@ async def create_team(
         session.flush()  # Get team ID
 
         # Add creator as owner
-        membership = TeamMember(
+        membership = TeamMembership(
             team_id=team.id,
             user_id=current_user.id,
             role="owner",
@@ -286,7 +286,7 @@ def create_external_team(
         session.flush()
 
         # Add creator as owner
-        membership = TeamMember(
+        membership = TeamMembership(
             team_id=team.id,
             user_id=current_user.id,
             role="owner",
@@ -332,8 +332,8 @@ def get_team(
 
         # Check if user is a member
         membership = (
-            session.query(TeamMember)
-            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id)
+            session.query(TeamMembership)
+            .filter(TeamMembership.team_id == team_id, TeamMembership.user_id == current_user.id)
             .first()
         )
 
@@ -344,7 +344,7 @@ def get_team(
         if not team:
             raise HTTPException(status_code=404, detail="Team not found")
 
-        member_count = session.query(TeamMember).filter(TeamMember.team_id == team_id).count()
+        member_count = session.query(TeamMembership).filter(TeamMembership.team_id == team_id).count()
 
         return TeamResponse(
             id=team.id,
@@ -386,8 +386,8 @@ async def update_team(
 
         # Check if user is owner or admin
         membership = (
-            session.query(TeamMember)
-            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id)
+            session.query(TeamMembership)
+            .filter(TeamMembership.team_id == team_id, TeamMembership.user_id == current_user.id)
             .first()
         )
 
@@ -425,7 +425,7 @@ async def update_team(
                 request=request,
             )
 
-        member_count = session.query(TeamMember).filter(TeamMember.team_id == team_id).count()
+        member_count = session.query(TeamMembership).filter(TeamMembership.team_id == team_id).count()
 
         return TeamResponse(
             id=team.id,
@@ -468,8 +468,12 @@ async def delete_team(
 
         # Check if user is owner
         membership = (
-            session.query(TeamMember)
-            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id, TeamMember.role == "owner")
+            session.query(TeamMembership)
+            .filter(
+                TeamMembership.team_id == team_id,
+                TeamMembership.user_id == current_user.id,
+                TeamMembership.role == "owner",
+            )
             .first()
         )
 
@@ -513,7 +517,7 @@ async def delete_team(
         session.close()
 
 
-@router.get("/{team_id}/members", response_model=List[TeamMemberResponse])
+@router.get("/{team_id}/members", response_model=List[TeamMembershipResponse])
 def get_team_members(
     team_id: UUID,
     current_user: User = Depends(get_current_user),
@@ -529,8 +533,8 @@ def get_team_members(
 
         # Check if user is a member
         user_membership = (
-            session.query(TeamMember)
-            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id)
+            session.query(TeamMembership)
+            .filter(TeamMembership.team_id == team_id, TeamMembership.user_id == current_user.id)
             .first()
         )
 
@@ -538,14 +542,14 @@ def get_team_members(
             raise HTTPException(status_code=403, detail="Access denied: not a team member")
 
         # Get all members
-        memberships = session.query(TeamMember).filter(TeamMember.team_id == team_id).all()
+        memberships = session.query(TeamMembership).filter(TeamMembership.team_id == team_id).all()
 
         members = []
         for membership in memberships:
             user = session.query(User).filter(User.id == membership.user_id).first()
             if user:
                 members.append(
-                    TeamMemberResponse(
+                    TeamMembershipResponse(
                         id=membership.id,
                         user_id=user.id,
                         user_name=user.name,
@@ -564,12 +568,12 @@ def get_team_members(
         session.close()
 
 
-@router.post("/{team_id}/members", response_model=TeamMemberResponse)
+@router.post("/{team_id}/members", response_model=TeamMembershipResponse)
 @require_permission(Resource.TEAM, Action.ADMINISTER)
 async def add_team_member(
     request: Request,
     team_id: UUID,
-    member_data: TeamMemberAddRequest,
+    member_data: TeamMembershipAddRequest,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
     activity_logger=Depends(get_activity_logger),
@@ -584,8 +588,8 @@ async def add_team_member(
 
         # Check if current user is owner or admin
         current_membership = (
-            session.query(TeamMember)
-            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id)
+            session.query(TeamMembership)
+            .filter(TeamMembership.team_id == team_id, TeamMembership.user_id == current_user.id)
             .first()
         )
 
@@ -599,8 +603,8 @@ async def add_team_member(
 
         # Check if already a member
         existing = (
-            session.query(TeamMember)
-            .filter(TeamMember.team_id == team_id, TeamMember.user_id == member_data.user_id)
+            session.query(TeamMembership)
+            .filter(TeamMembership.team_id == team_id, TeamMembership.user_id == member_data.user_id)
             .first()
         )
 
@@ -608,7 +612,7 @@ async def add_team_member(
             raise HTTPException(status_code=400, detail="User is already a team member")
 
         # Add member
-        membership = TeamMember(
+        membership = TeamMembership(
             team_id=team_id,
             user_id=member_data.user_id,
             role=member_data.role,
@@ -635,7 +639,7 @@ async def add_team_member(
                 request=request,
             )
 
-        return TeamMemberResponse(
+        return TeamMembershipResponse(
             id=membership.id,
             user_id=user.id,
             user_name=user.name,
@@ -653,13 +657,13 @@ async def add_team_member(
         session.close()
 
 
-@router.patch("/{team_id}/members/{user_id}", response_model=TeamMemberResponse)
+@router.patch("/{team_id}/members/{user_id}", response_model=TeamMembershipResponse)
 @require_permission(Resource.TEAM, Action.ADMINISTER)
 async def update_team_member_role(
     request: Request,
     team_id: UUID,
     user_id: UUID,
-    member_data: TeamMemberUpdateRequest,
+    member_data: TeamMembershipUpdateRequest,
     current_user: User = Depends(get_current_user),
     db: DatabaseManager = Depends(get_db),
     activity_logger=Depends(get_activity_logger),
@@ -675,8 +679,8 @@ async def update_team_member_role(
 
         # Check if current user is owner or admin
         current_membership = (
-            session.query(TeamMember)
-            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id)
+            session.query(TeamMembership)
+            .filter(TeamMembership.team_id == team_id, TeamMembership.user_id == current_user.id)
             .first()
         )
 
@@ -685,7 +689,9 @@ async def update_team_member_role(
 
         # Get member to update
         membership = (
-            session.query(TeamMember).filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id).first()
+            session.query(TeamMembership)
+            .filter(TeamMembership.team_id == team_id, TeamMembership.user_id == user_id)
+            .first()
         )
 
         if not membership:
@@ -722,7 +728,7 @@ async def update_team_member_role(
                 request=request,
             )
 
-        return TeamMemberResponse(
+        return TeamMembershipResponse(
             id=membership.id,
             user_id=user.id,
             user_name=user.name,
@@ -761,8 +767,8 @@ async def remove_team_member(
 
         # Check if current user is owner or admin
         current_membership = (
-            session.query(TeamMember)
-            .filter(TeamMember.team_id == team_id, TeamMember.user_id == current_user.id)
+            session.query(TeamMembership)
+            .filter(TeamMembership.team_id == team_id, TeamMembership.user_id == current_user.id)
             .first()
         )
 
@@ -771,7 +777,9 @@ async def remove_team_member(
 
         # Get member to remove
         membership = (
-            session.query(TeamMember).filter(TeamMember.team_id == team_id, TeamMember.user_id == user_id).first()
+            session.query(TeamMembership)
+            .filter(TeamMembership.team_id == team_id, TeamMembership.user_id == user_id)
+            .first()
         )
 
         if not membership:

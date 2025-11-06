@@ -23,32 +23,39 @@
 
 ---
 
-## 📋 Context
+## 📋 Context (DEPRECATED - Next.js Approach)
 
-### Current State (Post SPEC-103)
-- ✅ Modern Next.js 15 frontend with component library
-- ✅ Storybook documentation for UI components
-- ✅ Mock data powering dashboard and analytics views
-- ❌ No real backend API connection
-- ❌ Frontend isolated from Nina Intelligence Stack
+### Current State (Post SPEC-103) - DEPRECATED
+- ~~✅ Modern Next.js 15 frontend with component library~~ **DEPRECATED**
+- ~~✅ Storybook documentation for UI components~~ **DEPRECATED**
+- ~~✅ Mock data powering dashboard and analytics views~~ **DEPRECATED**
+- ❌ No real backend API connection (still valid)
+- ❌ Frontend isolated from Nina Intelligence Stack (still valid)
 
-### Target State (Post SPEC-105)
-- ✅ FastAPI backend serving real data endpoints
-- ✅ PostgreSQL + Redis connected and operational
-- ✅ Frontend consuming live API data via Next.js API routes
-- ✅ Environment variables and secrets secured
-- ✅ Smoke tests validating end-to-end connectivity
-- ✅ **Full stack Ninaivalaigal operational**
+### Target State (Post SPEC-105) - DEPRECATED
+- ✅ FastAPI backend serving real data endpoints (**Still valid - direct integration**)
+- ✅ PostgreSQL + Redis connected and operational (**Still valid**)
+- ~~✅ Frontend consuming live API data via Next.js API routes~~ **DEPRECATED (FastAPI templates call endpoints directly)**
+- ✅ Environment variables and secrets secured (**Still valid**)
+- ✅ Smoke tests validating end-to-end connectivity (**Still valid**)
+- ✅ **Full stack Ninaivalaigal operational** (**Still valid, but different approach**)
 
-### Strategic Importance
-This SPEC bridges the "frontend island" created in SPEC-103 with the proven Nina Intelligence Stack (nina-intelligence-db + nina-intelligence-cache + nv-api), achieving **true full-stack operational status**.
+### Strategic Importance (DEPRECATED)
+~~This SPEC bridges the "frontend island" created in SPEC-103 with the proven Nina Intelligence Stack~~ **DEPRECATED**
+
+**Current Approach:**
+- FastAPI templates call FastAPI endpoints directly (no proxy layer needed)
+- Server-side rendering means no separate API proxy
+- Database connectivity is handled in FastAPI routers
+- See SPEC-005 and SPEC-146 for current implementation approach
 
 ---
 
 ## 🏗️ Architecture Overview
 
-### Integration Stack
-```
+### Integration Stack (DEPRECATED - Next.js Approach)
+
+~~```
 ┌─────────────────────────────────────────────────┐
 │  Frontend (Next.js 15) - Port 3000              │
 │  ├── app/api/                 [API Routes]      │
@@ -72,7 +79,28 @@ This SPEC bridges the "frontend island" created in SPEC-103 with the proven Nina
 │  Port 5432       │  │  Port 6379      │
 │  (nina-intel-db) │  │  (nina-cache)   │
 └──────────────────┘  └─────────────────┘
+```~~ **DEPRECATED**
+
+**Current Architecture (FastAPI Templating):**
 ```
+┌─────────────────────────────────────────────────┐
+│  FastAPI Application - Port 13390               │
+│  ├── /admin/*              [Admin UI Templates] │
+│  ├── /customer/*           [Customer UI Templates]│
+│  ├── /api/v1/*             [API Endpoints]      │
+│  └── templates/            [Jinja2 Templates]   │
+└─────────────────┬───────────────────────────────┘
+                  │ Direct database calls (no proxy)
+        ┌─────────┴─────────┐
+        ↓                   ↓
+┌──────────────────┐  ┌─────────────────┐
+│  PostgreSQL      │  │  Redis          │
+│  Port 5432       │  │  Port 6379      │
+│  (nina-intel-db) │  │  (nina-cache)   │
+└──────────────────┘  └─────────────────┘
+```
+
+**Key Difference:** FastAPI templates call FastAPI endpoints directly (server-side), no separate API proxy layer needed.
 
 ### Technology Decisions
 - **Backend Framework**: FastAPI (existing Nina Intelligence Stack)
@@ -145,8 +173,8 @@ This SPEC bridges the "frontend island" created in SPEC-103 with the proven Nina
 
 ### Phase 2: Frontend-Backend Integration (Session 2 - 2 hours)
 
-#### 2.1 Next.js API Routes
-**Goal**: Create API proxy layer in Next.js
+#### 2.1 Next.js API Routes (DEPRECATED)
+**Goal**: ~~Create API proxy layer in Next.js~~ **DEPRECATED - Not needed with FastAPI templating**
 
 **File Structure**:
 ```
@@ -397,16 +425,15 @@ describe('API Connectivity', () => {
 
 ## 🔗 Dependencies
 
-### Prerequisite SPECs
-- **SPEC-103**: Next.js 15 Bootstrap (COMPLETE) - Provides frontend foundation
-- **Nina Intelligence Stack**: Backend infrastructure must be operational
+### Prerequisite SPECs (DEPRECATED)
+- ~~**SPEC-103**: Next.js 15 Bootstrap~~ **DEPRECATED**
+- **Nina Intelligence Stack**: Backend infrastructure must be operational (**Still valid**)
 
-### Dependent SPECs (Unblocked by SPEC-105)
-- **SPEC-104**: Post-Migration Quality Verification (can validate full stack)
-- **SPEC-106**: E2E Tests with Playwright (requires live backend)
-- **SPEC-107**: Profile/Settings Pages (needs auth API)
-- **SPEC-108**: Auth & Security Integration (builds on auth endpoints)
-- **SPEC-109**: Real-Time Features (requires WebSocket layer)
+### Dependent SPECs
+- **SPEC-104**: Post-Migration Quality Verification (**DEPRECATED**)
+- **SPEC-005**: Admin Dashboard (Active - FastAPI templating)
+- **SPEC-146**: Customer UI with FastAPI Templates (Active - FastAPI templating)
+- **SPEC-114**: Auth & Security Integration (Active - JWT RS256)
 
 ---
 
@@ -747,7 +774,23 @@ ENVIRONMENT=development
 
 ---
 
-**Document Version**: 1.0
+**Document Version**: 1.0 (DEPRECATED)
 **Created**: October 10, 2025
-**Status**: Ready for Review
-**Next Action**: Team review and approval for implementation
+**Status**: ⚠️ **DEPRECATED** - Superseded by FastAPI templating approach (November 2, 2025)
+**Next Action**: Use SPEC-005 and SPEC-146 for backend/database integration with FastAPI templates
+
+---
+
+## ✅ What's Still Valid from SPEC-105
+
+While the Next.js integration approach is deprecated, these aspects are still relevant:
+
+1. **Backend/Database Connectivity** - Still needed, but implemented directly in FastAPI routers
+2. **Environment Variable Security** - Still valid for FastAPI projects
+3. **Smoke Tests** - Still valid for testing FastAPI endpoints
+4. **PostgreSQL/Redis Setup** - Still needed for backend services
+
+**Current Implementation:**
+- FastAPI routers handle database connections directly
+- Templates call FastAPI endpoints server-side (no proxy needed)
+- See SPEC-005 and SPEC-146 for current integration approach

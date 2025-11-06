@@ -9,6 +9,14 @@
 """
 SPEC-036: Memory Injection API Endpoints
 REST API for smart memory injection with context rules and AI integration
+
+⚠️  DEPRECATED: This router has been migrated to Rust Memory Service
+⚠️  Migration Date: 2025-01-31
+⚠️  Removal Date: 2025-04-30 (3 months grace period)
+⚠️  New Endpoint: http://localhost:13393/memory/injection/*
+⚠️  See: tasks/active/US_93_95_PYTHON_DEPRECATION_PLAN.md
+
+This router will be removed in Phase 3. Please migrate to Rust endpoints.
 """
 
 from datetime import datetime

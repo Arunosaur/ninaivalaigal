@@ -434,6 +434,7 @@ module.exports = {
 
 ---
 
-**Status:** ✅ Complete
+**Status:** ⚠️ **DEPRECATED** - Superseded by FastAPI templating approach
 **Implementation Date:** October 11, 2025
-**Last Updated:** October 11, 2025
+**Last Updated:** November 2, 2025 (deprecated)
+**Replacement:** See `docs/ADMIN_UI_FASTAPI_ANALYSIS.md` for current approach

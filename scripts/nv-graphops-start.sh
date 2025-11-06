@@ -29,10 +29,10 @@ echo ""
 # Configuration
 NINA_ENV=${NINA_ENV:-dev}
 CONTAINER_NAME="ninaivalaigal-${NINA_ENV}-graphops"
-IMAGE_NAME="ninaivalaigal-graphops:arm64"
+IMAGE_NAME="nina-graphops:arm64"
 GRAPH_NAME="ninaivalaigal_intelligence_${NINA_ENV}"
 
-# Port from ports.nv.yaml (apple.dev.graphops)
+# Port from ports.nv.yaml (apple.dev.graphops) - SPEC-145 compliance
 HOST_PORT=13398
 CONTAINER_PORT=50051  # GraphOps gRPC actually listens on 50051, not 8000
 

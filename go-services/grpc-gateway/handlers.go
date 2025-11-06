@@ -152,7 +152,11 @@ func (gw *EnhancedGateway) memoryRememberHandler(w http.ResponseWriter, r *http.
 			http.StatusInternalServerError)
 		return
 	}
-	defer httpResp.Body.Close()
+	defer func() {
+		if err := httpResp.Body.Close(); err != nil {
+			log.Printf("⚠️ Failed to close response body: %v", err)
+		}
+	}()
 
 	// Read response body
 	respBody, err := io.ReadAll(httpResp.Body)
@@ -166,7 +170,10 @@ func (gw *EnhancedGateway) memoryRememberHandler(w http.ResponseWriter, r *http.
 	// Forward response status and body
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpResp.StatusCode)
-	w.Write(respBody)
+	if _, err := w.Write(respBody); err != nil {
+		log.Printf("⚠️ Failed to write response: %v", err)
+		return
+	}
 }
 
 func (gw *EnhancedGateway) memoryRecallHandler(w http.ResponseWriter, r *http.Request) {
@@ -238,7 +245,11 @@ func (gw *EnhancedGateway) memoryRecallHandler(w http.ResponseWriter, r *http.Re
 			http.StatusInternalServerError)
 		return
 	}
-	defer httpResp.Body.Close()
+	defer func() {
+		if err := httpResp.Body.Close(); err != nil {
+			log.Printf("⚠️ Failed to close response body: %v", err)
+		}
+	}()
 
 	// Read response body
 	respBody, err := io.ReadAll(httpResp.Body)
@@ -252,7 +263,10 @@ func (gw *EnhancedGateway) memoryRecallHandler(w http.ResponseWriter, r *http.Re
 	// Forward response status and body
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpResp.StatusCode)
-	w.Write(respBody)
+	if _, err := w.Write(respBody); err != nil {
+		log.Printf("⚠️ Failed to write response: %v", err)
+		return
+	}
 }
 
 func (gw *EnhancedGateway) graphQueryHandler(w http.ResponseWriter, r *http.Request) {
@@ -351,7 +365,10 @@ func (gw *EnhancedGateway) graphQueryHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		log.Printf("⚠️ Failed to encode response: %v", err)
+		return
+	}
 }
 
 // Extract user ID from JWT token (placeholder implementation)
@@ -364,6 +381,12 @@ func (gw *EnhancedGateway) extractUserID(r *http.Request) string {
 
 	// For now, extract from Bearer token (placeholder)
 	if strings.HasPrefix(authHeader, "Bearer ") {
+		token := strings.TrimPrefix(authHeader, "Bearer ")
+		token = strings.TrimSpace(token)
+		// Return empty if token is empty
+		if token == "" {
+			return ""
+		}
 		// In real implementation, decode and validate JWT
 		return "user-123" // placeholder user ID
 	}
@@ -469,7 +492,11 @@ func (gw *EnhancedGateway) memoryListHandler(w http.ResponseWriter, r *http.Requ
 			http.StatusInternalServerError)
 		return
 	}
-	defer httpResp.Body.Close()
+	defer func() {
+		if err := httpResp.Body.Close(); err != nil {
+			log.Printf("⚠️ Failed to close response body: %v", err)
+		}
+	}()
 
 	// Read response body
 	respBody, err := io.ReadAll(httpResp.Body)
@@ -483,7 +510,10 @@ func (gw *EnhancedGateway) memoryListHandler(w http.ResponseWriter, r *http.Requ
 	// Forward response status and body
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpResp.StatusCode)
-	w.Write(respBody)
+	if _, err := w.Write(respBody); err != nil {
+		log.Printf("⚠️ Failed to write response: %v", err)
+		return
+	}
 }
 
 // GraphOps health handler
@@ -503,17 +533,19 @@ func (gw *EnhancedGateway) graphHealthHandler(w http.ResponseWriter, r *http.Req
 		log.Printf("⚠️ GraphOps health check error: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusServiceUnavailable)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"status":  "unhealthy",
 			"error":   err.Error(),
 			"service": "graphops",
-		})
+		}); err != nil {
+			log.Printf("⚠️ Failed to encode error response: %v", err)
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":    grpcResp.Status,
 		"version":   grpcResp.Version,
 		"timestamp": grpcResp.Timestamp.AsTime().Format(time.RFC3339),
@@ -523,7 +555,10 @@ func (gw *EnhancedGateway) graphHealthHandler(w http.ResponseWriter, r *http.Req
 			"idle_connections":   grpcResp.Database.IdleConnections,
 			"max_connections":    grpcResp.Database.MaxConnections,
 		},
-	})
+	}); err != nil {
+		log.Printf("⚠️ Failed to encode response: %v", err)
+		return
+	}
 }
 
 // Core API HTTP proxy
@@ -563,7 +598,11 @@ func (gw *EnhancedGateway) coreAPIProxy(w http.ResponseWriter, r *http.Request) 
 			http.StatusBadGateway)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("⚠️ Failed to close response body: %v", err)
+		}
+	}()
 
 	// Copy response headers
 	for key, values := range resp.Header {

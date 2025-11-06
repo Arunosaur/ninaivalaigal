@@ -5,6 +5,13 @@
 
 
 
+
+> **⚠️ ARCHITECTURE UPDATE (2025-11-02):**
+> This SPEC has been updated to reflect the current architecture: **FastAPI + Jinja2 templates**.
+> The NextAuth.js and Next.js middleware examples below are for historical reference only.
+> **Current Implementation:** FastAPI handles authentication with JWT tokens. Frontend uses Alpine.js/HTMX for client-side interactions.
+> **See:** `docs/ADMIN_UI_FASTAPI_ANALYSIS.md` and `docs/FRONTEND_ARCHITECTURE_DECISION.md`
+
 # SPEC-114: Auth & Security Integration
 **Phase:** C
 **Status:** Planned
@@ -612,6 +619,52 @@ async def test_login_invalid_credentials(client: AsyncClient):
 
 ---
 
-**Status:** ✅ Complete
+## 14. Implementation Status
+
+**Status:** ⚠️ **In Progress** (Partially Implemented - 70%)
+
+**Partially Implemented (Nov 4, 2025):**
+
+### ✅ Completed (70%)
+- ✅ Password hashing with bcrypt (cost factor 12) - **WORKING**
+- ✅ JWT authentication (HS256) - **WORKING** (but should be RS256)
+- ✅ RBAC middleware - **WORKING**
+- ✅ Auth endpoints (`/auth/login`, `/auth/signup`, `/auth/refresh`, `/auth/logout`) - **WORKING**
+- ✅ Refresh token functionality - **WORKING**
+- ⚠️ JWKS infrastructure code exists - **PARTIAL** (endpoint missing)
+
+### ❌ Missing (30%)
+- ❌ RS256 JWT signing - **NOT IMPLEMENTED** (using HS256 instead)
+- ❌ JWKS endpoint (`.well-known/jwks.json`) - **NOT IMPLEMENTED**
+- ❌ Session rotation every 24 hours - **NOT IMPLEMENTED**
+- ❌ Redis session storage for refresh tokens - **NOT VERIFIED** (may use database)
+- ❌ httpOnly cookie storage for refresh tokens - **NOT VERIFIED**
+- ❌ Audit logging for auth events - **NOT VERIFIED**
+- ⚠️ Rate limiting - **PARTIAL** (code exists but SPEC requirements not verified)
+- ⚠️ NextAuth.js integration - **N/A** (architecture uses FastAPI templating)
+
+**Note:** Core authentication functionality is working, but SPEC-114 requires RS256 (asymmetric) JWT signing, JWKS endpoint, and session rotation for production-grade security. These are critical security requirements.
+
+---
+
+## 15. Implementation Stories
+
+The following Taiga stories have been created to complete SPEC-114 implementation:
+
+- **US#779**: Migrate JWT from HS256 to RS256 asymmetric signing (unassigned)
+- **US#780**: Implement JWKS endpoint for public key distribution (unassigned)
+- **US#781**: Implement session rotation every 24 hours (unassigned)
+- **US#782**: Implement Redis session storage for refresh tokens (unassigned)
+- **US#783**: Implement httpOnly cookie storage for refresh tokens (frontend) (unassigned)
+- **US#784**: Implement audit logging for all auth events (unassigned)
+- **US#785**: Update FastAPI auth router to match SPEC requirements (unassigned)
+- **US#786**: Implement rate limiting for authentication endpoints (unassigned)
+- **US#787**: Update frontend auth integration (if NextAuth used) (assigned to Developer C)
+
+All stories are tagged with `spec-114`. US#779-786 are unassigned and can be picked up by any developer. US#787 is assigned to Developer C.
+
+---
+
+**Status:** ⚠️ **In Progress** (Partially Implemented - 70%)
 **Implementation Date:** October 11, 2025
-**Last Updated:** October 11, 2025
+**Last Updated:** November 4, 2025 (validation and stories created)

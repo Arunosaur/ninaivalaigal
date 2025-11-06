@@ -3,17 +3,21 @@
 
 name: Chromatic
 
+# ⚠️ DEPRECATED: This workflow is disabled because frontend-nextjs has been archived
+# See: .archive/deprecated/frontend-nextjs-2025-01-31/
+
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'frontend-nextjs/src/**'
-      - 'frontend-nextjs/.storybook/**'
-  pull_request:
-    paths:
-      - 'frontend-nextjs/src/**'
-      - 'frontend-nextjs/.storybook/**'
+  workflow_dispatch:  # Manual trigger only - disabled for automatic runs
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'frontend-nextjs/src/**'  # DEPRECATED - folder archived
+  #     - 'frontend-nextjs/.storybook/**'  # DEPRECATED - folder archived
+  # pull_request:
+  #   paths:
+  #     - 'frontend-nextjs/src/**'  # DEPRECATED - folder archived
+  #     - 'frontend-nextjs/.storybook/**'  # DEPRECATED - folder archived
 
 jobs:
   chromatic:

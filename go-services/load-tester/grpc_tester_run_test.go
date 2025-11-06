@@ -6,81 +6,106 @@ import (
 	"time"
 )
 
-func TestGRPCTesterRunWithValidConfig(t *testing.T) {
-	config := &LoadTestConfig{
-		URL:           "localhost:50051",
-		Method:        "HealthCheck",
-		Concurrency:   1,
-		TotalRequests: 1,
-		Timeout:       2 * time.Second,
-	}
-	tester := NewGRPCTester(config)
+func TestGRPCTesterRunWithContext(t *testing.T) {
+	config := NewLoadTestConfig()
+	config.URL = "localhost:50051"
+	config.GRPCMethod = "TestService/TestMethod"
+	config.Concurrency = 1
+	config.TotalRequests = 1
+	config.Timeout = 1 * time.Second
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	tester := NewGRPCTester(config)
+	if tester == nil {
+		t.Fatal("NewGRPCTester should not return nil")
+	}
+
+	// Test with short timeout context
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
-	// Will fail without actual gRPC server, but tests Run structure
+	// This will likely fail due to connection issues, but tests the code path
 	err := tester.Run(ctx)
-	// Accept any error - just testing function executes
-	_ = err
+	if err != nil {
+		t.Logf("GRPCTester.Run failed as expected (connection issue): %v", err)
+	}
 }
 
-func TestGRPCTesterRunWithInvalidURL(t *testing.T) {
-	config := &LoadTestConfig{
-		URL:           "invalid-host:99999",
-		Method:        "HealthCheck",
-		Concurrency:   1,
-		TotalRequests: 1,
-		Timeout:       1 * time.Second,
-	}
+func TestGRPCTesterRunWithCanceledContext(t *testing.T) {
+	config := NewLoadTestConfig()
+	config.URL = "localhost:50051"
+	config.GRPCMethod = "TestService/TestMethod"
+	config.Concurrency = 1
+	config.TotalRequests = 10
+
 	tester := NewGRPCTester(config)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
+	// Test with canceled context
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel immediately
 
-	// Should fail quickly with invalid URL
 	err := tester.Run(ctx)
-	// Expect connection error
 	if err == nil {
-		t.Log("Note: Run completed without error (may have handled gracefully)")
+		t.Log("GRPCTester.Run may not check context immediately")
+	} else {
+		t.Logf("GRPCTester.Run correctly handled canceled context: %v", err)
 	}
 }
 
-func TestGRPCTesterRunWithZeroRequests(t *testing.T) {
-	config := &LoadTestConfig{
-		URL:           "localhost:50051",
-		Method:        "HealthCheck",
-		Concurrency:   1,
-		TotalRequests: 0,
-		Duration:      1 * time.Second,
-		Timeout:       1 * time.Second,
+func TestGRPCTesterRunWithDuration(t *testing.T) {
+	config := NewLoadTestConfig()
+	config.URL = "localhost:50051"
+	config.GRPCMethod = "TestService/TestMethod"
+	config.Concurrency = 1
+	config.Duration = 100 * time.Millisecond
+	config.Timeout = 50 * time.Millisecond
+
+	tester := NewGRPCTester(config)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	err := tester.Run(ctx)
+	if err != nil {
+		t.Logf("GRPCTester.Run with duration: %v", err)
 	}
+}
+
+func TestGRPCTesterRunWithRateLimit(t *testing.T) {
+	config := NewLoadTestConfig()
+	config.URL = "localhost:50051"
+	config.GRPCMethod = "TestService/TestMethod"
+	config.Concurrency = 1
+	config.TotalRequests = 5
+	config.RateLimit = 10
+	config.Timeout = 1 * time.Second
+
 	tester := NewGRPCTester(config)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	// Test duration-based run
 	err := tester.Run(ctx)
-	// Accept any error
-	_ = err
+	if err != nil {
+		t.Logf("GRPCTester.Run with rate limit: %v", err)
+	}
 }
 
-func TestGRPCTesterRunWithHighConcurrency(t *testing.T) {
-	config := &LoadTestConfig{
-		URL:           "localhost:50051",
-		Method:        "HealthCheck",
-		Concurrency:   10,
-		TotalRequests: 5,
-		Timeout:       1 * time.Second,
-	}
+func TestGRPCTesterRunWithProtoFile(t *testing.T) {
+	config := NewLoadTestConfig()
+	config.URL = "localhost:50051"
+	config.GRPCMethod = "TestService/TestMethod"
+	config.Concurrency = 1
+	config.TotalRequests = 1
+	config.ProtoFile = "test.proto"
+	config.Timeout = 1 * time.Second
+
 	tester := NewGRPCTester(config)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	// Test with higher concurrency
 	err := tester.Run(ctx)
-	// Accept any error
-	_ = err
+	if err != nil {
+		t.Logf("GRPCTester.Run with proto file: %v", err)
+	}
 }
