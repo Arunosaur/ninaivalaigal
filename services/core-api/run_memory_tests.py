@@ -8,15 +8,17 @@ Test runner for Memory Browser API tests with proper environment setup
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 
 def setup_environment():
     """Set up required environment variables for testing"""
+    root = Path(__file__).parent.parent.parent
 
     # Load the actual dev environment file
-    env_file = "/Users/swami/WorkSpace/ninaivalaigal/configs/env-dev.env"
+    env_file = root / "configs" / "env-dev.env"
 
-    if os.path.exists(env_file):
+    if env_file.exists():
         print(f"📁 Loading environment from: {env_file}")
         with open(env_file, "r") as f:
             for line in f:
@@ -32,9 +34,11 @@ def setup_environment():
 
     # Use PgBouncer for testing (like production)
     # pragma: allowlist secret
-    os.environ["DATABASE_URL"] = (
-        "postgresql://nina:dev_password_change_in_production@192.168.66.119:6432/ninaivalaigal_test"
-    )
+    if "DATABASE_URL" not in os.environ:
+        os.environ["DATABASE_URL"] = os.getenv(
+            "TEST_DATABASE_URL",
+            "postgresql://nina:dev_password_change_in_production@192.168.66.119:6432/ninaivalaigal_test",
+        )
 
     print("✅ Environment configured with PgBouncer connection")
 
@@ -47,25 +51,34 @@ def run_tests():
     print("=" * 80)
 
     # Change to the core-api directory
-    core_api_dir = "/Users/swami/WorkSpace/ninaivalaigal/services/core-api"
-    os.chdir(core_api_dir)
+    root = Path(__file__).parent.parent.parent
+    core_api_dir = root / "services" / "core-api"
+    os.chdir(str(core_api_dir))
 
     # Set up environment
     setup_environment()
 
     # Add current directory to Python path
-    sys.path.insert(0, core_api_dir)
+    sys.path.insert(0, str(core_api_dir))
 
     # Run pytest with specific test file
     test_file = "tests/test_memory_browser_api.py"
 
     try:
+        # Try conda first, fallback to python
+        python_cmd = ["python", "-m", "pytest"]
+        try:
+            subprocess.run(["conda", "--version"], capture_output=True, check=True)
+            python_cmd = ["conda", "run", "-n", "nina", "python", "-m", "pytest"]
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            pass
+
         # Run pytest
         result = subprocess.run(
-            ["conda", "run", "-n", "nina", "python", "-m", "pytest", test_file, "-v", "--tb=short", "--no-header"],
+            python_cmd + [test_file, "-v", "--tb=short", "--no-header"],
             capture_output=True,
             text=True,
-            cwd=core_api_dir,
+            cwd=str(core_api_dir),
         )
 
         print("📊 Test Results:")
@@ -97,7 +110,8 @@ def validate_test_structure():
     print("VALIDATING TEST STRUCTURE")
     print("=" * 80)
 
-    test_file = "/Users/swami/WorkSpace/ninaivalaigal/services/core-api/tests/test_memory_browser_api.py"
+    root = Path(__file__).parent.parent.parent
+    test_file = root / "services" / "core-api" / "tests" / "test_memory_browser_api.py"
 
     if not os.path.exists(test_file):
         print(f"❌ Test file not found: {test_file}")

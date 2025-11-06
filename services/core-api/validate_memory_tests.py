@@ -9,6 +9,7 @@ Validates test coverage and structure without running full test suite
 import ast
 import inspect
 import os
+from pathlib import Path
 from typing import Dict, List, Set
 
 
@@ -124,8 +125,9 @@ def main():
     print("=" * 80)
 
     # Analyze the test file
-    test_file = "/Users/swami/WorkSpace/ninaivalaigal/services/core-api/tests/test_memory_browser_api.py"
-    analysis = analyze_test_file(test_file)
+    root = Path(__file__).parent.parent.parent
+    test_file = root / "services" / "core-api" / "tests" / "test_memory_browser_api.py"
+    analysis = analyze_test_file(str(test_file))
 
     if "error" in analysis:
         print(f"❌ {analysis['error']}")
