@@ -31,6 +31,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
@@ -122,6 +123,10 @@ class Memory(Base):
     data = Column(JSON, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # SPEC-128: Transfer & Copy tracking
+    derived_from = Column(UUID(as_uuid=True), nullable=True, index=True)  # Original memory for copies
+    transfer_id = Column(UUID(as_uuid=True), nullable=True, index=True)  # Transfer record ID
+    copy_id = Column(UUID(as_uuid=True), nullable=True, index=True)  # Copy record ID
 
 
 class Organization(Base):
@@ -549,4 +554,86 @@ class NonProfitApplication(Base):
             name="nonprofit_target_check",
         ),
         {"comment": "Non-profit application workflow (US#158, SPEC-026)"},
+    )
+
+
+# US#938: In-App Notification Storage (SPEC-148 Phase 1.3)
+
+
+class InAppNotification(Base):
+    """In-app notification model for real-time notification storage and delivery
+
+    Stores in-app notifications with read/unread status, archive/delete support,
+    and real-time delivery via WebSocket/SSE (SPEC-115).
+    Part of SPEC-148: Unified Notification System.
+    """
+
+    __tablename__ = "in_app_notifications"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    notification_type = Column(String(100), nullable=False, index=True)  # quota_warning, alert, system, etc.
+    subject = Column(String(500), nullable=True)
+    body = Column(Text, nullable=False)
+    template_id = Column(UUID(as_uuid=True), nullable=True)  # Reference to notification template
+    notification_metadata = Column(
+        JSONB, nullable=True
+    )  # Additional notification data (renamed from 'metadata' - reserved in SQLAlchemy)
+
+    # Status tracking
+    is_read = Column(Boolean, default=False, nullable=False, index=True)
+    read_at = Column(DateTime, nullable=True)
+    is_archived = Column(Boolean, default=False, nullable=False, index=True)
+    archived_at = Column(DateTime, nullable=True)
+    is_deleted = Column(Boolean, default=False, nullable=False, index=True)
+    deleted_at = Column(DateTime, nullable=True)
+
+    # Delivery tracking
+    delivered_at = Column(DateTime, nullable=True, index=True)  # When delivered via WebSocket/SSE
+    opened_at = Column(DateTime, nullable=True)  # When user opened notification
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id], backref="in_app_notifications")
+
+    # Constraints
+    __table_args__ = (
+        CheckConstraint("NOT (is_deleted = true AND is_archived = true)", name="check_not_deleted_and_archived"),
+        {"comment": "In-app notification storage with read/unread status (US#938, SPEC-148)"},
+    )
+
+
+# US#939: Push Notification Support (FCM/APNs) - Device Token Management (SPEC-148 Phase 2.1)
+
+
+class DeviceToken(Base):
+    """Device token model for push notification device registration
+
+    Stores device tokens for FCM (Android) and APNs (iOS) push notifications.
+    Part of SPEC-148: Unified Notification System, Phase 2.1.
+    NOTIF-004 (US#939): Push Notification Support (FCM/APNs)
+    """
+
+    __tablename__ = "device_tokens"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token = Column(Text, nullable=False, index=True)  # Device token from FCM or APNs
+    platform = Column(String(20), nullable=False, index=True)  # "ios" or "android"
+    device_info = Column(JSONB, nullable=True)  # Device information (model, OS version, etc.)
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id], backref="device_tokens")
+
+    # Constraints
+    __table_args__ = (
+        UniqueConstraint("user_id", "token", "platform", name="uq_user_token_platform"),
+        {"comment": "Device token storage for push notifications (US#939, SPEC-148 Phase 2.1)"},
     )

@@ -30,15 +30,15 @@ jobs:
         service:
           - name: api
             display: API container
-            dockerfile: docker/services/Dockerfile.api
+            dockerfile: Dockerfile.api
             context: .
           - name: postgres
             display: PostgreSQL container
-            dockerfile: docker/services/Dockerfile.postgres
+            dockerfile: Dockerfile.postgres
             context: .
           - name: pgbouncer
             display: PgBouncer container
-            dockerfile: docker/services/Dockerfile.pgbouncer
+            dockerfile: Dockerfile.pgbouncer
             context: .
         arch:
           - platform: linux/amd64

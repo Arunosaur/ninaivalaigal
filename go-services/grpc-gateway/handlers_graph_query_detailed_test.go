@@ -9,12 +9,8 @@ import (
 )
 
 func TestGraphQueryHandlerWithSuccessPath(t *testing.T) {
-	gateway := NewGateway()
-	clients, _ := NewGRPCClients()
-	enhanced := &EnhancedGateway{
-		Gateway:     gateway,
-		grpcClients: clients,
-	}
+	enhanced := NewTestEnhancedGateway(t)
+	defer CleanupTestEnhancedGateway(t, enhanced)
 
 	body := map[string]interface{}{
 		"query":      "MATCH (n) RETURN n LIMIT 1",

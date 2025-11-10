@@ -30,33 +30,24 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
+# Import models from shared contracts (US#79 - Shared Contracts Layer)
+from auth.v1.models import (
+    ApiKeyCreate,
+    ApiKeyResponse,
+    IndividualUserSignup,
+    InvitationAccept,
+    OrganizationSignup,
+    TokenData,
+    TokenUsage,
+)
 from config import DEFAULT_RUST_DATABASE_URL
 from utils.password import hash_password, verify_password
 
+# Import local auth functions via importlib to avoid conflicts
 _auth_spec = importlib.util.spec_from_file_location("local_auth", Path(__file__).parent / "auth.py")
 _local_auth = importlib.util.module_from_spec(_auth_spec)
 sys.modules["local_auth"] = _local_auth
 _auth_spec.loader.exec_module(_local_auth)
-
-IndividualUserSignup = _local_auth.IndividualUserSignup
-TokenData = _local_auth.TokenData
-
-
-# Additional Pydantic models for auth
-class InvitationAccept(BaseModel):
-    """Invitation acceptance model"""
-
-    token: str
-    email: EmailStr
-    password: str
-    full_name: str
-
-
-class OrganizationSignup(BaseModel):
-    """Organization signup model"""
-
-    user: dict[str, Any]
-    organization: dict[str, Any]
 
 
 # Password policy
@@ -66,31 +57,7 @@ PASSWORD_REQUIREMENTS_MESSAGE = (
 )
 
 
-# Additional API models for token management
-class ApiKeyCreate(BaseModel):
-    """API key creation model"""
-
-    name: str
-    expires_in_days: int = 90
-
-
-class ApiKeyResponse(BaseModel):
-    """API key response model"""
-
-    id: int
-    name: str
-    key: str
-    created_at: datetime
-    expires_at: datetime
-
-
-class TokenUsage(BaseModel):
-    """Token usage analytics model"""
-
-    token_id: int
-    last_used: datetime
-    usage_count: int
-    ip_addresses: list[str]
+# ApiKeyCreate, ApiKeyResponse, and TokenUsage are now imported from auth.v1.models (US#79)
 
 
 # Configuration loading (moved from main.py to avoid circular import)
@@ -264,12 +231,22 @@ def generate_jwt_token(
     delta = expires_delta or timedelta(hours=JWT_EXPIRATION_HOURS)
     payload["exp"] = datetime.now(timezone.utc) + delta
 
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    # Try RS256 first (SPEC-114), fallback to HS256
+    try:
+        from lib.jwt_rs256 import create_access_token_rs256
+
+        return create_access_token_rs256(payload, expires_delta=delta)
+    except Exception:
+        # Fallback to HS256 for backward compatibility
+        return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    """Create access_token."""
+    """
+    Create access_token.
 
+    SPEC-114: Uses RS256 if RSA keys are available, otherwise falls back to HS256.
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -277,13 +254,19 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         expire = datetime.now(timezone.utc) + timedelta(days=7)  # Default 7 days
     to_encode.update({"exp": expire})
 
-    # Get JWT secret from environment variable (required)
-    jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
-    if not jwt_secret:
-        raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required")
+    # Try RS256 first (SPEC-114), fallback to HS256
+    try:
+        from lib.jwt_rs256 import create_access_token_rs256
 
-    encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=JWT_ALGORITHM)
-    return encoded_jwt
+        return create_access_token_rs256(to_encode, expires_delta=expires_delta)
+    except Exception:
+        # Fallback to HS256 for backward compatibility
+        jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
+        if not jwt_secret:
+            raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required")
+
+        encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=JWT_ALGORITHM)
+        return encoded_jwt
 
 
 def get_user_roles_for_token(db, user_id) -> dict:
@@ -342,16 +325,30 @@ def get_user_roles_for_token(db, user_id) -> dict:
 
 
 def verify_token(token: str) -> TokenData:
-    """Verify JWT token and return token data"""
+    """
+    Verify JWT token and return token data.
+
+    SPEC-114: Supports both RS256 and HS256 for backward compatibility.
+    """
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        username: str = payload.get("email")  # Use email as username
-        user_id: int = payload.get("user_id")
-        if username is None or user_id is None:
+        # Try RS256 first (SPEC-114), fallback to HS256
+        from lib.jwt_rs256 import decode_access_token_rs256
+
+        payload = decode_access_token_rs256(token, verify=True, fallback_to_hs256=True)
+        if not payload:
             return None
-        token_data = TokenData(username=username, user_id=user_id)
-    except jwt.InvalidTokenError:
+    except Exception:
+        # Fallback to HS256
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        except jwt.InvalidTokenError:
+            return None
+
+    username: str = payload.get("email")  # Use email as username
+    user_id: int = payload.get("user_id")
+    if username is None or user_id is None:
         return None
+    token_data = TokenData(username=username, user_id=user_id)
     return token_data
 
 

@@ -6,6 +6,18 @@ terraform {
       version = "~> 3.0"
     }
   }
+
+  # Remote State Backend Configuration
+  # Configure this after creating the Storage Account and Container
+  # See terraform/azure/README.md for setup instructions
+  backend "azurerm" {
+    # These values should be set via backend config file or CLI
+    # resource_group_name  = "terraform-state-rg"
+    # storage_account_name = "ninaivalaigaltfstate"
+    # container_name       = "terraform-state"
+    # key                  = "azure/terraform.tfstate"
+    # use_azuread_auth      = false
+  }
 }
 
 provider "azurerm" {
@@ -20,6 +32,7 @@ resource "azurerm_resource_group" "ninaivalaigal" {
   tags = {
     Environment = var.environment
     Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -76,6 +89,7 @@ resource "azurerm_container_group" "ninaivalaigal_api" {
   tags = {
     Environment = var.environment
     Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -105,6 +119,7 @@ resource "azurerm_postgresql_flexible_server" "postgres" {
   tags = {
     Environment = var.environment
     Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 

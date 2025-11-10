@@ -24,8 +24,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from server.billing.archive_metrics import MetricsArchivalService
+from server.billing.archive_restore import ArchiveRestoreService
+from server.billing.archive_retrieval import ArchiveRetrievalService
 from server.billing.models import ResourceType
 from server.billing.quota_enforcement import QuotaEnforcementService, QuotaStatus
+from server.billing.storage_backend import get_storage_backend
 from server.billing.usage_metering import UsageMeteringService
 from server.database import get_db
 

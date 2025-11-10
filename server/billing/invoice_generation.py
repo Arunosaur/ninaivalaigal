@@ -285,12 +285,35 @@ class InvoiceGenerationService:
                 self.db.add(line_item)
                 line_items.append(line_item)
 
+        # Apply credits automatically (US#165)
+        from server.billing.models import CreditBalance
+
+        credit_balance = (
+            self.db.query(CreditBalance)
+            .filter(
+                and_(
+                    CreditBalance.billing_account_id == billing_account_id,
+                    CreditBalance.used_amount < CreditBalance.amount,
+                    (CreditBalance.expires_at.is_(None) | (CreditBalance.expires_at > datetime.utcnow())),
+                )
+            )
+            .order_by(CreditBalance.created_at.asc())
+            .first()
+        )
+
+        credits_applied = Decimal("0")
+        if credit_balance:
+            available_credit = credit_balance.amount - credit_balance.used_amount
+            credits_applied = min(available_credit, total_amount)
+            credit_balance.used_amount += credits_applied
+            invoice.credits_applied = credits_applied
+
         # Update invoice totals
         invoice.subtotal = total_amount
-        invoice.total_amount = total_amount  # For now, subtotal = total (no tax/discounts yet)
+        invoice.total_amount = max(Decimal("0"), total_amount - credits_applied)  # Apply credits
 
         # If total is zero, don't create invoice
-        if total_amount == 0:
+        if invoice.total_amount == 0:
             if invoice.id:
                 self.db.delete(invoice)
             return None

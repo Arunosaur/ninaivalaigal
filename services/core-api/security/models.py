@@ -82,22 +82,30 @@ class AlertEvent(Base):
 
 
 class SecurityEvent(Base):
-    """Detailed security event tracking"""
+    """Detailed security event tracking for SIEM and analytics"""
 
     __tablename__ = "security_events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    timestamp = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     event_type = Column(String(50), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    context_id = Column(Integer, ForeignKey("contexts.id"), nullable=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    context_id = Column(UUID(as_uuid=True), ForeignKey("contexts.id"), nullable=True)
     ip_address = Column(INET, nullable=True)
     user_agent = Column(Text, nullable=True)
     endpoint = Column(String(255), nullable=True)
     method = Column(String(10), nullable=True)
     status_code = Column(Integer, nullable=True)
-    metadata = Column(JSONB, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    severity = Column(String(20), nullable=False, default="info")
+    outcome = Column(String(20), nullable=True)
+    session_id = Column(String(255), nullable=True)
+    request_id = Column(String(255), nullable=True)
+    resource_id = Column(String(255), nullable=True)
+    resource_type = Column(String(50), nullable=True)
+    correlation_id = Column(String(255), nullable=True)
+    description = Column(Text, nullable=True)
+    details = Column(JSONB, nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     # Relationships
     user = relationship("User", foreign_keys=[user_id])

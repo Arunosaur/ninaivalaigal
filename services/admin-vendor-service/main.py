@@ -104,9 +104,13 @@ app.include_router(metrics_router.router)
 from routers import staff_auth_api  # noqa: E402
 from routers import staff_management_api  # noqa: E402
 from routers import vendor_admin_api  # noqa: E402
+from routers import vendor_admin_billing_api  # noqa: E402
+from routers import vendor_admin_ui  # noqa: E402
 
 # Include admin/vendor routers
 app.include_router(vendor_admin_api.router)
+app.include_router(vendor_admin_ui.router)  # Vendor Admin UI (SPEC-025)
+app.include_router(vendor_admin_billing_api.router)  # Vendor Admin Billing APIs (US#162, SPEC-026 Phase 2)
 app.include_router(staff_management_api.router)
 app.include_router(staff_auth_api.router)
 

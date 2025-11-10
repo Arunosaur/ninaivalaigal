@@ -91,8 +91,59 @@ class UniversalAIWrapper:
         self.mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.py")
 
     async def enhance_ai_prompt(self, context: AIContext, original_prompt: str) -> dict[str, Any]:
-        """Enhance any AI prompt with relevant ninaivalaigal memories"""
+        """Enhance any AI prompt with relevant ninaivalaigal memories
+
+        **SPEC-133**: Now uses unified ContextEngine for context injection
+        """
         try:
+            # Try to use ContextEngine if available (SPEC-133)
+            try:
+                from server.core.dependencies import get_context_engine_instance
+
+                context_engine = get_context_engine_instance()
+
+                # Convert AIContext to dict for ContextEngine
+                context_dict = {
+                    "user_id": context.user_id,
+                    "team_id": context.team_id,
+                    "organization_id": context.organization_id,
+                    "project_context": context.project_context,
+                }
+
+                # Use ContextEngine.inject() for unified context injection
+                ai_request = {
+                    "prompt": original_prompt,
+                    "context": context_dict,
+                }
+
+                result = context_engine.inject(ai_request)
+
+                if result.get("enhancement_applied"):
+                    # Store interaction for learning (if method exists)
+                    try:
+                        await self._store_ai_interaction(
+                            context, original_prompt, result["enhanced_prompt"], result["memories_used"]
+                        )
+                    except Exception:
+                        pass  # Non-critical
+
+                    logger.info(
+                        f"Enhanced {context.ai_model.value} prompt with {len(result['memories_used'])} memories (via ContextEngine)"
+                    )
+
+                    return {
+                        "enhanced_prompt": result["enhanced_prompt"],
+                        "memories_used": result["memories_used"],
+                        "enhancement_applied": True,
+                        "context": asdict(context),
+                    }
+            except ImportError:
+                # Fallback to original implementation if ContextEngine not available
+                logger.debug("ContextEngine not available, using original implementation")
+            except Exception as e:
+                logger.warning(f"ContextEngine injection failed, falling back: {e}")
+
+            # Fallback to original implementation
             # Get relevant memories from all levels
             memories = await self._get_hierarchical_memories(context)
 

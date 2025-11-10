@@ -1,7 +1,7 @@
 # Code Cleanup Plan - Based on SPECs and Stories
 
-**Developer F**  
-**Date**: 2025-01-31  
+**Developer F**
+**Date**: 2025-01-31
 **Status**: 📋 Planning
 
 ---
@@ -276,4 +276,3 @@ To: `.archive/deprecated/[folder-name]-[date]/`
 ---
 
 **Status**: Ready to execute Phase 1 (Archive Next.js folders)
-

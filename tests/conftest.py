@@ -221,3 +221,41 @@ def pytest_collection_modifyitems(config, items):
     if deselected:
         items[:] = kept
         config.hook.pytest_deselected(items=deselected)
+
+
+# ========================================
+# DATABASE FIXTURES (US#182)
+# ========================================
+
+
+@pytest.fixture(scope="function")
+def db_session():
+    """
+    Database session fixture for testing.
+    Creates a new session for each test and rolls back after.
+    """
+    if create_engine is None or sessionmaker is None:
+        pytest.skip("SQLAlchemy not available")
+
+    # Get database URL from environment
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        # Build from components
+        host = os.getenv("POSTGRES_HOST", "localhost")
+        port = os.getenv("PGBOUNCER_TX_PORT", "6432")
+        user = os.getenv("POSTGRES_USER", "nina")
+        password = os.getenv("POSTGRES_PASSWORD", "dev_password_change_in_production")
+        database = os.getenv("POSTGRES_DB", "ninaivalaigal_dev")
+        database_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+
+    # Create engine and session
+    engine = create_engine(database_url, poolclass=StaticPool)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    yield session
+
+    # Cleanup
+    session.rollback()
+    session.close()
+    engine.dispose()

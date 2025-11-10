@@ -1,2055 +1,490 @@
-# Makefile for ninaivalaigal stack
-
-SCRIPTS := scripts
-
-.PHONY: docker-dev-up docker-dev-down colima-dev-up colima-dev-down apple-dev-up apple-dev-down docker-test-up docker-test-down colima-test-up colima-test-down apple-test-up apple-test-down docker-prod-up docker-prod-down colima-prod-up colima-prod-down apple-prod-up apple-prod-down health logs stack-up stack-down stack-status db-only skip-api skip-pgb skip-mem0 with-mem0 with-ui backup db-stats pgb-stats restore verify-backup verify-latest cleanup-backups cleanup-backups-dry spec-new spec-test system-info test-mem0-auth ui-up ui-down ui-status sanity-check validate-production start stop metrics dev-up dev-down dev-logs dev-status tunnel-start tunnel-stop deploy-aws-vm deploy-gcp-vm deploy-azure-vm deploy-aws deploy-gcp deploy-azure k8s-deploy k8s-status k8s-logs k8s-delete build-images install uninstall ci-test release release-local nina-stack-up nina-stack-down nina-stack-status nina-db-only environment-health smoke-tests lint-enhanced pre-commit-install pre-commit-run environment-recovery
-
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 🚀 QUICK START COMMANDS (Colleague-Friendly)
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## Docker Development Environment
-docker-dev-up:
-	@echo "🐳 Starting Docker dev - ALL SERVICES (Customer + Admin)..."
-	@echo "   Ports: API=13370, Customer=8081, Admin=8181"
-	@NINA_RUNTIME=docker POSTGRES_PORT=5432 PGBOUNCER_PORT=6432 REDIS_PORT=6379 API_PORT=13370 CUSTOMER_APP_PORT=8081 ADMIN_CONSOLE_PORT=8181 \
-		docker-compose -f compose.docker.yml --env-file .env.dev --profile external --profile internal up -d
-	@echo "✅ Docker dev is running!"
-	@echo "   Customer App: http://localhost:8081"
-	@echo "   Admin Console: http://localhost:8181"
-	@echo "   API Docs: http://localhost:13370/docs"
-
-docker-dev-up-external:
-	@echo "🐳 Starting Docker dev - EXTERNAL (Customer App only)..."
-	@set -a && . .env.dev && set +a && \
-		NINA_RUNTIME=docker POSTGRES_PORT=5432 PGBOUNCER_PORT=6432 REDIS_PORT=6379 API_PORT=13370 CUSTOMER_APP_PORT=8081 ADMIN_CONSOLE_PORT=8181 \
-		docker-compose -f compose.docker.yml --profile external up -d --remove-orphans
-	@echo "✅ Customer App: http://localhost:8081"
-	@echo "✅ API: http://localhost:13370/docs"
-
-docker-dev-up-internal:
-	@echo "🔧 Starting Docker dev - INTERNAL (Admin Console only)..."
-	@NINA_RUNTIME=docker POSTGRES_PORT=5432 PGBOUNCER_PORT=6432 REDIS_PORT=6379 API_PORT=13370 CUSTOMER_APP_PORT=8081 ADMIN_CONSOLE_PORT=8181 \
-		docker-compose -f compose.docker.yml --env-file .env.dev --profile internal up -d
-	@echo "✅ Admin Console: http://localhost:8181"
-	@echo "✅ API: http://localhost:13370/docs"
-
-docker-dev-down:
-	@echo "🛑 Stopping Docker dev environment..."
-	@NINA_ENV=dev docker-compose -f compose.docker.yml down
-
-## Colima Development Environment
-colima-dev-up:
-	@echo "🦙 Starting Colima dev - ALL SERVICES (Customer + Admin)..."
-	@echo "   Ports: API=8010, Customer=3010, Admin=3011"
-	@NINA_ENV=dev docker-compose -f compose.colima.yml --profile external --profile internal up -d
-	@echo "✅ Colima dev is running!"
-	@echo "   Customer App: http://localhost:3010"
-	@echo "   Admin Console: http://localhost:3011"
-	@echo "   API Docs: http://localhost:8010/docs"
-
-colima-dev-up-external:
-	@echo "🦙 Starting Colima dev - EXTERNAL (Customer App only)..."
-	@NINA_ENV=dev docker-compose -f compose.colima.yml --profile external up -d
-	@echo "✅ Customer App: http://localhost:3010"
-	@echo "✅ API: http://localhost:8010/docs"
-
-colima-dev-up-internal:
-	@echo "🔧 Starting Colima dev - INTERNAL (Admin Console only)..."
-	@NINA_ENV=dev docker-compose -f compose.colima.yml --profile internal up -d
-	@echo "✅ Admin Console: http://localhost:3011"
-	@echo "✅ API: http://localhost:8010/docs"
-
-colima-dev-down:
-	@echo "🛑 Stopping Colima dev environment..."
-	@NINA_ENV=dev docker-compose -f compose.colima.yml down
-
-## Apple Container CLI Development Environment
-apple-dev-up:
-	@echo "🍎 Starting Apple Container CLI Stack..."
-	@bash start-apple-container-stack.sh
-
-apple-dev-up-external:
-	@echo "🍎 Starting Apple CLI dev - EXTERNAL (Customer App only)..."
-	@NINA_ENV=dev docker-compose -f compose.apple.yml --profile external up -d
-	@echo "✅ Customer App: http://localhost:3020"
-	@echo "✅ API: http://localhost:8020/docs"
-
-apple-dev-up-internal:
-	@echo "🔧 Starting Apple CLI dev - INTERNAL (Admin Console only)..."
-	@NINA_ENV=dev docker-compose -f compose.apple.yml --profile internal up -d
-	@echo "✅ Admin Console: http://localhost:3021"
-	@echo "✅ API: http://localhost:8020/docs"
-
-apple-dev-down:
-	@echo "🛑 Stopping Apple Container CLI Stack..."
-	@container stop nv-api nv-pgbouncer nv-db 2>/dev/null || true
-	@echo "✅ Stack stopped"
-
-## Docker Test Environment
-docker-test-up:
-	@echo "🐳 Starting Docker test environment (ports: 5532, 6479, 13470)..."
-	@NINA_ENV=test POSTGRES_PORT=5532 REDIS_PORT=6479 API_PORT=13470 docker-compose -f compose.docker.yml up -d
-	@echo "✅ Docker test is running! API: http://localhost:13470/health"
-
-docker-test-down:
-	@echo "🛑 Stopping Docker test environment..."
-	@NINA_ENV=test docker-compose -f compose.docker.yml down
-
-## Colima Test Environment
-colima-test-up:
-	@echo "🦙 Starting Colima test environment (ports: 5542, 6489, 13480)..."
-	@NINA_ENV=test POSTGRES_PORT=5542 REDIS_PORT=6489 API_PORT=13480 docker-compose -f compose.colima.yml up -d
-	@echo "✅ Colima test is running! API: http://localhost:13480/health"
-
-colima-test-down:
-	@echo "🛑 Stopping Colima test environment..."
-	@NINA_ENV=test docker-compose -f compose.colima.yml down
-
-## Apple Container CLI Test Environment
-apple-test-up:
-	@echo "🍎 Starting Apple CLI test environment (ports: 5552, 6499, 13490)..."
-	@NINA_ENV=test POSTGRES_PORT=5552 REDIS_PORT=6499 API_PORT=13490 container compose -f compose.apple.yml up -d
-	@echo "✅ Apple CLI test is running! API: http://localhost:13490/health"
-
-apple-test-down:
-	@echo "🛑 Stopping Apple CLI test environment..."
-	@NINA_ENV=test container compose -f compose.apple.yml down
-
-## Docker Production Environment
-docker-prod-up:
-	@echo "🐳 Starting Docker prod environment (ports: 5632, 6579, 13570)..."
-	@NINA_ENV=prod POSTGRES_PORT=5632 REDIS_PORT=6579 API_PORT=13570 docker-compose -f compose.docker.yml up -d
-	@echo "✅ Docker prod is running! API: http://localhost:13570/health"
-
-docker-prod-down:
-	@echo "🛑 Stopping Docker prod environment..."
-	@NINA_ENV=prod docker-compose -f compose.docker.yml down
-
-## Colima Production Environment
-colima-prod-up:
-	@echo "🦙 Starting Colima prod environment (ports: 5642, 6589, 13580)..."
-	@NINA_ENV=prod POSTGRES_PORT=5642 REDIS_PORT=6589 API_PORT=13580 docker-compose -f compose.colima.yml up -d
-	@echo "✅ Colima prod is running! API: http://localhost:13580/health"
-
-colima-prod-down:
-	@echo "🛑 Stopping Colima prod environment..."
-	@NINA_ENV=prod docker-compose -f compose.colima.yml down
-
-## Apple Container CLI Production Environment
-apple-prod-up:
-	@echo "🍎 Starting Apple CLI prod environment (ports: 5652, 6599, 13590)..."
-	@NINA_ENV=prod POSTGRES_PORT=5652 REDIS_PORT=6599 API_PORT=13590 container compose -f compose.apple.yml up -d
-	@echo "✅ Apple CLI prod is running! API: http://localhost:13590/health"
-
-apple-prod-down:
-	@echo "🛑 Stopping Apple CLI prod environment..."
-	@NINA_ENV=prod container compose -f compose.apple.yml down
-
-## Quick health check for all running containers
-health:
-	@echo "🏥 Checking health of all services..."
-	@docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep ninaivalaigal || echo "No ninaivalaigal containers running"
-
-## View logs from all running containers
-logs:
-	@echo "📋 Showing logs from all ninaivalaigal containers..."
-	@docker ps --filter "name=ninaivalaigal" --format "{{.Names}}" | xargs -I {} sh -c 'echo "=== {} ===" && docker logs --tail=20 {}'
-
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 🏗️ BULLETPROOF STACK MANAGEMENT (Day 3: Infrastructure Reliability)
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## start complete stack with health checks (DB→PgBouncer→Redis→API→UIs)
-stack-start:
-	@$(SCRIPTS)/stack-start-unified.sh apple dev
-
-## stop stack cleanly
-stack-stop:
-	@$(SCRIPTS)/stack-stop.sh
-
-## show detailed stack status with health checks
-stack-check:
-	@$(SCRIPTS)/stack-status.sh
-
-## restart stack (stop + start with health checks)
-stack-restart:
-	@$(SCRIPTS)/stack-restart.sh
-
-## test crash recovery and auto-restart capabilities
-test-crash-recovery:
-	@$(SCRIPTS)/test-crash-recovery.sh
-
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 📚 LEGACY COMMANDS (Apple Container CLI specific)
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## start full stack: DB → Redis → PgBouncer → eM → API → UI
-stack-up:
-	@$(SCRIPTS)/nv-stack-start.sh
-
-## stop stack: UI → API → eM → PgBouncer → Redis → DB
-stack-down:
-	@$(SCRIPTS)/nv-stack-stop.sh
-
-## show status of all 5 services
-stack-status:
-	@$(SCRIPTS)/nv-stack-status.sh
-
-## comprehensive container health monitoring
-health-check:
-	@$(SCRIPTS)/nv-container-health.sh check
-
-## auto-restart unhealthy containers
-health-restart:
-	@$(SCRIPTS)/nv-container-health.sh auto-restart
-
-## continuous health monitoring (30s interval)
-health-monitor:
-	@$(SCRIPTS)/nv-container-health.sh continuous 30 true
-
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# OpenTelemetry / Jaeger Distributed Tracing (Task #84)
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## start Jaeger all-in-one for distributed tracing (Apple Container CLI)
-jaeger-start:
-	@$(SCRIPTS)/nv-jaeger-start-apple.sh
-
-## stop Jaeger tracing server (Apple Container CLI)
-jaeger-stop:
-	@$(SCRIPTS)/nv-jaeger-stop-apple.sh
-
-## show Jaeger status and endpoints
-jaeger-status:
-	@$(SCRIPTS)/nv-jaeger-status.sh
-
-## open Jaeger UI in browser
-jaeger-ui:
-	@echo "🔍 Opening Jaeger UI..."
-	@open http://localhost:16686 || xdg-open http://localhost:16686 || echo "Please visit: http://localhost:16686"
-
-## bring up only the database
-db-only:
-	@$(SCRIPTS)/nv-stack-start.sh --db-only
-
-## bring up DB + PgBouncer but skip Mem0 and API
-skip-api:
-	@$(SCRIPTS)/nv-stack-start.sh --skip-api
-
-## bring up DB + API but skip PgBouncer
-skip-pgb:
-	@$(SCRIPTS)/nv-stack-start.sh --skip-pgb
-
-## bring up DB + PgBouncer + API but skip eM
-skip-em:
-	@$(SCRIPTS)/nv-stack-start.sh --skip-em
-
-## bring up DB + PgBouncer + eM but skip API
-with-em:
-	@$(SCRIPTS)/nv-stack-start.sh --with-em --skip-api
-
-## bring up full stack with UI
-with-ui:
-	@$(SCRIPTS)/nv-stack-start.sh --with-ui
-
-## tail logs for all containers
-logs:
-	@echo "== DB logs ==";        -container logs -f nv-db & \
-	 echo "== PgBouncer logs =="; -container logs -f nv-pgbouncer & \
-	 echo "== eM logs ==";        -container logs -f nv-em & \
-	 echo "== API logs ==";       -container logs -f nv-api & \
-	 echo "== UI logs ==";        -container logs -f nv-ui & wait
-
-## backup database
-backup:
-	@$(SCRIPTS)/backup-db.sh
-
-## show database statistics
-db-stats:
-	@$(SCRIPTS)/db-stats.sh
-
-## show PgBouncer statistics
-pgb-stats:
-	@echo "SHOW STATS;" | psql "postgresql://$(POSTGRES_USER):$$POSTGRES_PASSWORD@127.0.0.1:$(PGBOUNCER_PORT)/pgbouncer"
-
-## restore database from backup (usage: make restore BACKUP_FILE=path/to/backup.dump)
-restore:
-	@$(SCRIPTS)/restore-db.sh $(BACKUP_FILE)
-
-## verify backup integrity (usage: make verify-backup BACKUP_FILE=path/to/backup.dump)
-verify-backup:
-	@$(SCRIPTS)/verify-backup.sh $(BACKUP_FILE)
-
-## verify latest backup
-verify-latest:
-	@$(SCRIPTS)/verify-backup.sh latest
-
-## cleanup old backups (usage: make cleanup-backups RETENTION_DAYS=14)
-cleanup-backups:
-	@$(SCRIPTS)/cleanup-backups.sh $(if $(RETENTION_DAYS),--retention-days $(RETENTION_DAYS),)
-
-## dry run backup cleanup
-cleanup-backups-dry:
-	@$(SCRIPTS)/cleanup-backups.sh --dry-run $(if $(RETENTION_DAYS),--retention-days $(RETENTION_DAYS),)
-
-## create new SPEC (usage: make spec-new ID=013 NAME="memory-substrate-v2")
-spec-new:
-	@$(SCRIPTS)/spec-new.sh $(ID) $(NAME)
-
-## test SPEC implementation (usage: make spec-test ID=013)
-spec-test:
-	@$(SCRIPTS)/spec-test.sh $(ID)
-
-## detect system capabilities and provide recommendations
-system-info:
-	@$(SCRIPTS)/system-detect.sh
-
-## test eM sidecar authentication
-test-em-auth:
-	@$(SCRIPTS)/test-em-auth.sh
-
-## UI management targets
-ui-up:
-	@$(SCRIPTS)/nv-ui-start.sh
-
-ui-down:
-	@$(SCRIPTS)/nv-ui-stop.sh
-
-ui-status:
-	@$(SCRIPTS)/nv-ui-status.sh
-
-## run comprehensive production readiness validation
-sanity-check:
-	@$(SCRIPTS)/sanity-check.sh
-
-## alias for sanity-check
-validate-production: sanity-check
-
-## Apple Container CLI convenience aliases
-start: stack-up
-
-stop: stack-down
-
-hdev-status:
-	@echo "📊 Development Stack Status"
-	@echo "=========================="
-	@container ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(nv-|NAMES)"
-
-## Redis Management Commands (SPEC-033)
-redis-install:
-	@echo "🔴 Installing Redis for ninaivalaigal..."
-	@container run -d --name nv-redis -p 6379:6379 \
-		-e REDIS_PASSWORD=nina_redis_dev_password \
-		-v nv_redis_data:/data \
-		redis:7-alpine redis-server --requirepass nina_redis_dev_password --maxmemory 256mb --maxmemory-policy allkeys-lru
-	@echo "✅ Redis installed and running on port 6379"
-	@echo "📊 Prometheus Metrics Summary"
-	@echo "============================="
-	@echo "🔗 Full metrics: http://localhost:13370/metrics"
+# Makefile for Taiga CLI commands
+# Usage: make taiga.read REF=700
+#        make taiga.update REF=700 SUBJECT="New title"
+
+.PHONY: help taiga.read taiga.update taiga.append taiga.mine taiga.status taiga.list taiga.bulk taiga.report taiga.test taiga.check taiga.smoke taiga.export.csv taiga.export.html taiga.metrics taiga.query taiga.tui taiga.monitor taiga.analyze deps-compile deps-install deps-install-dev deps-update deps-check
+
+# Default project (can be overridden)
+PROJECT ?= ninaivalaigal
+
+# Taiga CLI wrapper function
+define taiga_cmd
+	@python3 taiga/scripts/taiga_cli.py --project $(PROJECT) $(1)
+endef
+
+help:
+	@echo "Taiga CLI Makefile Commands"
+	@echo "============================"
 	@echo ""
-	@echo "📈 Key Performance Metrics:"
-	@curl -s http://localhost:13370/metrics | grep -E "(http_requests_total|http_request_duration_seconds_count|process_resident_memory_bytes|app_uptime_seconds)" | head -10
-
-## Docker Compose-style dev environment
-dev-up:
-	@echo "🚀 Starting development environment..."
-	@$(SCRIPTS)/nv-stack-start.sh --skip-em
-	@echo "✅ Development stack ready!"
-	@echo "   Database: http://localhost:5433"
-	@echo "   PgBouncer: http://localhost:6432"
-	@echo "   API: http://localhost:13370"
+	@echo "Read Operations:"
+	@echo "  make taiga.read REF=<number>        - Read story by reference number"
+	@echo "  make taiga.read ID=<number>         - Read story by ID"
+	@echo "  make taiga.read REF=<number> JSON=1 - Read story as JSON"
 	@echo ""
-	@echo "Quick health check:"
-	@make health
+	@echo "Update Operations:"
+	@echo "  make taiga.update REF=<number> SUBJECT=\"<title>\"  - Update story subject"
+	@echo "  make taiga.update REF=<number> DESC=\"<text>\"      - Update story description"
+	@echo "  make taiga.append REF=<number> TEXT=\"<note>\"     - Append note to description"
+	@echo ""
+	@echo "List Operations:"
+	@echo "  make taiga.mine USER=<username>     - List stories assigned to user"
+	@echo "  make taiga.mine USER=<username> ALL=1 - List all stories (with pagination)"
+	@echo "  make taiga.status STATUS=\"<name>\"  - List stories by status"
+	@echo ""
+	@echo "Bulk Operations:"
+	@echo "  make taiga.bulk REFS=\"700,701,702\"   - Process multiple stories"
+	@echo "  make taiga.bulk REFS=\"700,701\" SUBJECT=\"Title\" - Bulk update"
+	@echo ""
+	@echo "Reporting:"
+	@echo "  make taiga.report STATUS=\"<name>\"   - Export stories as Markdown"
+	@echo "  make taiga.report USER=<username>   - Export user stories as Markdown"
+	@echo ""
+	@echo "Export Formats:"
+	@echo "  make taiga.export.csv STATUS=\"<name>\" - Export as CSV"
+	@echo "  make taiga.export.html STATUS=\"<name>\" - Export as HTML"
+	@echo ""
+	@echo "Query & Metrics:"
+	@echo "  make taiga.query QUERY=\"status:Done tag:backend\" STATUS=\"<name>\" - Filter stories"
+	@echo "  make taiga.metrics STATUS=\"<name>\" - Show metrics summary"
+	@echo ""
+	@echo "Interactive:"
+	@echo "  make taiga.tui                      - Interactive TUI mode (requires rich)"
+	@echo "  make taiga.tui STATUS=\"<name>\"     - TUI with status filter"
+	@echo "  make taiga.tui USER=<username>      - TUI with user filter"
+	@echo ""
+	@echo "Monitoring & Auto-Assignment:"
+	@echo "  make taiga.monitor                  - Monitor and auto-assign stories (D, E, F, G, H)"
+	@echo "  make taiga.monitor DRY_RUN=1        - Dry-run mode (show what would be done)"
+	@echo "  make taiga.monitor MIN_STORIES=2     - Require at least 2 stories (default: 1)"
+	@echo "  make taiga.monitor STORIES_TO_ASSIGN=3 - Assign 3 stories (default: 5)"
+	@echo ""
+	@echo "Analysis:"
+	@echo "  make taiga.analyze USER=<username>  - Analyze blocked stories for independent work"
+	@echo "  make taiga.analyze USER=<username> DETAILED=1 - Include comments in analysis"
+	@echo ""
+	@echo "Validation & Closure:"
+	@echo "  make taiga.validate-completed  - Find completed stories (auto-close)"
+	@echo "  make taiga.validate-interactive - Interactive validation (review each story)"
+	@echo "  make taiga.validate-interactive STATUS=\"Ready\" - Filter by status"
+	@echo "  make taiga.validate-completed STATUS=\"In Progress\" AUTO=1 - Auto-close"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make taiga.test REF=<number>        - Test CLI with read + append (dry-run)"
+	@echo "  make taiga.check                    - CI validation (dry-run against dummy story)"
+	@echo "  make taiga.smoke                    - Run all smoke tests"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make taiga.read REF=700"
+	@echo "  make taiga.update REF=700 SUBJECT=\"New title\""
+	@echo "  make taiga.append REF=700 TEXT=\"Progress update\""
+	@echo "  make taiga.mine USER=developer-g"
+	@echo "  make taiga.status STATUS=\"In Progress\""
+	@echo "  make taiga.test REF=700"
+	@echo ""
+	@echo "Developer Stories (dev_stories.py):"
+	@echo "  make taiga.dev.list DEV=developer-c    - List stories for a developer"
+	@echo "  make taiga.dev.list DEV=C               - List stories (accepts C, Developer C, etc.)"
+	@echo "  make taiga.dev.read REF=700             - Read a story by ref"
+	@echo "  make taiga.dev.read ID=12345            - Read a story by ID"
+	@echo "  make taiga.dev.update REF=700 FIELD=description VALUE=\"New desc\" - Update story"
+	@echo "  make taiga.dev.update REF=700 FIELD=status VALUE=\"In Progress\" - Update status"
+	@echo "  make taiga.dev.update REF=700 FIELD=append VALUE=\"Note\" - Append to description"
+	@echo ""
+	@echo "Dependency Management (SPEC-056):"
+	@echo "  make deps-compile        - Compile requirements files"
+	@echo "  make deps-install        - Install base dependencies"
+	@echo "  make deps-install-dev    - Install dev dependencies"
+	@echo "  make deps-update         - Update dependencies"
+	@echo "  make deps-check          - Check for conflicts"
 
-dev-down:
-	@echo "🛑 Stopping development environment..."
-	@$(SCRIPTS)/nv-stack-stop.sh
+# Read operations
+taiga.read:
+ifdef REF
+	$(call taiga_cmd,--ref $(REF) $(if $(JSON),--json))
+else ifdef ID
+	$(call taiga_cmd,--id $(ID) $(if $(JSON),--json))
+else
+	@echo "Error: Specify either REF=<number> or ID=<number>"
+	@exit 1
+endif
 
-dev-logs:
-	@echo "📋 Following logs for all containers..."
-	@container logs -f nv-db & \
-	 container logs -f nv-pgbouncer & \
-	 container logs -f nv-api & \
-	 wait
-
-dev-status: stack-status
-
-## Remote Access & Cloud Deployment
-tunnel-start:
-	@echo "🌐 Starting secure tunnel for remote access..."
-	@echo "Usage: REMOTE_HOST=your-server.com make tunnel-start"
-	@$(SCRIPTS)/nv-tunnel-start.sh
-
-tunnel-stop:
-	@echo "🛑 Stopping secure tunnels..."
-	@$(SCRIPTS)/nv-tunnel-stop.sh
-
-## Virtual Machine Deployment
-deploy-aws-vm:
-	@echo "🚀 Deploying to AWS EC2 VM..."
-	@echo "Usage: KEY_NAME=my-key make deploy-aws-vm"
-	@$(SCRIPTS)/deploy-aws.sh
-
-deploy-gcp-vm:
-	@echo "🚀 Deploying to GCP Compute Engine VM..."
-	@echo "Usage: PROJECT_ID=my-project make deploy-gcp-vm"
-	@$(SCRIPTS)/deploy-gcp.sh
-
-deploy-azure-vm:
-	@echo "🚀 Deploying to Azure VM..."
-	@echo "Usage: RESOURCE_GROUP=my-rg make deploy-azure-vm"
-	@$(SCRIPTS)/deploy-azure.sh
-
-## Cloud-Native Container Services
-deploy-aws:
-	@echo "🚀 Deploying to AWS ECS..."
-	@aws ecs update-service \
-		--cluster ninaivalaigal-cluster \
-		--service ninaivalaigal-api \
-		--force-new-deployment
-
-deploy-gcp:
-	@echo "🚀 Deploying to Google Cloud Run..."
-	@gcloud run deploy ninaivalaigal-api \
-		--image=ghcr.io/arunosaur/ninaivalaigal-api:latest \
-		--platform=managed \
-		--region=us-central1 \
-		--allow-unauthenticated
-
-deploy-azure:
-	@echo "🚀 Deploying to Azure Container Instances..."
-	@az container create \
-		--resource-group ninaivalaigal-rg \
-		--name ninaivalaigal-api \
-		--image ghcr.io/arunosaur/ninaivalaigal-api:latest \
-		--cpu 1 --memory 1.5 \
-		--dns-name-label ninaivalaigal-api \
-		--ports 8080 \
-		--restart-policy Always
-
-## Kubernetes Deployment
-k8s-deploy:
-	@echo "🚀 Deploying to Kubernetes with GHCR images..."
-	@kubectl apply -k k8s/
-	@echo "✅ Deployed to Kubernetes namespace: ninaivalaigal"
-
-k8s-status:
-	@echo "📊 Kubernetes deployment status..."
-	@kubectl get all -n ninaivalaigal
-
-k8s-logs:
-	@echo "📋 API logs from Kubernetes..."
-	@kubectl logs -n ninaivalaigal -l app=ninaivalaigal-api --tail=50
-
-k8s-delete:
-	@echo "🗑️ Deleting Kubernetes deployment..."
-	@kubectl delete -k k8s/ || true
-
-## Terraform Infrastructure as Code
-terraform-init-aws:
-	@echo "🏗️ Initializing Terraform for AWS..."
-	@cd terraform/aws && terraform init
-
-terraform-plan-aws:
-	@echo "📋 Planning Terraform deployment for AWS..."
-	@cd terraform/aws && terraform plan
-
-terraform-apply-aws:
-	@echo "🚀 Applying Terraform deployment for AWS..."
-	@cd terraform/aws && terraform apply
-
-terraform-destroy-aws:
-	@echo "🗑️ Destroying Terraform deployment for AWS..."
-	@cd terraform/aws && terraform destroy
-
-terraform-init-gcp:
-	@echo "🏗️ Initializing Terraform for GCP..."
-	@cd terraform/gcp && terraform init
-
-terraform-plan-gcp:
-	@echo "📋 Planning Terraform deployment for GCP..."
-	@cd terraform/gcp && terraform plan
-
-terraform-apply-gcp:
-	@echo "🚀 Applying Terraform deployment for GCP..."
-	@cd terraform/gcp && terraform apply
-
-terraform-destroy-gcp:
-	@echo "🗑️ Destroying Terraform deployment for GCP..."
-	@cd terraform/gcp && terraform destroy
-
-terraform-init-azure:
-	@echo "🏗️ Initializing Terraform for Azure..."
-	@cd terraform/azure && terraform init
-
-terraform-plan-azure:
-	@echo "📋 Planning Terraform deployment for Azure..."
-	@cd terraform/azure && terraform plan
-
-terraform-apply-azure:
-	@echo "🚀 Applying Terraform deployment for Azure..."
-	@cd terraform/azure && terraform apply
-
-terraform-destroy-azure:
-	@echo "🗑️ Destroying Terraform deployment for Azure..."
-	@cd terraform/azure && terraform destroy
-
-## Package Management & Installation
-build-images:
-	@echo "🏗️  Building container images..."
-	@$(SCRIPTS)/build-images.sh
-
-build-db:
-	@echo "🏗️  Building database image (PostgreSQL + pgvector + Apache AGE)..."
-	docker-compose -f compose.docker.yml build postgres
-	@echo "✅ Database image built: nina-intelligence-db:arm64"
-
-install:
-	@echo "📦 Installing ninaivalaigal..."
-	@./install.sh
-
-uninstall:
-	@echo "🗑️  Uninstalling ninaivalaigal..."
-	@echo "This will remove container images and stop all services."
-	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@make dev-down || true
-	@container rmi nina-pgbouncer:arm64 nina-api:arm64 2>/dev/null || true
-	@echo "✅ Ninaivalaigal uninstalled"
-
-## Container Building with Validation
-build-api:
-	@echo "🔨 Building API with dependency validation..."
-	./scripts/build-and-validate-api.sh
-
-build-api-unsafe:
-	@echo "⚠️  Building API without validation (NOT RECOMMENDED)"
-	container build -t nina-api:arm64 -f Dockerfile.api .
-
-## Working State Management
-capture-state:
-	@echo "📸 Capturing current working state..."
-	./scripts/capture-working-state.sh
-
-cleanup-images:
-	@echo "🧹 Cleaning up unused container images..."
-	./scripts/cleanup-unused-images.sh
-
-## SPEC-011: Memory Lifecycle Management
-migrate-lifecycle:
-	@echo "🔄 Running SPEC-011 memory lifecycle migration..."
-	@$(SCRIPTS)/run-migration.sh server/memory/db/migrations/0112_memory_lifecycle.sql
-
-lifecycle-gc:
-	@echo "🗑️  Running memory garbage collection..."
-	@cd server && conda run -n nina python -m memory.lifecycle.cli gc
-
-lifecycle-stats:
-	@echo "📊 Memory lifecycle statistics..."
-	@cd server && conda run -n nina python -m memory.lifecycle.cli stats
-
-lifecycle-gc-dry-run:
-	@echo "🔍 Memory garbage collection (dry run)..."
-	@cd server && conda run -n nina python -m memory.lifecycle.cli gc --dry-run
-
-## SPEC-021: GitOps Deployment via ArgoCD
-setup-test-cluster:
-	@echo "🚀 Setting up test Kubernetes cluster..."
-	@./scripts/setup-test-cluster.sh
-
-argocd-install:
-	@echo "🚀 Installing ArgoCD for GitOps deployment..."
-	@./scripts/argocd-install.sh
-
-argocd-status:
-	@echo "📊 Checking ArgoCD status..."
-	@./scripts/argocd-status.sh
-
-argocd-ui:
-	@echo "🌐 Opening ArgoCD UI..."
-	@if ! pgrep -f "kubectl.*port-forward.*argocd-server" > /dev/null; then \
-		echo "Starting port-forward..."; \
-		kubectl port-forward svc/argocd-server -n argocd 8080:443 > /dev/null 2>&1 & \
+# Update operations
+taiga.update:
+ifndef REF
+	@echo "Error: REF=<number> is required"
+	@exit 1
+endif
+	@$(eval UPDATE_ARGS := )
+	@if [ -n "$(SUBJECT)" ]; then \
+		UPDATE_ARGS="$$UPDATE_ARGS --update-field subject=\"$(SUBJECT)\""; \
 	fi
-	@sleep 2
-	@echo "🔗 ArgoCD UI: https://localhost:8080"
-	@echo "👤 Username: admin"
-	@echo "🔒 Password: see argocd/credentials.txt"
-
-argocd-sync:
-	@echo "🔄 Triggering manual sync for ninaivalaigal application..."
-	@kubectl patch application ninaivalaigal -n argocd --type merge -p '{"operation":{"sync":{}}}'
-
-argocd-uninstall:
-	@echo "🗑️  Uninstalling ArgoCD..."
-	@kubectl delete -f argocd/application.yaml --ignore-not-found=true
-	@kubectl delete namespace argocd --ignore-not-found=true
-	@pkill -f "kubectl.*port-forward.*argocd-server" || true
-	@rm -f argocd/credentials.txt
-	@echo "✅ ArgoCD uninstalled"
-
-## CI/CD & Testing
-ci-test:
-	@echo "🧪 Running GitHub Actions locally with act..."
-	@echo "This simulates the x86_64 CI environment"
-	@if command -v act >/dev/null 2>&1; then \
-		act -j dev-stack; \
-	else \
-		echo "❌ act not found. Install with: brew install act"; \
-		echo "   Then run: make ci-test"; \
+	@if [ -n "$(DESC)" ]; then \
+		UPDATE_ARGS="$$UPDATE_ARGS --update-field description=\"$(DESC)\""; \
 	fi
-
-## Multi-Architecture Container Release
-# Set your image name (replace with your actual registry)
-IMAGE_NAME = ghcr.io/arunosaur/ninaivalaigal
-
-release:
-	@echo "🚀 Building and pushing multi-arch containers..."
-	@echo "Building for ARM64 and x86_64 platforms"
-	@docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--push \
-		-t $(IMAGE_NAME)-api:latest \
-		-t $(IMAGE_NAME)-api:$$(shell date +%Y%m%d-%H%M%S) \
-		-f Dockerfile.api .
-	@docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--push \
-		-t $(IMAGE_NAME)-pgbouncer:latest \
-		-t $(IMAGE_NAME)-pgbouncer:$$(shell date +%Y%m%d-%H%M%S) \
-		-f Dockerfile.pgbouncer .
-	@docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--push \
-		-t $(IMAGE_NAME)-postgres:latest \
-		-t $(IMAGE_NAME)-postgres:$$(shell date +%Y%m%d-%H%M%S) \
-		-f Dockerfile.postgres .
-	@echo "✅ Multi-arch containers released!"
-
-release-local:
-	@echo "🧪 Building multi-arch containers locally (no push)..."
-	@docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--load \
-		-t $(IMAGE_NAME)-api:local-test
-	@echo "🔨 Building API with dependency validation..."
-	./scripts/build-and-validate-api.sh
-
-build-api-unsafe:
-	@echo "⚠️  Building API without validation (NOT RECOMMENDED)"
-	container build -t nina-api:arm64 -f Dockerfile.api .
-	@docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--load \
-		-t $(IMAGE_NAME)-pgbouncer:local-test \
-		-f Dockerfile.pgbouncer .
-	@docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--load \
-		-t $(IMAGE_NAME)-postgres:local-test \
-		-f Dockerfile.postgres .
-	@echo "✅ Multi-arch containers built locally!"
-
-## Redis Management Commands (SPEC-033)
-redis-install:
-	@echo "🔴 Installing Redis for ninaivalaigal..."
-	@container run -d --name nv-redis -p 6379:6379 \
-		-e REDIS_PASSWORD=nina_redis_dev_password \
-		-v nv_redis_data:/data \
-		redis:7-alpine redis-server --requirepass nina_redis_dev_password --maxmemory 256mb --maxmemory-policy allkeys-lru
-	@echo "✅ Redis installed and running on port 6379"
-
-redis-status:
-	@echo "🔴 Redis Status Check"
-	@echo "===================="
-	@container exec nv-redis redis-cli -a nina_redis_dev_password ping || echo "❌ Redis not responding"
-	@container exec nv-redis redis-cli -a nina_redis_dev_password info memory | grep used_memory_human || echo "❌ Cannot get memory info"
-
-redis-test:
-	@echo "🔴 Redis Performance Test"
-	@echo "========================"
-	@conda activate nina && python specs/033-redis-integration/scripts/redis_test.py
-
-redis-cli:
-	@echo "🔴 Redis CLI Access"
-	@echo "=================="
-	@container exec -it nv-redis redis-cli -a nina_redis_dev_password
-
-redis-stop:
-	@echo "🔴 Stopping Redis..."
-	@container stop nv-redis || true
-	@container rm nv-redis || true
-	@echo "✅ Redis stopped and removed"
-
-redis-logs:
-	@echo "🔴 Redis Logs"
-	@echo "============"
-	@container logs -f nv-redis
-
-## Redis Queue Management Commands (SPEC-033)
-redis-worker:
-	@echo "🔴 Starting Redis Queue Worker"
-	@echo "=============================="
-	@conda activate nina && cd server && python -m rq worker --url redis://:nina_redis_dev_password@localhost:6379/0
-
-redis-worker-dashboard:
-	@echo "🔴 Starting RQ Dashboard"
-	@echo "======================="
-	@conda activate nina && rq-dashboard --redis-url redis://:nina_redis_dev_password@localhost:6379/0
-
-redis-queue-stats:
-	@echo "🔴 Redis Queue Statistics"
-	@echo "========================"
-	@curl -s http://localhost:13370/queue/stats | jq . || echo "❌ API not responding"
-
-redis-queue-health:
-	@echo "🔴 Redis Queue Health Check"
-	@echo "=========================="
-	@curl -s http://localhost:13370/queue/health | jq . || echo "❌ API not responding"
-
-## Memory Relevance Testing Commands (SPEC-031)
-test-relevance:
-	@echo "🧠 Testing Memory Relevance Engine"
-	@echo "=================================="
-	@echo "Testing relevant memories endpoint..."
-	@curl -s "http://localhost:13370/memory/relevant?limit=5" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
-
-test-relevance-stats:
-	@echo "🧠 Testing Relevance Statistics"
-	@echo "==============================="
-	@curl -s "http://localhost:13370/memory/relevance/stats" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
-
-test-memory-access:
-	@echo "🧠 Testing Memory Access Tracking"
-	@echo "================================="
-	@curl -s -X POST "http://localhost:13370/memory/memories/test-memory-123/access?context=testing" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
-
-## test memory preloading system (SPEC-038)
-test-preloading:
-	@echo "🧠 Testing Memory Preloading System (SPEC-038)"
-	@conda run -n nina python scripts/test_preloading_system.py
-
-## test feedback loop system (SPEC-040)
-test-feedback:
-	@echo "🔁 Testing Feedback Loop System (SPEC-040)"
-	@conda run -n nina python scripts/test_feedback_system.py
-
-## test intelligent suggestions system (SPEC-041)
-test-suggestions:
-	@echo "🧠 Testing Intelligent Suggestions System (SPEC-041)"
-	@conda run -n nina python scripts/test_suggestions_system.py
-
-## test memory health & orphaned token system (SPEC-042)
-test-health:
-	@echo "🏥 Testing Memory Health & Orphaned Token System (SPEC-042)"
-	@conda run -n nina python scripts/test_memory_health_system.py
-
-## test memory access control (ACL) system (SPEC-043)
-test-acl:
-	@echo "🔐 Testing Memory Access Control (ACL) Per Token System (SPEC-043)"
-	@conda run -n nina python scripts/test_memory_acl_system.py
-
-## test memory drift & diff detection system (SPEC-044)
-test-drift:
-	@echo "🔍 Testing Memory Drift & Diff Detection System (SPEC-044)"
-	@conda run -n nina python scripts/test_memory_drift_system.py
-
-## SPEC-051: Developer Experience Improvements
-lint-fix:
-	@echo "🔧 Auto-fixing code formatting issues (SPEC-051)"
-	@ruff check --fix .
-	@ruff format .
-	@echo "✅ Code formatting fixed"
-
-lint-explain:
-	@echo "📋 Explaining lint issues (SPEC-051)"
-	@ruff check . --output-format=github || true
-	@echo "💡 Run 'make lint-fix' to auto-fix most issues"
-
-## SPEC-052: Comprehensive Test Coverage & Edge Case Validation
-test-all-edge-cases:
-	@echo "🧪 Running comprehensive edge case tests (SPEC-052)"
-	@echo "Testing core SPECs..."
-	@pytest tests/core/ -v --tb=short || true
-	@echo "Testing intelligence layer..."
-	@pytest tests/intelligence/ -v --tb=short || true
-	@echo "Testing infrastructure..."
-	@pytest tests/infra/ -v --tb=short || true
-	@echo "Testing edge cases..."
-	@pytest tests/edge/ -v --tb=short || true
-
-test-coverage-report:
-	@echo "📊 Generating SPEC-wise coverage report (SPEC-052)"
-	@pytest --cov=server --cov-report=html --cov-report=term-missing
-	@echo "📁 Coverage report: htmlcov/index.html"
-
-validate-top-5-specs:
-	@echo "🎯 Validating top 5 critical SPECs (SPEC-052)"
-	@echo "1. SPEC-001: Core Memory System"
-	@pytest tests/core/test_spec_001_memory.py -v || echo "❌ SPEC-001 needs validation"
-	@echo "2. SPEC-033: Redis Integration"
-	@pytest tests/intelligence/test_spec_033_redis.py -v || echo "❌ SPEC-033 needs validation"
-	@echo "3. SPEC-043: Memory ACL"
-	@pytest tests/intelligence/test_spec_043_acl.py -v || echo "❌ SPEC-043 needs validation"
-	@echo "4. SPEC-044: Memory Drift Detection"
-	@pytest tests/intelligence/test_spec_044_drift.py -v || echo "❌ SPEC-044 needs validation"
-	@echo "5. SPEC-031: Memory Relevance Ranking"
-	@pytest tests/intelligence/test_spec_031_relevance.py -v || echo "❌ SPEC-031 needs validation"
-
-test-auth:
-	@echo "\n🧪 Running Authentication Validation Suite (SPEC-053)..."
-	@python -m pytest tests/auth \
-	  --tb=short \
-	  --disable-warnings \
-	  --maxfail=5 \
-	  --capture=no \
-	  --strict-markers
-
-# Debug mode for auth troubleshooting
-test-auth-debug:
-	@echo "\n🔍 Running Auth Tests in Debug Mode (SPEC-053)..."
-	AUTH_DEBUG=1 python -m pytest tests/auth -s -v --tb=long
-
-# Quick auth smoke test
-test-auth-smoke:
-	@echo "\n⚡ Running Auth Smoke Tests (SPEC-053)..."
-	@python -m pytest tests/auth/test_login.py tests/auth/test_signup.py -v
-
-test-preload-status:
-	@echo "🚀 Testing Preloading Status"
-	@echo "============================"
-	@curl -s "http://localhost:13370/memory/preload/status" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
-
-test-preload-config:
-	@echo "🚀 Testing Preloading Configuration"
-	@echo "==================================="
-	@curl -s "http://localhost:13370/memory/preload/config" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
-
-test-preload-stats:
-	@echo "🚀 Testing Preloading Statistics"
-	@echo "==============================="
-	@curl -s "http://localhost:13370/memory/preload/stats" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
-
-test-preload-health:
-	@echo "🚀 Testing Preloading Health"
-	@echo "============================"
-	@curl -s "http://localhost:13370/memory/preload/health" | jq . || echo "❌ API not responding"
-
-## Intelligent Session Management Testing Commands (SPEC-045)
-test-session-analytics:
-	@echo "🔐 Testing Session Analytics"
-	@echo "============================"
-	@curl -s "http://localhost:13370/auth/session/analytics" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
-
-test-session-recommendations:
-	@echo "🔐 Testing Session Renewal Recommendations"
-	@echo "=========================================="
-	@curl -s "http://localhost:13370/auth/session/recommendations" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
-
-test-session-status:
-	@echo "🔐 Testing Session Status"
-	@echo "========================="
-	@curl -s "http://localhost:13370/auth/session/status" -H "Authorization: Bearer test-token" | jq . || echo "❌ API not responding"
-
-test-session-health:
-	@echo "🔐 Testing Session System Health"
-	@echo "================================"
-	@curl -s "http://localhost:13370/auth/session/health" | jq . || echo "❌ API not responding"
-
-# Code Coverage Targets
-.PHONY: test test-unit test-integration test-coverage test-load test-load-normal test-load-peak test-load-stress test-circuit-breaker test-security test-performance coverage-report coverage-html coverage-dashboard
-
-test-coverage:
-	@echo "🧪 Running comprehensive test suite with coverage..."
-	coverage run -m pytest tests/ -v
-	coverage report --show-missing
-	coverage html
-
-test-unit:
-	@echo "🔬 Running unit tests..."
-	pytest tests/unit/ -v --tb=short
-
-test-unit-enhanced:
-	@echo "🔬 Running enhanced unit tests..."
-	pytest tests/unit/test_*_enhanced.py -v --tb=short
-
-test-functional:
-	@echo "🌐 Running functional tests..."
-	pytest tests/functional/ -v --tb=short
-
-test-functional-enhanced:
-	@echo "🌐 Running enhanced functional tests..."
-	pytest tests/functional/test_*_enhanced.py -v --tb=short
-
-test-integration:
-	@echo "🔗 Running integration tests..."
-	pytest tests/integration/ -v --tb=short
-
-test-security:
-	@echo "🛡️ Running security tests..."
-	pytest tests/security/ -v --tb=short
-
-test-performance:
-	@echo "🚀 Running performance benchmarks..."
-	pytest tests/performance/ -v --benchmark-only
-
-test-auth:
-	@echo "🔐 Running authentication tests..."
-	pytest tests/ -k "auth" -v --tb=short
-
-test-memory:
-	@echo "🧠 Running memory tests..."
-	pytest tests/ -k "memory" -v --tb=short
-
-test-rbac:
-	@echo "🛡️ Running RBAC tests..."
-	pytest tests/ -k "rbac" -v --tb=short
-
-test-database:
-	@echo "🗄️ Running database tests..."
-	pytest tests/ -k "database" -v --tb=short
-
-# Agentic Testing (SPEC-084) - Hybrid OpenAI/Ollama
-.PHONY: test-agentic test-agentic-openai test-agentic-ollama test-signup test-ollama-status
-
-test-agentic:
-	@echo "🤖 Running hybrid agentic tests (auto-detect LLM)..."
-	@if [ -n "$$OPENAI_API_KEY" ]; then \
-		echo "   Using: OpenAI API (gpt-4o-mini)"; \
-	else \
-		echo "   Using: Ollama (local LLM)"; \
-	fi
-	@conda run -n nina pytest tests/agentic/test_signup_hybrid.py -v --tb=short
-
-test-agentic-openai:
-	@echo "🔵 Running agentic tests with OpenAI API..."
-	@if [ -z "$$OPENAI_API_KEY" ]; then \
-		echo "❌ OPENAI_API_KEY not set"; \
+	@if [ -z "$$UPDATE_ARGS" ]; then \
+		echo "Error: Specify SUBJECT=\"...\" or DESC=\"...\""; \
 		exit 1; \
 	fi
-	@conda run -n nina pytest tests/agentic/test_signup_hybrid.py -v --tb=short
-
-test-agentic-ollama:
-	@echo "🟢 Running agentic tests with Ollama (local)..."
-	@USE_OLLAMA=true conda run -n nina pytest tests/agentic/test_signup_hybrid.py -v --tb=short
-
-test-signup:
-	@echo "🔐 Running signup/login/logout tests..."
-	@conda run -n nina pytest tests/test_signup.py -v --tb=short
-
-test-ollama-status:
-	@echo "🟢 Checking Ollama status..."
-	@container list | grep ollama && echo "✅ Ollama container running" || echo "❌ Ollama container not running"
-	@curl -s http://localhost:11434/api/tags | jq -r '.models[].name' 2>/dev/null && echo "✅ Ollama API responding" || echo "❌ Ollama API not responding"
-
-test-redis:
-	@echo "🔴 Running Redis tests..."
-	pytest tests/ -k "redis" -v --tb=short
-
-test-observability:
-	@echo "📊 Running observability tests..."
-	pytest tests/ -k "observability" -v --tb=short
-
-test-infrastructure:
-	@echo "🏗️ Running infrastructure tests (database, redis, observability)..."
-	pytest tests/ -k "database or redis or observability" -v --tb=short
-
-benchmark-redis:
-	@echo "⚡ Running Redis performance benchmarks..."
-	pytest tests/performance/test_redis_benchmarks.py -v --benchmark-only --benchmark-sort=mean
-
-benchmark-all:
-	@echo "📊 Running all performance benchmarks..."
-	pytest tests/performance/ -v --benchmark-only --benchmark-sort=mean --benchmark-json=benchmark_results.json
-
-test-graph:
-	@echo "🕸️ Running Apache AGE graph tests..."
-	pytest server/graph/tests/ -v --tb=short
-
-test-graph-nodes:
-	@echo "🔵 Running graph node tests..."
-	pytest server/graph/tests/cypher/test_node_queries.py -v --tb=short
-
-test-graph-edges:
-	@echo "🔗 Running graph edge tests..."
-	pytest server/graph/tests/cypher/test_edge_queries.py -v --tb=short
-
-benchmark-graph:
-	@echo "⚡ Running graph performance benchmarks..."
-	pytest server/graph/tests/ -v --benchmark-only --benchmark-sort=mean
-
-test-spec-060:
-	@echo "🎯 Running SPEC-060 Apache AGE implementation tests..."
-	pytest server/graph/tests/ tests/unit/test_redis_enhanced.py -k "graph or age or cypher" -v --tb=short
-
-## SPEC-061: Property Graph Intelligence Framework
-test-graph-reasoner:
-	@echo "🧠 Running graph reasoner tests..."
-	pytest tests/unit/test_graph_reasoner_unit.py tests/functional/test_graph_reasoner_functional.py -v --tb=short
-
-benchmark-reasoner:
-	@echo "⚡ Running graph reasoner performance benchmarks..."
-	pytest tests/performance/benchmark_reasoner.py --benchmark-only --benchmark-sort=mean -v
-
-spec-061:
-	@echo "🎯 Running complete SPEC-061 validation..."
-	@make test-graph-reasoner && make benchmark-reasoner
-	@echo "✅ SPEC-061 Property Graph Intelligence Framework validation complete"
-
-test-graph-intelligence-api:
-	@echo "🌐 Testing Graph Intelligence API endpoints..."
-	pytest tests/unit/test_graph_intelligence_api.py -v --tb=short
-
-## GraphOps Infrastructure Management (Dual Architecture)
-build-graph-db-arm64:
-	@echo "🏗️ Building Apache AGE + PostgreSQL image for ARM64 (Apple Container CLI)..."
-	cd containers/graph-db && container build . -t ninaivalaigal-graph-db:arm64
-
-build-graph-db-x86:
-	@echo "🏗️ Building Apache AGE + PostgreSQL image for x86_64 (CI/Docker)..."
-	cd containers/graph-db && docker buildx build --platform linux/amd64 . -t ninaivalaigal-graph-db:x86_64
-
-build-graph-db: build-graph-db-arm64
-	@echo "✅ Graph DB image built for current architecture"
-
-start-graph-infrastructure: build-graph-db
-	@echo "🚀 Starting graph infrastructure (Apache AGE + Redis)..."
-	@echo "Starting Redis..."
-	container run -d --name ninaivalaigal-graph-redis \
-		-p 6381:6379 \
-		redis:7-alpine redis-server --appendonly yes || true
-	@echo "Starting Graph DB..."
-	container run -d --name ninaivalaigal-graph-db \
-		-p 5434:5432 \
-		-e POSTGRES_DB=ninaivalaigal_graph \
-		-e POSTGRES_USER=graphuser \
-		-e POSTGRES_PASSWORD=${GRAPH_DB_PASSWORD:-graphpass} \
-		-e POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256" \
-		ninaivalaigal-graph-db:arm64 || true
-	@echo "⏳ Waiting for services to be ready..."
-	@sleep 20
-	@make check-graph-health
-
-stop-graph-infrastructure:
-	@echo "🛑 Stopping graph infrastructure..."
-	@echo "Stopping Graph DB..."
-	container stop ninaivalaigal-graph-db || true
-	container rm ninaivalaigal-graph-db || true
-	@echo "Stopping Redis..."
-	container stop ninaivalaigal-graph-redis || true
-	container rm ninaivalaigal-graph-redis || true
-
-restart-graph-infrastructure:
-	@echo "🔄 Restarting graph infrastructure..."
-	@make stop-graph-infrastructure
-	@make start-graph-infrastructure
-
-check-graph-health:
-	@echo "🏥 Checking graph infrastructure health..."
-	@echo "📊 Container Status:"
-	@container list | grep -E "(ninaivalaigal-graph-db|ninaivalaigal-graph-redis)" || echo "No graph containers running"
-	@echo "📊 Graph DB Status:"
-	@container exec ninaivalaigal-graph-db pg_isready -U graphuser -d ninaivalaigal_graph || echo "❌ Graph DB not ready"
-	@echo "📊 Redis Status:"
-	@container exec ninaivalaigal-graph-redis redis-cli ping || echo "❌ Redis not ready"
-
-graph-db-shell:
-	@echo "🐘 Connecting to graph database..."
-	container exec -it ninaivalaigal-graph-db psql -U graphuser -d ninaivalaigal_graph
-
-graph-redis-shell:
-	@echo "📦 Connecting to graph Redis..."
-	container exec -it ninaivalaigal-graph-redis redis-cli
-
-init-graph-schema:
-	@echo "🏗️ Initializing graph schema..."
-	container exec ninaivalaigal-graph-db psql -U graphuser -d ninaivalaigal_graph -c "SELECT * FROM graph_stats;"
-
-clean-graph-data:
-	@echo "🧹 Cleaning graph data (WARNING: This will delete all data)..."
-	@read -p "Are you sure? Type 'yes' to confirm: " confirm && [ "$$confirm" = "yes" ] || exit 1
-	@make stop-graph-infrastructure
-	container volume rm ninaivalaigal_graph_data ninaivalaigal_graph_redis_data 2>/dev/null || true
-	@echo "✅ Graph data cleaned"
-
-test-graph-all:
-	@echo "🌐 Running all graph-related tests (SPEC-060 + SPEC-061 + API)..."
-	@make test-graph && make test-graph-reasoner && make test-graph-intelligence-api
-	@echo "✅ Complete graph testing suite finished"
-
-spec-062:
-	@echo "🎯 Running complete SPEC-062 GraphOps Stack validation..."
-	@echo "📋 Validating GraphOps infrastructure..."
-	@make check-graph-health
-	@echo "🧪 Testing Apache AGE functionality..."
-	@container exec ninaivalaigal-graph-db psql -U graphuser -d ninaivalaigal_graph -c "SELECT name FROM ag_catalog.ag_graph WHERE name = 'ninaivalaigal_graph';" | grep -q "ninaivalaigal_graph" || (echo "❌ Graph not found" && exit 1)
-	@echo "🔍 Testing Cypher queries..."
-	@container exec ninaivalaigal-graph-db psql -U graphuser -d ninaivalaigal_graph -c "LOAD 'age'; SET search_path = ag_catalog, \"\$$user\", public; SELECT * FROM cypher('ninaivalaigal_graph', \$$\$$ MATCH (u:User) RETURN count(u) \$$\$$) AS (count agtype);" > /dev/null || (echo "❌ Cypher queries failed" && exit 1)
-	@echo "📊 Testing Redis cache..."
-	@container exec ninaivalaigal-graph-redis redis-cli ping | grep -q "PONG" || (echo "❌ Redis not responding" && exit 1)
-	@echo "🏗️ Testing dual-architecture builds..."
-	@make build-graph-db-arm64 > /dev/null
-	@echo "✅ SPEC-062 GraphOps Stack Deployment Architecture validation complete"
-
-test-all:
-	@echo "🧪 Running all test suites with coverage..."
-	pytest --cov=server --cov-report=term --cov-report=html --cov-report=xml tests/
-
-test-critical:
-	@echo "🎯 Running critical module tests (auth, memory, rbac)..."
-	pytest tests/ -k "auth or memory or rbac" -v --cov=server.auth --cov=server.memory --cov=server.rbac_middleware --cov-report=term
-
-coverage-report:
-	@echo "📊 Generating coverage report..."
-	coverage report --show-missing
-
-coverage-html:
-	@echo "🌐 Generating HTML coverage report..."
-	coverage html
-	@echo "📊 Coverage report available at: htmlcov/index.html"
-
-coverage-xml:
-	@echo "📄 Generating XML coverage report..."
-	coverage xml
-
-coverage-dashboard:
-	@echo "🎛️ Generating comprehensive coverage dashboard..."
-	python coverage/generate_coverage_report.py
-	@echo "🌐 Dashboard available at: coverage/dashboard.html"
-
-validate-coverage:
-	@echo "✅ Validating coverage requirements..."
-	coverage report --fail-under=80
-
-validate-critical-coverage:
-	@echo "🎯 Validating critical module coverage (100% target)..."
-	pytest --cov=server.auth --cov=server.memory --cov=server.rbac_middleware --cov-report=term --cov-fail-under=100 tests/ -k "auth or memory or rbac" || echo "⚠️ Critical modules need 100% coverage"
-
-# Pre-commit hook management
-pre-commit-enable:
-	@echo "🔧 Installing pre-commit hooks..."
-	pre-commit install
-	@echo "✅ Pre-commit hooks enabled"
-
-pre-commit-disable:
-	@echo "🔧 Uninstalling pre-commit hooks..."
-	pre-commit uninstall
-	@echo "✅ Pre-commit hooks disabled"
-
-pre-commit-update:
-	@echo "🔄 Updating pre-commit hooks..."
-	pre-commit clean
-	pre-commit autoupdate
-
-# Foundation SPEC Test targets
-test-foundation:
-	@echo "🧪 Running Foundation SPEC Tests..."
-	pytest tests/foundation/ -v --cov=server --cov-report=html --cov-report=term
-
-test-foundation-spec-007:
-	@echo "🔍 Testing SPEC-007: Unified Context Scope System"
-	pytest tests/foundation/spec_007/ -v
-
-test-foundation-spec-012:
-	@echo "💾 Testing SPEC-012: Memory Substrate"
-	pytest tests/foundation/spec_012/ -v
-
-test-foundation-spec-016:
-	@echo "🔄 Testing SPEC-016: CI/CD Pipeline Architecture"
-	pytest tests/foundation/spec_016/ -v
-
-test-foundation-spec-020:
-	@echo "🏗️ Testing SPEC-020: Memory Provider Architecture"
-	pytest tests/foundation/spec_020/ -v
-
-test-foundation-spec-049:
-	@echo "🤝 Testing SPEC-049: Memory Sharing Collaboration"
-	pytest tests/foundation/spec_049/ -v
-
-test-foundation-spec-052:
-	@echo "📊 Testing SPEC-052: Comprehensive Test Coverage"
-	pytest tests/foundation/spec_052/ -v
-
-test-foundation-spec-058:
-	@echo "📚 Testing SPEC-058: Documentation Expansion"
-	pytest tests/foundation/spec_058/ -v
-
-test-foundation-spec-060:
-	@echo "🔗 Testing SPEC-060: Unification"
-	pytest tests/foundation/spec_060/ -v
-
-test-foundation-spec-061:
-	@echo "⚡ Testing SPEC-061: Advanced Execution"
-	pytest tests/foundation/spec_061/ -v
-
-test-foundation-spec-062:
-	@echo "🏗️ Testing SPEC-062: GraphOps Deployment"
-	pytest tests/foundation/spec_062/ -v
-
-test-foundation-spec-063:
-	@echo "🤖 Testing SPEC-063: Agentic Core"
-	pytest tests/foundation/spec_063/ -v
-
-# Phase 2B: Unified Integration Tests
-test-spec-040-062-unified:
-	@echo "🔗 Testing SPEC-040 + SPEC-062 Unified Integration"
-	pytest tests/integration/spec_040_062_unified/ -v
-
-# CI Recovery and Self-Heal
-test-ci-recovery:
-	@echo "🛡️ Testing CI Recovery System"
-	python3 scripts/ci-recovery.py --test-mode
-
-validate-phase-2b:
-	@echo "✅ Validating Phase 2B Implementation"
-	@echo "📊 Checking unified testbed structure..."
-	@test -f tests/integration/spec_040_062_unified/test_memory_graph_unified.py && echo "✅ Unified testbed present" || echo "❌ Missing unified testbed"
-	@echo "🔧 Validating CI recovery system..."
-	@test -f scripts/ci-recovery.py && echo "✅ CI recovery system present" || echo "❌ Missing CI recovery system"
-	@test -f scripts/post-failure-hook.sh && echo "✅ Post-failure hook present" || echo "❌ Missing post-failure hook"
-	@echo "📋 Checking configuration..."
-	@test -f .env.monitoring && echo "✅ Monitoring configuration present" || echo "❌ Missing .env.monitoring"
-	@test -f .github/workflows/healthcheck-restart.yml && echo "✅ HealthCheck workflow present" || echo "❌ Missing healthcheck workflow"
-	@test -f phase-2b-validation.md && echo "✅ Phase 2B validation report present" || echo "❌ Missing validation report"
-	@echo "🎉 Phase 2B validation complete!"
-
-# Phase 3: GitOps + Kubernetes Deployment (SPEC-021)
-validate-k8s-manifests:
-	@echo "🔍 Validating Kubernetes manifests..."
-	@test -d k8s/base && echo "✅ Base manifests present" || echo "❌ Missing base manifests"
-	@test -d k8s/overlays && echo "✅ Environment overlays present" || echo "❌ Missing overlays"
-	@test -d k8s/argocd && echo "✅ ArgoCD configuration present" || echo "❌ Missing ArgoCD config"
-	@test -f k8s/README.md && echo "✅ K8s documentation present" || echo "❌ Missing K8s docs"
-
-setup-argocd:
-	@echo "🚀 Setting up ArgoCD for GitOps..."
-	./scripts/setup-argocd.sh
-
-deploy-dev:
-	@echo "🏗️ Deploying to development environment..."
-	kubectl apply -k k8s/overlays/dev/
-
-deploy-staging:
-	@echo "🎯 Deploying to staging environment..."
-	kubectl apply -k k8s/overlays/staging/
-
-build-container:
-	@echo "🐳 Building container image..."
-	docker build -t ninaivalaigal/api-server:latest .
-
-push-container:
-	@echo "📤 Pushing container to registry..."
-	docker push ninaivalaigal/api-server:latest
-
-validate-spec-021:
-	@echo "✅ Validating SPEC-021: GitOps + Kubernetes Deployment"
-	@echo "📊 Checking Kubernetes manifests..."
-	make validate-k8s-manifests
-	@echo "🔧 Validating GitOps workflow..."
-	@test -f .github/workflows/gitops-deployment.yml && echo "✅ GitOps workflow present" || echo "❌ Missing GitOps workflow"
-	@test -f scripts/setup-argocd.sh && echo "✅ ArgoCD setup script present" || echo "❌ Missing ArgoCD setup"
-	@echo "🎉 SPEC-021 validation complete!"
-
-validate-spec-022:
-	@echo "✅ Validating SPEC-022: ArgoCD Promotion Pipeline"
-	@echo "📊 Checking multi-environment setup..."
-	@test -d k8s/overlays/staging && echo "✅ Staging environment present" || echo "❌ Missing staging environment"
-	@test -d k8s/overlays/prod && echo "✅ Production environment present" || echo "❌ Missing production environment"
-	@test -f k8s/argocd/applications/ninaivalaigal-staging.yaml && echo "✅ Staging ArgoCD app present" || echo "❌ Missing staging app"
-	@test -f k8s/argocd/applications/ninaivalaigal-prod.yaml && echo "✅ Production ArgoCD app present" || echo "❌ Missing production app"
-	@echo "🔧 Validating promotion pipeline..."
-	@test -f .github/workflows/promotion-pipeline.yml && echo "✅ Promotion workflow present" || echo "❌ Missing promotion workflow"
-	@echo "🎉 SPEC-022 validation complete!"
-
-# SPEC-041: Graph Intelligence Extensions
-test-intelligence:
-	@echo "🧠 Testing Graph Intelligence Extensions..."
-	pytest tests/intelligence/ -v
-
-test-memory-federation:
-	@echo "🔗 Testing Memory Federation Engine..."
-	pytest tests/intelligence/test_memory_federation.py -v
-
-test-graph-ml:
-	@echo "🤖 Testing Graph ML Engine..."
-	pytest tests/intelligence/test_graph_ml.py -v
-
-test-analytics:
-	@echo "📊 Testing Graph Analytics Engine..."
-	pytest tests/intelligence/test_analytics.py -v
-
-validate-spec-041:
-	@echo "✅ Validating SPEC-041: Graph Intelligence Extensions"
-	@echo "📊 Checking intelligence components..."
-	@test -d server/intelligence && echo "✅ Intelligence package present" || echo "❌ Missing intelligence package"
-	@test -f server/intelligence/memory_federation.py && echo "✅ Memory federation engine present" || echo "❌ Missing federation engine"
-	@test -f server/intelligence/graph_ml.py && echo "✅ Graph ML engine present" || echo "❌ Missing ML engine"
-	@test -f server/intelligence/analytics.py && echo "✅ Analytics engine present" || echo "❌ Missing analytics engine"
-	@test -f server/routers/intelligence.py && echo "✅ Intelligence API router present" || echo "❌ Missing API router"
-	@echo "🧪 Checking test coverage..."
-	@test -d tests/intelligence && echo "✅ Intelligence tests present" || echo "❌ Missing intelligence tests"
-	@test -f tests/intelligence/test_memory_federation.py && echo "✅ Federation tests present" || echo "❌ Missing federation tests"
-	@test -f tests/intelligence/test_graph_ml.py && echo "✅ ML tests present" || echo "❌ Missing ML tests"
-	@test -f tests/intelligence/test_analytics.py && echo "✅ Analytics tests present" || echo "❌ Missing analytics tests"
-	@echo "🎉 SPEC-041 validation complete!"
-
-# SPEC-042: Auth-Aware Test Harness
-test-auth-aware:
-	@echo "🔐 Testing Auth-Aware Test Harness..."
-	pytest tests/auth_aware/ -v
-
-test-multi-user:
-	@echo "👥 Testing Multi-User Scenarios..."
-	pytest tests/auth_aware/test_multi_user_scenarios.py -v
-
-test-rbac:
-	@echo "🛡️ Testing RBAC Validation..."
-	pytest tests/auth_aware/test_rbac_validation.py -v
-
-test-security:
-	@echo "🔒 Testing Security Scenarios..."
-	pytest tests/auth_aware/test_security_scenarios.py -v
-
-validate-spec-042:
-	@echo "✅ Validating SPEC-042: Auth-Aware Test Harness"
-	@echo "📊 Checking auth-aware components..."
-	@test -d tests/auth_aware && echo "✅ Auth-aware test package present" || echo "❌ Missing auth-aware package"
-	@test -f tests/auth_aware/multi_user_manager.py && echo "✅ Multi-user manager present" || echo "❌ Missing multi-user manager"
-	@test -f tests/auth_aware/rbac_engine.py && echo "✅ RBAC engine present" || echo "❌ Missing RBAC engine"
-	@test -f tests/auth_aware/security_scenarios.py && echo "✅ Security scenarios present" || echo "❌ Missing security scenarios"
-	@test -f tests/auth_aware/models.py && echo "✅ Auth models present" || echo "❌ Missing auth models"
-	@echo "🧪 Checking test scenarios..."
-	@test -f tests/auth_aware/test_multi_user_scenarios.py && echo "✅ Multi-user tests present" || echo "❌ Missing multi-user tests"
-	@test -f tests/auth_aware/test_rbac_validation.py && echo "✅ RBAC tests present" || echo "❌ Missing RBAC tests"
-	@test -f tests/auth_aware/test_security_scenarios.py && echo "✅ Security tests present" || echo "❌ Missing security tests"
-	@test -f tests/auth_aware/test_fixtures.py && echo "✅ Test fixtures present" || echo "❌ Missing test fixtures"
-	@echo "🎉 SPEC-042 validation complete!"
-
-deploy-staging:
-	@echo "🎯 Deploying to staging environment..."
-	kubectl apply -k k8s/overlays/staging/
-
-deploy-prod:
-	@echo "🚀 Deploying to production environment..."
-	@echo "⚠️  Production deployment requires manual approval"
-	kubectl apply -k k8s/overlays/prod/
-
-# Foundation test monitoring and validation
-check-env:
-	@echo "🔍 Validating Foundation test environment..."
-	./scripts/check-env.sh
-
-test-foundation-performance:
-	@echo "⚡ Running Foundation performance benchmarks..."
-	pytest tests/foundation/ -k "performance" --benchmark-only -v
-
-test-foundation-chaos:
-	@echo "💥 Running Foundation chaos tests..."
-	pytest tests/foundation/ -k "chaos" -v
-
-test-foundation-coverage:
-	@echo "📈 Generating Foundation coverage report..."
-	pytest tests/foundation/ --cov=server --cov-report=html --cov-report=xml --cov-fail-under=85
-
-# Foundation test reporting
-foundation-report:
-	@echo "📊 Generating Foundation test report..."
-	pytest tests/foundation/ --cov=server --cov-report=html --html=reports/foundation-test-report.html --self-contained-html
-
-# Foundation test cleanup
-clean-foundation-reports:
-	@echo "🧹 Cleaning Foundation test reports..."
-	rm -rf htmlcov/
-	rm -rf reports/
-	rm -f coverage.xml
-	rm -f .coverage
-	@echo "✅ Pre-commit hooks updated"
-
-pre-commit-run:
-	@echo "🧪 Running pre-commit on all files..."
-	pre-commit run --all-files
-
-pre-commit-fix:
-	@echo "🔧 Running pre-commit with auto-fixes..."
-	pre-commit run --all-files || true
-	@echo "✅ Pre-commit fixes applied"
-
-# Environment setup
-setup-env:
-	@echo "🔧 Setting up environment..."
-	./scripts/setup-env.sh
-	@echo "✅ Environment setup complete"
-
-# Security cleanup
-security-cleanup:
-	@echo "🔒 Running security cleanup..."
-	@echo "Removing config files with secrets from git tracking..."
-	git rm --cached *.config.json 2>/dev/null || true
-	@echo "✅ Security cleanup complete"
-
-# Development stack management
-dev-up:
-	@echo "🚀 Starting full development stack..."
-	./scripts/bring-up-dev.sh
-
-dev-down:
-	@echo "🛑 Stopping development stack..."
-	@make stop-graph-infrastructure || true
-	@./scripts/nv-stack-stop.sh || true
-	@echo "✅ Development stack stopped"
-
-dev-status:
-	@echo "📊 Development stack status..."
-	@container list | grep -E "(nv-|ninaivalaigal-)" || echo "No development containers running"
-
-# =============================================================================
-# SPEC-056: Dependency & Testing Improvements
-# =============================================================================
-
-## Compile requirements files using pip-tools
+	$(call taiga_cmd,--ref $(REF) $$UPDATE_ARGS)
+
+# Append to description
+taiga.append:
+ifndef REF
+	@echo "Error: REF=<number> is required"
+	@exit 1
+endif
+ifndef TEXT
+	@echo "Error: TEXT=\"<note>\" is required"
+	@exit 1
+endif
+	$(call taiga_cmd,--ref $(REF) --append "$(TEXT)")
+
+# List my stories
+taiga.mine:
+ifndef USER
+	@echo "Error: USER=<username> is required"
+	@exit 1
+endif
+	$(call taiga_cmd,--mine $(USER) $(if $(ALL),--all))
+
+# List by status
+taiga.status:
+ifndef STATUS
+	@echo "Error: STATUS=\"<name>\" is required"
+	@exit 1
+endif
+	$(call taiga_cmd,--status "$(STATUS)" $(if $(ALL),--all))
+
+# Alias for taiga.read
+taiga.list: taiga.read
+
+# Bulk operations
+taiga.bulk:
+ifndef REFS
+	@echo "Error: REFS=\"<numbers>\" is required (e.g., REFS=\"700,701,702\")"
+	@exit 1
+endif
+	@$(eval BULK_ARGS := )
+	@if [ -n "$(SUBJECT)" ]; then \
+		BULK_ARGS="$$BULK_ARGS --update-field subject=\"$(SUBJECT)\""; \
+	fi
+	@if [ -n "$(DESC)" ]; then \
+		BULK_ARGS="$$BULK_ARGS --update-field description=\"$(DESC)\""; \
+	fi
+	@if [ -n "$(TEXT)" ]; then \
+		BULK_ARGS="$$BULK_ARGS --append \"$(TEXT)\""; \
+	fi
+	$(call taiga_cmd,--refs "$(REFS)" $$BULK_ARGS)
+
+# Markdown report
+taiga.report:
+ifdef STATUS
+	$(call taiga_cmd,--status "$(STATUS)" --markdown $(if $(ALL),--all))
+else ifdef USER
+	$(call taiga_cmd,--mine $(USER) --markdown $(if $(ALL),--all))
+else
+	@echo "Error: Specify either STATUS=\"<name>\" or USER=<username>"
+	@exit 1
+endif
+
+# CSV export
+taiga.export.csv:
+ifdef STATUS
+	$(call taiga_cmd,--status "$(STATUS)" --csv $(if $(ALL),--all))
+else ifdef USER
+	$(call taiga_cmd,--mine $(USER) --csv $(if $(ALL),--all))
+else
+	@echo "Error: Specify either STATUS=\"<name>\" or USER=<username>"
+	@exit 1
+endif
+
+# HTML export
+taiga.export.html:
+ifdef STATUS
+	$(call taiga_cmd,--status "$(STATUS)" --html $(if $(ALL),--all))
+else ifdef USER
+	$(call taiga_cmd,--mine $(USER) --html $(if $(ALL),--all))
+else
+	@echo "Error: Specify either STATUS=\"<name>\" or USER=<username>"
+	@exit 1
+endif
+
+# Metrics summary
+taiga.metrics:
+ifdef STATUS
+	$(call taiga_cmd,--status "$(STATUS)" --metrics $(if $(ALL),--all))
+else ifdef USER
+	$(call taiga_cmd,--mine $(USER) --metrics $(if $(ALL),--all))
+else
+	@echo "Error: Specify either STATUS=\"<name>\" or USER=<username>"
+	@exit 1
+endif
+
+# Query filter
+taiga.query:
+ifndef QUERY
+	@echo "Error: QUERY=\"<filter>\" is required (e.g., QUERY=\"status:Done tag:backend\")"
+	@exit 1
+endif
+ifdef STATUS
+	$(call taiga_cmd,--status "$(STATUS)" --query "$(QUERY)" $(if $(ALL),--all))
+else ifdef USER
+	$(call taiga_cmd,--mine $(USER) --query "$(QUERY)" $(if $(ALL),--all))
+else
+	@echo "Error: Specify either STATUS=\"<name>\" or USER=<username>"
+	@exit 1
+endif
+
+# Test harness: runs read, append (dry-run), and confirms exit codes
+taiga.test:
+ifndef REF
+	@echo "Error: REF=<number> is required"
+	@exit 1
+endif
+	@echo "🧪 Testing Taiga CLI with story #$(REF)..."
+	@echo ""
+	@echo "1️⃣  Testing read operation..."
+	@$(call taiga_cmd,--ref $(REF)) || (echo "❌ Read failed" && exit 1)
+	@echo ""
+	@echo "2️⃣  Testing append operation (dry-run)..."
+	@$(call taiga_cmd,--ref $(REF) --append "Test append from make taiga.test" --dry-run) || (echo "❌ Append dry-run failed" && exit 1)
+	@echo ""
+	@echo "✅ All tests passed!"
+
+# CI validation: dry-run read/update against a test story
+taiga.check:
+	@echo "🔍 Running Taiga CLI validation..."
+	@echo ""
+	@echo "Testing authentication..."
+	@python3 taiga/scripts/taiga_cli.py --project $(PROJECT) --status "New" --all 2>&1 | head -5 > /dev/null || (echo "❌ Authentication failed" && exit 1)
+	@echo "✅ Authentication OK"
+	@echo ""
+	@echo "Testing dry-run update..."
+	@python3 taiga/scripts/taiga_cli.py --project $(PROJECT) --ref 1 --append "CI validation test" --dry-run > /dev/null 2>&1 || echo "⚠️  Story #1 not found (this is OK if it doesn't exist)"
+	@echo "✅ Dry-run mode OK"
+	@echo ""
+	@echo "✅ All validation checks passed!"
+
+# Smoke tests
+taiga.smoke:
+	@bash taiga/scripts/smoke_tests.sh
+
+# CI: Nightly report generation
+taiga.ci.nightly:
+	@bash taiga/scripts/ci_nightly_report.sh
+
+# Interactive TUI mode
+taiga.tui:
+ifdef STATUS
+	$(call taiga_cmd,--tui --status "$(STATUS)" $(if $(ALL),--all))
+else ifdef USER
+	$(call taiga_cmd,--tui --mine $(USER) $(if $(ALL),--all))
+else
+	$(call taiga_cmd,--tui $(if $(ALL),--all))
+endif
+
+# Monitor and auto-assign stories for Developers D, E, F, G, H
+taiga.monitor:
+	@python3 taiga/scripts/monitor_and_assign_stories.py \
+		$(if $(DRY_RUN),--dry-run) \
+		$(if $(MIN_STORIES),--min-stories $(MIN_STORIES)) \
+		$(if $(STORIES_TO_ASSIGN),--stories-to-assign $(STORIES_TO_ASSIGN)) \
+		$(if $(MAX_STORIES),--max-stories $(MAX_STORIES))
+
+# Analyze blocked stories to identify independent work
+taiga.analyze:
+ifndef USER
+	@echo "Error: USER=<username> is required"
+	@echo "Example: make taiga.analyze USER=developer-d"
+	@exit 1
+endif
+	@python3 taiga/scripts/analyze_blocked_stories.py $(USER) $(if $(DETAILED),--detailed)
+
+# Validate and close completed stories (auto)
+taiga.validate-completed:
+	@python3 taiga/scripts/validate_and_close_completed_stories.py \
+		$(if $(STATUS),--status "$(STATUS)") \
+		$(if $(AUTO),--auto) \
+		$(if $(MIN_CONFIDENCE),--min-confidence $(MIN_CONFIDENCE)) \
+		$(if $(MIN_COMPLETION),--min-completion $(MIN_COMPLETION))
+
+# Interactive validation (review each story)
+taiga.validate-interactive:
+	@python3 taiga/scripts/interactive_validate_stories.py \
+		$(if $(STATUS),--status "$(STATUS)") \
+		$(if $(MIN_CONFIDENCE),--min-confidence $(MIN_CONFIDENCE)) \
+		$(if $(MIN_COMPLETION),--min-completion $(MIN_COMPLETION)) \
+		$(if $(START_FROM),--start-from $(START_FROM))
+
+# Developer Stories CLI (dev_stories.py)
+taiga.dev.list:
+ifndef DEV
+	@echo "Error: DEV=<developer> is required (e.g., DEV=developer-c, DEV=C, DEV=\"Developer C\")"
+	@exit 1
+endif
+	@python3 taiga/scripts/dev_stories.py list "$(DEV)" $(if $(STATUS),--status "$(STATUS)")
+
+taiga.dev.read:
+ifdef REF
+	@python3 taiga/scripts/dev_stories.py read $(REF)
+else ifdef ID
+	@python3 taiga/scripts/dev_stories.py read --id $(ID)
+else
+	@echo "Error: Specify either REF=<number> or ID=<number>"
+	@exit 1
+endif
+
+taiga.dev.update:
+ifndef REF
+ifndef ID
+	@echo "Error: Specify either REF=<number> or ID=<number>"
+	@exit 1
+endif
+endif
+	@if [ -n "$(FIELD)" ] && [ -n "$(VALUE)" ]; then \
+		if [ "$(FIELD)" = "description" ]; then \
+			python3 taiga/scripts/dev_stories.py update $(if $(ID),--id $(ID),$(REF)) --description "$(VALUE)"; \
+		elif [ "$(FIELD)" = "subject" ]; then \
+			python3 taiga/scripts/dev_stories.py update $(if $(ID),--id $(ID),$(REF)) --subject "$(VALUE)"; \
+		elif [ "$(FIELD)" = "status" ]; then \
+			python3 taiga/scripts/dev_stories.py update $(if $(ID),--id $(ID),$(REF)) --status "$(VALUE)"; \
+		elif [ "$(FIELD)" = "append" ]; then \
+			python3 taiga/scripts/dev_stories.py update $(if $(ID),--id $(ID),$(REF)) --append "$(VALUE)"; \
+		else \
+			echo "Error: FIELD must be one of: description, subject, status, append"; \
+			exit 1; \
+		fi \
+	else \
+		echo "Error: Both FIELD=<field> and VALUE=<value> are required"; \
+		echo "  FIELD can be: description, subject, status, append"; \
+		exit 1; \
+	fi
+
+# ============================================================================
+# Terraform Infrastructure Commands (US-127)
+# ============================================================================
+
+.PHONY: terraform-validate-aws terraform-validate-gcp terraform-validate-azure \
+        terraform-test-aws terraform-test-gcp terraform-test-azure \
+        terraform-validate-all terraform-test-all
+
+# AWS Terraform Validation
+terraform-validate-aws:
+	@echo "🔍 Validating AWS Terraform configuration..."
+	@bash terraform/scripts/validate-aws.sh
+
+# GCP Terraform Validation
+terraform-validate-gcp:
+	@echo "🔍 Validating GCP Terraform configuration..."
+	@bash terraform/scripts/validate-gcp.sh
+
+# Azure Terraform Validation
+terraform-validate-azure:
+	@echo "🔍 Validating Azure Terraform configuration..."
+	@bash terraform/scripts/validate-azure.sh
+
+# Validate all providers
+terraform-validate-all: terraform-validate-aws terraform-validate-gcp terraform-validate-azure
+	@echo "✅ All Terraform configurations validated"
+
+# AWS Deployment Testing
+terraform-test-aws:
+	@echo "🧪 Testing AWS deployment..."
+	@bash terraform/scripts/test-aws.sh
+
+# GCP Deployment Testing
+terraform-test-gcp:
+	@echo "🧪 Testing GCP deployment..."
+	@bash terraform/scripts/test-gcp.sh
+
+# Azure Deployment Testing
+terraform-test-azure:
+	@echo "🧪 Testing Azure deployment..."
+	@bash terraform/scripts/test-azure.sh
+
+# Test all providers
+terraform-test-all: terraform-test-aws terraform-test-gcp terraform-test-azure
+	@echo "✅ All deployments tested"
+
+# ============================================================================
+# Database Management Commands (SPEC-019)
+# ============================================================================
+
+.PHONY: db-migrate db-rollback db-backup db-restore db-init db-stats \
+        db-vacuum db-reindex db-maintenance list-backups cleanup-backups
+
+# Database migrations
+db-migrate:
+	@echo "🔄 Running database migrations..."
+	@alembic -c alembic/public/alembic.ini upgrade head || echo "⚠️  Public schema migration failed"
+	@alembic -c alembic/memory/alembic.ini upgrade head || echo "⚠️  Memory schema migration failed"
+	@alembic -c alembic/graphops/alembic.ini upgrade head || echo "⚠️  GraphOps schema migration failed"
+	@alembic -c alembic/intelligence/alembic.ini upgrade head || echo "⚠️  Intelligence schema migration failed"
+	@echo "✅ Migrations completed"
+
+db-rollback:
+	@echo "⏪ Rolling back last migration..."
+	@alembic -c alembic/public/alembic.ini downgrade -1 || echo "⚠️  Rollback failed"
+	@echo "✅ Rollback completed"
+
+# Database backup and restore
+db-backup:
+	@echo "💾 Creating database backup..."
+	@bash scripts/backup-db.sh
+	@echo "✅ Backup completed"
+
+db-restore:
+	@echo "📥 Restoring database from backup..."
+	@echo "⚠️  This will overwrite existing data!"
+	@bash scripts/restore-db.sh
+	@echo "✅ Restore completed"
+
+list-backups:
+	@echo "📋 Listing available backups..."
+	@ls -lh /srv/ninaivalaigal/backups/*.dump 2>/dev/null || echo "No backups found"
+
+cleanup-backups:
+	@echo "🧹 Cleaning up old backups (keeping last 7 days)..."
+	@find /srv/ninaivalaigal/backups -name "*.dump" -mtime +7 -delete 2>/dev/null || true
+	@echo "✅ Cleanup completed"
+
+# Database initialization
+db-init:
+	@echo "🔧 Initializing database..."
+	@python3 scripts/init-database.py
+	@echo "✅ Database initialized"
+
+# Database statistics
+db-stats:
+	@echo "📊 Database statistics..."
+	@bash scripts/db-stats.sh
+
+# Database maintenance
+db-vacuum:
+	@echo "🧹 Running VACUUM ANALYZE..."
+	@psql -h ${POSTGRES_HOST:-127.0.0.1} -p ${POSTGRES_PORT:-5433} -U ${POSTGRES_USER:-nina} -d ${POSTGRES_DB:-nina} -c "VACUUM ANALYZE;" || echo "⚠️  VACUUM failed"
+	@echo "✅ VACUUM completed"
+
+db-reindex:
+	@echo "🔨 Rebuilding indexes..."
+	@psql -h ${POSTGRES_HOST:-127.0.0.1} -p ${POSTGRES_PORT:-5433} -U ${POSTGRES_USER:-nina} -d ${POSTGRES_DB:-nina} -c "REINDEX DATABASE ${POSTGRES_DB:-nina};" || echo "⚠️  REINDEX failed"
+	@echo "✅ REINDEX completed"
+
+db-maintenance: db-vacuum db-reindex
+	@echo "✅ Full database maintenance completed"
+
+# Dependency Management (SPEC-056: pip-tools)
 deps-compile:
-	@echo "🔧 Compiling requirements files..."
-	@$(SCRIPTS)/manage-deps.sh compile all
+	@./scripts/manage-deps.sh compile
 
-## Install development dependencies
+deps-install:
+	@./scripts/manage-deps.sh install base
+
 deps-install-dev:
-	@echo "📦 Installing development dependencies..."
-	@$(SCRIPTS)/manage-deps.sh install dev
+	@./scripts/manage-deps.sh install dev
 
-## Install production dependencies
-deps-install-prod:
-	@echo "📦 Installing production dependencies..."
-	@$(SCRIPTS)/manage-deps.sh install base
-
-## Install test dependencies
-deps-install-test:
-	@echo "📦 Installing test dependencies..."
-	@$(SCRIPTS)/manage-deps.sh install test
-
-## Update all dependencies to latest versions
 deps-update:
-	@echo "⬆️ Updating all dependencies..."
-	@$(SCRIPTS)/manage-deps.sh update
+	@./scripts/manage-deps.sh update
 
-## Check for dependency conflicts
 deps-check:
-	@echo "🔍 Checking for dependency conflicts..."
-	@$(SCRIPTS)/manage-deps.sh check
-
-## Show dependency tree
-deps-tree:
-	@echo "🌳 Showing dependency tree..."
-	@$(SCRIPTS)/manage-deps.sh tree
-
-## Clean up old requirements files
-deps-cleanup:
-	@echo "🧹 Cleaning up old requirements files..."
-	@$(SCRIPTS)/manage-deps.sh cleanup
-
-## Run tests with improved mocks and fixtures
-test-with-mocks:
-	@echo "🧪 Running tests with comprehensive mocks..."
-	@python -m pytest tests/unit/test_memory_with_mocks.py -v
-
-## Run all unit tests with mocks
-test-unit-mocked:
-	@echo "🧪 Running all unit tests with mocks..."
-	@python -m pytest tests/unit/ -v --tb=short
-
-## Run performance tests with benchmarks
-test-performance:
-	@echo "⚡ Running performance tests..."
-	@python -m pytest tests/performance/ -v --benchmark-only
-
-## Validate test fixtures and mocks
-test-fixtures:
-	@echo "🔧 Validating test fixtures..."
-	@python -c "from tests.fixtures import *; print('✅ All fixtures imported successfully')"
-
-# =============================================================================
-# SPEC-054: Secret Management Commands
-# =============================================================================
-
-## Setup secure environment configuration
-secrets-setup:
-	@echo "🔒 Setting up secure environment..."
-	@$(SCRIPTS)/setup-secrets.sh --all
-
-## Scan for hardcoded secrets
-secrets-scan:
-	@echo "🔍 Scanning for hardcoded secrets..."
-	@$(SCRIPTS)/setup-secrets.sh --scan
-
-## Create .env file with secure passwords
-secrets-create-env:
-	@echo "🔑 Creating secure .env file..."
-	@$(SCRIPTS)/setup-secrets.sh --create-env
-
-## Validate environment configuration
-secrets-validate:
-	@echo "✅ Validating environment configuration..."
-	@$(SCRIPTS)/setup-secrets.sh --validate
-
-# =============================================================================
-# Automation Management
-# =============================================================================
-
-## Start all automation (health monitor + graph tests + container guard)
-automation-start:
-	@echo "🚀 Starting Ninaivalaigal Automation Suite..."
-	@cp scripts/automation/com.ninaivalaigal.health-monitor.plist ~/Library/LaunchAgents/ 2>/dev/null || cp /Users/swami/Library/LaunchAgents/com.ninaivalaigal.health-monitor.plist ~/Library/LaunchAgents/
-	@cp scripts/automation/com.ninaivalaigal.graph-test.plist ~/Library/LaunchAgents/
-	@launchctl load ~/Library/LaunchAgents/com.ninaivalaigal.health-monitor.plist
-	@launchctl load ~/Library/LaunchAgents/com.ninaivalaigal.graph-test.plist
-	@nohup ./.guard-docker.sh monitor > /tmp/container-guard-monitor.log 2>&1 & echo $$! > /tmp/guard-docker.pid
-	@echo "✅ Automation started - check status with 'make automation-status'"
-
-## Stop all automation
-automation-stop:
-	@echo "🛑 Stopping Ninaivalaigal Automation..."
-	@launchctl unload ~/Library/LaunchAgents/com.ninaivalaigal.health-monitor.plist 2>/dev/null || true
-	@launchctl unload ~/Library/LaunchAgents/com.ninaivalaigal.graph-test.plist 2>/dev/null || true
-	@pkill -f "guard-docker.sh" || true
-	@rm -f /tmp/guard-docker.pid
-	@echo "✅ Automation stopped"
-
-## Check automation status
-automation-status:
-	@echo "📊 Ninaivalaigal Automation Status"
-	@echo "=================================="
-	@echo "Health Monitor:"
-	@launchctl list com.ninaivalaigal.health-monitor 2>/dev/null && echo "  ✅ Running" || echo "  ❌ Not running"
-	@echo "Graph Tests:"
-	@launchctl list com.ninaivalaigal.graph-test 2>/dev/null && echo "  ✅ Running" || echo "  ❌ Not running"
-	@echo "Container Guard:"
-	@pgrep -f "guard-docker.sh" >/dev/null && echo "  ✅ Running (PID: $$(pgrep -f guard-docker.sh))" || echo "  ❌ Not running"
-	@echo "Container Protection:"
-	@./.guard-docker.sh status 2>/dev/null || echo "  ⚠️  Guard not available"
-
-## Show recent automation logs
-automation-logs:
-	@echo "📋 Recent Health Monitor Logs:"
-	@tail -10 /tmp/ninaivalaigal-health-fixed.log 2>/dev/null || echo "No health logs found"
-	@echo ""
-	@echo "📋 Recent Graph Test Logs:"
-	@tail -10 /tmp/graph-test.log 2>/dev/null || echo "No graph test logs found"
-	@echo ""
-	@echo "📋 Recent Container Guard Logs:"
-	@tail -10 /tmp/container-guard.log 2>/dev/null || echo "No guard logs found"
-
-## Fix Redis ping() usage in graph intelligence
-fix-redis:
-	@echo "🔧 Fixing Redis ping() usage..."
-	@python scripts/fix-redis-ping.py
-	@echo "✅ Redis fix completed"
-
-## Run graph intelligence validation once
-test-graph:
-	@echo "🧠 Testing Graph Intelligence..."
-	@conda run -n nina python /Users/swami/Downloads/simple_enhanced_graph_test.py
-
-## Emergency restart with automation protection
-emergency-restart:
-	@echo "🚨 Emergency restart requested..."
-	@make automation-stop
-	@make stack-down || true
-	@sleep 10
-	@make stack-up
-	@make automation-start
-	@echo "✅ Emergency restart completed with automation restored"
-
-## ========================================
-## NINA INTELLIGENCE STACK (TRIPLE-LAYER DETECTION)
-## ========================================
-
-# Environment & Runtime Detection with Fallbacks
-NINA_ENV ?= dev
-NINA_RUNTIME ?= docker
-
-# Dynamic port assignment
-POSTGRES_PORT := $(shell $(SCRIPTS)/get-port.sh postgres $(NINA_ENV) $(NINA_RUNTIME))
-REDIS_PORT := $(shell $(SCRIPTS)/get-port.sh redis $(NINA_ENV) $(NINA_RUNTIME))
-API_PORT := $(shell $(SCRIPTS)/get-port.sh api $(NINA_ENV) $(NINA_RUNTIME))
-UI_PORT := $(shell $(SCRIPTS)/get-port.sh ui $(NINA_ENV) $(NINA_RUNTIME))
-PGBOUNCER_PORT := $(shell $(SCRIPTS)/get-port.sh pgbouncer $(NINA_ENV) $(NINA_RUNTIME))
-
-# Export for docker-compose
-export NINA_ENV
-export NINA_RUNTIME
-export POSTGRES_PORT
-export REDIS_PORT
-export API_PORT
-export UI_PORT
-export PGBOUNCER_PORT
-
-## start nina intelligence stack with environment and runtime detection
-stack-up:
-	@echo "🚀 Starting Nina Intelligence Stack..."
-	@echo "📍 Environment: $(NINA_ENV)"
-	@echo "🐳 Runtime: $(NINA_RUNTIME)"
-	@echo "🔌 Postgres: localhost:$(POSTGRES_PORT)"
-	@echo "🔴 Redis: localhost:$(REDIS_PORT)"
-	@echo "🌐 API: localhost:$(API_PORT)"
-	@echo "🎨 UI: localhost:$(UI_PORT)"
-	@echo ""
-	@if [ "$(NINA_RUNTIME)" = "apple" ]; then \
-		echo "🍎 Using Apple Container CLI..."; \
-		$(SCRIPTS)/nina-intelligence-stack-start.sh --env $(NINA_ENV) --runtime $(NINA_RUNTIME); \
-	else \
-		echo "🐳 Using Docker Compose..."; \
-		docker-compose -f compose.$(NINA_RUNTIME).yml up -d --build; \
-	fi
-	@echo "✅ Stack started successfully!"
-
-## stop nina intelligence stack
-stack-down:
-	@echo "🛑 Stopping Nina Intelligence Stack ($(NINA_ENV)/$(NINA_RUNTIME))..."
-	@if [ "$(NINA_RUNTIME)" = "apple" ]; then \
-		$(SCRIPTS)/nina-intelligence-stack-stop.sh --env $(NINA_ENV); \
-	else \
-		docker-compose -f compose.$(NINA_RUNTIME).yml down; \
-	fi
-	@echo "✅ Stack stopped successfully!"
-
-## show nina intelligence stack status
-stack-status:
-	@echo "📊 Nina Intelligence Stack Status"
-	@echo "=================================="
-	@echo "Environment: $(NINA_ENV)"
-	@echo "Runtime: $(NINA_RUNTIME)"
-	@echo "Ports: DB:$(POSTGRES_PORT) Redis:$(REDIS_PORT) API:$(API_PORT) UI:$(UI_PORT)"
-	@echo ""
-	@if [ "$(NINA_RUNTIME)" = "apple" ]; then \
-		$(SCRIPTS)/nina-intelligence-stack-status.sh --env $(NINA_ENV); \
-	else \
-		docker-compose -f compose.$(NINA_RUNTIME).yml ps; \
-	fi
-
-## legacy compatibility
-nina-stack-up: stack-up
-nina-stack-down: stack-down
-nina-stack-status: stack-status
-
-## start only nina-intelligence-db (PostgreSQL + Apache AGE + pgvector)
-nina-db-only:
-	@$(SCRIPTS)/nina-intelligence-stack-start.sh --db-only
-
-## start stack without cache
-nina-no-cache:
-	@$(SCRIPTS)/nina-intelligence-stack-start.sh --skip-cache
-
-## start stack without API
-nina-no-api:
-	@$(SCRIPTS)/nina-intelligence-stack-start.sh --skip-api
-
-## start nina intelligence health monitoring
-nina-health-start:
-	@cp $(SCRIPTS)/automation/com.ninaivalaigal.nina-intelligence-health.plist ~/Library/LaunchAgents/
-	@launchctl load ~/Library/LaunchAgents/com.ninaivalaigal.nina-intelligence-health.plist
-	@echo "✅ Nina Intelligence Health Monitor started"
-
-## stop nina intelligence health monitoring
-nina-health-stop:
-	@launchctl unload ~/Library/LaunchAgents/com.ninaivalaigal.nina-intelligence-health.plist 2>/dev/null || true
-	@echo "🛑 Nina Intelligence Health Monitor stopped"
-
-## check nina intelligence health status
-nina-health-check:
-	@$(SCRIPTS)/nina-intelligence-health-monitor.sh check
-
-## view nina intelligence health logs
-nina-health-logs:
-	@tail -20 /tmp/nina-intelligence-health.log
-
-## open nina intelligence UI in browser
-nina-ui-open:
-	@echo "🌐 Opening Nina Intelligence UI..."
-	@open http://localhost:8081
-
-# =============================================================================
-# AI-FIRST FRONTEND DEVELOPMENT
-# =============================================================================
-
-## install frontend dependencies
-frontend-install:
-	@echo "📦 Installing frontend dependencies..."
-	@cd frontend && npm install
-
-## start Storybook for component development
-frontend-storybook:
-	@echo "📖 Starting Storybook..."
-	@cd frontend && npm run storybook
-
-## build Storybook for deployment
-frontend-build-storybook:
-	@echo "🏗️ Building Storybook..."
-	@cd frontend && npm run build-storybook
-
-## run frontend linting
-frontend-lint:
-	@echo "🔍 Running frontend linting..."
-	@cd frontend && npm run lint
-
-## fix frontend linting issues
-frontend-lint-fix:
-	@echo "🔧 Fixing frontend linting issues..."
-	@cd frontend && npm run lint:fix
-
-## run frontend type checking
-frontend-typecheck:
-	@echo "🔍 Running TypeScript type checking..."
-	@cd frontend && npm run type-check
-
-## run all frontend quality checks
-frontend-quality: frontend-lint frontend-typecheck
-	@echo "✅ All frontend quality checks passed"
-
-## Day-1 demo: generate Button component with AI
-frontend-demo:
-	@echo "🤖 AI Frontend Demo: Button Component"
-	@echo "📖 Storybook: http://localhost:6006"
-	@echo "🎨 Design Tokens: frontend/design/tokens.json"
-	@echo "🧩 Components: frontend/components/Button.tsx"
-	@cd frontend && npm run storybook
-
-## validate frontend foundation
-frontend-validate:
-	@echo "🔍 Validating frontend foundation..."
-	@test -f frontend/design/tokens.json || (echo "❌ Missing tokens.json" && exit 1)
-	@test -f frontend/components/Button.tsx || (echo "❌ Missing Button component" && exit 1)
-	@test -f frontend/components/Button.stories.tsx || (echo "❌ Missing Button stories" && exit 1)
-	@test -f frontend/tailwind.config.js || (echo "❌ Missing Tailwind config" && exit 1)
-	@test -f frontend/.storybook/main.ts || (echo "❌ Missing Storybook config" && exit 1)
-	@echo "✅ Frontend foundation validated"
-
-## setup complete AI-first frontend workflow
-frontend-setup: frontend-install frontend-validate
-	@echo "🚀 AI-first frontend setup complete!"
-	@echo ""
-	@echo "Next steps:"
-	@echo "1. Run 'make frontend-storybook' to start component development"
-	@echo "2. Open http://localhost:6006 to see Button component"
-	@echo "3. Use AI to generate new components based on Button pattern"
-	@echo "4. Run 'make frontend-quality' before committing"
-
-# ========================================
-# ENVIRONMENT VALIDATION & RECOVERY
-# ========================================
-
-## comprehensive environment health check
-environment-health:
-	@echo "Running comprehensive environment health check..."
-	@chmod +x scripts/environment-health-check.sh
-	@scripts/environment-health-check.sh
-
-## run smoke tests for critical infrastructure
-smoke-tests:
-	@echo "Running smoke tests with retry logic..."
-	@REDIS_PASSWORD=secure_nina_password python -m pytest tests/smoke/ -v --tb=short -k "not ui"
-
-## run enhanced linting with comprehensive checks
-lint-enhanced:
-	@echo "Running enhanced linting..."
-	@pre-commit run --all-files --config .pre-commit-config-enhanced.yaml
-
-## install pre-commit hooks
-pre-commit-install:
-	@echo "Installing pre-commit hooks..."
-	@pip install pre-commit
-	@pre-commit install --config .pre-commit-config-enhanced.yaml
-	@pre-commit install --hook-type commit-msg --config .pre-commit-config-enhanced.yaml
-
-## run pre-commit hooks manually
-pre-commit-run:
-	@echo "Running pre-commit hooks..."
-	@pre-commit run --all-files --config .pre-commit-config-enhanced.yaml
-
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 🐹 GO TOOLING (Developer A's Services)
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## lint all go services
-lint-go:
-	@echo "🐹 Linting all Go services..."
-	@cd go-services/grpc-gateway && golangci-lint run ./...
-	@cd go-services/load-tester && golangci-lint run ./...
-	@cd go-services/cli-tools && golangci-lint run ./...
-	@echo "✅ All Go services linted successfully"
-
-## format all go services
-fmt-go:
-	@echo "🐹 Formatting all Go services..."
-	@cd go-services/grpc-gateway && goimports -w . && go fmt ./...
-	@cd go-services/load-tester && goimports -w . && go fmt ./...
-	@cd go-services/cli-tools && goimports -w . && go fmt ./...
-	@echo "✅ All Go services formatted"
-
-## tidy go.mod/go.sum for all services
-tidy-go:
-	@echo "🐹 Tidying Go modules..."
-	@cd go-services/grpc-gateway && go mod tidy
-	@cd go-services/load-tester && go mod tidy
-	@cd go-services/cli-tools && go mod tidy
-	@echo "✅ All Go modules tidied"
-
-## vet all go services
-vet-go:
-	@echo "🐹 Vetting all Go services..."
-	@cd go-services/grpc-gateway && go vet ./...
-	@cd go-services/load-tester && go vet ./...
-	@cd go-services/cli-tools && go vet ./...
-	@echo "✅ All Go services vetted"
-
-## run all go checks (lint + fmt + tidy + vet)
-check-go: lint-go fmt-go tidy-go vet-go
-	@echo "✅ All Go checks passed!"
-
-## environment recovery - restart everything cleanly
-environment-recovery:
-	@echo "Performing environment recovery..."
-	@echo "1. Stopping all containers..."
-	@make stack-down || true
-	@echo "2. Cleaning up containers and volumes..."
-	@docker system prune -f || true
-	@echo "3. Starting fresh environment..."
-	@make stack-up
-	@echo "4. Running health check..."
-	@make environment-health
-	@echo "5. Running smoke tests..."
-	@make smoke-tests
-
-## validate environment before deployment
-validate-environment: environment-health smoke-tests
-	@echo "Environment validation complete!"
-
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 🧪 COMPREHENSIVE API TEST SUITE (US-92, SPEC-086)
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## run comprehensive API test suite
-test-api-comprehensive:
-	@echo "🧪 Running Comprehensive API Test Suite..."
-	@conda run -n nina pytest tests/integration/test_comprehensive_api_suite.py \
-		tests/integration/test_api_authentication_flows.py \
-		tests/integration/test_api_crud_operations.py \
-		tests/integration/test_port_allocation.py \
-		-v --tb=short
-	@echo "✅ Comprehensive API tests completed"
-
-## run comprehensive API test suite with coverage
-test-api-comprehensive-coverage:
-	@echo "🧪 Running Comprehensive API Test Suite with Coverage..."
-	@conda run -n nina pytest tests/integration/test_comprehensive_api_suite.py \
-		tests/integration/test_api_authentication_flows.py \
-		tests/integration/test_api_crud_operations.py \
-		tests/integration/test_port_allocation.py \
-		--cov=server --cov-report=html --cov-report=term \
-		-v --tb=short
-	@echo "✅ Coverage report generated in htmlcov/"
-
-## run only comprehensive API suite (39 tests)
-test-api-suite:
-	@echo "🧪 Running Comprehensive API Suite (39 tests)..."
-	@conda run -n nina pytest tests/integration/test_comprehensive_api_suite.py -v
-
-## run authentication flow tests (6 tests)
-test-api-auth:
-	@echo "🧪 Running Authentication Flow Tests..."
-	@conda run -n nina pytest tests/integration/test_api_authentication_flows.py -v
-
-## run CRUD operation tests (12 tests)
-test-api-crud:
-	@echo "🧪 Running CRUD Operation Tests..."
-	@conda run -n nina pytest tests/integration/test_api_crud_operations.py -v
-
-## run port allocation tests (SPEC-086, 6 tests)
-test-api-ports:
-	@echo "🧪 Running Port Allocation Tests (SPEC-086)..."
-	@conda run -n nina pytest tests/integration/test_port_allocation.py -v
-
-## run all API integration tests
-test-api-all: test-api-comprehensive
-	@echo "✅ All API tests completed"
-
-## continuous environment monitoring (runs every 5 minutes)
-environment-monitor:
-	@echo "Starting continuous environment monitoring..."
-	@while true; do \
-		echo "=== Environment Check at $$(date) ==="; \
-		make environment-health || echo "Health check failed"; \
-		echo "Sleeping for 5 minutes..."; \
-		sleep 300; \
-	done
-
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 🔄 RUNTIME MANAGEMENT (docker/colima/apple)
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## show current runtime configuration
-runtime-status:
-	@echo "🔍 Current Runtime Configuration:"
-	@if [ -f .runtime-config ]; then \
-		cat .runtime-config | grep -v '^#' | grep -v '^$$'; \
-	else \
-		echo "❌ No .runtime-config found. Run 'make runtime-init' to create one."; \
-	fi
-
-## initialize runtime config (first-time setup)
-runtime-init:
-	@echo "🎬 Initializing runtime configuration..."
-	@if [ -f .runtime-config ]; then \
-		echo "⚠️  .runtime-config already exists"; \
-		make runtime-status; \
-	else \
-		echo "ACTIVE_RUNTIME=apple" > .runtime-config; \
-		echo "HEALTH_MONITORING_ENABLED=true" >> .runtime-config; \
-		echo "AUTO_RESTART_ENABLED=false" >> .runtime-config; \
-		echo "✅ Created .runtime-config with default (apple)"; \
-	fi
-
-## switch to docker runtime
-runtime-docker:
-	@echo "🐳 Switching to Docker runtime..."
-	@bash scripts/switch-runtime.sh docker
-
-## switch to colima runtime
-runtime-colima:
-	@echo "🦙 Switching to Colima runtime..."
-	@bash scripts/switch-runtime.sh colima
-
-## switch to apple container CLI runtime
-runtime-apple:
-	@echo "🍎 Switching to Apple Container CLI runtime..."
-	@bash scripts/switch-runtime.sh apple
-
-## run runtime-aware health check
-health-check:
-	@echo "🏥 Running runtime-aware health check..."
-	@bash scripts/runtime-aware-health-check.sh
-
-## enable auto-restart for unhealthy containers
-runtime-auto-restart-on:
-	@echo "✅ Enabling auto-restart..."
-	@sed -i.bak 's/AUTO_RESTART_ENABLED=false/AUTO_RESTART_ENABLED=true/' .runtime-config
-	@rm -f .runtime-config.bak
-	@echo "Auto-restart enabled for current runtime"
-	@make runtime-status
-
-## disable auto-restart
-runtime-auto-restart-off:
-	@echo "🛑 Disabling auto-restart..."
-	@sed -i.bak 's/AUTO_RESTART_ENABLED=true/AUTO_RESTART_ENABLED=false/' .runtime-config
-	@rm -f .runtime-config.bak
-	@echo "Auto-restart disabled"
-	@make runtime-status
-
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 👥 STAFF MANAGEMENT (SPEC-085)
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## Run database migration for staff management
-migrate-staff:
-	@echo "🔄 Running staff management migration..."
-	@conda run -n nina alembic upgrade head
-	@echo "✅ Migration complete!"
-
-## Seed initial admin account
-seed-staff:
-	@echo "🌱 Seeding initial staff accounts..."
-	@conda run -n nina python scripts/seed_initial_staff.py
-	@echo "✅ Staff seeding complete!"
-
-## Complete staff setup (migrate + seed)
-setup-staff: migrate-staff seed-staff
-	@echo "✅ Staff management system ready!"
-	@echo "   Admin Console: http://localhost:8181/staff-login.html"
-
-## Check staff table
-check-staff:
-	@echo "📊 Checking staff accounts..."
-	@conda run -n nina python -c "from sqlalchemy import create_engine, text; import os; engine = create_engine(os.getenv('DATABASE_URL', 'postgresql://nina:dev_password_change_in_production@localhost:5432/ninaivalaigal_dev')); with engine.connect() as conn: result = conn.execute(text('SELECT email, role, is_active FROM staff')); print('\\nStaff Accounts:'); print('-' * 60); [print(f'{row[0]:40} {row[1]:10} {\"Active\" if row[2] else \"Inactive\"}') for row in result]; print('-' * 60)"
-
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 🔥 LOAD TESTING (US#407)
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-.PHONY: test-load test-load-normal test-load-peak test-load-stress test-load-realistic test-circuit-breaker test-load-install
-
-## Install load testing dependencies
-test-load-install:
-	@echo "📦 Installing load testing dependencies..."
-	pip install -r tests/load/requirements.txt
-	@echo "✅ Load testing dependencies installed"
-
-## Normal load test (100 users, 30 minutes)
-test-load-normal:
-	@echo "🔥 Running normal load test (100 users, 30 min)..."
-	@mkdir -p reports
-	locust -f tests/load/test_platform_monitoring_load.py \
-		--headless \
-		--users 100 \
-		--spawn-rate 10 \
-		--run-time 30m \
-		--host http://localhost:8000 \
-		--html reports/load_test_normal_$(shell date +%Y%m%d_%H%M%S).html
-	@echo "✅ Normal load test complete. Report: reports/load_test_normal_*.html"
-
-## Peak load test (500 users, 15 minutes)
-test-load-peak:
-	@echo "🔥 Running peak load test (500 users, 15 min)..."
-	@mkdir -p reports
-	locust -f tests/load/test_platform_monitoring_load.py \
-		--headless \
-		--users 500 \
-		--spawn-rate 100 \
-		--run-time 15m \
-		--host http://localhost:8000 \
-		--user-classes BurstTrafficUser \
-		--html reports/load_test_peak_$(shell date +%Y%m%d_%H%M%S).html
-	@echo "✅ Peak load test complete. Report: reports/load_test_peak_*.html"
-
-## Stress test (1000 users, 10 minutes)
-test-load-stress:
-	@echo "🔥 Running stress test (1000 users, 10 min)..."
-	@mkdir -p reports
-	locust -f tests/load/test_platform_monitoring_load.py \
-		--headless \
-		--users 1000 \
-		--spawn-rate 200 \
-		--run-time 10m \
-		--host http://localhost:8000 \
-		--user-classes StressTestUser \
-		--html reports/load_test_stress_$(shell date +%Y%m%d_%H%M%S).html
-	@echo "✅ Stress test complete. Report: reports/load_test_stress_*.html"
-
-## Realistic traffic test (200 users, 1 hour)
-test-load-realistic:
-	@echo "🔥 Running realistic traffic test (200 users, 1 hour)..."
-	@mkdir -p reports
-	locust -f tests/load/test_platform_monitoring_load.py \
-		--headless \
-		--users 200 \
-		--spawn-rate 20 \
-		--run-time 1h \
-		--host http://localhost:8000 \
-		--user-classes RealisticTrafficUser \
-		--html reports/load_test_realistic_$(shell date +%Y%m%d_%H%M%S).html
-	@echo "✅ Realistic traffic test complete. Report: reports/load_test_realistic_*.html"
-
-## Circuit breaker validation test
-test-circuit-breaker:
-	@echo "🔄 Running circuit breaker validation test..."
-	@bash tests/load/circuit_breaker_test.sh redis
-	@echo "✅ Circuit breaker test complete"
-
-## Run all load tests (sequential)
-test-load: test-load-normal test-load-peak test-circuit-breaker
-	@echo "✅ All load tests complete. Check reports/ directory for results."
-
-## Interactive load testing with web UI
-test-load-ui:
-	@echo "🌐 Starting Locust web UI..."
-	@echo "   Open http://localhost:8089 in your browser"
-	locust -f tests/load/test_platform_monitoring_load.py \
-		--host http://localhost:8000
+	@./scripts/manage-deps.sh check

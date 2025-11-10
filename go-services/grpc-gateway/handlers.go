@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,13 +11,17 @@ import (
 	"strings"
 	"time"
 
-	graphopspb "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto/graphopspb"
+	graphopsv1 "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto"
+	memorypb "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto/memorypb"
 )
 
 // Enhanced Gateway with gRPC clients
 type EnhancedGateway struct {
 	*Gateway
-	grpcClients *GRPCClients
+	grpcClients       *GRPCClients
+	config            *GatewayConfig         // YAML configuration
+	translator        *ProtocolTranslator    // Protocol translation layer
+	circuitBreakerMgr *CircuitBreakerManager // Circuit breaker manager
 }
 
 // Request/Response types for REST API
@@ -90,284 +93,157 @@ type QueryMeta struct {
 
 // Enhanced handlers with actual gRPC integration
 func (gw *EnhancedGateway) memoryRememberHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract user ID from JWT token (placeholder for now)
-	userID := gw.extractUserID(r)
-	if userID == "" {
-		http.Error(w, `{"error": "Authentication required"}`, http.StatusUnauthorized)
+	// Check gateway mode and protocol
+	backendProtocol := gw.GetBackendProtocol("memory")
+
+	// If backend is REST, use HTTP proxy
+	if backendProtocol == "rest" {
+		memoryURL := fmt.Sprintf("http://%s/memory/remember", MemoryAddr)
+		gw.translator.ProxyRESTRequest(w, r, memoryURL)
 		return
 	}
 
-	// Parse request body
-	var req MemoryRememberRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf(`{"error": "Invalid request body: %s"}`, err.Error()),
-			http.StatusBadRequest)
+	// If backend is gRPC, use translation
+	if backendProtocol == "grpc" && gw.grpcClients != nil && gw.grpcClients.MemoryClient != nil {
+		gw.translator.TranslateRESTToGRPC(
+			w, r, "memory",
+			func(ctx context.Context, req interface{}) (interface{}, error) {
+				grpcReq := req.(*memorypb.RememberRequest)
+				return gw.grpcClients.MemoryClient.Remember(ctx, grpcReq)
+			},
+			ConvertMemoryRememberRESTToGRPC,
+			ConvertMemoryRememberGRPCToREST,
+		)
 		return
 	}
 
-	// Validate request
-	if req.Content == "" {
-		http.Error(w, `{"error": "Content is required"}`, http.StatusBadRequest)
-		return
-	}
-
-	// Memory Service is HTTP/REST (not gRPC) - proxy HTTP request
-	memoryURL := fmt.Sprintf("http://%s/memory/remember", MemoryAddr)
-
-	// Prepare HTTP request body
-	httpReqBody, err := json.Marshal(map[string]interface{}{
-		"content":  req.Content,
-		"context":  req.Context,
-		"metadata": req.Metadata,
-	})
-	if err != nil {
-		http.Error(w, fmt.Sprintf(`{"error": "Failed to marshal request: %s"}`, err.Error()),
-			http.StatusInternalServerError)
-		return
-	}
-
-	// Create HTTP request
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", memoryURL, bytes.NewBuffer(httpReqBody))
-	if err != nil {
-		http.Error(w, fmt.Sprintf(`{"error": "Failed to create request: %s"}`, err.Error()),
-			http.StatusInternalServerError)
-		return
-	}
-
-	// Copy Authorization header from original request
-	if auth := r.Header.Get("Authorization"); auth != "" {
-		httpReq.Header.Set("Authorization", auth)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	// Execute HTTP request
-	httpClient := &http.Client{Timeout: 10 * time.Second}
-	httpResp, err := httpClient.Do(httpReq)
-	if err != nil {
-		log.Printf("⚠️ Memory service HTTP error: %v", err)
-		http.Error(w, fmt.Sprintf(`{"error": "Memory service error: %s"}`, err.Error()),
-			http.StatusInternalServerError)
-		return
-	}
-	defer func() {
-		if err := httpResp.Body.Close(); err != nil {
-			log.Printf("⚠️ Failed to close response body: %v", err)
-		}
-	}()
-
-	// Read response body
-	respBody, err := io.ReadAll(httpResp.Body)
-	if err != nil {
-		log.Printf("⚠️ Failed to read memory service response: %v", err)
-		http.Error(w, `{"error": "Failed to read response from memory service"}`,
-			http.StatusInternalServerError)
-		return
-	}
-
-	// Forward response status and body
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(httpResp.StatusCode)
-	if _, err := w.Write(respBody); err != nil {
-		log.Printf("⚠️ Failed to write response: %v", err)
-		return
+	// Fallback: HTTP proxy (if translator not available)
+	memoryURL := fmt.Sprintf("http://%s/api/v1/memories", MemoryAddr)
+	if gw.translator != nil {
+		gw.translator.ProxyRESTRequest(w, r, memoryURL)
+	} else {
+		http.Error(w, `{"error": "Protocol translation not available"}`, http.StatusServiceUnavailable)
 	}
 }
 
 func (gw *EnhancedGateway) memoryRecallHandler(w http.ResponseWriter, r *http.Request) {
-	userID := gw.extractUserID(r)
-	if userID == "" {
-		http.Error(w, `{"error": "Authentication required"}`, http.StatusUnauthorized)
+	backendProtocol := gw.GetBackendProtocol("memory")
+
+	// If backend is REST, use HTTP proxy
+	if backendProtocol == "rest" {
+		memoryURL := fmt.Sprintf("http://%s/api/v1/memories", MemoryAddr) // Note: recall uses query params
+		gw.translator.ProxyRESTRequest(w, r, memoryURL)
 		return
 	}
 
-	// Parse query parameters
-	query := r.URL.Query().Get("q")
-	if query == "" {
-		http.Error(w, `{"error": "Query parameter 'q' is required"}`, http.StatusBadRequest)
+	// If backend is gRPC, use translation
+	if backendProtocol == "grpc" && gw.grpcClients != nil && gw.grpcClients.MemoryClient != nil {
+		gw.translator.TranslateRESTToGRPC(
+			w, r, "memory",
+			func(ctx context.Context, req interface{}) (interface{}, error) {
+				grpcReq := req.(*memorypb.RecallRequest)
+				return gw.grpcClients.MemoryClient.Recall(ctx, grpcReq)
+			},
+			ConvertMemoryRecallRESTToGRPC,
+			ConvertMemoryRecallGRPCToREST,
+		)
 		return
 	}
 
-	limit := 10 // default limit
-	if l := r.URL.Query().Get("limit"); l != "" {
-		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
-			limit = parsed
-		}
-	}
-
-	threshold := float32(0.7) // default similarity threshold
-	if t := r.URL.Query().Get("threshold"); t != "" {
-		if parsed, err := strconv.ParseFloat(t, 32); err == nil {
-			threshold = float32(parsed)
-		}
-	}
-
-	// Memory Service is HTTP/REST (not gRPC) - proxy HTTP request
-	memoryURL := fmt.Sprintf("http://%s/memory/recall", MemoryAddr)
-
-	// Prepare HTTP request body (Memory Service expects POST with JSON body)
-	httpReqBody, err := json.Marshal(map[string]interface{}{
-		"query":     query,
-		"limit":     limit,
-		"threshold": threshold,
-	})
-	if err != nil {
-		http.Error(w, fmt.Sprintf(`{"error": "Failed to marshal request: %s"}`, err.Error()),
-			http.StatusInternalServerError)
-		return
-	}
-
-	// Create HTTP request
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", memoryURL, bytes.NewBuffer(httpReqBody))
-	if err != nil {
-		http.Error(w, fmt.Sprintf(`{"error": "Failed to create request: %s"}`, err.Error()),
-			http.StatusInternalServerError)
-		return
-	}
-
-	// Copy Authorization header from original request
-	if auth := r.Header.Get("Authorization"); auth != "" {
-		httpReq.Header.Set("Authorization", auth)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	// Execute HTTP request
-	httpClient := &http.Client{Timeout: 15 * time.Second}
-	httpResp, err := httpClient.Do(httpReq)
-	if err != nil {
-		log.Printf("⚠️ Memory service HTTP error: %v", err)
-		http.Error(w, fmt.Sprintf(`{"error": "Memory service error: %s"}`, err.Error()),
-			http.StatusInternalServerError)
-		return
-	}
-	defer func() {
-		if err := httpResp.Body.Close(); err != nil {
-			log.Printf("⚠️ Failed to close response body: %v", err)
-		}
-	}()
-
-	// Read response body
-	respBody, err := io.ReadAll(httpResp.Body)
-	if err != nil {
-		log.Printf("⚠️ Failed to read memory service response: %v", err)
-		http.Error(w, `{"error": "Failed to read response from memory service"}`,
-			http.StatusInternalServerError)
-		return
-	}
-
-	// Forward response status and body
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(httpResp.StatusCode)
-	if _, err := w.Write(respBody); err != nil {
-		log.Printf("⚠️ Failed to write response: %v", err)
-		return
+	// Fallback: HTTP proxy
+	memoryURL := fmt.Sprintf("http://%s/api/v1/memories", MemoryAddr) // Note: recall uses query params
+	if gw.translator != nil {
+		gw.translator.ProxyRESTRequest(w, r, memoryURL)
+	} else {
+		http.Error(w, `{"error": "Protocol translation not available"}`, http.StatusServiceUnavailable)
 	}
 }
 
 func (gw *EnhancedGateway) graphQueryHandler(w http.ResponseWriter, r *http.Request) {
-	userID := gw.extractUserID(r)
-	if userID == "" {
-		http.Error(w, `{"error": "Authentication required"}`, http.StatusUnauthorized)
+	backendProtocol := gw.GetBackendProtocol("graphops")
+
+	// GraphOps is always gRPC, use translation
+	if backendProtocol == "grpc" && gw.grpcClients != nil && gw.grpcClients.GraphOpsClient != nil {
+		gw.translator.TranslateRESTToGRPC(
+			w, r, "graphops",
+			func(ctx context.Context, req interface{}) (interface{}, error) {
+				grpcReq := req.(*graphopsv1.CypherRequest)
+				return gw.grpcClients.GraphOpsClient.ExecuteQuery(ctx, grpcReq)
+			},
+			ConvertGraphQueryRESTToGRPC,
+			ConvertGraphQueryGRPCToREST,
+		)
 		return
 	}
 
-	// Parse request body
-	var req GraphQueryRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf(`{"error": "Invalid request body: %s"}`, err.Error()),
-			http.StatusBadRequest)
-		return
+	// Fallback: error if gRPC not available
+	http.Error(w, `{"error": "GraphOps service not available"}`, http.StatusServiceUnavailable)
+}
+
+// Graph/AI Service HTTP proxy handler
+func (gw *EnhancedGateway) graphServiceProxy(w http.ResponseWriter, r *http.Request) {
+	// Graph/AI Service is HTTP/REST - proxy HTTP request
+	// Remove /api/v1/graph prefix and forward to Graph Service
+	path := r.URL.Path
+	// Remove /api/v1/graph prefix if present
+	if strings.HasPrefix(path, "/api/v1/graph") {
+		path = strings.TrimPrefix(path, "/api/v1/graph")
+		if path == "" {
+			path = "/"
+		}
 	}
 
-	// Validate Cypher query
-	if req.Query == "" {
-		http.Error(w, `{"error": "Query is required"}`, http.StatusBadRequest)
-		return
+	// Construct target URL
+	targetURL := fmt.Sprintf("http://%s/api/v1/graph%s", GraphServiceAddr, path)
+	if r.URL.RawQuery != "" {
+		targetURL += "?" + r.URL.RawQuery
 	}
 
-	// Set default timeout
-	if req.TimeoutMs <= 0 {
-		req.TimeoutMs = 30000 // 30 seconds default
-	}
-
-	// Call GraphOps Service gRPC
-	if gw.grpcClients == nil || gw.grpcClients.GraphOpsClient == nil {
-		http.Error(w, `{"error": "GraphOps service not available"}`, http.StatusServiceUnavailable)
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(req.TimeoutMs)*time.Millisecond)
+	// Create HTTP request
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	grpcReq := &graphopspb.ExecuteQueryRequest{
-		Query:      req.Query,
-		Parameters: req.Parameters,
-		UserId:     userID,
-		TimeoutMs:  int32(req.TimeoutMs),
-	}
-
-	grpcResp, err := gw.grpcClients.GraphOpsClient.ExecuteQuery(ctx, grpcReq)
+	httpReq, err := http.NewRequestWithContext(ctx, r.Method, targetURL, r.Body)
 	if err != nil {
-		log.Printf("⚠️ GraphOps service gRPC error: %v", err)
-		http.Error(w, fmt.Sprintf(`{"error": "GraphOps service error: %s"}`, err.Error()),
+		log.Printf("⚠️ Failed to create Graph Service proxy request: %v", err)
+		http.Error(w, fmt.Sprintf(`{"error": "Failed to create proxy request: %s"}`, err.Error()),
 			http.StatusInternalServerError)
 		return
 	}
 
-	// Convert gRPC response to REST response
-	results := make([]QueryResult, len(grpcResp.Results))
-	for i, result := range grpcResp.Results {
-		columns := make([]QueryColumn, len(result.Columns))
-		for j, col := range result.Columns {
-			columns[j] = QueryColumn{Name: col.Name, Type: col.Type}
+	// Copy headers from original request
+	for key, values := range r.Header {
+		for _, value := range values {
+			httpReq.Header.Add(key, value)
 		}
-
-		rows := make([]QueryRow, len(result.Rows))
-		for j, row := range result.Rows {
-			values := make([]interface{}, len(row.Values))
-			for k, val := range row.Values {
-				// Convert protobuf oneof to interface{}
-				switch v := val.Value.(type) {
-				case *graphopspb.QueryValue_StringValue:
-					values[k] = v.StringValue
-				case *graphopspb.QueryValue_IntValue:
-					values[k] = v.IntValue
-				case *graphopspb.QueryValue_DoubleValue:
-					values[k] = v.DoubleValue
-				case *graphopspb.QueryValue_BoolValue:
-					values[k] = v.BoolValue
-				case *graphopspb.QueryValue_JsonValue:
-					values[k] = json.RawMessage(v.JsonValue)
-				default:
-					values[k] = nil
-				}
-			}
-			rows[j] = QueryRow{Values: values}
-		}
-
-		results[i] = QueryResult{Columns: columns, Rows: rows}
 	}
 
-	resp := GraphQueryResponse{
-		Results: results,
-		Metadata: QueryMeta{
-			RowsAffected:    int(grpcResp.Metadata.RowsAffected),
-			ExecutionTimeMs: int(grpcResp.Metadata.ExecutionTimeMs),
-			QueryPlan:       grpcResp.Metadata.QueryPlan,
-			Warnings:        grpcResp.Metadata.Warnings,
-		},
-		Status: grpcResp.Status,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		log.Printf("⚠️ Failed to encode response: %v", err)
+	// Execute HTTP request
+	httpClient := &http.Client{Timeout: 30 * time.Second}
+	httpResp, err := httpClient.Do(httpReq)
+	if err != nil {
+		log.Printf("⚠️ Graph Service proxy error: %v", err)
+		http.Error(w, fmt.Sprintf(`{"error": "Graph Service proxy error: %s"}`, err.Error()),
+			http.StatusBadGateway)
 		return
+	}
+	defer func() {
+		if err := httpResp.Body.Close(); err != nil {
+			log.Printf("⚠️ Failed to close Graph Service response body: %v", err)
+		}
+	}()
+
+	// Copy response headers
+	for key, values := range httpResp.Header {
+		for _, value := range values {
+			w.Header().Add(key, value)
+		}
+	}
+
+	// Copy status code and body
+	w.WriteHeader(httpResp.StatusCode)
+	if _, err := io.Copy(w, httpResp.Body); err != nil {
+		log.Printf("⚠️ Failed to copy Graph Service response body: %v", err)
 	}
 }
 
@@ -465,7 +341,7 @@ func (gw *EnhancedGateway) memoryListHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Memory Service is HTTP/REST (not gRPC) - proxy HTTP request
-	memoryURL := fmt.Sprintf("http://%s/memory/memories?page=%d&page_size=%d", MemoryAddr, page, pageSize)
+	memoryURL := fmt.Sprintf("http://%s/api/v1/memories?page=%d&page_size=%d", MemoryAddr, page, pageSize)
 
 	// Create HTTP request
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -527,7 +403,7 @@ func (gw *EnhancedGateway) graphHealthHandler(w http.ResponseWriter, r *http.Req
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	grpcReq := &graphopspb.HealthCheckRequest{}
+	grpcReq := &graphopsv1.HealthCheckRequest{}
 	grpcResp, err := gw.grpcClients.GraphOpsClient.HealthCheck(ctx, grpcReq)
 	if err != nil {
 		log.Printf("⚠️ GraphOps health check error: %v", err)
@@ -546,15 +422,18 @@ func (gw *EnhancedGateway) graphHealthHandler(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":    grpcResp.Status,
-		"version":   grpcResp.Version,
-		"timestamp": grpcResp.Timestamp.AsTime().Format(time.RFC3339),
+		"status":         grpcResp.Status.String(),
+		"version":        grpcResp.Version,
+		"uptime_seconds": grpcResp.UptimeSeconds,
 		"database": map[string]interface{}{
-			"connected":          grpcResp.Database.Connected,
-			"active_connections": grpcResp.Database.ActiveConnections,
-			"idle_connections":   grpcResp.Database.IdleConnections,
-			"max_connections":    grpcResp.Database.MaxConnections,
+			"name":   grpcResp.Database.Name,
+			"status": grpcResp.Database.Status.String(),
 		},
+		"age_extension": map[string]interface{}{
+			"name":   grpcResp.AgeExtension.Name,
+			"status": grpcResp.AgeExtension.Status.String(),
+		},
+		"details": grpcResp.Details,
 	}); err != nil {
 		log.Printf("⚠️ Failed to encode response: %v", err)
 		return
@@ -590,8 +469,20 @@ func (gw *EnhancedGateway) coreAPIProxy(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	// Execute request
-	resp, err := client.Do(proxyReq)
+	// Get retry policy from config if available
+	var retryPolicy *RetryPolicy
+	if gw.config != nil && gw.config.Backends.CoreAPI != nil && gw.config.Backends.CoreAPI.Retry.Enabled {
+		retryPolicy = BuildRetryPolicyFromConfig(&gw.config.Backends.CoreAPI.Retry)
+	}
+
+	// Execute request with retry logic
+	var resp *http.Response
+	if retryPolicy != nil {
+		retryClient := NewRetryClient(client, retryPolicy)
+		resp, err = retryClient.DoWithContext(r.Context(), proxyReq)
+	} else {
+		resp, err = client.Do(proxyReq)
+	}
 	if err != nil {
 		log.Printf("⚠️ Core API proxy error: %v", err)
 		http.Error(w, fmt.Sprintf(`{"error": "Core API proxy error: %s"}`, err.Error()),

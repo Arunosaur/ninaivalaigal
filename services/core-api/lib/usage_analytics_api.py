@@ -111,46 +111,14 @@ def get_team_manager() -> StandaloneTeamManager:
     return StandaloneTeamManager()
 
 
-def calculate_team_plan(member_count: int) -> str:
-    """Determine team plan based on member count"""
-    if member_count <= 5:
-        return "free"
-    elif member_count <= 20:
-        return "team_pro"
-    elif member_count <= 50:
-        return "team_enterprise"
-    else:
-        return "organization"
-
-
-def calculate_monthly_revenue(plan: str) -> float:
-    """Calculate monthly revenue for a plan"""
-    revenue_map = {
-        "free": 0.0,
-        "team_pro": 29.0,
-        "team_enterprise": 99.0,
-        "organization": 500.0,
-    }
-    return revenue_map.get(plan, 0.0)
-
-
 def calculate_conversion_probability(team: Team, member_count: int, db: Session) -> float:
     """Calculate probability of team upgrading based on usage patterns"""
-    base_probability = 0.1  # 10% base conversion rate
-
-    # Factor 1: Team size approaching limits
-    if member_count >= 4:  # 80% of free limit
-        base_probability += 0.3
-
-    # Factor 2: Team age (older teams more likely to convert)
+    # Calculate team age
+    team_age_days = 0
     if team.created_at:
-        days_old = (datetime.utcnow() - team.created_at).days
-        if days_old > 30:
-            base_probability += 0.2
-        elif days_old > 7:
-            base_probability += 0.1
+        team_age_days = (datetime.utcnow() - team.created_at).days
 
-    # Factor 3: Invitation activity (active teams more likely to convert)
+    # Get recent invitations
     recent_invitations = (
         db.query(TeamInvitation)
         .filter(
@@ -160,10 +128,8 @@ def calculate_conversion_probability(team: Team, member_count: int, db: Session)
         .count()
     )
 
-    if recent_invitations > 0:
-        base_probability += 0.15
-
-    return min(base_probability, 0.95)  # Cap at 95%
+    # Use shared helper function
+    return calculate_conversion_probability_base(member_count, team_age_days, recent_invitations)
 
 
 @router.get("/dashboard", response_model=AnalyticsDashboard)
@@ -176,9 +142,9 @@ async def get_analytics_dashboard(
     Get comprehensive analytics dashboard
     Note: In production, this would require admin permissions
     """
-    # Calculate date range
-    days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 30)
-    start_date = datetime.utcnow() - timedelta(days=days)
+    # Calculate date range using shared helper
+    start_date, _ = parse_date_range(period)
+    days = (datetime.utcnow() - start_date).days
 
     # Overview metrics
     total_teams = db.query(Team).filter(Team.is_standalone is True).count()

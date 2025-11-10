@@ -2,146 +2,213 @@
 # Copyright (c) 2025 Medhasys LLC
 
 # Traefik Dynamic Configuration
-# Task #83: Service Routing Rules
+# US #83: API Gateway Path Routing
+# SPEC-100: Runtime-Agnostic Federation
+# SPEC-099: Rust Migration Strategy
 
 http:
-  # Routers
+  # Routers - Path-based routing per SPEC-100
   routers:
-    # Core API Router
+    # Core API - Auth, Users, Teams, Organizations, ACL
     core-api:
-      rule: "PathPrefix(`/api`)"
+      rule: "PathPrefix(`/api/auth`) || PathPrefix(`/api/users`) || PathPrefix(`/api/teams`) || PathPrefix(`/api/orgs`) || PathPrefix(`/api/acl`) || PathPrefix(`/health`) || PathPrefix(`/docs`) || PathPrefix(`/openapi.json`)"
       service: core-api-service
       middlewares:
-        - core-api-stripprefix
+        - strip-api-prefix
         - rate-limit
         - cors-headers
+        - security-headers
       entryPoints:
+        - web
         - websecure
       tls:
         certResolver: letsencrypt
 
-    # Business Service Router
-    business-api:
-      rule: "PathPrefix(`/business`)"
+    # Business Service - Billing, Usage, Analytics
+    business-service:
+      rule: "PathPrefix(`/api/billing`) || PathPrefix(`/api/usage`) || PathPrefix(`/api/analytics`)"
       service: business-service
       middlewares:
-        - business-stripprefix
+        - strip-api-prefix
         - rate-limit
         - cors-headers
+        - security-headers
       entryPoints:
+        - web
         - websecure
       tls:
         certResolver: letsencrypt
 
-    # Memory Service Router
-    memory-api:
-      rule: "PathPrefix(`/memory`)"
+    # Admin/Vendor Service
+    admin-vendor:
+      rule: "PathPrefix(`/api/admin`) || PathPrefix(`/api/vendor`)"
+      service: admin-vendor-service
+      middlewares:
+        - strip-api-prefix
+        - rate-limit
+        - cors-headers
+        - security-headers
+      entryPoints:
+        - web
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    # Memory Service (Rust) - Memory CRUD operations
+    memory-service:
+      rule: "PathPrefix(`/api/memory`) || PathPrefix(`/api/recall`)"
       service: memory-service
       middlewares:
-        - memory-stripprefix
+        - strip-api-prefix
         - rate-limit
         - cors-headers
+        - security-headers
       entryPoints:
+        - web
         - websecure
       tls:
         certResolver: letsencrypt
 
-    # GraphOps Service Router
-    graph-api:
-      rule: "PathPrefix(`/graph`)"
+    # Graph Service (AI/Intelligence) - Graph operations
+    graph-service:
+      rule: "PathPrefix(`/api/graph`) || PathPrefix(`/api/intelligence`)"
       service: graph-service
       middlewares:
-        - graph-stripprefix
+        - strip-api-prefix
         - rate-limit
         - cors-headers
+        - security-headers
       entryPoints:
+        - web
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    # gRPC Gateway - gRPC to REST translation
+    grpc-gateway:
+      rule: "PathPrefix(`/grpc`)"
+      service: grpc-gateway-service
+      middlewares:
+        - cors-headers
+      entryPoints:
+        - web
         - websecure
       tls:
         certResolver: letsencrypt
 
     # Gateway Health Check
     gateway-health:
-      rule: "Path(`/health`)"
+      rule: "Path(`/health`) || Path(`/ping`)"
       service: ping@internal
       entryPoints:
         - web
 
-    # Metrics Endpoint
+    # Metrics Endpoint (Prometheus)
     gateway-metrics:
       rule: "Path(`/metrics`)"
       service: prometheus@internal
       entryPoints:
         - web
 
-  # Services
+  # Services - Backend service definitions
   services:
     core-api-service:
       loadBalancer:
         servers:
-          - url: "http://core-api:8000"
+          # Use container name or docker-compose service name
+          - url: "http://ninaivalaigal-dev-core-api:8000"
         healthCheck:
           path: /health
           interval: 10s
           timeout: 3s
+          scheme: http
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+      retry:
+        attempts: 3
+        initialInterval: 100ms
 
     business-service:
       loadBalancer:
         servers:
-          - url: "http://business-api:8001"
+          - url: "http://ninaivalaigal-dev-business-service:8000"
         healthCheck:
           path: /health
           interval: 10s
           timeout: 3s
+          scheme: http
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+      retry:
+        attempts: 3
+        initialInterval: 100ms
+
+    admin-vendor-service:
+      loadBalancer:
+        servers:
+          - url: "http://ninaivalaigal-dev-admin-vendor-service:8000"
+        healthCheck:
+          path: /health
+          interval: 10s
+          timeout: 3s
+          scheme: http
 
     memory-service:
       loadBalancer:
         servers:
-          - url: "http://memory-service:13393"
+          - url: "http://ninaivalaigal-dev-memory-service:8000"
         healthCheck:
           path: /health
           interval: 10s
           timeout: 3s
+          scheme: http
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+      retry:
+        attempts: 3
+        initialInterval: 100ms
 
     graph-service:
       loadBalancer:
         servers:
-          - url: "http://graphops:13394"
+          - url: "http://ninaivalaigal-dev-graph-service:8000"
         healthCheck:
           path: /health
           interval: 10s
           timeout: 3s
+          scheme: http
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+      retry:
+        attempts: 3
+        initialInterval: 100ms
 
-  # Middlewares
+    grpc-gateway-service:
+      loadBalancer:
+        servers:
+          - url: "http://ninaivalaigal-dev-grpc-gateway:13395"
+        healthCheck:
+          path: /health
+          interval: 10s
+          timeout: 3s
+          scheme: http
+
+  # Middlewares - Request processing pipeline
   middlewares:
-    # Strip Path Prefixes
-    core-api-stripprefix:
+    # Strip API Prefix - Remove /api prefix before forwarding to services
+    strip-api-prefix:
       stripPrefix:
         prefixes:
           - "/api"
 
-    business-stripprefix:
-      stripPrefix:
-        prefixes:
-          - "/business"
-
-    memory-stripprefix:
-      stripPrefix:
-        prefixes:
-          - "/memory"
-
-    graph-stripprefix:
-      stripPrefix:
-        prefixes:
-          - "/graph"
-
-    # Rate Limiting
+    # Rate Limiting - Protect against abuse
     rate-limit:
       rateLimit:
-        average: 100
-        burst: 50
-        period: 1s
+        average: 100      # Average requests per second
+        burst: 50         # Burst allowance
+        period: 1s        # Time window
 
-    # CORS Headers
+    # CORS Headers - Cross-origin resource sharing
     cors-headers:
       headers:
         accessControlAllowMethods:
@@ -153,29 +220,39 @@ http:
           - OPTIONS
         accessControlAllowHeaders:
           - "*"
+          - "Authorization"
+          - "Content-Type"
+          - "X-Requested-With"
         accessControlAllowOriginList:
           - "http://localhost:3000"
           - "http://localhost:8080"
-        accessControlMaxAge: 100
+          - "http://localhost:8081"
+          - "http://localhost:8181"
+        accessControlMaxAge: 3600
         addVaryHeader: true
 
-    # Security Headers
+    # Security Headers - Harden HTTP responses
     security-headers:
       headers:
         sslRedirect: true
-        stsSeconds: 31536000
+        stsSeconds: 31536000          # 1 year HSTS
         stsIncludeSubdomains: true
         stsPreload: true
         forceSTSHeader: true
-        frameDeny: true
-        contentTypeNosniff: true
-        browserXssFilter: true
+        frameDeny: true               # Prevent clickjacking
+        contentTypeNosniff: true      # Prevent MIME sniffing
+        browserXssFilter: true         # XSS protection
         referrerPolicy: "strict-origin-when-cross-origin"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
 
-    # Request Size Limit
+    # Request Size Limit - Prevent large payload attacks
     request-limit:
       buffering:
         maxRequestBodyBytes: 10485760  # 10MB
+        maxResponseBodyBytes: 10485760
+        memRequestBodyBytes: 2097152   # 2MB in memory
+        memResponseBodyBytes: 2097152
 
 # TCP/UDP routing (if needed)
 tcp:

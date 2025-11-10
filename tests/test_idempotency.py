@@ -10,9 +10,6 @@ Unit tests for server/billing/idempotency.py
 Tests distributed locking and idempotency mechanisms.
 """
 
-from unittest.mock import MagicMock, patch
-from uuid import uuid4
-
 import pytest
 
 pytestmark = pytest.mark.unit
@@ -124,8 +121,6 @@ class TestDistributedLock:
 
     def test_lock_auto_renewal(self, mock_redis_client):
         """Test lock auto-renewal"""
-        import time
-
         from server.billing.idempotency import DistributedLock
 
         mock_redis_client.set.return_value = True

@@ -1,73 +1,59 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: Proprietary
+# SPDX-License-Identifier: Elastic-2.0
 # Copyright (c) 2025 Medhasys LLC
 #
-# This file contains proprietary code owned by Medhasys LLC.
-# Unauthorized copying, modification, or distribution is prohibited.
-# See LICENSE file in the server/ directory for details.
-#
-"""
-Find stories assigned to Developer F, or find the most pressing unassigned story
-"""
+# Find stories assigned to Developer F
 
 import os
 import sys
-from datetime import datetime
-from typing import Dict, List, Optional
 
 import requests
 
-# Configuration
+# Taiga Configuration
 TAIGA_URL = os.getenv("TAIGA_URL", "http://localhost:9000")
 API_ENDPOINT = f"{TAIGA_URL}/api/v1"
-PROJECT_SLUG = "ninaivalaigal"
 TAIGA_USERNAME = os.getenv("TAIGA_USERNAME", "admin")
 TAIGA_PASSWORD = os.getenv("TAIGA_PASSWORD", "admin123")
+PROJECT_SLUG = os.getenv("TAIGA_PROJECT_SLUG", "ninaivalaigal")
 DEVELOPER_F_USERNAME = "developer-f"
 
 
-def authenticate() -> Optional[str]:
-    """Authenticate with Taiga."""
-    auth_url = f"{API_ENDPOINT}/auth"
-    auth_data = {"username": TAIGA_USERNAME, "password": TAIGA_PASSWORD, "type": "normal"}
-
+def authenticate():
+    """Authenticate with Taiga API"""
     try:
-        response = requests.post(auth_url, json=auth_data)
+        response = requests.post(
+            f"{API_ENDPOINT}/auth",
+            json={"username": TAIGA_USERNAME, "password": TAIGA_PASSWORD, "type": "normal"},
+            timeout=10,
+        )
         if response.status_code == 200:
             return response.json().get("auth_token")
-        else:
-            print(f"❌ Authentication failed: {response.status_code}")
-            return None
+        return None
     except Exception as e:
-        print(f"❌ Authentication error: {e}")
+        print(f"⚠️  Authentication failed: {e}")
         return None
 
 
-def get_project_id(auth_token: str) -> Optional[int]:
-    """Get project ID."""
+def get_project_id(auth_token):
+    """Get project ID by slug"""
     headers = {"Authorization": f"Bearer {auth_token}"}
-    url = f"{API_ENDPOINT}/projects/by_slug"
-    params = {"slug": PROJECT_SLUG}
-
     try:
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(
+            f"{API_ENDPOINT}/projects/by_slug", headers=headers, params={"slug": PROJECT_SLUG}, timeout=10
+        )
         if response.status_code == 200:
             return response.json().get("id")
         return None
     except Exception as e:
-        print(f"❌ Error getting project: {e}")
+        print(f"⚠️  Error getting project: {e}")
         return None
 
 
-def get_user_id(auth_token: str, username: str) -> Optional[int]:
-    """Get user ID by username."""
+def get_user_id(auth_token, username, project_id):
+    """Get user ID by username"""
     headers = {"Authorization": f"Bearer {auth_token}"}
-    # Try to get user by username
-    url = f"{API_ENDPOINT}/users"
-    params = {"username": username}
-
     try:
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(f"{API_ENDPOINT}/users", headers=headers, params={"project": project_id}, timeout=10)
         if response.status_code == 200:
             users = response.json()
             for user in users:
@@ -75,115 +61,73 @@ def get_user_id(auth_token: str, username: str) -> Optional[int]:
                     return user.get("id")
         return None
     except Exception as e:
-        print(f"⚠️  Error getting user ID: {e}")
-        # Try alternative: get project members
-        url = f"{API_ENDPOINT}/projects/{get_project_id(auth_token)}/members"
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            members = response.json()
-            for member in members:
-                if member.get("user", {}).get("username") == username:
-                    return member.get("user", {}).get("id")
+        print(f"⚠️  Error getting user: {e}")
         return None
 
 
-def get_all_stories(auth_token: str, project_id: int) -> List[Dict]:
-    """Get all user stories."""
+def get_all_stories(auth_token, project_id):
+    """Get all user stories from project"""
     headers = {"Authorization": f"Bearer {auth_token}"}
-    url = f"{API_ENDPOINT}/userstories"
-    params = {"project": project_id}
+    stories = []
+    offset = 0
+    page_size = 100
 
-    try:
-        response = requests.get(url, headers=headers, params=params)
-        if response.status_code == 200:
-            return response.json()
-        return []
-    except Exception as e:
-        print(f"❌ Error getting stories: {e}")
-        return []
+    while True:
+        try:
+            response = requests.get(
+                f"{API_ENDPOINT}/userstories",
+                headers=headers,
+                params={"project": project_id, "offset": offset, "limit": page_size},
+                timeout=30,
+            )
+            if response.status_code != 200:
+                break
+            data = response.json()
+            if not data:
+                break
+            stories.extend(data)
+            if len(data) < page_size:
+                break
+            offset += page_size
+        except Exception as e:
+            print(f"⚠️  Error fetching stories: {e}")
+            break
 
-
-def get_status_info(auth_token: str, project_id: int) -> Dict[str, Dict]:
-    """Get all status information."""
-    headers = {"Authorization": f"Bearer {auth_token}"}
-    url = f"{API_ENDPOINT}/userstory-statuses"
-    params = {"project": project_id}
-
-    try:
-        response = requests.get(url, headers=headers, params=params)
-        if response.status_code == 200:
-            return {s["name"]: s for s in response.json()}
-        return {}
-    except Exception as e:
-        print(f"⚠️  Error getting status info: {e}")
-        return {}
-
-
-def prioritize_story(story: Dict) -> int:
-    """Return priority score (higher = more pressing)."""
-    score = 0
-
-    # Status priority
-    status_name = story.get("status_extra_info", {}).get("name", "").lower()
-    if status_name in ["new", "ready"]:
-        score += 10
-    elif status_name in ["in progress", "working"]:
-        score += 5
-
-    # Subject/description keywords
-    subject = story.get("subject", "").lower()
-    description = story.get("description", "").lower()
-    text = f"{subject} {description}"
-
-    # Critical keywords
-    if any(kw in text for kw in ["critical", "blocker", "security", "urgent", "p0"]):
-        score += 20
-    elif any(kw in text for kw in ["high", "important", "p1", "priority"]):
-        score += 10
-    elif any(kw in text for kw in ["spec-", "governance", "deprecate"]):
-        score += 5
-
-    # Tags
-    tags = story.get("tags", [])
-    tag_text = " ".join([str(t) for t in tags]).lower()
-    if "p0" in tag_text or "critical" in tag_text:
-        score += 15
-    elif "p1" in tag_text or "high" in tag_text:
-        score += 8
-
-    # Reference number (lower = older, might be more pressing)
-    ref = story.get("ref", 9999)
-    if ref < 200:
-        score += 5
-
-    return score
+    return stories
 
 
 def main():
-    """Find Developer F stories or most pressing unassigned story."""
-    print("=" * 70)
-    print("Finding Stories for Developer F")
-    print("=" * 70)
+    print("=" * 80)
+    print("Finding Stories Assigned to Developer F")
+    print("=" * 80)
     print()
 
     # Authenticate
+    print("🔐 Authenticating with Taiga...")
     auth_token = authenticate()
     if not auth_token:
-        print("❌ Failed to authenticate")
+        print("❌ Authentication failed")
         return 1
-    print("✅ Authenticated with Taiga")
+    print("✅ Authenticated")
+    print()
 
     # Get project
+    print(f"📁 Getting project: {PROJECT_SLUG}...")
     project_id = get_project_id(auth_token)
     if not project_id:
         print("❌ Project not found")
         return 1
-    print(f"✅ Found project: {PROJECT_SLUG} (ID: {project_id})")
+    print(f"✅ Project ID: {project_id}")
     print()
 
     # Get Developer F user ID
-    print(f"🔍 Looking for user: {DEVELOPER_F_USERNAME}")
-    developer_f_id = get_user_id(auth_token, DEVELOPER_F_USERNAME)
+    print(f"👤 Looking for user: {DEVELOPER_F_USERNAME}...")
+    developer_f_id = get_user_id(auth_token, DEVELOPER_F_USERNAME, project_id)
+    if not developer_f_id:
+        print(f"❌ Developer F ({DEVELOPER_F_USERNAME}) not found")
+        return 1
+    print(f"✅ Developer F ID: {developer_f_id}")
+    print()
 
     # Get all stories
     print("📋 Fetching all stories...")
@@ -193,115 +137,108 @@ def main():
 
     # Filter stories assigned to Developer F
     developer_f_stories = []
-    if developer_f_id:
-        for story in all_stories:
-            assigned_to = story.get("assigned_to")
-            if assigned_to == developer_f_id:
-                developer_f_stories.append(story)
+    for story in all_stories:
+        assigned_to = story.get("assigned_to")
+        if assigned_to == developer_f_id:
+            developer_f_stories.append(story)
 
-    if developer_f_stories:
-        print("=" * 70)
-        print(f"✅ Found {len(developer_f_stories)} stories assigned to Developer F")
-        print("=" * 70)
+    if not developer_f_stories:
+        print("❌ No stories assigned to Developer F")
         print()
+        print("Checking for unassigned stories...")
 
-        # Sort by priority
-        developer_f_stories.sort(key=lambda s: prioritize_story(s), reverse=True)
-
-        for i, story in enumerate(developer_f_stories[:5], 1):
-            ref = story.get("ref", "N/A")
-            subject = story.get("subject", "No subject")
-            status_info = story.get("status_extra_info", {})
-            status = status_info.get("name", "Unknown") if status_info else "Unknown"
-            priority_score = prioritize_story(story)
-
-            print(f"{i}. US#{ref}: {subject}")
-            print(f"   Status: {status} | Priority Score: {priority_score}")
-            print(f"   ID: {story.get('id')}")
-            print(f"   View: {TAIGA_URL}/project/{PROJECT_SLUG}/us/{ref}")
-            print()
-
-        # Return the most pressing one
-        most_pressing = developer_f_stories[0]
-        print("=" * 70)
-        print("🎯 MOST PRESSING STORY FOR DEVELOPER F:")
-        print("=" * 70)
-        print(f"US#{most_pressing.get('ref')}: {most_pressing.get('subject')}")
-        print(f"Status: {most_pressing.get('status_extra_info', {}).get('name', 'Unknown')}")
-        print(f"Description: {most_pressing.get('description', 'No description')[:200]}...")
-        print(f"\nView at: {TAIGA_URL}/project/{PROJECT_SLUG}/us/{most_pressing.get('ref')}")
-        return 0
-
-    else:
-        print(f"⚠️  No stories found assigned to Developer F")
-        if not developer_f_id:
-            print(f"   (User '{DEVELOPER_F_USERNAME}' not found)")
-        print()
-        print("=" * 70)
-        print("🔍 Looking for most pressing UNASSIGNED story")
-        print("=" * 70)
-        print()
-
-        # Get unassigned stories
+        # Find unassigned active stories
         unassigned = []
         for story in all_stories:
             assigned_to = story.get("assigned_to")
-            # Check if truly unassigned (None, 0, or empty)
-            if not assigned_to or assigned_to == 0:
-                # Exclude Done/Closed stories
-                status_name = story.get("status_extra_info", {}).get("name", "").lower()
-                if status_name not in ["done", "closed", "archived", "cancelled"]:
-                    unassigned.append(story)
+            status_info = story.get("status_extra_info", {})
+            status_name = status_info.get("name", "").lower() if status_info else ""
 
-        if not unassigned:
-            print("❌ No unassigned stories found")
-            return 1
+            if assigned_to is None and status_name not in ["done", "archived", "closed", "cancelled"]:
+                unassigned.append(story)
 
-        print(f"✅ Found {len(unassigned)} unassigned stories")
+        if unassigned:
+            print(f"✅ Found {len(unassigned)} unassigned active stories")
+            print()
+            print("Top 5 unassigned stories:")
+            for i, story in enumerate(unassigned[:5], 1):
+                status = story.get("status_extra_info", {}).get("name", "Unknown")
+                print(f"  {i}. US#{story.get('ref')}: {story.get('subject')} ({status})")
+                print(f"     URL: {TAIGA_URL}/project/{PROJECT_SLUG}/us/{story.get('ref')}")
+
+        return 1
+
+    print(f"✅ Found {len(developer_f_stories)} stories assigned to Developer F")
+    print()
+
+    # Categorize stories
+    done_statuses = ["done", "closed", "archived", "cancelled"]
+    active_stories = [
+        s for s in developer_f_stories if s.get("status_extra_info", {}).get("name", "").lower() not in done_statuses
+    ]
+    in_progress = [
+        s
+        for s in active_stories
+        if s.get("status_extra_info", {}).get("name", "").lower() in ["in progress", "working"]
+    ]
+    ready = [s for s in active_stories if s.get("status_extra_info", {}).get("name", "").lower() in ["ready", "new"]]
+
+    print("=" * 80)
+    print("STORY BREAKDOWN")
+    print("=" * 80)
+    print(f"  Total assigned: {len(developer_f_stories)}")
+    print(f"  Active: {len(active_stories)}")
+    print(f"  In Progress: {len(in_progress)}")
+    print(f"  Ready/New: {len(ready)}")
+    print(f"  Done: {len(developer_f_stories) - len(active_stories)}")
+    print()
+
+    if active_stories:
+        print("=" * 80)
+        print("ACTIVE STORIES (Priority Order)")
+        print("=" * 80)
         print()
 
-        # Sort by priority
-        unassigned.sort(key=lambda s: prioritize_story(s), reverse=True)
+        # Sort by priority (In Progress first, then Ready)
+        sorted_stories = sorted(
+            active_stories,
+            key=lambda s: (
+                0 if s.get("status_extra_info", {}).get("name", "").lower() == "in progress" else 1,
+                s.get("ref", 0),
+            ),
+        )
 
-        # Show top 5
-        print("Top 5 most pressing unassigned stories:")
-        print("-" * 70)
-        for i, story in enumerate(unassigned[:5], 1):
-            ref = story.get("ref", "N/A")
-            subject = story.get("subject", "No subject")
-            status_info = story.get("status_extra_info", {})
-            status = status_info.get("name", "Unknown") if status_info else "Unknown"
-            priority_score = prioritize_story(story)
+        for i, story in enumerate(sorted_stories, 1):
+            ref = story.get("ref")
+            subject = story.get("subject", "N/A")
+            status = story.get("status_extra_info", {}).get("name", "Unknown")
+            priority_map = {1: "Low", 2: "Normal", 3: "High"}
+            priority = priority_map.get(story.get("priority", 2), "Normal")
 
             print(f"{i}. US#{ref}: {subject}")
-            print(f"   Status: {status} | Priority Score: {priority_score}")
-            print(f"   ID: {story.get('id')}")
-            print(f"   View: {TAIGA_URL}/project/{PROJECT_SLUG}/us/{ref}")
+            print(f"   Status: {status}")
+            print(f"   Priority: {priority}")
+            print(f"   URL: {TAIGA_URL}/project/{PROJECT_SLUG}/us/{ref}")
             print()
 
-        # Return the most pressing one
-        most_pressing = unassigned[0]
-        print("=" * 70)
-        print("🎯 MOST PRESSING UNASSIGNED STORY:")
-        print("=" * 70)
-        print(f"US#{most_pressing.get('ref')}: {most_pressing.get('subject')}")
-        print(f"Status: {most_pressing.get('status_extra_info', {}).get('name', 'Unknown')}")
-        description = most_pressing.get("description", "No description")
-        if description:
-            print(f"\nDescription:\n{description[:500]}")
-            if len(description) > 500:
-                print("...")
-        print(f"\nView at: {TAIGA_URL}/project/{PROJECT_SLUG}/us/{most_pressing.get('ref')}")
-        print()
-        print("=" * 70)
-        print("📝 NEXT STEPS:")
-        print("=" * 70)
-        print(f"1. Review the story: US#{most_pressing.get('ref')}")
-        print(f"2. Start working on it")
-        print(f"3. Update status to 'In Progress' if needed")
-        print()
-        return 0
+        # Return the first active story for processing
+        if sorted_stories:
+            first_story = sorted_stories[0]
+            print("=" * 80)
+            print(f"🎯 NEXT STORY TO WORK ON: US#{first_story.get('ref')}")
+            print("=" * 80)
+            print(f"Subject: {first_story.get('subject')}")
+            print(f"Status: {first_story.get('status_extra_info', {}).get('name', 'Unknown')}")
+            print(f"URL: {TAIGA_URL}/project/{PROJECT_SLUG}/us/{first_story.get('ref')}")
+            print()
+            return first_story.get("ref")
+
+    return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    story_ref = main()
+    if story_ref:
+        sys.exit(0)
+    else:
+        sys.exit(1)

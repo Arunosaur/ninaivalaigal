@@ -30,26 +30,70 @@ except ImportError:
         return 0
 
 
-# In-memory storage for security metrics (can be migrated to database later)
+# In-memory storage for security metrics (fallback)
 _security_metrics: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
 
 
-def record_security_event(event_type: str, details: Dict[str, Any]) -> None:
+def record_security_event(event_type: str, details: Dict[str, Any], db_session=None, severity: str = "info") -> None:
     """
-    Record a security event for monitoring.
+    Record a security event for monitoring - PERSISTENT STORAGE.
 
     Args:
-        event_type: Type of security event (login_failure, rate_limit, account_locked, etc.)
-        details: Event details (ip, user_id, email, etc.)
+        event_type: Type of security event (login_failure, rate_limit_exceeded, account_locked, etc.)
+        details: Event details (ip_address, user_id, email, user_agent, etc.)
+        db_session: Database session for persistence (optional, falls back to in-memory)
+        severity: Event severity (info, warning, critical)
     """
+    import logging
+
+    logger = logging.getLogger(__name__)
+
     event = {
         "timestamp": datetime.utcnow().isoformat(),
         "event_type": event_type,
+        "severity": severity,
         **details,
     }
-    _security_metrics[event_type].append(event)
 
-    # Keep only last 1000 events per type
+    # Persist to database if session provided
+    if db_session:
+        try:
+            from sqlalchemy import text
+
+            query = text(
+                """
+                INSERT INTO public.security_events
+                (event_type, user_id, email, ip_address, user_agent, details, severity, created_at)
+                VALUES
+                (:event_type, :user_id, :email, :ip_address, :user_agent, :details::jsonb, :severity, NOW())
+            """
+            )
+
+            db_session.execute(
+                query,
+                {
+                    "event_type": event_type,
+                    "user_id": details.get("user_id"),
+                    "email": details.get("email"),
+                    "ip_address": details.get("ip_address"),
+                    "user_agent": details.get("user_agent"),
+                    "details": str(details),  # Convert to JSON string
+                    "severity": severity,
+                },
+            )
+            db_session.commit()
+            logger.info(f"✅ Security event recorded: {event_type} - {severity}")
+
+        except Exception as e:
+            logger.error(f"⚠️ Failed to persist security event: {e}")
+            # Fall back to in-memory storage
+            _security_metrics[event_type].append(event)
+    else:
+        # In-memory fallback
+        _security_metrics[event_type].append(event)
+        logger.debug(f"📝 Security event recorded (in-memory): {event_type}")
+
+    # Keep only last 1000 events per type in memory
     if len(_security_metrics[event_type]) > 1000:
         _security_metrics[event_type] = _security_metrics[event_type][-1000:]
 

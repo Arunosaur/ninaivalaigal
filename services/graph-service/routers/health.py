@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 import structlog
 from fastapi import APIRouter, HTTPException
-from graph.age_client import get_age_client
+from lib.graph.age_client import get_age_client
 from pydantic import BaseModel
 from redis import asyncio as aioredis
 

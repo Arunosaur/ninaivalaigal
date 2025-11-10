@@ -41,7 +41,7 @@ for service_name in "${!SERVICES[@]}"; do
         --dockerfile "$dockerfile" \
         --context "$context" \
         --arch "$ARCHITECTURES" \
-        $([ "$VERBOSE" = "true" ] && echo "--verbose" || echo ""); then
+        "$([ "$VERBOSE" = "true" ] && echo "--verbose" || echo "")"; then
         echo "✅ $service_name built successfully"
         BUILT+=("$service_name")
     else
@@ -58,4 +58,4 @@ echo "  Built: ${#BUILT[@]}"
 echo "  Failed: ${#FAILED[@]}"
 echo "====================================="
 
-exit $([ ${#FAILED[@]} -eq 0 ] && echo 0 || echo 1)
+exit "$([ ${#FAILED[@]} -eq 0 ] && echo 0 || echo 1)"

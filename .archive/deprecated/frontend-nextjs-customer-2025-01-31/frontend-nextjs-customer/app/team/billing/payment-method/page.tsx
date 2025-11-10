@@ -9,7 +9,7 @@
 //
 /**
  * US#211: Payment Method Update Page
- * 
+ *
  * Payment method management with Stripe Elements:
  * - Secure card input using Stripe Elements
  * - PCI compliance (no card data stored locally)
@@ -244,4 +244,3 @@ export default function PaymentMethodPage() {
     </div>
   );
 }
-

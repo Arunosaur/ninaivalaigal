@@ -14,9 +14,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest  # noqa: E402
-from fake_objects import FakePart, FakeRequest  # noqa: E402
 from fastapi import HTTPException  # noqa: E402
 
+from fake_objects import FakePart, FakeRequest  # noqa: E402
 from server.security.multipart.starlette_adapter import (  # noqa: E402
     scan_with_starlette,
 )

@@ -43,6 +43,29 @@ jobs:
             -t ghcr.io/arunosaur/ninaivalaigal-api:${{ github.ref_name }} \
             -f Dockerfile.api .
 
+      - name: 📦 Generate Container SBOMs
+        run: |
+          # Install syft for SBOM generation
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          syft version
+
+          mkdir -p sbom
+
+          # Generate SBOMs for container image
+          syft ghcr.io/arunosaur/ninaivalaigal-api:${{ github.ref_name }} -o cyclonedx-json > sbom/api.cyclonedx.json
+          syft ghcr.io/arunosaur/ninaivalaigal-api:${{ github.ref_name }} -o spdx-json > sbom/api.spdx.json
+          syft ghcr.io/arunosaur/ninaivalaigal-api:${{ github.ref_name }} -o spdx-tag-value > sbom/api.spdx
+
+          echo "Generated container SBOMs:"
+          ls -lh sbom/
+
+      - name: 📤 Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-sboms-${{ github.ref_name }}
+          path: sbom/
+          retention-days: 90
+
       - name: Generate release summary
         run: |
           echo "## 🚀 Multi-Arch Container Release" >> $GITHUB_STEP_SUMMARY

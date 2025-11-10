@@ -73,7 +73,7 @@ Given existing React/TypeScript frontend (SPEC-075), React Native provides:
 - **Settings**: Profile, preferences, account management
 
 ### Mobile-Specific Features
-- **Push Notifications**: Real-time alerts and updates
+- **Push Notifications**: Real-time alerts and updates via FCM (Firebase Cloud Messaging) for Android and APNs (Apple Push Notification Service) for iOS - NOTIF-004 (US#939)
 - **Offline Mode**: Full offline support with sync (SPEC-080)
 - **Biometric Auth**: Face ID, Touch ID, fingerprint authentication
 - **Camera Integration**: Photo capture for memory creation
@@ -114,12 +114,14 @@ interface MobileAPIClient {
 
 ## Dependencies
 
-- **SPEC-142**: Offline Mode (critical - mobile apps require offline support)
-- **SPEC-143**: Progressive Web App (alternative/complementary approach)
-- **SPEC-075**: Unified Frontend Architecture (shared design system)
-- **SPEC-044**: Cross-Device Session Continuity (session management)
-- **SPEC-026**: Standalone Teams Billing (team features)
-- **SPEC-031**: Memory Relevance Ranking (memory features)
+- **SPEC-142**: Offline Mode (critical - mobile apps require offline support) - ⚠️ **BLOCKING** (Planned, not Complete)
+- **SPEC-143**: Progressive Web App (alternative/complementary approach) - ⚠️ Planned (Consider implementing first)
+- **SPEC-075**: Unified Frontend Architecture (shared design system) - ✅ Complete
+- **SPEC-044**: Cross-Device Session Continuity (session management) - ⚠️ **BLOCKING** (Planned, not Complete)
+- **SPEC-026**: Standalone Teams Billing (team features) - ⚠️ **BLOCKING** (Planned, not Complete)
+- **SPEC-031**: Memory Relevance Ranking (memory features) - ✅ Complete
+
+**Note**: SPEC-141 requires SPEC-142 (Offline Mode), SPEC-044 (Session Continuity), and SPEC-026 (Teams Billing) for core functionality. Consider implementing SPEC-143 (PWA) first as an alternative/complementary approach.
 
 ## Related SPECs
 
@@ -181,7 +183,7 @@ interface MobileAPIClient {
 - Offline sync implementation
 
 ### Phase 3: Mobile-Specific Features (6 weeks)
-- Push notifications
+- Push notifications (FCM for Android, APNs for iOS) - NOTIF-004 (US#939)
 - Biometric authentication
 - Camera integration
 - Background sync
@@ -205,11 +207,63 @@ interface MobileAPIClient {
 
 ## Alternative: Progressive Web App
 
-**SPEC-081 (Progressive Web App)** is a complementary/alternative approach:
+**SPEC-143 (Progressive Web App)** is a complementary/alternative approach:
 - **Pros**: Single codebase, faster to implement, no app store approval
 - **Cons**: Limited native features, may not feel as "native"
 
-**Recommendation**: Consider implementing SPEC-081 (PWA) first, then evaluate need for native apps based on user demand and requirements.
+**Recommendation**: Consider implementing SPEC-143 (PWA) first, then evaluate need for native apps based on user demand and requirements.
+
+---
+
+## Implementation Status
+
+**Current Status**: Not Implemented (0%)
+
+## Implementation Stories
+
+### **High-Level Story**
+| Story ID | Subject | Status | Tags | Notes |
+|---------|---------|--------|------|-------|
+| **US#641** | SPEC-141: Mobile App Support | Ready | spec-141, mobile-app, mobile, ios, android | ✅ Correctly tagged |
+
+### **Phase Stories Created** (4 stories total)
+
+**Phase 1: Foundation & Setup (6 weeks)** - **BLOCKED by SPEC-142 Phase 2**
+- **US#898**: Phase 1: Foundation & Setup (Weeks 1-6) - **BLOCKED**
+
+**Phase 2: Core Features (8 weeks)** - **BLOCKED by SPEC-142**
+- **US#899**: Phase 2: Core Features (Weeks 7-14) - **BLOCKED**
+
+**Phase 3: Mobile-Specific Features (6 weeks)**
+- **US#900**: Phase 3: Mobile-Specific Features (Weeks 15-20)
+
+**Phase 4: Polish & Store Submission (4 weeks)**
+- **US#901**: Phase 4: Polish & Store Submission (Weeks 21-24)
+
+**Total**: 4 phase stories (US#898-901), 24 weeks
+
+**Note**: See `docs/spec-analysis/SPEC_141_142_143_STORY_BREAKDOWN.md` for detailed story breakdown. SPEC-141 is **blocked by SPEC-142** (Offline Mode). Consider implementing **SPEC-143 (PWA) first** as an alternative (faster: 12 weeks vs 24 weeks).
+
+### Existing Foundation
+- ✅ Web platform (SPEC-075) - Foundation for potential React Native code reuse
+- ✅ Design token system (SPEC-075) - Can be shared with mobile apps
+
+### Missing Components
+- ❌ Native iOS app
+- ❌ Native Android app
+- ❌ React Native project
+- ❌ Mobile app scaffolding
+- ❌ All mobile features (authentication, memory management, push notifications, etc.)
+
+## Implementation Stories
+
+| Story ID | Subject | Status | Tags | Notes |
+|---------|---------|--------|------|-------|
+| **US#641** | SPEC-141: Mobile App Support | Ready | spec-141, mobile-app, mobile, ios, android | ✅ Correctly tagged |
+
+**Total**: 1 story, ready for assignment
+
+**Note**: Consider implementing SPEC-143 (Progressive Web App) first as an alternative/complementary approach, then evaluate need for native apps based on user demand.
 
 ---
 

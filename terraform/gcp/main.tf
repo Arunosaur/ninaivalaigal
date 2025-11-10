@@ -6,6 +6,18 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  # Remote State Backend Configuration
+  # Configure this after creating the GCS bucket
+  # See terraform/gcp/README.md for setup instructions
+  backend "gcs" {
+    # These values should be set via backend config file or CLI
+    # bucket = "ninaivalaigal-terraform-state"
+    # prefix = "gcp/terraform.tfstate"
+    # encryption {
+    #   default_kms_key_name = "projects/PROJECT_ID/locations/global/keyRings/KEY_RING/cryptoKeys/KEY_NAME"
+    # }
+  }
 }
 
 provider "google" {
@@ -79,6 +91,12 @@ resource "google_cloud_run_service" "ninaivalaigal_api" {
   traffic {
     percent         = 100
     latest_revision = true
+  }
+
+  labels = {
+    environment = var.environment
+    project     = "ninaivalaigal"
+    cost-center = var.environment
   }
 
   depends_on = [google_project_service.cloud_run_api]

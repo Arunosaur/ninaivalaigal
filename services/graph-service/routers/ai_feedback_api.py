@@ -23,9 +23,8 @@ from ai_feedback_system import (
 )
 from database.operations import DatabaseOperations, get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
+from lib.auth import get_current_user
 from pydantic import BaseModel
-
-from auth import get_current_user
 
 logger = structlog.get_logger(__name__)
 

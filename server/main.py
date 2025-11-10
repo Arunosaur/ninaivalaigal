@@ -319,6 +319,15 @@ async def custom_openapi():
 app.include_router(health_router)
 app.include_router(metrics_router)
 
+# TRACE-006: Trace Analytics & Service Dependency Graphs (US#977)
+try:
+    from routers.trace_analytics_api import router as trace_analytics_router
+
+    app.include_router(trace_analytics_router)
+    logger.info("✅ Trace Analytics API router registered (US#977: TRACE-006)")
+except ImportError as e:
+    logger.warning(f"⚠️  Trace Analytics API not available: {e}")
+
 # Router imports placed here intentionally to avoid import-time database connections
 # This prevents circular dependencies and allows proper app initialization first
 from admin_analytics_api import router as admin_analytics_router  # noqa: E402
@@ -341,7 +350,11 @@ from graphops_integration import router as graphops_router  # noqa: E402
 from insights_api import router as insights_router  # noqa: E402
 from invoice_management_api import router as invoice_management_router  # noqa: E402
 from memory_health_api import router as memory_health_router  # noqa: E402
-from memory_injection_api import router as memory_injection_router  # noqa: E402
+# REMOVED: memory_injection_api router (Python)
+# Migrated to Rust endpoint: http://localhost:13393/memory/injection/*
+# Migration Date: 2025-01-31
+# Removal Date: 2025-01-31 (US#857: SPEC-131 Phase 3)
+# from memory_injection_api import router as memory_injection_router  # noqa: E402
 from memory_suggestions_api import router as memory_suggestions_router  # noqa: E402
 from memory_system import router as memory_system_router  # noqa: E402
 from partner_ecosystem_api import router as partner_ecosystem_router  # noqa: E402
@@ -351,12 +364,16 @@ from protected_routes import router as protected_router  # noqa: E402
 # from agentic_api import router as agentic_router  # noqa: E402
 # from performance_api import router as performance_router  # noqa: E402
 from routers.admin_activity import router as admin_activity_router  # noqa: E402
+from routers.admin_dashboard import router as admin_dashboard_router  # noqa: E402
 from routers.admin_organizations import (  # noqa: E402
     router as admin_organizations_router,
 )
 from routers.approvals import router as approvals_router  # noqa: E402
 from routers.contexts import router as contexts_router  # noqa: E402
 from routers.memory import router as memory_router  # noqa: E402
+
+# NOTE: substrate_router moved to services/core-api/main.py per SPEC-100 router mapping
+# from routers.substrate import router as substrate_router  # noqa: E402  # SPEC-012: Memory Substrate Management
 from routers.memory_browser_api import router as memory_browser_router  # noqa: E402
 from routers.organizations import router as organizations_router  # noqa: E402
 from routers.recording import router as recording_router  # noqa: E402
@@ -379,6 +396,10 @@ from unified_macro_intelligence_api import (  # noqa: E402
 )
 from usage_analytics_api import router as usage_analytics_router  # noqa: E402
 from vendor_admin_api import router as vendor_admin_router  # noqa: E402
+
+from server.notifications.in_app_api import (  # noqa: E402
+    router as in_app_notifications_router,
+)
 
 # from teams_working_api import router as teams_router  # Temporarily disabled  # noqa: E402
 
@@ -403,18 +424,24 @@ app.include_router(tag_router)  # TAG SUGGESTER - GPT-POWERED AUTO-TAGGING
 app.include_router(insights_router)  # INSIGHTS API - DASHBOARD INTELLIGENCE
 app.include_router(dashboard_router)  # DASHBOARD WIDGETS - REAL-TIME AI INSIGHTS
 app.include_router(gamification_router)  # GAMIFICATION - BADGES & LEADERBOARDS
+app.include_router(in_app_notifications_router)  # IN-APP NOTIFICATIONS (US#938, SPEC-148)
 app.include_router(organizations_router)
 app.include_router(teams_router)
 app.include_router(users_router)
 app.include_router(contexts_router)
 app.include_router(memory_router)
+# NOTE: substrate_router moved to services/core-api/main.py per SPEC-100 router mapping
+# app.include_router(substrate_router)  # SPEC-012: Memory Substrate Management
 app.include_router(memory_browser_router)  # MEMORY BROWSER API - /api/v1/memory/memories
 app.include_router(approvals_router)
 app.include_router(recording_router)
 app.include_router(vendor_admin_router)
+app.include_router(admin_dashboard_router)  # US#114: System Dashboard & Monitoring
 app.include_router(ai_feedback_router)
 app.include_router(memory_suggestions_router)
-app.include_router(memory_injection_router)
+# REMOVED: memory_injection_router registration
+# Migrated to Rust endpoint: http://localhost:13393/memory/injection/*
+# app.include_router(memory_injection_router)
 app.include_router(memory_health_router)
 app.include_router(standalone_teams_router)
 app.include_router(enhanced_signup_router)
@@ -456,6 +483,16 @@ try:
     )
 
     app.include_router(invoice_billing_router)
+
+    # US#187: Advanced Tax Configuration API
+    try:
+        from server.billing.tax_config_api import (  # noqa: E402
+            router as tax_config_router,
+        )
+
+        app.include_router(tax_config_router)
+    except ImportError:
+        logger.warning("Tax configuration API not available (optional feature)")
     logger.info("✅ SPEC-147 invoice generation API router registered")
 except ImportError as e:
     logger.warning(f"⚠️  Could not register SPEC-147 invoice generation API router: {e}")
@@ -480,6 +517,17 @@ try:
 except ImportError as e:
     logger.warning(f"⚠️  Could not register SPEC-147 payment transfer API router: {e}")
 
+# SPEC-147: Cost Tracking API (BILL-002)
+try:
+    from server.billing.cost_tracking_api import (  # noqa: E402
+        router as cost_tracking_router,
+    )
+
+    app.include_router(cost_tracking_router)
+    logger.info("✅ SPEC-147 cost tracking API router registered (BILL-002)")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register SPEC-147 cost tracking API router: {e}")
+
 # US#204: Team Billing APIs (SPEC-026 Phase 2)
 from team_billing_api import router as team_billing_router  # noqa: E402
 
@@ -501,8 +549,122 @@ app.include_router(macro_intelligence_router)
 app.include_router(graph_intelligence_integration_router)
 app.include_router(graph_validation_router)
 app.include_router(graph_usage_analytics_router)
+
+# GRAPH-FED-001: Graph Schema Registry (US#984)
+try:
+    from routers.schema_registry_api import router as schema_registry_router
+
+    app.include_router(schema_registry_router)
+    logger.info("✅ Graph Schema Registry API router registered (US#984: GRAPH-FED-001)")
+except ImportError as e:
+    logger.warning(f"⚠️  Graph Schema Registry API not available: {e}")
+
+# GRAPH-FED-003: Graph Query Router (US#988)
+try:
+    import sys
+    from pathlib import Path
+
+    federation_path = Path(__file__).parent.parent / "services" / "graph-federation" / "api"
+    if str(federation_path) not in sys.path:
+        sys.path.insert(0, str(federation_path.parent))
+    from api.router import router as graph_query_router
+
+    app.include_router(graph_query_router)
+    logger.info("✅ Graph Query Router API registered (US#988: GRAPH-FED-003)")
+except ImportError as e:
+    logger.warning(f"⚠️  Graph Query Router API not available: {e}")
+
+# GRAPH-FED-004: Graph Result Aggregator (US#989)
+try:
+    import sys
+    from pathlib import Path
+
+    federation_path = Path(__file__).parent.parent / "services" / "graph-federation" / "api"
+    if str(federation_path) not in sys.path:
+        sys.path.insert(0, str(federation_path.parent))
+    from api.aggregator import router as graph_aggregator_router
+
+    app.include_router(graph_aggregator_router)
+    logger.info("✅ Graph Result Aggregator API registered (US#989: GRAPH-FED-004)")
+except ImportError as e:
+    logger.warning(f"⚠️  Graph Result Aggregator API not available: {e}")
+
+# GRAPH-FED-005: Graph Federation Cache (US#990)
+try:
+    import sys
+    from pathlib import Path
+
+    federation_path = Path(__file__).parent.parent / "services" / "graph-federation" / "api"
+    if str(federation_path) not in sys.path:
+        sys.path.insert(0, str(federation_path.parent))
+    from api.cache import router as graph_cache_router
+
+    app.include_router(graph_cache_router)
+    logger.info("✅ Graph Federation Cache API registered (US#990: GRAPH-FED-005)")
+except ImportError as e:
+    logger.warning(f"⚠️  Graph Federation Cache API not available: {e}")
+
+# GRAPH-FED-002: Federation Query Engine (US#1006)
+try:
+    import sys
+    from pathlib import Path
+
+    federation_path = Path(__file__).parent.parent / "services" / "graph-federation" / "api"
+    if str(federation_path) not in sys.path:
+        sys.path.insert(0, str(federation_path.parent))
+    from api.engine import router as graph_engine_router
+
+    app.include_router(graph_engine_router)
+    logger.info("✅ Federation Query Engine API registered (US#1006: GRAPH-FED-002)")
+except ImportError as e:
+    logger.warning(f"⚠️  Federation Query Engine API not available: {e}")
+
+# GRAPH-FED-006: Context Bridge Integration (US#991)
+try:
+    import sys
+    from pathlib import Path
+
+    federation_path = Path(__file__).parent.parent / "services" / "graph-federation" / "api"
+    if str(federation_path) not in sys.path:
+        sys.path.insert(0, str(federation_path.parent))
+    from api.context_bridge import router as context_bridge_router
+
+    app.include_router(context_bridge_router)
+    logger.info("✅ Context Bridge Integration API registered (US#991: GRAPH-FED-006)")
+except ImportError as e:
+    logger.warning(f"⚠️  Context Bridge Integration API not available: {e}")
+
+# SPEC-127: Context Bridge System (US#841)
+try:
+    from routers.context_bridge_api import router as spec127_context_bridge_router
+
+    app.include_router(spec127_context_bridge_router)
+    logger.info("✅ SPEC-127 Context Bridge API registered (US#841: Phase 1)")
+except ImportError as e:
+    logger.warning(f"⚠️  SPEC-127 Context Bridge API not available: {e}")
+
+# SPEC-128: Memory Transfer & Copy (US#846)
+try:
+    from routers.memory_transfer_api import router as spec128_memory_transfer_router
+
+    app.include_router(spec128_memory_transfer_router)
+    logger.info("✅ SPEC-128 Memory Transfer & Copy API registered (US#846: Phase 1)")
+except ImportError as e:
+    logger.warning(f"⚠️  SPEC-128 Memory Transfer & Copy API not available: {e}")
+
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving
+
+# SPEC-085: Staff Management System
+try:
+    from staff_auth_api import router as staff_auth_router  # noqa: E402
+    from staff_management_api import router as staff_management_router  # noqa: E402
+
+    app.include_router(staff_management_router)
+    app.include_router(staff_auth_router)
+    logger.info("✅ SPEC-085 staff management API routers registered")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register SPEC-085 staff management API routers: {e}")
 
 frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_dir):

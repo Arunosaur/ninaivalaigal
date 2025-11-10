@@ -37,3 +37,15 @@ variable "jwt_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "budget_amount" {
+  description = "Monthly budget amount in USD"
+  type        = number
+  default     = 100
+}
+
+variable "budget_alert_emails" {
+  description = "Email addresses for budget alerts"
+  type        = list(string)
+  default     = []
+}

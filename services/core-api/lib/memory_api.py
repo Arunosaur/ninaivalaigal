@@ -385,3 +385,79 @@ async def get_relevant_memories(
     except Exception as e:
         logger.error("Failed to get relevant memories", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=f"Failed to retrieve relevant memories: {str(e)}")
+
+
+class RelevanceStatsResponse(BaseModel):
+    """Relevance statistics response model."""
+
+    user_id: str
+    scored_memories: int
+    tracked_accesses: int
+    top_cache_exists: bool
+    score_ttl: int
+    top_cache_ttl: int
+    weights: dict[str, float]
+
+
+@router.get("/relevance/stats", response_model=RelevanceStatsResponse)
+async def get_relevance_statistics(
+    request: Request,
+    user_id: str | None = Query(None, description="User ID to get stats for (admin only)"),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get relevance engine statistics (SPEC-031).
+
+    Admin-only endpoint that returns comprehensive statistics about the relevance engine:
+    - Number of scored memories
+    - Number of tracked accesses
+    - Cache status
+    - TTL configurations
+    - Scoring weights
+
+    If user_id is not provided, returns stats for the current user (admin only).
+    """
+    try:
+        # Check admin access - this endpoint is admin-only
+        from auth import require_platform_admin
+
+        user_dict = {
+            "id": str(current_user.id) if hasattr(current_user, "id") else None,
+            "role": getattr(current_user, "role", "user"),
+            "is_system_admin": getattr(current_user, "is_system_admin", False),
+            "rbac_roles": getattr(current_user, "rbac_roles", {}),
+        }
+
+        # Require admin access
+        require_platform_admin(user_dict)
+
+        # Determine target user ID
+        if user_id:
+            target_user_id = str(user_id)
+        else:
+            # If no user_id provided, return stats for current user
+            target_user_id = str(current_user.id)
+
+        # Get relevance engine
+        relevance_engine = await get_relevance_engine()
+
+        # Get statistics
+        stats = await relevance_engine.get_relevance_stats(target_user_id)
+
+        if "error" in stats:
+            raise HTTPException(status_code=500, detail=stats["error"])
+
+        logger.info(
+            "Relevance statistics retrieved",
+            user_id=target_user_id,
+            requested_by=current_user.id,
+            scored_memories=stats.get("scored_memories", 0),
+        )
+
+        return RelevanceStatsResponse(**stats)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to get relevance statistics", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve relevance statistics: {str(e)}")

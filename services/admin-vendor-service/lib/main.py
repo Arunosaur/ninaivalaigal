@@ -33,6 +33,18 @@ from fastapi.staticfiles import StaticFiles
 
 # Middleware and security
 from observability import health_router, metrics_router
+
+# Make tracing imports optional for tests
+try:
+    from observability.tracing import TracingConfig, init_tracing
+
+    TRACING_AVAILABLE = True
+except ImportError:
+    # Gracefully handle missing opentelemetry dependencies (common in test environments)
+    TracingConfig = None
+    init_tracing = None
+    TRACING_AVAILABLE = False
+
 from performance_monitor import get_performance_monitor, start_performance_monitoring
 from redis_client import redis_client
 from redis_queue import queue_manager
@@ -171,6 +183,35 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize OpenTelemetry Distributed Tracing (US#975: TRACE-004)
+# Skip tracing if dependencies are unavailable or explicitly disabled for tests
+tracing_enabled_env = os.getenv("OTEL_TRACING_ENABLED", "true").lower() == "true"
+is_testing = os.getenv("PYTEST_CURRENT_TEST") is not None or os.getenv("TESTING") == "true"
+
+if TRACING_AVAILABLE and tracing_enabled_env and not is_testing:
+    try:
+        service_name = os.getenv("OTEL_SERVICE_NAME", "ninaivalaigal-admin-vendor-service")
+        jaeger_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+        is_dev = os.getenv("ENVIRONMENT", "production").lower() == "development"
+
+        tracing_config = TracingConfig(
+            service_name=service_name,
+            service_version="1.0.0",
+            jaeger_endpoint=jaeger_endpoint,
+            enable_console_export=is_dev,
+        )
+        tracer = init_tracing(app, tracing_config)
+        logger.info(f"✅ Distributed tracing enabled: {service_name} -> {jaeger_endpoint}")
+    except Exception as e:
+        logger.warning(f"⚠️  Failed to initialize tracing: {e}")
+        logger.info("Continuing without distributed tracing")
+elif is_testing:
+    logger.debug("⏭️  Distributed tracing disabled in test environment")
+elif not TRACING_AVAILABLE:
+    logger.debug("⏭️  Distributed tracing dependencies not available")
+elif not tracing_enabled_env:
+    logger.info("⏭️  Distributed tracing disabled via OTEL_TRACING_ENABLED=false")
 
 # Add custom middleware - ALL DISABLED FOR DEBUGGING
 # app.middleware("http")(rate_limit_middleware)

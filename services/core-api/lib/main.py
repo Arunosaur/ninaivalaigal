@@ -19,9 +19,19 @@ This addresses the external code review feedback:
 
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import structlog
 import uvicorn
+
+# LangSmith integration (US#139)
+try:
+    from langsmith import traceable
+
+    LANGSMITH_AVAILABLE = True
+except ImportError:
+    LANGSMITH_AVAILABLE = False
+    traceable = lambda *args, **kwargs: lambda func: func  # No-op decorator
 from approval_workflow import ApprovalWorkflowManager
 from auto_recording import get_auto_recorder
 from database import DatabaseManager
@@ -68,6 +78,42 @@ logger = structlog.get_logger(__name__)
 
 # Load configuration (but don't create connections yet)
 config = load_config()
+
+# Load LangSmith environment variables from .env.langchain if it exists (US#139)
+langchain_env_path = Path(__file__).parent.parent.parent / ".env.langchain"
+if langchain_env_path.exists():
+    try:
+        from dotenv import load_dotenv
+
+        # Load .env.langchain file
+        # Note: dotenv handles both "export VAR=value" and "VAR=value" formats
+        load_dotenv(langchain_env_path, override=False)  # Don't override existing env vars
+
+        # Also handle shell export format by sourcing if needed
+        # Read file and parse export statements manually
+        with open(langchain_env_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("export ") and "=" in line:
+                    # Parse "export VAR='value'" or "export VAR=\"value\""
+                    var_part = line[7:].strip()  # Remove "export "
+                    if "=" in var_part:
+                        var_name, var_value = var_part.split("=", 1)
+                        var_name = var_name.strip()
+                        var_value = var_value.strip().strip('"').strip("'")
+                        # Only set if not already in environment
+                        if var_name and not os.getenv(var_name):
+                            os.environ[var_name] = var_value
+
+        logger.info("✅ Loaded LangSmith configuration from .env.langchain")
+    except Exception as e:
+        logger.warning(f"⚠️  Failed to load .env.langchain: {e}")
+elif LANGSMITH_AVAILABLE:
+    # Check if LangSmith env vars are already set
+    if os.getenv("LANGCHAIN_API_KEY") and os.getenv("LANGCHAIN_TRACING_V2") == "true":
+        logger.info("✅ LangSmith configuration found in environment variables")
+    else:
+        logger.debug("⚠️  LangSmith not configured (no .env.langchain or env vars)")
 
 
 @asynccontextmanager
@@ -172,6 +218,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add security logging middleware (for SIEM integration)
+from lib.middleware.security_logging import SecurityLoggingMiddleware
+
+app.add_middleware(SecurityLoggingMiddleware)
+
 # Add custom middleware - ALL DISABLED FOR DEBUGGING
 # app.middleware("http")(rate_limit_middleware)
 # app.middleware("http")(rbac_middleware)  # THIS WAS BLOCKING - NOT ASYNC!
@@ -246,6 +297,16 @@ async def custom_openapi():
 app.include_router(health_router)
 app.include_router(metrics_router)
 
+# JWKS endpoint for public key distribution (US#731 - SPEC-114)
+from routers.jwks import router as jwks_router  # noqa: E402
+
+app.include_router(jwks_router)
+
+# Redis latency monitoring (US#44)
+from routers.redis_latency import router as redis_latency_router  # noqa: E402
+
+app.include_router(redis_latency_router)
+
 # Router imports placed here intentionally to avoid import-time database connections
 # This prevents circular dependencies and allows proper app initialization first
 from admin_analytics_api import router as admin_analytics_router  # noqa: E402
@@ -276,15 +337,32 @@ from memory_suggestions_api import router as memory_suggestions_router  # noqa: 
 from memory_system import router as memory_system_router  # noqa: E402
 from partner_ecosystem_api import router as partner_ecosystem_router  # noqa: E402
 from protected_routes import router as protected_router  # noqa: E402
+from routers.a2a_api import router as a2a_router  # noqa: E402 (SPEC-091)
 
 # Temporarily disabled for production stability
 # from agentic_api import router as agentic_router  # noqa: E402
 # from performance_api import router as performance_router  # noqa: E402
 from routers.approvals import router as approvals_router  # noqa: E402
 from routers.contexts import router as contexts_router  # noqa: E402
+from routers.embedding_hooks import (  # noqa: E402 (SPEC-138, US-357)
+    router as embedding_hooks_router,
+)
+from routers.hierarchical_tags import (  # noqa: E402 (SPEC-034, US-335)
+    router as hierarchical_tags_router,
+)
 from routers.memory import router as memory_router  # noqa: E402
 from routers.organizations import router as organizations_router  # noqa: E402
 from routers.recording import router as recording_router  # noqa: E402
+from routers.replication import (  # noqa: E402 (SPEC-153, US-951)
+    router as replication_router,
+)
+from routers.search import router as search_router  # noqa: E402 (SPEC-152, US-944)
+from routers.search_analytics import (  # noqa: E402 (SPEC-152, US-948)
+    router as search_analytics_router,
+)
+from routers.search_analytics_dashboard import (  # noqa: E402 (SPEC-152, US-948)
+    router as search_analytics_dashboard_router,
+)
 from routers.teams import router as teams_router  # noqa: E402
 from routers.users import router as users_router  # noqa: E402
 from signup_api import router as signup_router  # noqa: E402
@@ -333,6 +411,13 @@ app.include_router(users_router)
 app.include_router(contexts_router)
 app.include_router(memory_router)
 app.include_router(approvals_router)
+app.include_router(a2a_router)  # SPEC-091: Agent-to-Agent Context Propagation
+app.include_router(search_router)  # SPEC-152: PostgreSQL Full-Text Search (US-944)
+app.include_router(hierarchical_tags_router)  # SPEC-034: Hierarchical Memory Tag System (US-335)
+app.include_router(embedding_hooks_router)  # SPEC-138: Embedding Hook API (US-357)
+app.include_router(search_analytics_router)  # SPEC-152: Search Analytics & Optimization (US-948)
+app.include_router(search_analytics_dashboard_router)  # SPEC-152: Search Analytics Dashboard (US-948)
+app.include_router(replication_router)  # SPEC-153: Replication Lag Monitoring & Health Checks (US-951)
 app.include_router(recording_router)
 app.include_router(vendor_admin_router)
 app.include_router(ai_feedback_router)

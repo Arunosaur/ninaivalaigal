@@ -1,9 +1,9 @@
 # SPEC-128: Memory Sharing & Transfer Architecture
 
-**Status:** ⚠️ **Partially Implemented** (30% implemented)  
-**Owner:** Platform Architecture Team  
-**Effective:** Upon approval  
-**Last Updated:** January 2025  
+**Status:** ⚠️ **Partially Implemented** (30% implemented)
+**Owner:** Platform Architecture Team
+**Effective:** Upon approval
+**Last Updated:** January 2025
 **Related:** SPEC-083 (Product Surface Split), SPEC-026 (Standalone Teams), SPEC-002 (Multi-User Auth)
 
 **Note:** This SPEC was renumbered from SPEC-084 to SPEC-128.

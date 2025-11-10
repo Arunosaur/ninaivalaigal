@@ -10,6 +10,7 @@
 Memory Attachment API Endpoints
 
 US#327, US#328, US#329: Memory Attachment Upload, Retrieval, and Deletion
+US#331: ACL Integration for Memory Attachments (SPEC-043)
 """
 
 import os
@@ -29,6 +30,8 @@ except ImportError:
     # Fallback if memory factory not available
     def get_default_memory_provider():
         return None
+
+
 from memory.interfaces import MemoryProvider, MemoryProviderError
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -41,8 +44,10 @@ try:
 except ImportError:
     # Fallback if utils.config not available
     import os
+
     def get_dynamic_database_url():
         return os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
+
 
 logger = structlog.get_logger(__name__)
 
@@ -103,7 +108,8 @@ async def ensure_attachment_table(db: DatabaseManager):
     try:
         session = db.get_session()
         session.execute(
-            text("""
+            text(
+                """
             CREATE TABLE IF NOT EXISTS memory_attachments (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 memory_id TEXT NOT NULL,
@@ -120,7 +126,8 @@ async def ensure_attachment_table(db: DatabaseManager):
             CREATE INDEX IF NOT EXISTS ix_memory_attachments_memory_id ON memory_attachments(memory_id);
             CREATE INDEX IF NOT EXISTS ix_memory_attachments_user_id ON memory_attachments(user_id);
             CREATE INDEX IF NOT EXISTS ix_memory_attachments_storage_key ON memory_attachments(storage_key);
-            """)
+            """
+            )
         )
         session.commit()
         session.close()
@@ -141,61 +148,94 @@ async def upload_memory_attachment(
     Upload and attach a file to a memory.
 
     US#327: Memory Attachment Upload Endpoint
+    US#331: ACL Integration - Requires WRITE permission on memory
 
     Accepts multipart/form-data file uploads and stores the file in the storage backend.
     Stores attachment metadata in the database.
     """
     try:
-        # Verify memory exists and user has access
+        # ACL Permission Check (US#331: ACL Integration for Memory Attachments)
         try:
-            memories = await provider.list_memories(
+            from lib.memory_acl_helpers import require_memory_write_permission
+
+            # Extract token ID from request if available
+            token_id = None
+            auth_header = request.headers.get("authorization", "")
+            # Token ID might be in headers or query params - adjust as needed
+
+            await require_memory_write_permission(
+                memory_id=memory_id,
                 user_id=current_user.id,
-                limit=1000,
-                offset=0,
-                bearer_token=request.headers.get("authorization"),
+                token_id=token_id,
             )
-            memory_exists = any(m.get("id") == memory_id for m in memories)
-            if not memory_exists:
-                raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
-        except Exception as e:
-            logger.warning(f"Failed to verify memory existence: {e}")
-            # Continue anyway - memory might exist in different provider
+        except ImportError:
+            logger.warning("ACL helpers not available, skipping ACL check")
+            # Fallback to basic memory existence check
+            try:
+                memories = await provider.list_memories(
+                    user_id=current_user.id,
+                    limit=1000,
+                    offset=0,
+                    bearer_token=request.headers.get("authorization"),
+                )
+                memory_exists = any(m.get("id") == memory_id for m in memories)
+                if not memory_exists:
+                    raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
+            except Exception as e:
+                logger.warning(f"Failed to verify memory existence: {e}")
+                # Continue anyway - memory might exist in different provider
+        except HTTPException:
+            # Re-raise HTTP exceptions (403 Forbidden from ACL check)
+            raise
 
         # Validate file
         if not file.filename:
             raise HTTPException(status_code=400, detail="Filename is required")
 
-        # Check file size (max 100MB)
-        MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
+        # Read file content
         file_content = await file.read()
-        file_size = len(file_content)
+        content_type = file.content_type or "application/octet-stream"
 
-        if file_size > MAX_FILE_SIZE:
-            raise HTTPException(
-                status_code=413,
-                detail=f"File size exceeds maximum allowed size of {MAX_FILE_SIZE // (1024*1024)}MB"
+        # Comprehensive file validation (US#330: File Type Validation and Size Limits)
+        try:
+            from lib.file_validation import validate_file_upload
+
+            is_valid, error_message = validate_file_upload(
+                file_content=file_content,
+                filename=file.filename,
+                declared_content_type=content_type,
             )
 
-        if file_size == 0:
-            raise HTTPException(status_code=400, detail="File is empty")
+            if not is_valid:
+                logger.warning(
+                    "File validation failed",
+                    filename=file.filename,
+                    content_type=content_type,
+                    error=error_message,
+                )
+                raise HTTPException(status_code=400, detail=f"File validation failed: {error_message}")
 
-        # Validate content type (basic check)
-        allowed_types = [
-            "image/", "application/pdf", "text/", "application/json",
-            "application/zip", "application/x-zip-compressed"
-        ]
-        content_type = file.content_type or "application/octet-stream"
-        if not any(content_type.startswith(allowed) for allowed in allowed_types):
-            logger.warning(f"Unusual content type: {content_type}")
-            # Allow but log warning
+        except ImportError:
+            # Fallback to basic validation if file_validation module not available
+            logger.warning("File validation module not available, using basic validation")
+            MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
+            file_size = len(file_content)
+
+            if file_size > MAX_FILE_SIZE:
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"File size exceeds maximum allowed size of {MAX_FILE_SIZE // (1024*1024)}MB",
+                )
+
+            if file_size == 0:
+                raise HTTPException(status_code=400, detail="File is empty")
+
+        file_size = len(file_content)
 
         # Get storage backend
         storage = get_storage_backend()
         if not storage:
-            raise HTTPException(
-                status_code=503,
-                detail="File storage backend not available"
-            )
+            raise HTTPException(status_code=503, detail="File storage backend not available")
 
         # Generate storage key
         attachment_id = str(uuid.uuid4())
@@ -204,12 +244,12 @@ async def upload_memory_attachment(
         # Upload file to storage
         try:
             # Use storage backend to upload
-            if hasattr(storage, 'upload_file'):
+            if hasattr(storage, "upload_file"):
                 await storage.upload_file(
                     key=storage_key,
                     file_content=file_content,
                     content_type=content_type,
-                    metadata={"memory_id": memory_id, "user_id": str(current_user.id)}
+                    metadata={"memory_id": memory_id, "user_id": str(current_user.id)},
                 )
             else:
                 # Fallback: Store in database as blob (not ideal but works)
@@ -237,24 +277,23 @@ async def upload_memory_attachment(
             }
 
             session.execute(
-                text("""
+                text(
+                    """
                 INSERT INTO memory_attachments
                 (id, memory_id, user_id, filename, content_type, size, storage_key, storage_backend, attachment_metadata, created_at, updated_at)
                 VALUES (:id, :memory_id, :user_id, :filename, :content_type, :size, :storage_key, :storage_backend, :attachment_metadata, :created_at, :updated_at)
-                """),
-                attachment_record
+                """
+                ),
+                attachment_record,
             )
             session.commit()
             session.close()
 
             # Generate download URL (pre-signed if supported)
             download_url = None
-            if hasattr(storage, 'generate_presigned_url'):
+            if hasattr(storage, "generate_presigned_url"):
                 try:
-                    download_url = await storage.generate_presigned_url(
-                        key=storage_key,
-                        expires_in=3600  # 1 hour
-                    )
+                    download_url = await storage.generate_presigned_url(key=storage_key, expires_in=3600)  # 1 hour
                 except Exception as e:
                     logger.warning(f"Failed to generate presigned URL: {e}")
 
@@ -264,7 +303,7 @@ async def upload_memory_attachment(
                 attachment_id=attachment_id,
                 filename=file.filename,
                 size=file_size,
-                user_id=current_user.id
+                user_id=current_user.id,
             )
 
             return AttachmentResponse(
@@ -276,7 +315,7 @@ async def upload_memory_attachment(
                 storage_key=storage_key,
                 download_url=download_url,
                 created_at=attachment_record["created_at"].isoformat(),
-                metadata={}
+                metadata={},
             )
 
         except Exception as e:
@@ -303,23 +342,42 @@ async def list_memory_attachments(
     List all attachments for a memory.
 
     US#328: Memory Attachment Retrieval Endpoints
+    US#331: ACL Integration - Requires READ permission on memory
 
     Returns paginated list of attachments with metadata.
     """
     try:
-        # Verify memory exists and user has access
+        # ACL Permission Check (US#331: ACL Integration for Memory Attachments)
         try:
-            memories = await provider.list_memories(
+            from lib.memory_acl_helpers import require_memory_read_permission
+
+            # Extract token ID from request if available
+            token_id = None
+            auth_header = request.headers.get("authorization", "")
+
+            await require_memory_read_permission(
+                memory_id=memory_id,
                 user_id=current_user.id,
-                limit=1000,
-                offset=0,
-                bearer_token=request.headers.get("authorization"),
+                token_id=token_id,
             )
-            memory_exists = any(m.get("id") == memory_id for m in memories)
-            if not memory_exists:
-                raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
-        except Exception as e:
-            logger.warning(f"Failed to verify memory existence: {e}")
+        except ImportError:
+            logger.warning("ACL helpers not available, skipping ACL check")
+            # Fallback to basic memory existence check
+            try:
+                memories = await provider.list_memories(
+                    user_id=current_user.id,
+                    limit=1000,
+                    offset=0,
+                    bearer_token=request.headers.get("authorization"),
+                )
+                memory_exists = any(m.get("id") == memory_id for m in memories)
+                if not memory_exists:
+                    raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
+            except Exception as e:
+                logger.warning(f"Failed to verify memory existence: {e}")
+        except HTTPException:
+            # Re-raise HTTP exceptions (403 Forbidden from ACL check)
+            raise
 
         # Get attachments from database
         db = get_db()
@@ -327,47 +385,49 @@ async def list_memory_attachments(
 
         # Get total count
         count_result = session.execute(
-            text("""
+            text(
+                """
             SELECT COUNT(*) as count
             FROM memory_attachments
             WHERE memory_id = :memory_id AND user_id = :user_id
-            """),
-            {"memory_id": memory_id, "user_id": str(current_user.id)}
+            """
+            ),
+            {"memory_id": memory_id, "user_id": str(current_user.id)},
         )
         total = count_result.fetchone()[0] if count_result else 0
 
-            # Get attachments with pagination
-            attachments_result = session.execute(
-                text("""
+        # Get attachments with pagination
+        attachments_result = session.execute(
+            text(
+                """
             SELECT id, memory_id, filename, content_type, size, storage_key,
                    attachment_metadata, created_at, updated_at
             FROM memory_attachments
             WHERE memory_id = :memory_id AND user_id = :user_id
             ORDER BY created_at DESC
             LIMIT :limit OFFSET :offset
-            """),
-                {"memory_id": memory_id, "user_id": str(current_user.id), "limit": limit, "offset": offset}
-            )
+            """
+            ),
+            {"memory_id": memory_id, "user_id": str(current_user.id), "limit": limit, "offset": offset},
+        )
 
-            attachments = []
-            storage = get_storage_backend()
+        attachments = []
+        storage = get_storage_backend()
 
-            for row in attachments_result:
-                attachment_id = str(row.id)
-                storage_key = row.storage_key
+        for row in attachments_result:
+            attachment_id = str(row.id)
+            storage_key = row.storage_key
 
-                # Generate download URL
-                download_url = None
-                if storage and hasattr(storage, 'generate_presigned_url'):
-                    try:
-                        download_url = await storage.generate_presigned_url(
-                            key=storage_key,
-                            expires_in=3600  # 1 hour
-                        )
-                    except Exception as e:
-                        logger.warning(f"Failed to generate presigned URL for {attachment_id}: {e}")
+            # Generate download URL
+            download_url = None
+            if storage and hasattr(storage, "generate_presigned_url"):
+                try:
+                    download_url = await storage.generate_presigned_url(key=storage_key, expires_in=3600)  # 1 hour
+                except Exception as e:
+                    logger.warning(f"Failed to generate presigned URL for {attachment_id}: {e}")
 
-                attachments.append(AttachmentResponse(
+            attachments.append(
+                AttachmentResponse(
                     id=attachment_id,
                     memory_id=memory_id,
                     filename=row.filename,
@@ -376,16 +436,13 @@ async def list_memory_attachments(
                     storage_key=storage_key,
                     download_url=download_url,
                     created_at=row.created_at.isoformat() if row.created_at else datetime.utcnow().isoformat(),
-                    metadata=getattr(row, 'attachment_metadata', None) or {}
-                ))
+                    metadata=getattr(row, "attachment_metadata", None) or {},
+                )
+            )
 
         session.close()
 
-        return AttachmentListResponse(
-            items=attachments,
-            total=total,
-            memory_id=memory_id
-        )
+        return AttachmentListResponse(items=attachments, total=total, memory_id=memory_id)
 
     except HTTPException:
         raise
@@ -406,36 +463,57 @@ async def get_memory_attachment(
     Get a specific memory attachment.
 
     US#328: Memory Attachment Retrieval Endpoints
+    US#331: ACL Integration - Requires READ permission on memory
 
     Returns attachment metadata and generates pre-signed download URL.
     """
     try:
-        # Verify memory exists
+        # ACL Permission Check (US#331: ACL Integration for Memory Attachments)
         try:
-            memories = await provider.list_memories(
+            from lib.memory_acl_helpers import require_memory_read_permission
+
+            # Extract token ID from request if available
+            token_id = None
+            auth_header = request.headers.get("authorization", "")
+
+            await require_memory_read_permission(
+                memory_id=memory_id,
                 user_id=current_user.id,
-                limit=1000,
-                offset=0,
-                bearer_token=request.headers.get("authorization"),
+                token_id=token_id,
             )
-            memory_exists = any(m.get("id") == memory_id for m in memories)
-            if not memory_exists:
-                raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
-        except Exception as e:
-            logger.warning(f"Failed to verify memory existence: {e}")
+        except ImportError:
+            logger.warning("ACL helpers not available, skipping ACL check")
+            # Fallback to basic memory existence check
+            try:
+                memories = await provider.list_memories(
+                    user_id=current_user.id,
+                    limit=1000,
+                    offset=0,
+                    bearer_token=request.headers.get("authorization"),
+                )
+                memory_exists = any(m.get("id") == memory_id for m in memories)
+                if not memory_exists:
+                    raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
+            except Exception as e:
+                logger.warning(f"Failed to verify memory existence: {e}")
+        except HTTPException:
+            # Re-raise HTTP exceptions (403 Forbidden from ACL check)
+            raise
 
         # Get attachment from database
         db = get_db()
         session = db.get_session()
 
         attachment_result = session.execute(
-            text("""
+            text(
+                """
             SELECT id, memory_id, filename, content_type, size, storage_key,
                    attachment_metadata, created_at, updated_at
             FROM memory_attachments
             WHERE id = :attachment_id AND memory_id = :memory_id AND user_id = :user_id
-            """),
-            {"attachment_id": attachment_id, "memory_id": memory_id, "user_id": str(current_user.id)}
+            """
+            ),
+            {"attachment_id": attachment_id, "memory_id": memory_id, "user_id": str(current_user.id)},
         )
 
         row = attachment_result.fetchone()
@@ -447,12 +525,9 @@ async def get_memory_attachment(
         # Generate download URL
         download_url = None
         storage = get_storage_backend()
-        if storage and hasattr(storage, 'generate_presigned_url'):
+        if storage and hasattr(storage, "generate_presigned_url"):
             try:
-                download_url = await storage.generate_presigned_url(
-                    key=row.storage_key,
-                    expires_in=3600  # 1 hour
-                )
+                download_url = await storage.generate_presigned_url(key=row.storage_key, expires_in=3600)  # 1 hour
             except Exception as e:
                 logger.warning(f"Failed to generate presigned URL: {e}")
 
@@ -465,7 +540,7 @@ async def get_memory_attachment(
             storage_key=row.storage_key,
             download_url=download_url,
             created_at=row.created_at.isoformat() if row.created_at else datetime.utcnow().isoformat(),
-            metadata=getattr(row, 'attachment_metadata', None) or {}
+            metadata=getattr(row, "attachment_metadata", None) or {},
         )
 
     except HTTPException:
@@ -487,35 +562,56 @@ async def delete_memory_attachment(
     Delete a memory attachment.
 
     US#329: Memory Attachment Deletion Endpoint
+    US#331: ACL Integration - Requires WRITE permission on memory
 
     Deletes the file from storage and removes the attachment record from database.
     """
     try:
-        # Verify memory exists
+        # ACL Permission Check (US#331: ACL Integration for Memory Attachments)
         try:
-            memories = await provider.list_memories(
+            from lib.memory_acl_helpers import require_memory_write_permission
+
+            # Extract token ID from request if available
+            token_id = None
+            auth_header = request.headers.get("authorization", "")
+
+            await require_memory_write_permission(
+                memory_id=memory_id,
                 user_id=current_user.id,
-                limit=1000,
-                offset=0,
-                bearer_token=request.headers.get("authorization"),
+                token_id=token_id,
             )
-            memory_exists = any(m.get("id") == memory_id for m in memories)
-            if not memory_exists:
-                raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
-        except Exception as e:
-            logger.warning(f"Failed to verify memory existence: {e}")
+        except ImportError:
+            logger.warning("ACL helpers not available, skipping ACL check")
+            # Fallback to basic memory existence check
+            try:
+                memories = await provider.list_memories(
+                    user_id=current_user.id,
+                    limit=1000,
+                    offset=0,
+                    bearer_token=request.headers.get("authorization"),
+                )
+                memory_exists = any(m.get("id") == memory_id for m in memories)
+                if not memory_exists:
+                    raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
+            except Exception as e:
+                logger.warning(f"Failed to verify memory existence: {e}")
+        except HTTPException:
+            # Re-raise HTTP exceptions (403 Forbidden from ACL check)
+            raise
 
         # Get attachment record to get storage_key
         db = get_db()
         session = db.get_session()
 
         attachment_result = session.execute(
-            text("""
+            text(
+                """
             SELECT storage_key, storage_backend
             FROM memory_attachments
             WHERE id = :attachment_id AND memory_id = :memory_id AND user_id = :user_id
-            """),
-            {"attachment_id": attachment_id, "memory_id": memory_id, "user_id": str(current_user.id)}
+            """
+            ),
+            {"attachment_id": attachment_id, "memory_id": memory_id, "user_id": str(current_user.id)},
         )
 
         row = attachment_result.fetchone()
@@ -530,9 +626,9 @@ async def delete_memory_attachment(
         storage = get_storage_backend()
         if storage:
             try:
-                if hasattr(storage, 'delete_file'):
+                if hasattr(storage, "delete_file"):
                     await storage.delete_file(key=storage_key)
-                elif hasattr(storage, 'delete_object'):
+                elif hasattr(storage, "delete_object"):
                     await storage.delete_object(key=storage_key)
                 else:
                     logger.warning("Storage backend doesn't support file deletion")
@@ -542,20 +638,19 @@ async def delete_memory_attachment(
 
         # Delete attachment record from database
         session.execute(
-            text("""
+            text(
+                """
             DELETE FROM memory_attachments
             WHERE id = :attachment_id AND memory_id = :memory_id AND user_id = :user_id
-            """),
-            {"attachment_id": attachment_id, "memory_id": memory_id, "user_id": str(current_user.id)}
+            """
+            ),
+            {"attachment_id": attachment_id, "memory_id": memory_id, "user_id": str(current_user.id)},
         )
         session.commit()
         session.close()
 
         logger.info(
-            "Memory attachment deleted",
-            memory_id=memory_id,
-            attachment_id=attachment_id,
-            user_id=current_user.id
+            "Memory attachment deleted", memory_id=memory_id, attachment_id=attachment_id, user_id=current_user.id
         )
 
         return None  # 204 No Content

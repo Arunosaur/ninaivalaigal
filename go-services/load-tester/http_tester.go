@@ -26,10 +26,20 @@ type HTTPTester struct {
 
 // NewHTTPTester creates a new HTTP load tester
 func NewHTTPTester(config *LoadTestConfig) *HTTPTester {
-	// Configure HTTP client
+	// Configure HTTP client for high concurrency
+	// Support 10,000+ concurrent connections
+	maxConns := config.Concurrency * 2
+	if maxConns < 20000 {
+		maxConns = 20000 // Minimum pool size for 10k+ concurrency
+	}
+	maxConnsPerHost := config.Concurrency
+	if maxConnsPerHost < 10000 {
+		maxConnsPerHost = 10000 // Minimum per-host pool for 10k+ concurrency
+	}
+
 	transport := &http.Transport{
-		MaxIdleConns:        config.Concurrency * 2,
-		MaxIdleConnsPerHost: config.Concurrency,
+		MaxIdleConns:        maxConns,
+		MaxIdleConnsPerHost: maxConnsPerHost,
 		IdleConnTimeout:     90 * time.Second,
 		DisableKeepAlives:   !config.KeepAlive,
 		TLSClientConfig: &tls.Config{
@@ -376,6 +386,7 @@ func (ht *HTTPTester) printFinalReport() {
 		color.White("Min:                 %v", ht.results.MinLatency)
 		color.White("Max:                 %v", ht.results.MaxLatency)
 		color.White("Mean:                %v", ht.calculateMeanLatency())
+		color.White("50th percentile:    %v", ht.calculatePercentile(50))
 		color.White("95th percentile:     %v", ht.calculatePercentile(95))
 		color.White("99th percentile:     %v", ht.calculatePercentile(99))
 	}

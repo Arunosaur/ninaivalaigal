@@ -66,6 +66,30 @@ redis:
       cpu: "2000m"
       memory: "2Gi"
 
+# pg_partman Configuration (Production)
+pgPartman:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: Always
+  schema: "partman"
+  partitionTable: "usage_events"
+  partitionColumn: "recorded_at"
+  partitionInterval: "monthly"
+  premake: 6  # Create 6 months ahead in production
+  optimizeTrigger: 8  # Optimize more partitions per run
+  optimizeConstraint: 60  # Keep constraint optimization longer
+  retention: "24 months"  # Keep 24 months of data in production
+  enableBackgroundWorker: true  # Enable background worker in production
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
 # Service Monitor
 serviceMonitor:
   enabled: true

@@ -84,3 +84,103 @@ class ApprovalAction(BaseModel):
     request_id: int
     action: str  # "approve" or "reject"
     reason: str | None = None
+
+
+# SPEC-090: ACP Framework Models
+class DraftApprovalRequest(BaseModel):
+    """Model for creating draft approval requests"""
+
+    context_id: str  # UUID
+    requesting_team_id: str  # UUID
+    target_team_id: str  # UUID
+    permission_level: str  # "read", "write", "admin"
+    justification: str | None = None
+
+
+class SubmitApprovalRequest(BaseModel):
+    """Model for submitting a draft approval request"""
+
+    request_id: str  # UUID
+    notes: str | None = None
+
+
+class FinalizeApprovalRequest(BaseModel):
+    """Model for finalizing an approval request"""
+
+    request_id: str  # UUID
+    notes: str | None = None
+
+
+class ApprovalChainResponse(BaseModel):
+    """Response model for approval chain"""
+
+    request_id: str
+    steps: list[dict]
+    current_step: int | None = None
+    status: str
+
+
+class ApprovalEventResponse(BaseModel):
+    """Response model for approval event"""
+
+    event_id: str
+    event_type: str
+    previous_state: str | None = None
+    new_state: str | None = None
+    performed_by: str | None = None
+    timestamp: str
+    event_data: dict | None = None
+
+
+class ApprovalEventsResponse(BaseModel):
+    """Response model for approval event history"""
+
+    request_id: str
+    events: list[ApprovalEventResponse]
+    total: int
+
+
+# SPEC-091: A2A Context Propagation Models
+class A2AContextRequest(BaseModel):
+    """Model for creating A2A context envelope"""
+
+    source_agent: str
+    target_agent: str
+    intent: str
+    scope: dict  # Context scope (memory_ids, context_ids, team_ids, etc.)
+    payload: dict  # Context payload data
+    constraints: dict | None = None  # Optional constraints
+    ttl_seconds: int = 3600  # Time-to-live in seconds (default: 1 hour)
+    parent_envelope_id: str | None = None  # Parent context for lineage
+
+
+class A2AContextResponse(BaseModel):
+    """Response model for A2A context"""
+
+    envelope_id: str
+    source_agent: str
+    target_agent: str
+    intent: str
+    scope: dict
+    constraints: dict | None = None
+    payload: dict
+    signature: str | None = None
+    expires_at: str
+    created_at: str
+    status: str
+    version: str
+
+
+class A2AContextLineageResponse(BaseModel):
+    """Response model for A2A context lineage"""
+
+    envelope_id: str
+    lineage: list[dict]
+    total_versions: int
+
+
+class A2AContextListResponse(BaseModel):
+    """Response model for listing A2A contexts"""
+
+    contexts: list[A2AContextResponse]
+    total: int

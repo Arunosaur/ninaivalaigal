@@ -6,12 +6,13 @@ import (
 	"log"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 
 	// Import generated gRPC clients
-	graphopspb "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto/graphopspb"
+	graphopsv1 "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto"
 	memorypb "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto/memorypb"
 )
 
@@ -22,7 +23,7 @@ type GRPCClients struct {
 	memoryConn   *grpc.ClientConn
 
 	// GraphOps service client
-	GraphOpsClient graphopspb.GraphOpsServiceClient
+	GraphOpsClient graphopsv1.GraphOpsServiceClient
 	graphOpsConn   *grpc.ClientConn
 }
 
@@ -30,7 +31,7 @@ type GRPCClients struct {
 func NewGRPCClients() (*GRPCClients, error) {
 	clients := &GRPCClients{}
 
-	// Setup connection options
+	// Setup connection options with OpenTelemetry gRPC client instrumentation
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
@@ -42,20 +43,29 @@ func NewGRPCClients() (*GRPCClients, error) {
 			grpc.MaxCallRecvMsgSize(4*1024*1024), // 4MB max message size
 			grpc.MaxCallSendMsgSize(4*1024*1024),
 		),
+		// Add OpenTelemetry gRPC client interceptors for distributed tracing
+		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()),
 	}
 
-	// Connect to Memory Service
+	// Connect to Memory Service with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	log.Printf("🔗 Connecting to Memory Service at %s", MemoryAddr)
-	memoryConn, err := grpc.NewClient(MemoryAddr, opts...)
+	memoryConn, err := grpc.DialContext(ctx, MemoryAddr, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to memory service: %w", err)
 	}
 	clients.memoryConn = memoryConn
 	clients.MemoryClient = memorypb.NewMemoryServiceClient(memoryConn)
 
-	// Connect to GraphOps Service
+	// Connect to GraphOps Service with timeout
+	graphOpsCtx, graphOpsCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer graphOpsCancel()
+
 	log.Printf("🔗 Connecting to GraphOps Service at %s", GraphOpsAddr)
-	graphOpsConn, err := grpc.NewClient(GraphOpsAddr, opts...)
+	graphOpsConn, err := grpc.DialContext(graphOpsCtx, GraphOpsAddr, opts...)
 	if err != nil {
 		if closeErr := memoryConn.Close(); closeErr != nil {
 			log.Printf("⚠️ Failed to close memory connection: %v", closeErr)
@@ -63,7 +73,7 @@ func NewGRPCClients() (*GRPCClients, error) {
 		return nil, fmt.Errorf("failed to connect to graphops service: %w", err)
 	}
 	clients.graphOpsConn = graphOpsConn
-	clients.GraphOpsClient = graphopspb.NewGraphOpsServiceClient(graphOpsConn)
+	clients.GraphOpsClient = graphopsv1.NewGraphOpsServiceClient(graphOpsConn)
 
 	// Test connections with health checks
 	if err := clients.testConnections(); err != nil {
@@ -115,7 +125,7 @@ func (c *GRPCClients) testGraphOpsConnection(ctx context.Context) error {
 		log.Printf("⚠️  GraphOps Service client is nil (service may not be initialized)")
 		return nil // Don't fail if client is not initialized
 	}
-	req := &graphopspb.HealthCheckRequest{}
+	req := &graphopsv1.HealthCheckRequest{}
 	resp, err := c.GraphOpsClient.HealthCheck(ctx, req)
 	if err != nil {
 		log.Printf("⚠️  GraphOps Service health check failed: %v (service may not be running)", err)

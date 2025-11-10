@@ -10,9 +10,6 @@ Unit tests for services/core-api/utils/rate_limiting.py
 Tests authentication endpoint rate limiting.
 """
 
-import time
-from unittest.mock import patch
-
 import pytest
 
 pytestmark = pytest.mark.unit

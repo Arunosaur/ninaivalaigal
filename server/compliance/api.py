@@ -21,7 +21,7 @@ Assigned To: Developer G
 
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from database import DatabaseManager, User
@@ -553,4 +553,37 @@ async def submit_objection(
         logger.error(f"Error submitting objection request for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to submit objection request: {str(e)}"
+        )
+
+
+@router.get("/reports", status_code=status.HTTP_200_OK)
+async def get_gdpr_compliance_report(
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    current_user: User = Depends(get_current_user),
+    gdpr_manager: GDPRComplianceManager = Depends(get_gdpr_manager),
+):
+    """
+    Get GDPR compliance report.
+
+    US-121: AC6 - Generate comprehensive GDPR compliance report
+
+    Returns compliance metrics including:
+    - Data subject request statistics
+    - SLA compliance rates
+    - Export statistics
+    - Overall compliance status
+
+    Query Parameters:
+    - start_date: Start date for report period (ISO format, default: 30 days ago)
+    - end_date: End date for report period (ISO format, default: now)
+    """
+    try:
+        report = await gdpr_manager.generate_gdpr_compliance_report(start_date=start_date, end_date=end_date)
+        return report
+    except Exception as e:
+        logger.error(f"Error generating GDPR compliance report: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate compliance report: {str(e)}",
         )

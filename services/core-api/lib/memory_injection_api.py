@@ -27,6 +27,11 @@ from memory_injection import (
     InjectionTrigger,
     MemoryInjectionEngine,
 )
+from memory_injection_validation import (
+    RuleConflictError,
+    RuleExecutionError,
+    RuleValidationError,
+)
 from pydantic import BaseModel
 
 logger = structlog.get_logger(__name__)
@@ -171,7 +176,7 @@ async def execute_memory_injection(
     current_user: dict = Depends(get_current_user),
     injection_engine: MemoryInjectionEngine = Depends(get_injection_engine),
 ) -> InjectionExecutionResponse:
-    """Execute memory injection based on context and strategy."""
+    """Execute memory injection based on context and strategy with error handling."""
     try:
         import time
 
@@ -206,6 +211,14 @@ async def execute_memory_injection(
             context_snapshot=context.dict(),
         )
 
+    except RuleExecutionError as e:
+        logger.error(
+            "Rule execution error",
+            error=str(e),
+            rule_id=e.rule_id,
+            user_id=current_user.get("user_id"),
+        )
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.error(
             "Failed to execute memory injection",
@@ -221,7 +234,7 @@ async def create_injection_rule(
     current_user: dict = Depends(get_current_user),
     injection_engine: MemoryInjectionEngine = Depends(get_injection_engine),
 ) -> InjectionRule:
-    """Create a new memory injection rule."""
+    """Create a new memory injection rule with comprehensive validation."""
     try:
         user_id = current_user["user_id"]
 
@@ -239,6 +252,29 @@ async def create_injection_rule(
 
         return rule
 
+    except RuleValidationError as e:
+        logger.warning(
+            "Rule validation failed",
+            error=str(e),
+            user_id=current_user.get("user_id"),
+        )
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuleConflictError as e:
+        logger.warning(
+            "Rule conflict detected",
+            error=str(e),
+            conflicting_rules=e.conflicting_rules,
+            user_id=current_user.get("user_id"),
+        )
+        raise HTTPException(status_code=409, detail=str(e))
+    except RuleExecutionError as e:
+        logger.error(
+            "Rule execution error",
+            error=str(e),
+            rule_id=e.rule_id,
+            user_id=current_user.get("user_id"),
+        )
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.error(
             "Failed to create injection rule",

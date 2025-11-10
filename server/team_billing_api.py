@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import stripe
+from billing.stripe_customer_service import StripeCustomerService
 from database.models import Team, TeamBilling, TeamSubscription, User
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from models.standalone_teams import StandaloneTeamManager
@@ -30,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize router
 router = APIRouter(prefix="/team/billing", tags=["team-billing"])
+
 
 # Stripe configuration
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -300,29 +302,39 @@ async def add_update_payment_method(
     # Get or create team billing record
     team_billing = get_team_billing(team.id, db)
 
+    # Auto-create Stripe customer if billing exists but customer doesn't (US#163)
+    if team_billing and not team_billing.stripe_customer_id:
+        try:
+            stripe_service = StripeCustomerService(db)
+            customer_data = stripe_service.get_or_create_customer(
+                team_id=team.id,
+                email=team_billing.billing_email or current_user.email,
+                name=team.name,
+            )
+            team_billing.stripe_customer_id = customer_data["id"]
+            db.commit()
+            logger.info(f"Auto-created Stripe customer {customer_data['id']} for team {team.id}")
+        except Exception as e:
+            logger.error(f"Failed to auto-create Stripe customer: {e}")
+            raise HTTPException(status_code=500, detail="Failed to set up billing. Please try again.")
+
     if not team_billing or not team_billing.stripe_customer_id:
         raise HTTPException(status_code=400, detail="Team billing not set up. Please create a subscription first.")
 
     try:
-        # Attach payment method to Stripe customer
-        stripe.PaymentMethod.attach(
-            request.payment_method_id,
-            customer=team_billing.stripe_customer_id,
+        # Use Stripe customer service to sync payment method (US#163)
+        stripe_service = StripeCustomerService(db)
+        payment_method_data = stripe_service.sync_payment_method(
+            customer_id=team_billing.stripe_customer_id,
+            payment_method_id=request.payment_method_id,
+            set_as_default=request.set_as_default,
         )
-
-        # Set as default if requested
-        if request.set_as_default:
-            stripe.Customer.modify(
-                team_billing.stripe_customer_id,
-                invoice_settings={"default_payment_method": request.payment_method_id},
-            )
-            team_billing.default_payment_method = request.payment_method_id
-            db.commit()
 
         return {
             "success": True,
             "message": "Payment method added successfully",
             "payment_method_id": request.payment_method_id,
+            "payment_method": payment_method_data,
         }
 
     except stripe.error.StripeError as e:
@@ -423,8 +435,25 @@ async def change_subscription_plan(
     if not subscription:
         raise HTTPException(status_code=400, detail="No active subscription found")
 
-    # Get team billing
+    # Get or create team billing
     team_billing = get_team_billing(team.id, db)
+
+    # Auto-create Stripe customer if billing exists but customer doesn't (US#163)
+    if team_billing and not team_billing.stripe_customer_id:
+        try:
+            stripe_service = StripeCustomerService(db)
+            customer_data = stripe_service.get_or_create_customer(
+                team_id=team.id,
+                email=team_billing.billing_email or current_user.email,
+                name=team.name,
+            )
+            team_billing.stripe_customer_id = customer_data["id"]
+            db.commit()
+            logger.info(f"Auto-created Stripe customer {customer_data['id']} for team {team.id} during plan change")
+        except Exception as e:
+            logger.error(f"Failed to auto-create Stripe customer: {e}")
+            raise HTTPException(status_code=500, detail="Failed to set up billing. Please try again.")
+
     if not team_billing or not team_billing.stripe_customer_id:
         raise HTTPException(status_code=400, detail="Team billing not configured with Stripe")
 

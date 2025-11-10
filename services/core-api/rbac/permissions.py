@@ -45,6 +45,7 @@ class Action(Enum):
     RESTORE = auto()  # Restore data
     CONFIGURE = auto()  # System configuration
     AUDIT = auto()  # Access audit logs
+    EXECUTE = auto()  # Execute macros or scripts
 
 
 class Resource(Enum):
@@ -61,6 +62,7 @@ class Resource(Enum):
     BACKUP = auto()  # Backup operations
     SYSTEM = auto()  # System administration
     API = auto()  # API access control
+    MACRO = auto()  # Macro management (SPEC-046)
 
 
 ROLE_PRECEDENCE = [
@@ -151,6 +153,16 @@ allow(
 allow(Role.ADMIN, Resource.BACKUP, Action.READ, Action.CREATE, Action.RESTORE)
 allow(Role.ADMIN, Resource.AUDIT, Action.READ, Action.AUDIT)
 allow(Role.ADMIN, Resource.API, Action.READ, Action.ADMINISTER)
+allow(
+    Role.ADMIN,
+    Resource.MACRO,
+    Action.READ,
+    Action.CREATE,
+    Action.UPDATE,
+    Action.DELETE,
+    Action.EXECUTE,
+    Action.SHARE,
+)
 
 # MAINTAINER permissions - advanced user operations
 allow(
@@ -178,6 +190,16 @@ allow(Role.MAINTAINER, Resource.INVITATION, Action.READ, Action.CREATE)
 allow(Role.MAINTAINER, Resource.BACKUP, Action.READ, Action.CREATE)
 allow(Role.MAINTAINER, Resource.AUDIT, Action.READ)
 allow(Role.MAINTAINER, Resource.API, Action.READ)
+allow(
+    Role.MAINTAINER,
+    Resource.MACRO,
+    Action.READ,
+    Action.CREATE,
+    Action.UPDATE,
+    Action.DELETE,
+    Action.EXECUTE,
+    Action.SHARE,
+)
 
 # MEMBER permissions - standard user operations
 allow(
@@ -202,6 +224,14 @@ allow(Role.MEMBER, Resource.TEAM, Action.READ, Action.CREATE)
 allow(Role.MEMBER, Resource.USER, Action.READ)
 allow(Role.MEMBER, Resource.BACKUP, Action.READ)
 allow(Role.MEMBER, Resource.API, Action.READ)
+allow(
+    Role.MEMBER,
+    Resource.MACRO,
+    Action.READ,
+    Action.CREATE,
+    Action.UPDATE,
+    Action.EXECUTE,
+)
 
 # VIEWER permissions - read-only access
 allow(Role.VIEWER, Resource.CONTEXT, Action.READ, Action.EXPORT)
@@ -209,6 +239,7 @@ allow(Role.VIEWER, Resource.MEMORY, Action.READ, Action.EXPORT)
 allow(Role.VIEWER, Resource.TEAM, Action.READ)
 allow(Role.VIEWER, Resource.USER, Action.READ)
 allow(Role.VIEWER, Resource.API, Action.READ)
+allow(Role.VIEWER, Resource.MACRO, Action.READ)
 
 
 @dataclass(frozen=True)

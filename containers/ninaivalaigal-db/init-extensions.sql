@@ -20,6 +20,9 @@ CREATE EXTENSION IF NOT EXISTS age;
 -- Similarity for RAG (SPEC-041)
 CREATE EXTENSION IF NOT EXISTS pg_similarity;
 
+-- Database Federation & Sharding (US#958, SPEC-160)
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+
 -- Grant necessary permissions
 GRANT USAGE ON SCHEMA ag_catalog TO PUBLIC;
 

@@ -1,7 +1,7 @@
 # frontend-nextjs-admin/ - DEPRECATED
 
-**Deprecated Date**: 2025-01-31  
-**Deprecated By**: Developer F  
+**Deprecated Date**: 2025-01-31
+**Deprecated By**: Developer F
 **Reason**: SPEC-123 (Admin Frontend Rollout) is DEPRECATED
 
 ---
@@ -40,7 +40,7 @@
 
 ## Archive Location
 
-This folder was moved from: `frontend-nextjs-admin/`  
+This folder was moved from: `frontend-nextjs-admin/`
 To: `.archive/deprecated/frontend-nextjs-admin-2025-01-31/`
 
 **Original Size**: ~2 files (mostly empty, placeholder)
@@ -48,4 +48,3 @@ To: `.archive/deprecated/frontend-nextjs-admin-2025-01-31/`
 ---
 
 **Status**: ✅ Archived - Admin UI to be served from FastAPI
-

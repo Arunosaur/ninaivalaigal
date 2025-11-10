@@ -44,7 +44,30 @@ To record user actions, inputs, or decision flows across multiple modalities (te
 
 ## Status
 
-📋 **PLANNED** — initial design complete. Awaiting Redis + macro store finalization.
+📋 **IN PROGRESS** — initial design complete. Intelligence engine implemented (~40-50%). Macro recording and replay pending.
+
+## Taiga Stories
+
+The following Taiga stories have been created for SPEC-059:
+
+**Phase 1: Foundation**
+- **US#1007**: UMI-001: Macro Schema Definition & Database Design
+
+**Phase 2: Recording APIs**
+- **US#1031**: UMI-002: Macro Recording API - Option A (Script-based via eM/CLI)
+- **US#1032**: UMI-003: Macro Recording API - Option B (Visual/Replay-based)
+- **US#1033**: UMI-004: Macro Recording API - Option C (Implicit Detection)
+
+**Phase 3: Indexing**
+- **US#1017**: UMI-005: Macro Metadata Indexing System
+
+**Phase 4: Replay**
+- **US#1034**: UMI-006: Macro Replay Infrastructure
+
+**Phase 5: UI**
+- **US#1035**: UMI-007: Macro Dashboard User Interface
+
+All stories are tagged with `spec-059` and are ready for implementation.
 
 ## Location
 

@@ -26,8 +26,7 @@ COPY services/core-api/ .
 # Note: Configuration is now handled via environment variables
 # Legacy mem0.config.json references removed
 
-# Copy Alembic migrations and configuration
-COPY alembic.ini .
+# Copy Alembic multi-environment structure (SPEC-145)
 COPY alembic/ ./alembic/
 
 # Copy entrypoint script

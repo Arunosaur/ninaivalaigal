@@ -228,16 +228,39 @@ jobs:
   rollback:
     runs-on: ubuntu-latest
     if: failure()
+    needs: [deploy-production]
+    timeout-minutes: 15
 
     steps:
-    - name: Automatic rollback
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for tags
+
+    - name: Automatic Rollback on Regression (REGR-005)
+      env:
+        BASELINE_TAG: ${{ env.BASELINE_TAG || 'v0.9.0' }}
+        ROLLBACK_REASON: "Production deployment failed - automatic rollback triggered"
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        COMPOSE_FILE: deployment/prod/compose.production.yml
+        PREVIOUS_IMAGE_TAG: ${{ github.event.inputs.image_tag }}
       run: |
-        echo "🔄 Initiating automatic rollback..."
+        echo "🔄 Initiating automatic rollback to baseline: $BASELINE_TAG"
+        echo "Previous image tag: $PREVIOUS_IMAGE_TAG"
+        echo "Rolling back to baseline tag: $BASELINE_TAG"
 
-        # This would implement automatic rollback logic:
-        # 1. Revert to previous known-good image tag
-        # 2. Update kustomization files
-        # 3. Trigger ArgoCD sync
-        # 4. Notify team of rollback
+        # Run rollback script
+        bash scripts/rollback_on_regression.sh
 
-        echo "⚠️ Rollback completed - check logs for details"
+        echo "✅ Rollback completed successfully"
+
+    - name: Rollback Summary
+      if: always()
+      run: |
+        echo "## Rollback Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Baseline Tag:** ${{ env.BASELINE_TAG || 'v0.9.0' }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Reason:** Production deployment failed" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** Rollback initiated" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "⚠️ **Action Required:** Investigate the deployment failure and fix before next deployment" >> $GITHUB_STEP_SUMMARY

@@ -310,6 +310,16 @@ jobs:
           exit(0 if success else 1)
           "
 
+      - name: "REGR-004: Detect Skipped Tests (No-Skip Enforcement)"
+        # REGR-004 (US#934): Enforce no skipped tests unless documented
+        # SKIP_DOCUMENTED: Rust integration tests are gated and documented in conftest.py
+        run: |
+          echo "🔍 REGR-004: Checking for skipped tests..."
+          # Use pytest --collect-only to detect skipped tests
+          SKIP_COUNT=$(pytest tests/ --collect-only -q 2>&1 | grep -c "skip" || echo "0")
+          echo "Found $SKIP_COUNT skipped test(s)"
+          python3 scripts/detect_skipped_tests.py || exit 1
+
       - name: Foundation SPEC Compliance Check
         run: |
           echo "🏛️ Checking Foundation SPEC Compliance"

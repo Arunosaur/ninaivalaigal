@@ -17,7 +17,6 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List
 
-from auth_utils import get_current_user
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 
 # Import our existing intelligence systems
@@ -26,6 +25,7 @@ from insights_api import (
     get_memory_intelligence_insights,
     get_team_productivity_insights,
 )
+from lib.auth_utils import get_current_user
 from pydantic import BaseModel
 from tag_suggester import get_ai_performance_metrics
 

@@ -1,7 +1,7 @@
 # frontend-nextjs/ - DEPRECATED
 
-**Deprecated Date**: 2025-01-31  
-**Deprecated By**: Developer F  
+**Deprecated Date**: 2025-01-31
+**Deprecated By**: Developer F
 **Reason**: SPEC-103 (Next.js 15 Bootstrap) is DEPRECATED
 
 ---
@@ -40,7 +40,7 @@
 
 ## Archive Location
 
-This folder was moved from: `frontend-nextjs/`  
+This folder was moved from: `frontend-nextjs/`
 To: `.archive/deprecated/frontend-nextjs-2025-01-31/`
 
 **Original Size**: ~74 files
@@ -48,4 +48,3 @@ To: `.archive/deprecated/frontend-nextjs-2025-01-31/`
 ---
 
 **Status**: ✅ Archived - Do not use for new development
-

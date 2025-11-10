@@ -7,6 +7,8 @@
 # See LICENSE file in the server/ directory for details.
 #
 # Backup PostgreSQL database with pgvector and verification
+# US#955: DB-REPL-006: Backup from Replicas & Disaster Recovery
+# Supports backup from replica if BACKUP_FROM_REPLICA=true
 set -euo pipefail
 
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
@@ -23,7 +25,33 @@ POSTGRES_USER="${POSTGRES_USER:-nina}"
 POSTGRES_DB="${POSTGRES_DB:-nina}"
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}"
 
-echo "Creating backup: $BACKUP_FILE"
+# Parse command-line arguments
+USE_REPLICA=false
+for arg in "$@"; do
+    case $arg in
+        --replica|-r)
+            USE_REPLICA=true
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [--replica]"
+            echo "  --replica, -r    Backup from replica instead of primary"
+            exit 0
+            ;;
+        *)
+            # Unknown option
+            ;;
+    esac
+done
+
+# Check if backup from replica is enabled (via flag or env var)
+BACKUP_FROM_REPLICA="${BACKUP_FROM_REPLICA:-false}"
+if [ "$USE_REPLICA" = "true" ] || [ "$BACKUP_FROM_REPLICA" = "true" ]; then
+    echo "Backup from replica enabled (--replica flag or BACKUP_FROM_REPLICA=true), using replica backup script..."
+    exec "$(dirname "$0")/database/backup-from-replica.sh"
+fi
+
+echo "Creating backup from primary: $BACKUP_FILE"
 
 # Create backup using pg_dump with custom format (-Fc)
 PGPASSWORD="$POSTGRES_PASSWORD" pg_dump \

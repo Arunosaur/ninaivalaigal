@@ -20,31 +20,11 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, validator
 
+# Import models from shared contracts (US#79 - Shared Contracts Layer)
+# Note: auth.v1.models is available via module shim or PYTHONPATH
+from auth.v1.models import IndividualUserSignup, TokenData
 from config import DEFAULT_RUST_DATABASE_URL
 from utils.password import hash_password, verify_password
-
-
-# Pydantic models for auth
-class TokenData(BaseModel):
-    """Token data model"""
-
-    username: str
-    user_id: str
-
-    @validator("user_id", pre=True)
-    def _coerce_user_id(cls, value: object) -> str:
-        if value is None:
-            raise ValueError("user_id is required")
-        return str(value)
-
-
-class IndividualUserSignup(BaseModel):
-    """Individual user signup model"""
-
-    email: EmailStr
-    password: str
-    full_name: str
-    account_type: str = "individual"
 
 
 # Configuration loading (moved from main.py to avoid circular import)
@@ -156,22 +136,32 @@ security = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    """Create access_token."""
+    """
+    Create access_token.
 
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(days=7)  # Default 7 days
-    to_encode.update({"exp": expire})
+    SPEC-114: Uses RS256 if RSA keys are available, otherwise falls back to HS256.
+    """
+    # Try RS256 first (SPEC-114), fallback to HS256
+    try:
+        from lib.jwt_rs256 import create_access_token_rs256
 
-    # Get JWT secret from environment variable (required)
-    jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
-    if not jwt_secret:
-        raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required")
+        return create_access_token_rs256(data, expires_delta=expires_delta)
+    except Exception:
+        # Fallback to HS256 for backward compatibility
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(days=7)  # Default 7 days
+        to_encode.update({"exp": expire})
 
-    encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=JWT_ALGORITHM)
-    return encoded_jwt
+        # Get JWT secret from environment variable (required)
+        jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
+        if not jwt_secret:
+            raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required")
+
+        encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=JWT_ALGORITHM)
+        return encoded_jwt
 
 
 def get_user_roles_for_token(db, user_id: int) -> dict:
@@ -207,16 +197,30 @@ def get_user_roles_for_token(db, user_id: int) -> dict:
 
 
 def verify_token(token: str) -> TokenData:
-    """Verify JWT token and return token data"""
+    """
+    Verify JWT token and return token data.
+
+    SPEC-114: Supports both RS256 and HS256 for backward compatibility.
+    """
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        username: str = payload.get("email")  # Use email as username
-        user_id = payload.get("user_id")
-        if username is None or user_id is None:
+        # Try RS256 first (SPEC-114), fallback to HS256
+        from lib.jwt_rs256 import decode_access_token_rs256
+
+        payload = decode_access_token_rs256(token, verify=True, fallback_to_hs256=True)
+        if not payload:
             return None
-        token_data = TokenData(username=username, user_id=user_id)
-    except jwt.InvalidTokenError:
+    except Exception:
+        # Fallback to HS256
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        except jwt.InvalidTokenError:
+            return None
+
+    username: str = payload.get("email")  # Use email as username
+    user_id = payload.get("user_id")
+    if username is None or user_id is None:
         return None
+    token_data = TokenData(username=username, user_id=user_id)
     return token_data
 
 
@@ -414,30 +418,168 @@ def verify_email_token(verification_token: str) -> bool:
         session.close()
 
 
-def require_admin_role(current_user: dict, required_role: str = "admin") -> None:
+def require_platform_admin(current_user: dict) -> None:
     """
-    Require specific admin role for vendor admin operations.
+    Require Platform Admin role (users.role='admin' or 'super_admin').
+
+    Platform Admin can access Admin Console (SPEC-005) for User/Team/Org CRUD operations.
+    This is NOT the same as Vendor Admin or Staff Admin.
+
     Raises HTTPException if user doesn't have required permissions.
     """
     if not current_user:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    # Check if user is system admin
+    # System admin can also access platform admin functions
     if current_user.get("is_system_admin", False):
         return
 
-    # Check if user has vendor_admin role
+    # Check user role (Platform Admin)
+    user_role = current_user.get("role", "").lower()
+    if user_role in ["admin", "super_admin"]:
+        return
+
+    # Check RBAC roles
+    user_roles = current_user.get("rbac_roles", {})
+    if "admin" in user_roles or "super_admin" in user_roles:
+        return
+
+    raise HTTPException(
+        status_code=403,
+        detail="Insufficient permissions. Required: Platform Admin (users.role='admin' or 'super_admin')",
+    )
+
+
+def require_vendor_admin(current_user: dict) -> None:
+    """
+    Require Vendor Admin role (vendor_admin role).
+
+    Vendor Admin can access Vendor Admin Console (SPEC-025) for multi-tenant SaaS management.
+    This is NOT the same as Platform Admin or Staff Admin.
+
+    Raises HTTPException if user doesn't have required permissions.
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # System admin can also access vendor admin functions (for emergency operations)
+    if current_user.get("is_system_admin", False):
+        return
+
+    # Check vendor_admin role
+    user_role = current_user.get("role", "").lower()
+    if user_role == "vendor_admin":
+        return
+
+    # Check RBAC roles
+    user_roles = current_user.get("rbac_roles", {})
+    if "vendor_admin" in user_roles:
+        return
+
+    # Check vendor_role field (if exists)
+    if current_user.get("vendor_role", "").lower() == "vendor_admin":
+        return
+
+    raise HTTPException(
+        status_code=403,
+        detail="Insufficient permissions. Required: Vendor Admin (vendor_admin role) for SPEC-025 Vendor Admin Console",
+    )
+
+
+def require_staff_admin(current_user: dict) -> None:
+    """
+    Require Staff Admin role (staff.role='admin').
+
+    Staff Admin can access Staff Management (SPEC-085) for platform employee operations.
+    This uses separate staff authentication (staff table), NOT users table.
+
+    Note: This function checks if current_user is from staff authentication.
+    For staff endpoints, use staff authentication middleware instead.
+
+    Raises HTTPException if user doesn't have required permissions.
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # Check if this is a staff user (from staff table, not users table)
+    # Staff users should have a 'staff_id' or 'staff_role' field
+    staff_role = current_user.get("staff_role", "").lower()
+    if staff_role == "admin":
+        return
+
+    # Check if user has staff admin permissions
+    if current_user.get("is_staff_admin", False):
+        return
+
+    raise HTTPException(
+        status_code=403,
+        detail="Insufficient permissions. Required: Staff Admin (staff.role='admin') from SPEC-085 Staff Management",
+    )
+
+
+def require_system_admin(current_user: dict) -> None:
+    """
+    Require System Admin flag (users.is_system_admin=True).
+
+    System Admin is for EMERGENCY and DIAGNOSTIC operations only.
+    Should NOT be used for routine day-to-day management tasks.
+
+    Use Platform Admin, Vendor Admin, or Staff Admin for normal operations.
+
+    Raises HTTPException if user doesn't have required permissions.
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    if not current_user.get("is_system_admin", False):
+        raise HTTPException(
+            status_code=403,
+            detail="Insufficient permissions. Required: System Admin (users.is_system_admin=True) - For emergency/diagnostic operations only",
+        )
+
+
+def require_admin_role(current_user: dict, required_role: str = "admin") -> None:
+    """
+    DEPRECATED: Use specific admin functions instead.
+
+    This function is kept for backward compatibility but should be replaced with:
+    - require_platform_admin() for Platform Admin (SPEC-005)
+    - require_vendor_admin() for Vendor Admin (SPEC-025)
+    - require_staff_admin() for Staff Admin (SPEC-085)
+    - require_system_admin() for System Admin (emergency only)
+
+    Legacy function that checks multiple admin types. This is ambiguous and
+    should be replaced with specific functions.
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # System admin bypass (for emergency operations)
+    if current_user.get("is_system_admin", False):
+        return
+
+    # Check vendor_admin role
+    if required_role == "vendor_admin":
+        require_vendor_admin(current_user)
+        return
+
+    # Check platform admin role
+    if required_role in ["admin", "super_admin"]:
+        require_platform_admin(current_user)
+        return
+
+    # Legacy: Check RBAC roles
     user_roles = current_user.get("rbac_roles", {})
     if required_role in user_roles or "vendor_admin" in user_roles:
         return
 
-    # Check legacy role field
+    # Legacy: Check role field
     if current_user.get("role") == required_role or current_user.get("role") == "vendor_admin":
         return
 
     raise HTTPException(
         status_code=403,
-        detail=f"Insufficient permissions. Required role: {required_role}",
+        detail=f"Insufficient permissions. Required role: {required_role}. Consider using specific admin functions.",
     )
 
 

@@ -11,12 +11,15 @@
 Idempotency and distributed locking for billing tasks.
 
 Prevents duplicate task execution across regions using Redis locks.
+Includes event hash verification for task idempotency.
 """
 
+import hashlib
+import json
 import logging
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Any, Dict, Optional
 from uuid import uuid4
 
 try:
@@ -247,6 +250,138 @@ def with_idempotency_lock(redis_client, task_name: str, task_args: tuple, region
 
             finally:
                 lock.release()
+
+        return wrapper
+
+    return decorator
+
+
+def compute_event_hash(event_data: Dict[str, Any]) -> str:
+    """
+    Compute SHA256 hash of event data for verification.
+
+    Args:
+        event_data: Event data dictionary
+
+    Returns:
+        SHA256 hash as hex string
+    """
+    # Sort keys for deterministic hashing
+    sorted_data = json.dumps(event_data, sort_keys=True)
+    return hashlib.sha256(sorted_data.encode()).hexdigest()
+
+
+def verify_event_hash(event_data: Dict[str, Any], expected_hash: str) -> bool:
+    """
+    Verify event hash matches expected hash.
+
+    Args:
+        event_data: Event data dictionary
+        expected_hash: Expected hash value
+
+    Returns:
+        True if hash matches, False otherwise
+    """
+    computed_hash = compute_event_hash(event_data)
+    return computed_hash == expected_hash
+
+
+def get_event_hash_key(event_hash: str, task_name: str, region: str = "default") -> str:
+    """
+    Generate Redis key for event hash tracking.
+
+    Args:
+        event_hash: Event hash
+        task_name: Task name
+        region: Region identifier
+
+    Returns:
+        Redis key for event hash
+    """
+    return f"billing:event_hash:{task_name}:{event_hash}:{region}"
+
+
+def check_event_hash_processed(redis_client, event_hash: str, task_name: str, region: str = "default") -> bool:
+    """
+    Check if event hash has been processed.
+
+    Args:
+        redis_client: Redis client
+        event_hash: Event hash
+        task_name: Task name
+        region: Region identifier
+
+    Returns:
+        True if event hash already processed, False otherwise
+    """
+    if not REDIS_AVAILABLE or not redis_client:
+        return False
+
+    try:
+        key = get_event_hash_key(event_hash, task_name, region)
+        exists = redis_client.exists(key)
+        return bool(exists)
+    except Exception as e:
+        logger.error(f"Error checking event hash: {e}")
+        return False
+
+
+def mark_event_hash_processed(redis_client, event_hash: str, task_name: str, region: str = "default", ttl: int = 86400):
+    """
+    Mark event hash as processed.
+
+    Args:
+        redis_client: Redis client
+        event_hash: Event hash
+        task_name: Task name
+        region: Region identifier
+        ttl: TTL in seconds (default: 24 hours)
+    """
+    if not REDIS_AVAILABLE or not redis_client:
+        return
+
+    try:
+        key = get_event_hash_key(event_hash, task_name, region)
+        redis_client.set(key, "1", ex=ttl)
+    except Exception as e:
+        logger.error(f"Error marking event hash as processed: {e}")
+
+
+def with_event_hash_verification(redis_client, task_name: str, event_data: Dict[str, Any], region: str = "default"):
+    """
+    Decorator for task execution with event hash verification.
+
+    Verifies event hash and prevents duplicate processing of same event.
+
+    Args:
+        redis_client: Redis client
+        task_name: Task name
+        event_data: Event data dictionary
+        region: Region identifier
+
+    Returns:
+        Decorator function
+    """
+    event_hash = compute_event_hash(event_data)
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            # Check if event hash already processed
+            if check_event_hash_processed(redis_client, event_hash, task_name, region):
+                logger.info(f"Event hash {event_hash[:16]}... already processed for task {task_name}, skipping")
+                return {"status": "skipped", "reason": "event_hash_already_processed", "event_hash": event_hash}
+
+            try:
+                # Execute task
+                result = func(*args, **kwargs)
+
+                # Mark event hash as processed on success
+                mark_event_hash_processed(redis_client, event_hash, task_name, region)
+
+                return result
+            except Exception as e:
+                logger.error(f"Error executing task {task_name} with event hash {event_hash[:16]}...: {e}")
+                raise
 
         return wrapper
 

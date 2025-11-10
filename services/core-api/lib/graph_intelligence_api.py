@@ -23,6 +23,18 @@ from server.graph.age_client import get_age_client
 from server.graph.graph_reasoner import GraphReasoner, create_graph_reasoner
 from server.redis_client import get_redis_client
 
+# LangSmith tracing (US#139)
+try:
+    from langsmith import traceable
+except ImportError:
+    # No-op decorator if langsmith not available
+    def traceable(*args, **kwargs):
+        def decorator(func):
+            return func
+
+        return decorator
+
+
 logger = structlog.get_logger(__name__)
 
 router = APIRouter(prefix="/graph", tags=["Graph Intelligence"])
@@ -108,6 +120,7 @@ async def get_graph_reasoner() -> GraphReasoner:
 
 
 @router.post("/explain-context", response_model=ExplainContextResponse)
+@traceable(name="graph_explain_context")  # US#139: LangSmith tracing
 async def explain_context(
     request: ExplainContextRequest,
     current_user: dict = Depends(get_current_user),

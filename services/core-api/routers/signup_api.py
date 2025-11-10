@@ -55,14 +55,52 @@ from fastapi import (
     APIRouter,
     BackgroundTasks,
     Body,
+    Cookie,
     Depends,
     HTTPException,
     Request,
+    Response,
     status,
 )
 from pydantic import BaseModel, ValidationError
 
 from utils.password import hash_password
+
+# Import audit logging (SPEC-114)
+try:
+    from lib.auth_audit import (
+        log_auth_event,
+        log_login_attempt,
+        log_logout,
+        log_rate_limit_exceeded,
+        log_token_refresh,
+    )
+except ImportError:
+    # Fallback if audit module not available
+    async def log_auth_event(*args, **kwargs):
+        pass
+
+    async def log_login_attempt(*args, **kwargs):
+        pass
+
+    async def log_logout(*args, **kwargs):
+        pass
+
+    async def log_token_refresh(*args, **kwargs):
+        pass
+
+    async def log_rate_limit_exceeded(*args, **kwargs):
+        pass
+
+
+# Import rate limiting (SPEC-114)
+try:
+    from utils.rate_limiting import AuthRateLimiter
+
+    auth_rate_limiter = AuthRateLimiter()
+except ImportError:
+    # Fallback if rate limiting not available
+    auth_rate_limiter = None
 
 # Initialize router
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -192,8 +230,37 @@ class OrganizationSignupPayload(BaseModel):
 
 
 @router.post("/signup/individual", status_code=status.HTTP_201_CREATED)
+@traceable(name="user_signup")  # US#139: LangSmith tracing
 async def signup_individual_user(request: Request, background_tasks: BackgroundTasks) -> dict[str, Any]:
-    """Sign up as individual user for personal memory management."""
+    """
+    Sign up as individual user for personal memory management.
+
+    SPEC-114: Rate limited to 3 attempts per 10 minutes.
+    """
+    # SPEC-114: Rate limiting (3 attempts per 10 minutes)
+    if auth_rate_limiter:
+        # Extract client IP
+        client_ip = (
+            request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+            or request.headers.get("X-Real-IP", "")
+            or (request.client.host if request.client else "unknown")
+        )
+        # For signup, use IP only (email not available yet)
+        rate_limit_key = f"{client_ip}:signup"
+        is_allowed, error_msg, rate_info = auth_rate_limiter.is_allowed(rate_limit_key, endpoint="signup")
+
+        if not is_allowed:
+            await log_rate_limit_exceeded(request, "signup", rate_limit_key)
+            raise HTTPException(
+                status_code=429,
+                detail=error_msg or "Rate limit exceeded",
+                headers={
+                    "X-RateLimit-Limit": str(rate_info["limit"]),
+                    "X-RateLimit-Remaining": "0",
+                    "X-RateLimit-Reset": str(int(rate_info["reset_time"])),
+                    "Retry-After": str(rate_info["retry_after"]),
+                },
+            )
 
     # Check payload size (max 100KB for signup requests)
     content_length = request.headers.get("content-length")
@@ -297,6 +364,10 @@ async def signup_individual_user(request: Request, background_tasks: BackgroundT
                 "expires_in": expires_in,
             }
         )
+
+    # Note: Rate limit headers for signup would need to be set via Response object
+    # For now, rate limiting is enforced but headers are not included in dict response
+    # This can be enhanced later if needed
 
     return response
 
@@ -449,10 +520,28 @@ async def signup_organization(
         session.close()
 
 
-@router.post("/login")
-async def login_user(request: Request) -> dict[str, Any]:
-    """Authenticate user credentials and return access tokens."""
+# LangSmith tracing (US#139)
+try:
+    from langsmith import traceable
+except ImportError:
+    # No-op decorator if langsmith not available
+    def traceable(*args, **kwargs):
+        def decorator(func):
+            return func
 
+        return decorator
+
+
+@router.post("/login")
+@traceable(name="user_login")  # US#139: LangSmith tracing
+async def login_user(request: Request, response: Response) -> dict[str, Any]:
+    """
+    Authenticate user credentials and return access tokens.
+
+    SPEC-114: Returns {access_token, refresh_token, token_type, expires_in}
+    Sets httpOnly cookie for refresh_token.
+    Rate limited to 5 attempts per 15 minutes.
+    """
     content_type = request.headers.get("content-type", "").lower()
 
     if content_type.startswith("application/x-www-form-urlencoded"):
@@ -471,20 +560,49 @@ async def login_user(request: Request) -> dict[str, Any]:
     password = payload.get("password")
 
     if not identifier:
+        await log_login_attempt(request, identifier or "unknown", False, None, "Missing email")
         raise HTTPException(status_code=422, detail="Email is required")
     if not password:
+        await log_login_attempt(request, identifier or "unknown", False, None, "Missing password")
         raise HTTPException(status_code=422, detail="Password is required")
 
     normalized_email = validate_email(str(identifier))
 
+    # SPEC-114: Rate limiting (5 attempts per 15 minutes)
+    if auth_rate_limiter:
+        # Extract client IP
+        client_ip = (
+            request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+            or request.headers.get("X-Real-IP", "")
+            or (request.client.host if request.client else "unknown")
+        )
+        rate_limit_key = f"{client_ip}:{normalized_email}"
+        is_allowed, error_msg, rate_info = auth_rate_limiter.is_allowed(rate_limit_key, endpoint="login")
+
+        if not is_allowed:
+            await log_rate_limit_exceeded(request, "login", rate_limit_key)
+            raise HTTPException(
+                status_code=429,
+                detail=error_msg or "Rate limit exceeded",
+                headers={
+                    "X-RateLimit-Limit": str(rate_info["limit"]),
+                    "X-RateLimit-Remaining": "0",
+                    "X-RateLimit-Reset": str(int(rate_info["reset_time"])),
+                    "Retry-After": str(rate_info["retry_after"]),
+                },
+            )
+
     try:
         result = authenticate_user(normalized_email, str(password))
     except HTTPException:
+        await log_login_attempt(request, normalized_email, False, None, "Authentication failed")
         raise
     except Exception as exc:  # pragma: no cover - safety net
+        await log_login_attempt(request, normalized_email, False, None, f"Login error: {str(exc)}")
         raise HTTPException(status_code=500, detail=f"Login failed: {str(exc)}") from exc
 
     if not result:
+        await log_login_attempt(request, normalized_email, False, None, "Invalid credentials")
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     user_id = str(result.get("user_id"))
@@ -502,33 +620,184 @@ async def login_user(request: Request) -> dict[str, Any]:
     token = result.pop("jwt_token", None)
 
     if not token:
+        await log_login_attempt(request, normalized_email, False, user_id, "Token generation failed")
         raise HTTPException(status_code=500, detail="Token generation failed")
 
-    user_payload = {
-        "id": result.get("user_id"),
-        "email": result.get("email"),
-        "name": result.get("name"),
-        "account_type": result.get("account_type"),
-        "role": result.get("role"),
-        "email_verified": result.get("email_verified", False),
-        "rbac_roles": result.get("rbac_roles", {}),
-        "is_system_admin": result.get("is_system_admin", False),
-    }
+    # SPEC-114: Set httpOnly cookie for refresh token
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,  # HTTPS only in production
+        samesite="lax",
+        max_age=7 * 24 * 60 * 60,  # 7 days
+    )
 
-    response: dict[str, Any] = {
-        "success": True,
-        "message": "Login successful",
+    # Audit logging
+    await log_login_attempt(request, normalized_email, True, user_id)
+
+    # SPEC-114: Add rate limit headers to response
+    if auth_rate_limiter:
+        # Get current rate limit info for successful request
+        client_ip = (
+            request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+            or request.headers.get("X-Real-IP", "")
+            or (request.client.host if request.client else "unknown")
+        )
+        rate_limit_key = f"{client_ip}:{normalized_email}"
+        _, _, rate_info = auth_rate_limiter.is_allowed(rate_limit_key, endpoint="login")
+
+        response.headers["X-RateLimit-Limit"] = str(rate_info["limit"])
+        response.headers["X-RateLimit-Remaining"] = str(rate_info["remaining"])
+        response.headers["X-RateLimit-Reset"] = str(int(rate_info["reset_time"]))
+
+    # SPEC-114: Return format {access_token, refresh_token, token_type, expires_in}
+    expires_in = JWT_EXPIRATION_HOURS * 3600  # Convert hours to seconds
+    return {
         "access_token": token,
-        "token": token,
-        "jwt_token": token,
-        "token_type": "bearer",
-        "expires_in": JWT_EXPIRATION_HOURS * 3600,
         "refresh_token": refresh_token,
-        "refresh_token_expires": refresh_expires.isoformat(),
-        "user": user_payload,
+        "token_type": "bearer",
+        "expires_in": expires_in,
     }
 
-    return response
+
+@router.post("/refresh")
+async def refresh_access_token(
+    request: Request,
+    response: Response,
+    refresh_token: str = Cookie(None),
+    db=Depends(get_db),
+) -> dict[str, Any]:
+    """
+    Refresh access token using refresh token.
+
+    SPEC-114: Returns {access_token, token_type}
+    Checks for session rotation (24 hours) and rotates if needed.
+    Updates refresh_token cookie if rotated.
+    """
+    # Try to get refresh token from cookie first, then from request body
+    if not refresh_token:
+        try:
+            payload = await request.json()
+            if isinstance(payload, dict):
+                refresh_token = payload.get("refresh_token")
+        except (json.JSONDecodeError, Exception):
+            pass
+
+    if not refresh_token or not isinstance(refresh_token, str) or not refresh_token.strip():
+        await log_token_refresh(request, None, False, "Refresh token missing")
+        raise HTTPException(status_code=400, detail="Refresh token is required")
+
+    refresh_token = refresh_token.strip()
+
+    # Validate refresh token
+    user_id = validate_refresh_token(refresh_token)
+    if not user_id:
+        await log_token_refresh(request, None, False, "Invalid refresh token")
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    user = get_user_by_uuid(db, user_id)
+    if not user:
+        await log_token_refresh(request, user_id, False, "User not found")
+        raise HTTPException(status_code=401, detail="User not found")
+
+    role_details = get_user_roles_for_token(db, user_id)
+
+    try:
+        access_token = generate_jwt_token(user, roles=role_details)
+    except Exception as exc:  # pragma: no cover - safety net
+        await log_token_refresh(request, user_id, False, f"Token generation failed: {str(exc)}")
+        raise HTTPException(status_code=500, detail="Failed to generate access token") from exc
+
+    # SPEC-114: Check if session should be rotated (24 hours remaining)
+    # Check both Redis session and database refresh token
+    from datetime import timezone
+
+    from auth_service import hash_token
+    from database.models import RefreshToken
+    from redis_client import redis_client
+
+    should_rotate = False
+    stored_token = None
+
+    # Check Redis session rotation (primary method)
+    try:
+        from redis_client import SessionStore
+
+        session_store = SessionStore(redis_client)
+        should_rotate_redis = await session_store.should_rotate(str(user_id), rotation_threshold_hours=24)
+        if should_rotate_redis:
+            should_rotate = True
+    except Exception as e:
+        logger.warning(f"Redis session rotation check failed: {e}")
+
+    # Also check database refresh token as fallback
+    if not should_rotate:
+        try:
+            session = db.get_session()
+            token_hash = hash_token(refresh_token)
+            stored_token = session.query(RefreshToken).filter_by(token_hash=token_hash).first()
+
+            if stored_token:
+                # Check if less than 24 hours remaining
+                time_remaining = stored_token.expires_at.replace(tzinfo=timezone.utc) - datetime.now(timezone.utc)
+                if time_remaining < timedelta(hours=24):
+                    should_rotate = True
+            session.close()
+        except Exception as e:
+            logger.warning(f"Database token rotation check failed: {e}")
+
+    # Rotate session if needed (SPEC-114)
+    if should_rotate:
+        try:
+            # Create new refresh token
+            new_refresh_token, new_refresh_expires = create_refresh_token(
+                user_id=user_id,
+                device_info=stored_token.device_info if stored_token else None,
+                ip_address=stored_token.ip_address if stored_token else None,
+                user_agent=stored_token.user_agent if stored_token else None,
+            )
+
+            # Revoke old refresh token
+            revoke_refresh_token(refresh_token, revoked_by_user_id=user_id)
+
+            # Rotate Redis session
+            try:
+                from redis_client import SessionStore
+
+                session_store = SessionStore(redis_client)
+                new_session_data = {
+                    "user_id": str(user_id),
+                    "refresh_token_hash": hash_token(new_refresh_token),
+                    "last_refresh": datetime.utcnow().isoformat(),
+                }
+                await session_store.rotate_session(str(user_id), new_session_data, new_ttl=7 * 24 * 60 * 60)  # 7 days
+            except Exception as e:
+                logger.warning(f"Redis session rotation failed: {e}")
+
+            # Update cookie with new refresh token
+            response.set_cookie(
+                key="refresh_token",
+                value=new_refresh_token,
+                httponly=True,
+                secure=True,
+                samesite="lax",
+                max_age=7 * 24 * 60 * 60,  # 7 days
+            )
+
+            logger.info("Session rotated successfully", user_id=user_id)
+        except Exception as e:
+            # If rotation fails, continue with existing token
+            logger.error(f"Session rotation failed: {e}", user_id=user_id)
+
+    # Audit logging
+    await log_token_refresh(request, user_id, True)
+
+    # SPEC-114: Return format {access_token, token_type}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+    }
 
 
 @router.post("/refresh-old")
@@ -654,24 +923,70 @@ async def validate_access_token(request: Request, db=Depends(get_db)) -> dict[st
 
 @router.post("/logout")
 async def logout_user(
-    refresh_token: str | None = None, current_user: User | None = Depends(lambda: None)
+    request: Request,
+    response: Response,
+    refresh_token: str = Cookie(None),
 ) -> dict[str, Any]:
     """
-    User logout
+    User logout - invalidates session and clears cookies.
 
-    Optionally revokes refresh token if provided
-    Client should remove JWT token from storage regardless
+    SPEC-114: Invalidates refresh token and clears httpOnly cookie.
+    Note: User authentication is optional for logout (allows clearing cookies even if token invalid).
     """
+    # Try to get refresh token from cookie first, then from request body
+    if not refresh_token:
+        try:
+            payload = await request.json()
+            if isinstance(payload, dict):
+                refresh_token = payload.get("refresh_token")
+        except (json.JSONDecodeError, Exception):
+            pass
+
+    user_id = None
     revoked = False
 
-    if refresh_token and current_user:
-        revoked = revoke_refresh_token(refresh_token, str(current_user.id))
+    # Try to get current user from Authorization header (optional - logout should work even if token invalid)
+    try:
+        from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+        security = HTTPBearer(auto_error=False)
+        credentials: HTTPAuthorizationCredentials = await security(request)
+        if credentials:
+            from auth_service import verify_token
+
+            token_data = verify_token(credentials.credentials)
+            if token_data and token_data.user_id:
+                user_id = str(token_data.user_id)
+    except Exception:
+        # User not authenticated - still allow logout to clear cookies
+        pass
+
+    # Revoke refresh token if provided
+    if refresh_token:
+        if user_id:
+            revoked = revoke_refresh_token(refresh_token, user_id)
+        else:
+            # Try to validate token to get user_id
+            token_user_id = validate_refresh_token(refresh_token)
+            if token_user_id:
+                revoked = revoke_refresh_token(refresh_token, token_user_id)
+                user_id = token_user_id
+
+    # SPEC-114: Clear refresh_token cookie
+    response.delete_cookie(
+        key="refresh_token",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+    )
+
+    # Audit logging
+    if user_id:
+        await log_logout(request, user_id, True)
+
+    # SPEC-114: Return simple success message
     return {
-        "success": True,
-        "message": "Logout successful",
-        "refresh_token_revoked": revoked,
-        "instructions": "Remove JWT token and refresh token from client storage",
+        "message": "Logged out successfully",
     }
 
 

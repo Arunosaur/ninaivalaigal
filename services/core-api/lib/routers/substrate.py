@@ -142,10 +142,10 @@ async def search_memories(
 
 @router.get("/memories", response_model=List[MemoryResponse])
 async def list_memories(
+    request: Request,
     limit: int = Query(100, ge=1, le=1000, description="Number of memories to return"),
     offset: int = Query(0, ge=0, description="Number of memories to skip"),
     context_id: Optional[str] = Query(None, description="Filter by context ID"),
-    request: Request,
     current_user: dict = Depends(get_current_user),
     substrate: MemorySubstrateManager = Depends(get_substrate_manager),
 ):

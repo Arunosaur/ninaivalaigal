@@ -1,7 +1,7 @@
 # frontend-shared/ - DEPRECATED
 
-**Deprecated Date**: 2025-01-31  
-**Deprecated By**: Developer F  
+**Deprecated Date**: 2025-01-31
+**Deprecated By**: Developer F
 **Reason**: SPEC-121 (Frontend Shared Library) is DEPRECATED, only used by archived Next.js apps
 
 ---
@@ -53,7 +53,7 @@
 
 ## Archive Location
 
-This folder was moved from: `frontend-shared/`  
+This folder was moved from: `frontend-shared/`
 To: `.archive/deprecated/frontend-shared-2025-01-31/`
 
 **Original Size**: ~71 files
@@ -61,4 +61,3 @@ To: `.archive/deprecated/frontend-shared-2025-01-31/`
 ---
 
 **Status**: ✅ Archived - Do not use for new development
-

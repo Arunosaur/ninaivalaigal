@@ -187,7 +187,7 @@ test.describe('Team Creation Flow (US#210)', () => {
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-    
+
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 

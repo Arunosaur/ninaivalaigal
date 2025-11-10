@@ -48,6 +48,9 @@ celery_app.conf.update(
         "server.billing.celery_tasks.generate_monthly_invoices": {"queue": "billing"},
         "server.billing.celery_tasks.process_payment_transfers": {"queue": "billing"},
         "server.billing.celery_tasks.process_grace_periods": {"queue": "billing"},
+        "server.billing.celery_tasks.archive_old_metrics": {"queue": "billing"},
+        "server.billing.celery_tasks.retry_failed_payment": {"queue": "billing"},
+        "server.billing.celery_tasks.generate_weekly_cost_summary": {"queue": "billing"},
     },
     # Task serialization
     task_serializer="json",
@@ -92,6 +95,16 @@ celery_app.conf.update(
             "schedule": crontab(hour=9, minute=0),  # Daily at 9 AM
             "options": {"queue": "notify"},
         },
+        "archive-old-metrics-daily": {
+            "task": "server.billing.celery_tasks.archive_old_metrics",
+            "schedule": crontab(hour=4, minute=0),  # Daily at 4 AM (after invoice generation at 2 AM)
+            "options": {"queue": "billing"},
+        },
+        "generate-weekly-cost-summary": {
+            "task": "server.billing.celery_tasks.generate_weekly_cost_summary",
+            "schedule": crontab(hour=8, minute=0, day_of_week=1),  # Every Monday at 8 AM
+            "options": {"queue": "billing"},
+        },
     },
     # Queue configuration
     task_default_queue="billing",
@@ -102,6 +115,14 @@ celery_app.conf.update(
     worker_hijack_root_logger=False,
     worker_log_format="[%(asctime)s: %(levelname)s/%(processName)s] %(message)s",
     worker_task_log_format="[%(asctime)s: %(levelname)s/%(processName)s][%(task_name)s(%(task_id)s)] %(message)s",
+    # Health checks
+    worker_send_task_events=True,
+    worker_timer_precision=1.0,
+    # Graceful shutdown
+    worker_disable_rate_limits=False,
+    worker_enable_remote_control=True,
+    # Memory leak prevention
+    worker_max_memory_per_child=200000,  # 200MB per child process
 )
 
 # Import tasks after app configuration

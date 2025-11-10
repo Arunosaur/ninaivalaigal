@@ -162,7 +162,7 @@ async def analyze_intent(request: IntentAnalysisRequest) -> IntentAnalysisRespon
         # Create mock execution context for analysis
         import uuid
 
-        from .agent.execution_context import ExecutionContext
+        from lib.agent.execution_context import ExecutionContext
 
         mock_context = ExecutionContext(
             execution_id=str(uuid.uuid4()),

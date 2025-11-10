@@ -24,6 +24,17 @@ from rbac_middleware import require_permission
 
 from rbac.permissions import Action, Resource
 
+# LangSmith tracing (US#139)
+try:
+    from langsmith import traceable
+except ImportError:
+    # No-op decorator if langsmith not available
+    def traceable(*args, **kwargs):
+        def decorator(func):
+            return func
+
+        return decorator
+
 
 # Pydantic models
 class TeamCreateRequest(BaseModel):
@@ -596,6 +607,7 @@ def remove_team_member(
 
 
 @router.post("/{team_id}/invitations", response_model=TeamInvitationResponse)
+@traceable(name="team_invitation")  # US#139: LangSmith tracing
 def create_team_invitation(
     team_id: UUID,
     invitation_data: TeamInvitationRequest,

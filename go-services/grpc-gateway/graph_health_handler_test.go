@@ -8,9 +8,8 @@ import (
 	"testing"
 
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
-	graphopspb "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto/graphopspb"
+	graphopsv1 "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto"
 )
 
 func TestGraphHealthHandlerNoClients(t *testing.T) {
@@ -55,16 +54,21 @@ func TestGraphHealthHandlerWithMockClient(t *testing.T) {
 	mockClient := &MockGraphOpsClient{}
 
 	// Mock successful health check with all fields
-	mockClient.HealthCheckFunc = func(ctx context.Context, in *graphopspb.HealthCheckRequest, opts ...grpc.CallOption) (*graphopspb.HealthCheckResponse, error) {
-		return &graphopspb.HealthCheckResponse{
-			Status:    "healthy",
-			Version:   "1.0.0",
-			Timestamp: timestamppb.Now(),
-			Database: &graphopspb.ConnectionStatus{
-				Connected:         true,
-				ActiveConnections: 10,
-				IdleConnections:   5,
-				MaxConnections:    100,
+	mockClient.HealthCheckFunc = func(ctx context.Context, in *graphopsv1.HealthCheckRequest, opts ...grpc.CallOption) (*graphopsv1.HealthCheckResponse, error) {
+		return &graphopsv1.HealthCheckResponse{
+			Status:        graphopsv1.HealthStatus_HEALTH_STATUS_HEALTHY,
+			Version:       "1.0.0",
+			UptimeSeconds: 3600,
+			Database: &graphopsv1.ComponentStatus{
+				Name:   "PostgreSQL",
+				Status: graphopsv1.HealthStatus_HEALTH_STATUS_HEALTHY,
+			},
+			AgeExtension: &graphopsv1.ComponentStatus{
+				Name:   "Apache AGE",
+				Status: graphopsv1.HealthStatus_HEALTH_STATUS_HEALTHY,
+			},
+			Details: map[string]string{
+				"message": "All systems operational",
 			},
 		}, nil
 	}
@@ -93,7 +97,7 @@ func TestGraphHealthHandlerWithMockClientError(t *testing.T) {
 	mockClient := &MockGraphOpsClient{}
 
 	// Mock failed health check
-	mockClient.HealthCheckFunc = func(ctx context.Context, in *graphopspb.HealthCheckRequest, opts ...grpc.CallOption) (*graphopspb.HealthCheckResponse, error) {
+	mockClient.HealthCheckFunc = func(ctx context.Context, in *graphopsv1.HealthCheckRequest, opts ...grpc.CallOption) (*graphopsv1.HealthCheckResponse, error) {
 		return nil, fmt.Errorf("connection error")
 	}
 
@@ -121,7 +125,7 @@ func TestGraphHealthHandlerTimeout(t *testing.T) {
 	mockClient := &MockGraphOpsClient{}
 
 	// Mock context timeout - simulate timeout error
-	mockClient.HealthCheckFunc = func(ctx context.Context, in *graphopspb.HealthCheckRequest, opts ...grpc.CallOption) (*graphopspb.HealthCheckResponse, error) {
+	mockClient.HealthCheckFunc = func(ctx context.Context, in *graphopsv1.HealthCheckRequest, opts ...grpc.CallOption) (*graphopsv1.HealthCheckResponse, error) {
 		// Return context deadline exceeded error to simulate timeout
 		return nil, context.DeadlineExceeded
 	}

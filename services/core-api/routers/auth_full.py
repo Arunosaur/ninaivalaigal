@@ -143,22 +143,32 @@ security = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    """Create access_token."""
+    """
+    Create access_token.
 
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(days=7)  # Default 7 days
-    to_encode.update({"exp": expire})
+    SPEC-114: Uses RS256 if RSA keys are available, otherwise falls back to HS256.
+    """
+    # Try RS256 first (SPEC-114), fallback to HS256
+    try:
+        from lib.jwt_rs256 import create_access_token_rs256
 
-    # Get JWT secret from environment variable (required)
-    jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
-    if not jwt_secret:
-        raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required")
+        return create_access_token_rs256(data, expires_delta=expires_delta)
+    except Exception:
+        # Fallback to HS256 for backward compatibility
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(days=7)  # Default 7 days
+        to_encode.update({"exp": expire})
 
-    encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=JWT_ALGORITHM)
-    return encoded_jwt
+        # Get JWT secret from environment variable (required)
+        jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
+        if not jwt_secret:
+            raise ValueError("NINAIVALAIGAL_JWT_SECRET environment variable is required")
+
+        encoded_jwt = jwt.encode(to_encode, jwt_secret, algorithm=JWT_ALGORITHM)
+        return encoded_jwt
 
 
 def get_user_roles_for_token(db, user_id: int) -> dict:
@@ -194,16 +204,30 @@ def get_user_roles_for_token(db, user_id: int) -> dict:
 
 
 def verify_token(token: str) -> TokenData:
-    """Verify JWT token and return token data"""
+    """
+    Verify JWT token and return token data.
+
+    SPEC-114: Supports both RS256 and HS256 for backward compatibility.
+    """
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        username: str = payload.get("email")  # Use email as username
-        user_id: int = payload.get("user_id")
-        if username is None or user_id is None:
+        # Try RS256 first (SPEC-114), fallback to HS256
+        from lib.jwt_rs256 import decode_access_token_rs256
+
+        payload = decode_access_token_rs256(token, verify=True, fallback_to_hs256=True)
+        if not payload:
             return None
-        token_data = TokenData(username=username, user_id=user_id)
-    except jwt.InvalidTokenError:
+    except Exception:
+        # Fallback to HS256
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        except jwt.InvalidTokenError:
+            return None
+
+    username: str = payload.get("email")  # Use email as username
+    user_id: int = payload.get("user_id")
+    if username is None or user_id is None:
         return None
+    token_data = TokenData(username=username, user_id=user_id)
     return token_data
 
 

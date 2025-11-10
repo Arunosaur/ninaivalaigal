@@ -16,7 +16,7 @@ RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini.template \
 && echo '' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo '[pgbouncer]' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'listen_addr = 0.0.0.0' >> /etc/pgbouncer/pgbouncer.ini.template \
-&& echo 'listen_port = 6432' >> /etc/pgbouncer/pgbouncer.ini.template \
+&& echo 'listen_port = ${LISTEN_PORT}' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'auth_type = scram-sha-256' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'auth_file = /etc/pgbouncer/userlist.txt' >> /etc/pgbouncer/pgbouncer.ini.template \
 && echo 'admin_users = postgres' >> /etc/pgbouncer/pgbouncer.ini.template \

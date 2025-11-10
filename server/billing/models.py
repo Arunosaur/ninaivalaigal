@@ -13,9 +13,7 @@ All models follow the SPEC-147 schema design.
 """
 
 import uuid
-from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -569,6 +567,7 @@ class StripeInvoice(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id", ondelete="CASCADE"), nullable=False, index=True)
     stripe_invoice_id = Column(String(255), nullable=False, unique=True, index=True)
+    stripe_customer_id = Column(String(255), nullable=True, index=True)  # US#165: Store customer ID
     status = Column(String(20), nullable=False)
     synced_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
@@ -577,9 +576,21 @@ class StripeInvoice(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "status IN ('draft', 'open', 'paid', 'void', 'uncollectible')", name="check_stripe_invoice_status"
+            "status IN ('draft', 'open', 'paid', 'void', 'uncollectible', 'failed')", name="check_stripe_invoice_status"
         ),
     )
+
+
+class StripeWebhookEvent(Base):
+    """US#165: Stripe webhook event idempotency tracking"""
+
+    __tablename__ = "stripe_webhook_events"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    stripe_event_id = Column(String(255), nullable=False, unique=True, index=True)
+    event_type = Column(String(100), nullable=False, index=True)
+    processed_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
 class AuditLog(Base):
@@ -623,7 +634,10 @@ class BillingEvent(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "event_type IN ('usage.recorded', 'quota.exceeded', 'invoice.generated', 'payment.transferred', 'block.applied', 'block.removed')",
+            (
+                "event_type IN ('usage.recorded', 'quota.exceeded', 'invoice.generated', "
+                "'payment.transferred', 'block.applied', 'block.removed')"
+            ),
             name="check_billing_event_type",
         ),
         CheckConstraint(
@@ -631,3 +645,305 @@ class BillingEvent(Base):
         ),
         {"comment": "SPEC-147: Event sourcing for observability and ML"},
     )
+
+
+# =============================================================================
+# US#182: Invoice Correction Models
+# =============================================================================
+
+
+class CorrectionType(str, Enum):
+    """Invoice correction types"""
+
+    ADJUSTMENT = "adjustment"
+    CREDIT_MEMO = "credit_memo"
+    VOID = "void"
+
+
+class CorrectionStatus(str, Enum):
+    """Invoice correction status"""
+
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    COMPLETED = "completed"
+
+
+class AdjustmentType(str, Enum):
+    """Invoice adjustment types"""
+
+    QUANTITY = "quantity"
+    PRICE = "price"
+    DISCOUNT = "discount"
+    TAX = "tax"
+
+
+class RefundStatus(str, Enum):
+    """Credit memo refund status"""
+
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class InvoiceCorrection(Base):
+    """
+    US#182: Invoice Correction tracking
+
+    Tracks all corrections made to invoices including adjustments,
+    credit memos, and voids. Maintains complete audit trail.
+    """
+
+    __tablename__ = "invoice_corrections"
+    __table_args__ = (
+        CheckConstraint("correction_type IN ('adjustment', 'credit_memo', 'void')", name="ck_correction_type"),
+        CheckConstraint("status IN ('pending', 'approved', 'rejected', 'completed')", name="ck_correction_status"),
+        {"comment": "US#182: Invoice correction tracking"},
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    original_invoice_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    correction_type = Column(String(20), nullable=False, index=True)
+    correction_number = Column(String(50), nullable=False, unique=True)
+    reason = Column(Text, nullable=False)
+    created_by = Column(UUID(as_uuid=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), index=True)
+    status = Column(String(20), nullable=False, server_default="pending", index=True)
+    correction_metadata = Column("metadata", JSONB, nullable=True)
+
+    # Relationships
+    adjustments = relationship("InvoiceAdjustment", back_populates="correction", cascade="all, delete-orphan")
+    credit_memos = relationship("CreditMemo", back_populates="correction", cascade="all, delete-orphan")
+    audit_entries = relationship("InvoiceAuditTrail", back_populates="correction")
+
+    def __repr__(self):
+        return f"<InvoiceCorrection(id={self.id}, type={self.correction_type}, number={self.correction_number})>"
+
+
+class InvoiceAdjustment(Base):
+    """
+    US#182: Invoice line item adjustments
+
+    Tracks individual line item adjustments within an invoice correction.
+    Supports quantity, price, discount, and tax adjustments.
+    """
+
+    __tablename__ = "invoice_adjustments"
+    __table_args__ = (
+        CheckConstraint("adjustment_type IN ('quantity', 'price', 'discount', 'tax')", name="ck_adjustment_type"),
+        {"comment": "US#182: Invoice line item adjustments"},
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    correction_id = Column(
+        UUID(as_uuid=True), ForeignKey("invoice_corrections.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    line_item_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    adjustment_type = Column(String(20), nullable=False)
+    original_value = Column(Numeric(10, 2), nullable=False)
+    new_value = Column(Numeric(10, 2), nullable=False)
+    difference = Column(Numeric(10, 2), nullable=False)
+    notes = Column(Text, nullable=True)
+
+    # Relationships
+    correction = relationship("InvoiceCorrection", back_populates="adjustments")
+
+    def __repr__(self):
+        return f"<InvoiceAdjustment(id={self.id}, type={self.adjustment_type}, diff={self.difference})>"
+
+
+class CreditMemo(Base):
+    """
+    US#182: Credit memo tracking
+
+    Tracks credit memos issued for invoice corrections.
+    Includes refund processing and accounting integration.
+    """
+
+    __tablename__ = "credit_memos"
+    __table_args__ = (
+        CheckConstraint("refund_status IN ('pending', 'processing', 'completed', 'failed')", name="ck_refund_status"),
+        CheckConstraint("credit_amount > 0", name="ck_credit_amount_positive"),
+        {"comment": "US#182: Credit memo and refund tracking"},
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    correction_id = Column(
+        UUID(as_uuid=True), ForeignKey("invoice_corrections.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    credit_memo_number = Column(String(50), nullable=False, unique=True)
+    credit_amount = Column(Numeric(10, 2), nullable=False)
+    refund_method = Column(String(20), nullable=True)
+    refund_status = Column(String(20), nullable=False, server_default="pending", index=True)
+    refund_date = Column(DateTime(timezone=True), nullable=True, index=True)
+    accounting_entry_id = Column(String(100), nullable=True)
+    notes = Column(Text, nullable=True)
+
+    # Relationships
+    correction = relationship("InvoiceCorrection", back_populates="credit_memos")
+
+    def __repr__(self):
+        return f"<CreditMemo(id={self.id}, number={self.credit_memo_number}, amount={self.credit_amount})>"
+
+
+class InvoiceAuditTrail(Base):
+    """
+    US#182: Invoice audit trail
+
+    Complete audit trail for all invoice changes and corrections.
+    Tracks who, what, when, and from where changes were made.
+    """
+
+    __tablename__ = "invoice_audit_trail"
+    __table_args__ = ({"comment": "US#182: Complete invoice audit trail"},)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    invoice_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    correction_id = Column(
+        UUID(as_uuid=True), ForeignKey("invoice_corrections.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    action = Column(String(50), nullable=False, index=True)
+    performed_by = Column(UUID(as_uuid=True), nullable=False)
+    performed_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), index=True)
+    before_state = Column(JSONB, nullable=True)
+    after_state = Column(JSONB, nullable=True)
+    ip_address = Column(INET, nullable=True)
+    user_agent = Column(Text, nullable=True)
+
+    # Relationships
+    correction = relationship("InvoiceCorrection", back_populates="audit_entries")
+
+    def __repr__(self):
+        return f"<InvoiceAuditTrail(id={self.id}, action={self.action}, at={self.performed_at})>"
+
+
+# US#185: US-232: Invoice Management Database Migration
+# Additional tables for invoice management system
+
+
+class InvoicePreference(Base):
+    """US#185: Invoice display preferences per team
+
+    Stores team-level invoice customization settings including branding,
+    footer text, payment terms, and custom fields.
+    """
+
+    __tablename__ = "invoice_preferences"
+    __table_args__ = ({"comment": "US#185: Invoice display preferences per team"},)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    team_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("teams.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    company_name = Column(String(255), nullable=True)
+    company_logo_url = Column(Text, nullable=True)
+    invoice_footer = Column(Text, nullable=True)
+    payment_terms = Column(Text, nullable=True)
+    custom_fields = Column(JSONB, nullable=True)  # Flexible JSON for additional fields
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    team = relationship("Team", backref="invoice_preferences", uselist=False)
+
+    def __repr__(self):
+        return f"<InvoicePreference(id={self.id}, team_id={self.team_id})>"
+
+
+class InvoicePortalToken(Base):
+    """US#185: Customer portal access tokens
+
+    Time-limited access tokens for customer invoice portal access.
+    Enables secure, passwordless access to invoices via email.
+    """
+
+    __tablename__ = "invoice_portal_tokens"
+    __table_args__ = ({"comment": "US#185: Customer portal access tokens"},)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True)
+    customer_email = Column(String(255), nullable=False, index=True)
+    access_token = Column(String(255), nullable=False, unique=True, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    accessed_count = Column(Integer, nullable=False, server_default=text("0"))
+    last_accessed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+    # Relationships
+    team = relationship("Team", backref="invoice_portal_tokens")
+
+    def __repr__(self):
+        return f"<InvoicePortalToken(id={self.id}, team_id={self.team_id}, email={self.customer_email})>"
+
+
+class ExchangeRate(Base):
+    """US#185: Currency exchange rates
+
+    Stores currency conversion rates for multi-currency invoice support.
+    Rates are date-effective and can be updated periodically.
+    """
+
+    __tablename__ = "exchange_rates"
+    __table_args__ = ({"comment": "US#185: Currency exchange rates"},)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    from_currency = Column(CHAR(3), nullable=False, index=True)  # ISO 4217 currency code
+    to_currency = Column(CHAR(3), nullable=False, index=True)  # ISO 4217 currency code
+    rate = Column(Numeric(10, 6), nullable=False)  # Exchange rate (e.g., 1.234567)
+    effective_date = Column(DateTime(timezone=True), nullable=False, index=True)  # Date when rate is effective
+    source = Column(String(50), nullable=True)  # Rate source (e.g., "ECB", "Fixer.io", "manual")
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        CheckConstraint("rate > 0", name="check_exchange_rate_positive"),
+        CheckConstraint("from_currency != to_currency", name="check_different_currencies"),
+    )
+
+    def __repr__(self):
+        return f"<ExchangeRate(id={self.id}, {self.from_currency}->{self.to_currency}={self.rate})>"
+
+
+class AccountingIntegration(Base):
+    """US#185: Accounting system integrations
+
+    Stores configuration for accounting system integrations (QuickBooks, Xero, etc.)
+    including OAuth tokens, sync settings, and export preferences.
+    """
+
+    __tablename__ = "accounting_integrations"
+    __table_args__ = ({"comment": "US#185: Accounting system integrations"},)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True)
+    integration_type = Column(String(50), nullable=False, index=True)  # "quickbooks", "xero", "sage", etc.
+    integration_name = Column(String(255), nullable=True)  # User-friendly name
+    is_active = Column(Boolean, nullable=False, server_default=text("true"))
+    oauth_token = Column(Text, nullable=True)  # Encrypted OAuth token
+    oauth_refresh_token = Column(Text, nullable=True)  # Encrypted refresh token
+    oauth_token_expires_at = Column(DateTime(timezone=True), nullable=True)
+    sync_settings = Column(JSONB, nullable=True)  # Sync preferences, mappings, etc.
+    export_preferences = Column(JSONB, nullable=True)  # Export format, fields, etc.
+    last_sync_at = Column(DateTime(timezone=True), nullable=True)
+    last_sync_status = Column(String(50), nullable=True)  # "success", "failed", "partial"
+    last_sync_error = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    team = relationship("Team", backref="accounting_integrations")
+
+    __table_args__ = (
+        CheckConstraint(
+            "integration_type IN ('quickbooks', 'xero', 'sage', 'freshbooks', 'zoho', 'other')",
+            name="check_integration_type",
+        ),
+    )
+
+    def __repr__(self):
+        return f"<AccountingIntegration(id={self.id}, team_id={self.team_id}, type={self.integration_type})>"

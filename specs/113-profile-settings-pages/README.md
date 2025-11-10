@@ -12,6 +12,17 @@
 >
 > **Note:** The code examples below show the Next.js approach for historical reference. Current implementation uses FastAPI templates with Jinja2.
 
+## Taiga Stories
+
+The following Taiga stories have been created for SPEC-113:
+
+- **US#1046**: PROF-001: Profile Page Implementation (already exists)
+- **US#1057**: PROF-002: Settings Page Implementation
+
+All stories are tagged with `spec-113` and are ready for implementation.
+
+---
+
 ## 🏗️ Architecture
 
 ```mermaid

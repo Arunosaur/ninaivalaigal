@@ -50,13 +50,9 @@ curl http://localhost:8080/health
 ```json
 {
   "status": "healthy",
-  "service": "grpc-gateway",
-  "version": "1.0.0",
-  "timestamp": "2025-10-18T...",
-  "connections": {
-    "memory_service": "localhost:13393",
-    "graphops_service": "localhost:50051",
-    "core_api": "localhost:13390"
+  "services": {
+    "memory": "healthy",
+    "graphops": "healthy"
   }
 }
 ```
@@ -81,6 +77,71 @@ curl http://localhost:8080/health
 - `GET /api/v1/users/me` - Get current user
 - `PATCH /api/v1/users/me` - Update user profile
 - `POST /api/v1/auth/login` - User authentication
+
+---
+
+## 🧪 Testing
+
+### Test Coverage: **54.2% of statements**
+
+The grpc-gateway uses **dynamic URL discovery** to automatically adapt to different environments. All service endpoints are discovered from environment variables.
+
+### Quick Test Commands
+
+```bash
+# Check test environment
+./scripts/test-env.sh
+
+# Run all tests
+go test -v ./...
+
+# Run specific test categories
+go test -v -run "TestCache"     # Cache tests
+go test -v -run "TestWAF"       # WAF middleware tests
+go test -v -run "TestAPIKey"    # API key validation tests
+
+# Run with coverage
+go test -cover ./...
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
+```
+
+### Environment Configuration
+
+Tests automatically discover service URLs from environment variables:
+
+```bash
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=dev_redis_password
+REDIS_DB=0
+
+# Service Configuration
+MEMORY_SERVICE_PORT=13393
+GRAPHOPS_PORT=13398
+API_PORT=8000
+```
+
+### Test Categories
+
+- ✅ **API Key Validation** (6 tests)
+- ✅ **Cache Functionality** (18 tests)
+- ✅ **WAF Middleware** (8 tests)
+- ✅ **HTTP Client** (4 tests)
+- ✅ **gRPC Connections** (1 test)
+- ✅ **Rate Limiting** (4 tests)
+- ✅ **Protocol Translation** (3 tests)
+
+### Dynamic Discovery
+
+All tests use dynamic URL discovery functions:
+- `getTestRedisURL()` - Redis cache connection
+- `getTestMemoryServiceURL()` - Memory Service HTTP endpoint
+- `getTestGraphOpsServiceURL()` - GraphOps Service gRPC endpoint
+- `getTestCoreAPIURL()` - Core API HTTP endpoint
+
+📖 **Detailed testing guide:** [TESTING.md](./TESTING.md)
 
 ---
 

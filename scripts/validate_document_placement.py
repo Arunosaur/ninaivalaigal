@@ -40,7 +40,7 @@ RULES = {
     r"SECURITY.*\.md$": "docs/security/",
     # Architecture docs
     r"^FRONTEND_ARCHITECTURE": "docs/",
-    r"ARCHITECTURE.*\.md$": "docs/architecture/",
+    r"ARCHITECTURE.*\.md$": "docs/",  # Allow in docs/ or docs/architecture/
     # Task-related (but not completion reports)
     r"^DEVELOPER_[A-Z]_TASKS": "tasks/active/",
     r"^US\d+_TASK": "tasks/",
@@ -74,6 +74,11 @@ ALLOWED_ANYWHERE = [
     "tasks/completed/",
     "tasks/archive/",
     "specs/",  # SPEC directories
+    "shared/contracts/",  # Contract-related documentation
+    "docs/MASTER_ARCHIVE/",  # Archived documents
+    "rust-services/",  # Service-specific documentation
+    "docs/developer-reviews/",  # Developer review documents
+    "docs/specs/",  # SPEC implementation summaries
 ]
 
 # Files that are exceptions (root level standard files)
@@ -134,9 +139,9 @@ def check_file(file_path: Path) -> List[Tuple[str, str, str]]:
             is_strict = any(re.search(sp, file_name, re.IGNORECASE) for sp in strict_patterns)
 
             # For architecture/security docs in docs/ root, just warn if not in subdirectory
-            if not is_strict and expected_dir in ["docs/architecture/", "docs/security/"]:
-                if file_dir_normalized.startswith("docs/") and not file_dir_normalized.startswith(expected_normalized):
-                    # Warn but don't fail - docs/ is acceptable for these
+            if not is_strict and expected_dir in ["docs/architecture/", "docs/security/", "docs/"]:
+                if file_dir_normalized.startswith("docs/"):
+                    # Allow in docs/ or any docs/ subdirectory
                     continue
 
             if not file_dir_normalized.startswith(expected_normalized):

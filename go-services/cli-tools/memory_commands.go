@@ -52,6 +52,9 @@ func createMemoryCommand() *cobra.Command {
 		createMemoryStatsCommand(),
 		createMemoryExportCommand(),
 		createMemoryImportCommand(),
+		createMemorySnapshotCommand(),
+		createMemoryVersionCommand(),
+		createMemoryInjectionCommand(),
 	)
 
 	return cmd

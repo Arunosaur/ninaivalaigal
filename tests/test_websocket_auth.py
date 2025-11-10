@@ -10,7 +10,7 @@ Unit tests for services/core-api/lib/websocket_auth.py
 Tests WebSocket authentication with JWT tokens.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest

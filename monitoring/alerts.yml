@@ -48,12 +48,29 @@ groups:
           (histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.15) or
           (slo_uptime_ratio{window="1h"} < 0.995)
         for: 5m
+
+  - name: contract_compliance
+    interval: 30s
+    rules:
+      - alert: ContractValidationFailed
+        expr: contract_validation_success == 0
+        for: 5m
+        labels:
+          severity: critical
+          alert_type: contract_validation
+        annotations:
+          summary: "API contract validation failed"
+          description: "Contract validation failed for service {{ $labels.service }}. This indicates a breaking change or validation error in API contracts."
+
+      - alert: BreakingChangeDetected
+        expr: contract_breaking_changes_total > 0
+        for: 1m
         labels:
           severity: warning
-          slo_type: general
+          alert_type: contract_validation
         annotations:
-          summary: "SLO at risk - approaching violation thresholds"
-          description: "One or more SLO metrics are approaching violation thresholds"
+          summary: "Breaking API change detected"
+          description: "Breaking change detected in service {{ $labels.service }}. This may cause compatibility issues with dependent services."
 
   - name: service_health_alerts
     interval: 30s

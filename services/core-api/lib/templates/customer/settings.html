@@ -3,26 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title|default('Ninaivalaigal') }}</title>
+    <title>Settings - Ninaivalaigal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="min-h-screen bg-gray-900">
+<body class="min-h-screen bg-gray-900 text-white">
     <nav class="bg-gray-800 border-b border-gray-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <h1 class="text-xl font-bold text-white">Ninaivalaigal</h1>
                 <div class="flex items-center space-x-4">
-                    <a href="/dashboard" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                    <a href="/customer/dashboard" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                    <a href="/customer/settings" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Settings</a>
                     <a href="/logout" class="text-gray-400 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Logout</a>
                 </div>
             </div>
         </div>
     </nav>
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 class="text-3xl font-bold text-white mb-8">{{ page_title|default('Page') }}</h2>
-        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <p class="text-gray-400">Page content will be implemented here.</p>
-        </div>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="settingsData()">
+        <h1 class="text-3xl font-bold mb-8">Settings</h1>
+
+        <!-- Success/Error Messages -->
+        <div x-show="message"
+             x-text="message"
+             :class="messageType === 'success' ? 'bg-green-600' : 'bg-red-600'"
+             class="mb-6 p-4 rounded-lg"
+             x-cloak></div>
+
+        <!-- Notification Preferences -->
+        <section class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">Notification Preferences</h2>
+
+            <form @submit.prevent="saveNotifications()" class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-lg font-medium">Email Notifications</label>
+                        <p class="text-sm text-gray-400">Receive email notifications about important updates</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="notifications.email" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-lg font-medium">Team Invitations</label>
+                        <p class="text-sm text-gray-400">Get notified when you're invited to a team</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="notifications.team_invites" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-lg font-medium">Memory Updates</label>
+                        <p class="text-sm text-gray-400">Notifications about memory-related activities</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="notifications.memory_updates" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <button type="submit"
+                        :disabled="savingNotifications"
+                        class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50">
+                    <span x-show="!savingNotifications">Save Preferences</span>
+                    <span x-show="savingNotifications">Saving...</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- Privacy Settings -->
+        <section class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">Privacy Settings</h2>
+
+            <form @submit.prevent="savePrivacy()" class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-lg font-medium">Profile Visibility</label>
+                        <p class="text-sm text-gray-400">Control who can see your profile information</p>
+                    </div>
+                    <select x-model="privacy.profile_visibility" class="bg-gray-700 text-white rounded-lg px-4 py-2">
+                        <option value="public">Public</option>
+                        <option value="team">Team Only</option>
+                        <option value="private">Private</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-lg font-medium">Show Email</label>
+                        <p class="text-sm text-gray-400">Display your email address on your profile</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="privacy.show_email" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-lg font-medium">Data Sharing</label>
+                        <p class="text-sm text-gray-400">Allow usage of anonymized data for improvements</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="privacy.data_sharing" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <button type="submit"
+                        :disabled="savingPrivacy"
+                        class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50">
+                    <span x-show="!savingPrivacy">Save Privacy Settings</span>
+                    <span x-show="savingPrivacy">Saving...</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- Account Management -->
+        <section class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">Account Management</h2>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-lg font-medium mb-2">Display Name</label>
+                    <input type="text"
+                           x-model="account.display_name"
+                           class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600">
+                </div>
+
+                <div>
+                    <label class="block text-lg font-medium mb-2">Email</label>
+                    <input type="email"
+                           :value="account.email"
+                           disabled
+                           class="w-full bg-gray-600 text-gray-400 rounded-lg px-4 py-2 border border-gray-600 cursor-not-allowed">
+                    <p class="text-sm text-gray-400 mt-1">Email cannot be changed</p>
+                </div>
+
+                <div>
+                    <label class="block text-lg font-medium mb-2">Account Type</label>
+                    <input type="text"
+                           :value="account.account_type"
+                           disabled
+                           class="w-full bg-gray-600 text-gray-400 rounded-lg px-4 py-2 border border-gray-600 cursor-not-allowed">
+                </div>
+
+                <button @click="saveAccount()"
+                        :disabled="savingAccount"
+                        class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50">
+                    <span x-show="!savingAccount">Update Account</span>
+                    <span x-show="savingAccount">Saving...</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Security Settings -->
+        <section class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">Security Settings</h2>
+
+            <form @submit.prevent="changePassword()" class="space-y-4">
+                <div>
+                    <label class="block text-lg font-medium mb-2">Current Password</label>
+                    <input type="password"
+                           x-model="security.current_password"
+                           required
+                           class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600">
+                </div>
+
+                <div>
+                    <label class="block text-lg font-medium mb-2">New Password</label>
+                    <input type="password"
+                           x-model="security.new_password"
+                           required
+                           minlength="8"
+                           class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600">
+                    <p class="text-sm text-gray-400 mt-1">Minimum 8 characters</p>
+                </div>
+
+                <div>
+                    <label class="block text-lg font-medium mb-2">Confirm New Password</label>
+                    <input type="password"
+                           x-model="security.confirm_password"
+                           required
+                           class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600">
+                </div>
+
+                <div x-show="security.new_password && security.confirm_password && security.new_password !== security.confirm_password"
+                     class="text-red-400 text-sm" x-cloak>
+                    Passwords do not match
+                </div>
+
+                <button type="submit"
+                        :disabled="changingPassword || (security.new_password !== security.confirm_password)"
+                        class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50">
+                    <span x-show="!changingPassword">Change Password</span>
+                    <span x-show="changingPassword">Changing...</span>
+                </button>
+            </form>
+
+            <div class="mt-6 pt-6 border-t border-gray-700">
+                <h3 class="text-lg font-semibold mb-4">Two-Factor Authentication</h3>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-lg font-medium">2FA Status</p>
+                        <p class="text-sm text-gray-400">Add an extra layer of security to your account</p>
+                    </div>
+                    <span x-text="security.two_factor_enabled ? 'Enabled' : 'Disabled'"
+                          :class="security.two_factor_enabled ? 'text-green-400' : 'text-gray-400'"
+                          class="font-medium"></span>
+                </div>
+                <button @click="toggle2FA()"
+                        class="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg">
+                    <span x-show="!security.two_factor_enabled">Enable 2FA</span>
+                    <span x-show="security.two_factor_enabled">Disable 2FA</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Danger Zone -->
+        <section class="bg-red-900/20 rounded-lg p-6 border border-red-700">
+            <h2 class="text-2xl font-semibold mb-4 text-red-400">Danger Zone</h2>
+
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Delete Account</h3>
+                    <p class="text-sm text-gray-400 mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                    <button @click="confirmDeleteAccount()"
+                            class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg">
+                        Delete Account
+                    </button>
+                </div>
+            </div>
+        </section>
     </main>
+
+    <script>
+        function settingsData() {
+            return {
+                message: '',
+                messageType: 'success',
+                savingNotifications: false,
+                savingPrivacy: false,
+                savingAccount: false,
+                changingPassword: false,
+
+                notifications: {
+                    email: {{ user.preferences.email_notifications|default(true)|tojson }},
+                    team_invites: {{ user.preferences.team_invites|default(true)|tojson }},
+                    memory_updates: {{ user.preferences.memory_updates|default(true)|tojson }}
+                },
+
+                privacy: {
+                    profile_visibility: '{{ user.preferences.profile_visibility|default("team") }}',
+                    show_email: {{ user.preferences.show_email|default(false)|tojson }},
+                    data_sharing: {{ user.preferences.data_sharing|default(true)|tojson }}
+                },
+
+                account: {
+                    display_name: '{{ user.name|default("") }}',
+                    email: '{{ user.email|default("") }}',
+                    account_type: '{{ user.account_type|default("standard") }}'
+                },
+
+                security: {
+                    current_password: '',
+                    new_password: '',
+                    confirm_password: '',
+                    two_factor_enabled: {{ user.two_factor_enabled|default(false)|tojson }}
+                },
+
+                async saveNotifications() {
+                    this.savingNotifications = true;
+                    try {
+                        const response = await fetch('/api/v1/users/me/preferences', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email_notifications: this.notifications.email,
+                                team_invites: this.notifications.team_invites,
+                                memory_updates: this.notifications.memory_updates
+                            })
+                        });
+
+                        if (response.ok) {
+                            this.showMessage('Notification preferences saved', 'success');
+                        } else {
+                            this.showMessage('Failed to save preferences', 'error');
+                        }
+                    } catch (error) {
+                        this.showMessage('Error saving preferences', 'error');
+                    } finally {
+                        this.savingNotifications = false;
+                    }
+                },
+
+                async savePrivacy() {
+                    this.savingPrivacy = true;
+                    try {
+                        const response = await fetch('/api/v1/users/me/preferences', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                profile_visibility: this.privacy.profile_visibility,
+                                show_email: this.privacy.show_email,
+                                data_sharing: this.privacy.data_sharing
+                            })
+                        });
+
+                        if (response.ok) {
+                            this.showMessage('Privacy settings saved', 'success');
+                        } else {
+                            this.showMessage('Failed to save privacy settings', 'error');
+                        }
+                    } catch (error) {
+                        this.showMessage('Error saving privacy settings', 'error');
+                    } finally {
+                        this.savingPrivacy = false;
+                    }
+                },
+
+                async saveAccount() {
+                    this.savingAccount = true;
+                    try {
+                        const response = await fetch('/api/v1/users/me', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: this.account.display_name
+                            })
+                        });
+
+                        if (response.ok) {
+                            this.showMessage('Account updated successfully', 'success');
+                        } else {
+                            this.showMessage('Failed to update account', 'error');
+                        }
+                    } catch (error) {
+                        this.showMessage('Error updating account', 'error');
+                    } finally {
+                        this.savingAccount = false;
+                    }
+                },
+
+                async changePassword() {
+                    if (this.security.new_password !== this.security.confirm_password) {
+                        this.showMessage('Passwords do not match', 'error');
+                        return;
+                    }
+
+                    this.changingPassword = true;
+                    try {
+                        const response = await fetch('/api/v1/users/me/password', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                current_password: this.security.current_password,
+                                new_password: this.security.new_password
+                            })
+                        });
+
+                        if (response.ok) {
+                            this.showMessage('Password changed successfully', 'success');
+                            this.security.current_password = '';
+                            this.security.new_password = '';
+                            this.security.confirm_password = '';
+                        } else {
+                            const data = await response.json();
+                            this.showMessage(data.detail || 'Failed to change password', 'error');
+                        }
+                    } catch (error) {
+                        this.showMessage('Error changing password', 'error');
+                    } finally {
+                        this.changingPassword = false;
+                    }
+                },
+
+                async toggle2FA() {
+                    // Placeholder for 2FA toggle
+                    this.showMessage('2FA feature coming soon', 'success');
+                },
+
+                confirmDeleteAccount() {
+                    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                        this.showMessage('Account deletion feature coming soon', 'error');
+                    }
+                },
+
+                showMessage(text, type) {
+                    this.message = text;
+                    this.messageType = type;
+                    setTimeout(() => {
+                        this.message = '';
+                    }, 5000);
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </body>
 </html>

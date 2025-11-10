@@ -405,7 +405,11 @@ func TestConfigProfileCommandIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			// Ignore cleanup errors in tests
+		}
+	}()
 
 	// Set config path
 	viper.SetConfigFile(tmpDir + "/config.yaml")

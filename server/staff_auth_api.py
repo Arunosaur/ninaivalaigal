@@ -18,7 +18,8 @@ from typing import Optional
 
 import bcrypt
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
 # Use standard SQLAlchemy session instead of complex DatabaseOperations
@@ -46,7 +47,12 @@ def get_staff_db():
 router = APIRouter(prefix="/auth/staff", tags=["Staff Authentication"])
 
 # JWT Configuration (should match your existing auth config)
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-here")  # Read from environment
+# Use same secret as main auth system for consistency
+SECRET_KEY = (
+    os.getenv("JWT_SECRET_KEY")
+    or os.getenv("NINAIVALAIGAL_JWT_SECRET")
+    or os.getenv("JWT_SECRET", "your-secret-key-here")
+)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 hours
 
@@ -138,6 +144,124 @@ def get_role_permissions(role: str) -> list[str]:
     }
 
     return role_permissions.get(role, [])
+
+
+# ============================================================================
+# JWT Token Verification
+# ============================================================================
+
+security = HTTPBearer()
+
+
+def verify_staff_token(token: str) -> dict:
+    """
+    Verify JWT token and return staff token data
+
+    Returns:
+        dict with staff_id, email, role, permissions, type
+        None if token is invalid
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        # Verify this is a staff token
+        if payload.get("type") != "staff":
+            return None
+
+        # Extract staff information
+        staff_id = payload.get("user_id")
+        email = payload.get("sub")
+        role = payload.get("role")
+        permissions = payload.get("permissions", [])
+
+        if not staff_id or not email:
+            return None
+
+        return {
+            "staff_id": staff_id,
+            "email": email,
+            "role": role,
+            "permissions": permissions,
+            "type": "staff",
+        }
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+    except Exception:
+        return None
+
+
+def get_current_staff(
+    credentials: HTTPAuthorizationCredentials = Security(security),
+    db: Session = Depends(get_staff_db),
+) -> dict:
+    """
+    Get current authenticated staff member from JWT token
+
+    Dependency for FastAPI endpoints that require staff authentication
+    """
+    token = credentials.credentials
+    token_data = verify_staff_token(token)
+
+    if not token_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Verify staff still exists and is active
+    query = text(
+        """
+        SELECT id, email, name, role, is_active
+        FROM staff
+        WHERE id = :staff_id AND email = :email
+    """
+    )
+
+    staff = db.execute(
+        query,
+        {
+            "staff_id": token_data["staff_id"],
+            "email": token_data["email"],
+        },
+    ).fetchone()
+
+    if not staff or not staff[4]:  # is_active
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Staff account not found or inactive",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    staff_id, email, name, role, is_active = staff
+
+    # Return staff data with token info
+    return {
+        "user_id": str(staff_id),
+        "staff_id": str(staff_id),
+        "email": email,
+        "name": name,
+        "role": role,
+        "permissions": token_data.get("permissions", []),
+        "is_active": is_active,
+    }
+
+
+def require_admin_role(current_staff: dict = Depends(get_current_staff)) -> dict:
+    """
+    Require admin role for endpoint access
+
+    Dependency for FastAPI endpoints that require admin privileges
+    """
+    if current_staff.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin role required",
+        )
+
+    return current_staff
 
 
 # ============================================================================
@@ -267,7 +391,7 @@ async def reset_password(
     reset_data: PasswordResetRequest,
     request: Request,
     db: Session = Depends(get_staff_db),
-    # TODO: Add authentication dependency to get current staff
+    current_staff: dict = Depends(get_current_staff),
 ):
     """
     Reset staff password
@@ -276,20 +400,104 @@ async def reset_password(
     - Updates to new password
     - Logs password change
     """
-    # TODO: Get current staff from JWT token
-    # For now, this is a placeholder
+    staff_id = current_staff["staff_id"]
 
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Password reset endpoint not yet implemented",
+    # Get current password hash
+    query = text(
+        """
+        SELECT password_hash
+        FROM staff
+        WHERE id = :staff_id
+    """
     )
+
+    staff = db.execute(query, {"staff_id": staff_id}).fetchone()
+
+    if not staff:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Staff account not found",
+        )
+
+    current_password_hash = staff[0]
+
+    # Verify current password
+    if not verify_password(reset_data.current_password, current_password_hash):
+        # Log failed password reset attempt
+        log_query = text(
+            """
+            INSERT INTO staff_activity_log (staff_id, action, details, ip_address)
+            VALUES (:staff_id, 'failed_password_reset', :details::jsonb, :ip_address)
+        """
+        )
+        db.execute(
+            log_query,
+            {
+                "staff_id": staff_id,
+                "details": {"reason": "invalid_current_password"},
+                "ip_address": request.client.host if request.client else None,
+            },
+        )
+        db.commit()
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Current password is incorrect",
+        )
+
+    # Validate new password
+    if len(reset_data.new_password) < 12:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 12 characters",
+        )
+
+    # Hash new password
+    salt = bcrypt.gensalt()
+    new_password_hash = bcrypt.hashpw(reset_data.new_password.encode("utf-8"), salt).decode("utf-8")
+
+    # Update password
+    update_query = text(
+        """
+        UPDATE staff
+        SET password_hash = :password_hash
+        WHERE id = :staff_id
+    """
+    )
+    db.execute(
+        update_query,
+        {
+            "staff_id": staff_id,
+            "password_hash": new_password_hash,
+        },
+    )
+    db.commit()
+
+    # Log password reset
+    log_query = text(
+        """
+        INSERT INTO staff_activity_log (staff_id, action, ip_address, user_agent)
+        VALUES (:staff_id, 'password_reset', :ip_address, :user_agent)
+    """
+    )
+    db.execute(
+        log_query,
+        {
+            "staff_id": staff_id,
+            "ip_address": request.client.host if request.client else None,
+            "user_agent": request.headers.get("user-agent"),
+        },
+    )
+    db.commit()
+
+    return {"message": "Password updated successfully"}
 
 
 @router.post("/logout")
 async def staff_logout(
     request: Request,
     db: Session = Depends(get_staff_db),
-    # TODO: Add authentication dependency to get current staff
+    current_staff: dict = Depends(get_current_staff),
 ):
     """
     Staff logout endpoint
@@ -297,7 +505,23 @@ async def staff_logout(
     - Logs logout action
     - Invalidates token (if using token blacklist)
     """
-    # TODO: Get current staff from JWT token
+    staff_id = current_staff["staff_id"]
+
     # Log logout
+    log_query = text(
+        """
+        INSERT INTO staff_activity_log (staff_id, action, ip_address, user_agent)
+        VALUES (:staff_id, 'logout', :ip_address, :user_agent)
+    """
+    )
+    db.execute(
+        log_query,
+        {
+            "staff_id": staff_id,
+            "ip_address": request.client.host if request.client else None,
+            "user_agent": request.headers.get("user-agent"),
+        },
+    )
+    db.commit()
 
     return {"message": "Logged out successfully"}

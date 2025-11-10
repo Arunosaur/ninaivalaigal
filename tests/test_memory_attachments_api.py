@@ -10,7 +10,8 @@ Unit tests for services/core-api/lib/memory_attachments_api.py
 Tests memory attachment upload, retrieval, and deletion endpoints.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -79,7 +80,6 @@ class TestMemoryAttachmentsAPI:
     async def test_upload_attachment_endpoint(self):
         """Test upload attachment endpoint"""
         try:
-            from fastapi import UploadFile
             from lib.memory_attachments_api import router
 
             # This would require full FastAPI app setup

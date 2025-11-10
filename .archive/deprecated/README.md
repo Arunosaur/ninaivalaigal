@@ -1,6 +1,6 @@
 # Deprecated Code Archive
 
-**Last Updated**: 2025-01-31  
+**Last Updated**: 2025-01-31
 **Purpose**: Archive deprecated code and folders based on SPEC decisions
 
 ---
@@ -69,4 +69,3 @@ cp -r .archive/deprecated/[name]-[date]/ [original-location]/
 ---
 
 **Archive Location**: `.archive/deprecated/`
-

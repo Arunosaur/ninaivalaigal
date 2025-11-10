@@ -1,7 +1,7 @@
 # frontend-nextjs-customer/ - DEPRECATED
 
-**Deprecated Date**: 2025-01-31  
-**Deprecated By**: Developer F  
+**Deprecated Date**: 2025-01-31
+**Deprecated By**: Developer F
 **Reason**: SPEC-122 (Customer Frontend Rollout) is DEPRECATED, features migrated to `apps/customer/`
 
 ---
@@ -50,7 +50,7 @@
 
 ## Archive Location
 
-This folder was moved from: `frontend-nextjs-customer/`  
+This folder was moved from: `frontend-nextjs-customer/`
 To: `.archive/deprecated/frontend-nextjs-customer-2025-01-31/`
 
 **Original Size**: ~88 files
@@ -58,4 +58,3 @@ To: `.archive/deprecated/frontend-nextjs-customer-2025-01-31/`
 ---
 
 **Status**: ✅ Archived - All features available in `apps/customer/`
-

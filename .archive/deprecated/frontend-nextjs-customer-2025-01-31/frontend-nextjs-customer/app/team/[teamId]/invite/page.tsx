@@ -9,7 +9,7 @@
 //
 /**
  * US#210: Team Member Invitation UI
- * 
+ *
  * Allows team admins to invite members via email with role selection.
  */
 
@@ -192,4 +192,3 @@ export default function TeamInvitePage() {
     </div>
   );
 }
-

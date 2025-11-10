@@ -16,10 +16,8 @@ import random
 import sys
 from datetime import datetime, timedelta
 from typing import List
-from uuid import uuid4
 
 import psycopg2
-from psycopg2.extras import execute_batch
 
 
 def generate_users(count: int = 1000) -> List[dict]:

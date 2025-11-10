@@ -15,8 +15,6 @@ Implements context management with personal/team/organization scopes
 import logging
 from typing import Literal
 
-import asyncpg
-
 from ..models import Context
 
 logger = logging.getLogger(__name__)
@@ -32,9 +30,10 @@ class ContextOps:
     Implements context management with personal/team/organization scopes
     """
 
-    def __init__(self, pool: asyncpg.Pool):
-        """Initialize instance."""
-        self.pool = pool
+    def __init__(self, config=None):
+        """Initialize instance - matches parent DatabaseUtilities constructor."""
+        # No pool needed - uses SQLAlchemy sessions via get_session()
+        pass
 
     def set_active_context(self, context_name: str, user_id: int = None, scope: str = None):
         """Set a context as active"""

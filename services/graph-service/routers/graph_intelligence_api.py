@@ -16,12 +16,16 @@ from typing import Any, Optional
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
-from graph.age_client import get_age_client
-from graph.graph_reasoner import GraphReasoner, create_graph_reasoner
-from pydantic import BaseModel, Field
-from redis_client import get_redis_client
+from lib.auth import get_current_user
 
-from auth import get_current_user
+# Import from lib - main.py sets up path so lib is available
+from lib.graph.age_client import get_age_client
+from lib.graph.graph_reasoner import GraphReasoner, create_graph_reasoner
+
+# Import AI intelligence components
+from lib.intelligence import GraphAnalyticsEngine, GraphMLEngine, MemoryFederationEngine
+from lib.redis_client import get_redis_client
+from pydantic import BaseModel, Field
 
 logger = structlog.get_logger(__name__)
 
@@ -105,6 +109,17 @@ async def get_graph_reasoner() -> GraphReasoner:
     age_client = await get_age_client()
     redis_client = await get_redis_client()
     return create_graph_reasoner(age_client, redis_client)
+
+
+# Dependency to get AI intelligence engines
+def get_ai_intelligence_engines() -> dict:
+    """Get AI intelligence engine instances"""
+    config = {"cache_ttl": 3600, "max_memories": 100}
+    return {
+        "ml_engine": GraphMLEngine(config),
+        "federation_engine": MemoryFederationEngine(config),
+        "analytics_engine": GraphAnalyticsEngine(config),
+    }
 
 
 @router.post("/explain-context", response_model=ExplainContextResponse)
@@ -303,13 +318,20 @@ async def graph_intelligence_health():
 async def graph_intelligence_stats(
     current_user: dict = Depends(get_current_user),
     graph_reasoner: GraphReasoner = Depends(get_graph_reasoner),
+    ai_engines: dict = Depends(get_ai_intelligence_engines),
 ):
-    """Get graph intelligence usage statistics"""
+    """Get graph intelligence usage statistics including AI layer metrics"""
     try:
         user_id = current_user["user_id"]
 
         # Get basic stats from cache keys
         cache_keys = await graph_reasoner.redis_client.keys(f"graph:*:{user_id}:*")
+
+        # Get AI intelligence metrics
+        ml_metrics = ai_engines["ml_engine"].metrics if hasattr(ai_engines["ml_engine"], "metrics") else {}
+        federation_metrics = (
+            ai_engines["federation_engine"].metrics if hasattr(ai_engines["federation_engine"], "metrics") else {}
+        )
 
         return {
             "user_id": user_id,
@@ -318,6 +340,16 @@ async def graph_intelligence_stats(
             "cached_analyses": len([k for k in cache_keys if "analyze" in k]),
             "total_cache_entries": len(cache_keys),
             "cache_ttl_seconds": graph_reasoner.cache_ttl,
+            "ai_intelligence": {
+                "ml_engine": {
+                    "total_calls": ml_metrics.get("total_calls", 0),
+                    "successful_calls": ml_metrics.get("successful_calls", 0),
+                },
+                "federation_engine": {
+                    "total_federations": federation_metrics.get("total_federations", 0),
+                    "successful_shares": federation_metrics.get("successful_shares", 0),
+                },
+            },
         }
     except Exception as e:
         logger.error("Failed to get stats", error=str(e), user_id=current_user["user_id"])

@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+"""
+⚠️  ARCHIVED: This router has been REMOVED and migrated to Rust Memory Service
+⚠️  Migration Date: 2025-01-31
+⚠️  Removal Date: 2025-01-31 (Phase 3 Complete)
+⚠️  New Endpoint: http://localhost:13393/memory/injection/*
+⚠️  See: tasks/active/US_93_95_PYTHON_DEPRECATION_PLAN.md
+
+SPEC-036: Memory Injection API Endpoints
+This router has been removed from active service. Use Rust endpoints.
+Archived copy available in: services/core-api/routers/deprecated/
+"""
 # SPDX-License-Identifier: Proprietary
 # Copyright (c) 2025 Medhasys LLC
 #

@@ -6,6 +6,7 @@ title: SPEC-138: Custom Embedding Integration Hooks
 
 ## Status
 - 📋 **PLANNED** (Phase 2C)
+- ⚠️ **Not Implemented (0%)**
 
 ## Summary
 Introduces a hook system allowing external or fine-tuned embedding models to replace the default pgvector pipeline. This enables users and organizations to integrate custom embedding providers, fine-tuned models, or proprietary embedding services for enhanced semantic search and memory matching.
@@ -68,6 +69,36 @@ Introduces a hook system allowing external or fine-tuned embedding models to rep
 - [ ] Hook system maintains backward compatibility
 - [ ] Performance impact < 20% vs default pipeline
 - [ ] Comprehensive test coverage (>80%)
+
+## Implementation Status
+
+**Current Status**: Not Implemented (0%)
+
+### Existing Foundation
+- ✅ Default pgvector pipeline (SPEC-012) - `memory.memory_records.embedding` column (VECTOR(1536))
+- ✅ HNSW index for similarity search
+- ✅ Basic embedding generation (stub in demo)
+
+### Missing Components
+- ❌ Embedding hook API (registration, execution, listing)
+- ❌ Model registry system (database schema, metadata storage)
+- ❌ Pipeline selection mechanism (org/user preferences, fallback)
+- ❌ Integration tests (unit, integration, E2E, performance)
+
+## Implementation Stories
+
+**Epic**: EPIC#024 (Epic #356) - Custom Embedding Integration Hooks (SPEC-138)
+
+| Story ID | Subject | Priority | Status | Effort |
+|---------|---------|----------|--------|--------|
+| **US#357** | Embedding Hook API Design and Implementation | High | New | 5 days |
+| **US#358** | Embedding Model Registry System | High | New | 4 days |
+| **US#359** | Embedding Pipeline Selection Mechanism | Medium | New | 4 days |
+| **US#360** | Custom Embedding Integration Tests | Medium | New | 3 days |
+
+**Total**: 4 stories, ~13 points, 16 days effort
+
+**Note**: All stories are created and verified. Ready for assignment and implementation.
 
 ## Ownership
 - Platform: Ninaivalaigal

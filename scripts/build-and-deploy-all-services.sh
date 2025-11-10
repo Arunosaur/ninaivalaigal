@@ -134,6 +134,7 @@ fi
 
 # Load environment
 if [ -f "$ENV_FILE" ]; then
+    # shellcheck source=/dev/null
     source "$ENV_FILE"
     print_success "Loaded environment from $ENV_FILE"
 else
@@ -184,7 +185,7 @@ for service_name in "${!SERVICES[@]}"; do
             --context "$context" \
             --tag arm64 \
             --platform linux/arm64 \
-            $([ "$VERBOSE" = true ] && echo "--verbose" || echo "") 2>&1 | tee "/tmp/build-${service_name}.log"; then
+            "$([ "$VERBOSE" = true ] && echo "--verbose" || echo "")" 2>&1 | tee "/tmp/build-${service_name}.log"; then
             print_success "$service_name built successfully"
             BUILT+=("$service_name")
         else

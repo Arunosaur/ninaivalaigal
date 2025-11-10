@@ -13,6 +13,15 @@
 **Estimated Effort**: 4 hours (2 sessions)
 **Dependencies**: SPEC-103 (Next.js 15 Bootstrap)
 
+## Taiga Stories
+
+The following Taiga stories have been created for SPEC-105:
+
+- **US#1055**: INT-001: FastAPI Template Backend Integration
+- **US#1056**: INT-002: Smoke Tests & Validation
+
+All stories are tagged with `spec-105` and are ready for implementation.
+
 ---
 
 ## 🎯 Executive Summary

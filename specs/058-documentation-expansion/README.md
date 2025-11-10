@@ -22,3 +22,13 @@ Improve internal and external documentation to ensure smooth onboarding, integra
 - `docs/architecture/diagram.drawio`
 - `docs/deployment/README.md`
 - Swagger UI and ReDoc endpoints
+
+## Taiga Stories
+
+The following Taiga stories have been created for SPEC-058:
+
+- **US#1048**: DOC-001: OpenAPI/Swagger Documentation
+- **US#1049**: DOC-002: Architecture Diagrams
+- **US#1050**: DOC-003: Deployment Guide Expansion
+
+All stories are tagged with `spec-058` and are ready for implementation.

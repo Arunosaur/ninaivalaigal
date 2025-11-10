@@ -35,6 +35,8 @@ GRAPH_NAME="ninaivalaigal_intelligence_${NINA_ENV}"
 # Port from ports.nv.yaml (apple.dev.graphops) - SPEC-145 compliance
 HOST_PORT=13398
 CONTAINER_PORT=50051  # GraphOps gRPC actually listens on 50051, not 8000
+METRICS_HOST_PORT=9091  # Avoid conflict with Prometheus on 9090
+METRICS_CONTAINER_PORT=9090
 
 # Stop existing container if running
 if container list | grep -q "$CONTAINER_NAME"; then
@@ -69,14 +71,14 @@ container run -d \
   -e DATABASE_URL="$DATABASE_URL" \
   -e GRAPHOPS_GRAPH="$GRAPH_NAME" \
   -e GRAPHOPS_GRPC_ADDR="0.0.0.0:50051" \
-  -e GRAPHOPS_METRICS_ADDR="0.0.0.0:9090" \
+  -e GRAPHOPS_METRICS_ADDR="0.0.0.0:${METRICS_CONTAINER_PORT}" \
   -e RUST_LOG=info \
   -e OTEL_SERVICE_NAME="ninaivalaigal-graphops" \
   -e OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317" \
   -e OTEL_TRACING_ENABLED="true" \
   -e ENVIRONMENT="development" \
   -p "${HOST_PORT}:${CONTAINER_PORT}" \
-  -p "9090:9090" \
+  -p "${METRICS_HOST_PORT}:${METRICS_CONTAINER_PORT}" \
   --cpus 4 \
   --memory 1g \
   "$IMAGE_NAME"

@@ -21,7 +21,16 @@ import requests
 # Mark all tests in this file as rust_integration
 pytestmark = pytest.mark.rust_integration
 
-MEMORY_SERVICE_URL = "http://localhost:13393"
+import sys
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from tests.config import MEMORY_SERVICE_BASE_URL
+
+MEMORY_SERVICE_URL = MEMORY_SERVICE_BASE_URL
 
 
 def test_health_check():

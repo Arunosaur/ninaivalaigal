@@ -12,3 +12,8 @@ metadata:
   labels:
     app: ninaivalaigal
     version: v1.0.0
+  # Pod Security Standards: Enforce restricted mode (US-132, SPEC-015)
+  annotations:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
