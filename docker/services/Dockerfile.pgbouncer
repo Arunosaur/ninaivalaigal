@@ -1,15 +1,60 @@
-# PgBouncer Dockerfile for x86_64 compatibility
+# PgBouncer Dockerfile for multi-arch builds with patched upstream
+
+ARG PGBOUNCER_VERSION=1.25.0
+ARG PGBOUNCER_SHA256=290bad449e4580f0174d3677c26c1076d4ce5dd7ca116ae1fca10272ef74d10e
+
+FROM debian:12-slim AS builder
+
+ARG PGBOUNCER_VERSION
+ARG PGBOUNCER_SHA256
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        curl \
+        libevent-dev \
+        libpam0g-dev \
+        libpq-dev \
+        libssl-dev \
+        pkg-config \
+        python3 \
+        pandoc; \
+    rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    version_underscored="$(echo "${PGBOUNCER_VERSION}" | tr '.' '_')"; \
+    curl -fsSL "https://github.com/pgbouncer/pgbouncer/releases/download/pgbouncer_${version_underscored}/pgbouncer-${PGBOUNCER_VERSION}.tar.gz" -o /tmp/pgbouncer.tar.gz; \
+    echo "${PGBOUNCER_SHA256}  /tmp/pgbouncer.tar.gz" | sha256sum -c -; \
+    tar -xf /tmp/pgbouncer.tar.gz -C /tmp; \
+    cd /tmp/pgbouncer-${PGBOUNCER_VERSION}; \
+    ./configure --prefix=/usr; \
+    make -j"$(nproc)"; \
+    make DESTDIR=/tmp/pgbouncer-install install
+
 FROM debian:12-slim
 
-# Install PgBouncer and dependencies
-RUN apt-get update && apt-get install -y \
-    pgbouncer \
-    gettext-base \
-    && rm -rf /var/lib/apt/lists/*
+ARG PGBOUNCER_VERSION
 
-# Create pgbouncer user and directories
-RUN useradd -r -s /bin/false pgbouncer && \
-    mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/lib/pgbouncer && \
+RUN set -eux; \
+    apt-get update; \
+    apt-get upgrade -y --no-install-recommends; \
+    apt-get install -y --no-install-recommends \
+        gettext-base \
+        libevent-2.1-7 \
+        libpam0g \
+        libpq5 \
+        libssl3 \
+        ca-certificates; \
+    rm -f /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/certs/ssl-cert-snakeoil.pem; \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /tmp/pgbouncer-install/usr /usr
+
+RUN set -eux; \
+    useradd -r -s /bin/false pgbouncer; \
+    mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/lib/pgbouncer; \
     chown -R pgbouncer:pgbouncer /etc/pgbouncer /var/log/pgbouncer /var/lib/pgbouncer
 
 # Create pgbouncer.ini template
@@ -25,7 +70,7 @@ RUN echo '[databases]' > /etc/pgbouncer/pgbouncer.ini.template && \
     echo 'logfile = /var/log/pgbouncer/pgbouncer.log' >> /etc/pgbouncer/pgbouncer.ini.template && \
     echo 'pidfile = /var/lib/pgbouncer/pgbouncer.pid' >> /etc/pgbouncer/pgbouncer.ini.template
 
-# Create userlist.txt template (will be populated at runtime)
+# Create userlist.txt template (populated at runtime)
 RUN echo '"nina" "${SCRAM_PASSWORD}"' > /etc/pgbouncer/userlist.txt.template
 
 USER pgbouncer

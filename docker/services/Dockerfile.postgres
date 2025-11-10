@@ -1,10 +1,42 @@
-# PostgreSQL + pgvector Dockerfile for x86_64 compatibility
+# PostgreSQL + pgvector Dockerfile for multi-arch builds with hardened base
+
+ARG GOSU_VERSION=1.19
+ARG TARGETOS=linux
+
+FROM golang:1.25.3-bookworm AS gosu-builder
+
+ARG GOSU_VERSION
+ARG TARGETOS
+ARG TARGETARCH
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends git ca-certificates; \
+    rm -rf /var/lib/apt/lists/*; \
+    git clone --depth 1 --branch "${GOSU_VERSION}" https://github.com/tianon/gosu.git /src
+
+WORKDIR /src
+
+RUN set -eux; \
+    GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" go build -trimpath -ldflags "-s -w" -o /out/gosu .
+
 FROM postgres:15
 
-# Install pgvector extension
-RUN apt-get update && apt-get install -y \
-    postgresql-15-pgvector \
-    && rm -rf /var/lib/apt/lists/*
+ARG TARGETARCH
+
+# Keep base packages patched, install pgvector, and remove default snake-oil certs
+RUN set -eux; \
+    apt-get update; \
+    apt-get upgrade -y --no-install-recommends; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        postgresql-15-pgvector; \
+    rm -f /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/certs/ssl-cert-snakeoil.pem; \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=gosu-builder /out/gosu /usr/local/bin/gosu
+
+RUN chmod +x /usr/local/bin/gosu
 
 # Set environment variables
 ENV POSTGRES_DB=nina

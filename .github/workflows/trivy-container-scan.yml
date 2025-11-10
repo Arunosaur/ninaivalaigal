@@ -1,0 +1,140 @@
+name: Container Trivy Scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 1'
+  push:
+    branches:
+      - main
+    paths:
+      - 'Dockerfile*'
+      - 'containers/**'
+      - '.github/workflows/trivy-container-scan.yml'
+  pull_request:
+    paths:
+      - 'Dockerfile*'
+      - 'containers/**'
+      - '.github/workflows/trivy-container-scan.yml'
+
+jobs:
+  scan:
+    name: Scan ${{ matrix.service.display }} ${{ matrix.arch.label }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: api
+            display: API container
+            dockerfile: docker/services/Dockerfile.api
+            context: .
+          - name: postgres
+            display: PostgreSQL container
+            dockerfile: docker/services/Dockerfile.postgres
+            context: .
+          - name: pgbouncer
+            display: PgBouncer container
+            dockerfile: docker/services/Dockerfile.pgbouncer
+            context: .
+        arch:
+          - platform: linux/amd64
+            label: amd64
+          - platform: linux/arm64
+            label: arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Prepare report directory
+        run: mkdir -p trivy-reports
+
+      - name: Build ${{ matrix.service.display }} ${{ matrix.arch.label }}
+        env:
+          PLATFORM: ${{ matrix.arch.platform }}
+          DOCKERFILE: ${{ matrix.service.dockerfile }}
+          CONTEXT: ${{ matrix.service.context }}
+          IMAGE: trivy-scan-${{ matrix.service.name }}-${{ matrix.arch.platform }}
+        run: |
+          docker buildx build --pull --no-cache \
+            --platform "${PLATFORM}" \
+            -f "${DOCKERFILE}" \
+            -t "${IMAGE}" \
+            --load \
+            "${CONTEXT}"
+
+      - name: Run Trivy scan (${{ matrix.service.name }} ${{ matrix.arch.label }})
+        id: trivy_scan
+        uses: aquasecurity/trivy-action@0.20.0
+        continue-on-error: true
+        with:
+          image-ref: trivy-scan-${{ matrix.service.name }}-${{ matrix.arch.platform }}
+          trivy-config: .trivyignore.yaml
+          format: 'sarif'
+          output: trivy-reports/${{ matrix.service.name }}-${{ matrix.arch.platform }}.sarif
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          scanners: 'vuln'
+          exit-code: '1'
+
+      - name: Check for generated SARIF
+        id: report_check
+        if: always()
+        shell: bash
+        run: |
+          sarif_path="trivy-reports/${{ matrix.service.name }}-${{ matrix.arch.platform }}.sarif"
+          if [ -s "$sarif_path" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+            echo "path=$sarif_path" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload Trivy SARIF artifact
+        if: always() && steps.report_check.outputs.present == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-${{ matrix.service.name }}-${{ matrix.arch.platform }}-sarif
+          path: ${{ steps.report_check.outputs.path }}
+
+      - name: Upload SARIF to GitHub Security
+        if: always() && steps.report_check.outputs.present == 'true'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.report_check.outputs.path }}
+
+      - name: Append results summary
+        if: always()
+        shell: bash
+        run: |
+          sarif_path="${{ steps.report_check.outputs.path }}"
+          if [ "${{ steps.trivy_scan.outcome }}" = "failure" ]; then
+            status="❌ High or critical vulnerabilities detected"
+          else
+            status="✅ No high or critical vulnerabilities detected"
+          fi
+          if [ "${{ steps.report_check.outputs.present }}" = "true" ]; then
+            sarif_line="- SARIF path: ${sarif_path}"
+          else
+            sarif_line="- SARIF path: (not generated)"
+          fi
+          {
+            echo "### ${{ matrix.service.display }} ${{ matrix.arch.label }}"
+            echo "- Result: $status"
+            echo "$sarif_line"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail workflow if vulnerabilities detected
+        if: steps.trivy_scan.outcome == 'failure'
+        run: exit 1

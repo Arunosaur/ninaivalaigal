@@ -1,0 +1,16 @@
+ignore:
+  - id: CVE-2023-2953
+    reason: "Debian bookworm packages do not yet ship a patched libldap build; PgBouncer does not exercise the vulnerable code paths."
+    expires: 2026-04-01
+  - id: CVE-2025-6020
+    reason: "Linux-PAM fix is still pending for Debian bookworm; PgBouncer relies on SCRAM auth and is not affected."
+    expires: 2026-04-01
+  - id: CVE-2023-45853
+    reason: "zlib upstream fix has not landed in bookworm; vulnerability is not exploitable in this container footprint."
+    expires: 2026-04-01
+  - id: CVE-2025-12863
+    reason: "Debian trixie currently lacks a patched libxml2 build; Postgres image remains on vendor base pending fix."
+    expires: 2026-04-01
+  - id: CVE-2025-7425
+    reason: "libxslt patch is not yet available in Debian trixie; tracked for upgrade once released."
+    expires: 2026-04-01
