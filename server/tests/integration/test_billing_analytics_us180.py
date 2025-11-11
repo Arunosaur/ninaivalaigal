@@ -89,11 +89,14 @@ def test_team(db_session: Session, test_user: User) -> Team:
     team = Team(
         id=uuid4(),
         name="Test Team",
-        is_standalone=True,
-        created_at=datetime.now(timezone.utc),
+        origin="native",
+        governance_type="internal",
+        status="active",
     )
     if hasattr(team, "owner_id"):
         team.owner_id = test_user.id
+    if hasattr(team, "lead_user_id"):
+        team.lead_user_id = test_user.id
     db_session.add(team)
     db_session.commit()
     return team
@@ -104,10 +107,11 @@ def billing_account(db_session: Session, test_team: Team) -> BillingAccount:
     """Create a billing account"""
     account = BillingAccount(
         id=uuid4(),
-        team_id=test_team.id,
+        account_type="team",
+        account_id=test_team.id,
         status=AccountStatus.ACTIVE.value,
         plan_tier=PlanTier.PRO.value,
-        created_at=datetime.now(timezone.utc),
+        currency="USD",
     )
     db_session.add(account)
     db_session.commit()
