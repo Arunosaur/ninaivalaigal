@@ -663,18 +663,22 @@ class TestBillingAnalyticsIntegration:
         """Test complete analytics calculation with all metrics"""
         now = datetime.now(timezone.utc)
 
+        # Create billing period
+        billing_period = create_test_billing_period(db_session, billing_account, days_back=60)
+
         # Create invoices
         for i in range(5):
             invoice = Invoice(
                 id=uuid4(),
+                billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
                 invoice_number=f"INV-{i+1}",
                 status=InvoiceStatus.PAID.value if i < 4 else InvoiceStatus.ISSUED.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
+                currency="USD",
                 issued_at=now - timedelta(days=30 - (i * 7)),
                 due_at=now - timedelta(days=30 - (i * 7)) + timedelta(days=7),
-                created_at=now - timedelta(days=30 - (i * 7)),
             )
             db_session.add(invoice)
 
