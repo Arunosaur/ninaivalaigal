@@ -65,7 +65,7 @@ repos:
       - id: flake8
         additional_dependencies: [flake8-docstrings, flake8-bugbear]
         args: [
-          "--per-file-ignores=services/core-api/main_with_auth.py:E402 services/core-api/main.py:E402,D403 tests/test_config_validator.py:E402 tests/test_billing_models.py:E402 tests/integration/test_memory_service_rust_standalone.py:E402 tests/integration/test_memory_service_rust.py:E402 tests/integration/test_context_sensitivity_rbac_simple.py:E402 tests/integration/test_graphops_integration.py:D403",
+          "--per-file-ignores=services/core-api/main_with_auth.py:E402 services/core-api/main.py:E402,D403 tests/test_config_validator.py:E402 tests/test_billing_models.py:E402 tests/integration/test_memory_service_rust_standalone.py:E402 tests/integration/test_memory_service_rust.py:E402 tests/integration/test_context_sensitivity_rbac_simple.py:E402 tests/integration/test_graphops_integration.py:D403 scripts/analyze_done_stories_for_reopening.py:E402 scripts/analyze_ui_stories.py:E402 scripts/assign_active_stories_to_h.py:E402 scripts/assign_and_work_on_taiga_tasks.py:E402 scripts/assign_specific_stories.py:E402 scripts/assign_stories_to_developer_e.py:E402",
           "--extend-ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D202,D205,D400,D401,E203,B008,B007",
           "--max-line-length=120"
         ]
