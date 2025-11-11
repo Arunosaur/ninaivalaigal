@@ -31,6 +31,8 @@ pytestmark = pytest.mark.integration
 from server.billing.models import (
     AccountStatus,
     BillingAccount,
+    BillingPeriod,
+    BillingPeriodStatus,
     Invoice,
     InvoiceStatus,
     PlanTier,
@@ -38,6 +40,21 @@ from server.billing.models import (
     StripeSubscription,
 )
 from server.database.models import Team, User
+
+
+def create_test_billing_period(db_session: Session, billing_account: BillingAccount, days_back: int = 30):
+    """Helper to create a test billing period"""
+    now = datetime.now(timezone.utc)
+    billing_period = BillingPeriod(
+        id=uuid4(),
+        billing_account_id=billing_account.id,
+        status=BillingPeriodStatus.ACTIVE.value,
+        period_start=now - timedelta(days=days_back),
+        period_end=now,
+    )
+    db_session.add(billing_period)
+    db_session.flush()
+    return billing_period
 
 
 @pytest.fixture
@@ -141,14 +158,12 @@ def stripe_subscription(
     now = datetime.now(timezone.utc)
     subscription = StripeSubscription(
         id=uuid4(),
-        stripe_customer_id=stripe_customer.stripe_customer_id,
-        billing_account_id=billing_account.id,
+        stripe_customer_id=stripe_customer.id,  # Use the UUID primary key, not stripe_customer_id string
         stripe_subscription_id=f"sub_{uuid4().hex[:24]}",
         plan_id="pro",
         status="active",
         current_period_start=now,
         current_period_end=now + timedelta(days=30),
-        created_at=now,
     )
     db_session.add(subscription)
     db_session.commit()
@@ -165,14 +180,23 @@ class TestRevenueMetrics:
         expected_mrr = 99.0
 
         # Calculate MRR from active subscriptions
-        active_subscriptions = (
-            db_session.query(StripeSubscription)
-            .filter(
-                StripeSubscription.billing_account_id == billing_account.id,
-                StripeSubscription.status == "active",
-            )
-            .all()
+        # Get subscriptions via StripeCustomer relationship
+        stripe_customer = (
+            db_session.query(StripeCustomer)
+            .filter(StripeCustomer.billing_account_id == billing_account.id)
+            .first()
         )
+        if stripe_customer:
+            active_subscriptions = (
+                db_session.query(StripeSubscription)
+                .filter(
+                    StripeSubscription.stripe_customer_id == stripe_customer.id,
+                    StripeSubscription.status == "active",
+                )
+                .all()
+            )
+        else:
+            active_subscriptions = []
 
         mrr = 0.0
         for sub in active_subscriptions:
@@ -209,20 +233,33 @@ class TestRevenueMetrics:
         """Test revenue trend analysis over time"""
         now = datetime.now(timezone.utc)
 
+        # Create a billing period first (required for Invoice)
+        from server.billing.models import BillingPeriod, BillingPeriodStatus
+        billing_period = BillingPeriod(
+            id=uuid4(),
+            billing_account_id=billing_account.id,
+            status=BillingPeriodStatus.ACTIVE.value,
+            start_date=now - timedelta(days=90),
+            end_date=now,
+        )
+        db_session.add(billing_period)
+        db_session.flush()
+
         # Create invoices over the past 3 months
         invoices = []
         for i in range(3):
             invoice = Invoice(
                 id=uuid4(),
+                billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
                 invoice_number=f"INV-{i+1}",
                 status=InvoiceStatus.PAID.value,
                 subtotal=Decimal("99.00"),
                 tax_amount=Decimal("0.00"),
                 total_amount=Decimal("99.00"),
+                currency="USD",
                 issued_at=now - timedelta(days=30 * (3 - i)),
                 due_at=now - timedelta(days=30 * (3 - i)) + timedelta(days=7),
-                created_at=now - timedelta(days=30 * (3 - i)),
             )
             db_session.add(invoice)
             invoices.append(invoice)
@@ -255,30 +292,35 @@ class TestPaymentMetrics:
         paid_count = 8
         failed_count = 2
 
+        # Create a billing period first (required for Invoice)
+        billing_period = create_test_billing_period(db_session, billing_account, days_back=30)
+
         for i in range(paid_count):
             invoice = Invoice(
                 id=uuid4(),
+                billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
                 invoice_number=f"INV-PAID-{i+1}",
                 status=InvoiceStatus.PAID.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
+                currency="USD",
                 issued_at=now - timedelta(days=i),
-                created_at=now - timedelta(days=i),
             )
             db_session.add(invoice)
 
         for i in range(failed_count):
             invoice = Invoice(
                 id=uuid4(),
+                billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
                 invoice_number=f"INV-FAILED-{i+1}",
                 status=InvoiceStatus.ISSUED.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
+                currency="USD",
                 issued_at=now - timedelta(days=i),
                 due_at=now - timedelta(days=i) - timedelta(days=1),  # Overdue
-                created_at=now - timedelta(days=i),
             )
             db_session.add(invoice)
 
@@ -303,18 +345,22 @@ class TestPaymentMetrics:
         """Test failed payment count"""
         now = datetime.now(timezone.utc)
 
+        # Create billing period
+        billing_period = create_test_billing_period(db_session, billing_account, days_back=30)
+
         # Create overdue invoices (failed payments)
         for i in range(3):
             invoice = Invoice(
                 id=uuid4(),
+                billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
                 invoice_number=f"INV-OVERDUE-{i+1}",
                 status=InvoiceStatus.ISSUED.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
+                currency="USD",
                 issued_at=now - timedelta(days=10 + i),
                 due_at=now - timedelta(days=5 + i),  # Overdue
-                created_at=now - timedelta(days=10 + i),
             )
             db_session.add(invoice)
 
@@ -338,30 +384,36 @@ class TestPaymentMetrics:
         # This would require PaymentFailure model integration
         # For now, test the concept with invoices that were retried
 
+        # Create billing period
+        billing_period = create_test_billing_period(db_session, billing_account, days_back=30)
+        now = datetime.now(timezone.utc)
+
         # Create initial failed invoice
         failed_invoice = Invoice(
             id=uuid4(),
+            billing_period_id=billing_period.id,
             billing_account_id=billing_account.id,
             invoice_number="INV-RETRY-1",
             status=InvoiceStatus.ISSUED.value,
             subtotal=Decimal("99.00"),
             total_amount=Decimal("99.00"),
-            issued_at=datetime.now(timezone.utc) - timedelta(days=5),
-            due_at=datetime.now(timezone.utc) - timedelta(days=2),
-            created_at=datetime.now(timezone.utc) - timedelta(days=5),
+            currency="USD",
+            issued_at=now - timedelta(days=5),
+            due_at=now - timedelta(days=2),
         )
         db_session.add(failed_invoice)
 
         # Create retry invoice (paid)
         retry_invoice = Invoice(
             id=uuid4(),
+            billing_period_id=billing_period.id,
             billing_account_id=billing_account.id,
             invoice_number="INV-RETRY-2",
             status=InvoiceStatus.PAID.value,
             subtotal=Decimal("99.00"),
             total_amount=Decimal("99.00"),
-            issued_at=datetime.now(timezone.utc) - timedelta(days=1),
-            created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            currency="USD",
+            issued_at=now - timedelta(days=1),
         )
         db_session.add(retry_invoice)
         db_session.commit()
@@ -378,6 +430,9 @@ class TestPaymentMetrics:
         """Test average payment time calculation"""
         now = datetime.now(timezone.utc)
 
+        # Create billing period
+        billing_period = create_test_billing_period(db_session, billing_account, days_back=60)
+
         # Create invoices with different payment times
         payment_times = [2, 3, 5, 7, 10]  # days to payment
 
@@ -387,13 +442,14 @@ class TestPaymentMetrics:
 
             invoice = Invoice(
                 id=uuid4(),
+                billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
                 invoice_number=f"INV-TIME-{i+1}",
                 status=InvoiceStatus.PAID.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
+                currency="USD",
                 issued_at=issued_at,
-                created_at=issued_at,
             )
             # In a real implementation, we'd have a paid_at field
             # For this test, calculate from issued_at + days_to_payment
@@ -448,7 +504,7 @@ class TestUsageTrends:
             previous_week_usage = weekly_usage[weeks[-2]]
             growth_rate = (current_week_usage - previous_week_usage) / previous_week_usage
 
-            assert growth_rate == 0.25  # 25% growth (4000-3000)/3000
+            assert growth_rate == pytest.approx(0.333, abs=0.01)  # 33.3% growth (4000-3000)/3000
 
     def test_monthly_usage_patterns(self, db_session: Session, billing_account: BillingAccount):
         """Test monthly usage patterns"""
@@ -494,18 +550,22 @@ class TestChurnRiskScoring:
         """Test payment failure impact on churn score"""
         now = datetime.now(timezone.utc)
 
+        # Create billing period
+        billing_period = create_test_billing_period(db_session, billing_account, days_back=30)
+
         # Create overdue invoices (payment failures)
         for i in range(2):
             invoice = Invoice(
                 id=uuid4(),
+                billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
                 invoice_number=f"INV-CHURN-{i+1}",
                 status=InvoiceStatus.ISSUED.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
+                currency="USD",
                 issued_at=now - timedelta(days=10 + i),
                 due_at=now - timedelta(days=5 + i),  # Overdue
-                created_at=now - timedelta(days=10 + i),
             )
             db_session.add(invoice)
 
@@ -554,7 +614,7 @@ class TestChurnRiskScoring:
             churn_risk_score = min(base_churn_risk + churn_risk_increase, 1.0)
 
             assert decline_rate == 0.375  # (8000-5000)/8000 = 37.5%
-            assert churn_risk_score == 0.3  # 0.1 + 0.2 = 0.3
+            assert churn_risk_score == pytest.approx(0.3, abs=0.01)  # 0.1 + 0.2 = 0.3
 
     def test_engagement_metric_weighting(self, db_session: Session, billing_account: BillingAccount):
         """Test engagement metric weighting in churn risk calculation"""
