@@ -234,16 +234,7 @@ class TestRevenueMetrics:
         now = datetime.now(timezone.utc)
 
         # Create a billing period first (required for Invoice)
-        from server.billing.models import BillingPeriod, BillingPeriodStatus
-        billing_period = BillingPeriod(
-            id=uuid4(),
-            billing_account_id=billing_account.id,
-            status=BillingPeriodStatus.ACTIVE.value,
-            start_date=now - timedelta(days=90),
-            end_date=now,
-        )
-        db_session.add(billing_period)
-        db_session.flush()
+        billing_period = create_test_billing_period(db_session, billing_account, days_back=90)
 
         # Create invoices over the past 3 months
         invoices = []
