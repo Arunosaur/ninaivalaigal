@@ -70,10 +70,11 @@ def db_session(monkeypatch):
 @pytest.fixture
 def test_user(db_session: Session) -> User:
     """Create a test user"""
+    unique_id = str(uuid4())[:8]
     user = User(
         id=uuid4(),
-        email="test@example.com",
-        username="testuser",
+        email=f"test-{unique_id}@example.com",
+        username=f"testuser-{unique_id}",
         name="Test User",
         password_hash="hashed_password",
     )
