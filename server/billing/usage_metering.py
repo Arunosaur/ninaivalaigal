@@ -23,7 +23,7 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
