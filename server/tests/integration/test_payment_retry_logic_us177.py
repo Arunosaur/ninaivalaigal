@@ -673,16 +673,10 @@ class TestCeleryTaskIntegration:
         # Mock the dunning handler
         mock_dunning.return_value = {"processed": True, "message": "Retry completed"}
 
-        # Create a mock task instance with db attribute (DatabaseTask provides self.db)
-        class MockTask:
-            def __init__(self, db):
-                self.db = db
-
-        mock_task = MockTask(db_session)
-
-        # Call the Celery task directly (it's a bound task, so self is first arg)
-        result = retry_failed_payment(
-            mock_task,
+        # Call the Celery task using .run() method (it's a bound task, Celery handles self)
+        # The task expects: self, subscription_id, invoice_id, amount, retry_count
+        # DatabaseTask will create its own db session, but we patch StripeService to use our mock
+        result = retry_failed_payment.run(
             subscription_id=stripe_subscription.stripe_subscription_id,
             invoice_id="in_test123",
             amount=100.0,
