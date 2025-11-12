@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 import stripe
-from database import Team, TeamMember, User
+from database import Team, TeamBilling, TeamMember, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from models.standalone_teams import StandaloneTeamManager
 from pydantic import BaseModel
@@ -200,7 +200,7 @@ def get_or_create_billing_period(
     return billing_period
 
 
-def invoice_model_to_pydantic(invoice_model: InvoiceModel) -> Invoice:
+def invoice_model_to_pydantic(invoice_model: InvoiceModel, db: Optional[Session] = None) -> Invoice:
     """
     Convert database InvoiceModel to Pydantic Invoice for API responses.
 
@@ -223,12 +223,30 @@ def invoice_model_to_pydantic(invoice_model: InvoiceModel) -> Invoice:
     # Get team info from billing account
     team_id = invoice_model.billing_account.account_id if invoice_model.billing_account else None
 
+    # Fetch team name and billing email if db session is provided
+    team_name = ""
+    billing_email = ""
+    if db and team_id:
+        team = db.query(Team).filter(Team.id == team_id).first()
+        if team:
+            team_name = team.name or ""
+            # Try to get billing email from TeamBilling or use a default
+            team_billing = db.query(TeamBilling).filter(TeamBilling.team_id == team_id).first()
+            if team_billing and team_billing.billing_email:
+                billing_email = team_billing.billing_email
+            else:
+                # Fallback: get email from team's lead user or first admin
+                if team.lead_user_id:
+                    lead_user = db.query(User).filter(User.id == team.lead_user_id).first()
+                    if lead_user:
+                        billing_email = lead_user.email or ""
+
     return Invoice(
         id=str(invoice_model.id),
         invoice_number=invoice_model.invoice_number,
         team_id=team_id,
-        team_name=None,  # Would need to query Team model if needed
-        billing_email=None,  # Would need to query TeamBilling if needed
+        team_name=team_name,
+        billing_email=billing_email,
         issue_date=invoice_model.issued_at or invoice_model.created_at,
         due_date=invoice_model.due_at,
         period_start=invoice_model.billing_period.period_start if invoice_model.billing_period else None,
@@ -431,7 +449,7 @@ async def generate_invoice(
     db.refresh(invoice_model)
 
     # Convert to Pydantic model for response
-    invoice = invoice_model_to_pydantic(invoice_model)
+    invoice = invoice_model_to_pydantic(invoice_model, db=db)
     invoice.team_id = team_id
     invoice.team_name = team.name
     invoice.billing_email = current_user.email
@@ -478,7 +496,7 @@ async def get_team_invoices(
     )
 
     # Convert to Pydantic models
-    team_invoices = [invoice_model_to_pydantic(inv) for inv in invoice_models]
+    team_invoices = [invoice_model_to_pydantic(inv, db=db) for inv in invoice_models]
 
     # Set team info
     for inv in team_invoices:
@@ -518,7 +536,7 @@ async def get_invoice(
         raise HTTPException(status_code=403, detail="Access denied to this invoice")
 
     # Convert to Pydantic model
-    invoice = invoice_model_to_pydantic(invoice_model)
+    invoice = invoice_model_to_pydantic(invoice_model, db=db)
     invoice.team_id = team_id
 
     return invoice
@@ -554,7 +572,7 @@ async def download_invoice_pdf(
         raise HTTPException(status_code=403, detail="Access denied to this invoice")
 
     # Convert to Pydantic model
-    invoice = invoice_model_to_pydantic(invoice_model)
+    invoice = invoice_model_to_pydantic(invoice_model, db=db)
     invoice.team_id = team_id
 
     # Get tax settings from database (US#185)
@@ -619,7 +637,7 @@ async def send_invoice(
     db.commit()
 
     # Convert to Pydantic model for email
-    invoice = invoice_model_to_pydantic(invoice_model)
+    invoice = invoice_model_to_pydantic(invoice_model, db=db)
     invoice.team_id = team_id
 
     # Send email (mock implementation)
