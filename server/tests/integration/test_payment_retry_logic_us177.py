@@ -661,7 +661,7 @@ class TestCeleryTaskIntegration:
         """Test that Celery task calls the dunning handler"""
         # Check if celery is available
         try:
-            import celery
+            import celery  # noqa: F401
 
             from server.billing.celery_tasks import retry_failed_payment
         except ImportError:
