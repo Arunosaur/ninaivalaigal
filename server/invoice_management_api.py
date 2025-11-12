@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 import stripe
-from database import Team, TeamMembership, User
+from database import Team, TeamMember, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from models.standalone_teams import StandaloneTeamManager
 from pydantic import BaseModel
@@ -326,9 +326,9 @@ async def generate_invoice(
         raise HTTPException(status_code=403, detail="Only team admins can generate invoices")
 
     # Calculate usage and charges
-    member_count = (
-        db.query(TeamMembership).filter(TeamMembership.team_id == team_id, TeamMembership.status == "active").count()
-    )
+    # Note: TeamMember (aliased as TeamMembership) doesn't have a status field
+    # All team members are considered active
+    member_count = db.query(TeamMember).filter(TeamMember.team_id == team_id).count()
 
     # Determine plan and pricing
     if member_count <= 5:
@@ -843,7 +843,7 @@ async def get_payment_failures(
     query = db.query(PaymentFailureModel)
 
     if unresolved_only:
-        query = query.filter(PaymentFailureModel.is_resolved == False)
+        query = query.filter(PaymentFailureModel.is_resolved.is_(False))
 
     if team_id:
         # Filter by team via billing account
