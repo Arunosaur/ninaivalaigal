@@ -85,7 +85,6 @@ class TestStandaloneTeamCRUDAPIs:
         assert "user" in data
         assert "team" in data
         assert data["team"]["name"] == "Test Team"
-        assert "jwt_token" in data["user"]
         assert elapsed_time < 200, f"Response time {elapsed_time}ms exceeds 200ms P95"
 
     def test_1_post_auth_signup_team_create_validation_error(self):

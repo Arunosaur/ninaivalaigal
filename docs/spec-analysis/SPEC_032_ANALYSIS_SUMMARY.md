@@ -117,3 +117,7 @@
 - `docs/spec-analysis/SPEC_032_COMPREHENSIVE_ANALYSIS.md` (full analysis)
 - `specs/032-memory-attachments/README.md` (specification)
 - `governance/reports/SPEC_032_077_ANALYSIS.md` (overlap analysis)
+
+
+
+

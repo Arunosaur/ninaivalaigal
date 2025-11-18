@@ -12,7 +12,6 @@ Assign US#558 to Developer G
 
 import os
 import sys
-from datetime import datetime
 
 import requests
 
@@ -171,10 +170,6 @@ def add_user_to_project(auth_token, project_id, user_id, username=None):
     # Add user to project
     # Taiga API requires email or username to add a member
     # We'll use the username we found
-    data = {
-        "project": project_id,
-        "role": role_id,
-    }
 
     # Try with username first (more reliable)
     if username:
@@ -194,9 +189,9 @@ def add_user_to_project(auth_token, project_id, user_id, username=None):
                 }
                 response = requests.post(url, headers=headers, json=membership_data)
                 if response.status_code in [200, 201]:
-                    print(f"✅ Added user to project via username")
+                    print("✅ Added user to project via username")
                     return True
-            except:
+            except Exception:
                 pass
 
             # Try email with username if available
@@ -210,7 +205,7 @@ def add_user_to_project(auth_token, project_id, user_id, username=None):
                 }
                 response = requests.post(url, headers=headers, json=membership_data)
                 if response.status_code in [200, 201]:
-                    print(f"✅ Added user to project via email+username")
+                    print("✅ Added user to project via email+username")
                     return True
                 else:
                     print(f"⚠️  Failed to add via email+username: {response.status_code} - {response.text[:200]}")
@@ -246,7 +241,7 @@ def assign_story(auth_token, story_id, story_version, assignee_id):
                 print("   2. Add Developer G as a project member")
                 print("   3. Run this script again")
                 print("\n   OR manually assign in Taiga UI:")
-                print(f"   http://localhost:9000/project/ninaivalaigal/us/558")
+                print("   http://localhost:9000/project/ninaivalaigal/us/558")
 
             return False
     except Exception as e:
@@ -275,7 +270,7 @@ def main():
     print(f"✅ Found project: {PROJECT_SLUG} (ID: {project_id})")
 
     # Find story
-    print(f"🔍 Searching for story US#558...")
+    print("🔍 Searching for story US#558...")
     story = find_story_by_ref(auth_token, project_id, 558)
     if not story:
         print("❌ Story US#558 not found")
@@ -308,7 +303,7 @@ def main():
     print(f"✅ Found Developer G (User ID: {developer_g_id})")
 
     # Check if Developer G is a project member, add if not
-    print(f"\n🔍 Checking if Developer G is a project member...")
+    print("\n🔍 Checking if Developer G is a project member...")
     members = get_project_members(auth_token, project_id)
     is_member = False
     for member in members:

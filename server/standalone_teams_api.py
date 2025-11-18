@@ -18,13 +18,9 @@ from email.mime.text import MIMEText
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from database import Team, User
+from database import Team, User, UserInvitation
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from models.standalone_teams import (
-    StandaloneTeamManager,
-    TeamInvitation,
-    TeamMembership,
-)
+from models.standalone_teams import StandaloneTeamManager, TeamMembership
 from pydantic import BaseModel, EmailStr, validator
 from sqlalchemy.orm import Session
 
@@ -401,7 +397,7 @@ async def invite_user_to_team(
 
         # Check if user is already invited or a member
         existing_invitation = (
-            db.query(TeamInvitation).filter_by(team_id=team_id, email=invite_data.email, status="pending").first()
+            db.query(UserInvitation).filter_by(team_id=team_id, email=invite_data.email, status="pending").first()
         )
 
         if existing_invitation:
@@ -635,11 +631,11 @@ async def get_team_invitations(
             detail="Only team admins can view invitations",
         )
 
-    invitations = db.query(TeamInvitation).filter_by(team_id=team_id).all()
+    invitations = db.query(UserInvitation).filter_by(team_id=team_id).all()
 
     result = []
     for invitation in invitations:
-        invited_by = db.query(User).filter_by(id=invitation.invited_by_user_id).first()
+        invited_by = db.query(User).filter_by(id=invitation.invited_by).first()
         result.append(
             TeamInvitationResponse(
                 id=invitation.id,

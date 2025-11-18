@@ -179,7 +179,11 @@ export const Overlay: React.FC<OverlayProps> = ({
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && closeOnEscape && isOpen) {
-        onEscape?.() || onClose?.();
+        if (onEscape) {
+          onEscape();
+        } else {
+          onClose?.();
+        }
       }
     };
 

@@ -104,10 +104,7 @@ def test_user(db_session):
 def test_team(db_session, test_user):
     """Create a test team for billing tests"""
     from server.database import Team
-    from server.models.standalone_teams import extend_team_model
-
-    # Ensure Team model is extended with standalone fields
-    extend_team_model()
+    from server.database.models import Team, TeamMember, TeamInvitation
 
     team = Team(
         id=uuid4(),

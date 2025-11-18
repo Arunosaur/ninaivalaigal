@@ -75,3 +75,7 @@ for s in stories:
 print(f"Found {len(unassigned)} unassigned active stories:\n")
 for ref, subject, status, story_id in sorted(unassigned, key=lambda x: x[0])[:10]:
     print(f"US#{ref}: {subject} [{status}] (ID: {story_id})")
+
+
+
+

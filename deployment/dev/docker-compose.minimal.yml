@@ -11,7 +11,7 @@ services:
   # Minimal Redis with unified password auth
   redis:
     image: redis:7-alpine
-    container_name: ninaivalaigal-minimal-redis
+    container_name: ninaivalaigal-dev-minimal-redis
     ports:
       - "6379:6379"
     volumes:
@@ -32,7 +32,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.minimal
-    container_name: ninaivalaigal-minimal-api
+    container_name: ninaivalaigal-dev-minimal-api
     ports:
       - "8000:8000"
     environment:
@@ -57,3 +57,4 @@ services:
 networks:
   ninaivalaigal-minimal:
     driver: bridge
+    name: dev-ninaivalaigal-net

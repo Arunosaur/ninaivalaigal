@@ -104,3 +104,7 @@ fn benchmark_relevance_scoring(c: &mut Criterion) {
 
 criterion_group!(benches, benchmark_bulk_injection_processing, benchmark_relevance_scoring);
 criterion_main!(benches);
+
+
+
+

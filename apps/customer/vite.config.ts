@@ -19,6 +19,10 @@ export default defineConfig({
     },
     dedupe: ['react', 'react-dom'],
   },
+  optimizeDeps: {
+    include: ['class-variance-authority', 'clsx', 'tailwind-merge'],
+    force: true,
+  },
   server: {
     port: 8101,
     host: true,

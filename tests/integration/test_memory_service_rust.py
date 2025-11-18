@@ -26,7 +26,7 @@ Requires:
 Run with: pytest tests/integration/test_memory_service_rust.py -v
 """
 
-import json
+# Import shared fixtures from conftest.py
 import time
 from typing import Any, Dict, Optional
 from uuid import uuid4
@@ -178,7 +178,7 @@ class TestAuthentication:
 class TestCRUDOperations:
     """Tests for CRUD operations (requires authentication)"""
 
-    @pytest.mark.skipif(get_test_jwt_token() is None, reason="Requires valid JWT token from Core API")
+    # Use shared auth_token fixture from conftest.py
     def test_list_memories_with_auth(self, client):
         """Test listing memories with valid authentication"""
         response = client.list_memories()
@@ -188,7 +188,7 @@ class TestCRUDOperations:
         data = response.json()
         assert isinstance(data, list)
 
-    @pytest.mark.skipif(get_test_jwt_token() is None, reason="Requires valid JWT token from Core API")
+    # Use shared auth_token fixture from conftest.py
     def test_create_memory_with_auth(self, client):
         """Test creating a memory with valid authentication"""
         test_content = f"Test memory {uuid4()}"
@@ -203,7 +203,7 @@ class TestCRUDOperations:
         assert "created_at" in data
         assert "updated_at" in data
 
-    @pytest.mark.skipif(get_test_jwt_token() is None, reason="Requires valid JWT token from Core API")
+    # Use shared auth_token fixture from conftest.py
     def test_get_memory_not_found(self, client):
         """Test getting a non-existent memory"""
         memory_id = str(uuid4())
@@ -238,7 +238,7 @@ class TestErrorHandling:
 class TestCacheBehavior:
     """Tests for Redis cache behavior"""
 
-    @pytest.mark.skipif(get_test_jwt_token() is None, reason="Requires valid JWT token from Core API")
+    # Use shared auth_token fixture from conftest.py
     def test_cache_behavior(self, client):
         """Test that cache is working (if implemented)"""
         # This test would check:
@@ -248,7 +248,7 @@ class TestCacheBehavior:
 
         # For now, this is a placeholder
         # Actual implementation depends on cache being implemented
-        pytest.skip("Cache behavior testing requires cache implementation")
+        pytest.skip("Cache behavior testing requires cache implementation - TODO: implement cache tests")
 
 
 class TestPerformance:

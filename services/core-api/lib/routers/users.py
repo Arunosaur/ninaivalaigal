@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 
 # Import models from shared contracts (SPEC-100 Task #79)
-from auth.v1.models import UserProfileResponse, UserProfileUpdate
+from shared.contracts.auth.v1.models import UserProfileResponse, UserProfileUpdate
 
 
 # Database manager dependency

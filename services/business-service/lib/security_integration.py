@@ -16,11 +16,12 @@ import os
 
 from fastapi import FastAPI, Request
 from rbac_middleware import RBACContext
-from security import RedactionEngine, SecurityHeadersMiddleware
 from security.audit import SecurityEventType, security_alert_manager
 from security.middleware import EnhancedRateLimiter
 from security.middleware.redis_rate_limiter import RedisRateLimiterMiddleware
 from security.redaction.config import ContextSensitivity, redaction_config
+
+from security import RedactionEngine, SecurityHeadersMiddleware
 
 # RedactionMiddleware temporarily disabled - causes response body consumption
 # from security import RedactionMiddleware

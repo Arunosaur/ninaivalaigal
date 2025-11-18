@@ -20,7 +20,7 @@ from uuid import UUID, uuid4
 import stripe
 from database import Team, TeamBilling, TeamMember, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
-from models.standalone_teams import StandaloneTeamManager
+from server.services.teams.standalone_team_manager import StandaloneTeamManager
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 

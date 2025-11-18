@@ -58,7 +58,13 @@ try:
 except ImportError:
     pass  # RBAC models optional for basic database operations
 
-from .operations import DatabaseOperations, get_db  # noqa: E402
+# Import operations optionally (requires asyncpg)
+try:
+    from .operations import DatabaseOperations, get_db  # noqa: E402
+except ImportError:
+    # Operations require asyncpg - make optional for model-only imports
+    DatabaseOperations = None
+    get_db = None
 
 # Export all for backward compatibility
 __all__ = [

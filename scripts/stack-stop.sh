@@ -19,7 +19,9 @@ readonly NC='\033[0m'
 # Configuration
 readonly ENV="${NINA_ENV:-dev}"
 readonly DB_CONTAINER="ninaivalaigal-${ENV}-db"
-readonly PGBOUNCER_CONTAINER="ninaivalaigal-${ENV}-pgbouncer"
+readonly PGBOUNCER_TX_CONTAINER="ninaivalaigal-${ENV}-pgbouncer-tx"
+readonly PGBOUNCER_SESSION_CONTAINER="ninaivalaigal-${ENV}-pgbouncer-session"
+readonly PGBOUNCER_SESS_CONTAINER="ninaivalaigal-${ENV}-pgbouncer-sess"
 readonly REDIS_CONTAINER="ninaivalaigal-${ENV}-redis"
 readonly API_CONTAINER="ninaivalaigal-${ENV}-api"
 readonly CUSTOMER_APP_CONTAINER="ninaivalaigal-${ENV}-customer-app"
@@ -57,7 +59,9 @@ main() {
     stop_container "$CUSTOMER_APP_CONTAINER"
     stop_container "$API_CONTAINER"
     stop_container "$REDIS_CONTAINER"
-    stop_container "$PGBOUNCER_CONTAINER"
+    stop_container "$PGBOUNCER_TX_CONTAINER"
+    stop_container "$PGBOUNCER_SESSION_CONTAINER"
+    stop_container "$PGBOUNCER_SESS_CONTAINER"
     stop_container "$DB_CONTAINER"
 
     echo ""

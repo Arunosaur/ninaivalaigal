@@ -411,19 +411,18 @@ export default function Teams() {
                             </button>
                           )}
                         </div>
-                      </div>
+                      </li>
                       ))
                     )}
-                  </div>
-                </div>
+                  </ul>
+                </section>
               </div>
             ) : (
               <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-12 border border-gray-700/50 text-center">
                 <p className="text-slate-400">Select a team to view members</p>
               </div>
             )}
-          </div>
-        </div>
+          </section>
 
         {/* Create Team Modal */}
         {showCreateModal && (
@@ -535,6 +534,7 @@ export default function Teams() {
             onClose={() => setToast(null)}
           />
         )}
+      </div>
       </main>
     </div>
   );

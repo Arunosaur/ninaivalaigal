@@ -46,8 +46,8 @@ export interface VersionDiff {
 
 interface VersionDiffViewerProps {
   memoryId: string;
-  version1: number;
-  version2: number;
+  version1: string | number; // Can be version ID or version number
+  version2: string | number; // Can be version ID or version number
   onClose?: () => void;
 }
 
@@ -55,20 +55,142 @@ export function VersionDiffViewer({ memoryId, version1, version2, onClose }: Ver
   const [diff, setDiff] = useState<VersionDiff | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'side-by-side' | 'unified'>('side-by-side');
+  const [viewMode, setViewMode] = useState<'side-by-side' | 'unified' | 'inline'>('side-by-side');
+  const [format, setFormat] = useState<'unified' | 'side_by_side' | 'inline'>('side_by_side');
 
   useEffect(() => {
     loadDiff();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [memoryId, version1, version2]);
+  }, [memoryId, version1, version2, format]);
 
   const loadDiff = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get<VersionDiff>(
-        `/api/v1/memory/${memoryId}/versions/${version1}/diff/${version2}`
+      // Get version IDs if we have version numbers
+      let v1Id = typeof version1 === 'string' ? version1 : version1.toString();
+      let v2Id = typeof version2 === 'string' ? version2 : version2.toString();
+
+      // If version numbers, we need to get version IDs first
+      if (typeof version1 === 'number' || typeof version2 === 'number') {
+        const historyResponse = await apiClient.get(`/api/v1/memories/versions/${memoryId}/history`);
+        const versions = historyResponse.data.versions || [];
+
+        if (typeof version1 === 'number') {
+          const v1 = versions.find((v: any) => v.version_number === version1);
+          if (v1) v1Id = v1.id;
+        }
+        if (typeof version2 === 'number') {
+          const v2 = versions.find((v: any) => v.version_number === version2);
+          if (v2) v2Id = v2.id;
+        }
+      }
+
+      const response = await apiClient.get<{
+        version1_id: string;
+        version2_id: string;
+        similarity_score: number;
+        has_changes: boolean;
+        change_summary: string;
+        visualization: any;
+      }>(
+        `/api/v1/memories/versions/${memoryId}/diff`,
+        {
+          params: {
+            version1_id: v1Id,
+            version2_id: v2Id,
+            format: format,
+          },
+        }
       );
-      setDiff(response.data);
+
+      // Transform API response to component format
+      const visualization = response.data.visualization;
+      const chunks = visualization.chunks || [];
+
+      // Build changes array from chunks
+      const changes: VersionDiff['changes'] = [];
+      let lineNum = 1;
+
+      chunks.forEach((chunk: any) => {
+        const oldLines = chunk.old_content?.split('\n') || [];
+        const newLines = chunk.new_content?.split('\n') || [];
+        const maxLines = Math.max(oldLines.length, newLines.length);
+
+        for (let i = 0; i < maxLines; i++) {
+          const oldLine = oldLines[i];
+          const newLine = newLines[i];
+
+          if (chunk.type === 'added' && newLine) {
+            changes.push({
+              type: 'added',
+              line: newLine,
+              lineNumber: lineNum++,
+              newLineNumber: lineNum - 1,
+            });
+          } else if (chunk.type === 'removed' && oldLine) {
+            changes.push({
+              type: 'deleted',
+              line: oldLine,
+              lineNumber: lineNum++,
+              oldLineNumber: lineNum - 1,
+            });
+          } else if (chunk.type === 'modified') {
+            if (oldLine) {
+              changes.push({
+                type: 'deleted',
+                line: oldLine,
+                lineNumber: lineNum++,
+                oldLineNumber: lineNum - 1,
+              });
+            }
+            if (newLine) {
+              changes.push({
+                type: 'added',
+                line: newLine,
+                lineNumber: lineNum++,
+                newLineNumber: lineNum - 1,
+              });
+            }
+          } else if (chunk.type === 'unchanged' && oldLine) {
+            changes.push({
+              type: 'unchanged',
+              line: oldLine,
+              lineNumber: lineNum++,
+              oldLineNumber: lineNum - 1,
+              newLineNumber: lineNum - 1,
+            });
+          }
+        }
+      });
+
+      // Calculate summary
+      const summary = {
+        additions: changes.filter(c => c.type === 'added').length,
+        deletions: changes.filter(c => c.type === 'deleted').length,
+        modifications: changes.filter(c => c.type === 'modified').length,
+        unchanged: changes.filter(c => c.type === 'unchanged').length,
+      };
+
+      // Get version details
+      const v1Response = await apiClient.get(`/api/v1/memories/versions/${memoryId}/version/${v1Id}`);
+      const v2Response = await apiClient.get(`/api/v1/memories/versions/${memoryId}/version/${v2Id}`);
+
+      setDiff({
+        version1: {
+          id: v1Response.data.id,
+          version: v1Response.data.version_number,
+          content: v1Response.data.content,
+          created_at: v1Response.data.created_at,
+        },
+        version2: {
+          id: v2Response.data.id,
+          version: v2Response.data.version_number,
+          content: v2Response.data.content,
+          created_at: v2Response.data.created_at,
+        },
+        changes,
+        summary,
+      });
       setError(null);
     } catch (err) {
       const axiosError = err as AxiosError<{ detail?: string }>;

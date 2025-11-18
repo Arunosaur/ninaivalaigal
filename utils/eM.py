@@ -264,6 +264,34 @@ class Mem0Client:
         else:
             print(f"❌ Failed to get macro recording status: {response.text}")
 
+    def macro_list(self):
+        """List all macros"""
+        response = self.make_request("GET", "/macros")
+        if response.status_code == 200:
+            data = response.json()
+            macros = data.get("macros", [])
+            total = data.get("total", 0)
+
+            if total == 0:
+                print("📭 No macros found")
+                return
+
+            print(f"📋 Macros (Total: {total})")
+            print()
+
+            for macro in macros:
+                status = "✅ Active" if macro.get("is_active") else "⚪ Inactive"
+                print(f"  {status} {macro.get('name', 'Unnamed')}")
+                if macro.get("description"):
+                    print(f"     {macro.get('description')}")
+                print(f"     ID: {macro.get('macro_id')}")
+                print(f"     Executions: {macro.get('execution_count', 0)}")
+                if macro.get("tags"):
+                    print(f"     Tags: {', '.join(macro.get('tags', []))}")
+                print()
+        else:
+            print(f"❌ Failed to list macros: {response.text}")
+
     def macro_run(self, macro_id, execution_context=None, timeout_seconds=None):
         """Execute a macro"""
         data = {}
@@ -271,7 +299,7 @@ class Mem0Client:
             data["execution_context"] = execution_context
         if timeout_seconds:
             data["timeout_seconds"] = timeout_seconds
-        
+
         response = self.make_request("POST", f"/macros/{macro_id}/execute", json=data)
         if response.status_code == 200:
             result = response.json()
@@ -394,13 +422,14 @@ def main():
         client.create_context(name, scope, description, team_id, org_id)
 
     elif command == "macro":
-        # Macro commands: macro start, macro stop, macro status, macro run
+        # Macro commands: macro start, macro stop, macro status, macro list, macro run
         if len(sys.argv) < 3:
-            print("Usage: mem0 macro <start|stop|status|run> [options]")
+            print("Usage: mem0 macro <start|stop|status|list|run> [options]")
             print("Commands:")
             print("  macro start [--name <name>] [--context <context_id>]")
             print("  macro stop")
             print("  macro status")
+            print("  macro list")
             print("  macro run <macro_id> [--context <json_context>] [--timeout <seconds>]")
             sys.exit(1)
 
@@ -428,15 +457,18 @@ def main():
         elif macro_subcommand == "status":
             client.macro_status()
 
+        elif macro_subcommand == "list":
+            client.macro_list()
+
         elif macro_subcommand == "run":
             if len(sys.argv) < 4:
                 print("Usage: mem0 macro run <macro_id> [--context <json_context>] [--timeout <seconds>]")
                 sys.exit(1)
-            
+
             macro_id = sys.argv[3]
             execution_context = None
             timeout_seconds = None
-            
+
             i = 4
             while i < len(sys.argv):
                 if sys.argv[i] == "--context" and i + 1 < len(sys.argv):
@@ -451,12 +483,12 @@ def main():
                     i += 2
                 else:
                     i += 1
-            
+
             client.macro_run(macro_id, execution_context, timeout_seconds)
 
         else:
             print(f"❌ Unknown macro command: {macro_subcommand}")
-            print("Available macro commands: start, stop, status, run")
+            print("Available macro commands: start, stop, status, list, run")
             sys.exit(1)
 
     else:

@@ -11,7 +11,6 @@ Standalone integration tests for Memory Service (Rust)
 Runs without requiring conftest or fixtures
 """
 
-import json
 import time
 from uuid import uuid4
 

@@ -1,15 +1,50 @@
-#!/usr/bin/env python3
-# SPDX-License-Identifier: Proprietary
-# Copyright (c) 2025 Medhasys LLC
-#
-# This file contains proprietary code owned by Medhasys LLC.
-# Unauthorized copying, modification, or distribution is prohibited.
-# See LICENSE file in the server/ directory for details.
-#
 """
-Middleware package for performance optimization and request processing.
+Middleware Resilience Utilities
+
+SPEC-092: Middleware resilience framework for timeout handling, fallback mechanisms,
+and circuit breakers.
 """
 
-from .response_cache import CacheManager, ResponseCacheMiddleware
+from lib.middleware.circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerError,
+    CircuitBreakerManager,
+    CircuitState,
+    circuit_breaker_middleware,
+    get_breaker_manager,
+)
+from lib.middleware.circuit_breaker_middleware import CircuitBreakerMiddleware
+from lib.middleware.health import MiddlewareHealthMonitor, get_middleware_health_monitor
+from lib.middleware.redis_fallback import RedisFallback, get_redis_fallback
+from lib.middleware.timeout_handler import (
+    DEFAULT_MIDDLEWARE_TIMEOUT,
+    DEFAULT_REDIS_TIMEOUT,
+    DEFAULT_REQUEST_TIMEOUT,
+    RequestTimeoutMiddleware,
+    TimeoutError,
+    safe_async_call,
+    timeout_middleware_wrapper,
+    with_timeout,
+)
 
-__all__ = ["ResponseCacheMiddleware", "CacheManager"]
+__all__ = [
+    "RequestTimeoutMiddleware",
+    "CircuitBreakerMiddleware",
+    "RedisFallback",
+    "get_redis_fallback",
+    "CircuitBreaker",
+    "CircuitBreakerManager",
+    "get_breaker_manager",
+    "CircuitBreakerError",
+    "CircuitState",
+    "circuit_breaker_middleware",
+    "MiddlewareHealthMonitor",
+    "get_middleware_health_monitor",
+    "with_timeout",
+    "safe_async_call",
+    "timeout_middleware_wrapper",
+    "TimeoutError",
+    "DEFAULT_MIDDLEWARE_TIMEOUT",
+    "DEFAULT_REDIS_TIMEOUT",
+    "DEFAULT_REQUEST_TIMEOUT",
+]

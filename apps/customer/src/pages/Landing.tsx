@@ -12,6 +12,7 @@ import { MatrixRainSides } from '../components/MatrixRainSides';
 import { useAuth } from '../lib/authContext';
 import { isBrowser, prefersReducedMotion } from '../utils/environment';
 import ConceptEquation from './prototypes/concept-equation/ConceptEquation';
+import { InstallPrompt } from '../components/pwa';
 
 const SECTION_ORDER = ['product', 'why', 'how', 'outcomes'] as const;
 
@@ -580,6 +581,9 @@ export function Landing() {
           />
         </div>
       </footer>
+
+      {/* PWA Install Prompt */}
+      <InstallPrompt variant="banner" position="bottom" />
     </div>
   );
 }

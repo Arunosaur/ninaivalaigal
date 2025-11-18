@@ -6,26 +6,18 @@
 // See LICENSE file in the server/ directory for details.
 //
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import SecurityHealthGauge from '../components/SecurityHealthGauge'
 import SecurityTimeSeriesChart from '../components/SecurityTimeSeriesChart'
 import SuspiciousIPsTable from '../components/SuspiciousIPsTable'
 import FailedLoginsTable from '../components/FailedLoginsTable'
 import useSecurityMetrics from '../hooks/useSecurityMetrics'
-import authService from '../services/auth'
 
 const DEFAULT_TIME_WINDOWS = [24, 168, 720]
 
 export default function Analytics() {
-  const navigate = useNavigate()
   const [timeWindow, setTimeWindow] = useState<number>(24)
   const { metrics, loading, error, lastUpdated, refetch, isRefreshing } = useSecurityMetrics(timeWindow)
-
-  useEffect(() => {
-    if (!authService.isAuthenticated()) {
-      navigate('/login')
-    }
-  }, [navigate])
 
   useEffect(() => {
     setTimeWindow((previous) => (DEFAULT_TIME_WINDOWS.includes(previous) ? previous : 24))

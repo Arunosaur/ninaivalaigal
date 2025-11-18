@@ -395,7 +395,7 @@ export default function TeamCreate() {
                   </div>
                 )}
               </div>
-            </div>
+            </section>
           )}
 
           {/* Navigation Buttons */}

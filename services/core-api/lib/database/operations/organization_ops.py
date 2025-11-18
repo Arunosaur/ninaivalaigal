@@ -12,7 +12,7 @@ Database operations for organization and team management
 """
 
 from ..manager import DatabaseManager
-from ..models import Organization, Team, TeamMember
+from database.models import Organization, Team, TeamMember
 
 
 class OrganizationOperations(DatabaseManager):
@@ -272,7 +272,7 @@ class OrganizationOperations(DatabaseManager):
         """Get all members of a team with their roles"""
         session = self.get_session()
         try:
-            from ..models import User
+            from database.models import User
 
             members = session.query(TeamMember, User).join(User).filter(TeamMember.team_id == team_id).all()
 

@@ -10,8 +10,6 @@ Unit tests for services/core-api/utils/api_rate_limiting.py
 Tests general API rate limiting functionality.
 """
 
-import time
-from unittest.mock import patch
 
 import pytest
 
@@ -103,7 +101,7 @@ class TestAPIRateLimiter:
     def test_check_user_limit(self):
         """Test user rate limit checking"""
         try:
-            from utils.api_rate_limiting import PER_USER_LIMIT, APIRateLimiter
+            from utils.api_rate_limiting import APIRateLimiter
 
             limiter = APIRateLimiter()
             user_id = "user-123"
@@ -137,7 +135,6 @@ class TestAPIRateLimiter:
     def test_rate_limit_window_expiry(self):
         """Test that rate limit window expires correctly"""
         try:
-            import time as time_module
 
             from utils.api_rate_limiting import APIRateLimiter
 

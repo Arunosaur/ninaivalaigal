@@ -13,9 +13,9 @@ Extends existing signup to support team creation and joining
 
 from typing import Any, Dict
 
-from database import User, get_db
+from database import User, UserInvitation, get_db
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from models.standalone_teams import StandaloneTeamManager, TeamInvitation
+from models.standalone_teams import StandaloneTeamManager
 from pydantic import BaseModel, EmailStr, validator
 
 from auth import (
@@ -218,7 +218,7 @@ async def signup_with_team_joining(
 
     try:
         # Validate invitation token first
-        invitation = session.query(TeamInvitation).filter_by(invitation_token=signup_data.invitation_token).first()
+        invitation = session.query(UserInvitation).filter_by(invitation_token=signup_data.invitation_token).first()
 
         if not invitation or not invitation.is_valid():
             raise HTTPException(
@@ -466,7 +466,7 @@ async def validate_invitation_token(
                 detail="Invitation token is required",
             )
 
-        invitation = session.query(TeamInvitation).filter_by(invitation_token=invitation_token).first()
+        invitation = session.query(UserInvitation).filter_by(invitation_token=invitation_token).first()
 
         if not invitation:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation not found")

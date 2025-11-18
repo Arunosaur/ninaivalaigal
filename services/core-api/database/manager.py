@@ -21,7 +21,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from config import DEFAULT_RUST_DATABASE_URL
+from lib.config import DEFAULT_RUST_DATABASE_URL
 
 from .models import Base, Context, Memory, User
 
@@ -29,8 +29,15 @@ from .models import Base, Context, Memory, User
 class DatabaseManager:
     """Core database manager with connection and session management"""
 
-    def __init__(self, config=None):
-        """Initialize instance."""
+    def __init__(self, config=None, create_tables: bool = False):
+        """
+        Initialize instance.
+        
+        Args:
+            config: Configuration dict or database URL string
+            create_tables: Whether to create tables automatically (default: False)
+                          Set to False when using Alembic migrations
+        """
         # Get database URL from environment or use default
         default_url = os.getenv(
             "DATABASE_URL",
@@ -40,20 +47,17 @@ class DatabaseManager:
         # Handle both string URL and config dict
         if isinstance(config, dict):
             database_url = config.get("database_url", default_url)
-        elif config is not None:
+        elif isinstance(config, str):
             database_url = config
         else:
             database_url = default_url
 
-        # Ensure we always use PostgreSQL
-        if not database_url.startswith("postgresql"):
-            database_url = DEFAULT_RUST_DATABASE_URL
-        print(f"🐘 Using PostgreSQL: {database_url}")
-
-        # PostgreSQL connection with pool settings
-        self.engine = create_engine(database_url, pool_pre_ping=True)
+        self.database_url = database_url
+        self.engine = create_engine(database_url)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-        self.create_tables()
+        
+        if create_tables:
+            self.create_tables()
 
     def create_tables(self):
         """Create all database tables"""

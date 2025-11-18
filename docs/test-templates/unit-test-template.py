@@ -8,8 +8,6 @@
 #
 # Unit Test Template
 
-import pytest
-
 
 def test_example_function():
     """Example unit test."""

@@ -23,5 +23,6 @@
     }
   },
   "include": ["src"],
+  "exclude": ["../../packages/ui/**"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

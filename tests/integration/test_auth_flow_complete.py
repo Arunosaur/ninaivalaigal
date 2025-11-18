@@ -11,6 +11,7 @@ End-to-end tests for the complete authentication lifecycle:
 - Session management
 """
 
+# Import shared fixtures from conftest.py
 import asyncio
 from datetime import datetime, timedelta
 from typing import Any, Dict

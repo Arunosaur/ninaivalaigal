@@ -19,9 +19,11 @@ from typing import Any
 
 import jwt
 from database import Organization, OrganizationRegistration, User, UserInvitation
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
 
 from auth import (
+    AUTH_COOKIE_NAME,
+    AUTH_COOKIE_MAX_AGE,
     JWT_ALGORITHM,
     JWT_EXPIRATION_HOURS,
     JWT_SECRET,
@@ -30,11 +32,13 @@ from auth import (
     OrganizationSignup,
     UserLogin,
     authenticate_user,
+    clear_admin_auth_cookie,
     create_individual_user,
     generate_invitation_token,
     generate_verification_token,
     get_current_user,
     hash_password,
+    set_admin_auth_cookie,
     send_verification_email,
     validate_email,
     verify_email_token,
@@ -165,7 +169,7 @@ async def signup_organization(signup_data: OrganizationSignup, background_tasks:
 
 
 @router.post("/login")
-async def login(login_data: UserLogin) -> dict[str, Any]:
+async def login(login_data: UserLogin, response: Response) -> dict[str, Any]:
     """
     Authenticate user and return JWT token.
 
@@ -180,16 +184,32 @@ async def login(login_data: UserLogin) -> dict[str, Any]:
         if not result:
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
+        token = result.get("jwt_token")
+        if not token:
+            raise HTTPException(status_code=500, detail="Authentication token generation failed")
+
+        set_admin_auth_cookie(response, token, AUTH_COOKIE_MAX_AGE)
+
+        user_payload = {
+            "user_id": result.get("user_id"),
+            "email": result.get("email"),
+            "account_type": result.get("account_type"),
+            "role": result.get("role"),
+            "rbac_roles": result.get("rbac_roles", {}),
+            "is_system_admin": result.get("is_system_admin", False),
+        }
+
+        session_info = {
+            "expires_in": AUTH_COOKIE_MAX_AGE,
+            "token_delivery": "cookie",
+            "cookie_name": AUTH_COOKIE_NAME,
+        }
+
         return {
             "success": True,
             "message": "Login successful",
-            "jwt_token": result["jwt_token"],
-            "user_id": result["user_id"],
-            "email": result["email"],
-            "account_type": result["account_type"],
-            "role": result["role"],
-            "expires_in": JWT_EXPIRATION_HOURS * 3600,
-            "token_type": "Bearer",
+            "user": user_payload,
+            "session": session_info,
         }
 
     except HTTPException as e:
@@ -247,22 +267,24 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)) 
 
 
 @router.post("/logout")
-async def logout(current_user: User = Depends(get_current_user)) -> dict[str, Any]:
+async def logout(response: Response, current_user: User = Depends(get_current_user)) -> dict[str, Any]:
     """
     Logout current user.
 
     **V1 Note**: Token invalidation is client-side only.
     Server-side token blacklisting will be added in V2.
     """
+    clear_admin_auth_cookie(response)
+
     return {
         "success": True,
         "message": "Logged out successfully",
-        "note": "Please delete the JWT token from client storage",
+        "note": "Session cookie cleared",
     }
 
 
 @router.post("/refresh")
-async def refresh_token(current_user: User = Depends(get_current_user)) -> dict[str, Any]:
+async def refresh_token(response: Response, current_user: User = Depends(get_current_user)) -> dict[str, Any]:
     """
     Refresh JWT token.
 
@@ -281,12 +303,16 @@ async def refresh_token(current_user: User = Depends(get_current_user)) -> dict[
         }
         new_token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
+        set_admin_auth_cookie(response, new_token, AUTH_COOKIE_MAX_AGE)
+
         return {
             "success": True,
             "message": "Token refreshed successfully",
-            "jwt_token": new_token,
-            "expires_in": JWT_EXPIRATION_HOURS * 3600,
-            "token_type": "Bearer",
+            "session": {
+                "expires_in": AUTH_COOKIE_MAX_AGE,
+                "token_delivery": "cookie",
+                "cookie_name": AUTH_COOKIE_NAME,
+            },
         }
 
     except Exception as e:

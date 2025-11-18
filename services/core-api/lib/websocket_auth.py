@@ -157,3 +157,7 @@ async def authenticate_websocket(websocket: WebSocket) -> Dict[str, Any]:
     """
     token = await extract_token_from_websocket(websocket)
     return await get_current_user_ws(token)
+
+
+
+

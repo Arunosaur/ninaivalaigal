@@ -22,6 +22,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY shared/ /app/shared/
 COPY services/graph-service/ /app/
 
+# Copy entrypoint script (SPEC-107: Use gunicorn for runtime parity)
+COPY services/graph-service/docker-entrypoint.sh .
+RUN chmod +x docker-entrypoint.sh
+
 ENV PYTHONUNBUFFERED=1
 ENV SERVICE_ROLE=graph-service
 ENV PORT=8000
@@ -32,4 +36,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/health')"
 
-CMD ["python", "main.py"]
+# SPEC-107: Use gunicorn for runtime parity across dev/test/prod
+CMD ["./docker-entrypoint.sh"]

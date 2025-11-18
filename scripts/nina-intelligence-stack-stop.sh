@@ -18,7 +18,7 @@ log() {
 log "🛑 Stopping Nina Intelligence Stack..."
 
 # Stop in reverse order: UI -> API -> Cache -> Database
-CONTAINERS_TO_STOP=("nv-ui" "nv-api" "nina-intelligence-cache" "nina-intelligence-db")
+CONTAINERS_TO_STOP=("" "" "nina-intelligence-cache" "nina-intelligence-db")
 
 for container in "${CONTAINERS_TO_STOP[@]}"; do
   if container list | grep -q "$container.*running"; then
@@ -33,4 +33,4 @@ log "✅ Nina Intelligence Stack stopped."
 
 # Show final status
 log "📊 Final status:"
-container list | grep -E "(nina-intelligence|nv-api|nv-ui)" || log "All nina intelligence containers stopped."
+container list | grep -E "(nina-intelligence||)" || log "All nina intelligence containers stopped."

@@ -11,12 +11,14 @@ Graph Ranking System - PageRank for Memory Intelligence
 Ranks memories and contexts based on connections, discussions, and approvals
 """
 
-from datetime import datetime
+import logging
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from auth_utils import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/graph-rank", tags=["ai-intelligence"])
 
 # Mock graph data - in real implementation, build from memory, context, approval, discussion systems
@@ -551,6 +553,973 @@ async def get_graph_insights(
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "filters": {"team_filter": team_filter},
     }
+
+
+@router.get("/visualizations/knowledge-graph-network")
+async def get_knowledge_graph_network_data(
+    team_filter: Optional[int] = None,
+    depth: int = 2,
+    min_pagerank: float = 0.1,
+    limit: int = 1000,
+    user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get graph data for Knowledge Graph Network visualization (SPEC-067).
+    
+    Returns nodes and edges formatted for D3.js force-directed layout.
+    """
+    try:
+        # Calculate PageRank
+        pagerank_scores = calculate_pagerank(GRAPH_NODES, GRAPH_EDGES)
+        enhanced_scores = calculate_enhanced_scores(GRAPH_NODES, pagerank_scores)
+
+        # Build nodes for visualization
+        nodes = []
+        node_ids = set()
+        
+        for node_id, score_data in enhanced_scores.items():
+            node = score_data["node"]
+            pagerank = score_data["final_score"]
+            
+            # Filter by team if specified
+            if team_filter is not None and node.get("team_id") != team_filter:
+                continue
+            
+            # Filter by minimum PageRank
+            if pagerank < min_pagerank:
+                continue
+            
+            # Determine node color based on type and sentiment
+            node_type = node.get("type", "memory")
+            sentiment = node.get("sentiment_score", 0.5)
+            
+            color_map = {
+                "memory": f"hsl({210 + sentiment * 60}, 70%, 50%)",  # Blue-green based on sentiment
+                "context": "#8b5cf6",  # Purple
+                "tag": "#f59e0b",  # Amber
+                "user": "#10b981",  # Green
+            }
+            
+            nodes.append({
+                "id": node_id,
+                "type": node_type,
+                "title": node.get("title", f"{node_type}_{node_id}"),
+                "pagerank_score": pagerank,
+                "sentiment_score": sentiment,
+                "discussion_count": node.get("discussion_count", 0),
+                "size": max(5, min(30, pagerank * 20)),  # Scale size based on PageRank
+                "color": color_map.get(node_type, "#6b7280"),
+            })
+            
+            node_ids.add(node_id)
+            
+            # Limit nodes
+            if len(nodes) >= limit:
+                break
+
+        # Build edges (links) for visualization
+        edges = []
+        edge_count = 0
+        
+        for edge in GRAPH_EDGES:
+            source_id = edge.get("source")
+            target_id = edge.get("target")
+            
+            # Only include edges between nodes we're showing
+            if source_id not in node_ids or target_id not in node_ids:
+                continue
+            
+            # Determine edge type
+            edge_type = edge.get("type", "reference")
+            if edge_type not in ["reference", "discussion", "approval", "ai_suggested"]:
+                edge_type = "reference"
+            
+            edges.append({
+                "source": source_id,
+                "target": target_id,
+                "type": edge_type,
+                "weight": edge.get("weight", 1.0),
+                "animated": False,
+            })
+            
+            edge_count += 1
+            if edge_count >= limit * 2:  # Allow more edges than nodes
+                break
+
+        return {
+            "success": True,
+            "data": {
+                "nodes": nodes,
+                "edges": edges,
+            },
+            "metadata": {
+                "total_nodes": len(nodes),
+                "total_edges": len(edges),
+                "filters": {
+                    "team_filter": team_filter,
+                    "min_pagerank": min_pagerank,
+                    "depth": depth,
+                },
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get knowledge graph network data: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate graph data: {str(e)}")
+
+
+@router.get("/visualizations/memory-impact-trail/{memory_id}")
+async def get_memory_impact_trail(
+    memory_id: str,
+    user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get impact trail data for a specific memory (SPEC-067).
+    
+    Returns timeline-based data showing how a memory influenced team knowledge over time.
+    """
+    try:
+        # Find memory in graph nodes
+        memory_node = None
+        for node_id, node in GRAPH_NODES.items():
+            if node.get("id") == memory_id or node_id == memory_id:
+                memory_node = node
+                break
+
+        if not memory_node:
+            raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
+
+        # Calculate PageRank for context
+        pagerank_scores = calculate_pagerank(GRAPH_NODES, GRAPH_EDGES)
+        enhanced_scores = calculate_enhanced_scores(GRAPH_NODES, pagerank_scores)
+
+        # Build impact paths (branches)
+        paths = []
+        
+        # Main path: memory creation and direct impacts
+        main_path_events = [
+            {
+                "id": f"event_{memory_id}_created",
+                "timestamp": memory_node.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                "type": "created",
+                "title": memory_node.get("title", "Memory Created"),
+                "description": memory_node.get("content", ""),
+                "user_id": str(memory_node.get("user_id", "")),
+                "metrics": {
+                    "views": memory_node.get("view_count", 0),
+                    "discussions": memory_node.get("discussion_count", 0),
+                    "approvals": 1 if memory_node.get("approval_status") == "approved" else 0,
+                },
+            }
+        ]
+
+        # Find related events (discussions, approvals, related memories)
+        discussion_events = []
+        approval_events = []
+        related_memory_events = []
+
+        # Check edges for connections
+        for edge in GRAPH_EDGES:
+            source_id = edge.get("source")
+            target_id = edge.get("target")
+            
+            if source_id == memory_id or target_id == memory_id:
+                connected_id = target_id if source_id == memory_id else source_id
+                connected_node = GRAPH_NODES.get(connected_id)
+                
+                if connected_node:
+                    edge_type = edge.get("type", "reference")
+                    
+                    if edge_type == "discussion":
+                        discussion_events.append({
+                            "id": f"event_{connected_id}",
+                            "timestamp": connected_node.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                            "type": "discussion",
+                            "title": f"Discussion: {connected_node.get('title', 'Discussion')}",
+                            "user_id": str(connected_node.get("user_id", "")),
+                            "metrics": {
+                                "views": connected_node.get("view_count", 0),
+                                "discussions": connected_node.get("discussion_count", 0),
+                                "approvals": 0,
+                            },
+                        })
+                    elif edge_type == "approval":
+                        approval_events.append({
+                            "id": f"event_{connected_id}_approval",
+                            "timestamp": connected_node.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                            "type": "approval",
+                            "title": "Memory Approved",
+                            "user_id": str(connected_node.get("user_id", "")),
+                            "metrics": {
+                                "views": 0,
+                                "discussions": 0,
+                                "approvals": 1,
+                            },
+                        })
+                    elif connected_node.get("type") == "memory":
+                        related_memory_events.append({
+                            "id": f"event_{connected_id}_related",
+                            "timestamp": connected_node.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                            "type": "related_memory",
+                            "title": f"Related: {connected_node.get('title', 'Related Memory')}",
+                            "user_id": str(connected_node.get("user_id", "")),
+                            "metrics": {
+                                "views": connected_node.get("view_count", 0),
+                                "discussions": connected_node.get("discussion_count", 0),
+                                "approvals": 0,
+                            },
+                        })
+
+        # Build paths
+        if main_path_events:
+            paths.append({
+                "id": "main_path",
+                "events": main_path_events + approval_events,
+                "branch_type": "main",
+                "color": "#3b82f6",  # Blue
+            })
+
+        if discussion_events:
+            paths.append({
+                "id": "discussion_path",
+                "events": discussion_events,
+                "branch_type": "discussion",
+                "color": "#10b981",  # Green
+            })
+
+        if related_memory_events:
+            paths.append({
+                "id": "related_path",
+                "events": related_memory_events,
+                "branch_type": "related",
+                "color": "#f59e0b",  # Amber
+            })
+
+        # Calculate total impact
+        total_views = sum(
+            event.get("metrics", {}).get("views", 0) for path in paths for event in path["events"]
+        )
+        total_discussions = sum(
+            event.get("metrics", {}).get("discussions", 0) for path in paths for event in path["events"]
+        )
+        total_approvals = sum(
+            event.get("metrics", {}).get("approvals", 0) for path in paths for event in path["events"]
+        )
+
+        # Get affected users (unique user IDs from events)
+        affected_user_ids = set()
+        for path in paths:
+            for event in path["events"]:
+                if event.get("user_id"):
+                    affected_user_ids.add(event["user_id"])
+
+        return {
+            "success": True,
+            "data": {
+                "memory_id": memory_id,
+                "memory_title": memory_node.get("title", "Memory"),
+                "created_at": memory_node.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                "paths": paths,
+                "total_impact": {
+                    "total_views": total_views,
+                    "total_discussions": total_discussions,
+                    "total_approvals": total_approvals,
+                    "affected_users": len(affected_user_ids),
+                },
+            },
+            "metadata": {
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+            },
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get memory impact trail: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate impact trail: {str(e)}")
+
+
+@router.get("/visualizations/collaboration-heatmap")
+async def get_collaboration_heatmap(
+    team_id: Optional[int] = None,
+    time_window: Optional[str] = None,  # e.g., "30d", "7d", "1y"
+    user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get collaboration heatmap data (SPEC-067).
+    
+    Returns 2D heatmap data showing collaboration intensity across knowledge areas.
+    """
+    try:
+        # Extract knowledge topics from graph nodes
+        topics = set()
+        topic_activities: Dict[str, Dict[str, int]] = {}  # {topic_x: {topic_y: count}}
+
+        # Analyze graph nodes for knowledge topics
+        for node_id, node in GRAPH_NODES.items():
+            # Extract topics from tags or content
+            node_topics = node.get("tags", [])
+            if not node_topics and node.get("type") == "memory":
+                # Try to extract from title or content
+                title = node.get("title", "")
+                if title:
+                    node_topics = [title.split()[0]] if title.split() else []
+
+            for topic in node_topics:
+                topics.add(topic)
+
+            # Build activity matrix
+            for topic_x in node_topics:
+                if topic_x not in topic_activities:
+                    topic_activities[topic_x] = {}
+                for topic_y in node_topics:
+                    if topic_x != topic_y:
+                        topic_activities[topic_x][topic_y] = (
+                            topic_activities[topic_x].get(topic_y, 0) + 1
+                        )
+
+        # Convert to sorted list
+        topics_list = sorted(list(topics))[:20]  # Limit to top 20 topics
+
+        # Build heatmap cells
+        cells = []
+        peak_intensity = 0
+        total_collaborations = 0
+
+        for topic_x in topics_list:
+            for topic_y in topics_list:
+                if topic_x == topic_y:
+                    continue
+
+                activity_count = topic_activities.get(topic_x, {}).get(topic_y, 0)
+                if activity_count > 0:
+                    # Calculate intensity (normalized)
+                    intensity = min(activity_count * 10, 100)  # Scale to 0-100
+                    peak_intensity = max(peak_intensity, intensity)
+                    total_collaborations += activity_count
+
+                    # Get team members involved (simplified - in real implementation, track actual users)
+                    team_members = []
+                    for node_id, node in GRAPH_NODES.items():
+                        node_topics = node.get("tags", [])
+                        if topic_x in node_topics and topic_y in node_topics:
+                            user_id = str(node.get("user_id", ""))
+                            if user_id and user_id not in team_members:
+                                team_members.append(user_id)
+
+                    cells.append({
+                        "x": topic_x,
+                        "y": topic_y,
+                        "value": intensity,
+                        "activity_count": activity_count,
+                        "team_members": team_members[:5],  # Limit to 5 members
+                        "timestamp": node.get("created_at") if node else None,
+                    })
+
+        # Calculate time range
+        if not time_window:
+            time_window = "30d"
+
+        # Get start/end times based on window
+        end_time = datetime.utcnow()
+        if time_window.endswith("d"):
+            days = int(time_window[:-1])
+            start_time = end_time - timedelta(days=days)
+        elif time_window.endswith("w"):
+            weeks = int(time_window[:-1])
+            start_time = end_time - timedelta(weeks=weeks)
+        elif time_window.endswith("y"):
+            years = int(time_window[:-1])
+            start_time = end_time - timedelta(days=years * 365)
+        else:
+            start_time = end_time - timedelta(days=30)
+
+        return {
+            "success": True,
+            "data": {
+                "cells": cells,
+                "topics": topics_list,
+                "time_range": {
+                    "start": start_time.isoformat() + "Z",
+                    "end": end_time.isoformat() + "Z",
+                },
+                "total_collaborations": total_collaborations,
+                "peak_intensity": peak_intensity,
+            },
+            "metadata": {
+                "team_id": team_id,
+                "time_window": time_window,
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get collaboration heatmap: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate heatmap: {str(e)}")
+
+
+@router.get("/visualizations/pagerank-visual/{memory_id}")
+async def get_pagerank_visual_feedback(
+    memory_id: str,
+    user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get PageRank visual feedback data for a specific memory (SPEC-067).
+    
+    Returns radial visualization data with influence rings and score breakdown.
+    """
+    try:
+        # Find memory in graph nodes
+        memory_node = None
+        memory_node_id = None
+        for node_id, node in GRAPH_NODES.items():
+            if node.get("id") == memory_id or node_id == memory_id:
+                memory_node = node
+                memory_node_id = node_id
+                break
+
+        if not memory_node:
+            raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
+
+        # Calculate PageRank and enhanced scores
+        pagerank_scores = calculate_pagerank(GRAPH_NODES, GRAPH_EDGES)
+        enhanced_scores = calculate_enhanced_scores(GRAPH_NODES, pagerank_scores)
+
+        memory_score_data = enhanced_scores.get(memory_node_id, {})
+        base_pagerank = memory_score_data.get("base_pagerank", 0.0)
+        final_score = memory_score_data.get("final_score", base_pagerank)
+
+        # Build score breakdown
+        score_breakdown = []
+        
+        if "base_pagerank" in memory_score_data:
+            score_breakdown.append({
+                "name": "Base PageRank",
+                "value": memory_score_data["base_pagerank"],
+                "percentage": (memory_score_data["base_pagerank"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#3b82f6",
+                "description": "Core PageRank algorithm score",
+            })
+
+        if "discussion_boost" in memory_score_data:
+            score_breakdown.append({
+                "name": "Discussion Boost",
+                "value": memory_score_data["discussion_boost"],
+                "percentage": (memory_score_data["discussion_boost"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#10b981",
+                "description": "Boost from discussion activity",
+            })
+
+        if "sentiment_boost" in memory_score_data:
+            score_breakdown.append({
+                "name": "Sentiment Boost",
+                "value": memory_score_data["sentiment_boost"],
+                "percentage": (memory_score_data["sentiment_boost"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#f59e0b",
+                "description": "Boost from positive sentiment",
+            })
+
+        if "approval_boost" in memory_score_data:
+            score_breakdown.append({
+                "name": "Approval Boost",
+                "value": memory_score_data["approval_boost"],
+                "percentage": (memory_score_data["approval_boost"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#8b5cf6",
+                "description": "Boost from approvals",
+            })
+
+        if "recency_boost" in memory_score_data:
+            score_breakdown.append({
+                "name": "Recency Boost",
+                "value": memory_score_data["recency_boost"],
+                "percentage": (memory_score_data["recency_boost"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#ec4899",
+                "description": "Boost for recent content",
+            })
+
+        # Build direct connections (distance = 1)
+        direct_connections = []
+        indirect_connections = []
+
+        for edge in GRAPH_EDGES:
+            source_id = edge.get("source")
+            target_id = edge.get("target")
+            
+            if source_id == memory_node_id:
+                connected_node = GRAPH_NODES.get(target_id)
+                if connected_node:
+                    direct_connections.append({
+                        "id": f"conn_{target_id}",
+                        "type": "direct",
+                        "target_id": target_id,
+                        "target_title": connected_node.get("title", f"Node {target_id}"),
+                        "weight": edge.get("weight", 1.0),
+                        "distance": 1,
+                    })
+            elif target_id == memory_node_id:
+                connected_node = GRAPH_NODES.get(source_id)
+                if connected_node:
+                    direct_connections.append({
+                        "id": f"conn_{source_id}",
+                        "type": "direct",
+                        "target_id": source_id,
+                        "target_title": connected_node.get("title", f"Node {source_id}"),
+                        "weight": edge.get("weight", 1.0),
+                        "distance": 1,
+                    })
+
+        # Build indirect connections (distance = 2+)
+        # Find nodes connected to direct connections
+        direct_node_ids = {conn["target_id"] for conn in direct_connections}
+        
+        for edge in GRAPH_EDGES:
+            source_id = edge.get("source")
+            target_id = edge.get("target")
+            
+            # Check if this edge connects a direct connection to another node
+            if source_id in direct_node_ids and target_id != memory_node_id:
+                connected_node = GRAPH_NODES.get(target_id)
+                if connected_node and target_id not in direct_node_ids:
+                    indirect_connections.append({
+                        "id": f"conn_indirect_{target_id}",
+                        "type": "indirect",
+                        "target_id": target_id,
+                        "target_title": connected_node.get("title", f"Node {target_id}"),
+                        "weight": edge.get("weight", 1.0) * 0.5,  # Reduced weight for indirect
+                        "distance": 2,
+                    })
+            elif target_id in direct_node_ids and source_id != memory_node_id:
+                connected_node = GRAPH_NODES.get(source_id)
+                if connected_node and source_id not in direct_node_ids:
+                    indirect_connections.append({
+                        "id": f"conn_indirect_{source_id}",
+                        "type": "indirect",
+                        "target_id": source_id,
+                        "target_title": connected_node.get("title", f"Node {source_id}"),
+                        "weight": edge.get("weight", 1.0) * 0.5,  # Reduced weight for indirect
+                        "distance": 2,
+                    })
+
+        return {
+            "success": True,
+            "data": {
+                "memory_id": memory_id,
+                "memory_title": memory_node.get("title", "Memory"),
+                "pagerank_score": final_score,
+                "score_breakdown": score_breakdown,
+                "direct_connections": direct_connections[:20],  # Limit to 20
+                "indirect_connections": indirect_connections[:20],  # Limit to 20
+                "total_connections": len(direct_connections) + len(indirect_connections),
+            },
+            "metadata": {
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+            },
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get PageRank visual feedback: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate visual feedback: {str(e)}")
+
+
+def get_dashboard_insights():
+    """Get dashboard insights for widgets"""
+    return {
+        "total_memories": 1247,
+        "active_contexts": 89,
+        "engagement_score": 92.4,
+        "trending_topics": ["AI", "Memory", "Intelligence", "Analytics"],
+        "performance_metrics": {
+            "avg_response_time": "187ms",
+            "success_rate": "99.7%",
+            "user_satisfaction": "4.8/5",
+        },
+    }
+
+                                "discussions": connected_node.get("discussion_count", 0),
+                                "approvals": 0,
+                            },
+                        })
+                    elif edge_type == "approval":
+                        approval_events.append({
+                            "id": f"event_{connected_id}_approval",
+                            "timestamp": connected_node.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                            "type": "approval",
+                            "title": "Memory Approved",
+                            "user_id": str(connected_node.get("user_id", "")),
+                            "metrics": {
+                                "views": 0,
+                                "discussions": 0,
+                                "approvals": 1,
+                            },
+                        })
+                    elif connected_node.get("type") == "memory":
+                        related_memory_events.append({
+                            "id": f"event_{connected_id}_related",
+                            "timestamp": connected_node.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                            "type": "related_memory",
+                            "title": f"Related: {connected_node.get('title', 'Related Memory')}",
+                            "user_id": str(connected_node.get("user_id", "")),
+                            "metrics": {
+                                "views": connected_node.get("view_count", 0),
+                                "discussions": connected_node.get("discussion_count", 0),
+                                "approvals": 0,
+                            },
+                        })
+
+        # Build paths
+        if main_path_events:
+            paths.append({
+                "id": "main_path",
+                "events": main_path_events + approval_events,
+                "branch_type": "main",
+                "color": "#3b82f6",  # Blue
+            })
+
+        if discussion_events:
+            paths.append({
+                "id": "discussion_path",
+                "events": discussion_events,
+                "branch_type": "discussion",
+                "color": "#10b981",  # Green
+            })
+
+        if related_memory_events:
+            paths.append({
+                "id": "related_path",
+                "events": related_memory_events,
+                "branch_type": "related",
+                "color": "#f59e0b",  # Amber
+            })
+
+        # Calculate total impact
+        total_views = sum(
+            event.get("metrics", {}).get("views", 0) for path in paths for event in path["events"]
+        )
+        total_discussions = sum(
+            event.get("metrics", {}).get("discussions", 0) for path in paths for event in path["events"]
+        )
+        total_approvals = sum(
+            event.get("metrics", {}).get("approvals", 0) for path in paths for event in path["events"]
+        )
+
+        # Get affected users (unique user IDs from events)
+        affected_user_ids = set()
+        for path in paths:
+            for event in path["events"]:
+                if event.get("user_id"):
+                    affected_user_ids.add(event["user_id"])
+
+        return {
+            "success": True,
+            "data": {
+                "memory_id": memory_id,
+                "memory_title": memory_node.get("title", "Memory"),
+                "created_at": memory_node.get("created_at", datetime.utcnow().isoformat() + "Z"),
+                "paths": paths,
+                "total_impact": {
+                    "total_views": total_views,
+                    "total_discussions": total_discussions,
+                    "total_approvals": total_approvals,
+                    "affected_users": len(affected_user_ids),
+                },
+            },
+            "metadata": {
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+            },
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get memory impact trail: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate impact trail: {str(e)}")
+
+
+@router.get("/visualizations/collaboration-heatmap")
+async def get_collaboration_heatmap(
+    team_id: Optional[int] = None,
+    time_window: Optional[str] = None,  # e.g., "30d", "7d", "1y"
+    user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get collaboration heatmap data (SPEC-067).
+    
+    Returns 2D heatmap data showing collaboration intensity across knowledge areas.
+    """
+    try:
+        # Extract knowledge topics from graph nodes
+        topics = set()
+        topic_activities: Dict[str, Dict[str, int]] = {}  # {topic_x: {topic_y: count}}
+
+        # Analyze graph nodes for knowledge topics
+        for node_id, node in GRAPH_NODES.items():
+            # Extract topics from tags or content
+            node_topics = node.get("tags", [])
+            if not node_topics and node.get("type") == "memory":
+                # Try to extract from title or content
+                title = node.get("title", "")
+                if title:
+                    node_topics = [title.split()[0]] if title.split() else []
+
+            for topic in node_topics:
+                topics.add(topic)
+
+            # Build activity matrix
+            for topic_x in node_topics:
+                if topic_x not in topic_activities:
+                    topic_activities[topic_x] = {}
+                for topic_y in node_topics:
+                    if topic_x != topic_y:
+                        topic_activities[topic_x][topic_y] = (
+                            topic_activities[topic_x].get(topic_y, 0) + 1
+                        )
+
+        # Convert to sorted list
+        topics_list = sorted(list(topics))[:20]  # Limit to top 20 topics
+
+        # Build heatmap cells
+        cells = []
+        peak_intensity = 0
+        total_collaborations = 0
+
+        for topic_x in topics_list:
+            for topic_y in topics_list:
+                if topic_x == topic_y:
+                    continue
+
+                activity_count = topic_activities.get(topic_x, {}).get(topic_y, 0)
+                if activity_count > 0:
+                    # Calculate intensity (normalized)
+                    intensity = min(activity_count * 10, 100)  # Scale to 0-100
+                    peak_intensity = max(peak_intensity, intensity)
+                    total_collaborations += activity_count
+
+                    # Get team members involved (simplified - in real implementation, track actual users)
+                    team_members = []
+                    for node_id, node in GRAPH_NODES.items():
+                        node_topics = node.get("tags", [])
+                        if topic_x in node_topics and topic_y in node_topics:
+                            user_id = str(node.get("user_id", ""))
+                            if user_id and user_id not in team_members:
+                                team_members.append(user_id)
+
+                    cells.append({
+                        "x": topic_x,
+                        "y": topic_y,
+                        "value": intensity,
+                        "activity_count": activity_count,
+                        "team_members": team_members[:5],  # Limit to 5 members
+                        "timestamp": node.get("created_at") if node else None,
+                    })
+
+        # Calculate time range
+        if not time_window:
+            time_window = "30d"
+
+        # Get start/end times based on window
+        end_time = datetime.utcnow()
+        if time_window.endswith("d"):
+            days = int(time_window[:-1])
+            start_time = end_time - timedelta(days=days)
+        elif time_window.endswith("w"):
+            weeks = int(time_window[:-1])
+            start_time = end_time - timedelta(weeks=weeks)
+        elif time_window.endswith("y"):
+            years = int(time_window[:-1])
+            start_time = end_time - timedelta(days=years * 365)
+        else:
+            start_time = end_time - timedelta(days=30)
+
+        return {
+            "success": True,
+            "data": {
+                "cells": cells,
+                "topics": topics_list,
+                "time_range": {
+                    "start": start_time.isoformat() + "Z",
+                    "end": end_time.isoformat() + "Z",
+                },
+                "total_collaborations": total_collaborations,
+                "peak_intensity": peak_intensity,
+            },
+            "metadata": {
+                "team_id": team_id,
+                "time_window": time_window,
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get collaboration heatmap: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate heatmap: {str(e)}")
+
+
+@router.get("/visualizations/pagerank-visual/{memory_id}")
+async def get_pagerank_visual_feedback(
+    memory_id: str,
+    user: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get PageRank visual feedback data for a specific memory (SPEC-067).
+    
+    Returns radial visualization data with influence rings and score breakdown.
+    """
+    try:
+        # Find memory in graph nodes
+        memory_node = None
+        memory_node_id = None
+        for node_id, node in GRAPH_NODES.items():
+            if node.get("id") == memory_id or node_id == memory_id:
+                memory_node = node
+                memory_node_id = node_id
+                break
+
+        if not memory_node:
+            raise HTTPException(status_code=404, detail=f"Memory {memory_id} not found")
+
+        # Calculate PageRank and enhanced scores
+        pagerank_scores = calculate_pagerank(GRAPH_NODES, GRAPH_EDGES)
+        enhanced_scores = calculate_enhanced_scores(GRAPH_NODES, pagerank_scores)
+
+        memory_score_data = enhanced_scores.get(memory_node_id, {})
+        base_pagerank = memory_score_data.get("base_pagerank", 0.0)
+        final_score = memory_score_data.get("final_score", base_pagerank)
+
+        # Build score breakdown
+        score_breakdown = []
+        
+        if "base_pagerank" in memory_score_data:
+            score_breakdown.append({
+                "name": "Base PageRank",
+                "value": memory_score_data["base_pagerank"],
+                "percentage": (memory_score_data["base_pagerank"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#3b82f6",
+                "description": "Core PageRank algorithm score",
+            })
+
+        if "discussion_boost" in memory_score_data:
+            score_breakdown.append({
+                "name": "Discussion Boost",
+                "value": memory_score_data["discussion_boost"],
+                "percentage": (memory_score_data["discussion_boost"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#10b981",
+                "description": "Boost from discussion activity",
+            })
+
+        if "sentiment_boost" in memory_score_data:
+            score_breakdown.append({
+                "name": "Sentiment Boost",
+                "value": memory_score_data["sentiment_boost"],
+                "percentage": (memory_score_data["sentiment_boost"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#f59e0b",
+                "description": "Boost from positive sentiment",
+            })
+
+        if "approval_boost" in memory_score_data:
+            score_breakdown.append({
+                "name": "Approval Boost",
+                "value": memory_score_data["approval_boost"],
+                "percentage": (memory_score_data["approval_boost"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#8b5cf6",
+                "description": "Boost from approvals",
+            })
+
+        if "recency_boost" in memory_score_data:
+            score_breakdown.append({
+                "name": "Recency Boost",
+                "value": memory_score_data["recency_boost"],
+                "percentage": (memory_score_data["recency_boost"] / final_score * 100) if final_score > 0 else 0,
+                "color": "#ec4899",
+                "description": "Boost for recent content",
+            })
+
+        # Build direct connections (distance = 1)
+        direct_connections = []
+        indirect_connections = []
+
+        for edge in GRAPH_EDGES:
+            source_id = edge.get("source")
+            target_id = edge.get("target")
+            
+            if source_id == memory_node_id:
+                connected_node = GRAPH_NODES.get(target_id)
+                if connected_node:
+                    direct_connections.append({
+                        "id": f"conn_{target_id}",
+                        "type": "direct",
+                        "target_id": target_id,
+                        "target_title": connected_node.get("title", f"Node {target_id}"),
+                        "weight": edge.get("weight", 1.0),
+                        "distance": 1,
+                    })
+            elif target_id == memory_node_id:
+                connected_node = GRAPH_NODES.get(source_id)
+                if connected_node:
+                    direct_connections.append({
+                        "id": f"conn_{source_id}",
+                        "type": "direct",
+                        "target_id": source_id,
+                        "target_title": connected_node.get("title", f"Node {source_id}"),
+                        "weight": edge.get("weight", 1.0),
+                        "distance": 1,
+                    })
+
+        # Build indirect connections (distance = 2+)
+        # Find nodes connected to direct connections
+        direct_node_ids = {conn["target_id"] for conn in direct_connections}
+        
+        for edge in GRAPH_EDGES:
+            source_id = edge.get("source")
+            target_id = edge.get("target")
+            
+            # Check if this edge connects a direct connection to another node
+            if source_id in direct_node_ids and target_id != memory_node_id:
+                connected_node = GRAPH_NODES.get(target_id)
+                if connected_node and target_id not in direct_node_ids:
+                    indirect_connections.append({
+                        "id": f"conn_indirect_{target_id}",
+                        "type": "indirect",
+                        "target_id": target_id,
+                        "target_title": connected_node.get("title", f"Node {target_id}"),
+                        "weight": edge.get("weight", 1.0) * 0.5,  # Reduced weight for indirect
+                        "distance": 2,
+                    })
+            elif target_id in direct_node_ids and source_id != memory_node_id:
+                connected_node = GRAPH_NODES.get(source_id)
+                if connected_node and source_id not in direct_node_ids:
+                    indirect_connections.append({
+                        "id": f"conn_indirect_{source_id}",
+                        "type": "indirect",
+                        "target_id": source_id,
+                        "target_title": connected_node.get("title", f"Node {source_id}"),
+                        "weight": edge.get("weight", 1.0) * 0.5,  # Reduced weight for indirect
+                        "distance": 2,
+                    })
+
+        return {
+            "success": True,
+            "data": {
+                "memory_id": memory_id,
+                "memory_title": memory_node.get("title", "Memory"),
+                "pagerank_score": final_score,
+                "score_breakdown": score_breakdown,
+                "direct_connections": direct_connections[:20],  # Limit to 20
+                "indirect_connections": indirect_connections[:20],  # Limit to 20
+                "total_connections": len(direct_connections) + len(indirect_connections),
+            },
+            "metadata": {
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+            },
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get PageRank visual feedback: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate visual feedback: {str(e)}")
 
 
 def get_dashboard_insights():

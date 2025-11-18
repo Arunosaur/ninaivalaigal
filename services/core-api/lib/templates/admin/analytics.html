@@ -13,15 +13,42 @@
             <div class="flex items-center justify-between">
                 <h1 class="text-2xl font-bold text-white">Ninaivalaigal Admin Console</h1>
                 <nav class="flex space-x-4">
+                    {% if permissions.can_view_dashboard %}
+                    <a href="/admin/dashboard/page" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                        Dashboard
+                    </a>
+                    {% else %}
+                    <span class="text-gray-500 px-3 py-2 rounded-md text-sm font-medium cursor-not-allowed" title="Request dashboard access">
+                        Dashboard
+                    </span>
+                    {% endif %}
+                    {% if permissions.can_view_analytics %}
                     <a href="/admin/analytics" class="text-blue-400 hover:text-blue-300 px-3 py-2 rounded-md text-sm font-medium">
                         Analytics
                     </a>
+                    {% else %}
+                    <span class="text-gray-500 px-3 py-2 rounded-md text-sm font-medium cursor-not-allowed" title="Request Analytics access">
+                        Analytics
+                    </span>
+                    {% endif %}
+                    {% if permissions.can_manage_teams %}
                     <a href="/admin/teams" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                         Teams
                     </a>
+                    {% else %}
+                    <span class="text-gray-500 px-3 py-2 rounded-md text-sm font-medium cursor-not-allowed" title="Team management restricted">
+                        Teams
+                    </span>
+                    {% endif %}
+                    {% if permissions.can_manage_users %}
                     <a href="/admin/users" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                         Users
                     </a>
+                    {% else %}
+                    <span class="text-gray-500 px-3 py-2 rounded-md text-sm font-medium cursor-not-allowed" title="User management restricted">
+                        Users
+                    </span>
+                    {% endif %}
                     <a href="/admin/logout" class="text-gray-400 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                         Logout
                     </a>
@@ -31,6 +58,7 @@
     </header>
 
     <!-- Main Content -->
+    {% if permissions.can_view_analytics %}
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="mb-8">
             <h2 class="text-3xl font-bold text-white mb-2">Platform Analytics</h2>
@@ -110,7 +138,18 @@
             </div>
         </div>
     </main>
+    {% else %}
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-yellow-900 border border-yellow-700 rounded-lg p-6 text-yellow-100">
+            <h2 class="text-xl font-semibold mb-2">Access Restricted</h2>
+            <p class="text-sm mb-4">Analytics data requires additional privileges. Your current role does not allow viewing this page.</p>
+            <p class="text-sm mb-4">To request access, contact a platform administrator or file a security request.</p>
+            <span class="inline-flex items-center text-xs font-medium uppercase tracking-wide bg-yellow-800 px-3 py-1 rounded-full">Request access</span>
+        </div>
+    </main>
+    {% endif %}
 
+    {% if permissions.can_view_analytics %}
     <script>
         // Get admin token from cookie
         function getAdminToken() {
@@ -197,5 +236,9 @@
         // Refresh metrics every 60 seconds
         setInterval(fetchMetrics, 60000);
     </script>
+    {% endif %}
 </body>
 </html>
+
+
+

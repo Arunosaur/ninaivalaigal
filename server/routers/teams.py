@@ -15,7 +15,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from admin.helpers import get_admin_user_id_from_request, log_admin_action_async
-from database import DatabaseManager, Team, TeamMembershipship, User
+from database import DatabaseManager, Team, TeamMembership, User
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from rbac_middleware import require_permission

@@ -20,7 +20,7 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    
+
     # Security Headers
     nginx.ingress.kubernetes.io/configuration-snippet: |
       more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
@@ -28,11 +28,11 @@ metadata:
       more_set_headers "X-Content-Type-Options: nosniff";
       more_set_headers "X-XSS-Protection: 1; mode=block";
       more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
-    
+
     # Rate Limiting
     nginx.ingress.kubernetes.io/limit-rps: "100"
     nginx.ingress.kubernetes.io/limit-connections: "10"
-    
+
     # Proxy Settings
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
@@ -84,7 +84,7 @@ spec:
             name: ninaivalaigal-api-service
             port:
               number: 80
-      
+
       # Business Service - Billing, Usage, Analytics
       - path: /api/billing
         pathType: Prefix
@@ -107,7 +107,7 @@ spec:
             name: business-service
             port:
               number: 8000
-      
+
       # Memory Service
       - path: /api/memory
         pathType: Prefix
@@ -123,7 +123,7 @@ spec:
             name: memory-service
             port:
               number: 8000
-      
+
       # Graph Service
       - path: /api/graph
         pathType: Prefix
@@ -139,7 +139,7 @@ spec:
             name: graph-service
             port:
               number: 8000
-      
+
       # Health and Documentation
       - path: /health
         pathType: Exact
@@ -162,7 +162,7 @@ spec:
             name: ninaivalaigal-api-service
             port:
               number: 80
-      
+
       # Default route (fallback)
       - path: /
         pathType: Prefix

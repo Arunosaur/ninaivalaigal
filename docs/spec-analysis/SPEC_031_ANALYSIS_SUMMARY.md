@@ -158,3 +158,7 @@
 2. Stories are already in Taiga (#321-325)
 3. Assign P0 stories to developers
 4. Track progress toward 100% completion
+
+
+
+

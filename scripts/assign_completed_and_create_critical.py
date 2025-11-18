@@ -12,9 +12,7 @@
 3. Assign and start next priorities
 """
 
-import json
 import sys
-from datetime import datetime
 
 import requests
 
@@ -182,7 +180,6 @@ def main():
     statuses = get_statuses(auth_token, project_id)
     done_status_id = statuses.get("done") or statuses.get("closed")
     in_progress_id = statuses.get("in progress") or statuses.get("working")
-    ready_status_id = statuses.get("ready") or statuses.get("new")
 
     print(f"✓ Project ID: {project_id}")
     print(f"✓ Developer D ID: {developer_d_id}")
@@ -222,7 +219,7 @@ def main():
         if story:
             print(f"✓ Found US#{ref_num}: {story.get('subject', '')[:50]}")
             if assign_and_update_story(auth_token, story["id"], developer_d_id, done_status_id):
-                print(f"  ✓ Assigned to Developer D and marked Done")
+                print("  ✓ Assigned to Developer D and marked Done")
                 update_story_description(auth_token, story["id"], completion_text_template)
                 completed_count += 1
         else:
@@ -244,7 +241,10 @@ def main():
     critical_stories = [
         {
             "subject": "US#117: ORM Guardrails & Multi-Tenant Isolation",
-            "description": """As a security engineer, I want database-level access controls that automatically filter queries by organization, so that cross-org data leaks are prevented in our multi-tenant SaaS.
+            "description": (
+                """As a security engineer, I want database-level access controls """
+                """that automatically filter queries by organization, so that """
+                """cross-org data leaks are prevented in our multi-tenant SaaS.
 
 **Priority**: P0 - CRITICAL SECURITY
 **Risk**: HIGH - Potential cross-org data leaks
@@ -264,12 +264,15 @@ def main():
 - **HIGHEST PRIORITY - START IMMEDIATELY**
 
 **Effort**: 4 days
-**Dependencies**: None""",
+**Dependencies**: None"""
+            ),
             "tags": ["p0", "security", "critical", "orm", "multi-tenant", "guardrails"],
         },
         {
             "subject": "US#20: User Signup with bcrypt",
-            "description": """As a user, I want to sign up for an account with secure password hashing, so that I can create an account on the platform.
+            "description": (
+                """As a user, I want to sign up for an account with secure """
+                """password hashing, so that I can create an account on the platform.
 
 **Priority**: P0 - BLOCKING PRODUCTION
 **Impact**: **BLOCKS EVERYTHING** - Users cannot sign up without this
@@ -289,12 +292,15 @@ def main():
 - Return JWT token on successful signup
 
 **Effort**: 4-6 hours
-**Dependencies**: SPEC-006""",
+**Dependencies**: SPEC-006"""
+            ),
             "tags": ["p0", "critical", "auth", "signup", "bcrypt", "production-blocker"],
         },
         {
             "subject": "US#21: User Login with Password Verification",
-            "description": """As a user, I want to log in with my email and password, so that I can access my account.
+            "description": (
+                """As a user, I want to log in with my email and password, """
+                """so that I can access my account.
 
 **Priority**: P0 - BLOCKING PRODUCTION
 **Impact**: **BLOCKS EVERYTHING** - Users cannot log in without this
@@ -314,12 +320,16 @@ def main():
 - Secure error messages
 
 **Effort**: 4-6 hours
-**Dependencies**: US#20, SPEC-006""",
+**Dependencies**: US#20, SPEC-006"""
+            ),
             "tags": ["p0", "critical", "auth", "login", "password", "production-blocker"],
         },
         {
             "subject": "Rate Limiting Implementation",
-            "description": """As a security engineer, I want API rate limiting to prevent abuse and ensure fair resource usage, so that the platform remains secure and available.
+            "description": (
+                """As a security engineer, I want API rate limiting to prevent """
+                """abuse and ensure fair resource usage, so that the platform """
+                """remains secure and available.
 
 **Priority**: P0 - SECURITY
 **Impact**: High - Prevents abuse and DoS attacks
@@ -339,7 +349,8 @@ def main():
 - Whitelist for internal services
 
 **Effort**: 2 days
-**Dependencies**: None""",
+**Dependencies**: None"""
+            ),
             "tags": ["p0", "security", "rate-limiting", "api", "middleware"],
         },
     ]
@@ -401,10 +412,10 @@ def main():
         if story and not story.get("assigned_to"):
             print(f"📝 Assigning: {story.get('subject', '')[:55]}")
             if assign_and_update_story(auth_token, story["id"], developer_d_id, in_progress_id):
-                print(f"  ✓ Assigned to Developer D and moved to 'In Progress'")
+                print("  ✓ Assigned to Developer D and moved to 'In Progress'")
                 assigned_count += 1
             else:
-                print(f"  ✗ Failed to assign")
+                print("  ✗ Failed to assign")
             print()
 
             if assigned_count >= 2:  # Start with top 2

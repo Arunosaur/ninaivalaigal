@@ -106,7 +106,7 @@ if response.status_code == 200:
         print(f"  ... and {len(other_ui) - 15} more")
 
     print("\n" + "=" * 70)
-    print(f"Summary:")
+    print("Summary:")
     print(f"  Customer-facing: {len(customer_stories)} stories")
     print(f"  Admin/Internal: {len(admin_stories)} stories")
     print(f"  Other UI: {len(other_ui)} stories")
@@ -128,6 +128,6 @@ if response.status_code == 200:
             f.write(f'  Tags: {", ".join(s["tags"])}\n')
             f.write(f'  Description: {s["description"]}\n\n')
 
-    print(f"\n📄 Detailed analysis saved to: /tmp/ui_stories_analysis.txt")
+    print("\n📄 Detailed analysis saved to: /tmp/ui_stories_analysis.txt")
 else:
     print(f"❌ Failed to fetch stories: {response.status_code}")

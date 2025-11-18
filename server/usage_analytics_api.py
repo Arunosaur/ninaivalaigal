@@ -15,13 +15,9 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 from uuid import UUID
 
-from database import Team, User
+from database import Team, User, UserInvitation
 from fastapi import APIRouter, Depends, HTTPException, Query
-from models.standalone_teams import (
-    StandaloneTeamManager,
-    TeamInvitation,
-    TeamMembership,
-)
+from models.standalone_teams import StandaloneTeamManager, TeamMembership
 from pydantic import BaseModel
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
@@ -153,10 +149,10 @@ def calculate_conversion_probability(team: Team, member_count: int, db: Session)
 
     # Factor 3: Invitation activity (active teams more likely to convert)
     recent_invitations = (
-        db.query(TeamInvitation)
+        db.query(UserInvitation)
         .filter(
-            TeamInvitation.team_id == team.id,
-            TeamInvitation.created_at >= datetime.utcnow() - timedelta(days=7),
+                UserInvitation.team_id == team.id,
+                UserInvitation.created_at >= datetime.utcnow() - timedelta(days=7),
         )
         .count()
     )
@@ -187,11 +183,11 @@ async def get_analytics_dashboard(
 
     recent_teams = db.query(Team).filter(Team.is_standalone is True, Team.created_at >= start_date).count()
 
-    recent_invitations = db.query(TeamInvitation).filter(TeamInvitation.created_at >= start_date).count()
+    recent_invitations = db.query(UserInvitation).filter(UserInvitation.created_at >= start_date).count()
 
     accepted_invitations = (
-        db.query(TeamInvitation)
-        .filter(TeamInvitation.created_at >= start_date, TeamInvitation.status == "accepted")
+    db.query(UserInvitation)
+    .filter(UserInvitation.created_at >= start_date, UserInvitation.status == "accepted")
         .count()
     )
 
@@ -392,7 +388,7 @@ async def get_team_usage_details(
     )
 
     # Get invitations
-    invitations = db.query(TeamInvitation).filter(TeamInvitation.team_id == team_id).all()
+    invitations = db.query(UserInvitation).filter(UserInvitation.team_id == team_id).all()
 
     # Calculate usage metrics
     days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 30)

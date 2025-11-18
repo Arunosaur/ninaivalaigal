@@ -13,9 +13,9 @@ title: "SPEC-058: Documentation Expansion"
 Improve internal and external documentation to ensure smooth onboarding, integration, and deployment.
 
 ## Focus Areas
-- [ ] Add OpenAPI/Swagger documentation via FastAPI decorators
-- [ ] Draw service interaction and architecture diagrams
-- [ ] Expand deployment guide: Docker, GH Actions, CI runner, Apple CLI
+- [x] Add OpenAPI/Swagger documentation via FastAPI decorators
+- [x] Draw service interaction and architecture diagrams
+- [x] Expand deployment guide: Docker, GH Actions, CI runner, Apple CLI
 
 ## Deliverables
 - `docs/api/openapi.yaml`

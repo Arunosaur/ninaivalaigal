@@ -10,7 +10,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: ninaivalaigal_dev_postgres
+    container_name: ninaivalaigal-dev-db
     environment:
       POSTGRES_DB: ninaivalaigal
       POSTGRES_USER: nina
@@ -31,7 +31,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: ninaivalaigal_dev_redis
+    container_name: ninaivalaigal-dev-redis
     ports:
       - "6379:6379"
     environment:
@@ -50,7 +50,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
-    container_name: ninaivalaigal_dev_api
+    container_name: ninaivalaigal-dev-api
     ports:
       - "13370:13370"
     environment:
@@ -59,8 +59,8 @@ services:
       NINAIVALAIGAL_DEBUG: 1
       PYTHONPATH: /app/server
       PORT: 13370
-      # Enable auto-reload for development
-      UVICORN_RELOAD: 1
+      # SPEC-107: Use ENV for gunicorn.conf.py (reload handled automatically in dev)
+      ENV: dev
     depends_on:
       postgres:
         condition: service_healthy
@@ -86,7 +86,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ui
-    container_name: ninaivalaigal_dev_ui
+    container_name: ninaivalaigal-dev-ui
     ports:
       - "8081:8081"
     volumes:
@@ -102,12 +102,15 @@ services:
 
 volumes:
   postgres_dev_data:
+    name: ninaivalaigal-dev-db-data
     driver: local
   redis_dev_data:
+    name: ninaivalaigal-dev-redis-data
     driver: local
   api_cache:
+    name: ninaivalaigal-dev-api-cache
     driver: local
 
 networks:
   default:
-    name: ninaivalaigal_dev_network
+    name: dev-ninaivalaigal-net

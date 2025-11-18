@@ -31,6 +31,10 @@ router = APIRouter(prefix="/admin", tags=["admin-frontend"])
 template_dir = os.path.join(os.path.dirname(__file__), "templates", "admin")
 templates = Jinja2Templates(directory=template_dir)
 
+from server.admin.permission_helpers import TemplatePermissionHelper
+from server.rbac.permissions import Action, Resource
+from server.rbac_middleware import RBACContext, get_rbac_context
+
 
 def get_admin_token_from_cookie(request: Request) -> Optional[str]:
     """Extract admin token from cookie."""
@@ -49,6 +53,42 @@ def verify_admin_token(token: str) -> Optional[dict]:
         return payload
     except Exception:
         return None
+
+
+def build_permission_helper(request: Request, payload: Optional[dict]) -> TemplatePermissionHelper:
+    """Construct a permission helper from RBAC context or decoded token payload."""
+    rbac_context = getattr(request.state, "rbac_context", None)
+
+    if not rbac_context:
+        if payload:
+            roles = payload.get("roles") or payload.get("rbac_roles") or {}
+            org_id = payload.get("org_id") or payload.get("organization_id")
+            team_ids_raw = payload.get("teams") or {}
+
+            if isinstance(team_ids_raw, dict):
+                team_ids = set(team_ids_raw.keys())
+            elif isinstance(team_ids_raw, (list, set, tuple)):
+                team_ids = {str(team_id) for team_id in team_ids_raw}
+            else:
+                team_ids = set()
+
+            try:
+                rbac_context = RBACContext(
+                    user_id=payload.get("user_id"),
+                    email=payload.get("email", ""),
+                    roles=roles,
+                    org_id=org_id,
+                    team_ids=team_ids,
+                )
+            except Exception:
+                rbac_context = None
+        else:
+            try:
+                rbac_context = get_rbac_context(request)
+            except HTTPException:
+                rbac_context = None
+
+    return TemplatePermissionHelper(rbac_context)
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -173,7 +213,17 @@ async def admin_analytics_page(request: Request):
     if email not in admin_emails:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_302_FOUND)
 
-    return templates.TemplateResponse("analytics.html", {"request": request})
+    helper = build_permission_helper(request, payload)
+    permissions = helper.snapshot()
+
+    return templates.TemplateResponse(
+        "analytics.html",
+        {
+            "request": request,
+            "permission_helper": helper,
+            "permissions": permissions,
+        },
+    )
 
 
 @router.get("/users", response_class=HTMLResponse)
@@ -199,7 +249,20 @@ async def admin_users_page(request: Request):
     if email not in admin_emails:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_302_FOUND)
 
-    return templates.TemplateResponse("users.html", {"request": request})
+    helper = build_permission_helper(request, payload)
+    permissions = helper.snapshot()
+
+    # Require read permission on USER resource to show management UI
+    permissions["can_manage_users"] = helper.has_permission(Resource.USER, Action.READ)
+
+    return templates.TemplateResponse(
+        "users.html",
+        {
+            "request": request,
+            "permission_helper": helper,
+            "permissions": permissions,
+        },
+    )
 
 
 @router.get("/teams", response_class=HTMLResponse)
@@ -225,7 +288,18 @@ async def admin_teams_page(request: Request):
     if email not in admin_emails:
         return RedirectResponse(url="/admin/login", status_code=status.HTTP_302_FOUND)
 
-    return templates.TemplateResponse("teams.html", {"request": request})
+    helper = build_permission_helper(request, payload)
+    permissions = helper.snapshot()
+    permissions["can_manage_teams"] = helper.has_permission(Resource.TEAM, Action.READ)
+
+    return templates.TemplateResponse(
+        "teams.html",
+        {
+            "request": request,
+            "permission_helper": helper,
+            "permissions": permissions,
+        },
+    )
 
 
 @router.get("/logout")

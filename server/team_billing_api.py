@@ -18,8 +18,8 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import stripe
-from billing.stripe_customer_service import StripeCustomerService
-from database.models import Team, TeamBilling, TeamSubscription, User
+from server.billing.stripe_customer_service import StripeCustomerService
+from server.database.models import Team, TeamBilling, TeamSubscription, User
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from models.standalone_teams import StandaloneTeamManager
 from pydantic import BaseModel, Field

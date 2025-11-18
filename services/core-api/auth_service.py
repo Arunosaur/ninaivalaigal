@@ -31,7 +31,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
 # Import models from shared contracts (US#79 - Shared Contracts Layer)
-from auth.v1.models import (
+# TODO: shared.contracts module doesn't exist - using lib.auth_service instead
+from lib.auth_service import (
     ApiKeyCreate,
     ApiKeyResponse,
     IndividualUserSignup,
@@ -39,9 +40,10 @@ from auth.v1.models import (
     OrganizationSignup,
     TokenData,
     TokenUsage,
+    hash_password,
+    verify_password,
 )
-from config import DEFAULT_RUST_DATABASE_URL
-from utils.password import hash_password, verify_password
+from lib.config import DEFAULT_RUST_DATABASE_URL
 
 # Import local auth functions via importlib to avoid conflicts
 _auth_spec = importlib.util.spec_from_file_location("local_auth", Path(__file__).parent / "auth.py")
@@ -397,7 +399,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
         validated_data = {
             "email": validate_email(signup_data.email),
             "password": signup_data.password,
-            "name": signup_data.full_name,
+            "name": signup_data.name,
             "account_type": signup_data.account_type,
         }
 
@@ -476,7 +478,7 @@ def create_individual_user(signup_data: IndividualUserSignup):
         session.close()
 
 
-def authenticate_user(email: str, password: str):
+def authenticate_user(email: str, password: str, audience: str | None = None):
     """Authenticate user login"""
     db = get_db()
     session = db.get_session()

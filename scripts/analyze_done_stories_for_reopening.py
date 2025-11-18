@@ -8,7 +8,6 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tasks", "scripts"))
-import re
 
 import requests
 from taiga_import_tasks import TaigaImporter
@@ -202,7 +201,6 @@ def main():
     for story in done_stories:
         ref = story.get("ref")
         subject = story.get("subject", "N/A")
-        description = story.get("description", "")
 
         info_analysis = analyze_story_info(story)
         should_reopen_flag, reason, explanation = should_reopen(story, info_analysis)

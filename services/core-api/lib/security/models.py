@@ -41,8 +41,8 @@ class RedactionAudit(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    context_id = Column(Integer, ForeignKey("contexts.id"), nullable=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    context_id = Column(UUID(as_uuid=True), ForeignKey("contexts.id"), nullable=True)
     request_id = Column(String(255), nullable=True)
     redaction_applied = Column(Boolean, nullable=False)
     redaction_type = Column(String(100), nullable=True)

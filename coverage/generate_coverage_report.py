@@ -115,6 +115,11 @@ def generate_html_dashboard(summary):
     if not summary:
         return
 
+    # Determine coverage class
+    coverage_class = (
+        "high" if summary["total_coverage"] >= 80 else "medium" if summary["total_coverage"] >= 60 else "low"
+    )
+
     html_template = f"""
 <!DOCTYPE html>
 <html>
@@ -138,7 +143,7 @@ def generate_html_dashboard(summary):
     <div class="header">
         <h1>🧪 Ninaivalaigal Code Coverage Dashboard</h1>
         <p>Generated: {summary['timestamp']}</p>
-        <div class="metric coverage-{'high' if summary['total_coverage'] >= 80 else 'medium' if summary['total_coverage'] >= 60 else 'low'}">
+        <div class="metric coverage-{coverage_class}">
             <strong>Total Coverage: {summary['total_coverage']:.1f}%
             </strong>
         </div>

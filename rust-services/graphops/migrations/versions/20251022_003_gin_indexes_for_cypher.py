@@ -95,7 +95,7 @@ def upgrade():
     if created:
         print(f"✅ Created {len(created)} GIN indexes on {GRAPH_SCHEMA}")
         print(f"   Indexes: {', '.join(created)}")
-        print(f"   These support AGE Cypher containment queries (@> operator)")
+        print("   These support AGE Cypher containment queries (@> operator)")
     if skipped:
         print(f"⚠️  Skipped {len(skipped)} indexes:")
         for skip in skipped:

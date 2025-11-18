@@ -78,7 +78,6 @@ def main():
 
     # Get all stories
     all_stories = get_all_user_stories(importer, project["id"])
-    statuses = get_project_statuses(importer, project["id"])
 
     # Find active unassigned stories
     active_unassigned = []
@@ -123,7 +122,8 @@ def main():
                     assigned_count += 1
 
                     # Add comment
-                    comment = f"Developer H assigned to this story. Starting work. {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    comment = f"Developer H assigned to this story. Starting work. {timestamp}"
                     importer.create_comment(story["id"], comment)
                 else:
                     print(f"❌ Failed to assign US#{ref}")

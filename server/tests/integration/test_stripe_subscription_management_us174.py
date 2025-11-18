@@ -116,17 +116,55 @@ def billing_account(db_session):
 
     yield account
 
-    # Cleanup
-    db_session.delete(account)
-    db_session.commit()
+    # Cleanup: Delete any associated Stripe subscriptions first (via stripe_customer)
+    try:
+        subscriptions = db_session.query(StripeSubscription).join(
+            StripeCustomer
+        ).filter(
+            StripeCustomer.billing_account_id == account.id
+        ).all()
+        for subscription in subscriptions:
+            db_session.delete(subscription)
+        db_session.commit()
+    except Exception:
+        db_session.rollback()
+    
+    # Delete any associated Stripe customers
+    try:
+        customers = db_session.query(StripeCustomer).filter(
+            StripeCustomer.billing_account_id == account.id
+        ).all()
+        for customer in customers:
+            db_session.delete(customer)
+        db_session.commit()
+    except Exception:
+        db_session.rollback()
+    
+    # Then delete the billing account
+    try:
+        db_session.delete(account)
+        db_session.commit()
+    except Exception:
+        db_session.rollback()
 
 
 @pytest.fixture
 def stripe_customer(db_session, billing_account):
     """Create a test Stripe customer"""
+    # Use unique customer ID to avoid conflicts
+    unique_id = f"cus_test_{uuid.uuid4().hex[:8]}"
+    
+    # Clean up any existing customer with this billing account
+    existing_customer = db_session.query(StripeCustomer).filter(
+        StripeCustomer.billing_account_id == billing_account.id
+    ).first()
+    if existing_customer:
+        db_session.delete(existing_customer)
+        db_session.commit()
+    
     customer = StripeCustomer(
         billing_account_id=billing_account.id,
-        stripe_customer_id="cus_test123",
+        stripe_customer_id=unique_id,
         email="test@example.com",
     )
     db_session.add(customer)
@@ -135,9 +173,23 @@ def stripe_customer(db_session, billing_account):
 
     yield customer
 
-    # Cleanup
-    db_session.delete(customer)
-    db_session.commit()
+    # Cleanup: Delete any associated subscriptions first
+    try:
+        subscriptions = db_session.query(StripeSubscription).filter(
+            StripeSubscription.stripe_customer_id == customer.id
+        ).all()
+        for subscription in subscriptions:
+            db_session.delete(subscription)
+        db_session.commit()
+    except Exception:
+        db_session.rollback()
+    
+    # Then delete the customer
+    try:
+        db_session.delete(customer)
+        db_session.commit()
+    except Exception:
+        db_session.rollback()
 
 
 class TestSubscriptionCreationWithValidData:
@@ -146,20 +198,31 @@ class TestSubscriptionCreationWithValidData:
     @patch("stripe.Subscription.create")
     @patch.object(StripeService, "_get_price_id_for_plan")
     def test_create_subscription_with_valid_price_id(
-        self, mock_get_price, mock_stripe_create, stripe_service, billing_account, stripe_customer
+        self, mock_get_price, mock_stripe_create, stripe_service, billing_account, stripe_customer, db_session
     ):
         """Test creating a subscription with valid price_id"""
+        # Use unique subscription ID to avoid conflicts
+        unique_sub_id = f"sub_test_{uuid.uuid4().hex[:8]}"
+        
+        # Clean up any existing subscription for this billing account (via stripe_customer)
+        existing_sub = db_session.query(StripeSubscription).join(
+            StripeCustomer
+        ).filter(
+            StripeCustomer.billing_account_id == billing_account.id
+        ).first()
+        if existing_sub:
+            db_session.delete(existing_sub)
+            db_session.commit()
+        
         # Mock price ID lookup
         mock_get_price.return_value = "price_test123"
 
         # Mock Stripe response
         mock_subscription = MagicMock()
-        mock_subscription.id = "sub_test123"
+        mock_subscription.id = unique_sub_id
         mock_subscription.status = "active"
         mock_subscription.current_period_start = int(datetime.now(timezone.utc).timestamp())
-        mock_subscription.current_period_end = int(
-            (datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60)
-        )
+        mock_subscription.current_period_end = int((datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60))
         mock_stripe_create.return_value = mock_subscription
 
         # Create subscription
@@ -172,7 +235,7 @@ class TestSubscriptionCreationWithValidData:
         # Verify Stripe API was called correctly
         mock_stripe_create.assert_called_once()
         call_kwargs = mock_stripe_create.call_args[1]
-        assert call_kwargs["customer"] == "cus_test123"
+        assert call_kwargs["customer"] == stripe_customer.stripe_customer_id
         assert call_kwargs["items"][0]["price"] == "price_test123"
         assert call_kwargs["default_payment_method"] == "pm_test123"
         assert "billing_account_id" in call_kwargs["metadata"]
@@ -180,30 +243,45 @@ class TestSubscriptionCreationWithValidData:
         assert call_kwargs["metadata"]["plan_tier"] == PlanTier.PRO.value
 
         # Verify subscription record
-        assert subscription.stripe_subscription_id == "sub_test123"
+        assert subscription.stripe_subscription_id == unique_sub_id
         assert subscription.plan_id == PlanTier.PRO.value
         assert subscription.status == "active"
 
         # Verify billing account was updated
         assert billing_account.plan_tier == PlanTier.PRO.value
+        
+        # Cleanup
+        db_session.delete(subscription)
+        db_session.commit()
 
     @patch("stripe.Subscription.create")
     @patch.object(StripeService, "_get_price_id_for_plan")
     def test_create_subscription_without_payment_method(
-        self, mock_get_price, mock_stripe_create, stripe_service, billing_account, stripe_customer
+        self, mock_get_price, mock_stripe_create, stripe_service, billing_account, stripe_customer, db_session
     ):
         """Test creating a subscription without payment method"""
+        # Use unique subscription ID to avoid conflicts
+        unique_sub_id = f"sub_no_pm_{uuid.uuid4().hex[:8]}"
+        
+        # Clean up any existing subscription for this billing account (via stripe_customer)
+        existing_sub = db_session.query(StripeSubscription).join(
+            StripeCustomer
+        ).filter(
+            StripeCustomer.billing_account_id == billing_account.id
+        ).first()
+        if existing_sub:
+            db_session.delete(existing_sub)
+            db_session.commit()
+        
         # Mock price ID lookup
         mock_get_price.return_value = "price_test123"
 
         # Mock Stripe response
         mock_subscription = MagicMock()
-        mock_subscription.id = "sub_no_pm"
+        mock_subscription.id = unique_sub_id
         mock_subscription.status = "incomplete"
         mock_subscription.current_period_start = int(datetime.now(timezone.utc).timestamp())
-        mock_subscription.current_period_end = int(
-            (datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60)
-        )
+        mock_subscription.current_period_end = int((datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60))
         mock_stripe_create.return_value = mock_subscription
 
         # Create subscription without payment method
@@ -218,8 +296,12 @@ class TestSubscriptionCreationWithValidData:
         assert "default_payment_method" not in call_kwargs
 
         # Verify subscription record
-        assert subscription.stripe_subscription_id == "sub_no_pm"
+        assert subscription.stripe_subscription_id == unique_sub_id
         assert subscription.status == "incomplete"
+        
+        # Cleanup
+        db_session.delete(subscription)
+        db_session.commit()
 
 
 class TestSubscriptionCreationWithInvalidData:
@@ -310,9 +392,7 @@ class TestSubscriptionStatusSync:
         mock_subscription.id = "sub_sync"
         mock_subscription.status = "active"
         mock_subscription.current_period_start = int(datetime.now(timezone.utc).timestamp())
-        mock_subscription.current_period_end = int(
-            (datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60)
-        )
+        mock_subscription.current_period_end = int((datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60))
         mock_subscription.cancel_at_period_end = False
         mock_stripe_retrieve.return_value = mock_subscription
 
@@ -351,9 +431,7 @@ class TestSubscriptionStatusSync:
         mock_subscription.id = "sub_past_due"
         mock_subscription.status = "past_due"
         mock_subscription.current_period_start = int(datetime.now(timezone.utc).timestamp())
-        mock_subscription.current_period_end = int(
-            (datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60)
-        )
+        mock_subscription.current_period_end = int((datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60))
         mock_subscription.cancel_at_period_end = False
         mock_stripe_retrieve.return_value = mock_subscription
 
@@ -396,9 +474,7 @@ class TestSubscriptionCancellation:
         mock_subscription.id = "sub_cancel"
         mock_subscription.status = "active"
         mock_subscription.current_period_start = int(datetime.now(timezone.utc).timestamp())
-        mock_subscription.current_period_end = int(
-            (datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60)
-        )
+        mock_subscription.current_period_end = int((datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60))
         mock_subscription.cancel_at_period_end = True
         mock_modify.return_value = mock_subscription
         mock_retrieve.return_value = mock_subscription
@@ -441,9 +517,7 @@ class TestSubscriptionCancellation:
         mock_subscription.id = "sub_immediate"
         mock_subscription.status = "canceled"
         mock_subscription.current_period_start = int(datetime.now(timezone.utc).timestamp())
-        mock_subscription.current_period_end = int(
-            (datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60)
-        )
+        mock_subscription.current_period_end = int((datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60))
         mock_subscription.cancel_at_period_end = False
         mock_delete.return_value = mock_subscription
         mock_retrieve.return_value = mock_subscription
@@ -519,17 +593,28 @@ class TestDatabaseIntegration:
         self, mock_get_price, mock_stripe_create, stripe_service, billing_account, stripe_customer, db_session
     ):
         """Test that subscription is saved to database"""
+        # Use unique subscription ID to avoid conflicts
+        unique_sub_id = f"sub_db_test_{uuid.uuid4().hex[:8]}"
+        
+        # Clean up any existing subscription for this billing account (via stripe_customer)
+        existing_sub = db_session.query(StripeSubscription).join(
+            StripeCustomer
+        ).filter(
+            StripeCustomer.billing_account_id == billing_account.id
+        ).first()
+        if existing_sub:
+            db_session.delete(existing_sub)
+            db_session.commit()
+        
         # Mock price ID lookup
         mock_get_price.return_value = "price_test123"
 
         # Mock Stripe response
         mock_subscription = MagicMock()
-        mock_subscription.id = "sub_db_test"
+        mock_subscription.id = unique_sub_id
         mock_subscription.status = "active"
         mock_subscription.current_period_start = int(datetime.now(timezone.utc).timestamp())
-        mock_subscription.current_period_end = int(
-            (datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60)
-        )
+        mock_subscription.current_period_end = int((datetime.now(timezone.utc).timestamp() + 30 * 24 * 60 * 60))
         mock_stripe_create.return_value = mock_subscription
 
         # Create subscription
@@ -539,13 +624,9 @@ class TestDatabaseIntegration:
         )
 
         # Verify subscription is in database
-        db_subscription = (
-            db_session.query(StripeSubscription)
-            .filter(StripeSubscription.id == subscription.id)
-            .first()
-        )
+        db_subscription = db_session.query(StripeSubscription).filter(StripeSubscription.id == subscription.id).first()
         assert db_subscription is not None
-        assert db_subscription.stripe_subscription_id == "sub_db_test"
+        assert db_subscription.stripe_subscription_id == unique_sub_id
         assert db_subscription.plan_id == PlanTier.PRO.value
         assert db_subscription.status == "active"
 

@@ -21,7 +21,7 @@
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="settingsData()">
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="settingsData()" x-init="init()">
         <h1 class="text-3xl font-bold mb-8">Settings</h1>
 
         <!-- Success/Error Messages -->
@@ -74,6 +74,30 @@
                         class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50">
                     <span x-show="!savingNotifications">Save Preferences</span>
                     <span x-show="savingNotifications">Saving...</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- Theme Preferences -->
+        <section class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">Appearance</h2>
+
+            <form @submit.prevent="saveTheme()" class="space-y-4">
+                <div>
+                    <label class="block text-lg font-medium mb-2">Theme</label>
+                    <select x-model="theme.preference" class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="auto">Auto (System)</option>
+                    </select>
+                    <p class="text-sm text-gray-400 mt-1">Choose your preferred color theme</p>
+                </div>
+
+                <button type="submit"
+                        :disabled="savingTheme"
+                        class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50">
+                    <span x-show="!savingTheme">Save Theme</span>
+                    <span x-show="savingTheme">Saving...</span>
                 </button>
             </form>
         </section>
@@ -279,6 +303,12 @@
                     two_factor_enabled: {{ user.two_factor_enabled|default(false)|tojson }}
                 },
 
+                theme: {
+                    preference: '{{ user.preferences.theme|default("dark") }}'
+                },
+
+                savingTheme: false,
+
                 async saveNotifications() {
                     this.savingNotifications = true;
                     try {
@@ -304,12 +334,65 @@
                     }
                 },
 
+                async saveTheme() {
+                    this.savingTheme = true;
+                    try {
+                        const token = this.getCookie('customer_token') || this.getCookie('auth_token');
+                        if (!token) {
+                            window.location.href = '/login';
+                            return;
+                        }
+
+                        const response = await fetch('/api/v1/users/me/preferences', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                theme: this.theme.preference
+                            })
+                        });
+
+                        if (response.ok) {
+                            this.showMessage('Theme preference saved', 'success');
+                            // Apply theme immediately
+                            this.applyTheme(this.theme.preference);
+                        } else {
+                            this.showMessage('Failed to save theme preference', 'error');
+                        }
+                    } catch (error) {
+                        this.showMessage('Error saving theme preference', 'error');
+                    } finally {
+                        this.savingTheme = false;
+                    }
+                },
+
+                applyTheme(theme) {
+                    if (theme === 'auto') {
+                        // Use system preference
+                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        document.documentElement.classList.toggle('dark', prefersDark);
+                    } else {
+                        document.documentElement.classList.toggle('dark', theme === 'dark');
+                    }
+                },
+
                 async savePrivacy() {
                     this.savingPrivacy = true;
                     try {
+                        const token = this.getCookie('customer_token') || this.getCookie('auth_token');
+                        if (!token) {
+                            window.location.href = '/login';
+                            return;
+                        }
+
                         const response = await fetch('/api/v1/users/me/preferences', {
                             method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
                             body: JSON.stringify({
                                 profile_visibility: this.privacy.profile_visibility,
                                 show_email: this.privacy.show_email,
@@ -402,6 +485,43 @@
                     setTimeout(() => {
                         this.message = '';
                     }, 5000);
+                },
+
+                getCookie(name) {
+                    const value = `; ${document.cookie}`;
+                    const parts = value.split(`; ${name}=`);
+                    if (parts.length === 2) return parts.pop().split(';').shift();
+                    return null;
+                },
+
+                async init() {
+                    // Load saved preferences from API
+                    try {
+                        const token = this.getCookie('customer_token') || this.getCookie('auth_token');
+                        if (token) {
+                            const response = await fetch('/api/v1/users/me/preferences', {
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                }
+                            });
+                            if (response.ok) {
+                                const prefs = await response.json();
+                                // Update preferences from API
+                                if (prefs.email_notifications !== undefined) this.notifications.email = prefs.email_notifications;
+                                if (prefs.team_invites !== undefined) this.notifications.team_invites = prefs.team_invites;
+                                if (prefs.memory_updates !== undefined) this.notifications.memory_updates = prefs.memory_updates;
+                                if (prefs.profile_visibility) this.privacy.profile_visibility = prefs.profile_visibility;
+                                if (prefs.show_email !== undefined) this.privacy.show_email = prefs.show_email;
+                                if (prefs.data_sharing !== undefined) this.privacy.data_sharing = prefs.data_sharing;
+                                if (prefs.theme) {
+                                    this.theme.preference = prefs.theme;
+                                    this.applyTheme(prefs.theme);
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Failed to load preferences:', error);
+                    }
                 }
             }
         }

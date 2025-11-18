@@ -1,6 +1,7 @@
 # Core API Service Dependencies
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
+gunicorn==21.2.0  # SPEC-107: Process manager for runtime parity
 pydantic==2.5.0
 pydantic-settings==2.1.0
 email-validator==2.1.0
@@ -21,6 +22,14 @@ pyjwt==2.8.0
 passlib==1.7.4
 bcrypt==4.1.1
 python-multipart==0.0.6
+# SPEC-065: Multi-Factor Authentication
+pyotp==2.9.0  # TOTP generation and verification
+qrcode[pil]==7.4.2  # QR code generation for TOTP enrollment
+webauthn==1.2.0  # WebAuthn/FIDO2 support
+# SPEC-065: Single Sign-On (SSO)
+python3-saml==1.15.0  # SAML 2.0 support
+authlib==1.2.1  # OAuth2 and OpenID Connect support
+cryptography==41.0.7  # Certificate handling
 
 # Logging
 structlog==23.2.0
@@ -35,6 +44,9 @@ python-dateutil==2.8.2
 # Monitoring & Metrics (SPEC-100)
 psutil==5.9.6
 redis==5.0.1
+
+# SPEC-117: Feature Flags & Progressive Rollout
+UnleashClient==5.8.0  # Unleash Python SDK for feature flags
 
 # HTTP Client & Additional Dependencies
 httpx==0.25.2

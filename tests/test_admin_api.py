@@ -25,7 +25,6 @@ except ImportError:
     FASTAPI_AVAILABLE = False
     TestClient = None
 
-from sqlalchemy.orm import Session
 
 try:
     from server.billing.admin_api import router
@@ -42,7 +41,6 @@ from server.billing.models import (
     BlockLevel,
     Invoice,
     InvoiceStatus,
-    PaymentConfig,
     PlanTier,
     QuotaBlock,
     ResourceType,

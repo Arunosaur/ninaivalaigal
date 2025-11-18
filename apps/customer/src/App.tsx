@@ -30,6 +30,7 @@ import InjectionAnalytics from './pages/InjectionAnalytics'
 import DiscountNonProfit from './pages/DiscountNonProfit'
 import DemoReplayViewer from './pages/DemoReplayViewer'
 import { SkipToContent } from './components'
+import { PostInstallOnboarding } from './components/pwa'
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
           <Route path="/demo/:demoId" element={<DemoReplayViewer />} />
         </Route>
       </Routes>
+      <PostInstallOnboarding />
     </BrowserRouter>
   )
 }

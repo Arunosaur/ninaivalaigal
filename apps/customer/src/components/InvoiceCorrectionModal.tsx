@@ -263,3 +263,7 @@ export function InvoiceCorrectionModal({ invoice, onClose, onCorrectionApplied }
     </div>
   );
 }
+
+
+
+

@@ -98,11 +98,13 @@ services:
       dockerfile: Dockerfile.api
     container_name: ninaivalaigal-${NINA_ENV:-dev}-api
     profiles: ["external", "internal"]  # API serves both
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    # SPEC-107: Use gunicorn via docker-entrypoint.sh for runtime parity
+    # docker-entrypoint.sh uses gunicorn.conf.py which handles ENV-based worker count and reload
     ports:
       - "${API_PORT:-13370}:8000"
     environment:
-      # Environment
+      # Environment (SPEC-107: Used by gunicorn.conf.py for worker count and reload)
+      ENV: ${ENV:-${NINA_ENV:-dev}}
       NINA_ENV: ${NINA_ENV:-dev}
       NINA_RUNTIME: docker
 
@@ -123,7 +125,6 @@ services:
       # API Config
       PYTHONPATH: /app/server
       PORT: 8000
-      UVICORN_RELOAD: ${UVICORN_RELOAD:-1}
       NINAIVALAIGAL_DEBUG: ${NINA_DEBUG:-1}
       LOG_LEVEL: ${LOG_LEVEL:-debug}
 
@@ -222,11 +223,11 @@ services:
 
 volumes:
   postgres_data:
-    name: ninaivalaigal_${NINA_ENV:-dev}_postgres_data
+    name: ninaivalaigal-${NINA_ENV:-dev}-db-data
     driver: local
 
   redis_data:
-    name: ninaivalaigal_${NINA_ENV:-dev}_redis_data
+    name: ninaivalaigal-${NINA_ENV:-dev}-redis-data
     driver: local
 
 # ==============================================================================
@@ -235,4 +236,4 @@ volumes:
 
 networks:
   default:
-    name: ninaivalaigal_${NINA_ENV:-dev}_network
+    name: ${NINA_ENV:-dev}-ninaivalaigal-net  # SPEC-107: {{env}}-ninaivalaigal-net

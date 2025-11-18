@@ -6,6 +6,7 @@
 # Unauthorized copying, modification, or distribution is prohibited.
 # See LICENSE file in the server/ directory for details.
 #
+# Import shared fixtures from conftest.py
 import json
 import os
 import subprocess
@@ -19,11 +20,16 @@ from tests.config import BUSINESS_SERVICE_BASE_URL, CORE_API_BASE_URL
 def get_pgbouncer_ip():
     """Get PgBouncer container IP dynamically"""
     try:
-        result = subprocess.run(
-            ["container", "inspect", "ninaivalaigal-dev-pgbouncer"], capture_output=True, text=True, check=True
-        )
-        data = json.loads(result.stdout)
-        return data[0]["networks"][0]["address"].split("/")[0]
+        for candidate in [
+            "ninaivalaigal-dev-pgbouncer-tx",
+            "ninaivalaigal-dev-pgbouncer-session",
+            "ninaivalaigal-dev-pgbouncer-sess",
+        ]:
+            result = subprocess.run(["container", "inspect", candidate], capture_output=True, text=True)
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                if data and data[0]["networks"]:
+                    return data[0]["networks"][0]["address"].split("/")[0]
     except:
         return os.getenv("PGBOUNCER_IP", "localhost")
 

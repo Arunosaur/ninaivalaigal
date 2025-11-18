@@ -10,7 +10,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: mem0-postgres
+    container_name: ninaivalaigal-dev-mem0-postgres
     environment:
       POSTGRES_DB: mem0db
       POSTGRES_USER: mem0user
@@ -34,7 +34,7 @@ services:
     build:
       context: ../
       dockerfile: deploy/Dockerfile
-    container_name: mem0-server
+    container_name: ninaivalaigal-dev-mem0-server
     environment:
       NINAIVALAIGAL_DATABASE_URL: postgresql://mem0user:mem0pass@postgres:5432/mem0db
       NINAIVALAIGAL_JWT_SECRET: your-secret-key-here
@@ -58,8 +58,10 @@ services:
 
 volumes:
   postgres_data:
+    name: ninaivalaigal-dev-mem0-db-data
     driver: local
 
 networks:
   mem0-network:
     driver: bridge
+    name: dev-ninaivalaigal-net

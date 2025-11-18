@@ -81,7 +81,7 @@ class SharingAuditLogger:
             reason=reason,
             permission=permission,
             is_external=str(is_external).lower(),
-            metadata=metadata or {},
+            audit_metadata=metadata or {},
         )
 
         self.db_session.add(audit_log)
@@ -127,10 +127,10 @@ class SharingAuditLogger:
         audit_log.revoked_by = revoked_by
 
         # Update metadata
-        if audit_log.metadata:
-            audit_log.metadata["revocation_reason"] = reason
+        if audit_log.audit_metadata:
+            audit_log.audit_metadata["revocation_reason"] = reason
         else:
-            audit_log.metadata = {"revocation_reason": reason}
+            audit_log.audit_metadata = {"revocation_reason": reason}
 
         self.db_session.commit()
 

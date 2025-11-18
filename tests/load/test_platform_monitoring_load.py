@@ -25,7 +25,6 @@ Usage:
 
 import logging
 import random
-import time
 
 from locust import HttpUser, between, events, task
 
@@ -235,9 +234,8 @@ def on_test_start(environment, **kwargs):
     logger.info("=" * 80)
     logger.info("Platform Monitoring Load Test Starting")
     logger.info(f"Target host: {environment.host}")
-    logger.info(
-        f"User count: {environment.runner.target_user_count if hasattr(environment.runner, 'target_user_count') else 'N/A'}"
-    )
+    user_count = environment.runner.target_user_count if hasattr(environment.runner, "target_user_count") else "N/A"
+    logger.info(f"User count: {user_count}")
     logger.info("=" * 80)
 
 

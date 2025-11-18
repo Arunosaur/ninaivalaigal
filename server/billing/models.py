@@ -379,6 +379,10 @@ class Invoice(Base):
     tax_amount = Column(Numeric(10, 2), nullable=False, server_default="0")
     total_amount = Column(Numeric(10, 2), nullable=False)
     currency = Column(CHAR(3), nullable=False)
+    # US#183: Multi-currency support - locked exchange rate at invoice creation
+    exchange_rate_id = Column(UUID(as_uuid=True), ForeignKey("exchange_rates.id"), nullable=True, index=True)
+    display_currency = Column(CHAR(3), nullable=True)  # Team's preferred currency for display
+    exchange_rate = Column(Numeric(10, 6), nullable=True)  # Locked rate at invoice creation
     status = Column(String(20), nullable=False, server_default=InvoiceStatus.DRAFT.value)
     issued_at = Column(DateTime(timezone=True), nullable=True)
     due_at = Column(DateTime(timezone=True), nullable=True)
@@ -392,6 +396,8 @@ class Invoice(Base):
     stripe_invoice = relationship(
         "StripeInvoice", back_populates="invoice", uselist=False, cascade="all, delete-orphan"
     )
+    # US#183: Multi-currency support - relationship to locked exchange rate
+    locked_exchange_rate = relationship("ExchangeRate", foreign_keys=[exchange_rate_id])
 
     __table_args__ = (
         CheckConstraint("status IN ('draft', 'issued', 'paid', 'void')", name="check_invoice_status"),
@@ -824,13 +830,16 @@ class InvoiceAuditTrail(Base):
 
 class InvoicePreference(Base):
     """US#185: Invoice display preferences per team
+    US-233: Custom Invoice Branding & Styling
 
     Stores team-level invoice customization settings including branding,
-    footer text, payment terms, and custom fields.
+    footer text, payment terms, colors, QR codes, and custom fields.
     """
 
     __tablename__ = "invoice_preferences"
-    __table_args__ = ({"comment": "US#185: Invoice display preferences per team"},)
+    __table_args__ = (
+        {"comment": "US#185: Invoice display preferences per team, US-233: Custom Invoice Branding & Styling"},
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     team_id = Column(
@@ -842,8 +851,15 @@ class InvoicePreference(Base):
     )
     company_name = Column(String(255), nullable=True)
     company_logo_url = Column(Text, nullable=True)
+    # US-233: Custom Invoice Branding & Styling - Color customization
+    primary_color = Column(String(7), nullable=True, default="#6366f1")  # HEX color
+    secondary_color = Column(String(7), nullable=True, default="#8b5cf6")  # HEX color
     invoice_footer = Column(Text, nullable=True)
     payment_terms = Column(Text, nullable=True)
+    payment_instructions = Column(Text, nullable=True)  # US-233: Payment instructions
+    # US-233: QR code support
+    qr_code_enabled = Column(Boolean, nullable=False, server_default=text("false"))
+    qr_code_data = Column(Text, nullable=True)  # QR code content (e.g., payment URL)
     custom_fields = Column(JSONB, nullable=True)  # Flexible JSON for additional fields
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())

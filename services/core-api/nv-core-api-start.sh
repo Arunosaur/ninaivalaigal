@@ -19,7 +19,7 @@ echo "==========================================="
 
 # Load environment variables from configs/env-{env}.env (STANDARDS COMPLIANCE)
 NINA_ENV=${NINA_ENV:-dev}
-ENV_FILE="$PROJECT_ROOT/configs/env-${NINA_ENV}.env"
+ENV_FILE="$PROJECT_ROOT/.env.dev"
 if [ -f "$ENV_FILE" ]; then
     source "$ENV_FILE"
     echo "✅ Loaded environment from $ENV_FILE"
@@ -67,7 +67,7 @@ if [ -z "$REDIS_IP" ] || [ "$REDIS_IP" = "null" ]; then
     echo "   ⚠️  Redis not found (optional)"
     REDIS_IP="127.0.0.1"
 fi
-REDIS_PASSWORD=${REDIS_PASSWORD:-}
+REDIS_PASSWORD=${REDIS_PASSWORD:-dev_redis_change_me}
 if [ -n "$REDIS_PASSWORD" ]; then
     REDIS_URL="redis://:${REDIS_PASSWORD}@${REDIS_IP}:6379/0"
     echo "   ✅ Redis: $REDIS_IP:6379 (with password)"
@@ -145,6 +145,7 @@ container run -d \
     -e NINA_DB_USER="$NINA_DB_USER" \
     -e NINA_DB_PASSWORD="$NINA_DB_PASSWORD" \
     -e DATABASE_URL="$DATABASE_URL" \
+    -e SKIP_MIGRATIONS="true" \
     -e NINAIVALAIGAL_JWT_SECRET="$NINA_JWT_SECRET" \
     -e NINA_JWT_SECRET="$NINA_JWT_SECRET" \
     -e JWT_ALGORITHM=HS256 \

@@ -10,10 +10,7 @@
 Analyze all Taiga stories and assign most pressing ones
 """
 
-import json
 import sys
-from datetime import datetime
-from pathlib import Path
 
 import requests
 
@@ -210,13 +207,10 @@ def main():
 
     # Get status info
     status_info = get_status_info(auth_token, project_id)
-    ready_status_id = None
     in_progress_status_id = None
 
     for status_name, status_data in status_info.items():
-        if status_name.lower() in ["ready", "new"]:
-            ready_status_id = status_data["id"]
-        elif status_name.lower() in ["in progress", "working"]:
+        if status_name.lower() in ["in progress", "working"]:
             in_progress_status_id = status_data["id"]
 
     # Analyze and prioritize
@@ -230,7 +224,7 @@ def main():
     print("=" * 70)
     print()
 
-    print(f"📊 Summary:")
+    print("📊 Summary:")
     print(f"  • Total Stories: {len(stories)}")
     print(f"  • Unassigned P0: {len(prioritized['unassigned_p0'])}")
     print(f"  • Unassigned P1: {len(prioritized['unassigned_p1'])}")
@@ -292,16 +286,16 @@ def main():
             print(f"  ✓ Assigned to {user_data.get('username')}")
             assigned_count += 1
         else:
-            print(f"  ✗ Failed to assign")
+            print("  ✗ Failed to assign")
             continue
 
         # Move to In Progress if ready
         if story["status"].lower() in ["ready", "new"] and in_progress_status_id:
             if update_story_status(auth_token, story["id"], in_progress_status_id):
-                print(f"  ✓ Status updated to 'In Progress'")
+                print("  ✓ Status updated to 'In Progress'")
                 started_count += 1
             else:
-                print(f"  ⚠ Could not update status")
+                print("  ⚠ Could not update status")
 
         print()
 

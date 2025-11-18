@@ -285,6 +285,33 @@ async def detailed_health_check():
     )
 
 
+@router.get("/health/region", response_model=DetailedHealthResponse)
+async def region_health_check():
+    """
+    Region-specific health check for multi-region deployment (SPEC-159)
+    
+    Returns comprehensive health status including region information.
+    Used by Route53 health checks and failover systems.
+    """
+    import os
+    
+    # Get region information from environment
+    region = os.getenv("REGION", "unknown")
+    region_name = os.getenv("REGION_NAME", "Unknown Region")
+    primary_region = os.getenv("PRIMARY_REGION", "false").lower() == "true"
+    
+    # Get detailed health status
+    detailed_health = await detailed_health_check()
+    
+    # Add region information to response
+    response_dict = detailed_health.dict()
+    response_dict["region"] = region
+    response_dict["region_name"] = region_name
+    response_dict["primary"] = primary_region
+    
+    return DetailedHealthResponse(**response_dict)
+
+
 @router.get("/health/slo-compliance", response_model=SLOComplianceResponse)
 async def slo_compliance_check(
     window: str = Query(default="1h", pattern="^(1h|24h|7d)$", description="Time window for SLO metrics")

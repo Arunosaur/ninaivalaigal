@@ -175,7 +175,8 @@ def find_story_by_ref(auth_token, project_id, story_ref):
 
 def get_gdpr_description():
     """Generate GDPR requirements description."""
-    return """## SPEC-074: GDPR Compliance Implementation
+    return (
+        """## SPEC-074: GDPR Compliance Implementation
 
 **Status**: In Progress
 **Assigned To**: Developer G
@@ -185,7 +186,9 @@ def get_gdpr_description():
 
 ## Overview
 
-This story implements comprehensive GDPR (General Data Protection Regulation) compliance for the platform, enabling EU market entry and ensuring data privacy rights for all users.
+This story implements comprehensive GDPR (General Data Protection Regulation) """
+        """compliance for the platform, enabling EU market entry and """
+        """ensuring data privacy rights for all users.
 
 **Current Status**:
 - Basic consent manager exists (SPEC-049, not GDPR-compliant)
@@ -370,7 +373,8 @@ This story implements comprehensive GDPR (General Data Protection Regulation) co
 - `specs/011-data-lifecycle-management/spec.md` (US-121 coordination)
 - `tasks/SPEC_011_USER_STORIES_CREATED.md` (US-121 details)
 """.format(
-        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
     )
 
 
@@ -436,7 +440,8 @@ def create_spec_directory():
         print(f"✅ Created SPEC directory: {spec_dir}")
 
         # Create README.md
-        readme_content = """# SPEC-074: GDPR Compliance
+        readme_content = (
+            """# SPEC-074: GDPR Compliance
 
 **Status**: In Progress
 **Phase**: Phase 3
@@ -446,7 +451,9 @@ def create_spec_directory():
 
 ## Overview
 
-This SPEC implements comprehensive GDPR (General Data Protection Regulation) compliance for the platform, ensuring data privacy rights and enabling EU market entry.
+This SPEC implements comprehensive GDPR (General Data Protection Regulation) """
+            """compliance for the platform, ensuring data privacy rights and """
+            """enabling EU market entry.
 
 ## Objectives
 
@@ -476,12 +483,13 @@ See Taiga story US#558 for implementation details and progress.
 
 **SPEC Created**: {timestamp}
 """.format(
-            timestamp=datetime.now().strftime("%Y-%m-%d")
+                timestamp=datetime.now().strftime("%Y-%m-%d")
+            )
         )
 
         readme_path = spec_dir / "README.md"
         readme_path.write_text(readme_content)
-        print(f"✅ Created README.md")
+        print("✅ Created README.md")
 
         return True
     except Exception as e:

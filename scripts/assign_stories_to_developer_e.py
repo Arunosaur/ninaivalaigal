@@ -25,7 +25,7 @@ def get_user_id_by_username(token: str, username: str, project_id: int):
             users = resp.json()
             if users and len(users) > 0:
                 return users[0].get("id")
-    except:
+    except Exception:
         pass
 
     # Try alternative: search in project members
@@ -39,7 +39,7 @@ def get_user_id_by_username(token: str, username: str, project_id: int):
                 user_info = member.get("user", {})
                 if user_info.get("username", "").lower() == username.lower():
                     return user_info.get("id")
-    except:
+    except Exception:
         pass
 
     return None

@@ -17,9 +17,10 @@ This addresses external code review feedback:
 
 # Import manager and operations
 from .manager import DatabaseManager
+from .pool import get_db_pool  # Async pool for admin operations
 
 # Import all models for backward compatibility
-from .models import (
+from database.models import (
     Base,
     Context,
     ContextPermission,
@@ -36,12 +37,11 @@ from .models import (
 try:
     # Try relative import first (when lib.database is imported as a package)
     try:
-        from ..security import models as _security_models  # noqa: F401
-        from ..security.models import AlertEvent, RedactionAudit, SecurityEvent
+        # from ..security import models as _security_models  # noqa: F401  # Commented out - RedactionAudit table doesn't exist
+        from ..security.models import AlertEvent, SecurityEvent  # RedactionAudit table doesn't exist
     except ImportError:
-        # Fallback to absolute import (for test environments)
-        from lib.security import models as _security_models  # noqa: F401
-        from lib.security.models import AlertEvent, RedactionAudit, SecurityEvent
+        # from lib.security import models as _security_models  # noqa: F401  # Commented out - RedactionAudit table doesn't exist
+        from lib.security.models import AlertEvent, SecurityEvent  # RedactionAudit table doesn't exist
 except ImportError:  # pragma: no cover - security models optional in some runtimes
     AlertEvent = None  # type: ignore[assignment]
     RedactionAudit = None  # type: ignore[assignment]
@@ -95,21 +95,22 @@ __all__ = [
     # Models
     "Base",
     "User",
+    "RefreshToken",
     "Memory",
     "Organization",
     "Team",
     "TeamMember",
+    "TeamMembership",
+    "TeamInvitation",
     "Context",
     "ContextPermission",
     "OrganizationRegistration",
     "UserInvitation",
-    "SecurityEvent",
-    "AlertEvent",
-    "RedactionAudit",
     # Manager and operations
     "DatabaseManager",
     "DatabaseOperations",
     "get_db",
+    "get_db_pool",  # Async pool for admin operations
 ]
 
 # Add replication exports if available

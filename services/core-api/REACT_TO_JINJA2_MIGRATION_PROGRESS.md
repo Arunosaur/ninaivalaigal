@@ -132,3 +132,7 @@ services/core-api/lib/templates/
 ---
 
 **Next**: Proceed with customer pages (US#825-839) following the same pattern.
+
+
+
+

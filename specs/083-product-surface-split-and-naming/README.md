@@ -1,5 +1,31 @@
 ---
-{}
+status: Partial Implementation
+last_updated: 2025-01-11
+---
+
+# SPEC-083: Product Surface Split & Naming (Customer App + Admin Console)
+
+**Status:** 🔄 **PARTIAL IMPLEMENTATION**
+**Last Updated:** January 2025
+
+## Current Implementation Status
+
+### ✅ Completed
+- Customer app exists (`apps/customer/`)
+- Admin console exists (`apps/admin-console/`)
+- Shared UI package exists (`packages/ui/`)
+- OpenAPI filtering implemented (SPEC-087)
+- CI policy test structure created
+
+### ⚠️ In Progress
+- API client SDKs generation
+- Full CI guardrails implementation
+- Deployment/routing configuration
+
+### 📋 Documentation
+- Implementation status: `docs/spec-083-implementation-status.md`
+- Validation script: `taiga/scripts/validate_us565.py`
+
 ---
 
 

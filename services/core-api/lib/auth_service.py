@@ -17,7 +17,7 @@ import os
 import re
 import secrets
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Optional
 
 import bcrypt
 import jwt
@@ -26,19 +26,77 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
 # Import models from shared contracts (SPEC-100 Task #79)
-from auth.v1.models import (
-    ApiKeyCreate,
-    ApiKeyResponse,
-    IndividualUserSignup,
-    InvitationAccept,
-    OrganizationSignup,
-    Token,
-    TokenData,
-    TokenUsage,
-    UserInvitation,
-    UserLogin,
-)
-from config import DEFAULT_RUST_DATABASE_URL
+# TODO: shared.contracts module doesn't exist - commenting out for now
+# from shared.contracts.auth.v1.models import (
+#     ApiKeyCreate,
+#     ApiKeyResponse,
+#     IndividualUserSignup,
+#     InvitationAccept,
+#     OrganizationSignup,
+#     Token,
+#     TokenData,
+#     TokenUsage,
+#     UserInvitation,
+#     UserLogin,
+# )
+from lib.config import DEFAULT_RUST_DATABASE_URL
+
+# Temporary replacements for shared.contracts models
+class TokenData(BaseModel):
+    """Temporary TokenData model"""
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    exp: Optional[int] = None
+
+class Token(BaseModel):
+    """Temporary Token model"""
+    access_token: Optional[str] = None
+    token_type: str = "bearer"
+
+class IndividualUserSignup(BaseModel):
+    """Temporary IndividualUserSignup model"""
+    email: Optional[str] = None
+    password: Optional[str] = None
+    name: Optional[str] = None
+
+class ApiKeyCreate(BaseModel):
+    """Temporary ApiKeyCreate model"""
+    name: Optional[str] = None
+    permissions: list = []
+
+class ApiKeyResponse(BaseModel):
+    """Temporary ApiKeyResponse model"""
+    api_key: Optional[str] = None
+    name: Optional[str] = None
+    permissions: list = []
+
+class InvitationAccept(BaseModel):
+    """Temporary InvitationAccept model"""
+    token: Optional[str] = None
+    password: Optional[str] = None
+
+class OrganizationSignup(BaseModel):
+    """Temporary OrganizationSignup model"""
+    org_name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+
+class TokenUsage(BaseModel):
+    """Temporary TokenUsage model"""
+    access_token: Optional[str] = None
+    token_type: str = "bearer"
+
+class UserProfileResponse(BaseModel):
+    """Temporary UserProfileResponse model"""
+    id: Optional[str] = None
+    email: Optional[str] = None
+    name: Optional[str] = None
+    created_at: Optional[str] = None
+
+class UserProfileUpdate(BaseModel):
+    """Temporary UserProfileUpdate model"""
+    name: Optional[str] = None
+    email: Optional[str] = None
 
 
 # Configuration loading (moved from main.py to avoid circular import)
@@ -164,8 +222,17 @@ def generate_invitation_token() -> str:
 security = HTTPBearer()
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    """Create access_token."""
+def create_access_token(data: dict, expires_delta: timedelta | None = None, audience: str | None = None):
+    """
+    Create access_token.
+    
+    SPEC-083: Supports audience parameter for surface separation.
+    
+    Args:
+        data: Token payload data
+        expires_delta: Optional expiration time
+        audience: Optional audience claim (customer-app, admin-console, api)
+    """
 
     to_encode = data.copy()
     if expires_delta:
@@ -173,6 +240,10 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.utcnow() + timedelta(days=7)  # Default 7 days
     to_encode.update({"exp": expire})
+    
+    # SPEC-083: Add audience claim if provided
+    if audience:
+        to_encode["aud"] = audience
 
     # Get JWT secret from environment variable (required)
     jwt_secret = os.getenv("NINAIVALAIGAL_JWT_SECRET")
@@ -215,10 +286,31 @@ def get_user_roles_for_token(db, user_id: int) -> dict:
         return {"roles": {"global": "MEMBER"}, "teams": {}, "org_id": None}
 
 
-def verify_token(token: str) -> TokenData:
-    """Verify JWT token and return token data"""
+def verify_token(token: str, allowed_audiences: list[str] | None = None) -> TokenData:
+    """
+    Verify JWT token and return token data
+    
+    SPEC-083: Supports audience validation for surface separation.
+    
+    Args:
+        token: JWT token string
+        allowed_audiences: Optional list of allowed audience values
+        
+    Returns:
+        TokenData if valid, None otherwise
+    """
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        
+        # SPEC-083: Validate audience if allowed_audiences provided
+        if allowed_audiences:
+            token_audience = payload.get("aud")
+            if token_audience:
+                from lib.jwt_audience import is_audience_allowed
+                if not is_audience_allowed(token_audience, allowed_audiences):
+                    # Invalid audience - reject token
+                    return None
+        
         username: str = payload.get("email")  # Use email as username
         user_id: int = payload.get("user_id")
         if username is None or user_id is None:
@@ -230,10 +322,50 @@ def verify_token(token: str) -> TokenData:
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ):
-    """Get current authenticated user"""
+    """
+    Get current authenticated user
+    
+    SPEC-083: Validates JWT audience based on request origin.
+    
+    Args:
+        request: FastAPI Request object (injected automatically)
+        credentials: HTTP Bearer token credentials
+    """
+    # SPEC-083: Validate audience based on request origin
+    from lib.jwt_audience import get_audience_from_request, get_allowed_audiences_for_surface
+    
+    audience = get_audience_from_request(request)
+    allowed_audiences = get_allowed_audiences_for_surface(audience)
+    token_data = verify_token(credentials.credentials, allowed_audiences=allowed_audiences)
+    
+    if token_data is None:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials or audience mismatch")
+
+    # Get user from database
+    db = get_db()
+    user = get_user_by_uuid(db, token_data.user_id)
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    return user
+
+
+async def get_current_user_no_audience(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    """
+    Get current authenticated user without audience validation.
+    
+    Use this for backward compatibility when audience validation is not needed.
+    
+    Args:
+        credentials: HTTP Bearer token credentials
+    """
     token_data = verify_token(credentials.credentials)
+    
     if token_data is None:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
@@ -342,8 +474,17 @@ def create_individual_user(signup_data: IndividualUserSignup):
         session.close()
 
 
-def authenticate_user(email: str, password: str):
-    """Authenticate user login"""
+def authenticate_user(email: str, password: str, audience: str | None = None):
+    """
+    Authenticate user login
+    
+    SPEC-083: Supports audience parameter for surface separation.
+    
+    Args:
+        email: User email
+        password: User password
+        audience: Optional audience claim (customer-app, admin-console, api)
+    """
     db = get_db()
     session = db.get_session()
     try:
@@ -373,6 +514,11 @@ def authenticate_user(email: str, password: str):
             "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
             **role_data,  # Include roles, teams, org_id
         }
+        
+        # SPEC-083: Add audience claim if provided
+        if audience:
+            jwt_payload["aud"] = audience
+        
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
         return {

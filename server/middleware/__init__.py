@@ -10,6 +10,7 @@
 Middleware package for performance optimization and request processing.
 """
 
+from .admin_session import AdminSessionMiddleware
 from .response_cache import CacheManager, ResponseCacheMiddleware
 
-__all__ = ["ResponseCacheMiddleware", "CacheManager"]
+__all__ = ["AdminSessionMiddleware", "ResponseCacheMiddleware", "CacheManager"]

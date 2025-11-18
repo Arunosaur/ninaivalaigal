@@ -355,6 +355,10 @@ class EncryptedDataExporter:
         Phase 2: Full implementation using Fernet (AES-128 in CBC mode with HMAC)
         Fernet is secure and simpler than raw AES-256-GCM.
 
+        Performance Note: Encryption operations are CPU-intensive. For high-volume
+        scenarios, consider caching encrypted results or using async encryption pools.
+        The current implementation is optimized for GDPR export use cases.
+
         Args:
             data: Raw export data
 

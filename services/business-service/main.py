@@ -137,7 +137,18 @@ app.include_router(timeline_api.router)
 
 
 if __name__ == "__main__":
+    # SPEC-107: For local development, use gunicorn for parity with production
+    # Use gunicorn.conf.py which automatically adjusts workers and reload based on ENV
+    import subprocess
+    import os
+    
     port = int(os.getenv("PORT", "13391"))  # Business Service canonical port
+    env = os.getenv("ENV", "dev").lower()
+    
+    # Set ENV if not already set
+    if "ENV" not in os.environ:
+        os.environ["ENV"] = env
+    
     print("=" * 60)
     print("🏢 BUSINESS SERVICE - SPEC-100 Modularization")
     print("=" * 60)
@@ -146,10 +157,21 @@ if __name__ == "__main__":
     print(f"📍 Metrics: http://localhost:{port}/metrics")
     print("📋 Phase 1: Health and metrics endpoints only")
     print("=" * 60)
-
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=port,
-        reload=True,
-    )
+    
+    # Use gunicorn for runtime parity (SPEC-107)
+    try:
+        subprocess.run([
+            "gunicorn", "main:app",
+            "-k", "uvicorn.workers.UvicornWorker",
+            "-c", "gunicorn.conf.py"
+        ], check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # Fallback to uvicorn if gunicorn not available (for local dev without gunicorn installed)
+        import uvicorn
+        print("⚠️  gunicorn not found, falling back to uvicorn (not recommended for SPEC-107)")
+        uvicorn.run(
+            "main:app",
+            host="0.0.0.0",
+            port=port,
+            reload=True,
+        )

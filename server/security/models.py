@@ -48,7 +48,7 @@ class RedactionAudit(Base):
     redacted_length = Column(Integer, nullable=True)
     processing_time_ms = Column(Float, nullable=True)
     confidence_scores = Column(JSONB, nullable=True)
-    metadata = Column(JSONB, nullable=True)
+    audit_metadata = Column("metadata", JSONB, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
@@ -69,7 +69,7 @@ class AlertEvent(Base):
     message = Column(Text, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     context_id = Column(Integer, ForeignKey("contexts.id"), nullable=True)
-    metadata = Column(JSONB, nullable=True)
+    alert_metadata = Column("metadata", JSONB, nullable=True)
     resolved = Column(Boolean, default=False)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
     resolved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -96,7 +96,7 @@ class SecurityEvent(Base):
     endpoint = Column(String(255), nullable=True)
     method = Column(String(10), nullable=True)
     status_code = Column(Integer, nullable=True)
-    metadata = Column(JSONB, nullable=True)
+    event_metadata = Column("metadata", JSONB, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

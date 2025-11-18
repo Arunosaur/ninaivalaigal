@@ -56,6 +56,14 @@ const stepperVariants = cva(
           'border-secondary-300',
           'opacity-75',
         ],
+        error: [
+          'border-error-500',
+          'bg-error-50',
+        ],
+        warning: [
+          'border-warning-500',
+          'bg-warning-50',
+        ],
       },
     },
     defaultVariants: {
@@ -88,6 +96,14 @@ const stepIndicatorVariants = cva(
           'bg-secondary-200 text-secondary-600',
           'border border-secondary-300',
         ],
+        error: [
+          'bg-error-500 text-white',
+          'shadow-md',
+        ],
+        warning: [
+          'bg-warning-500 text-white',
+          'shadow-md',
+        ],
       },
     },
     defaultVariants: {
@@ -116,6 +132,8 @@ export interface StepperProps extends VariantProps<typeof stepperVariants> {
   allowSkip?: boolean;
   disableStepClick?: boolean; // Disable clicking on step circles
   children?: React.ReactNode;
+  state?: 'active' | 'completed' | 'error' | 'warning';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 // Individual step component
@@ -301,7 +319,7 @@ export const Stepper: React.FC<StepperProps> = ({
 
   return (
     <div
-      className={cn(stepperVariants({ variant, size, state }), className)}
+      className={cn(stepperVariants({ variant: variant as any, size: size as any, state: state as any }), className)}
       role="navigation"
       aria-label="Step navigation"
       onKeyDown={handleKeyDown}
@@ -338,7 +356,7 @@ export const Stepper: React.FC<StepperProps> = ({
         role="list"
         aria-label="Steps"
       >
-        {steps.map((step, index) => (
+        {steps.map((step: StepData, index: number) => (
           <Step
             key={step.id}
             step={step}

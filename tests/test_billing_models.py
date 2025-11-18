@@ -20,27 +20,19 @@ from decimal import Decimal
 
 import pytest
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 from server.billing.models import (
     AccountStatus,
     AccountType,
-    AuditLog,
     BillingAccount,
-    BillingEvent,
     BillingPeriod,
     BillingPeriodStatus,
     BlockLevel,
-    CreditBalance,
-    DiscountApplication,
     DiscountCode,
     Invoice,
-    InvoiceLineItem,
     InvoiceStatus,
     PaymentConfig,
-    PaymentTransfer,
     PlanTier,
-    PricingTier,
     QuotaBlock,
     ResourceType,
     TransferStatus,

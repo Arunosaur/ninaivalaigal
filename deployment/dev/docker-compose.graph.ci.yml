@@ -15,7 +15,7 @@ services:
       dockerfile: Dockerfile
       platforms:
         - linux/amd64
-    container_name: ninaivalaigal-graph-db-ci
+    container_name: ninaivalaigal-test-graph-db
     restart: unless-stopped
     ports:
       - "5434:5432"
@@ -43,7 +43,7 @@ services:
   # Redis for graph caching and performance
   graph-redis:
     image: redis:7-alpine
-    container_name: ninaivalaigal-graph-redis-ci
+    container_name: ninaivalaigal-test-graph-redis
     restart: unless-stopped
     ports:
       - "6381:6379"
@@ -65,11 +65,13 @@ services:
 
 volumes:
   graph_data_ci:
+    name: ninaivalaigal-test-graph-db-data
     driver: local
   graph_redis_data_ci:
+    name: ninaivalaigal-test-graph-redis-data
     driver: local
 
 networks:
   ninaivalaigal-network-ci:
     driver: bridge
-    name: ninaivalaigal-network-ci
+    name: test-ninaivalaigal-net

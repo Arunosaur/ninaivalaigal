@@ -35,7 +35,7 @@ class TestGraphOpsIntegration:
             health_data = response.json()
             assert health_data.get("status") == "healthy"
         except requests.exceptions.ConnectionError:
-            pytest.skip("GraphOps service not available")
+            pytest.skip("GraphOps service not available - check service configuration")
 
     def test_main_api_health(self, api_base_url):
         """Test main API service health"""
@@ -45,7 +45,7 @@ class TestGraphOpsIntegration:
             health_data = response.json()
             assert health_data.get("status") == "healthy"
         except requests.exceptions.ConnectionError:
-            pytest.skip("Main API service not available")
+            pytest.skip("Main API service not available - check service configuration")
 
     def test_memory_to_graph_flow(self, api_base_url, graphops_base_url):
         """Test memory creation → graph storage flow"""

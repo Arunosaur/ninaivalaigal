@@ -16,11 +16,12 @@ import os
 
 from fastapi import FastAPI, Request
 from rbac_middleware import RBACContext
-from security import RedactionEngine, SecurityHeadersMiddleware
 from security.audit import SecurityEventType, security_alert_manager
 from security.middleware import EnhancedRateLimiter
 from security.middleware.redis_rate_limiter import RedisRateLimiterMiddleware
 from security.redaction.config import ContextSensitivity, redaction_config
+
+from security import RedactionEngine, SecurityHeadersMiddleware
 
 # RedactionMiddleware temporarily disabled - causes response body consumption
 # from security import RedactionMiddleware
@@ -58,51 +59,94 @@ class SecurityManager:
         self._add_security_event_handlers(app)
 
     def _add_security_event_handlers(self, app: FastAPI):
-        """Add security event handlers to the application"""
+        """Add security event handlers to the application with resilience patterns (SPEC-092)"""
+
+        # Import resilience utilities
+        from lib.middleware import (
+            DEFAULT_MIDDLEWARE_TIMEOUT,
+            get_breaker_manager,
+            safe_async_call,
+        )
+
+        # Get circuit breaker for security events
+        breaker_manager = get_breaker_manager()
+        security_event_breaker = breaker_manager.get_breaker(
+            name="security_event_logging",
+            failure_threshold=10,  # Higher threshold for security events
+            recovery_timeout=30.0,  # Shorter recovery time
+        )
 
         @app.middleware("http")
         async def security_event_middleware(request: Request, call_next):
-            """Middleware to log security events"""
+            """Middleware to log security events with resilience patterns (SPEC-092)"""
             try:
                 response = await call_next(request)
 
-                # Log failed authentication attempts
+                # Log failed authentication attempts with timeout and circuit breaker
                 if request.url.path.startswith("/auth/") and response.status_code == 401:
-                    await security_alert_manager.log_security_event(
-                        SecurityEventType.FAILED_LOGIN,
-                        metadata={
-                            "endpoint": request.url.path,
-                            "ip_address": (request.client.host if request.client else "unknown"),
-                            "user_agent": request.headers.get("user-agent", "unknown"),
-                        },
+
+                    async def log_failed_login():
+                        await security_alert_manager.log_security_event(
+                            SecurityEventType.FAILED_LOGIN,
+                            metadata={
+                                "endpoint": request.url.path,
+                                "ip_address": (request.client.host if request.client else "unknown"),
+                                "user_agent": request.headers.get("user-agent", "unknown"),
+                            },
+                        )
+
+                    # Use safe async call with timeout and circuit breaker
+                    await safe_async_call(
+                        security_event_breaker.call(log_failed_login),
+                        timeout=DEFAULT_MIDDLEWARE_TIMEOUT,
+                        operation_name="log_failed_login",
+                        fallback=lambda: None,  # Don't block request on logging failure
                     )
 
-                # Log permission denials
+                # Log permission denials with timeout and circuit breaker
                 elif response.status_code == 403:
                     rbac_context = getattr(request.state, "rbac_context", None)
                     user_id = rbac_context.user_id if rbac_context else None
 
-                    await security_alert_manager.log_security_event(
-                        SecurityEventType.PERMISSION_DENIED,
-                        user_id=user_id,
-                        metadata={
-                            "endpoint": request.url.path,
-                            "method": request.method,
-                            "user_role": (rbac_context.user_role.value if rbac_context else "unknown"),
-                        },
+                    async def log_permission_denied():
+                        await security_alert_manager.log_security_event(
+                            SecurityEventType.PERMISSION_DENIED,
+                            user_id=user_id,
+                            metadata={
+                                "endpoint": request.url.path,
+                                "method": request.method,
+                                "user_role": (rbac_context.user_role.value if rbac_context else "unknown"),
+                            },
+                        )
+
+                    # Use safe async call with timeout and circuit breaker
+                    await safe_async_call(
+                        security_event_breaker.call(log_permission_denied),
+                        timeout=DEFAULT_MIDDLEWARE_TIMEOUT,
+                        operation_name="log_permission_denied",
+                        fallback=lambda: None,  # Don't block request on logging failure
                     )
 
                 return response
 
             except Exception as e:
-                # Log any security-related exceptions
-                await security_alert_manager.log_security_event(
-                    SecurityEventType.SUSPICIOUS_PATTERN,
-                    metadata={
-                        "error": str(e),
-                        "endpoint": request.url.path,
-                        "method": request.method,
-                    },
+                # Log any security-related exceptions with resilience
+                async def log_exception():
+                    await security_alert_manager.log_security_event(
+                        SecurityEventType.SUSPICIOUS_PATTERN,
+                        metadata={
+                            "error": str(e),
+                            "endpoint": request.url.path,
+                            "method": request.method,
+                        },
+                    )
+
+                # Use safe async call - don't let logging failure mask the original exception
+                await safe_async_call(
+                    security_event_breaker.call(log_exception),
+                    timeout=DEFAULT_MIDDLEWARE_TIMEOUT,
+                    operation_name="log_security_exception",
+                    fallback=lambda: None,
                 )
                 raise
 

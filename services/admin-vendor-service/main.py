@@ -116,7 +116,18 @@ app.include_router(staff_auth_api.router)
 
 
 if __name__ == "__main__":
+    # SPEC-107: For local development, use gunicorn for parity with production
+    # Use gunicorn.conf.py which automatically adjusts workers and reload based on ENV
+    import subprocess
+    import os
+    
     port = int(os.getenv("PORT", "8000"))
+    env = os.getenv("ENV", "dev").lower()
+    
+    # Set ENV if not already set
+    if "ENV" not in os.environ:
+        os.environ["ENV"] = env
+    
     print("=" * 60)
     print("🏢 ADMIN/VENDOR SERVICE - SPEC-100 Modularization")
     print("=" * 60)
@@ -124,10 +135,21 @@ if __name__ == "__main__":
     print(f"📍 Ready:  http://localhost:{port}/ready")
     print(f"📍 Metrics: http://localhost:{port}/metrics")
     print("=" * 60)
-
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=port,
-        reload=True,
-    )
+    
+    # Use gunicorn for runtime parity (SPEC-107)
+    try:
+        subprocess.run([
+            "gunicorn", "main:app",
+            "-k", "uvicorn.workers.UvicornWorker",
+            "-c", "gunicorn.conf.py"
+        ], check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # Fallback to uvicorn if gunicorn not available (for local dev without gunicorn installed)
+        import uvicorn
+        print("⚠️  gunicorn not found, falling back to uvicorn (not recommended for SPEC-107)")
+        uvicorn.run(
+            "main:app",
+            host="0.0.0.0",
+            port=port,
+            reload=True,
+        )

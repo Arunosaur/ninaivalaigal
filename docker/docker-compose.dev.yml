@@ -12,7 +12,7 @@ services:
     build:
       context: ..
       dockerfile: docker/templates/rust-service.Dockerfile
-    container_name: graphops-service
+    container_name: ninaivalaigal-dev-graphops
     ports:
       - "50051:50051"  # gRPC
       - "9090:9090"    # Prometheus metrics
@@ -43,7 +43,7 @@ services:
     build:
       context: ..
       dockerfile: services/core-api/Dockerfile
-    container_name: ninaivalaigal-core-api
+    container_name: ninaivalaigal-dev-core-api
     ports:
       - "8001:8000"  # External 8001, internal 8000
     environment:
@@ -61,6 +61,7 @@ services:
 
       # Service configuration
       PORT: 8000
+      ENV: dev  # SPEC-107: Used by gunicorn.conf.py for worker count and reload
       ENVIRONMENT: development
       LOG_LEVEL: ${LOG_LEVEL:-info}
 
@@ -92,7 +93,7 @@ services:
   # ============================================================================
   postgres:
     image: postgres:15-alpine
-    container_name: postgres
+    container_name: ninaivalaigal-dev-db
     environment:
       POSTGRES_USER: nina
       POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password}
@@ -118,7 +119,7 @@ services:
   # ============================================================================
   redis:
     image: redis:7-alpine
-    container_name: redis
+    container_name: ninaivalaigal-dev-redis
     ports:
       - "6379:6379"
     volumes:
@@ -139,7 +140,7 @@ services:
   # ============================================================================
   pgbouncer:
     image: edoburu/pgbouncer:latest
-    container_name: pgbouncer
+    container_name: ninaivalaigal-dev-pgbouncer
     environment:
       DATABASE_URL: postgresql://nina:${DB_PASSWORD:-dev_password}@postgres:5432/ninaivalaigal_dev
       POOL_MODE: transaction
@@ -159,7 +160,7 @@ services:
   # ============================================================================
   prometheus:
     image: prom/prometheus:latest
-    container_name: prometheus
+    container_name: ninaivalaigal-dev-prometheus
     ports:
       - "9091:9090"
     volumes:
@@ -179,7 +180,7 @@ services:
   # ============================================================================
   grafana:
     image: grafana/grafana:latest
-    container_name: grafana
+    container_name: ninaivalaigal-dev-grafana
     ports:
       - "3000:3000"
     environment:
@@ -201,7 +202,7 @@ services:
   # ============================================================================
   loki:
     image: grafana/loki:2.9.3
-    container_name: loki
+    container_name: ninaivalaigal-dev-loki
     ports:
       - "3100:3100"  # Port per ports.nv.yaml (docker/dev)
     volumes:
@@ -223,7 +224,7 @@ services:
   # ============================================================================
   promtail:
     image: grafana/promtail:2.9.3
-    container_name: promtail
+    container_name: ninaivalaigal-dev-promtail
     ports:
       - "9080:9080"  # Port per ports.nv.yaml (docker/dev)
     volumes:
@@ -245,19 +246,25 @@ services:
 
 volumes:
   postgres_data:
+    name: ninaivalaigal-dev-db-data
     driver: local
   redis_data:
+    name: ninaivalaigal-dev-redis-data
     driver: local
   prometheus_data:
+    name: ninaivalaigal-dev-prometheus-data
     driver: local
   grafana_data:
+    name: ninaivalaigal-dev-grafana-data
     driver: local
   loki_data:
+    name: ninaivalaigal-dev-loki-data
     driver: local
 
 networks:
   ninaivalaigal:
     driver: bridge
+    name: dev-ninaivalaigal-net
     ipam:
       config:
         - subnet: 172.25.0.0/16

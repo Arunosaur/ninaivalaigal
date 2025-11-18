@@ -18,5 +18,6 @@ alembic -c alembic/intelligence/alembic.ini upgrade head
 
 echo "✅ All migrations complete"
 
-echo "🚀 Starting Core API..."
-exec uvicorn main:app --host 0.0.0.0 --port 8000
+echo "🚀 Starting Core API with gunicorn..."
+# SPEC-107: Use gunicorn + uvicorn workers for runtime parity across dev/test/prod
+exec gunicorn main:app -k uvicorn.workers.UvicornWorker -c gunicorn.conf.py

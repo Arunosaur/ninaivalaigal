@@ -21,7 +21,9 @@ readonly NC='\033[0m'
 # Configuration
 readonly ENV="${NINA_ENV:-dev}"
 readonly DB_CONTAINER="ninaivalaigal-${ENV}-db"
-readonly PGBOUNCER_CONTAINER="ninaivalaigal-${ENV}-pgbouncer"
+readonly PGBOUNCER_TX_CONTAINER="ninaivalaigal-${ENV}-pgbouncer-tx"
+readonly PGBOUNCER_SESSION_CONTAINER="ninaivalaigal-${ENV}-pgbouncer-session"
+readonly PGBOUNCER_SESS_CONTAINER="ninaivalaigal-${ENV}-pgbouncer-sess"
 readonly REDIS_CONTAINER="ninaivalaigal-${ENV}-redis"
 readonly API_CONTAINER="ninaivalaigal-${ENV}-api"
 readonly CUSTOMER_APP_CONTAINER="ninaivalaigal-${ENV}-customer-app"
@@ -129,7 +131,9 @@ main() {
 
     echo "📦 Container Status:"
     check_container_status "$DB_CONTAINER" || all_healthy=false
-    check_container_status "$PGBOUNCER_CONTAINER" || all_healthy=false
+    check_container_status "$PGBOUNCER_TX_CONTAINER" || all_healthy=false
+    check_container_status "$PGBOUNCER_SESSION_CONTAINER" || all_healthy=false
+    check_container_status "$PGBOUNCER_SESS_CONTAINER" || all_healthy=false
     check_container_status "$REDIS_CONTAINER" || all_healthy=false
     check_container_status "$API_CONTAINER" || all_healthy=false
     check_container_status "$CUSTOMER_APP_CONTAINER" || all_healthy=false

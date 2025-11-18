@@ -21,7 +21,7 @@ Features:
 import logging
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
@@ -129,7 +129,12 @@ class StripeService:
         return stripe_customer
 
     def create_subscription(
-        self, billing_account_id: uuid.UUID, plan_tier: PlanTier, payment_method_id: Optional[str] = None
+        self,
+        billing_account_id: uuid.UUID,
+        plan_tier: PlanTier,
+        payment_method_id: Optional[str] = None,
+        billing_cycle_anchor: Optional[int] = None,
+        trial_days: Optional[int] = None,
     ) -> StripeSubscription:
         """
         Create Stripe subscription for billing account.
@@ -138,6 +143,8 @@ class StripeService:
             billing_account_id: Billing account ID
             plan_tier: Plan tier (FREE, STARTER, PRO, ENTERPRISE)
             payment_method_id: Stripe payment method ID (optional)
+            billing_cycle_anchor: Unix timestamp for billing cycle anchor (optional, US#164)
+            trial_days: Trial period in days (optional, US#164)
 
         Returns:
             StripeSubscription instance
@@ -534,13 +541,22 @@ class StripeService:
         return {"processed": True, "message": "Subscription deleted"}
 
     def _handle_invoice_payment_succeeded(self, event_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle invoice.payment_succeeded webhook (US#165: with invoice record creation)"""
+        """
+        Handle invoice.payment_succeeded webhook (US#165: with invoice record creation)
+
+        US#767: BILL-004 - Extract revision from Stripe invoice metadata if present
+        """
         invoice_obj = event_data if isinstance(event_data, dict) else {}
         stripe_invoice_id = invoice_obj.get("id")
         subscription_id = invoice_obj.get("subscription")
         customer_id = invoice_obj.get("customer")
         amount_paid = invoice_obj.get("amount_paid", 0) / 100.0  # Convert from cents
         amount_due = invoice_obj.get("amount_due", 0) / 100.0
+
+        # US#767: Extract revision from Stripe invoice metadata
+        stripe_metadata = invoice_obj.get("metadata", {})
+        revision = int(stripe_metadata.get("revision", "1")) if stripe_metadata else 1
+        invoice_number = stripe_metadata.get("invoice_number") if stripe_metadata else f"INV-{stripe_invoice_id[:8]}"
 
         # Create or update invoice record
         invoice = self.db.query(StripeInvoice).filter(StripeInvoice.stripe_invoice_id == stripe_invoice_id).first()
@@ -563,17 +579,52 @@ class StripeService:
                         .first()
                     )
                     if billing_account:
-                        # Create Invoice record first, then link StripeInvoice (US#165)
+                        # US#767: Get billing period from metadata or use current period
+                        billing_period_id = None
+                        if stripe_metadata and "billing_period_id" in stripe_metadata:
+                            try:
+                                billing_period_id = uuid.UUID(stripe_metadata["billing_period_id"])
+                            except (ValueError, TypeError):
+                                pass
+
+                        # If no billing period from metadata, get current active period
+                        if not billing_period_id:
+                            from server.billing.models import (
+                                BillingPeriod,
+                                BillingPeriodStatus,
+                            )
+
+                            current_period = (
+                                self.db.query(BillingPeriod)
+                                .filter(
+                                    BillingPeriod.billing_account_id == billing_account.id,
+                                    BillingPeriod.status == BillingPeriodStatus.ACTIVE.value,
+                                )
+                                .order_by(BillingPeriod.period_end.desc())
+                                .first()
+                            )
+                            if current_period:
+                                billing_period_id = current_period.id
+
+                        # Create Invoice record first, then link StripeInvoice (US#165, US#767)
                         from server.billing.models import Invoice, InvoiceStatus
 
                         invoice_record = Invoice(
+                            billing_period_id=billing_period_id or billing_account.id,  # Fallback if no period
                             billing_account_id=billing_account.id,
-                            invoice_number=f"INV-{stripe_invoice_id[:8]}",
+                            invoice_number=invoice_number,
+                            revision=revision,  # US#767: Use revision from metadata
                             status=InvoiceStatus.PAID.value,
                             subtotal=Decimal(str(amount_paid)),
                             tax_amount=Decimal("0"),
                             total_amount=Decimal(str(amount_paid)),
+                            currency=invoice_obj.get("currency", "usd").upper(),
                             paid_at=datetime.utcnow(),
+                            issued_at=(
+                                datetime.fromtimestamp(invoice_obj.get("created", 0), tz=timezone.utc)
+                                if invoice_obj.get("created")
+                                else datetime.utcnow()
+                            ),
                         )
                         self.db.add(invoice_record)
                         self.db.flush()
@@ -590,6 +641,8 @@ class StripeService:
         elif invoice:
             # Update existing invoice status
             invoice.status = "paid"
+
+            # US#767: Update local invoice status if linked
             if invoice.invoice:
                 from server.billing.models import InvoiceStatus
 
@@ -599,18 +652,33 @@ class StripeService:
         return {"processed": True, "message": "Invoice payment succeeded"}
 
     def _handle_invoice_payment_failed(self, event_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle invoice.payment_failed webhook (US#165: with dunning)"""
+        """
+        Handle invoice.payment_failed webhook (US#165: with dunning)
+
+        US#767: BILL-004 - Extract revision from Stripe invoice metadata if present
+        """
         invoice_obj = event_data if isinstance(event_data, dict) else {}
         stripe_invoice_id = invoice_obj.get("id")
         subscription_id = invoice_obj.get("subscription")
         customer_id = invoice_obj.get("customer")
         amount_due = invoice_obj.get("amount_due", 0) / 100.0  # Convert from cents
 
+        # US#767: Extract revision from Stripe invoice metadata
+        stripe_metadata = invoice_obj.get("metadata", {})
+        revision = int(stripe_metadata.get("revision", "1")) if stripe_metadata else 1
+        invoice_number = stripe_metadata.get("invoice_number") if stripe_metadata else f"INV-{stripe_invoice_id[:8]}"
+
         # Update invoice status
         invoice = self.db.query(StripeInvoice).filter(StripeInvoice.stripe_invoice_id == stripe_invoice_id).first()
 
         if invoice:
             invoice.status = "failed"
+
+            # US#767: Update local invoice status if linked
+            if invoice.invoice:
+                from server.billing.models import InvoiceStatus
+
+                invoice.invoice.status = InvoiceStatus.ISSUED.value  # Keep as issued, not paid
         else:
             # Create invoice record if it doesn't exist
             if subscription_id:
@@ -632,17 +700,52 @@ class StripeService:
                             .first()
                         )
                         if billing_account:
-                            # Create Invoice record first
+                            # US#767: Get billing period from metadata or use current period
+                            billing_period_id = None
+                            if stripe_metadata and "billing_period_id" in stripe_metadata:
+                                try:
+                                    billing_period_id = uuid.UUID(stripe_metadata["billing_period_id"])
+                                except (ValueError, TypeError):
+                                    pass
+
+                            # If no billing period from metadata, get current active period
+                            if not billing_period_id:
+                                from server.billing.models import (
+                                    BillingPeriod,
+                                    BillingPeriodStatus,
+                                )
+
+                                current_period = (
+                                    self.db.query(BillingPeriod)
+                                    .filter(
+                                        BillingPeriod.billing_account_id == billing_account.id,
+                                        BillingPeriod.status == BillingPeriodStatus.ACTIVE.value,
+                                    )
+                                    .order_by(BillingPeriod.period_end.desc())
+                                    .first()
+                                )
+                                if current_period:
+                                    billing_period_id = current_period.id
+
+                            # Create Invoice record first (US#165, US#767)
                             from server.billing.models import Invoice, InvoiceStatus
 
                             invoice_record = Invoice(
+                                billing_period_id=billing_period_id or billing_account.id,  # Fallback if no period
                                 billing_account_id=billing_account.id,
-                                invoice_number=f"INV-{stripe_invoice_id[:8]}",
+                                invoice_number=invoice_number,  # US#767: Use invoice number from metadata
+                                revision=revision,  # US#767: Use revision from metadata
                                 status=InvoiceStatus.ISSUED.value,
                                 subtotal=Decimal(str(amount_due)),
                                 tax_amount=Decimal("0"),
                                 total_amount=Decimal(str(amount_due)),
-                                due_date=datetime.utcnow() + timedelta(days=7),
+                                currency=invoice_obj.get("currency", "usd").upper(),
+                                due_at=datetime.utcnow() + timedelta(days=7),
+                                issued_at=(
+                                    datetime.fromtimestamp(invoice_obj.get("created", 0), tz=timezone.utc)
+                                    if invoice_obj.get("created")
+                                    else datetime.utcnow()
+                                ),
                             )
                             self.db.add(invoice_record)
                             self.db.flush()

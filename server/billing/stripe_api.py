@@ -17,6 +17,7 @@ Provides REST API for:
 - Payment method management
 """
 
+import os
 from typing import Any, Dict, Optional
 from uuid import UUID
 
@@ -370,7 +371,10 @@ async def handle_stripe_webhook(
     """
     try:
         import stripe
+    except ImportError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Stripe package not available")
 
+    try:
         # Get webhook signature from header
         signature = request.headers.get("stripe-signature")
         if not signature:
@@ -399,8 +403,9 @@ async def handle_stripe_webhook(
 
         return result
 
-    except ImportError:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Stripe package not available")
+    except HTTPException:
+        # Re-raise HTTPExceptions (including signature verification errors)
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error processing webhook: {str(e)}"

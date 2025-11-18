@@ -50,8 +50,11 @@
     "@semantic-release/github": "^9.2.6",
     "@semantic-release/npm": "^11.0.2",
     "@semantic-release/release-notes-generator": "^12.1.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "conventional-changelog-conventionalcommits": "^9.1.0",
-    "semantic-release": "^22.0.12"
+    "semantic-release": "^22.0.12",
+    "tailwind-merge": "^3.4.0"
   },
   "config": {
     "stack": {

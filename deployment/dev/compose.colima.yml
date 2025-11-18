@@ -66,7 +66,8 @@ services:
       NINAIVALAIGAL_DEBUG: ${NINA_DEBUG:-1}
       PYTHONPATH: /app/server
       PORT: 13370
-      UVICORN_RELOAD: ${NINA_LIVE_RELOAD:-1}
+      # SPEC-107: Use ENV for gunicorn.conf.py (reload handled automatically in dev)
+      ENV: ${ENV:-dev}
     depends_on:
       postgres:
         condition: service_healthy
@@ -106,14 +107,15 @@ services:
 # Volumes section
 volumes:
   postgres_data:
-    name: postgres_${NINA_ENV:-dev}_data  # Shared with docker and apple
+    name: ninaivalaigal-${NINA_ENV:-dev}-db-data  # SPEC-109: Shared with docker and apple
     driver: local
   redis_data:
-    name: redis_${NINA_ENV:-dev}_data  # Shared with docker and apple
+    name: ninaivalaigal-${NINA_ENV:-dev}-redis-data  # SPEC-109: Shared with docker and apple
     driver: local
   api_cache:
+    name: ninaivalaigal-${NINA_ENV:-dev}-api-cache
     driver: local
 
 networks:
   default:
-    name: ninaivalaigal_${NINA_ENV:-dev}_network
+    name: ${NINA_ENV:-dev}-ninaivalaigal-net  # SPEC-107: {{env}}-ninaivalaigal-net

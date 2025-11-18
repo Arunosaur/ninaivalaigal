@@ -215,7 +215,7 @@ while true; do
         echo "🚨 API health check failed - attempting auto-recovery"
 
         # Try restarting API container
-        container restart nv-api || {
+        container restart  || {
             echo "🔄 Container restart failed - rolling back to stable"
             make production-rollback
         }

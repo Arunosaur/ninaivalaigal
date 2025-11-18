@@ -2,9 +2,18 @@
   "name": "@nina/api-client",
   "version": "0.9.0",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "exports": {
-    ".": "./src/index.ts"
+  "workspaces": [
+    "customer",
+    "admin"
+  ],
+  "scripts": {
+    "generate:customer": "node scripts/generate-customer-sdk.js",
+    "generate:admin": "node scripts/generate-admin-sdk.js",
+    "generate:all": "npm run generate:customer && npm run generate:admin",
+    "build": "npm run build --workspaces",
+    "type-check": "npm run type-check --workspaces"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.7.0"
   }
 }

@@ -6,7 +6,6 @@
 
 import os
 import sys
-from datetime import datetime
 
 import requests
 
@@ -209,15 +208,15 @@ def main():
 
     if success:
         print(f"✅ Successfully assigned US#{ref} to Developer G")
-        print(f"\n📋 Task Details:")
+        print("\n📋 Task Details:")
         print(f"   Story: US#{ref}")
         print(f"   Subject: {subject}")
-        print(f"   Assigned to: Developer G")
-        print(f"   Status: In Progress")
-        print(f"\n💡 Next steps: Complete the task implementation")
+        print("   Assigned to: Developer G")
+        print("   Status: In Progress")
+        print("\n💡 Next steps: Complete the task implementation")
         return 0
     else:
-        print(f"❌ Failed to assign story")
+        print("❌ Failed to assign story")
         return 1
 
 

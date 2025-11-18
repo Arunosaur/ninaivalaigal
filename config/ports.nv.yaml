@@ -44,6 +44,20 @@ matrix:
       grpc_gateway: 13375
       graphops: 13376
       graphops_metrics: 9091
+      otel_collector_grpc: 14317
+      otel_collector_http: 14318
+      otel_collector_metrics: 8889
+      otel_collector_health: 13133
+      otel_collector_pprof: 1777
+      otel_collector_zpages: 55679
+      otel_collector_own_metrics: 8888
+      linkerd_controller: 8085
+      linkerd_web: 8084
+      linkerd_injector: 8444
+      linkerd_admin_api: 9990
+      linkerd_metrics: 9994
+      linkerd_prometheus: 9091
+      linkerd_grafana: 3002
     test:
       postgresql: 5532
       pgbouncer: 6532
@@ -62,6 +76,20 @@ matrix:
       grpc_gateway: 13475
       graphops: 13476
       graphops_metrics: 9191
+      otel_collector_grpc: 14317
+      otel_collector_http: 14318
+      otel_collector_metrics: 8889
+      otel_collector_health: 13133
+      otel_collector_pprof: 1777
+      otel_collector_zpages: 55679
+      otel_collector_own_metrics: 8888
+      linkerd_controller: 8085
+      linkerd_web: 8084
+      linkerd_injector: 8444
+      linkerd_admin_api: 9990
+      linkerd_metrics: 9994
+      linkerd_prometheus: 9091
+      linkerd_grafana: 3002
     prod:
       postgresql: 5632
       pgbouncer: 6632
@@ -80,6 +108,20 @@ matrix:
       grpc_gateway: 13575
       graphops: 13576
       graphops_metrics: 9291
+      otel_collector_grpc: 14317
+      otel_collector_http: 14318
+      otel_collector_metrics: 8889
+      otel_collector_health: 13133
+      otel_collector_pprof: 1777
+      otel_collector_zpages: 55679
+      otel_collector_own_metrics: 8888
+      linkerd_controller: 8085
+      linkerd_web: 8084
+      linkerd_injector: 8444
+      linkerd_admin_api: 9990
+      linkerd_metrics: 9994
+      linkerd_prometheus: 9091
+      linkerd_grafana: 3002
   colima:
     dev:
       postgresql: 5442
@@ -99,6 +141,20 @@ matrix:
       grpc_gateway: 13385
       graphops: 13386
       graphops_metrics: 9101
+      otel_collector_grpc: 14317
+      otel_collector_http: 14318
+      otel_collector_metrics: 8889
+      otel_collector_health: 13133
+      otel_collector_pprof: 1777
+      otel_collector_zpages: 55679
+      otel_collector_own_metrics: 8888
+      linkerd_controller: 8085
+      linkerd_web: 8084
+      linkerd_injector: 8444
+      linkerd_admin_api: 9990
+      linkerd_metrics: 9994
+      linkerd_prometheus: 9091
+      linkerd_grafana: 3002
     test:
       postgresql: 5542
       pgbouncer: 6542
@@ -117,6 +173,20 @@ matrix:
       grpc_gateway: 13485
       graphops: 13486
       graphops_metrics: 9201
+      otel_collector_grpc: 14317
+      otel_collector_http: 14318
+      otel_collector_metrics: 8889
+      otel_collector_health: 13133
+      otel_collector_pprof: 1777
+      otel_collector_zpages: 55679
+      otel_collector_own_metrics: 8888
+      linkerd_controller: 8085
+      linkerd_web: 8084
+      linkerd_injector: 8444
+      linkerd_admin_api: 9990
+      linkerd_metrics: 9994
+      linkerd_prometheus: 9091
+      linkerd_grafana: 3002
     prod:
       postgresql: 5642
       pgbouncer: 6642
@@ -135,6 +205,20 @@ matrix:
       grpc_gateway: 13585
       graphops: 13586
       graphops_metrics: 9301
+      otel_collector_grpc: 14317
+      otel_collector_http: 14318
+      otel_collector_metrics: 8889
+      otel_collector_health: 13133
+      otel_collector_pprof: 1777
+      otel_collector_zpages: 55679
+      otel_collector_own_metrics: 8888
+      linkerd_controller: 8085
+      linkerd_web: 8084
+      linkerd_injector: 8444
+      linkerd_admin_api: 9990
+      linkerd_metrics: 9994
+      linkerd_prometheus: 9091
+      linkerd_grafana: 3002
   apple:
     dev:
       postgresql: 5452
@@ -162,6 +246,20 @@ matrix:
       zipkin: 9411
       prometheus: 9110
       grafana: 3021
+      otel_collector_grpc: 14317
+      otel_collector_http: 14318
+      otel_collector_metrics: 8889
+      otel_collector_health: 13133
+      otel_collector_pprof: 1777
+      otel_collector_zpages: 55679
+      otel_collector_own_metrics: 8888
+      linkerd_controller: 8085
+      linkerd_web: 8084
+      linkerd_injector: 8444
+      linkerd_admin_api: 9990
+      linkerd_metrics: 9994
+      linkerd_prometheus: 9091
+      linkerd_grafana: 3002
     test:
       postgresql: 5552
       pgbouncer: 6552
@@ -180,6 +278,20 @@ matrix:
       grpc_gateway: 13495
       graphops: 13496
       graphops_metrics: 9211
+      otel_collector_grpc: 14317
+      otel_collector_http: 14318
+      otel_collector_metrics: 8889
+      otel_collector_health: 13133
+      otel_collector_pprof: 1777
+      otel_collector_zpages: 55679
+      otel_collector_own_metrics: 8888
+      linkerd_controller: 8085
+      linkerd_web: 8084
+      linkerd_injector: 8444
+      linkerd_admin_api: 9990
+      linkerd_metrics: 9994
+      linkerd_prometheus: 9091
+      linkerd_grafana: 3002
     prod:
       postgresql: 5652
       pgbouncer: 6652
@@ -198,11 +310,26 @@ matrix:
       grpc_gateway: 13595
       graphops: 13596
       graphops_metrics: 9311
+      otel_collector_grpc: 14317
+      otel_collector_http: 14318
+      otel_collector_metrics: 8889
+      otel_collector_health: 13133
+      otel_collector_pprof: 1777
+      otel_collector_zpages: 55679
+      otel_collector_own_metrics: 8888
+      linkerd_controller: 8085
+      linkerd_web: 8084
+      linkerd_injector: 8444
+      linkerd_admin_api: 9990
+      linkerd_metrics: 9994
+      linkerd_prometheus: 9091
+      linkerd_grafana: 3002
 naming_conventions:
   container_pattern: ninaivalaigal-{env}-{service}
   database_pattern: ninaivalaigal_{env}
   age_graph_pattern: ninaivalaigal_intelligence_{env}
   script_pattern: nv-{service}-{action}.sh
+  network_pattern: {env}-ninaivalaigal-net
   rationale: 'Option A (Full Suffixes) chosen for:
 
     - Multi-environment support on same host (dev + test + prod)
@@ -356,6 +483,61 @@ services:
     container_port: 8080
     protocol: http
     health_check: ./cli-tools --version
+  otel_collector:
+    description: OpenTelemetry Collector - Observability data collection and processing
+    container_port: 4317
+    host_port: 14317
+    protocol: http
+    health_check: curl -f http://localhost:13133/
+    otlp_grpc_endpoint: http://localhost:14317
+    otlp_http_endpoint: http://localhost:14318
+    metrics: http://localhost:8889/metrics
+    health_endpoint: http://localhost:13133
+    pprof_endpoint: http://localhost:1777/debug/pprof
+    zpages_endpoint: http://localhost:55679/debug/tracez
+    own_metrics: http://localhost:8888/metrics
+    note: US#974 - Collects traces and metrics, forwards to Jaeger. Uses ports 14317/14318 to avoid conflict with direct Jaeger ports.
+  linkerd_controller:
+    description: Linkerd Service Mesh Controller - Control plane for service mesh
+    container_port: 8085
+    host_port: 8085
+    protocol: http
+    health_check: curl -f http://localhost:9990/health
+    admin_api: http://localhost:9990
+    metrics: http://localhost:9994/metrics
+    note: US#90 - Service mesh control plane with automatic mTLS, reliability, and observability
+  linkerd_web:
+    description: Linkerd Service Mesh Dashboard - Web UI for mesh visualization
+    container_port: 8084
+    host_port: 8084
+    protocol: http
+    health_check: curl -f http://localhost:8084/
+    ui: http://localhost:8084
+    note: US#90 - Service mesh dashboard for monitoring and visualization
+  linkerd_injector:
+    description: Linkerd Proxy Injector - Automatic sidecar injection
+    container_port: 8444
+    host_port: 8444
+    protocol: https
+    health_check: curl -f http://localhost:8444/
+    note: US#90 - Automatic proxy sidecar injection for Kubernetes deployments
+  linkerd_prometheus:
+    description: Linkerd Prometheus - Metrics collection for service mesh
+    container_port: 9090
+    host_port: 9091
+    protocol: http
+    health_check: curl -f http://localhost:9091/-/ready
+    ui: http://localhost:9091
+    note: US#90 - Dedicated Prometheus for Linkerd service mesh metrics
+  linkerd_grafana:
+    description: Linkerd Grafana - Dashboards for service mesh monitoring
+    container_port: 3000
+    host_port: 3002
+    protocol: http
+    health_check: curl -f http://localhost:3002/api/health
+    ui: http://localhost:3002
+    default_credentials: admin/admin123
+    note: US#90 - Dedicated Grafana for Linkerd service mesh visualization
   prometheus:
     description: Prometheus Metrics Collection - Observability
     container_port: 9090

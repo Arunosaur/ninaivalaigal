@@ -310,15 +310,52 @@ class InvoicingService:
         tax_amount = invoice_data.get("tax_amount", 0.0)
         total_amount = invoice_data.get("total_amount", subtotal + tax_amount)
 
-        totals_data = [["", "", "", "Subtotal:", f"${subtotal:.2f}"]]
+        # US#183: Multi-currency support - get currency info
+        currency = invoice_data.get("currency", "USD")
+        display_currency = invoice_data.get("display_currency")
+        exchange_rate = invoice_data.get("exchange_rate")
+
+        # Format currency symbol
+        def get_currency_symbol(curr: str) -> str:
+            symbols = {
+                "USD": "$",
+                "EUR": "€",
+                "GBP": "£",
+                "JPY": "¥",
+                "AUD": "A$",
+                "CAD": "C$",
+                "CHF": "CHF",
+                "CNY": "¥",
+                "INR": "₹",
+                "SGD": "S$",
+                "HKD": "HK$",
+                "NZD": "NZ$",
+            }
+            return symbols.get(curr, curr + " ")
+
+        currency_symbol = get_currency_symbol(currency)
+        display_symbol = get_currency_symbol(display_currency) if display_currency else currency_symbol
+
+        totals_data = [["", "", "", "Subtotal:", f"{currency_symbol}{subtotal:.2f}"]]
 
         if tax_amount > 0:
             tax_label = "Tax"
             if tax_settings:
                 tax_label = tax_settings.get("tax_name", "Tax")
-            totals_data.append(["", "", "", f"{tax_label}:", f"${tax_amount:.2f}"])
+            totals_data.append(["", "", "", f"{tax_label}:", f"{currency_symbol}{tax_amount:.2f}"])
 
-        totals_data.append(["", "", "", "<b>Total:</b>", f"<b>${total_amount:.2f}</b>"])
+        # Show total in invoice currency
+        total_display = f"{currency_symbol}{total_amount:.2f}"
+
+        # US#183: If display currency differs, show both amounts
+        if display_currency and display_currency != currency and exchange_rate:
+            converted_total = float(total_amount) * float(exchange_rate)
+            total_display = (
+                f"<b>{display_symbol}{converted_total:.2f}</b><br/>"
+                f"<i>({currency_symbol}{total_amount:.2f} {currency} at rate {exchange_rate:.6f})</i>"
+            )
+
+        totals_data.append(["", "", "", "<b>Total:</b>", total_display])
 
         totals_table = Table(totals_data, colWidths=[2.5 * inch, 1.5 * inch, 0.8 * inch, 1 * inch, 1 * inch])
         totals_table.setStyle(

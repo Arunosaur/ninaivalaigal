@@ -183,7 +183,18 @@ except Exception as e:
 
 
 if __name__ == "__main__":
+    # SPEC-107: For local development, use gunicorn for parity with production
+    # Use gunicorn.conf.py which automatically adjusts workers and reload based on ENV
+    import subprocess
+    import os
+    
     port = int(os.getenv("PORT", "8001"))  # Graph/AI Service on port 8001
+    env = os.getenv("ENV", "dev").lower()
+    
+    # Set ENV if not already set
+    if "ENV" not in os.environ:
+        os.environ["ENV"] = env
+    
     print("=" * 60)
     print("🧠 GRAPH/AI SERVICE - SPEC-100 + SPEC-062 Integration")
     print("=" * 60)
@@ -194,10 +205,21 @@ if __name__ == "__main__":
     print("📊 Graph DB: Port 5433 (GraphOps)")
     print("📊 Graph Redis: Port 6380 (GraphOps)")
     print("=" * 60)
-
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=port,
-        reload=True,
-    )
+    
+    # Use gunicorn for runtime parity (SPEC-107)
+    try:
+        subprocess.run([
+            "gunicorn", "main:app",
+            "-k", "uvicorn.workers.UvicornWorker",
+            "-c", "gunicorn.conf.py"
+        ], check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # Fallback to uvicorn if gunicorn not available (for local dev without gunicorn installed)
+        import uvicorn
+        print("⚠️  gunicorn not found, falling back to uvicorn (not recommended for SPEC-107)")
+        uvicorn.run(
+            "main:app",
+            host="0.0.0.0",
+            port=port,
+            reload=True,
+        )

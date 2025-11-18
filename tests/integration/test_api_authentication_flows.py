@@ -5,6 +5,7 @@
 # Comprehensive authentication flow tests for API
 #
 
+# Import shared fixtures from conftest.py
 import os
 from uuid import uuid4
 
@@ -18,7 +19,7 @@ TIMEOUT = int(os.getenv("TEST_API_TIMEOUT", "30"))
 class TestAuthenticationFlows:
     """Test complete authentication flows"""
 
-    def test_signup_individual_user(self):
+    def test_signup_individual_user(self, auth_token, admin_token=None, member_token=None):
         """Test individual user signup flow"""
         client = requests.Session()
 
@@ -40,7 +41,7 @@ class TestAuthenticationFlows:
             # Should return user info or token
             assert "user" in data or "token" in data or "user_id" in data
 
-    def test_login_with_valid_credentials(self):
+    def test_login_with_valid_credentials(self, auth_token, admin_token=None, member_token=None):
         """Test login with valid credentials (if test user exists)"""
         client = requests.Session()
 
@@ -56,7 +57,7 @@ class TestAuthenticationFlows:
             data = response.json()
             assert "token" in data or "access_token" in data or "auth_token" in data
 
-    def test_login_with_invalid_credentials(self):
+    def test_login_with_invalid_credentials(self, auth_token, admin_token=None, member_token=None):
         """Test login with invalid credentials"""
         client = requests.Session()
 
@@ -68,7 +69,7 @@ class TestAuthenticationFlows:
 
         assert response.status_code in [401, 400, 422]
 
-    def test_access_protected_endpoint_with_token(self):
+    def test_access_protected_endpoint_with_token(self, auth_token, admin_token=None, member_token=None):
         """Test accessing protected endpoint with valid token"""
         # This would require getting a valid token first
         # For now, just verify the endpoint exists and requires auth
@@ -83,7 +84,7 @@ class TestAuthenticationFlows:
         response = client.get(f"{BASE_URL}/users/me", timeout=TIMEOUT)
         assert response.status_code == 401
 
-    def test_token_expiration(self):
+    def test_token_expiration(self, auth_token, admin_token=None, member_token=None):
         """Test that expired tokens are rejected"""
         client = requests.Session()
         client.headers.update({"Authorization": "Bearer expired_token_here"})
@@ -91,7 +92,7 @@ class TestAuthenticationFlows:
         response = client.get(f"{BASE_URL}/users/me", timeout=TIMEOUT)
         assert response.status_code == 401
 
-    def test_signup_validation_errors(self):
+    def test_signup_validation_errors(self, auth_token, admin_token=None, member_token=None):
         """Test signup with validation errors"""
         client = requests.Session()
 

@@ -64,7 +64,7 @@ from fastapi import (
 )
 from pydantic import BaseModel, ValidationError
 
-from utils.password import hash_password
+from lib.auth_service import hash_password
 
 # Import audit logging (SPEC-114)
 try:
@@ -230,8 +230,12 @@ class OrganizationSignupPayload(BaseModel):
 
 
 @router.post("/signup/individual", status_code=status.HTTP_201_CREATED)
-@traceable(name="user_signup")  # US#139: LangSmith tracing
-async def signup_individual_user(request: Request, background_tasks: BackgroundTasks) -> dict[str, Any]:
+# @traceable(name="user_signup")  # US#139: LangSmith tracing - DISABLED: traceable not defined
+async def signup_individual_user(
+    request: Request, 
+    background_tasks: BackgroundTasks,
+    signup_payload: IndividualUserSignup = Body(...)
+) -> dict[str, Any]:
     """
     Sign up as individual user for personal memory management.
 
@@ -267,51 +271,21 @@ async def signup_individual_user(request: Request, background_tasks: BackgroundT
     if content_length and int(content_length) > 100_000:
         raise HTTPException(status_code=413, detail="Payload too large. Maximum size is 100KB")
 
-    try:
-        payload = await request.json()
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload") from None
+    # Extract validated data from payload
+    email_raw = signup_payload.email
+    password = signup_payload.password
+    name_raw = signup_payload.name
+    account_type = signup_payload.account_type or "individual"
 
-    if not isinstance(payload, dict):
-        raise HTTPException(status_code=400, detail="Invalid request payload")
-
-    # Validate individual field sizes
-    for field_name in ["email", "password", "full_name", "name"]:
-        field_value = payload.get(field_name)
-        if field_value and len(str(field_value)) > 10_000:
-            raise HTTPException(
-                status_code=400, detail=f"Field '{field_name}' exceeds maximum length of 10,000 characters"
-            )
-
-    email_raw = payload.get("email")
-    password = payload.get("password")
-    name_raw = payload.get("full_name") or payload.get("name")
-    account_type = payload.get("account_type") or "individual"
-
-    missing = []
-    if not email_raw:
-        missing.append("email")
-    if not password:
-        missing.append("password")
-    if not name_raw:
-        missing.append("full_name")
-
-    if missing:
-        missing_fields = ", ".join(missing)
-        raise HTTPException(status_code=400, detail=f"Missing required fields: {missing_fields}")
+    # No need to validate missing fields as pydantic already does it
 
     normalized_email = validate_email(str(email_raw))
     name = str(name_raw).strip()
 
-    try:
-        signup_model = IndividualUserSignup(
-            email=normalized_email,
-            password=str(password),
-            full_name=name,
-            account_type=account_type,
-        )
-    except ValidationError as exc:
-        raise HTTPException(status_code=400, detail="Invalid signup data") from exc
+    # Use the already validated payload
+    signup_model = signup_payload
+    signup_model.email = normalized_email
+    signup_model.name = name
 
     try:
         result = create_individual_user(signup_model)
@@ -567,6 +541,33 @@ async def login_user(request: Request, response: Response) -> dict[str, Any]:
         raise HTTPException(status_code=422, detail="Password is required")
 
     normalized_email = validate_email(str(identifier))
+    
+    # SPEC-065: Check for biometric authentication option
+    from lib.database import get_db as get_db_func
+    db_check = get_db_func()
+    session_check = db_check.get_session()
+    try:
+        from database.models import User, MFAWebAuthnCredential
+        user_check = session_check.query(User).filter_by(email=normalized_email, is_active=True).first()
+        has_biometric = False
+        if user_check:
+            biometric_creds = session_check.query(MFAWebAuthnCredential).filter_by(
+                user_id=user_check.id,
+                is_active=True
+            ).count()
+            has_biometric = biometric_creds > 0
+        
+        # If biometric authentication is requested
+        auth_method = payload.get("auth_method")
+        if auth_method == "biometric" and has_biometric:
+            # Return biometric challenge info (user should call /biometric/authenticate/start)
+            return {
+                "biometric_available": True,
+                "user_id": str(user_check.id),
+                "message": "Please use /biometric/authenticate/start endpoint with user_id"
+            }
+    finally:
+        session_check.close()
 
     # SPEC-114: Rate limiting (5 attempts per 15 minutes)
     if auth_rate_limiter:
@@ -592,8 +593,13 @@ async def login_user(request: Request, response: Response) -> dict[str, Any]:
                 },
             )
 
+    # SPEC-083: Determine audience from request origin
+    from lib.jwt_audience import get_audience_from_request
+    
+    audience = get_audience_from_request(request)
+
     try:
-        result = authenticate_user(normalized_email, str(password))
+        result = authenticate_user(normalized_email, str(password), audience=audience)
     except HTTPException:
         await log_login_attempt(request, normalized_email, False, None, "Authentication failed")
         raise
@@ -606,6 +612,171 @@ async def login_user(request: Request, response: Response) -> dict[str, Any]:
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     user_id = str(result.get("user_id"))
+    
+    # SPEC-065: Risk-Based Authentication - Assess risk before authentication
+    from lib.database import get_db
+    from lib.mfa_service import MFAService
+    from lib.risk_service import RiskService
+    from database.models import User, DeviceFingerprint, AuthRiskScore
+    import uuid
+    
+    db = get_db()
+    session = db.get_session()
+    session_id = str(uuid.uuid4())  # Generate session ID for risk tracking
+    
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        
+        # Generate device fingerprint and assess risk
+        fingerprint_hash = RiskService.generate_device_fingerprint(request)
+        device, is_new_device = RiskService.get_or_create_device_fingerprint(
+            session,
+            user_id,
+            fingerprint_hash,
+            request
+        )
+        
+        # Calculate risk score
+        risk_data = RiskService.calculate_risk_score(
+            session,
+            user_id,
+            device,
+            request,
+            auth_method="password"
+        )
+        
+        # Create risk score record
+        risk_score = RiskService.create_risk_score(
+            session,
+            user_id,
+            str(device.id),
+            session_id,
+            risk_data,
+            request,
+            auth_method="password"
+        )
+        
+        # Check if MFA is enabled or required
+        mfa_required_by_user = False
+        mfa_required_by_risk = risk_data.get("mfa_required", False)
+        
+        if user:
+            mfa_required_by_user = user.mfa_enabled or MFAService.check_mfa_required(session, user)
+        
+        # MFA is required if user has it enabled OR risk score requires it
+        mfa_required = mfa_required_by_user or mfa_required_by_risk
+        
+        # If MFA is required, return a response indicating MFA verification is needed
+        if mfa_required:
+            # Check if MFA code was provided
+            mfa_code = payload.get("mfa_code")
+            mfa_method = payload.get("mfa_method", "totp")
+            
+            if not mfa_code:
+                # Return response indicating MFA is required
+                await log_login_attempt(request, normalized_email, True, user_id, "MFA required")
+                # Include risk information in response
+                return {
+                    "mfa_required": True,
+                    "message": "Multi-factor authentication required",
+                    "user_id": user_id,
+                    "methods": ["totp", "backup_code"],  # Available MFA methods
+                    "risk_score": risk_data.get("risk_score"),
+                    "risk_level": risk_data.get("risk_level"),
+                    "risk_required_mfa": mfa_required_by_risk,
+                    "session_id": session_id
+                }
+            
+            # Verify MFA code
+            ip_address = request.client.host if request.client else None
+            user_agent = request.headers.get("user-agent")
+            
+            mfa_verified = MFAService.verify_mfa(
+                session,
+                user_id,
+                mfa_code,
+                mfa_method,
+                ip_address,
+                user_agent
+            )
+            
+            if not mfa_verified:
+                await log_login_attempt(request, normalized_email, False, user_id, "MFA verification failed")
+                # Update risk score to mark MFA as failed
+                risk_score.mfa_completed = False
+                risk_score.auth_successful = False
+                session.commit()
+                raise HTTPException(status_code=401, detail="Invalid MFA code")
+            
+            # Mark MFA as completed in risk score
+            risk_score.mfa_completed = True
+            session.commit()
+        
+        # Update behavior patterns on successful authentication
+        if not mfa_required or (mfa_required and payload.get("mfa_code")):
+            from datetime import datetime
+            RiskService.update_behavior_patterns(
+                session,
+                user_id,
+                datetime.utcnow()
+            )
+            
+            # Mark risk score as successful
+            risk_score.auth_successful = True
+            session.commit()
+            
+            # SPEC-065: Anomaly Detection - Detect anomalies in login activity
+            try:
+                from lib.anomaly_service import AnomalyService
+                login_activity_data = {
+                    "attempts": 1,
+                    "failed": 0,
+                    "success": True,
+                    "mfa_required": mfa_required,
+                    "mfa_completed": mfa_required and payload.get("mfa_code") is not None,
+                    "risk_score": float(risk_score.risk_score) if risk_score else 0.0
+                }
+                AnomalyService.detect_anomaly(
+                    session,
+                    user_id,
+                    "login",
+                    login_activity_data,
+                    ip_address=RiskService._get_client_ip(request),
+                    user_agent=request.headers.get("user-agent"),
+                    session_id=session_id
+                )
+            except Exception as e:
+                # Don't fail login if anomaly detection fails
+                print(f"Anomaly detection error: {str(e)}")
+            
+            # SPEC-065: Behavioral Analysis - Record login event
+            try:
+                from lib.behavioral_service import BehavioralService
+                from lib.risk_service import RiskService
+                
+                login_event_data = {
+                    "success": True,
+                    "mfa_required": mfa_required,
+                    "mfa_completed": mfa_required and payload.get("mfa_code") is not None,
+                    "risk_score": float(risk_score.risk_score) if risk_score else 0.0
+                }
+                
+                BehavioralService.record_event(
+                    session,
+                    user_id,
+                    "login",
+                    login_event_data,
+                    session_id=session_id,
+                    ip_address=RiskService._get_client_ip(request),
+                    user_agent=request.headers.get("user-agent"),
+                    device_fingerprint=fingerprint_hash if 'fingerprint_hash' in locals() else None
+                )
+            except Exception as e:
+                # Don't fail login if behavioral analysis fails
+                print(f"Behavioral analysis error: {str(e)}")
+    finally:
+        session.close()
+    
     device_info = {"platform": "web"}
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")

@@ -119,3 +119,7 @@ Most text colors should meet WCAG AA standards. The main areas to verify are:
 - Disabled states
 
 For detailed information, see `apps/customer/ACCESSIBILITY_COLOR_CONTRAST.md`.
+
+
+
+

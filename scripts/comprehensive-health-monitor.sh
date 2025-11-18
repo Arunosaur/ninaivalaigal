@@ -146,7 +146,7 @@ case "${1:-monitor}" in
         ;;
     "test")
         log "🧪 Testing safe restart logic..."
-        safe_container_restart "nv-api" "nv-api-start.sh"
+        safe_container_restart "" "-start.sh"
         ;;
     *)
         echo "Usage: $0 [monitor|status|logs|test]"

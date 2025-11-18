@@ -182,9 +182,7 @@ class TestRevenueMetrics:
         # Calculate MRR from active subscriptions
         # Get subscriptions via StripeCustomer relationship
         stripe_customer = (
-            db_session.query(StripeCustomer)
-            .filter(StripeCustomer.billing_account_id == billing_account.id)
-            .first()
+            db_session.query(StripeCustomer).filter(StripeCustomer.billing_account_id == billing_account.id).first()
         )
         if stripe_customer:
             active_subscriptions = (
@@ -236,14 +234,15 @@ class TestRevenueMetrics:
         # Create a billing period first (required for Invoice)
         billing_period = create_test_billing_period(db_session, billing_account, days_back=90)
 
-        # Create invoices over the past 3 months
+        # Create invoices over the past 3 months with unique invoice numbers
+        unique_id = str(uuid4())[:8]
         invoices = []
         for i in range(3):
             invoice = Invoice(
                 id=uuid4(),
                 billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
-                invoice_number=f"INV-{i+1}",
+                invoice_number=f"INV-{unique_id}-{i+1}",
                 status=InvoiceStatus.PAID.value,
                 subtotal=Decimal("99.00"),
                 tax_amount=Decimal("0.00"),
@@ -273,9 +272,7 @@ class TestRevenueMetrics:
 class TestPaymentMetrics:
     """Test payment metrics calculations"""
 
-    def test_payment_success_rate_calculation(
-        self, db_session: Session, billing_account: BillingAccount
-    ):
+    def test_payment_success_rate_calculation(self, db_session: Session, billing_account: BillingAccount):
         """Test payment success rate calculation"""
         now = datetime.now(timezone.utc)
 
@@ -285,13 +282,14 @@ class TestPaymentMetrics:
 
         # Create a billing period first (required for Invoice)
         billing_period = create_test_billing_period(db_session, billing_account, days_back=30)
+        unique_id = str(uuid4())[:8]
 
         for i in range(paid_count):
             invoice = Invoice(
                 id=uuid4(),
                 billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
-                invoice_number=f"INV-PAID-{i+1}",
+                invoice_number=f"INV-PAID-{unique_id}-{i+1}",
                 status=InvoiceStatus.PAID.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
@@ -305,7 +303,7 @@ class TestPaymentMetrics:
                 id=uuid4(),
                 billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
-                invoice_number=f"INV-FAILED-{i+1}",
+                invoice_number=f"INV-FAILED-{unique_id}-{i+1}",
                 status=InvoiceStatus.ISSUED.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
@@ -338,6 +336,7 @@ class TestPaymentMetrics:
 
         # Create billing period
         billing_period = create_test_billing_period(db_session, billing_account, days_back=30)
+        unique_id = str(uuid4())[:8]
 
         # Create overdue invoices (failed payments)
         for i in range(3):
@@ -345,7 +344,7 @@ class TestPaymentMetrics:
                 id=uuid4(),
                 billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
-                invoice_number=f"INV-OVERDUE-{i+1}",
+                invoice_number=f"INV-OVERDUE-{unique_id}-{i+1}",
                 status=InvoiceStatus.ISSUED.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
@@ -378,13 +377,14 @@ class TestPaymentMetrics:
         # Create billing period
         billing_period = create_test_billing_period(db_session, billing_account, days_back=30)
         now = datetime.now(timezone.utc)
+        unique_id = str(uuid4())[:8]
 
         # Create initial failed invoice
         failed_invoice = Invoice(
             id=uuid4(),
             billing_period_id=billing_period.id,
             billing_account_id=billing_account.id,
-            invoice_number="INV-RETRY-1",
+            invoice_number=f"INV-RETRY-{unique_id}-1",
             status=InvoiceStatus.ISSUED.value,
             subtotal=Decimal("99.00"),
             total_amount=Decimal("99.00"),
@@ -399,7 +399,7 @@ class TestPaymentMetrics:
             id=uuid4(),
             billing_period_id=billing_period.id,
             billing_account_id=billing_account.id,
-            invoice_number="INV-RETRY-2",
+            invoice_number=f"INV-RETRY-{unique_id}-2",
             status=InvoiceStatus.PAID.value,
             subtotal=Decimal("99.00"),
             total_amount=Decimal("99.00"),
@@ -423,6 +423,7 @@ class TestPaymentMetrics:
 
         # Create billing period
         billing_period = create_test_billing_period(db_session, billing_account, days_back=60)
+        unique_id = str(uuid4())[:8]
 
         # Create invoices with different payment times
         payment_times = [2, 3, 5, 7, 10]  # days to payment
@@ -435,7 +436,7 @@ class TestPaymentMetrics:
                 id=uuid4(),
                 billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
-                invoice_number=f"INV-TIME-{i+1}",
+                invoice_number=f"INV-TIME-{unique_id}-{i+1}",
                 status=InvoiceStatus.PAID.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
@@ -535,14 +536,13 @@ class TestUsageTrends:
 class TestChurnRiskScoring:
     """Test churn risk scoring calculations"""
 
-    def test_payment_failure_impact_on_churn_score(
-        self, db_session: Session, billing_account: BillingAccount
-    ):
+    def test_payment_failure_impact_on_churn_score(self, db_session: Session, billing_account: BillingAccount):
         """Test payment failure impact on churn score"""
         now = datetime.now(timezone.utc)
 
         # Create billing period
         billing_period = create_test_billing_period(db_session, billing_account, days_back=30)
+        unique_id = str(uuid4())[:8]
 
         # Create overdue invoices (payment failures)
         for i in range(2):
@@ -550,7 +550,7 @@ class TestChurnRiskScoring:
                 id=uuid4(),
                 billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
-                invoice_number=f"INV-CHURN-{i+1}",
+                invoice_number=f"INV-CHURN-{unique_id}-{i+1}",
                 status=InvoiceStatus.ISSUED.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
@@ -633,9 +633,10 @@ class TestChurnRiskScoring:
 
         # Inactivity impact
         if metrics["days_since_last_activity"]["value"] > 7:
-            inactivity_risk = min(metrics["days_since_last_activity"]["value"] / 30.0, 1.0) * metrics[
-                "days_since_last_activity"
-            ]["weight"]
+            inactivity_risk = (
+                min(metrics["days_since_last_activity"]["value"] / 30.0, 1.0)
+                * metrics["days_since_last_activity"]["weight"]
+            )
         else:
             inactivity_risk = 0.0
 
@@ -657,13 +658,14 @@ class TestBillingAnalyticsIntegration:
         # Create billing period
         billing_period = create_test_billing_period(db_session, billing_account, days_back=60)
 
-        # Create invoices
+        # Create invoices with unique invoice numbers to avoid constraint violations
+        unique_id = str(uuid4())[:8]
         for i in range(5):
             invoice = Invoice(
                 id=uuid4(),
                 billing_period_id=billing_period.id,
                 billing_account_id=billing_account.id,
-                invoice_number=f"INV-{i+1}",
+                invoice_number=f"INV-{unique_id}-{i+1}",
                 status=InvoiceStatus.PAID.value if i < 4 else InvoiceStatus.ISSUED.value,
                 subtotal=Decimal("99.00"),
                 total_amount=Decimal("99.00"),
@@ -683,20 +685,13 @@ class TestBillingAnalyticsIntegration:
         arr = mrr * 12
 
         # Total revenue
-        total_revenue = (
-            db_session.query(func.sum(Invoice.total_amount))
-            .filter(
-                Invoice.billing_account_id == billing_account.id,
-                Invoice.status == InvoiceStatus.PAID.value,
-            )
-            .scalar()
-            or Decimal("0.00")
-        )
+        total_revenue = db_session.query(func.sum(Invoice.total_amount)).filter(
+            Invoice.billing_account_id == billing_account.id,
+            Invoice.status == InvoiceStatus.PAID.value,
+        ).scalar() or Decimal("0.00")
 
         # Payment success rate
-        total_invoices = (
-            db_session.query(Invoice).filter(Invoice.billing_account_id == billing_account.id).count()
-        )
+        total_invoices = db_session.query(Invoice).filter(Invoice.billing_account_id == billing_account.id).count()
         paid_invoices = (
             db_session.query(Invoice)
             .filter(
@@ -730,4 +725,3 @@ class TestBillingAnalyticsIntegration:
         assert float(total_revenue) == 396.0  # 4 paid invoices * $99
         assert payment_success_rate == 0.8  # 4/5 = 80%
         assert churn_risk_score == 0.1  # No overdue, success rate >= 0.8
-

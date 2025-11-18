@@ -13,7 +13,6 @@ Also shows stories already assigned to Developer G.
 
 import os
 import sys
-from datetime import datetime
 
 import requests
 
@@ -289,7 +288,7 @@ def main():
     print()
 
     # Get Developer G user ID
-    print(f"🔍 Finding Developer G...")
+    print("🔍 Finding Developer G...")
     developer_g_id = get_user_id(auth_token, DEVELOPER_G_USERNAME)
     if not developer_g_id:
         print(f"⚠️  Developer G (username: {DEVELOPER_G_USERNAME}) not found")
@@ -307,13 +306,13 @@ def main():
     print()
 
     # Get all stories
-    print(f"🔍 Fetching all stories...")
+    print("🔍 Fetching all stories...")
     stories = get_all_stories(auth_token, project_id)
     print(f"✅ Found {len(stories)} total stories")
     print()
 
     # Find stories already assigned to Developer G
-    print(f"🔍 Finding stories already assigned to Developer G...")
+    print("🔍 Finding stories already assigned to Developer G...")
     dev_g_stories = find_developer_g_stories(stories, developer_g_id)
     print(f"✅ Found {len(dev_g_stories)} stories assigned to Developer G")
     print()
@@ -419,12 +418,12 @@ def main():
         )
 
         if success:
-            print(f"  ✅ Assigned to Developer G")
+            print("  ✅ Assigned to Developer G")
             if in_progress_id:
-                print(f"  ✅ Status set to 'In Progress'")
+                print("  ✅ Status set to 'In Progress'")
             assigned_count += 1
         else:
-            print(f"  ❌ Failed to assign")
+            print("  ❌ Failed to assign")
             print(f"     Error: {response_text[:200]}")
 
         print()

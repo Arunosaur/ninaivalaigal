@@ -169,7 +169,7 @@ def main():
 
         # Assign top pressing stories to Developer H
         print("=" * 70)
-        print(f"🔨 ASSIGNING TOP PRESSING STORIES TO DEVELOPER H")
+        print("🔨 ASSIGNING TOP PRESSING STORIES TO DEVELOPER H")
         print("=" * 70)
 
         assigned_count = 0
@@ -203,7 +203,7 @@ def main():
         prioritized_assigned = prioritize_stories(assigned_to_h_stories, statuses)
 
         print("=" * 70)
-        print(f"👤 DEVELOPER H'S ASSIGNED STORIES (prioritized)")
+        print("👤 DEVELOPER H'S ASSIGNED STORIES (prioritized)")
         print("=" * 70)
         for i, story in enumerate(prioritized_assigned, 1):
             status_name = story.get("status_extra_info", {}).get("name", "Unknown")
@@ -219,14 +219,11 @@ def main():
         print("=" * 70)
 
         # Find "Ready" or "New" status stories
-        ready_status_id = None
         in_progress_status_id = None
 
         for status_id, status in statuses.items():
             status_name = status.get("name", "")
-            if status_name in ["Ready", "New"]:
-                ready_status_id = status_id
-            elif status_name == "In Progress":
+            if status_name == "In Progress":
                 in_progress_status_id = status_id
 
         started_count = 0

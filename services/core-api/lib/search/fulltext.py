@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from lib.database.models import SearchIndex
+from database.models import SearchIndex
 from lib.search.tag_search import AdvancedTagSearch
 from sqlalchemy import desc, extract, func, or_, text
 from sqlalchemy.orm import Session

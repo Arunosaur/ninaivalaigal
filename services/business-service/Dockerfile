@@ -26,6 +26,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY shared/ /app/shared/
 COPY services/business-service/ /app/
 
+# Copy entrypoint script (SPEC-107: Use gunicorn for runtime parity)
+COPY services/business-service/docker-entrypoint.sh .
+RUN chmod +x docker-entrypoint.sh
+
 # Create non-root user aligned with containerization standard
 RUN addgroup --system nina && adduser --system --ingroup nina nina
 
@@ -42,4 +46,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 USER nina
 
-CMD ["python", "main.py"]
+# SPEC-107: Use gunicorn for runtime parity across dev/test/prod
+CMD ["./docker-entrypoint.sh"]

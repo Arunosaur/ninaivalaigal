@@ -67,7 +67,8 @@ services:
       REDIS_DB: 0
       PYTHONPATH: /app/server
       PORT: 8000
-      UVICORN_RELOAD: "0"
+      # SPEC-107: Use ENV for gunicorn.conf.py
+      ENV: ${ENV:-dev}
       ENVIRONMENT: development
     depends_on:
       postgres:
@@ -102,4 +103,4 @@ services:
 
 networks:
   default:
-    name: ninaivalaigal_apple_${NINA_ENV:-dev}_network
+    name: ${NINA_ENV:-dev}-ninaivalaigal-net  # SPEC-107: {{env}}-ninaivalaigal-net

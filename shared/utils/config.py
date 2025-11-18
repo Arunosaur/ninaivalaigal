@@ -126,28 +126,53 @@ def get_dynamic_database_url() -> str:
 
         if result.returncode == 0:
             # Try to get PgBouncer IP first (preferred for production)
-            pgbouncer_container = f"ninaivalaigal-{nina_env}-pgbouncer"
-            try:
-                pgb_result = subprocess.run(
-                    [container_cmd, "inspect", pgbouncer_container],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                )
-                if pgb_result.returncode == 0:
-                    pgb_data = json.loads(pgb_result.stdout)
-                    if pgb_data and len(pgb_data) > 0:
-                        pgb_ip = pgb_data[0]["networks"][0]["address"].split("/")[0]
-                        db_url = f"postgresql://{db_user}:{db_password}@" f"{pgb_ip}:{pgbouncer_port}/{db_name}"
-                        print(f"🔗 Using PgBouncer at {pgb_ip}:{pgbouncer_port} " f"for {db_name}")
-                        return db_url
-            except (
-                subprocess.TimeoutExpired,
-                json.JSONDecodeError,
-                KeyError,
-                IndexError,
-            ):
-                pass
+            session_port = (
+                os.getenv("PGBOUNCER_SESS_PORT")
+                or os.getenv("PGBOUNCER_SESSION_PORT")
+                or os.getenv("PGBOUNCER_PORT_SESSION")
+            )
+            if not session_port:
+                try:
+                    session_port = str(int(pgbouncer_port) + 1)
+                except ValueError:
+                    session_port = "6433"
+
+            pgbouncer_candidates = [
+                (f"ninaivalaigal-{nina_env}-pgbouncer-tx", pgbouncer_port),
+                (f"ninaivalaigal-{nina_env}-pgbouncer-session", session_port),
+                (f"ninaivalaigal-{nina_env}-pgbouncer-sess", session_port),
+            ]
+
+            for container_name, candidate_port in pgbouncer_candidates:
+                try:
+                    pgb_result = subprocess.run(
+                        [container_cmd, "inspect", container_name],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                    )
+                    if pgb_result.returncode == 0:
+                        pgb_data = json.loads(pgb_result.stdout)
+                        if pgb_data and len(pgb_data) > 0:
+                            network_info = pgb_data[0]["networks"]
+                            if network_info:
+                                pgb_ip = network_info[0]["address"].split("/")[0]
+                                db_url = (
+                                    f"postgresql://{db_user}:{db_password}@"
+                                    f"{pgb_ip}:{candidate_port}/{db_name}"
+                                )
+                                print(
+                                    f"🔗 Using PgBouncer ({container_name}) at {pgb_ip}:{candidate_port} "
+                                    f"for {db_name}"
+                                )
+                                return db_url
+                except (
+                    subprocess.TimeoutExpired,
+                    json.JSONDecodeError,
+                    KeyError,
+                    IndexError,
+                ):
+                    continue
 
             # Fallback to direct PostgreSQL connection
             postgres_container = f"ninaivalaigal-{nina_env}-db"

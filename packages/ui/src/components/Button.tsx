@@ -6,6 +6,7 @@
 // See LICENSE file in the server/ directory for details.
 //
 import React from 'react'
+import { cn } from '../utils/cn'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger'
@@ -22,10 +23,11 @@ export function Button({
 }: ButtonProps) {
   const baseStyles = 'font-semibold rounded-lg transition duration-200 focus:outline-none focus:ring-2'
 
+  // Use design tokens: primary colors from tokens
   const variantStyles = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
+    primary: 'bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500',
     secondary: 'bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500',
-    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
+    danger: 'bg-error-600 hover:bg-error-700 text-white focus:ring-error-500',
   }
 
   const sizeStyles = {
@@ -36,7 +38,7 @@ export function Button({
 
   return (
     <button
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={cn(baseStyles, variantStyles[variant], sizeStyles[size], className)}
       {...props}
     >
       {children}

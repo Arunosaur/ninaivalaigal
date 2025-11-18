@@ -189,9 +189,10 @@ class GraphIntelligenceValidator:
                         passed_tests += 1
 
                 else:
-                    print(
-                        f"  ❌ API Error for path {path_test['source_id']} -> {path_test['target_id']}: {response.status_code}"
-                    )
+                    source_id = path_test["source_id"]
+                    target_id = path_test["target_id"]
+                    status_code = response.status_code
+                    print(f"  ❌ API Error for path {source_id} -> {target_id}: {status_code}")
                     quality_scores.append(0.0)
 
             except Exception as e:

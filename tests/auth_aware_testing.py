@@ -29,7 +29,7 @@ from server.database import Team, User, get_db
 
 # Import our application components
 from server.main import app
-from server.models.standalone_teams import StandaloneTeamManager, TeamMembership
+from server.services.teams.standalone_team_manager import StandaloneTeamManager, TeamMembership
 
 
 class AuthTestFramework:

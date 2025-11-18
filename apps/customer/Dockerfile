@@ -3,8 +3,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy ONLY the production build from apps/customer/dist
-COPY apps/customer/dist ./dist
+# Copy ONLY the production build from dist
+COPY dist ./dist
 
 # Install serve for serving static files with SPA support
 RUN npm install -g serve

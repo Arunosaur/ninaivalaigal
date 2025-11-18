@@ -16,8 +16,9 @@ This addresses external code review feedback:
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict
 
 from sqlalchemy import (
     JSON,
@@ -32,10 +33,10 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
 
@@ -179,6 +180,14 @@ class Team(Base):
     acquisition_date = Column(DateTime, nullable=True)
     provenance_metadata = Column(JSON, nullable=True)  # Additional metadata
 
+    # Standalone team fields (from SPEC-066)
+    # Note: is_standalone is now a property derived from organization_id IS NULL
+    # This follows database normalization - single source of truth
+    upgrade_eligible = Column(Boolean, default=True)
+    created_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    team_invite_code = Column(String(32), unique=True, nullable=True)
+    max_members = Column(Integer, default=10)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -187,8 +196,17 @@ class Team(Base):
     members = relationship("TeamMember", back_populates="team")
     contexts = relationship("Context", back_populates="team")
     permissions = relationship("ContextPermission", back_populates="team")
-    # invitations and memberships relationships are added dynamically by standalone_teams.py
-    # to avoid circular imports
+    invitations = relationship("TeamInvitation", back_populates="team", cascade="all, delete-orphan")
+    created_by_user = relationship("User", foreign_keys=[created_by_user_id])
+
+    @property
+    def is_standalone(self):
+        """Derived property: team is standalone if organization_id is NULL
+        
+        This follows database normalization principles - organization_id
+        is the single source of truth for standalone status.
+        """
+        return self.organization_id is None
 
 
 class TeamMember(Base):
@@ -205,6 +223,30 @@ class TeamMember(Base):
     # Relationships
     team = relationship("Team", back_populates="members")
     user = relationship("User", back_populates="team_memberships")
+
+
+class TeamInvitation(Base):
+    """Team invitation for secure team joining"""
+
+    __tablename__ = "team_invitations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
+    invited_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    email = Column(String(255), nullable=False)
+    invitation_token = Column(String(255), unique=True, nullable=False)
+    role = Column(String(50), default="contributor")
+    status = Column(String(50), default="pending")  # pending, accepted, expired, revoked
+    expires_at = Column(DateTime, nullable=False, default=lambda: datetime.utcnow() + timedelta(days=7))
+    accepted_at = Column(DateTime)
+    accepted_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    # Relationships
+    team = relationship("Team", back_populates="invitations")
+    invited_by = relationship("User", foreign_keys=[invited_by_user_id])
+    accepted_by = relationship("User", foreign_keys=[accepted_by_user_id])
 
 
 class Context(Base):
@@ -637,3 +679,245 @@ class DeviceToken(Base):
         UniqueConstraint("user_id", "token", "platform", name="uq_user_token_platform"),
         {"comment": "Device token storage for push notifications (US#939, SPEC-148 Phase 2.1)"},
     )
+
+
+class Macro(Base):
+    """
+    Macro model for Unified Macro Intelligence (UMI) system.
+    
+    Represents a procedural macro with steps, metadata, and execution tracking.
+    Supports all three macro capture modes:
+    - Script-based (via eMacros)
+    - Visual/Replay-based (via screen recording)
+    - Implicit (via behavior analysis)
+    """
+    
+    __tablename__ = "macros"
+    __table_args__ = (
+        {"comment": "SPEC-046: Procedural macro definitions with steps and context linking"},
+    )
+    
+    # Primary key
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    
+    # Macro identification
+    macro_id = Column(String(255), nullable=False, unique=True, index=True)
+    name = Column(String(255), nullable=False, index=True)
+    description = Column(Text(), nullable=True)
+    
+    # Ownership and organization
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    team_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("teams.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    organization_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    
+    # Macro content and metadata
+    steps = Column(JSONB, nullable=False)  # List of macro steps
+    macro_metadata = Column("metadata", JSONB, nullable=True)  # Additional metadata
+    memory_context_ids = Column(JSONB, nullable=True)  # Linked memory contexts
+    tags = Column(JSONB, nullable=True)  # Tags for categorization
+    
+    # Macro behavior
+    trigger_frequency = Column(String(50), nullable=False, server_default="manual")
+    automation_level = Column(Integer(), server_default="0")
+    
+    # Status and visibility
+    is_active = Column(Boolean(), default=True, index=True)
+    is_public = Column(Boolean(), default=False, index=True)
+    version = Column(Integer(), nullable=False, server_default="1")
+    
+    # Timestamps
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        index=True,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+    last_executed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Execution statistics
+    execution_count = Column(Integer(), default=0)
+    success_count = Column(Integer(), default=0)
+    failure_count = Column(Integer(), default=0)
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])
+    team = relationship("Team", foreign_keys=[team_id])
+    organization = relationship("Organization", foreign_keys=[organization_id])
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert macro to dictionary"""
+        return {
+            "id": str(self.id),
+            "macro_id": self.macro_id,
+            "name": self.name,
+            "description": self.description,
+            "user_id": str(self.user_id) if self.user_id else None,
+            "team_id": str(self.team_id) if self.team_id else None,
+            "organization_id": str(self.organization_id) if self.organization_id else None,
+            "steps": self.steps,
+            "metadata": self.macro_metadata,
+            "memory_context_ids": self.memory_context_ids,
+            "tags": self.tags,
+            "trigger_frequency": self.trigger_frequency,
+            "automation_level": self.automation_level,
+            "is_active": self.is_active,
+            "is_public": self.is_public,
+            "version": self.version,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "last_executed_at": self.last_executed_at.isoformat() if self.last_executed_at else None,
+            "execution_count": self.execution_count,
+            "success_count": self.success_count,
+            "failure_count": self.failure_count,
+        }
+    
+    @property
+    def success_rate(self) -> float:
+        """Calculate success rate"""
+        if self.execution_count is None or self.execution_count == 0:
+            return 0.0
+        return self.success_count / self.execution_count
+    
+    def get_success_rate(self) -> float:
+        """Get success rate (backward compatibility method)"""
+        return self.success_rate
+    
+    def is_executable(self) -> bool:
+        """Check if macro is executable"""
+        return self.is_active and self.steps is not None and len(self.steps) > 0
+
+
+class MacroAuditLog(Base):
+    """
+    Macro audit log model for tracking macro executions.
+    
+    Provides comprehensive audit trail for macro executions including
+    execution context, errors, performance metrics, and user tracking.
+    """
+    
+    __tablename__ = "macro_audit_logs"
+    __table_args__ = (
+        {"comment": "SPEC-046: Macro execution audit trail with comprehensive logging"},
+    )
+    
+    # Primary key
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    
+    # Execution identification
+    execution_id = Column(String(255), nullable=False, unique=True, index=True)
+    macro_id = Column(String(255), nullable=False, index=True)
+    macro_name = Column(String(255), nullable=False)
+    
+    # User tracking
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    
+    # Execution status
+    status = Column(String(50), nullable=False, index=True)  # success, failure, partial, cancelled
+    
+    # Execution context and details
+    execution_context = Column(JSONB, nullable=True)  # Full execution context
+    
+    # Error tracking
+    error_type = Column(String(50), nullable=True)
+    error_message = Column(Text(), nullable=True)
+    
+    # Performance metrics
+    execution_time_ms = Column(Integer(), nullable=True)
+    steps_executed = Column(Integer(), nullable=True)
+    total_steps = Column(Integer(), nullable=True)
+    completion_percentage = Column(Integer(), nullable=True)
+    
+    # Request tracking
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text(), nullable=True)
+    
+    # Timestamp
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        index=True,
+    )
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert audit log to dictionary"""
+        return {
+            "id": str(self.id),
+            "execution_id": self.execution_id,
+            "macro_id": self.macro_id,
+            "macro_name": self.macro_name,
+            "user_id": str(self.user_id) if self.user_id else None,
+            "status": self.status,
+            "execution_context": self.execution_context,
+            "error_type": self.error_type,
+            "error_message": self.error_message,
+            "execution_time_ms": self.execution_time_ms,
+            "steps_executed": self.steps_executed,
+            "total_steps": self.total_steps,
+            "completion_percentage": self.completion_percentage,
+            "ip_address": self.ip_address,
+            "user_agent": self.user_agent,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+    
+    def is_successful(self) -> bool:
+        """Check if execution was successful"""
+        return self.status == "success"
+    
+    def is_failed(self) -> bool:
+        """Check if execution failed"""
+        return self.status == "failure"
+    
+    def is_partial(self) -> bool:
+        """Check if execution was partial"""
+        return self.status == "partial"
+
+
+class TeamUpgradeHistory(Base):
+    """Track team upgrades to organizations"""
+
+    __tablename__ = "team_upgrade_history"
+    __table_args__ = {"extend_existing": True}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    upgraded_by_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    upgrade_type = Column(String(50), nullable=False)  # to_organization, billing_enabled
+    upgrade_data = Column(JSONB)  # Store upgrade-specific data
+    upgraded_at = Column(DateTime, default=func.now())
+    status = Column(String(50), default="completed")  # pending, completed, failed, reverted
+
+    # Relationships
+    team = relationship("Team")
+    organization = relationship("Organization")
+    upgraded_by = relationship("User")

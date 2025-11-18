@@ -116,7 +116,13 @@ def get_db() -> Any:
         # Import here to avoid circular imports
         from . import DatabaseOperations  # noqa: F401
 
-        _db_instance = DatabaseOperations()
+        # Initialize with proper configuration
+        import os
+        database_url = os.getenv(
+            "DATABASE_URL",
+            os.getenv("NINAIVALAIGAL_DATABASE_URL", "postgresql://localhost:5432/ninaivalaigal"),
+        )
+        _db_instance = DatabaseOperations(config=database_url, create_tables=False)
     return _db_instance
 
 

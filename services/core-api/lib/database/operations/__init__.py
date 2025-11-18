@@ -27,13 +27,31 @@ class DatabaseOperations(
     UserOperations,
     ContextOperations,
     RBACOperations,
-    VendorAdminOperations,
+    # VendorAdminOperations,  # Skip - has different initialization
     OrganizationOperations,
 ):
     """
     Combined database operations class
     Inherits from all specialized operation modules
     """
+    
+    def __init__(self, config=None, create_tables: bool = False):
+        """
+        Initialize all database operations.
+        
+        Args:
+            config: Configuration dict or database URL string
+            create_tables: Whether to create tables automatically (default: False)
+        """
+        # Initialize DatabaseUtilities (which inherits from DatabaseManager)
+        DatabaseUtilities.__init__(self, config=config, create_tables=create_tables)
+        
+        # Initialize other operations that accept config
+        MemoryOperations.__init__(self, config=config)
+        UserOperations.__init__(self, config=config)
+        ContextOperations.__init__(self, config=config)
+        RBACOperations.__init__(self, config=config)
+        OrganizationOperations.__init__(self, config=config)
 
 
 __all__ = [

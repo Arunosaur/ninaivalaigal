@@ -14,7 +14,7 @@ Database operations for Role-Based Access Control and permissions
 from uuid import UUID
 
 from ..manager import DatabaseManager
-from ..models import Context, ContextPermission, Organization, Team, User
+from database.models import Context, ContextPermission, Organization, Team, User
 
 
 class RBACOperations(DatabaseManager):
@@ -112,7 +112,7 @@ class RBACOperations(DatabaseManager):
                     return True
 
             # Check team permissions
-            from ..models import TeamMember
+            from database.models import TeamMember
 
             team_permissions = (
                 session.query(ContextPermission)
@@ -165,7 +165,7 @@ class RBACOperations(DatabaseManager):
             )
 
             # Get team-shared contexts
-            from ..models import TeamMember
+            from database.models import TeamMember
 
             team_contexts = (
                 session.query(Context)
@@ -241,7 +241,7 @@ class RBACOperations(DatabaseManager):
                 max_permission = user_permission.permission_level
 
         # Check team permissions
-        from ..models import TeamMember
+        from database.models import TeamMember
 
         team_permissions = (
             session.query(ContextPermission)
@@ -411,7 +411,7 @@ class RBACOperations(DatabaseManager):
             direct_permissions = session.query(ContextPermission).filter(ContextPermission.user_id == user_id).count()
 
             # Count team memberships
-            from ..models import TeamMember
+            from database.models import TeamMember
 
             team_memberships = session.query(TeamMember).filter(TeamMember.user_id == user_id).count()
 

@@ -15,7 +15,7 @@ Implements context management with personal/team/organization scopes
 import logging
 from typing import Literal
 
-from ..models import Context
+from database.models import Context
 
 logger = logging.getLogger(__name__)
 

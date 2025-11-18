@@ -351,6 +351,12 @@ from routers.hierarchical_tags import (  # noqa: E402 (SPEC-034, US-335)
     router as hierarchical_tags_router,
 )
 from routers.memory import router as memory_router  # noqa: E402
+from routers.memory_alert_api import router as memory_alert_router  # noqa: E402
+from routers.memory_trust_api import router as memory_trust_router  # noqa: E402
+from routers.narrative_analytics_api import (  # noqa: E402 (SPEC-082, US-564)
+    router as narrative_analytics_router,
+)
+from routers.geo_routing_api import router as geo_routing_router  # noqa: E402 (SPEC-159 Phase 3)
 from routers.organizations import router as organizations_router  # noqa: E402
 from routers.recording import router as recording_router  # noqa: E402
 from routers.replication import (  # noqa: E402 (SPEC-153, US-951)
@@ -424,6 +430,10 @@ app.include_router(ai_feedback_router)
 app.include_router(memory_suggestions_router)
 app.include_router(memory_injection_router)
 app.include_router(memory_health_router)
+app.include_router(memory_trust_router)  # SPEC-080: Memory Trust Score System (US#562)
+app.include_router(memory_alert_router)  # SPEC-081: Proactive Memory Alert Layer (US#563)
+app.include_router(narrative_analytics_router)  # SPEC-082: Narrative Analytics Layer (US#564)
+app.include_router(geo_routing_router)  # SPEC-159 Phase 3: Advanced Geo-Routing
 app.include_router(standalone_teams_router)
 app.include_router(enhanced_signup_router)
 app.include_router(billing_console_router)

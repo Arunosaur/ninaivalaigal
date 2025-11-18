@@ -26,6 +26,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
+from .currency_converter import CurrencyConverter
 from .models import (
     BillingAccount,
     BillingPeriod,
@@ -60,6 +61,7 @@ class InvoiceGenerationService:
             db: Database session
         """
         self.db = db
+        self.currency_converter = CurrencyConverter(db)
 
     def generate_monthly_invoices(
         self, billing_period_id: Optional[uuid.UUID] = None, force_regenerate: bool = False
@@ -244,13 +246,51 @@ class InvoiceGenerationService:
             # Generate invoice number
             invoice_number = self._generate_invoice_number(billing_account_id, billing_period_id)
 
+            # US#183: Multi-currency support - get team's display currency preference
+            invoice_currency = billing_account.currency or "USD"
+            display_currency = invoice_currency  # Default to invoice currency
+
+            # Check for team's preferred display currency from invoice_preferences
+            from .models import InvoicePreference
+
+            preference = (
+                self.db.query(InvoicePreference).filter(InvoicePreference.team_id == billing_account.team_id).first()
+            )
+            if preference and hasattr(preference, "default_currency") and preference.default_currency:
+                display_currency = preference.default_currency
+
+            # Lock exchange rate if currencies differ
+            exchange_rate_id = None
+            exchange_rate = None
+            if invoice_currency != display_currency:
+                try:
+                    # Convert a placeholder amount to lock the rate
+                    _, rate, rate_id = self.currency_converter.convert(
+                        amount=Decimal("1.0"),
+                        from_currency=invoice_currency,
+                        to_currency=display_currency,
+                        lock_rate=True,
+                    )
+                    exchange_rate = rate
+                    exchange_rate_id = rate_id
+                    logger.info(
+                        f"Locked exchange rate {rate} for {invoice_currency}->{display_currency} "
+                        f"at invoice creation"
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to lock exchange rate: {e}, using invoice currency only")
+                    display_currency = invoice_currency  # Fallback to invoice currency
+
             invoice = Invoice(
                 billing_account_id=billing_account_id,
                 billing_period_id=billing_period_id,
                 invoice_number=invoice_number,
                 subtotal=Decimal("0"),
                 total_amount=Decimal("0"),
-                currency=billing_account.currency or "USD",
+                currency=invoice_currency,
+                display_currency=display_currency if display_currency != invoice_currency else None,
+                exchange_rate_id=exchange_rate_id,
+                exchange_rate=exchange_rate,
                 status=InvoiceStatus.DRAFT.value,
                 due_at=billing_period.period_end + timedelta(days=30),
             )
@@ -441,7 +481,14 @@ class InvoiceGenerationService:
 
     def create_stripe_invoice(self, invoice_id: uuid.UUID) -> Optional[str]:
         """
-        Create Stripe invoice from local invoice.
+        Create Stripe invoice from local invoice with revision support.
+
+        US#767: BILL-004 - Integrate with Stripe with invoice versioning
+
+        When creating a Stripe invoice for a revised invoice:
+        - If a previous revision has a Stripe invoice, void it
+        - Create a new Stripe invoice with revision metadata
+        - Track revision in Stripe invoice metadata
 
         Args:
             invoice_id: Local invoice ID
@@ -456,6 +503,39 @@ class InvoiceGenerationService:
 
             if not invoice:
                 return None
+
+            # US#767: Check if this is a revision > 1, and if so, void previous Stripe invoice
+            if invoice.revision > 1:
+                # Find previous revision's Stripe invoice
+                previous_invoice = (
+                    self.db.query(Invoice)
+                    .filter(
+                        Invoice.invoice_number == invoice.invoice_number,
+                        Invoice.revision == invoice.revision - 1,
+                    )
+                    .first()
+                )
+
+                if previous_invoice:
+                    from .models import StripeInvoice
+
+                    previous_stripe_invoice = (
+                        self.db.query(StripeInvoice).filter(StripeInvoice.invoice_id == previous_invoice.id).first()
+                    )
+
+                    if previous_stripe_invoice and previous_stripe_invoice.status in ["draft", "open"]:
+                        # Void the previous Stripe invoice
+                        import stripe
+
+                        try:
+                            stripe.Invoice.void_invoice(previous_stripe_invoice.stripe_invoice_id)
+                            previous_stripe_invoice.status = "void"
+                            self.db.commit()
+                        except Exception as e:
+                            # Log but continue - may already be void/paid
+                            print(
+                                f"Warning: Could not void previous Stripe invoice {previous_stripe_invoice.stripe_invoice_id}: {e}"
+                            )
 
             # Get Stripe customer
             from .models import StripeCustomer
@@ -489,12 +569,27 @@ class InvoiceGenerationService:
                     }
                 )
 
+            # US#767: Include revision in invoice metadata
+            invoice_metadata = {
+                "invoice_number": invoice.invoice_number,
+                "revision": str(invoice.revision),
+                "billing_period_id": str(invoice.billing_period_id),
+                "local_invoice_id": str(invoice.id),
+            }
+
+            # Add revision suffix to description if revision > 1
+            description = f"Invoice {invoice.invoice_number}"
+            if invoice.revision > 1:
+                description += f" (Revision {invoice.revision})"
+            description += f" for billing period {invoice.billing_period_id}"
+
             # Create Stripe invoice
             stripe_invoice = stripe.Invoice.create(
                 customer=stripe_customer.stripe_customer_id,
                 collection_method="charge_automatically",
                 auto_advance=True,  # Auto-finalize and attempt payment
-                description=f"Invoice for billing period {invoice.billing_period_id}",
+                description=description,
+                metadata=invoice_metadata,  # US#767: Include revision metadata
             )
 
             # Add line items
@@ -517,6 +612,7 @@ class InvoiceGenerationService:
             stripe_invoice_record = StripeInvoice(
                 invoice_id=invoice.id,
                 stripe_invoice_id=stripe_invoice.id,
+                stripe_customer_id=stripe_customer.stripe_customer_id,
                 status="open",
             )
             self.db.add(stripe_invoice_record)

@@ -13,11 +13,17 @@
 
 // Export all components
 export * from './components/Button'
+export * from './components/Card'
+export * from './components/Input'
+
+// Export utilities
+export * from './utils/cn'
+
+// Export design tokens
+export * from './tokens'
 
 // Export Narrative components (SPEC-076)
 export * from './Narrative'
 
 // Export Memory Browser components
 export * from './MemoryBrowser'
-export { Card, type CardProps } from './components/Card'
-export { Input, type InputProps } from './components/Input'

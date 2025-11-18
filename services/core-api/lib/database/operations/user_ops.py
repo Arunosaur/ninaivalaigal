@@ -12,7 +12,7 @@ Database operations for user management
 """
 
 from ..manager import DatabaseManager
-from ..models import User
+from database.models import User
 
 
 class UserOperations(DatabaseManager):
@@ -222,7 +222,7 @@ class UserOperations(DatabaseManager):
         """Get user statistics"""
         session = self.get_session()
         try:
-            from ..models import Context, Memory
+            from database.models import Context, Memory
 
             user = session.query(User).filter(User.id == user_id).first()
             if not user:

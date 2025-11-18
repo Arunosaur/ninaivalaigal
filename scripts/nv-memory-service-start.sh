@@ -50,7 +50,7 @@ PGBOUNCER_SESS_CONTAINER="ninaivalaigal-${NINA_ENV}-pgbouncer-sess"
 REDIS_CONTAINER="ninaivalaigal-${NINA_ENV}-redis"
 HOST_PORT=13393  # From ports.nv.yaml - memory_service base port
 CONTAINER_PORT=8000
-PGBOUNCER_SESS_PORT=6432  # PgBouncer container port (always 6432 internally)
+PGBOUNCER_SESS_PORT=6433  # PgBouncer Session Mode container port
 
 # Optional configuration
 MEMORY_CACHE_TTL_SECONDS=${MEMORY_CACHE_TTL_SECONDS:-3600}
@@ -112,7 +112,7 @@ ENCODED_PASSWORD=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quot
 DATABASE_URL="postgresql://${NINA_DB_USER}:${ENCODED_PASSWORD}@${PGBOUNCER_IP}:${PGBOUNCER_SESS_PORT}/${NINA_DB_NAME}"
 
 # Build REDIS_URL with authentication (if password exists)
-REDIS_PASSWORD=${REDIS_PASSWORD:-}
+REDIS_PASSWORD=${REDIS_PASSWORD:-dev_redis_change_me}
 if [ -n "$REDIS_PASSWORD" ]; then
     REDIS_URL="redis://:${REDIS_PASSWORD}@${REDIS_IP}:6379/0"
 else

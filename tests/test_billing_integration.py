@@ -34,14 +34,11 @@ from server.billing.models import (
     BillingPeriodStatus,
     BlockLevel,
     PlanTier,
-    QuotaBlock,
     ResourceType,
-    UsageEvent,
     UsageQuota,
 )
 from server.billing.quota_enforcement import QuotaEnforcementService, QuotaStatus
 from server.billing.quota_notifications import QuotaNotificationService
-from server.billing.redis_cache import UsageQuotaCache
 from server.billing.usage_metering import UsageMeteringService
 
 pytestmark = pytest.mark.integration

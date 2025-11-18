@@ -14,11 +14,7 @@ services:
     env_file: .env
     ports:
       - "8000:8000"
-    command: >
-      sh -c "
-      if [ \"$${ENV}\" = 'dev' ]; then
-        uvicorn app.main:app --reload --host 0.0.0.0 --port 8000;
-      else
-        gunicorn app.main:app -k uvicorn.workers.UvicornWorker -c gunicorn.conf.py;
-      fi
-      "
+    # SPEC-107: Use gunicorn for all environments via docker-entrypoint.sh
+    # gunicorn.conf.py handles ENV-based worker count and reload automatically
+    environment:
+      ENV: ${ENV:-dev}  # dev/test/prod - used by gunicorn.conf.py

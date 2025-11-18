@@ -23,7 +23,7 @@ echo ""
 echo "🐳 Container Status:"
 echo "-------------------"
 
-CONTAINERS=("nina-intelligence-db" "nina-intelligence-cache" "nv-api" "nv-ui" "nv-em")
+CONTAINERS=("nina-intelligence-db" "nina-intelligence-cache" "")
 for container in "${CONTAINERS[@]}"; do
   if container list | grep -q "$container.*running"; then
     IP=$(container list | grep "$container" | awk '{print $NF}')

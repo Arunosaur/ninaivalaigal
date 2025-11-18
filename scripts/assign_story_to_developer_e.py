@@ -11,7 +11,6 @@ Assign an unassigned user story to Developer E and start working on it.
 This script ensures we don't step on other developers' tasks.
 """
 
-import json
 import sys
 from datetime import datetime
 
@@ -92,7 +91,6 @@ def get_project_members(auth_token, project_id):
     url = f"{API_ENDPOINT}/projects/{project_id}"
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        project = response.json()
         # Get members from project
         members_url = f"{API_ENDPOINT}/memberships?project={project_id}"
         members_response = requests.get(members_url, headers=headers)
@@ -447,7 +445,7 @@ def main():
     tags = [t[0] if isinstance(t, list) else t for t in best_story.get("tags", [])]
     description = best_story.get("description", "")[:200]
 
-    print(f"Selected Story:")
+    print("Selected Story:")
     print(f"  Ref: #{ref}")
     print(f"  Subject: {subject}")
     print(f"  Status: {status}")
@@ -468,14 +466,14 @@ def main():
 
     print(f"Assigning Ref #{ref} to Developer E...")
     if assign_story(auth_token, best_story["id"], developer_e_id, in_progress_id, DEVELOPER_E):
-        print(f"  ✓ Assigned to Developer E")
+        print("  ✓ Assigned to Developer E")
         if in_progress_id:
-            print(f"  ✓ Status updated to 'In Progress'")
+            print("  ✓ Status updated to 'In Progress'")
         else:
-            print(f"  ⚠ Could not update status (status ID not found)")
-        print(f"  ✓ Added assignment note to story description")
+            print("  ⚠ Could not update status (status ID not found)")
+        print("  ✓ Added assignment note to story description")
     else:
-        print(f"  ✗ Failed to assign story")
+        print("  ✗ Failed to assign story")
         return
 
     print()
@@ -484,7 +482,7 @@ def main():
     print("=" * 70)
     print()
     print(f"✓ Story Ref #{ref} assigned to Developer E")
-    print(f"✓ Status: In Progress")
+    print("✓ Status: In Progress")
     print()
     print(f"Story: {subject}")
     print()

@@ -23,7 +23,10 @@ if config.config_file_name is not None:
 database_url = (
     os.getenv("GRAPHOPS_DATABASE_URL")
     or os.getenv("DATABASE_URL")
-    or "postgresql://nina:dev_password_change_in_production@localhost:5433/ninaivalaigal-graph-db"  # pragma: allowlist secret
+    or (
+        "postgresql://nina:dev_password_change_in_production@localhost:5433/"
+        "ninaivalaigal-graph-db"  # pragma: allowlist secret
+    )
 )
 config.set_main_option("sqlalchemy.url", database_url)
 

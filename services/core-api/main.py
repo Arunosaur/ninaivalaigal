@@ -308,6 +308,98 @@ from routers import (  # noqa: E402  # Basic protected memory endpoints for auth
 app.include_router(signup_api.router)
 app.include_router(users.router)
 app.include_router(teams.router)
+
+# Include MFA API (SPEC-065: US#607)
+from lib.routers.mfa import router as mfa_router
+app.include_router(mfa_router)
+
+# Include SSO API (SPEC-065: US#608)
+from lib.routers.sso import router as sso_router
+app.include_router(sso_router)
+
+# Include Biometric API (SPEC-065: US#609)
+from lib.routers.biometric import router as biometric_router
+app.include_router(biometric_router)
+
+# Include Risk-Based Authentication API (SPEC-065: US#658)
+from lib.routers.risk_auth import router as risk_auth_router
+app.include_router(risk_auth_router)
+
+# Include Anomaly Detection API (SPEC-065: US#659)
+from lib.routers.anomaly import router as anomaly_router
+app.include_router(anomaly_router)
+
+# Include IDS API (SPEC-065: US#660)
+from lib.routers.ids import router as ids_router
+app.include_router(ids_router)
+
+# Include Behavioral Analysis API (SPEC-065: US#661)
+from lib.routers.behavioral import router as behavioral_router
+app.include_router(behavioral_router)
+
+# Include Threat Intelligence API (SPEC-065: US#344)
+from lib.routers.threat_intelligence import router as threat_intel_router
+app.include_router(threat_intel_router)
+
+# Include GDPR Compliance API (SPEC-065: US#345)
+from lib.routers.gdpr import router as gdpr_router
+app.include_router(gdpr_router)
+
+# SPEC-065: IDS Middleware - Check all requests for intrusions
+@app.middleware("http")
+async def ids_middleware(request: Request, call_next):
+    """IDS middleware to detect intrusions in all requests"""
+    # Skip IDS check for IDS endpoints themselves to avoid recursion
+    if request.url.path.startswith("/ids/"):
+        return await call_next(request)
+    
+    # Skip health checks and static files
+    if request.url.path in ["/health", "/metrics", "/docs", "/openapi.json", "/redoc"]:
+        return await call_next(request)
+    
+    try:
+        from lib.database import get_db
+        from lib.ids_service import IDSService
+        from fastapi import HTTPException
+        
+        db = get_db()
+        session = db.get_session()
+        
+        try:
+            # Get user_id from token if available
+            user_id = None
+            try:
+                from lib.auth_utils import get_current_user
+                current_user = await get_current_user(request)
+                user_id = current_user.get("user_id") if current_user else None
+            except:
+                pass  # No user authenticated
+            
+            # Detect intrusion
+            is_intrusion, detection = IDSService.detect_intrusion(
+                session,
+                request,
+                user_id=user_id,
+                detection_type="application"
+            )
+            
+            if is_intrusion and detection and detection.is_blocked:
+                # Block the request
+                session.close()
+                raise HTTPException(
+                    status_code=403,
+                    detail="Request blocked by intrusion detection system"
+                )
+        finally:
+            session.close()
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Don't fail request if IDS check fails
+        print(f"IDS middleware error: {str(e)}")
+    
+    response = await call_next(request)
+    return response
 app.include_router(organizations.router)
 app.include_router(rbac_api.rbac_router)  # Note: rbac_api uses 'rbac_router' not 'router'
 app.include_router(token_api.router)
@@ -353,6 +445,16 @@ app.include_router(macro_audit_api.router)
 from routers import demo_management_api
 
 app.include_router(demo_management_api.router)
+
+# Include context-aware feedback API router (US#645 - SPEC-144)
+from routers import context_aware_feedback_api
+
+app.include_router(context_aware_feedback_api.router)
+
+# Include recording API router (US#383 - SPEC-047: Screen + Audio Recording Integration)
+from routers import recording_api
+
+app.include_router(recording_api.router)
 
 # Include classification router (SPEC-048)
 from routers import (
@@ -409,5 +511,28 @@ app.include_router(personalization_api.router)
 
 
 if __name__ == "__main__":
+    # SPEC-107: For local development, use gunicorn for parity with production
+    # Use gunicorn.conf.py which automatically adjusts workers and reload based on ENV
+    import subprocess
+    import sys
+    
     port = int(os.getenv("PORT", "8000"))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    env = os.getenv("ENV", "dev").lower()
+    
+    # Set ENV if not already set
+    if "ENV" not in os.environ:
+        os.environ["ENV"] = env
+    
+    # Use gunicorn for runtime parity (SPEC-107)
+    # For direct uvicorn (legacy), use: uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    try:
+        subprocess.run([
+            "gunicorn", "main:app",
+            "-k", "uvicorn.workers.UvicornWorker",
+            "-c", "gunicorn.conf.py"
+        ], check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # Fallback to uvicorn if gunicorn not available (for local dev without gunicorn installed)
+        import uvicorn
+        print("⚠️  gunicorn not found, falling back to uvicorn (not recommended for SPEC-107)")
+        uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

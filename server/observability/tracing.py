@@ -41,7 +41,7 @@ class TracingConfig:
         self,
         service_name: str,
         service_version: str = "1.0.0",
-        jaeger_endpoint: str = "http://localhost:4317",
+        jaeger_endpoint: str = "http://localhost:14317",  # Updated to use OTEL collector
         enable_console_export: bool = False,
         sample_rate: float = 1.0,
     ):
@@ -93,7 +93,8 @@ def init_tracing(
     # Use default config if not provided
     if config is None:
         service_name = os.getenv("OTEL_SERVICE_NAME", "ninaivalaigal-api")
-        config = TracingConfig(service_name=service_name)
+        otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:14317")
+        config = TracingConfig(service_name=service_name, jaeger_endpoint=otlp_endpoint)
 
     # Create resource with service information
     resource = Resource(

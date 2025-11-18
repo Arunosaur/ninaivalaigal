@@ -7,6 +7,7 @@ Core API Integration Tests
 Tests authentication flow and API endpoints.
 """
 
+# Import shared fixtures from conftest.py
 import uuid
 
 import pytest
@@ -19,7 +20,7 @@ from tests.config import CORE_API_BASE_URL
 class TestAuthFlow:
     """Test complete authentication flow"""
 
-    def test_signup_creates_user(self):
+    def test_signup_creates_user(self, auth_token, admin_token=None, member_token=None):
         """User can sign up with valid data"""
         email = f"newuser-{uuid.uuid4().hex[:8]}@test.com"
         response = requests.post(
@@ -34,7 +35,7 @@ class TestAuthFlow:
         assert data["user"]["name"] == "New User"
         assert "id" in data["user"]
 
-    def test_signup_rejects_duplicate_email(self):
+    def test_signup_rejects_duplicate_email(self, auth_token, admin_token=None, member_token=None):
         """Cannot sign up with existing email"""
         email = f"duplicate-{uuid.uuid4().hex[:8]}@test.com"
         # First signup
@@ -52,7 +53,7 @@ class TestAuthFlow:
         assert response.status_code == 400
         assert "already exists" in response.json()["detail"].lower()
 
-    def test_login_returns_token(self):
+    def test_login_returns_token(self, auth_token, admin_token=None, member_token=None):
         """User can login with correct credentials"""
         email = f"login-{uuid.uuid4().hex[:8]}@test.com"
         # First signup
@@ -72,7 +73,7 @@ class TestAuthFlow:
         assert "jwt_token" in data
         assert data["token_type"] == "Bearer"
 
-    def test_login_rejects_wrong_password(self):
+    def test_login_rejects_wrong_password(self, auth_token, admin_token=None, member_token=None):
         """Login fails with incorrect password"""
         # First signup
         requests.post(

@@ -17,7 +17,36 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
 import structlog
-from prometheus_client import Counter, Gauge, Histogram
+
+try:
+    from prometheus_client import Counter, Gauge, Histogram
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+    # Create mock classes for when prometheus_client is not available
+    class Counter:
+        def __init__(self, *args, **kwargs):
+            pass
+        def labels(self, **kwargs):
+            return self
+        def inc(self, *args, **kwargs):
+            pass
+    
+    class Gauge:
+        def __init__(self, *args, **kwargs):
+            pass
+        def labels(self, **kwargs):
+            return self
+        def set(self, *args, **kwargs):
+            pass
+    
+    class Histogram:
+        def __init__(self, *args, **kwargs):
+            pass
+        def labels(self, **kwargs):
+            return self
+        def observe(self, *args, **kwargs):
+            pass
 
 logger = structlog.get_logger(__name__)
 
@@ -28,11 +57,18 @@ SLO_TARGETS = {
     "error_rate": 0.001,  # 0.1%
 }
 
-# Prometheus metrics for SLO tracking
-SLO_UPTIME_RATIO = Gauge("slo_uptime_ratio", "Service availability ratio", ["window"])
-SLO_RESPONSE_TIME_P95 = Gauge("slo_response_time_p95_seconds", "95th percentile response time", ["window"])
-SLO_ERROR_RATE = Gauge("slo_error_rate", "Error rate ratio", ["window"])
-SLO_COMPLIANCE = Gauge("slo_compliance", "SLO compliance status", ["slo_type", "window"])
+# Prometheus metrics for SLO tracking (only if available)
+if PROMETHEUS_AVAILABLE:
+    SLO_UPTIME_RATIO = Gauge("slo_uptime_ratio", "Service availability ratio", ["window"])
+    SLO_RESPONSE_TIME_P95 = Gauge("slo_response_time_p95_seconds", "95th percentile response time", ["window"])
+    SLO_ERROR_RATE = Gauge("slo_error_rate", "Error rate ratio", ["window"])
+    SLO_COMPLIANCE = Gauge("slo_compliance", "SLO compliance status", ["slo_type", "window"])
+else:
+    # Fallback no-op metrics when prometheus_client is not available
+    SLO_UPTIME_RATIO = Gauge()
+    SLO_RESPONSE_TIME_P95 = Gauge()
+    SLO_ERROR_RATE = Gauge()
+    SLO_COMPLIANCE = Gauge()
 
 
 # Request tracking for SLO calculations
@@ -184,6 +220,9 @@ class SLOTracker:
 
     def update_prometheus_metrics(self):
         """Update Prometheus metrics with current SLO values"""
+        if not PROMETHEUS_AVAILABLE:
+            return  # Skip if prometheus_client is not available
+        
         for window in ["1h", "24h"]:
             try:
                 metrics = self.calculate_slo_metrics(window)

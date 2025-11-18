@@ -10,7 +10,7 @@ version: '3.8'
 services:
   graph-db:
     image: ninaivalaigal-graph-db:arm64
-    container_name: ninaivalaigal-graph-db
+    container_name: ninaivalaigal-dev-graph-db
     restart: unless-stopped
     ports:
       - "5434:5432"
@@ -40,7 +40,7 @@ services:
   # Redis for graph caching and performance
   graph-redis:
     image: redis:7-alpine
-    container_name: ninaivalaigal-graph-redis
+    container_name: ninaivalaigal-dev-graph-redis
     restart: unless-stopped
     ports:
       - "6381:6379"
@@ -62,11 +62,13 @@ services:
 
 volumes:
   graph_data:
+    name: ninaivalaigal-dev-graph-db-data
     driver: local
   graph_redis_data:
+    name: ninaivalaigal-dev-graph-redis-data
     driver: local
 
 networks:
   ninaivalaigal-network:
     driver: bridge
-    name: ninaivalaigal-network
+    name: dev-ninaivalaigal-net

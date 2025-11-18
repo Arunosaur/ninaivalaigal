@@ -22,10 +22,9 @@ from typing import Any
 
 import bcrypt
 import jwt
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
-
 # Note: Database URL should come from environment variables (NINAIVALAIGAL_DATABASE_URL or DATABASE_URL)
 # No hardcoded fallback - environment variables must be set via .env.dev
 
@@ -146,6 +145,20 @@ if not JWT_SECRET:
     logging.getLogger(__name__).warning("NINAIVALAIGAL_JWT_SECRET missing – using fallback secret for tests")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = int(os.getenv("NINAIVALAIGAL_JWT_EXPIRATION_HOURS", "168"))  # Default 7 days
+
+logger = logging.getLogger(__name__)
+
+AUTH_COOKIE_NAME = os.getenv("ADMIN_AUTH_COOKIE_NAME", "nv_admin_token")
+AUTH_COOKIE_SECURE = os.getenv("ADMIN_AUTH_COOKIE_SECURE", "1") not in {"0", "false", "False"}
+_cookie_samesite_raw = os.getenv("ADMIN_AUTH_COOKIE_SAMESITE", "strict").lower()
+AUTH_COOKIE_SAMESITE = _cookie_samesite_raw if _cookie_samesite_raw in {"strict", "lax", "none"} else "strict"
+AUTH_COOKIE_PATH = os.getenv("ADMIN_AUTH_COOKIE_PATH", "/")
+AUTH_COOKIE_DOMAIN = os.getenv("ADMIN_AUTH_COOKIE_DOMAIN") or None
+AUTH_COOKIE_MAX_AGE = int(os.getenv("ADMIN_AUTH_COOKIE_MAX_AGE", str(JWT_EXPIRATION_HOURS * 3600)))
+
+if AUTH_COOKIE_SAMESITE == "none" and not AUTH_COOKIE_SECURE:
+    logger.warning("SameSite=None requires secure cookies – forcing secure flag on admin auth cookie")
+    AUTH_COOKIE_SECURE = True
 
 
 # Password validation
@@ -291,7 +304,61 @@ class TokenUsage(BaseModel):
 
 
 # Security scheme
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
+
+
+def set_admin_auth_cookie(response: Response, token: str, expires_in: int | None = None) -> None:
+    """Set the admin authentication cookie with secure defaults."""
+
+    if not token:
+        return
+
+    max_age = expires_in if expires_in is not None else AUTH_COOKIE_MAX_AGE
+    cookie_kwargs = {
+        "key": AUTH_COOKIE_NAME,
+        "value": token,
+        "httponly": True,
+        "secure": AUTH_COOKIE_SECURE,
+        "samesite": AUTH_COOKIE_SAMESITE,
+        "max_age": max_age,
+        "expires": max_age,
+        "path": AUTH_COOKIE_PATH,
+    }
+
+    if AUTH_COOKIE_DOMAIN:
+        cookie_kwargs["domain"] = AUTH_COOKIE_DOMAIN
+
+    response.set_cookie(**cookie_kwargs)
+
+
+def clear_admin_auth_cookie(response: Response) -> None:
+    """Remove the admin authentication cookie."""
+
+    response.delete_cookie(
+        AUTH_COOKIE_NAME,
+        path=AUTH_COOKIE_PATH,
+        domain=AUTH_COOKIE_DOMAIN,
+    )
+
+
+def _resolve_token(
+    request: Request | None,
+    credentials: HTTPAuthorizationCredentials | str | None,
+) -> tuple[str | None, str]:
+    """Determine the active token, preferring secure cookies over headers."""
+
+    if request is not None:
+        cookie_token = request.cookies.get(AUTH_COOKIE_NAME)
+        if cookie_token:
+            return cookie_token, "cookie"
+
+    if isinstance(credentials, HTTPAuthorizationCredentials) and credentials.credentials:
+        return credentials.credentials, "header"
+
+    if isinstance(credentials, str) and credentials:
+        return credentials, "direct"
+
+    return None, "missing"
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
@@ -470,11 +537,17 @@ def get_user_by_id(user_id: str) -> AuthUser | None:
     return _build_user_payload(_normalize_row(rows[0]))
 
 
-def get_current_user(credentials=Depends(security)):
+def get_current_user(
+    request: Request = None,
+    credentials: HTTPAuthorizationCredentials | str | None = Depends(security),
+):
     """Support both FastAPI dependency injection and direct invocation for tests."""
 
-    token = credentials.credentials if isinstance(credentials, HTTPAuthorizationCredentials) else str(credentials)
-    token_data = verify_token(token)
+    token, source = _resolve_token(request, credentials)
+    if source == "header":
+        logger.info("admin-auth.header_fallback", extra={"path": request.url.path if request else None})
+
+    token_data = verify_token(token) if token else None
     if token_data is None:
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
@@ -514,13 +587,18 @@ def get_current_user(credentials=Depends(security)):
 async def get_current_user_optional(request: Request):
     """Get current user if authenticated, None otherwise."""
 
-    auth_header = request.headers.get("authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    token, _ = _resolve_token(request, None)
+
+    if not token:
+        auth_header = request.headers.get("authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1]
+
+    if not token:
         return None
 
-    token = auth_header.split(" ", 1)[1]
     try:
-        return get_current_user(token)
+        return get_current_user(request=request, credentials=token)
     except HTTPException:
         return None
 

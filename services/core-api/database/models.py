@@ -68,6 +68,11 @@ class User(Base):
     # RBAC fields
     default_role = Column(String(50), default="MEMBER")
     is_system_admin = Column(Boolean, default=False)
+    
+    # MFA fields
+    mfa_enabled = Column(Boolean, default=False)
+    mfa_method = Column(String(50), nullable=True)  # totp, webauthn, sms, email
+    mfa_enforced = Column(Boolean, default=False)  # Admin-enforced MFA
 
     # Note: Employment provenance fields removed - use ag_catalog.users MV or graph queries
     # The canonical transactional user table (public.users) is intentionally simpler
@@ -405,3 +410,565 @@ class MemoryAttachment(Base):
     # Note: Foreign key to memory_tokens not enforced via FK constraint
     # because memory_id is TEXT (memory IDs may come from external providers)
     # Indexes provide fast lookups without FK constraints
+
+
+# Additional models for SPEC compliance
+from sqlalchemy import Column, String, Text, DateTime, Boolean, Float, Integer, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+import uuid
+
+# Anomaly Detection Models
+class AnomalyDetection(Base):
+    __tablename__ = "anomaly_detections"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    detection_type = Column(String(100), nullable=False)
+    anomaly_score = Column(Float, nullable=False)
+    severity = Column(String(20), nullable=False)
+    activity_data = Column(JSON, nullable=True)
+    activity_type = Column(String(50), nullable=False)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    session_id = Column(String(255), nullable=True)
+    is_false_positive = Column(Boolean, default=False)
+    is_resolved = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="anomaly_detections")
+    alerts = relationship("AnomalyAlert", back_populates="detection")
+
+class AnomalyPattern(Base):
+    __tablename__ = "anomaly_patterns"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255), nullable=False)
+    pattern_type = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    detection_rules = Column(JSON, nullable=True)
+    threshold_config = Column(JSON, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class AnomalyDetectionModel(Base):
+    __tablename__ = "anomaly_detection_models"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255), nullable=False)
+    model_type = Column(String(100), nullable=False)
+    model_config = Column(JSON, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class AnomalyAlert(Base):
+    __tablename__ = "anomaly_alerts"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    detection_id = Column(UUID(as_uuid=True), ForeignKey("anomaly_detections.id"), nullable=False)
+    alert_type = Column(String(50), nullable=False)
+    message = Column(Text, nullable=False)
+    severity = Column(String(20), nullable=False)
+    is_acknowledged = Column(Boolean, default=False)
+    acknowledged_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    acknowledged_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    detection = relationship("AnomalyDetection", back_populates="alerts")
+    acknowledged_user = relationship("User", foreign_keys=[acknowledged_by])
+
+class ActivityMonitoring(Base):
+    __tablename__ = "activity_monitoring"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    activity_type = Column(String(50), nullable=False)
+    activity_data = Column(JSON, nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    session_id = Column(String(255), nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="activities")
+
+# IDS Models
+class IDSSignature(Base):
+    __tablename__ = "ids_signatures"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255), nullable=False)
+    pattern = Column(Text, nullable=False)
+    pattern_type = Column(String(50), nullable=False)
+    severity = Column(String(20), nullable=False)
+    description = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    rules = relationship("IDSRule", back_populates="signature")
+
+class IDSRule(Base):
+    __tablename__ = "ids_rules"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    signature_id = Column(UUID(as_uuid=True), ForeignKey("ids_signatures.id"), nullable=False)
+    rule_type = Column(String(50), nullable=False)
+    conditions = Column(JSON, nullable=True)
+    actions = Column(JSON, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    signature = relationship("IDSSignature", back_populates="rules")
+    detections = relationship("IDSDetection", back_populates="rule")
+
+class IDSDetection(Base):
+    __tablename__ = "ids_detections"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    rule_id = Column(UUID(as_uuid=True), ForeignKey("ids_rules.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    request_data = Column(JSON, nullable=True)
+    severity = Column(String(20), nullable=False)
+    is_false_positive = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    rule = relationship("IDSRule", back_populates="detections")
+    user = relationship("User", back_populates="ids_detections")
+    alerts = relationship("IDSAlert", back_populates="detection")
+
+class IDSAlert(Base):
+    __tablename__ = "ids_alerts"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    detection_id = Column(UUID(as_uuid=True), ForeignKey("ids_detections.id"), nullable=False)
+    alert_type = Column(String(50), nullable=False)
+    message = Column(Text, nullable=False)
+    is_acknowledged = Column(Boolean, default=False)
+    acknowledged_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    acknowledged_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    detection = relationship("IDSDetection", back_populates="alerts")
+    acknowledged_user = relationship("User", foreign_keys=[acknowledged_by])
+
+class IDSBlocklist(Base):
+    __tablename__ = "ids_blocklist"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    ip_address = Column(String(45), nullable=False, unique=True)
+    reason = Column(Text, nullable=True)
+    blocked_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    expires_at = Column(DateTime, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    blocked_by_user = relationship("User", foreign_keys=[blocked_by])
+
+# Add relationships to User model
+User.anomaly_detections = relationship("AnomalyDetection", back_populates="user")
+User.activities = relationship("ActivityMonitoring", back_populates="user")
+User.ids_detections = relationship("IDSDetection", back_populates="user")
+
+# Behavioral Analysis Models
+class BehavioralBaseline(Base):
+    __tablename__ = "behavioral_baselines"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    metric_name = Column(String(100), nullable=False)
+    baseline_value = Column(Float, nullable=False)
+    confidence_level = Column(Float, nullable=False)
+    sample_size = Column(Integer, nullable=False)
+    last_updated = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="behavioral_baselines")
+
+class BehavioralDeviation(Base):
+    __tablename__ = "behavioral_deviations"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    baseline_id = Column(UUID(as_uuid=True), ForeignKey("behavioral_baselines.id"), nullable=False)
+    deviation_score = Column(Float, nullable=False)
+    threshold_exceeded = Column(Boolean, default=False)
+    event_data = Column(JSON, nullable=True)
+    detected_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="behavioral_deviations")
+    baseline = relationship("BehavioralBaseline")
+
+class BehavioralProfile(Base):
+    __tablename__ = "behavioral_profiles"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    profile_data = Column(JSON, nullable=True)
+    risk_score = Column(Float, nullable=False)
+    last_updated = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="behavioral_profile")
+
+class BehavioralEvent(Base):
+    __tablename__ = "behavioral_events"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    event_type = Column(String(100), nullable=False)
+    event_data = Column(JSON, nullable=True)
+    session_id = Column(String(255), nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    device_fingerprint = Column(String(255), nullable=True)
+    location_data = Column(JSON, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="behavioral_events")
+
+# Add behavioral relationships to User model
+User.behavioral_baselines = relationship("BehavioralBaseline", back_populates="user")
+User.behavioral_deviations = relationship("BehavioralDeviation", back_populates="user")
+User.behavioral_profile = relationship("BehavioralProfile", back_populates="user")
+User.behavioral_events = relationship("BehavioralEvent", back_populates="user")
+
+# Threat Intelligence Models
+class ThreatIntelligenceFeed(Base):
+    __tablename__ = "threat_intelligence_feeds"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255), nullable=False)
+    feed_url = Column(Text, nullable=True)
+    feed_type = Column(String(50), nullable=False)
+    is_active = Column(Boolean, default=True)
+    last_updated = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class ThreatIndicator(Base):
+    __tablename__ = "threat_indicators"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    feed_id = Column(UUID(as_uuid=True), ForeignKey("threat_intelligence_feeds.id"), nullable=True)
+    indicator_type = Column(String(50), nullable=False)
+    value = Column(Text, nullable=False)
+    confidence = Column(Float, nullable=False)
+    severity = Column(String(20), nullable=False)
+    source = Column(String(255), nullable=True)
+    description = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=True)
+    
+    feed = relationship("ThreatIntelligenceFeed", back_populates="indicators")
+    matches = relationship("ThreatMatch", back_populates="indicator")
+
+class ThreatReputation(Base):
+    __tablename__ = "threat_reputations"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    entity_type = Column(String(50), nullable=False)
+    entity_value = Column(Text, nullable=False)
+    reputation_score = Column(Float, nullable=False)
+    risk_level = Column(String(20), nullable=False)
+    last_assessed = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=True)
+
+class ThreatMatch(Base):
+    __tablename__ = "threat_matches"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    indicator_id = Column(UUID(as_uuid=True), ForeignKey("threat_indicators.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    matched_value = Column(Text, nullable=False)
+    context = Column(JSON, nullable=True)
+    risk_score = Column(Float, nullable=False)
+    is_false_positive = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    indicator = relationship("ThreatIndicator", back_populates="matches")
+    user = relationship("User", back_populates="threat_matches")
+
+# Add threat intelligence relationships
+ThreatIntelligenceFeed.indicators = relationship("ThreatIndicator", back_populates="feed")
+User.threat_matches = relationship("ThreatMatch", back_populates="user")
+
+# GDPR Compliance Models
+class GDPRConsent(Base):
+    __tablename__ = "gdpr_consents"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    consent_type = Column(String(100), nullable=False)
+    granted = Column(Boolean, nullable=False)
+    granted_at = Column(DateTime, nullable=True)
+    withdrawn_at = Column(DateTime, nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    
+    user = relationship("User", back_populates="gdpr_consents")
+
+class GDPRDataSubjectRequest(Base):
+    __tablename__ = "gdpr_data_subject_requests"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    request_type = Column(String(50), nullable=False)
+    status = Column(String(50), nullable=False)
+    request_data = Column(JSON, nullable=True)
+    processed_at = Column(DateTime, nullable=True)
+    processed_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", foreign_keys=[user_id], back_populates="gdpr_requests")
+    processor = relationship("User", foreign_keys=[processed_by])
+
+class GDPRDataRetentionPolicy(Base):
+    __tablename__ = "gdpr_data_retention_policies"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    data_type = Column(String(100), nullable=False)
+    retention_period_days = Column(Integer, nullable=False)
+    policy_description = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class GDPRDataProcessingLog(Base):
+    __tablename__ = "gdpr_data_processing_logs"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    processing_activity = Column(String(255), nullable=False)
+    legal_basis = Column(String(100), nullable=False)
+    data_categories = Column(JSON, nullable=True)
+    purpose = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="gdpr_processing_logs")
+
+# Add GDPR relationships to User model
+User.gdpr_consents = relationship("GDPRConsent", back_populates="user")
+User.gdpr_requests = relationship("GDPRDataSubjectRequest", foreign_keys=[GDPRDataSubjectRequest.user_id], back_populates="user")
+User.gdpr_processing_logs = relationship("GDPRDataProcessingLog", back_populates="user")
+
+# Macro Models
+class Macro(Base):
+    __tablename__ = "macros"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    macro_code = Column(Text, nullable=False)
+    language = Column(String(50), nullable=False)
+    is_public = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="macros")
+    audit_logs = relationship("MacroAuditLog", back_populates="macro")
+
+class MacroAuditLog(Base):
+    __tablename__ = "macro_audit_logs"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    macro_id = Column(UUID(as_uuid=True), ForeignKey("macros.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    action = Column(String(100), nullable=False)
+    old_value = Column(Text, nullable=True)
+    new_value = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    macro = relationship("Macro", back_populates="audit_logs")
+    user = relationship("User")
+
+# Add Macro relationships to User model
+User.macros = relationship("Macro", back_populates="user")
+
+# Demo Model
+class Demo(Base):
+    __tablename__ = "demos"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    demo_data = Column(JSON, nullable=True)
+    is_public = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="demos")
+
+# Add Demo relationships to User model
+User.demos = relationship("Demo", back_populates="user")
+
+# Memory-related Models
+class MemoryClassification(Base):
+    __tablename__ = "memory_classifications"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    memory_id = Column(String, nullable=False)  # Memory IDs are strings, not UUIDs
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    classification_type = Column(String(100), nullable=False)
+    confidence_score = Column(Float, nullable=False)
+    classification_metadata = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User")
+
+class MemoryTrustScore(Base):
+    __tablename__ = "memory_trust_scores"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    memory_id = Column(String, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    trust_score = Column(Float, nullable=False)
+    factors = Column(JSON, nullable=True)
+    calculated_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User")
+    feedback = relationship("MemoryTrustFeedback", back_populates="trust_score")
+    history = relationship("MemoryTrustScoreHistory", back_populates="trust_score")
+
+class MemoryTrustFeedback(Base):
+    __tablename__ = "memory_trust_feedback"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    trust_score_id = Column(UUID(as_uuid=True), ForeignKey("memory_trust_scores.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    feedback_type = Column(String(50), nullable=False)  # positive, negative
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    trust_score = relationship("MemoryTrustScore", back_populates="feedback")
+    user = relationship("User")
+
+class MemoryTrustScoreHistory(Base):
+    __tablename__ = "memory_trust_score_history"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    trust_score_id = Column(UUID(as_uuid=True), ForeignKey("memory_trust_scores.id"), nullable=False)
+    previous_score = Column(Float, nullable=False)
+    new_score = Column(Float, nullable=False)
+    change_reason = Column(String(255), nullable=True)
+    changed_at = Column(DateTime, default=datetime.utcnow)
+    
+    trust_score = relationship("MemoryTrustScore", back_populates="history")
+
+# MFA Models
+class MFAWebAuthnCredential(Base):
+    __tablename__ = "mfa_webauthn_credentials"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    credential_id = Column(String(255), nullable=False, unique=True)
+    public_key = Column(Text, nullable=False)
+    sign_count = Column(Integer, nullable=False)
+    device_name = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_used_at = Column(DateTime, nullable=True)
+    is_active = Column(Boolean, default=True)
+    
+    user = relationship("User", back_populates="webauthn_credentials")
+
+class MFAEnforcementPolicy(Base):
+    __tablename__ = "mfa_enforcement_policies"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    target_role = Column(String(50), nullable=True)  # Apply to specific role
+    target_account_type = Column(String(50), nullable=True)  # Apply to specific account type
+    mfa_required = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class RiskConfiguration(Base):
+    __tablename__ = "risk_configurations"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String(255), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    
+    # Risk weights (should sum to 1.0)
+    device_weight = Column(Float, nullable=False, default=0.3)
+    location_weight = Column(Float, nullable=False, default=0.2)
+    time_weight = Column(Float, nullable=False, default=0.2)
+    behavior_weight = Column(Float, nullable=False, default=0.3)
+    
+    # Risk thresholds
+    risk_threshold_critical = Column(Float, nullable=False, default=0.8)
+    risk_threshold_high = Column(Float, nullable=False, default=0.6)
+    risk_threshold_medium = Column(Float, nullable=False, default=0.4)
+    
+    # Penalties
+    vpn_penalty = Column(Float, nullable=False, default=0.4)
+    proxy_penalty = Column(Float, nullable=False, default=0.3)
+    tor_penalty = Column(Float, nullable=False, default=0.5)
+    new_device_penalty = Column(Float, nullable=False, default=0.2)
+    unusual_location_penalty = Column(Float, nullable=False, default=0.3)
+    unusual_time_penalty = Column(Float, nullable=False, default=0.2)
+    
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# Add MFA relationships to User model
+User.webauthn_credentials = relationship("MFAWebAuthnCredential", back_populates="user")
+
+# Authentication Security Models
+class DeviceFingerprint(Base):
+    __tablename__ = "device_fingerprints"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    fingerprint_hash = Column(String(255), nullable=False, unique=True)
+    device_info = Column(JSON, nullable=True)
+    is_trusted = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_seen_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="device_fingerprints")
+
+class AuthRiskScore(Base):
+    __tablename__ = "auth_risk_scores"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    session_id = Column(String(255), nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    risk_score = Column(Float, nullable=False)
+    risk_factors = Column(JSON, nullable=True)
+    auth_successful = Column(Boolean, nullable=True)  # Track if auth was successful
+    assessed_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="auth_risk_scores")
+
+# Add auth security relationships to User model
+User.device_fingerprints = relationship("DeviceFingerprint", back_populates="user")
+User.auth_risk_scores = relationship("AuthRiskScore", back_populates="user")
+
+# User Behavior Pattern Model for Risk Assessment
+class UserBehaviorPattern(Base):
+    __tablename__ = "user_behavior_patterns"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    pattern_type = Column(String(50), nullable=False)  # login_time, location, device
+    pattern_data = Column(JSON, nullable=True)
+    confidence = Column(Float, nullable=False, default=0.5)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="behavior_patterns")
+
+# Add behavior patterns relationship to User model
+User.behavior_patterns = relationship("UserBehaviorPattern", back_populates="user")

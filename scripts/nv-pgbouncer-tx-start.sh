@@ -101,6 +101,7 @@ container run -d \
   -e DB_USER="$NINA_DB_USER" \
   -e DB_PASSWORD="$NINA_DB_PASSWORD" \
   -e SCRAM_PASSWORD="$SCRAM_PASSWORD" \
+  -e LISTEN_PORT="${PGBOUNCER_TX_PORT}" \
   nina-pgbouncer:latest
 
 echo "  ✅ Container started"

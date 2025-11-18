@@ -58,3 +58,7 @@ To: `.archive/deprecated/frontend-nextjs-customer-2025-01-31/`
 ---
 
 **Status**: ✅ Archived - All features available in `apps/customer/`
+
+
+
+

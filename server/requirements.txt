@@ -45,3 +45,9 @@ passlib[bcrypt]
 aiofiles
 jinja2
 python-dotenv
+# SPEC-134: Perception System dependencies
+beautifulsoup4>=4.14.0
+Pillow>=10.0.0
+# Optional VLM dependencies (imported dynamically if available)
+# openai>=1.0.0
+# anthropic>=0.18.0

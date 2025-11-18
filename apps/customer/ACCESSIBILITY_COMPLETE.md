@@ -230,3 +230,7 @@ pa11y http://localhost:3000 --standard WCAG2AA
 ---
 
 **🎉 All accessibility code changes are complete! Ready for testing and verification.**
+
+
+
+

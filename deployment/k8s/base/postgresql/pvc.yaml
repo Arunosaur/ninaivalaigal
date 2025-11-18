@@ -18,4 +18,9 @@ spec:
   resources:
     requests:
       storage: 20Gi
-  storageClassName: fast-ssd
+  # SPEC-065: Encryption at Rest - Use encrypted storage class
+  # Storage class should be configured with encryption enabled at the infrastructure level
+  # For AWS: gp3 with encryption enabled
+  # For GCP: pd-ssd with encryption enabled
+  # For Azure: Premium_LRS with encryption enabled
+  storageClassName: fast-ssd-encrypted  # Encrypted storage class for data at rest

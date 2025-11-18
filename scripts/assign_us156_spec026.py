@@ -64,8 +64,7 @@ def main():
         print("⚠️  Developer D not found in project members")
         print("   Will update status to 'In Progress' only")
 
-    # Update story
-    updates = {}
+        # Update story
 
     # Get status IDs - try to find "In Progress" status
     # For now, just update description with assignment note

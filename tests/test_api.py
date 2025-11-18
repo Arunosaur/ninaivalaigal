@@ -10,8 +10,7 @@ Unit tests for server/billing/api.py
 Tests FastAPI endpoints for billing system with mocked dependencies.
 """
 
-from decimal import Decimal
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest

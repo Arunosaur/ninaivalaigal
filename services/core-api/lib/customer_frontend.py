@@ -247,6 +247,45 @@ async def team_upgrade_page(request: Request):
     return templates.TemplateResponse("team-upgrade.html", {"request": request})
 
 
+@router.get("/profile", response_class=HTMLResponse)
+async def profile_page(request: Request):
+    """
+    Profile Page
+
+    US#1046: PROF-001 - Profile Page Implementation
+
+    Displays user profile for:
+    - Display name editing
+    - Avatar upload/display
+    - Email display (read-only)
+    - Account type display
+    """
+    token = get_customer_token_from_cookie(request)
+    if not token:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    payload = verify_customer_token(token)
+    if not payload:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    # Prepare user data
+    user_data = {
+        "id": payload.get("user_id"),
+        "email": payload.get("email", ""),
+        "name": payload.get("name", ""),
+        "account_type": payload.get("account_type", "standard"),
+        "avatar": payload.get("avatar", ""),  # Avatar URL if available
+    }
+
+    return templates.TemplateResponse(
+        "profile.html",
+        {
+            "request": request,
+            "user": user_data,
+        },
+    )
+
+
 @router.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request):
     """
@@ -313,6 +352,82 @@ async def injection_analytics_page(request: Request):
     if not token or not verify_customer_token(token):
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
     return templates.TemplateResponse("injection-analytics.html", {"request": request})
+
+
+@router.get("/macros", response_class=HTMLResponse)
+async def macros_page(request: Request):
+    """US#1035: Macro List page"""
+    token = get_customer_token_from_cookie(request)
+    if not token or not verify_customer_token(token):
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("macro-list.html", {"request": request})
+
+
+@router.get("/macros/dashboard", response_class=HTMLResponse)
+async def macro_dashboard_page(request: Request):
+    """US#1035: Macro Dashboard page"""
+    token = get_customer_token_from_cookie(request)
+    if not token or not verify_customer_token(token):
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("macro-dashboard.html", {"request": request})
+
+
+@router.get("/macros/{macro_id}", response_class=HTMLResponse)
+async def macro_detail_page(request: Request, macro_id: str):
+    """US#1035: Macro Detail page"""
+    token = get_customer_token_from_cookie(request)
+    if not token or not verify_customer_token(token):
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("macro-detail.html", {"request": request, "macro_id": macro_id})
+
+
+@router.get("/macros/recording", response_class=HTMLResponse)
+async def macro_recording_page(request: Request):
+    """US#1035: Macro Recording page"""
+    token = get_customer_token_from_cookie(request)
+    if not token or not verify_customer_token(token):
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("macro-recording.html", {"request": request})
+
+
+@router.get("/macros/{macro_id}/execute", response_class=HTMLResponse)
+async def macro_execute_page(request: Request, macro_id: str):
+    """US#1035: Macro Execute page"""
+    token = get_customer_token_from_cookie(request)
+    if not token or not verify_customer_token(token):
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse(
+        "macro-recording.html", {"request": request, "macro_id": macro_id, "mode": "execute"}
+    )
+
+
+@router.get("/macros/{macro_id}/edit", response_class=HTMLResponse)
+async def macro_edit_page(request: Request, macro_id: str):
+    """US#1035: Macro Edit page"""
+    token = get_customer_token_from_cookie(request)
+    if not token or not verify_customer_token(token):
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse(
+        "macro-recording.html", {"request": request, "macro_id": macro_id, "mode": "edit"}
+    )
+
+
+@router.get("/macros/history", response_class=HTMLResponse)
+async def macro_history_page(request: Request):
+    """US#1035: Macro Execution History page"""
+    token = get_customer_token_from_cookie(request)
+    if not token or not verify_customer_token(token):
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("macro-list.html", {"request": request, "mode": "history"})
+
+
+@router.get("/macros/create", response_class=HTMLResponse)
+async def macro_create_page(request: Request):
+    """US#1035: Macro Create page"""
+    token = get_customer_token_from_cookie(request)
+    if not token or not verify_customer_token(token):
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("macro-recording.html", {"request": request, "mode": "create"})
 
 
 @router.get("/logout")

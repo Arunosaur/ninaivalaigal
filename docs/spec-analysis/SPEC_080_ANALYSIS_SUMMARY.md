@@ -140,3 +140,7 @@
 2. Resolve SPEC_INDEX.md vs directory mismatch
 3. Clarify relationship between SPEC-080 and SPEC-043
 4. Update Taiga story US#562 if needed
+
+
+
+

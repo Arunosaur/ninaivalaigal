@@ -10,7 +10,7 @@ Unit tests for services/core-api/lib/auth_audit.py
 Tests authentication audit logging functionality.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest

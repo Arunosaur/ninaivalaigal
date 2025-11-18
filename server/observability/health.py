@@ -16,9 +16,17 @@ import time
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import text
+
+# Import alerting integration
+from .alerting_integration import get_alerting_integration, send_health_alert
+from .dependency_health import (
+    get_dependency_monitor,
+    start_dependency_monitoring,
+    stop_dependency_monitoring,
+)
 
 # Track startup time for uptime calculation
 START_TIME = time.time()
@@ -41,6 +49,30 @@ class DetailedHealthResponse(BaseModel):
     pgbouncer: dict[str, Any] = {}
     latency_ms_p50: float | None = None
     latency_ms_p95: float | None = None
+
+
+class AlertTestResponse(BaseModel):
+    """Response model for alert testing."""
+
+    success: bool
+    results: dict[str, bool | None]
+    message: str
+
+
+class DependencyStatusResponse(BaseModel):
+    """Response model for dependency status."""
+
+    dependencies: dict[str, dict[str, Any]]
+    summary: dict[str, Any]
+    monitoring_active: bool
+
+
+class MonitoringControlResponse(BaseModel):
+    """Response model for monitoring control."""
+
+    success: bool
+    message: str
+    monitoring_active: bool
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -83,6 +115,34 @@ async def readiness():
         )
 
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+
+@router.get("/memory/health", response_model=HealthResponse)
+async def memory_health():
+    """Memory service health check - checks memory service connectivity"""
+    try:
+        # Check if memory service is accessible
+        import requests
+
+        # Try to connect to memory service
+        response = requests.get("http://localhost:13393/health", timeout=5)
+
+        if response.status_code == 200:
+            return HealthResponse(status="ok")
+        else:
+            from fastapi import HTTPException, status
+
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail={"status": "unhealthy", "reason": "memory_service_unavailable"},
+            )
+    except Exception as e:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"status": "unhealthy", "reason": f"memory_service_error: {str(e)}"},
+        )
 
 
 @router.get("/health/detailed", response_model=DetailedHealthResponse)
@@ -232,3 +292,170 @@ def _get_latency_percentiles() -> tuple[float | None, float | None]:
     except Exception:
         # If metrics aren't available, return None
         return None, None
+
+
+@router.post("/health/alert/test", response_model=AlertTestResponse)
+async def test_alerting():
+    """
+    Test alerting integration by sending a test alert to all enabled channels.
+
+    Returns:
+        AlertTestResponse with test results for each channel
+    """
+    try:
+        alerting = await get_alerting_integration()
+        results = await alerting.test_alerting()
+
+        # Check if any enabled channels failed
+        enabled_results = [r for r in results.values() if r is not None]
+        success = all(enabled_results) if enabled_results else True
+
+        return AlertTestResponse(success=success, results=results, message="Test alert sent to all enabled channels")
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to test alerting: {str(e)}"
+        )
+
+
+@router.post("/health/alert/send")
+async def send_custom_alert(
+    alert_name: str, severity: str, summary: str, description: str, component: str = "health", team: str = "platform"
+):
+    """
+    Send a custom alert through the alerting system.
+
+    Args:
+        alert_name: Name of the alert
+        severity: Severity level (critical, warning, info)
+        summary: Alert summary
+        description: Alert description
+        component: Component name (default: health)
+        team: Team name (default: platform)
+
+    Returns:
+        Success status
+    """
+    try:
+        # Validate severity
+        if severity not in ["critical", "warning", "info"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Severity must be one of: critical, warning, info"
+            )
+
+        success = await send_health_alert(
+            alert_name=alert_name,
+            severity=severity,
+            summary=summary,
+            description=description,
+            component=component,
+            team=team,
+        )
+
+        if success:
+            return {"status": "sent", "message": "Alert sent successfully"}
+        else:
+            return {"status": "failed", "message": "Alert failed to send to any enabled channel"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to send alert: {str(e)}")
+
+
+@router.get("/health/dependencies", response_model=DependencyStatusResponse)
+async def get_dependency_status():
+    """
+    Get real-time status of all system dependencies.
+
+    Returns:
+        Detailed status of all dependencies including health, performance metrics, and monitoring status
+    """
+    try:
+        monitor = await get_dependency_monitor()
+        dependencies = await monitor.get_dependency_status()
+        summary = await monitor.get_health_summary()
+
+        return DependencyStatusResponse(
+            dependencies=dependencies,
+            summary=summary,
+            monitoring_active=monitor.monitoring_active,
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to get dependency status: {str(e)}"
+        )
+
+
+@router.post("/health/monitoring/start", response_model=MonitoringControlResponse)
+async def start_monitoring():
+    """
+    Start continuous dependency health monitoring.
+
+    Returns:
+        Success status and monitoring state
+    """
+    try:
+        await start_dependency_monitoring()
+
+        return MonitoringControlResponse(
+            success=True,
+            message="Dependency monitoring started successfully",
+            monitoring_active=True,
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to start monitoring: {str(e)}"
+        )
+
+
+@router.post("/health/monitoring/stop", response_model=MonitoringControlResponse)
+async def stop_monitoring():
+    """
+    Stop continuous dependency health monitoring.
+
+    Returns:
+        Success status and monitoring state
+    """
+    try:
+        await stop_dependency_monitoring()
+
+        return MonitoringControlResponse(
+            success=True,
+            message="Dependency monitoring stopped successfully",
+            monitoring_active=False,
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to stop monitoring: {str(e)}"
+        )
+
+
+@router.post("/health/monitoring/test")
+async def test_dependency_monitoring():
+    """
+    Test dependency monitoring by running a single check cycle.
+
+    Returns:
+        Results of the monitoring test cycle
+    """
+    try:
+        monitor = await get_dependency_monitor()
+        await monitor._check_all_dependencies()
+
+        dependencies = await monitor.get_dependency_status()
+        summary = await monitor.get_health_summary()
+
+        return {
+            "success": True,
+            "message": "Dependency monitoring test completed",
+            "dependencies": dependencies,
+            "summary": summary,
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to test monitoring: {str(e)}"
+        )

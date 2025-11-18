@@ -1,20 +1,45 @@
-# Makefile for Taiga CLI commands
-# Usage: make taiga.read REF=700
-#        make taiga.update REF=700 SUBJECT="New title"
+# Makefile for Ninaivalaigal
+# SPEC-107: Unified Runtime Parity & Deployment Standard
+# Usage:
+#   Runtime selection: make dev RUNTIME=docker
+#   Taiga CLI: make taiga.read REF=700
 
-.PHONY: help taiga.read taiga.update taiga.append taiga.mine taiga.status taiga.list taiga.bulk taiga.report taiga.test taiga.check taiga.smoke taiga.export.csv taiga.export.html taiga.metrics taiga.query taiga.tui taiga.monitor taiga.analyze deps-compile deps-install deps-install-dev deps-update deps-check
+# Runtime selection (SPEC-107)
+RUNTIME ?= docker
+VALID_RUNTIMES = docker colima apple
+
+.PHONY: help taiga.read taiga.update taiga.append taiga.mine taiga.status taiga.list taiga.bulk taiga.report taiga.test taiga.check taiga.smoke taiga.export.csv taiga.export.html taiga.metrics taiga.query taiga.tui taiga.monitor taiga.analyze deps-compile deps-install deps-install-dev deps-update deps-check dev test prod stop status logs restart clean runtime-status runtime-docker runtime-colima runtime-apple
 
 # Default project (can be overridden)
 PROJECT ?= ninaivalaigal
 
 # Taiga CLI wrapper function
+# Uses conda environment 'taiga' if available, otherwise falls back to system python3
+TAIGA_PYTHON ?= $(shell which conda > /dev/null 2>&1 && echo "conda run -n taiga python3" || echo "python3")
 define taiga_cmd
-	@python3 taiga/scripts/taiga_cli.py --project $(PROJECT) $(1)
+	@$(TAIGA_PYTHON) taiga/scripts/taiga_cli.py --project $(PROJECT) $(1)
 endef
 
 help:
-	@echo "Taiga CLI Makefile Commands"
-	@echo "============================"
+	@echo "Ninaivalaigal Makefile Commands"
+	@echo "================================="
+	@echo ""
+	@echo "SPEC-107: Runtime Selection (docker|colima|apple)"
+	@echo "  make dev RUNTIME=docker     - Start development environment"
+	@echo "  make test RUNTIME=colima    - Start test environment"
+	@echo "  make prod RUNTIME=apple     - Start production environment"
+	@echo "  make stop RUNTIME=docker    - Stop services"
+	@echo "  make status RUNTIME=colima  - Check service status"
+	@echo "  make logs RUNTIME=docker    - View logs"
+	@echo "  make restart RUNTIME=apple  - Restart services"
+	@echo "  make clean RUNTIME=docker   - Stop and remove containers"
+	@echo "  make runtime-status         - Show current runtime"
+	@echo "  make runtime-docker       - Switch to Docker"
+	@echo "  make runtime-colima         - Switch to Colima"
+	@echo "  make runtime-apple          - Switch to Apple Container CLI"
+	@echo ""
+	@echo "Taiga CLI Commands"
+	@echo "=================="
 	@echo ""
 	@echo "Read Operations:"
 	@echo "  make taiga.read REF=<number>        - Read story by reference number"
@@ -43,8 +68,11 @@ help:
 	@echo "  make taiga.export.csv STATUS=\"<name>\" - Export as CSV"
 	@echo "  make taiga.export.html STATUS=\"<name>\" - Export as HTML"
 	@echo ""
-	@echo "Query & Metrics:"
-	@echo "  make taiga.query QUERY=\"status:Done tag:backend\" STATUS=\"<name>\" - Filter stories"
+	@echo "Search & Query:"
+	@echo "  make taiga.search KEYWORDS=\"<word1 word2>\" - Search stories by keywords"
+	@echo "  make taiga.search KEYWORDS=\"docker\" STATUS=\"In Progress\" - Search with status filter"
+	@echo "  make taiga.search KEYWORDS=\"docker\" TAIGA_USER=\"developer-c\" - Search user's stories"
+	@echo "  make taiga.query QUERY=\"status:Done tag:backend\" STATUS=\"<name>\" - Advanced query"
 	@echo "  make taiga.metrics STATUS=\"<name>\" - Show metrics summary"
 	@echo ""
 	@echo "Interactive:"
@@ -221,6 +249,21 @@ else
 endif
 
 # Query filter
+taiga.search:
+ifndef KEYWORDS
+	@echo "Error: KEYWORDS=\"<word1 word2>\" is required"
+	@echo "Example: make taiga.search KEYWORDS=\"docker container\""
+	@echo "Example: make taiga.search KEYWORDS=\"authentication\" STATUS=\"In Progress\""
+	@exit 1
+endif
+ifdef STATUS
+	$(call taiga_cmd,--status "$(STATUS)" --query "$(KEYWORDS)" $(if $(ALL),--all))
+else ifdef TAIGA_USER
+	$(call taiga_cmd,--mine $(TAIGA_USER) --query "$(KEYWORDS)" $(if $(ALL),--all))
+else
+	$(call taiga_cmd,--query "$(KEYWORDS)" $(if $(ALL),--all))
+endif
+
 taiga.query:
 ifndef QUERY
 	@echo "Error: QUERY=\"<filter>\" is required (e.g., QUERY=\"status:Done tag:backend\")"
@@ -488,3 +531,118 @@ deps-update:
 
 deps-check:
 	@./scripts/manage-deps.sh check
+
+# ============================================================================
+# SPEC-107: Runtime Selection & Environment Management
+# ============================================================================
+
+# Validate runtime
+validate-runtime:
+	@if [ "$(RUNTIME)" != "docker" ] && [ "$(RUNTIME)" != "colima" ] && [ "$(RUNTIME)" != "apple" ]; then \
+		echo "Error: Invalid RUNTIME=$(RUNTIME). Valid options: docker, colima, apple"; \
+		exit 1; \
+	fi
+
+# Development environment
+dev: validate-runtime
+	@echo "🚀 Starting development environment with $(RUNTIME) runtime..."
+	@if [ "$(RUNTIME)" = "docker" ]; then \
+		ENV=dev docker compose -f docker/docker-compose.dev.yml up --build; \
+	elif [ "$(RUNTIME)" = "colima" ]; then \
+		ENV=dev docker compose -f deployment/dev/compose.colima.yml up --build; \
+	else \
+		ENV=dev ./scripts/stack-start-unified.sh apple dev; \
+	fi
+
+# Test environment
+test: validate-runtime
+	@echo "🧪 Starting test environment with $(RUNTIME) runtime..."
+	@if [ "$(RUNTIME)" = "docker" ]; then \
+		ENV=test docker compose -f docker/docker-compose.dev.yml up --build; \
+	elif [ "$(RUNTIME)" = "colima" ]; then \
+		ENV=test docker compose -f deployment/dev/compose.colima.yml up --build; \
+	else \
+		ENV=test ./scripts/stack-start-unified.sh apple test; \
+	fi
+
+# Production environment
+prod: validate-runtime
+	@echo "🏭 Starting production environment with $(RUNTIME) runtime..."
+	@if [ "$(RUNTIME)" = "docker" ]; then \
+		ENV=prod docker compose -f docker/docker-compose.dev.yml up -d --build; \
+	elif [ "$(RUNTIME)" = "colima" ]; then \
+		ENV=prod docker compose -f deployment/dev/compose.colima.yml up -d --build; \
+	else \
+		ENV=prod ./scripts/stack-start-unified.sh apple prod; \
+	fi
+
+# Stop services
+stop: validate-runtime
+	@echo "🛑 Stopping services with $(RUNTIME) runtime..."
+	@if [ "$(RUNTIME)" = "docker" ]; then \
+		docker compose -f docker/docker-compose.dev.yml down; \
+	elif [ "$(RUNTIME)" = "colima" ]; then \
+		docker compose -f deployment/dev/compose.colima.yml down; \
+	else \
+		container list | grep ninaivalaigal | awk '{print $$1}' | xargs -I {} container stop {} 2>/dev/null || true; \
+	fi
+
+# Status check
+status: validate-runtime
+	@echo "📊 Service status with $(RUNTIME) runtime..."
+	@if [ "$(RUNTIME)" = "docker" ]; then \
+		docker compose -f docker/docker-compose.dev.yml ps; \
+	elif [ "$(RUNTIME)" = "colima" ]; then \
+		docker compose -f deployment/dev/compose.colima.yml ps; \
+	else \
+		container list | grep ninaivalaigal || echo "No containers running"; \
+	fi
+
+# View logs
+logs: validate-runtime
+	@if [ "$(RUNTIME)" = "docker" ]; then \
+		docker compose -f docker/docker-compose.dev.yml logs -f; \
+	elif [ "$(RUNTIME)" = "colima" ]; then \
+		docker compose -f deployment/dev/compose.colima.yml logs -f; \
+	else \
+		echo "Use: container logs -f <container-name>"; \
+	fi
+
+# Restart services
+restart: validate-runtime
+	@echo "🔄 Restarting services with $(RUNTIME) runtime..."
+	@if [ "$(RUNTIME)" = "docker" ]; then \
+		docker compose -f docker/docker-compose.dev.yml restart; \
+	elif [ "$(RUNTIME)" = "colima" ]; then \
+		docker compose -f deployment/dev/compose.colima.yml restart; \
+	else \
+		container list | grep ninaivalaigal | awk '{print $$1}' | xargs -I {} container restart {} 2>/dev/null || true; \
+	fi
+
+# Clean (stop and remove containers)
+clean: validate-runtime
+	@echo "🧹 Cleaning up $(RUNTIME) runtime..."
+	@if [ "$(RUNTIME)" = "docker" ]; then \
+		docker compose -f docker/docker-compose.dev.yml down -v; \
+	elif [ "$(RUNTIME)" = "colima" ]; then \
+		docker compose -f deployment/dev/compose.colima.yml down -v; \
+	else \
+		container list --all | grep ninaivalaigal | awk '{print $$1}' | xargs -I {} container rm {} 2>/dev/null || true; \
+	fi
+
+# Runtime management
+runtime-status:
+	@if [ -f .runtime-config ]; then \
+		grep ACTIVE_RUNTIME .runtime-config || echo "Runtime not configured"; \
+	else \
+		echo "Runtime not configured (default: docker)"; \
+	fi
+
+runtime-docker:
+	@./scripts/switch-runtime.sh docker
+
+runtime-colima:
+	@./scripts/switch-runtime.sh colima
+
+runtime-apple:
+	@./scripts/switch-runtime.sh apple

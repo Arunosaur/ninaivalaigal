@@ -129,7 +129,7 @@ calculate_ports() {
 set_derived_config() {
     # Container names (SPEC-086)
     export DB_CONTAINER="${CONTAINER_PREFIX}-${NINA_ENV}-db"
-    export PGBOUNCER_CONTAINER="${CONTAINER_PREFIX}-${NINA_ENV}-pgbouncer"
+    export PGBOUNCER_CONTAINER="${CONTAINER_PREFIX}-${NINA_ENV}-pgbouncer-tx"
     export REDIS_CONTAINER="${CONTAINER_PREFIX}-${NINA_ENV}-redis"
     export API_CONTAINER="${CONTAINER_PREFIX}-${NINA_ENV}-core-api"
     export MEMORY_SERVICE_CONTAINER="${CONTAINER_PREFIX}-${NINA_ENV}-memory-service"

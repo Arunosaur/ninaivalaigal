@@ -12,7 +12,7 @@ Database operations for memory management
 """
 
 from ..manager import DatabaseManager
-from ..models import Context, Memory
+from database.models import Context, Memory
 
 
 class MemoryOperations(DatabaseManager):

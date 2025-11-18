@@ -20,35 +20,80 @@ import uuid
 from collections.abc import Callable
 
 from fastapi import APIRouter, Request, Response
-from prometheus_client import (
-    CONTENT_TYPE_LATEST,
-    Counter,
-    Gauge,
-    Histogram,
-    generate_latest,
-)
+
+try:
+    from prometheus_client import (
+        CONTENT_TYPE_LATEST,
+        Counter,
+        Gauge,
+        Histogram,
+        generate_latest,
+    )
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+    # Create mock classes for when prometheus_client is not available
+    class Counter:
+        def __init__(self, *args, **kwargs):
+            pass
+        def labels(self, **kwargs):
+            return self
+        def inc(self, *args, **kwargs):
+            pass
+    
+    class Gauge:
+        def __init__(self, *args, **kwargs):
+            pass
+        def labels(self, **kwargs):
+            return self
+        def set(self, *args, **kwargs):
+            pass
+    
+    class Histogram:
+        def __init__(self, *args, **kwargs):
+            pass
+        def labels(self, **kwargs):
+            return self
+        def observe(self, *args, **kwargs):
+            pass
+    
+    def generate_latest():
+        return b"# Prometheus metrics not available\n"
+    
+    CONTENT_TYPE_LATEST = "text/plain"
+
 from starlette.middleware.base import BaseHTTPMiddleware
 
-# Prometheus metrics with SLO-aware buckets
-REQUESTS = Counter("http_requests_total", "Total HTTP requests", ["route", "method", "code"])
-DURATION = Histogram(
-    "http_request_duration_seconds",
-    "Request latency with SLO buckets",
-    ["route", "method"],
-    buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.2, 0.5, 1.0, 2.5, 5.0, 10.0],  # SLO: <200ms = 0.2s
-)
-ERRORS = Counter("app_errors_total", "Application errors", ["type"])
-UPTIME_S = Gauge("app_uptime_seconds", "Process uptime (s)")
+# Prometheus metrics with SLO-aware buckets (only if available)
+if PROMETHEUS_AVAILABLE:
+    REQUESTS = Counter("http_requests_total", "Total HTTP requests", ["route", "method", "code"])
+    DURATION = Histogram(
+        "http_request_duration_seconds",
+        "Request latency with SLO buckets",
+        ["route", "method"],
+        buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.2, 0.5, 1.0, 2.5, 5.0, 10.0],  # SLO: <200ms = 0.2s
+    )
+    ERRORS = Counter("app_errors_total", "Application errors", ["type"])
+    UPTIME_S = Gauge("app_uptime_seconds", "Process uptime (s)")
 
-# SLO-specific metrics
-SLO_REQUEST_DURATION = Histogram(
-    "slo_request_duration_seconds",
-    "SLO request duration tracking",
-    ["endpoint_category"],
-    buckets=[0.01, 0.025, 0.05, 0.1, 0.2, 0.5, 1.0],  # Focus on <200ms range
-)
-SLO_ERROR_COUNTER = Counter("slo_errors_total", "SLO-tracked errors", ["endpoint_category"])
-SLO_SUCCESS_COUNTER = Counter("slo_success_total", "SLO-tracked successes", ["endpoint_category"])
+    # SLO-specific metrics
+    SLO_REQUEST_DURATION = Histogram(
+        "slo_request_duration_seconds",
+        "SLO request duration tracking",
+        ["endpoint_category"],
+        buckets=[0.01, 0.025, 0.05, 0.1, 0.2, 0.5, 1.0],  # Focus on <200ms range
+    )
+    SLO_ERROR_COUNTER = Counter("slo_errors_total", "SLO-tracked errors", ["endpoint_category"])
+    SLO_SUCCESS_COUNTER = Counter("slo_success_total", "SLO-tracked successes", ["endpoint_category"])
+else:
+    # Fallback no-op metrics when prometheus_client is not available
+    REQUESTS = Counter()
+    DURATION = Histogram()
+    ERRORS = Counter()
+    UPTIME_S = Gauge()
+    SLO_REQUEST_DURATION = Histogram()
+    SLO_ERROR_COUNTER = Counter()
+    SLO_SUCCESS_COUNTER = Counter()
 
 # Context for request tracking
 request_id_ctx = contextvars.ContextVar("request_id", default="-")

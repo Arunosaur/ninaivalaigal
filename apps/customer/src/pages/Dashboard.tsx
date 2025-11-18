@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom'
 import type { AxiosError } from 'axios'
 import { Navigation } from '../components/Navigation'
 import apiClient from '../lib/apiClient'
+import { InstallPrompt } from '../components/pwa'
 
 interface TeamStats {
   total_memories: number
@@ -299,6 +300,9 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* PWA Install Prompt */}
+      <InstallPrompt variant="banner" position="bottom" />
     </div>
   )
 }

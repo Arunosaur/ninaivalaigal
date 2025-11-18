@@ -6,7 +6,7 @@
 // See LICENSE file in the server/ directory for details.
 //
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import authService from '../services/auth'
 
 export default function Login() {
@@ -15,6 +15,8 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: { pathname?: string } } | undefined)?.from?.pathname ?? '/analytics'
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -23,7 +25,7 @@ export default function Login() {
 
     try {
       await authService.login(email, password)
-      navigate('/analytics')
+      navigate(from, { replace: true })
     } catch (error: unknown) {
       const typedError = error as { response?: { data?: { detail?: string } } }
       const message = typedError?.response?.data?.detail || 'Login failed. Please check your credentials.'

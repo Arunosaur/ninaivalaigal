@@ -25,6 +25,10 @@
 - **Git**: Conventional commits (feat:, fix:, docs:)
 - **Documentation**: Update docs for any user-facing changes
 
+### Pre-commit Hooks
+- **Integration tests**: Integration tests ignore flake8 E402/D403 intentionally (late imports).
+- **macOS sandboxed runners**: On macOS sandboxed runners, pre-commit may need to be run locally.
+
 ### Pull Request Guidelines
 - **Title**: Clear, descriptive (e.g., "feat: implement SPEC-060 Apache AGE integration")
 - **Description**: What, why, how, testing approach

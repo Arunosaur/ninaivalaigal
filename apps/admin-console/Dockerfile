@@ -4,7 +4,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy ONLY admin/internal pages (SPEC-083 separation)
-COPY ../../frontend/admin ./admin
+COPY dist ./admin
 
 # Install http-server for serving static files
 RUN npm install -g http-server

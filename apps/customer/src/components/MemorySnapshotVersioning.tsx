@@ -55,10 +55,10 @@ export function MemorySnapshotVersioning({ memoryId, onSnapshotCreated, onSnapsh
   const loadSnapshots = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get<{ snapshots: MemorySnapshot[] }>(
-        `/api/v1/memory/${memoryId}/snapshots`
+      const response = await apiClient.get<MemorySnapshot[]>(
+        `/api/v1/memories/versions/${memoryId}/snapshots`
       );
-      setSnapshots(response.data.snapshots || []);
+      setSnapshots(Array.isArray(response.data) ? response.data : []);
       setError(null);
     } catch (err) {
       const axiosError = err as AxiosError<{ detail?: string }>;
@@ -74,19 +74,36 @@ export function MemorySnapshotVersioning({ memoryId, onSnapshotCreated, onSnapsh
     setError(null);
 
     try {
-      const response = await apiClient.post<{ snapshot: MemorySnapshot }>(
-        `/api/v1/memory/${memoryId}/snapshots`,
+      // First get current memory content
+      const memoryResponse = await apiClient.get(`/api/v1/memories/${memoryId}`);
+      const memory = memoryResponse.data;
+
+      const response = await apiClient.post<{ snapshot: { snapshot: MemorySnapshot }; message: string }>(
+        `/api/v1/memories/versions/snapshots`,
         {
-          name: snapshotName,
-          description: snapshotDescription || undefined,
+          memory_id: memoryId,
+          content: memory.content || '',
+          metadata: memory.metadata || {},
+          snapshot_label: snapshotName,
         }
       );
 
-      setSnapshots([response.data.snapshot, ...snapshots]);
+      const newSnapshot: MemorySnapshot = {
+        id: response.data.snapshot.snapshot.id,
+        memory_id: memoryId,
+        version: response.data.snapshot.snapshot.version,
+        name: response.data.snapshot.snapshot.name,
+        description: response.data.snapshot.snapshot.description,
+        created_at: response.data.snapshot.snapshot.created_at,
+        created_by: 'current-user', // This should come from the API
+        memory_count: 0, // This should come from the API
+        snapshot_size_bytes: 0, // This should come from the API
+      };
+      setSnapshots([newSnapshot, ...snapshots]);
       setSnapshotName('');
       setSnapshotDescription('');
       setShowCreateForm(false);
-      onSnapshotCreated?.(response.data.snapshot);
+      onSnapshotCreated?.(newSnapshot);
     } catch (err) {
       const axiosError = err as AxiosError<{ detail?: string }>;
       setError(axiosError.response?.data?.detail || axiosError.message || 'Failed to create snapshot');
@@ -102,9 +119,14 @@ export function MemorySnapshotVersioning({ memoryId, onSnapshotCreated, onSnapsh
 
     setRestoring(snapshotId);
     try {
-      await apiClient.post(`/api/v1/memory/snapshots/${snapshotId}/restore`);
+      await apiClient.post(`/api/v1/memories/versions/${memoryId}/restore`, {
+        version_id: snapshotId,
+        restore_notes: `Restored snapshot: ${snapshotName || 'Unlabeled'}`,
+      });
       onSnapshotRestored?.(snapshotId);
       alert('Snapshot restored successfully');
+      // Reload snapshots to get updated version numbers
+      loadSnapshots();
     } catch (err) {
       const axiosError = err as AxiosError<{ detail?: string }>;
       alert(axiosError.response?.data?.detail || axiosError.message || 'Failed to restore snapshot');

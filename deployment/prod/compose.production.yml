@@ -223,14 +223,19 @@ services:
 
 volumes:
   postgres_prod_data:
+    name: ninaivalaigal-prod-db-data
     driver: local
   postgres_replica_1_data:
+    name: ninaivalaigal-prod-db-replica-1-data
     driver: local
   postgres_replica_2_data:
+    name: ninaivalaigal-prod-db-replica-2-data
     driver: local
   postgres_replica_3_data:
+    name: ninaivalaigal-prod-db-replica-3-data
     driver: local
   redis_prod_data:
+    name: ninaivalaigal-prod-redis-data
     driver: local
 
 networks:

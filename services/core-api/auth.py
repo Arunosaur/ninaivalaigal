@@ -22,9 +22,9 @@ from pydantic import BaseModel, EmailStr, validator
 
 # Import models from shared contracts (US#79 - Shared Contracts Layer)
 # Note: auth.v1.models is available via module shim or PYTHONPATH
-from auth.v1.models import IndividualUserSignup, TokenData
-from config import DEFAULT_RUST_DATABASE_URL
-from utils.password import hash_password, verify_password
+# TODO: shared.contracts module doesn't exist - using lib.auth_service instead
+from lib.auth_service import IndividualUserSignup, TokenData, hash_password, verify_password
+from lib.config import DEFAULT_RUST_DATABASE_URL
 
 
 # Configuration loading (moved from main.py to avoid circular import)

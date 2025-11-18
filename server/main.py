@@ -50,6 +50,7 @@ from redis_client import redis_client
 from redis_queue import queue_manager
 from security_integration import configure_security
 from spec_kit import SpecKitContextManager
+from server.middleware import AdminSessionMiddleware
 
 # Configuration and core services
 from server.config import get_database_url, load_config
@@ -212,6 +213,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Bridge admin session cookies to legacy authorization dependencies
+app.add_middleware(AdminSessionMiddleware)
+
 # Add tenant isolation middleware (US#117: ORM Guardrails)
 try:
     from server.security.orm.tenancy_guard import create_tenant_middleware
@@ -350,6 +354,7 @@ from graphops_integration import router as graphops_router  # noqa: E402
 from insights_api import router as insights_router  # noqa: E402
 from invoice_management_api import router as invoice_management_router  # noqa: E402
 from memory_health_api import router as memory_health_router  # noqa: E402
+
 # REMOVED: memory_injection_api router (Python)
 # Migrated to Rust endpoint: http://localhost:13393/memory/injection/*
 # Migration Date: 2025-01-31
@@ -397,6 +402,17 @@ from unified_macro_intelligence_api import (  # noqa: E402
 from usage_analytics_api import router as usage_analytics_router  # noqa: E402
 from vendor_admin_api import router as vendor_admin_router  # noqa: E402
 
+from server.macro.context_linking_api import (  # noqa: E402
+    router as macro_context_linking_router,
+)
+from server.macro.execution_api import router as macro_execution_router  # noqa: E402
+from server.macro.plugin_api import router as macro_plugin_router  # noqa: E402
+from server.macro.visual_recording_api import (  # noqa: E402
+    router as macro_visual_recording_router,
+)
+from server.macro.implicit_detection_api import (  # noqa: E402
+    router as macro_implicit_detection_router,
+)
 from server.notifications.in_app_api import (  # noqa: E402
     router as in_app_notifications_router,
 )
@@ -435,6 +451,22 @@ app.include_router(memory_router)
 app.include_router(memory_browser_router)  # MEMORY BROWSER API - /api/v1/memory/memories
 app.include_router(approvals_router)
 app.include_router(recording_router)
+
+# SPEC-035: Memory Versioning API
+try:
+    from memory_versioning_api import router as memory_versioning_router
+    app.include_router(memory_versioning_router)
+    logger.info("✅ Memory Versioning API router registered (SPEC-035)")
+except ImportError as e:
+    logger.warning(f"⚠️  Memory Versioning API not available: {e}")
+
+# SPEC-166: Offline Memory Capture API
+try:
+    from routers.offline_capture_api import router as offline_capture_router
+    app.include_router(offline_capture_router)
+    logger.info("✅ Offline Memory Capture API router registered (SPEC-166)")
+except ImportError as e:
+    logger.warning(f"⚠️  Offline Memory Capture API not available: {e}")
 app.include_router(vendor_admin_router)
 app.include_router(admin_dashboard_router)  # US#114: System Dashboard & Monitoring
 app.include_router(ai_feedback_router)
@@ -497,6 +529,39 @@ try:
 except ImportError as e:
     logger.warning(f"⚠️  Could not register SPEC-147 invoice generation API router: {e}")
 
+# US-228: Customer Invoice Portal API (SPEC-028)
+try:
+    from server.billing.invoice_portal_api import (  # noqa: E402
+        router as invoice_portal_router,
+    )
+
+    app.include_router(invoice_portal_router)
+    logger.info("✅ US-228 Customer Invoice Portal API router registered")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register Customer Invoice Portal API router: {e}")
+
+# US-231: Accounting System Export & Integration API (SPEC-028)
+try:
+    from server.billing.accounting_export_api import (  # noqa: E402
+        router as accounting_export_router,
+    )
+
+    app.include_router(accounting_export_router)
+    logger.info("✅ US-231 Accounting Export API router registered")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register Accounting Export API router: {e}")
+
+# US-233: Custom Invoice Branding & Styling API (SPEC-028)
+try:
+    from server.billing.invoice_branding_api import (  # noqa: E402
+        router as invoice_branding_router,
+    )
+
+    app.include_router(invoice_branding_router)
+    logger.info("✅ US-233 Invoice Branding API router registered")
+except ImportError as e:
+    logger.warning(f"⚠️  Could not register Invoice Branding API router: {e}")
+
 # SPEC-147: Billing Management API (BILL-015)
 try:
     from server.billing.admin_api import router as billing_admin_router  # noqa: E402
@@ -546,6 +611,11 @@ if not is_testing:
 
     app.include_router(hipaa_router)
 app.include_router(macro_intelligence_router)
+app.include_router(macro_context_linking_router)  # US#376: Macro-to-Memory Context Linking
+app.include_router(macro_execution_router)  # US#375: Macro Replay System and Execution Engine
+app.include_router(macro_plugin_router)  # US#374: Browser/IDE Plugin for Scoped Macro Capture
+app.include_router(macro_visual_recording_router)  # US#1032: Visual/Replay-based Macro Recording
+app.include_router(macro_implicit_detection_router)  # US#1033: Implicit Detection Macro Recording
 app.include_router(graph_intelligence_integration_router)
 app.include_router(graph_validation_router)
 app.include_router(graph_usage_analytics_router)
@@ -651,6 +721,26 @@ try:
     logger.info("✅ SPEC-128 Memory Transfer & Copy API registered (US#846: Phase 1)")
 except ImportError as e:
     logger.warning(f"⚠️  SPEC-128 Memory Transfer & Copy API not available: {e}")
+
+# SPEC-137: Agent Plan-Reflection Loop (DPPM Framework)
+try:
+    from server.routers.dppm_api import router as dppm_router  # noqa: E402
+
+    app.include_router(dppm_router)
+    logger.info("✅ SPEC-137 DPPM API registered (US#877: Phase 1 - Decomposition)")
+except ImportError as e:
+    logger.warning(f"⚠️  SPEC-137 DPPM API not available: {e}")
+
+# SPEC-142: Offline Mode (Phase 1.1: Database Setup & Basic Operations)
+try:
+    from server.routers.offline_storage_api import (  # noqa: E402
+        router as offline_storage_router,
+    )
+
+    app.include_router(offline_storage_router)
+    logger.info("✅ SPEC-142 Offline Storage API registered (US#882: Phase 1.1)")
+except ImportError as e:
+    logger.warning(f"⚠️  SPEC-142 Offline Storage API not available: {e}")
 
 # app.include_router(agentic_router)  # Temporarily disabled
 # app.include_router(performance_router)  # Temporarily disabled serving

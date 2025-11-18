@@ -11,7 +11,7 @@ Tests metrics archival service for old usage data.
 """
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
@@ -102,7 +102,7 @@ class TestMetricsArchivalService:
         mock_query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
         mock_db_session.query.return_value = mock_query
 
-        results = archival_service.archive_old_metrics(archive_date=custom_date)
+        archival_service.archive_old_metrics(archive_date=custom_date)
 
         # Verify query was called with custom date
         mock_db_session.query.assert_called_once_with(UsageEvent)
