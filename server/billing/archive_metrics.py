@@ -16,6 +16,7 @@ Archives usage events older than retention period to cold storage.
 import gzip
 import json
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
@@ -25,6 +26,40 @@ from sqlalchemy.orm import Session
 from .models import BillingPeriod, UsageEvent
 
 logger = logging.getLogger(__name__)
+
+# Import Prometheus metrics if available
+try:
+    from .prometheus_metrics import (
+        archive_duration_seconds,
+        archive_eligible_events,
+        archive_events_archived,
+        archive_operations_total,
+        archive_size_bytes,
+    )
+
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+
+    # Create dummy metrics
+    class DummyMetric:
+        def labels(self, *args, **kwargs):
+            return self
+
+        def inc(self, *args, **kwargs):
+            pass
+
+        def observe(self, *args, **kwargs):
+            pass
+
+        def set(self, *args, **kwargs):
+            pass
+
+    archive_operations_total = DummyMetric()
+    archive_events_archived = DummyMetric()
+    archive_size_bytes = DummyMetric()
+    archive_duration_seconds = DummyMetric()
+    archive_eligible_events = DummyMetric()
 
 
 class MetricsArchivalService:
@@ -70,6 +105,8 @@ class MetricsArchivalService:
             "errors": [],
         }
 
+        start_time = time.time()
+
         try:
             # Get usage events older than archive_date
             old_events = (
@@ -82,8 +119,14 @@ class MetricsArchivalService:
                 .all()
             )
 
+            # Update Prometheus metrics
+            if PROMETHEUS_AVAILABLE:
+                archive_eligible_events.set(len(old_events))
+
             if not old_events:
                 logger.info("No old metrics to archive")
+                if PROMETHEUS_AVAILABLE:
+                    archive_operations_total.labels(operation_type="archive", status="no_events").inc()
                 return results
 
             # Group events by billing period for efficient archiving
@@ -103,7 +146,27 @@ class MetricsArchivalService:
                     if archive_path:
                         # Store archive
                         if self.storage_backend:
-                            self._store_archive(archive_path, period_key)
+                            archive_key = self._store_archive(archive_path, period_key)
+
+                            # Index archive for fast lookup
+                            try:
+                                from .archive_index import ArchiveIndex
+
+                                index = ArchiveIndex(self.db)
+                                index.index_archive(
+                                    archive_key=archive_key or archive_path,
+                                    billing_period_id=period_key if period_key != "none" else None,
+                                    event_count=len(events),
+                                    archive_size_bytes=(
+                                        os.path.getsize(archive_path) if os.path.exists(archive_path) else None
+                                    ),
+                                    storage_backend="s3" if self.storage_backend and archive_key else "local",
+                                    metadata={"archived_at": archive_data.get("archived_at")},
+                                )
+                            except Exception as e:
+                                logger.warning(f"Failed to index archive: {e}")
+                        else:
+                            archive_key = archive_path
 
                         # Delete archived events from database
                         event_ids = [e.id for e in events]
@@ -111,6 +174,18 @@ class MetricsArchivalService:
 
                         results["archived"] += len(events)
                         results["archives_created"] += 1
+
+                        # Update Prometheus metrics
+                        if PROMETHEUS_AVAILABLE:
+                            archive_events_archived.labels(billing_period_id=period_key).inc(len(events))
+                            archive_operations_total.labels(operation_type="archive", status="success").inc()
+                            # Get archive file size if available
+                            import os
+
+                            if os.path.exists(archive_path):
+                                archive_size = os.path.getsize(archive_path)
+                                archive_size_bytes.labels(archive_key=period_key).set(archive_size)
+
                         logger.info(f"Archived {len(events)} events for period {period_key}")
                     else:
                         results["failed"] += len(events)
@@ -122,12 +197,28 @@ class MetricsArchivalService:
                     results["errors"].append(f"Error archiving period {period_key}: {str(e)}")
 
             self.db.commit()
+
+            # Update Prometheus metrics
+            duration = time.time() - start_time
+            if PROMETHEUS_AVAILABLE:
+                archive_duration_seconds.labels(operation_type="archive").observe(duration)
+                if results["failed"] > 0:
+                    archive_operations_total.labels(operation_type="archive", status="partial_failure").inc()
+                elif results["archived"] > 0:
+                    archive_operations_total.labels(operation_type="archive", status="success").inc()
+
             logger.info(f"Archival complete: {results['archived']} events archived, {results['failed']} failed")
 
         except Exception as e:
             logger.error(f"Error in archive_old_metrics: {e}", exc_info=True)
             self.db.rollback()
             results["errors"].append(f"Archival error: {str(e)}")
+
+            # Update Prometheus metrics for failure
+            if PROMETHEUS_AVAILABLE:
+                archive_operations_total.labels(operation_type="archive", status="failure").inc()
+                duration = time.time() - start_time
+                archive_duration_seconds.labels(operation_type="archive").observe(duration)
 
         return results
 
@@ -194,7 +285,7 @@ class MetricsArchivalService:
             logger.error(f"Error creating archive: {e}")
             return None
 
-    def _store_archive(self, archive_path: str, period_key: str):
+    def _store_archive(self, archive_path: str, period_key: str) -> str:
         """
         Store archive in cold storage.
 
@@ -202,19 +293,38 @@ class MetricsArchivalService:
             archive_path: Path to archive file
             period_key: Period identifier
 
-        Note:
-            This is a placeholder. Implement actual storage backend integration.
+        Returns:
+            Archive key (S3 key or local path)
         """
-        if self.storage_backend:
-            try:
-                # TODO: Implement actual storage backend
-                # Example: s3_client.upload_file(archive_path, bucket, key)
-                logger.info(f"Archive stored: {archive_path} -> {period_key}")
-            except Exception as e:
-                logger.error(f"Error storing archive: {e}")
-                raise
-        else:
+        if not self.storage_backend:
             logger.warning("No storage backend configured, archive not stored")
+            return archive_path
+
+        try:
+            # Generate S3 key with date-based path for organization
+            from datetime import datetime
+
+            now = datetime.now(timezone.utc)
+            date_path = now.strftime("%Y/%m")
+            archive_key = (
+                f"usage_metrics/{date_path}/usage_metrics_{period_key}_{now.strftime('%Y%m%d_%H%M%S')}.json.gz"
+            )
+
+            # Upload to storage backend
+            if hasattr(self.storage_backend, "upload_archive"):
+                success = self.storage_backend.upload_archive(archive_path, archive_key)
+                if success:
+                    logger.info(f"Archive stored: {archive_path} -> {archive_key}")
+                    return archive_key
+                else:
+                    raise Exception(f"Failed to upload archive to storage backend")
+            else:
+                # Fallback for custom storage backends
+                logger.info(f"Archive stored: {archive_path} -> {period_key}")
+                return archive_path
+        except Exception as e:
+            logger.error(f"Error storing archive: {e}")
+            raise
 
     def get_archive_stats(self) -> Dict[str, Any]:
         """

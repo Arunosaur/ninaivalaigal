@@ -249,11 +249,52 @@ async def team_upgrade_page(request: Request):
 
 @router.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request):
-    """US#834: Settings page"""
+    """
+    Settings Page
+
+    US#1057: PROF-002 - Settings Page Implementation
+
+    Displays user settings for:
+    - Notification preferences
+    - Privacy settings
+    - Account management
+    - Security settings
+    """
     token = get_customer_token_from_cookie(request)
-    if not token or not verify_customer_token(token):
+    if not token:
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
-    return templates.TemplateResponse("settings.html", {"request": request})
+
+    payload = verify_customer_token(token)
+    if not payload:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    # Prepare user data and preferences
+    user_data = {
+        "id": payload.get("user_id"),
+        "email": payload.get("email", ""),
+        "name": payload.get("name", ""),
+        "account_type": payload.get("account_type", "standard"),
+        "two_factor_enabled": False,
+    }
+
+    # Default preferences
+    preferences = {
+        "email_notifications": True,
+        "team_invites": True,
+        "memory_updates": True,
+        "profile_visibility": "team",
+        "show_email": False,
+        "data_sharing": True,
+    }
+
+    return templates.TemplateResponse(
+        "settings.html",
+        {
+            "request": request,
+            "user": user_data,
+            "preferences": preferences,
+        },
+    )
 
 
 @router.get("/teams/discount-nonprofit", response_class=HTMLResponse)

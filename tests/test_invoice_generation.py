@@ -97,7 +97,7 @@ def usage_quotas(db_session, billing_account, billing_period):
 @pytest.fixture(autouse=True)
 def setup_tables(db_session):
     """Create billing tables before each test"""
-    from sqlalchemy import DDL, event
+    from sqlalchemy import event
     from sqlalchemy.dialects import postgresql, sqlite
 
     from server.billing.models import Base
@@ -373,7 +373,6 @@ class TestInvoiceGeneration:
         )
 
         assert invoice1 is not None
-        original_total = invoice1.total_amount
 
         # Record additional usage
         additional_usage = UsageEvent(

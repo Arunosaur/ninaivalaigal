@@ -45,7 +45,7 @@ interface TimelineEvent {
 }
 
 export default function DemoReplayViewer() {
-  const { memoryId } = useParams<{ memoryId: string }>();
+  const { demoId } = useParams<{ demoId: string }>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [demo, setDemo] = useState<DemoMemory | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,10 +59,10 @@ export default function DemoReplayViewer() {
   const [currentSegment, setCurrentSegment] = useState<TranscriptionSegment | null>(null);
 
   useEffect(() => {
-    if (memoryId) {
+    if (demoId) {
       loadDemo();
     }
-  }, [memoryId]);
+  }, [demoId]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -98,10 +98,81 @@ export default function DemoReplayViewer() {
   const loadDemo = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get<{ demo: DemoMemory }>(
-        `/api/v1/memory/${memoryId}?type=demo`
-      );
-      setDemo(response.data.demo);
+
+      // First, get full demo details
+      const demoResponse = await apiClient.get<{
+        id: string;
+        demo_id: string;
+        title: string;
+        description: string | null;
+        author: string | null;
+        tags: string[] | null;
+        created_at: string;
+        video_url: string | null;
+        audio_url: string | null;
+        transcription: string | null;
+        timeline: any;
+        recording_duration_seconds: number | null;
+      }>(`/demos/${demoId}`);
+
+      // Then get playback information
+      const playbackResponse = await apiClient.get<{
+        demo_id: string;
+        playback_url: string;
+        video_url: string | null;
+        audio_url: string | null;
+        transcription: string | null;
+        timeline: any;
+        duration_seconds: number | null;
+      }>(`/demos/${demoId}/playback`);
+
+      // Transform API response to component format
+      const timeline = playbackResponse.data.timeline || demoResponse.data.timeline || {};
+      const timelineSegments = timeline.segments || [];
+      const timelineEvents = timeline.events || [];
+
+      // Parse transcription into segments if it's a string
+      let transcriptionSegments: TranscriptionSegment[] = [];
+      const transcriptionText = playbackResponse.data.transcription || demoResponse.data.transcription;
+      if (transcriptionText) {
+        if (typeof transcriptionText === 'string') {
+          // If timeline has segments, use them; otherwise create simple segments
+          if (timelineSegments.length > 0) {
+            transcriptionSegments = timelineSegments.map((seg: any) => ({
+              start_time: seg.start || 0,
+              end_time: seg.end || 0,
+              text: seg.text || '',
+              speaker: seg.speaker,
+            }));
+          } else {
+            // Fallback: create a single segment
+            const duration = playbackResponse.data.duration_seconds ||
+                           demoResponse.data.recording_duration_seconds || 0;
+            transcriptionSegments = [{
+              start_time: 0,
+              end_time: duration,
+              text: transcriptionText,
+            }];
+          }
+        }
+      }
+
+      setDemo({
+        id: demoResponse.data.id,
+        title: demoResponse.data.title,
+        description: demoResponse.data.description,
+        video_url: playbackResponse.data.video_url || demoResponse.data.video_url || '',
+        transcription: transcriptionSegments,
+        timeline: timelineEvents.map((event: any) => ({
+          timestamp: event.timestamp || event.start || 0,
+          type: event.type || 'note',
+          description: event.description || event.text || '',
+          coordinates: event.coordinates,
+        })),
+        tags: demoResponse.data.tags || [],
+        created_at: demoResponse.data.created_at,
+        created_by: demoResponse.data.author || '',
+      });
       setError(null);
     } catch (err) {
       const axiosError = err as AxiosError<{ detail?: string }>;

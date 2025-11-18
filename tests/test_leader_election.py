@@ -10,9 +10,6 @@ Unit tests for server/billing/leader_election.py
 Tests Redis-based leader election for Celery beat scheduler.
 """
 
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
-
 import pytest
 
 pytestmark = pytest.mark.unit

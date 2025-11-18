@@ -9,7 +9,7 @@
 //
 /**
  * US#211: Team Billing Page
- * 
+ *
  * Main billing page with:
  * - Current plan display with features
  * - Payment method card (last 4 digits)
@@ -446,4 +446,3 @@ export default function TeamBillingPage() {
     </div>
   );
 }
-

@@ -19,6 +19,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import desc
 
+# LangSmith tracing (US#139)
+try:
+    from langsmith import traceable
+except ImportError:
+    # No-op decorator if langsmith not available
+    def traceable(*args, **kwargs):
+        def decorator(func):
+            return func
+
+        return decorator
+
 
 def get_db():
     """Get database manager with dynamic configuration."""
@@ -116,6 +127,7 @@ def list_memories(
 
 
 @router.post("/memories", status_code=201)
+@traceable(name="memory_creation")  # US#139: LangSmith tracing
 def create_memory(
     memory_data: MemoryCreate,
     current_user: User = Depends(get_current_user),

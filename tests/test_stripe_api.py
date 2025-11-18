@@ -10,6 +10,7 @@ Unit tests for server/billing/stripe_api.py
 Tests FastAPI endpoints for Stripe integration.
 """
 
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 

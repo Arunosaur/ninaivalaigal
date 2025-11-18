@@ -100,13 +100,13 @@ This index catalogs all technical specifications for the ninaivalaigal AI memory
   | 046 | Procedural Macro System | Planned | Phase 3 |
   | 047 | Narrative Memory Macros | Planned | Phase 3 |
   | 048 | Memory Intent Classifier | Planned | Phase 3 |
-  | 049 | ~~Memory Sharing Collaboration~~ | Deprecated | Phase 2B |
+  | 049 | ~~Memory Sharing Collaboration~~ | Deprecated → SPEC-127 | Phase 2B |
 
   ## Cross-Platform & Integration (050-069)
 
   | SPEC | Title | Status | Phase |
   |------|-------|--------|-------|
-  | 050 | ~~Cross-Org Memory Sharing~~ | Deprecated | Phase 3 |
+  | 050 | ~~Cross-Org Memory Sharing~~ | Deprecated → SPEC-127 | Phase 3 |
   | 051 | Platform Stability & Developer Experience | Reference | - |
   | 052 | Comprehensive Test Coverage | Reference | - |
   | 053 | Authentication Middleware Refactor | Complete | Phase 2B |
@@ -114,9 +114,9 @@ This index catalogs all technical specifications for the ninaivalaigal AI memory
   | 055 | Codebase Refactor & Modularization | In Progress | Phase 3 |
   | 056 | Dependency & Testing Improvements | Complete | Phase 3 |
   | 057 | Microservice & Config Architecture | In Progress | Phase 3 |
-| 058 | Documentation Expansion | Complete | Phase 3 |
-| 059 | Unified Macro Intelligence | In Progress | Phase 3 |
-| 060 | Apache AGE Deployment | Complete | Phase 2B |
+  | 058 | Documentation Expansion | Complete | Phase 3 | OpenAPI/Swagger, architecture diagrams, deployment guide - Stories: US#1048-1050 |
+  | 059 | Unified Macro Intelligence | In Progress | Phase 3 | Intelligence engine complete (~40-50%), macro recording/replay pending - Stories: US#1007, US#1017, US#1031-1035 |
+  | 060 | Apache AGE Deployment | Complete | Phase 2B | Property graph memory model - Story: US#1051 |
   | 061 | Property Graph Intelligence | Complete | Phase 2B |
   | 062 | GraphOps Stack Deployment | Complete | Phase 2B |
   | 063 | Agentic Core Execution Framework | Complete | Phase 2B |
@@ -145,7 +145,7 @@ This index catalogs all technical specifications for the ninaivalaigal AI memory
   | 081 | Proactive Memory Alert Layer | Planned | Phase 4 |
   | 082 | Narrative Analytics Layer | Planned | Phase 3 |
   | 083 | Product Surface Split and Naming | Planned | Phase 3 |
-| 084 | Agentic UI Testing Framework | Complete | Phase 2B |
+  | 084 | Agentic UI Testing Framework | Complete | Phase 2B | Hybrid OpenAI/Ollama testing framework - Story: US#1052 |
   | 085 | Staff Management | Complete | Phase 2B |
   | 086 | Multi-Runtime Port Allocation | Complete | Phase 2B |
   | 087 | API Surface Contracts | In Progress | Phase 2B |
@@ -175,8 +175,8 @@ This index catalogs all technical specifications for the ninaivalaigal AI memory
   | 101 | ~~Unified Observability and Performance Governance~~ | Deprecated | Phase 3 | Features migrated to SPEC-118/119/100/120 |
   | 102 | ~~Frontend Migration Preparation~~ | Deprecated | Phase 2B | Superseded by FastAPI templating (SPEC-005, SPEC-146) |
   | 103 | ~~Next.js 15 Bootstrap & Component Port~~ | Deprecated | Phase 2B | Superseded by FastAPI templating (SPEC-005, SPEC-146) |
-| 104 | Post-Migration Quality Verification | Proposed | Phase 3 | Migration Trilogy v1 - Quality audit |
-| 105 | Backend Integration & Database Connectivity | Complete | Phase 2B | Migration Trilogy v1 - Full-stack bridge |
+  | 104 | Post-Migration Quality Verification | Proposed | Phase 3 | Migration Trilogy v1 - Quality audit - Stories: US#1053-1054 |
+  | 105 | Backend Integration & Database Connectivity | Complete | Phase 2B | Migration Trilogy v1 - Full-stack bridge - Stories: US#1055-1056 |
 | 106 | Frontend Linting & Formatting Standard | Complete | Phase 2B | DevOps Foundation - UI consistency |
 | 107 | Unified Runtime Parity & Deployment Standard | Complete | Phase 2B | DevOps Foundation - Container naming |
 | 108 | Image Backup & Disaster Recovery | Complete | Phase 3 | DevOps Foundation - Needs enhancement |
@@ -189,39 +189,53 @@ This index catalogs all technical specifications for the ninaivalaigal AI memory
 | 110 | Release Workflow - Multi-Arch to GHCR | Complete | Phase 2B | CI/CD with Trivy + Cosign |
 | 111 | CI/CD Security Baseline & Secret Management | Complete | Phase 3 | Enhanced with Vault/KMS |
 | 112 | E2E Tests with Playwright | Complete | Phase 3 | Comprehensive E2E testing |
-| 113 | Profile & Settings Pages | Complete | Phase 3 | User profile management |
+  | 113 | Profile & Settings Pages | Complete | Phase 3 | User profile management - Stories: US#1046, US#1057 |
 | 114 | Auth & Security Integration | Complete | Phase 3 | JWT + RS256 + RBAC |
-| 115 | Real-Time Features (WebSocket/SSE) | In Progress (40%) | Phase 3 | Hybrid Redis Streams + pub/sub model planned per review 2025-11-04 |
+| 115 | Real-Time Features (WebSocket/SSE) | In Progress | Phase 3 | Hybrid Redis Streams + pub/sub model planned per review 2025-11-04 |
 | 116 | Internal Frontend Migration | Deprecated | Phase 3 | Superseded by FastAPI templating (SPEC-005, SPEC-146) |
 | 117 | Feature Flags & Progressive Rollout | In Progress | Phase 4 | LaunchDarkly/Unleash integration |
-| 118 | Observability & Performance Budgets | In Progress (60%) | Phase 4 | Prometheus + Grafana deployed (US#102), Loki/Tempo/CI enforcement pending |
-| 119 | Automated SLO Enforcement | In Progress (70%) | Phase 4 | Alert rules + SLO monitoring working, AlertManager/GitHub integration pending |
-| 120 | Cost Optimization & Governance | In Progress (50%) | Phase 4 | Resource limits partial, FinOps guard/cost metrics/dashboard pending |
+| 118 | Observability & Performance Budgets | In Progress | Phase 4 | Prometheus + Grafana deployed (US#102), Loki/Tempo/CI enforcement pending |
+| 119 | Automated SLO Enforcement | In Progress | Phase 4 | Alert rules + SLO monitoring working, AlertManager/GitHub integration pending |
+| 120 | Cost Optimization & Governance | In Progress | Phase 4 | Resource limits partial, FinOps guard/cost metrics/dashboard pending |
 | 121 | Frontend Shared Library Implementation | Deprecated | Phase 5 | Superseded by FastAPI templating (SPEC-005, SPEC-146) |
 | 122 | Customer Frontend Rollout (Vercel) | Deprecated | Phase 5 | Superseded by FastAPI templating (SPEC-146) |
 | 123 | Admin Frontend Rollout (Internal) | Deprecated | Phase 5 | Superseded by FastAPI templating (SPEC-005) |
 | 124 | Unified Workspace & CI/CD Pipelines | Deprecated | Phase 5 | Superseded by SPEC-016 (CI/CD Pipeline Architecture). Next.js stack discontinued; FastAPI now primary |
 | 125 | Frontend Documentation & Monitoring | Complete | Phase 5 | US#597 Done, frontend docs created (FastAPI templating) - January 2025 |
 | 126 | ML Model Training & Fine-Tuning Pipeline | Planned | Phase 4 | MLOps + Kubeflow + MLflow |
-| 127 | Context Bridge & Memory Federation System | Not Implemented (0%) | Phase 3 | Unified inter-context sharing - Stories US#841-845 created |
-| 128 | Memory Sharing & Transfer Architecture | Partially Implemented (30%) | Phase 3 | Basic sharing via ACL exists, transfer/copy/approval workflows missing - Stories US#846-850 created |
+| 127 | Context Bridge & Memory Federation System | Planned | Phase 3 | Unified inter-context sharing - Stories US#841-845 created |
+| 128 | Memory Sharing & Transfer Architecture | In Progress | Phase 3 | Basic sharing via ACL exists, transfer/copy/approval workflows missing - Stories US#846-850 created |
 | 129 | External AI Memory API Integration | Planned | Phase 3 | External AI system integration (renumbered from conflict) |
-| 130 | Terminal/CLI Auto Context Capture | Planned | Phase 3 | Automated CLI context capture (renumbered from conflict) |
-| 131 | Memory Router Rationalization | Planned | Phase 3 | Selective Rust migration for performance |
-| 132 | Gateway Protocol Architecture | Proposed | Phase 3 | Gateway protocol standardization |
-| 133 | Context Engine Consolidation | Proposed | Phase 3 | Consolidate context processing engines |
-| 134 | Perception System Architecture | Planned | Phase 3 | Multi-modal perception framework |
-| 135 | Multi-Agent Expert Protocol | Planned | Phase 3 | Agent collaboration protocols |
-| 136 | Execution System Backends | Planned | Phase 3 | Backend execution systems |
-| 137 | Agent Plan Reflection Loop | Planned | Phase 3 | Agentic planning and reflection |
-| 138 | Custom Embedding Integration Hooks | Planned | Phase 2C | Hook system for external/fine-tuned embedding models |
-  | 139 | Audit Reconciliation & Rust Integration Readiness | Complete | Phase 3 |
-  | 140 | White-Label Platform | Planned | Phase 3 |
-  | 141 | Mobile App Support | Planned | Phase 4 |
-  | 142 | Offline Mode | Planned | Phase 4 |
-  | 143 | Progressive Web App | Planned | Phase 4 |
-  | 144 | Context-Aware Feedback System | Planned | Phase 3 | Context composition & reasoning quality feedback |
-  | 147 | Clean Billing Schema | In Progress | Phase 3 | Unified billing architecture (polymorphic Org/Team/User) |
+  | 130 | Terminal/CLI Auto Context Capture | Planned | Phase 3 | Automated CLI context capture (renumbered from conflict) - Stories: US#1024, US#1028, US#1036 |
+  | 131 | Memory Router Rationalization | Planned | Phase 3 | Selective Rust migration for performance - Phase 1 complete (US#95), Phase 2 & 3 stories: US#1029-1030 |
+| 132 | Gateway Protocol Architecture | Complete | Phase 3 | Gateway protocol standardization - All phases complete: Foundation (30%), YAML config & protocol detection (30%), Protocol translation (25%), Advanced features (15%). Stories: US#860 Done, US#858 Done, US#859 Done |
+| 133 | Context Engine Consolidation | Planned | Phase 3 | Consolidate context processing engines - Functionality exists but distributed, consolidation pending (US#100, US#861-863) |
+| 134 | Perception System Architecture | Planned | Phase 3 | Multi-modal perception framework - Specification complete, implementation pending (US#602 Done, US#864-868 created) |
+| 135 | Multi-Agent Expert Protocol | Planned | Phase 3 | Agent collaboration protocols - Specification complete, implementation pending (US#603 Done, US#869-872 created) |
+| 136 | Execution System Backends | Planned | Phase 3 | Backend execution systems - Specification complete, implementation pending (US#604 Done, US#873-876 created) |
+| 137 | Agent Plan Reflection Loop | Planned | Phase 3 | Agentic planning and reflection - Specification complete, implementation pending (US#605 Done, US#877-881 created, depends on SPEC-135/136) |
+| 138 | Custom Embedding Integration Hooks | Planned | Phase 2C | Hook system for external/fine-tuned embedding models - Stories created (US#357-360, EPIC#024), all dependencies complete (SPEC-012/031/033), ready for implementation |
+  | 139 | Audit Reconciliation & Rust Integration Readiness | In Progress | Phase 3 | Audit reconciliation and Rust integration readiness - All deliverables created (US#817-820, 3 Done, 1 New but work complete), pending: JWT passthrough, error handling parity, observability dashboards, stakeholder approvals |
+  | 140 | White-Label Platform | Planned | Phase 3 | Enterprise white-label branding - Specification complete, implementation pending (US#639 Ready, US#560 New, tags updated to spec-140), blocked by SPEC-026 (Standalone Teams Billing - Planned) |
+  | 141 | Mobile App Support | Planned | Phase 4 | Native iOS/Android mobile apps - Specification complete, implementation pending (US#641 Ready, US#898-901 phase stories created), blocked by SPEC-142 (Offline Mode), SPEC-044 (Session Continuity), SPEC-026 (Teams Billing). Phase 1-2 (US#898-899) blocked. Consider SPEC-143 (PWA) as alternative first |
+| 142 | Offline Mode | Planned | Phase 4 | Offline-first infrastructure - Specification complete, implementation pending (US#642 Ready, US#882-890 phase stories created), dependencies resolved (SPEC-001/075 Complete). Critical dependency for SPEC-141 and SPEC-143. Can proceed immediately with Phase 1.1 (US#882) |
+| 143 | Progressive Web App | Planned | Phase 4 | Installable PWA - Specification complete, implementation pending (US#643 Ready, US#891-897 phase stories created), blocked by SPEC-142 Phase 2 (Offline Mode), SPEC-115 (Real-Time Features). Phase 1 (US#891-892) can run in parallel with SPEC-142. Recommended as alternative to SPEC-141 (faster implementation) |
+  | 144 | Context-Aware Feedback System | Planned | Phase 3 | Context composition & reasoning quality feedback - Meta-feedback layer above SPEC-040, focuses on context composition quality rather than individual memory relevance. All dependencies complete (SPEC-040, SPEC-031, SPEC-033, SPEC-061). Phase stories created (US#902-905). Can proceed immediately with Phase 1 (Foundation) |
+  | 145 | Multi-Runtime Multi-Architecture Builds | Partially Implemented (~60%) | Phase 2B | Multi-runtime/multi-arch container builds - Port matrix complete (all 18 combinations), build scripts exist (Docker, Colima, Apple Container CLI), multi-arch support (ARM64 + x86-64). Missing: documentation updates, comprehensive testing. Stories created (US#906-912). Core functionality production-ready |
+  | 146 | Customer UI with FastAPI Templates | In Progress | Phase 5 | Customer-facing UI with FastAPI + Jinja2 templates - All 15 customer UI pages migrated from React/Vite to Jinja2 (US#825-839, all "Done"). Core functionality complete. Remaining work stories created (US#913-915): performance testing (Lighthouse), accessibility audit (WCAG AA), monitoring setup (error tracking, RUM, analytics). Production-ready but needs optimization verification |
+  | 147 | Clean Billing Schema | In Progress | Phase 3 | Unified billing architecture (polymorphic Org/Team/User) - Core billing functionality complete (7/15 stories: BILL-001 through BILL-006, BILL-015, all "Done"). Remaining infrastructure stories created (BILL-007 through BILL-014, all "Ready"). ~6,000+ lines production code, ~3,000+ lines tests, 89+/92+ tests passing (97%+ pass rate). Ready for staging deployment. Stories: US#916-930 |
+  | 148 | Unified Notification System | Planned | Phase 4 | Multi-channel notification framework (email, push, SMS, in-app, webhook) - Unifies all notification systems (SPEC-147 quota, SPEC-119 alerts, US-121 HIPAA). Stories: US#936-943 (NOTIF-001 through NOTIF-008). Dependencies: SPEC-001, SPEC-006, SPEC-033, SPEC-115 |
+  | 152 | Advanced Search & Discovery Framework | Planned | Phase 4 | Full-text search, faceted filtering, autocomplete, search analytics - PostgreSQL full-text search with optional Elasticsearch/Meilisearch upgrade. Stories: US#944-949 (SEARCH-001 through SEARCH-006). Dependencies: SPEC-001, SPEC-031, SPEC-039, SPEC-012 |
+  | 153 | Database Replication & High Availability | Planned | Phase 4 | PostgreSQL replication, read replicas, automatic failover, read/write splitting - Production-grade database infrastructure for horizontal scaling. Stories: US#950-955 (DB-REPL-001 through DB-REPL-006). Dependencies: SPEC-019, SPEC-108, SPEC-010 |
+  | 160 | Database Federation & Sharding Architecture | Planned | Phase 4 | Horizontal sharding, cross-database queries, federated query engine - Production-grade database federation for horizontal scaling beyond replication. Supports PostgreSQL FDW, Citus, and custom federation patterns. Stories: US#956-958, US#965, US#1004-1005 (DB-FED-001 through DB-FED-006). Dependencies: SPEC-019, SPEC-153, SPEC-100 |
+  | 161 | API Gateway Layer | Planned | Phase 4 | Unified API Gateway (Kong/Traefik/FastAPI) - Centralized routing, caching, rate limiting, authentication, and traffic management for all microservices. Implement when 5+ microservices or advanced traffic management needed. Stories: US#966-971 (GATEWAY-001 through GATEWAY-006). Dependencies: SPEC-100, SPEC-132, SPEC-115 |
+  | 162 | Distributed Tracing with OpenTelemetry | Planned | Phase 4 | End-to-end distributed tracing - OpenTelemetry SDK integration (Python/Rust), OTEL Collector, Jaeger/Tempo backend. Provides visibility across all microservices for performance analysis and debugging. Stories: US#972-977 (TRACE-001 through TRACE-006). Dependencies: SPEC-010, SPEC-100, SPEC-118 |
+  | 163 | Polyglot Extension Framework | Planned | Phase 4 | Rust-Python integration via PyO3/FFI - Enables Rust services to run inside Python processes, reducing microservice overhead. Plug-in micro-executors via shared contracts. Implement only if microservice overhead becomes issue. Stories: US#978-983 (POLY-001 through POLY-006). Dependencies: SPEC-100, SPEC-099 |
+  | 164 | GraphOps Cross-Service Federation | Planned | Phase 4 | Cross-service graph query federation - Enables graph queries to span multiple microservices, combining graph data from different sources. Implement when graph queries need to span multiple services. Stories: US#984, US#988-991, US#1006 (GRAPH-FED-001 through GRAPH-FED-006). Dependencies: SPEC-060, SPEC-061, SPEC-100, SPEC-127 |
+  | 165 | Desktop App Support (Electron) | Planned | Phase 4 | Native desktop application (Windows, macOS, Linux) - Electron-based desktop app with offline support, system integration, and desktop-specific features. Implement after mobile apps (SPEC-141) complete. Stories: US#992-997 (DESKTOP-001 through DESKTOP-006). Dependencies: SPEC-141, SPEC-142, SPEC-143 |
+  | 166 | Offline Memory Capture | Planned | Phase 4 | Offline memory capture and sync - Captures memories when offline, stores locally (IndexedDB/SQLite), syncs when connectivity restored with conflict resolution. May be covered by SPEC-142. Stories: US#998-1003 (OFFLINE-CAP-001 through OFFLINE-CAP-006). Dependencies: SPEC-142, SPEC-001, SPEC-035 |
+
+  | 999 | Regression Prevention & Production Stability | In Progress | Reference | Meta-framework for regression prevention and stability - Golden state snapshots (baseline branches/tags), regression test harness (smoke tests), environment version locking, incremental integration workflow, stability monitors. Remaining work stories created (US#931-935): pre-commit hooks, CI drift detection, stability monitor script, no-skip enforcement, automated rollback. Ready for production use with high confidence. Stories: US#931-935 |
 
   ## Reference (999)
 

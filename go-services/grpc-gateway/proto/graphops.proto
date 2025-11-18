@@ -1,127 +1,241 @@
+// SPDX-License-Identifier: Proprietary
+// Copyright (c) 2025 Medhasys LLC
+//
+// GraphOps Service Contract - Apache AGE Cypher Query Execution
+// SPEC-099/100: Runtime-agnostic gRPC interface for graph operations
+//
+// Version: v1
+// Status: Draft
+// Authors: Developer C, Developer A
+
 syntax = "proto3";
 
 package ninaivalaigal.graphops.v1;
 
-option go_package = "github.com/arunosaur/ninaivalaigal/grpc-gateway/proto/graphopspb";
+option go_package = "github.com/Arunosaur/ninaivalaigal/shared/contracts/graphops/v1;graphopsv1";
 
-import "google/protobuf/timestamp.proto";
-
-// GraphOps Service - gRPC definitions
+// GraphOps Service - High-performance Apache AGE query execution
+//
+// This service provides a unified interface for executing Cypher queries
+// against Apache AGE graphs, supporting both Python and Rust runtimes.
 service GraphOpsService {
-  // Execute a Cypher query
-  rpc ExecuteQuery(ExecuteQueryRequest) returns (ExecuteQueryResponse);
+  // Execute a Cypher query against the configured graph
+  rpc ExecuteQuery(CypherRequest) returns (CypherResponse);
 
-  // Execute multiple queries in a transaction
-  rpc ExecuteTransaction(ExecuteTransactionRequest) returns (ExecuteTransactionResponse);
+  // Execute a batch of Cypher queries (optimized for multiple operations)
+  rpc ExecuteQueryBatch(CypherBatchRequest) returns (CypherBatchResponse);
 
-  // Health check
+  // Health check endpoint for service monitoring
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
 
-  // Get graph statistics
-  rpc GetGraphStats(GetGraphStatsRequest) returns (GetGraphStatsResponse);
+  // Get service performance metrics
+  rpc GetMetrics(MetricsRequest) returns (MetricsResponse);
 }
 
-// Execute Query
-message ExecuteQueryRequest {
+// Request to execute a single Cypher query
+message CypherRequest {
+  // Cypher query string (e.g., "MATCH (n:User) RETURN n LIMIT 10")
   string query = 1;
+
+  // Optional parameters for parameterized queries
+  // Key: parameter name, Value: JSON-encoded parameter value
   map<string, string> parameters = 2;
-  string user_id = 3; // for access control
-  int32 timeout_ms = 4;
+
+  // Optional timeout in milliseconds (default: 30000)
+  int32 timeout_ms = 3;
+
+  // Request tracing ID for distributed tracing (OpenTelemetry)
+  string trace_id = 4;
+
+  // Request span ID for distributed tracing
+  string span_id = 5;
 }
 
-message ExecuteQueryResponse {
-  repeated QueryResult results = 1;
-  QueryMetadata metadata = 2;
-  string status = 3;
+// Response containing query results
+message CypherResponse {
+  // Query execution status
+  ExecutionStatus status = 1;
+
+  // Result rows as JSON-encoded strings
+  // Each element is a JSON object representing one result row
+  repeated string results = 2;
+
+  // Execution time in milliseconds
+  int32 execution_time_ms = 3;
+
+  // Number of rows returned
+  int32 row_count = 4;
+
+  // Error details if status is ERROR
+  ErrorDetails error = 5;
+
+  // Performance metrics for this query
+  QueryMetrics metrics = 6;
 }
 
-message QueryResult {
-  repeated QueryColumn columns = 1;
-  repeated QueryRow rows = 2;
+// Request to execute multiple queries in batch
+message CypherBatchRequest {
+  // List of queries to execute
+  repeated CypherRequest queries = 1;
+
+  // Whether to stop on first error (default: false, continue on error)
+  bool fail_fast = 2;
+
+  // Request tracing ID for the entire batch
+  string trace_id = 3;
 }
 
-message QueryColumn {
-  string name = 1;
-  string type = 2;
-}
+// Response for batch query execution
+message CypherBatchResponse {
+  // Individual responses for each query (in order)
+  repeated CypherResponse responses = 1;
 
-message QueryRow {
-  repeated QueryValue values = 1;
-}
+  // Overall batch status
+  ExecutionStatus batch_status = 2;
 
-message QueryValue {
-  oneof value {
-    string string_value = 1;
-    int64 int_value = 2;
-    double double_value = 3;
-    bool bool_value = 4;
-    bytes json_value = 5; // for complex objects
-  }
-}
-
-message QueryMetadata {
-  int32 rows_affected = 1;
-  int32 execution_time_ms = 2;
-  string query_plan = 3;
-  repeated string warnings = 4;
-}
-
-// Execute Transaction
-message ExecuteTransactionRequest {
-  repeated string queries = 1;
-  map<string, string> parameters = 2;
-  string user_id = 3;
-  int32 timeout_ms = 4;
-}
-
-message ExecuteTransactionResponse {
-  repeated QueryResult results = 1;
-  TransactionMetadata metadata = 2;
-  string status = 3;
-}
-
-message TransactionMetadata {
-  int32 total_queries = 1;
-  int32 successful_queries = 2;
+  // Total execution time for entire batch
   int32 total_execution_time_ms = 3;
-  bool committed = 4;
+
+  // Number of successful queries
+  int32 success_count = 4;
+
+  // Number of failed queries
+  int32 failure_count = 5;
 }
 
-// Graph Statistics
-message GetGraphStatsRequest {
-  string graph_name = 1;
+// Health check request
+message HealthCheckRequest {
+  // Optional service name to check (empty = check all)
+  string service = 1;
 }
 
-message GetGraphStatsResponse {
-  GraphStats stats = 1;
-}
-
-message GraphStats {
-  int64 node_count = 1;
-  int64 edge_count = 2;
-  repeated LabelStats node_labels = 3;
-  repeated LabelStats edge_labels = 4;
-  google.protobuf.Timestamp last_updated = 5;
-}
-
-message LabelStats {
-  string label = 1;
-  int64 count = 2;
-}
-
-// Health Check
-message HealthCheckRequest {}
-
+// Health check response
 message HealthCheckResponse {
-  string status = 1;
-  string version = 2;
-  google.protobuf.Timestamp timestamp = 3;
-  ConnectionStatus database = 4;
+  // Overall health status
+  HealthStatus status = 1;
+
+  // Database connection status
+  ComponentStatus database = 2;
+
+  // Apache AGE extension status
+  ComponentStatus age_extension = 3;
+
+  // Service uptime in seconds
+  int64 uptime_seconds = 4;
+
+  // Service version
+  string version = 5;
+
+  // Additional health details
+  map<string, string> details = 6;
 }
 
-message ConnectionStatus {
-  bool connected = 1;
-  int32 active_connections = 2;
-  int32 idle_connections = 3;
-  int32 max_connections = 4;
+// Metrics request
+message MetricsRequest {
+  // Time window for metrics (in seconds, default: 300)
+  int32 window_seconds = 1;
+}
+
+// Metrics response
+message MetricsResponse {
+  // Total queries executed in window
+  int64 total_queries = 1;
+
+  // Successful queries in window
+  int64 successful_queries = 2;
+
+  // Failed queries in window
+  int64 failed_queries = 3;
+
+  // P50 latency in milliseconds
+  double p50_latency_ms = 4;
+
+  // P95 latency in milliseconds
+  double p95_latency_ms = 5;
+
+  // P99 latency in milliseconds
+  double p99_latency_ms = 6;
+
+  // Average query execution time in milliseconds
+  double avg_execution_time_ms = 7;
+
+  // Current memory usage in bytes
+  int64 memory_usage_bytes = 8;
+
+  // Active connections count
+  int32 active_connections = 9;
+}
+
+// Query execution status
+enum ExecutionStatus {
+  EXECUTION_STATUS_UNSPECIFIED = 0;
+  EXECUTION_STATUS_SUCCESS = 1;
+  EXECUTION_STATUS_ERROR = 2;
+  EXECUTION_STATUS_TIMEOUT = 3;
+  EXECUTION_STATUS_PARTIAL = 4;  // Some queries succeeded in batch
+}
+
+// Health status
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_HEALTHY = 1;
+  HEALTH_STATUS_DEGRADED = 2;
+  HEALTH_STATUS_UNHEALTHY = 3;
+}
+
+// Component health status
+message ComponentStatus {
+  // Component name
+  string name = 1;
+
+  // Component health
+  HealthStatus status = 2;
+
+  // Error message if unhealthy
+  string error_message = 3;
+
+  // Last check timestamp (Unix epoch seconds)
+  int64 last_check_timestamp = 4;
+}
+
+// Error details
+message ErrorDetails {
+  // Error code (e.g., "QUERY_SYNTAX_ERROR", "CONNECTION_FAILED")
+  string code = 1;
+
+  // Human-readable error message
+  string message = 2;
+
+  // Stack trace (only in debug mode)
+  string stack_trace = 3;
+
+  // SQL state code (PostgreSQL)
+  string sql_state = 4;
+
+  // Additional error context
+  map<string, string> context = 5;
+}
+
+// Query performance metrics
+message QueryMetrics {
+  // Time spent in query parsing (ms)
+  double parse_time_ms = 1;
+
+  // Time spent in query planning (ms)
+  double plan_time_ms = 2;
+
+  // Time spent in query execution (ms)
+  double execution_time_ms = 3;
+
+  // Number of rows scanned
+  int64 rows_scanned = 4;
+
+  // Number of rows returned
+  int64 rows_returned = 5;
+
+  // Memory used by query (bytes)
+  int64 memory_used_bytes = 6;
+
+  // Whether query hit cache
+  bool cache_hit = 7;
 }

@@ -22,6 +22,7 @@ import type { AxiosError } from 'axios';
 import { Navigation } from '../components/Navigation';
 import { Toast } from '../components/Toast';
 import { InvoiceBrandingSettings } from '../components/InvoiceBrandingSettings';
+import { TaxConfiguration } from '../components/billing/TaxConfiguration';
 import apiClient from '../lib/apiClient';
 import { useAuth } from '../lib/authContext';
 
@@ -471,6 +472,21 @@ export default function TeamBilling() {
                   // Branding updated
                 }}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Tax Configuration - US#187 */}
+        {billing.team_id && (
+          <div className="mt-8 glass-surface rounded-2xl border border-gray-700/50">
+            <div className="px-6 py-4 border-b border-gray-700/50">
+              <h2 className="text-xl font-semibold text-white">Tax Configuration</h2>
+              <p className="text-slate-400 text-sm mt-1">
+                Manage tax rates, exemptions, and compliance settings
+              </p>
+            </div>
+            <div className="px-6 py-6">
+              <TaxConfiguration teamId={billing.team_id} />
             </div>
           </div>
         )}

@@ -18,10 +18,10 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-# Import billing models
 from server.billing.models import (
     AccountStatus,
     AccountType,
@@ -43,9 +43,6 @@ from server.billing.models import (
     PricingTier,
     QuotaBlock,
     ResourceType,
-    StripeCustomer,
-    StripeInvoice,
-    StripeSubscription,
     TransferStatus,
     UsageEvent,
     UsageQuota,
@@ -55,7 +52,7 @@ from server.billing.models import (
 @pytest.fixture(autouse=True)
 def setup_tables(db_session):
     """Create billing tables before each test"""
-    from sqlalchemy import DDL, event
+    from sqlalchemy import event
     from sqlalchemy.dialects import postgresql, sqlite
 
     from server.billing.models import Base
@@ -65,7 +62,7 @@ def setup_tables(db_session):
     def receive_before_create(target, connection, **kw):
         """Convert PostgreSQL-specific types and constraints for SQLite compatibility"""
         if connection.dialect.name == "sqlite":
-            from sqlalchemy import String, Text
+            from sqlalchemy import String
 
             for table in target.tables.values():
                 for column in table.columns:

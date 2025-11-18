@@ -12,7 +12,6 @@ Tests BILL-006: Payment transfer functionality.
 """
 
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
 from uuid import uuid4
 
 import pytest
@@ -23,10 +22,8 @@ from server.billing.models import (
     BillingAccount,
     BlockLevel,
     PaymentConfig,
-    PaymentTransfer,
     PlanTier,
     QuotaBlock,
-    ResourceType,
     TransferStatus,
 )
 from server.billing.payment_transfer import PaymentTransferService
@@ -78,7 +75,7 @@ def payment_config(db_session, billing_account):
 @pytest.fixture(autouse=True)
 def setup_tables(db_session):
     """Create billing tables before each test"""
-    from sqlalchemy import DDL, event
+    from sqlalchemy import event
     from sqlalchemy.dialects import postgresql, sqlite
 
     from server.billing.models import Base
@@ -88,7 +85,7 @@ def setup_tables(db_session):
     def receive_before_create(target, connection, **kw):
         """Convert PostgreSQL-specific types and constraints for SQLite compatibility"""
         if connection.dialect.name == "sqlite":
-            from sqlalchemy import String, Text
+            from sqlalchemy import String
 
             for table in target.tables.values():
                 for column in table.columns:
@@ -305,7 +302,7 @@ class TestBlockEscalation:
             db_session.query(QuotaBlock)
             .filter(
                 QuotaBlock.billing_account_id == billing_account.id,
-                QuotaBlock.is_active == True,
+                QuotaBlock.is_active.is_(True),
                 QuotaBlock.block_level == BlockLevel.SOFT.value,
             )
             .all()
@@ -341,7 +338,7 @@ class TestBlockEscalation:
             db_session.query(QuotaBlock)
             .filter(
                 QuotaBlock.billing_account_id == billing_account.id,
-                QuotaBlock.is_active == True,
+                QuotaBlock.is_active.is_(True),
                 QuotaBlock.block_level == BlockLevel.HARD.value,
             )
             .all()

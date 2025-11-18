@@ -23,7 +23,7 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
@@ -34,6 +34,7 @@ from .models import (
     BillingAccount,
     BillingPeriod,
     BillingPeriodStatus,
+    PricingTier,
     ResourceType,
     UsageEvent,
     UsageQuota,
@@ -162,7 +163,7 @@ class UsageMeteringService:
                 return existing
 
         # Get current pricing for cost calculation
-        cost_at_record_time = self._calculate_storage_cost(storage_gb)
+        cost_at_record_time = self._calculate_storage_cost(storage_gb, billing_account_id)
 
         event = UsageEvent(
             billing_account_id=billing_account_id,
@@ -221,12 +222,15 @@ class UsageMeteringService:
             if existing:
                 return existing
 
+        # Get current pricing for cost calculation
+        cost_at_record_time = self._calculate_retrieval_cost(retrieval_count, billing_account_id)
+
         event = UsageEvent(
             billing_account_id=billing_account_id,
             billing_period_id=billing_period_id,
             resource_type=ResourceType.RETRIEVAL.value,
             quantity=Decimal(str(retrieval_count)),
-            cost_at_record_time=None,  # Retrieval pricing TBD
+            cost_at_record_time=cost_at_record_time,
             event_metadata={
                 **(metadata or {}),
                 **({"idempotency_key": idempotency_key} if idempotency_key else {}),
@@ -278,12 +282,15 @@ class UsageMeteringService:
             if existing:
                 return existing
 
+        # Get current pricing for cost calculation
+        cost_at_record_time = self._calculate_token_cost(token_count, billing_account_id)
+
         event = UsageEvent(
             billing_account_id=billing_account_id,
             billing_period_id=billing_period_id,
             resource_type=ResourceType.TOKEN.value,
             quantity=Decimal(str(token_count)),
-            cost_at_record_time=None,  # Token pricing TBD
+            cost_at_record_time=cost_at_record_time,
             event_metadata={
                 **(metadata or {}),
                 **({"idempotency_key": idempotency_key} if idempotency_key else {}),
@@ -341,6 +348,132 @@ class UsageMeteringService:
 
         return usage
 
+    def get_current_cost(
+        self, billing_account_id: uuid.UUID, billing_period_id: uuid.UUID, resource_type: Optional[ResourceType] = None
+    ) -> Dict[str, Decimal]:
+        """
+        Get current cost for billing account in real-time.
+
+        Args:
+            billing_account_id: Billing account ID
+            billing_period_id: Current billing period ID
+            resource_type: Optional resource type filter (if None, returns all)
+
+        Returns:
+            Dict with costs by resource type
+        """
+        resource_types = (
+            [resource_type] if resource_type else [ResourceType.STORAGE, ResourceType.RETRIEVAL, ResourceType.TOKEN]
+        )
+
+        costs = {}
+        for rt in resource_types:
+            result = (
+                self.db.query(func.sum(UsageEvent.cost_at_record_time))
+                .filter(
+                    and_(
+                        UsageEvent.billing_account_id == billing_account_id,
+                        UsageEvent.billing_period_id == billing_period_id,
+                        UsageEvent.resource_type == rt.value,
+                        UsageEvent.processed == False,  # Only count unprocessed events
+                        UsageEvent.cost_at_record_time.isnot(None),
+                    )
+                )
+                .scalar()
+            )
+
+            costs[rt.value] = Decimal(str(result)) if result else Decimal("0")
+
+        return costs
+
+    def get_total_cost(self, billing_account_id: uuid.UUID, billing_period_id: uuid.UUID) -> Decimal:
+        """
+        Get total cost across all resource types.
+
+        Args:
+            billing_account_id: Billing account ID
+            billing_period_id: Current billing period ID
+
+        Returns:
+            Total cost as Decimal
+        """
+        result = (
+            self.db.query(func.sum(UsageEvent.cost_at_record_time))
+            .filter(
+                and_(
+                    UsageEvent.billing_account_id == billing_account_id,
+                    UsageEvent.billing_period_id == billing_period_id,
+                    UsageEvent.processed == False,
+                    UsageEvent.cost_at_record_time.isnot(None),
+                )
+            )
+            .scalar()
+        )
+
+        return Decimal(str(result)) if result else Decimal("0")
+
+    def get_cost_by_time_range(
+        self,
+        billing_account_id: uuid.UUID,
+        billing_period_id: uuid.UUID,
+        start_time: datetime,
+        end_time: datetime,
+        resource_type: Optional[ResourceType] = None,
+    ) -> Dict[str, Any]:
+        """
+        Get cost for a specific time range.
+
+        Args:
+            billing_account_id: Billing account ID
+            billing_period_id: Current billing period ID
+            start_time: Start time
+            end_time: End time
+            resource_type: Optional resource type filter
+
+        Returns:
+            Dict with cost breakdown
+        """
+        query = (
+            self.db.query(
+                UsageEvent.resource_type,
+                func.sum(UsageEvent.cost_at_record_time).label("total_cost"),
+                func.count(UsageEvent.id).label("event_count"),
+            )
+            .filter(
+                and_(
+                    UsageEvent.billing_account_id == billing_account_id,
+                    UsageEvent.billing_period_id == billing_period_id,
+                    UsageEvent.recorded_at >= start_time,
+                    UsageEvent.recorded_at <= end_time,
+                    UsageEvent.cost_at_record_time.isnot(None),
+                )
+            )
+            .group_by(UsageEvent.resource_type)
+        )
+
+        if resource_type:
+            query = query.filter(UsageEvent.resource_type == resource_type.value)
+
+        results = query.all()
+
+        breakdown = {}
+        total_cost = Decimal("0")
+
+        for row in results:
+            cost = Decimal(str(row.total_cost)) if row.total_cost else Decimal("0")
+            breakdown[row.resource_type] = {
+                "cost": cost,
+                "event_count": row.event_count,
+            }
+            total_cost += cost
+
+        return {
+            "total_cost": total_cost,
+            "breakdown": breakdown,
+            "start_time": start_time.isoformat(),
+            "end_time": end_time.isoformat(),
+        }
+
     def get_quota_usage_percentage(
         self, billing_account_id: uuid.UUID, billing_period_id: uuid.UUID, resource_type: ResourceType
     ) -> Tuple[Decimal, Decimal, float]:
@@ -393,19 +526,131 @@ class UsageMeteringService:
 
         return (usage, limit, percentage)
 
-    def _calculate_storage_cost(self, storage_gb: Decimal) -> Optional[Decimal]:
+    def _calculate_storage_cost(self, storage_gb: Decimal, billing_account_id: uuid.UUID) -> Optional[Decimal]:
         """
-        Calculate storage cost at record time.
+        Calculate storage cost at record time using pricing tiers.
 
         Args:
             storage_gb: Storage usage in GB
+            billing_account_id: Billing account ID for pricing lookup
 
         Returns:
             Cost as Decimal or None
         """
-        # TODO: Implement pricing lookup from PricingTier
-        # For now, return None (cost calculation TBD)
-        return None
+        # Get billing account for plan tier and currency
+        billing_account = self.db.query(BillingAccount).filter(BillingAccount.id == billing_account_id).first()
+        if not billing_account:
+            return None
+
+        # Get current pricing tier
+        now = datetime.utcnow()
+        pricing_tier = (
+            self.db.query(PricingTier)
+            .filter(
+                and_(
+                    PricingTier.plan_tier == billing_account.plan_tier,
+                    PricingTier.resource_type == ResourceType.STORAGE.value,
+                    PricingTier.currency == billing_account.currency,
+                    PricingTier.effective_from <= now,
+                    (PricingTier.effective_to.is_(None) | (PricingTier.effective_to >= now)),
+                )
+            )
+            .order_by(PricingTier.effective_from.desc())
+            .first()
+        )
+
+        if pricing_tier:
+            # Calculate cost: quantity * overage_rate
+            cost = storage_gb * Decimal(str(pricing_tier.overage_rate))
+            return cost
+
+        # Default pricing if not configured
+        default_rate = Decimal("0.10")  # $0.10 per GB-month
+        return storage_gb * default_rate
+
+    def _calculate_retrieval_cost(self, retrieval_count: int, billing_account_id: uuid.UUID) -> Optional[Decimal]:
+        """
+        Calculate retrieval cost at record time using pricing tiers.
+
+        Args:
+            retrieval_count: Number of retrieval operations
+            billing_account_id: Billing account ID for pricing lookup
+
+        Returns:
+            Cost as Decimal or None
+        """
+        # Get billing account for plan tier and currency
+        billing_account = self.db.query(BillingAccount).filter(BillingAccount.id == billing_account_id).first()
+        if not billing_account:
+            return None
+
+        # Get current pricing tier
+        now = datetime.utcnow()
+        pricing_tier = (
+            self.db.query(PricingTier)
+            .filter(
+                and_(
+                    PricingTier.plan_tier == billing_account.plan_tier,
+                    PricingTier.resource_type == ResourceType.RETRIEVAL.value,
+                    PricingTier.currency == billing_account.currency,
+                    PricingTier.effective_from <= now,
+                    (PricingTier.effective_to.is_(None) | (PricingTier.effective_to >= now)),
+                )
+            )
+            .order_by(PricingTier.effective_from.desc())
+            .first()
+        )
+
+        if pricing_tier:
+            # Calculate cost: quantity * overage_rate
+            cost = Decimal(retrieval_count) * Decimal(str(pricing_tier.overage_rate))
+            return cost
+
+        # Default pricing if not configured
+        default_rate = Decimal("0.001")  # $0.001 per retrieval
+        return Decimal(retrieval_count) * default_rate
+
+    def _calculate_token_cost(self, token_count: int, billing_account_id: uuid.UUID) -> Optional[Decimal]:
+        """
+        Calculate token cost at record time using pricing tiers.
+
+        Args:
+            token_count: Number of tokens
+            billing_account_id: Billing account ID for pricing lookup
+
+        Returns:
+            Cost as Decimal or None
+        """
+        # Get billing account for plan tier and currency
+        billing_account = self.db.query(BillingAccount).filter(BillingAccount.id == billing_account_id).first()
+        if not billing_account:
+            return None
+
+        # Get current pricing tier
+        now = datetime.utcnow()
+        pricing_tier = (
+            self.db.query(PricingTier)
+            .filter(
+                and_(
+                    PricingTier.plan_tier == billing_account.plan_tier,
+                    PricingTier.resource_type == ResourceType.TOKEN.value,
+                    PricingTier.currency == billing_account.currency,
+                    PricingTier.effective_from <= now,
+                    (PricingTier.effective_to.is_(None) | (PricingTier.effective_to >= now)),
+                )
+            )
+            .order_by(PricingTier.effective_from.desc())
+            .first()
+        )
+
+        if pricing_tier:
+            # Calculate cost: quantity * overage_rate
+            cost = Decimal(token_count) * Decimal(str(pricing_tier.overage_rate))
+            return cost
+
+        # Default pricing if not configured
+        default_rate = Decimal("0.00001")  # $0.00001 per token
+        return Decimal(token_count) * default_rate
 
 
 # Helper functions for usage calculations

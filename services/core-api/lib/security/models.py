@@ -26,7 +26,12 @@ from sqlalchemy.dialects.postgresql import INET, JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from ..database import Base
+# Import Base - handle both relative and absolute imports
+try:
+    from ..database import Base
+except ImportError:
+    # Fallback for test environments or when imported directly
+    from lib.database import Base
 
 
 class RedactionAudit(Base):
@@ -48,7 +53,7 @@ class RedactionAudit(Base):
     redacted_length = Column(Integer, nullable=True)
     processing_time_ms = Column(Float, nullable=True)
     confidence_scores = Column(JSONB, nullable=True)
-    metadata = Column(JSONB, nullable=True)
+    event_metadata = Column("metadata", JSONB, nullable=True)  # Renamed to avoid SQLAlchemy reserved name conflict
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
@@ -69,7 +74,7 @@ class AlertEvent(Base):
     message = Column(Text, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     context_id = Column(Integer, ForeignKey("contexts.id"), nullable=True)
-    metadata = Column(JSONB, nullable=True)
+    event_metadata = Column("metadata", JSONB, nullable=True)  # Renamed to avoid SQLAlchemy reserved name conflict
     resolved = Column(Boolean, default=False)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
     resolved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -82,22 +87,30 @@ class AlertEvent(Base):
 
 
 class SecurityEvent(Base):
-    """Detailed security event tracking"""
+    """Detailed security event tracking for SIEM and analytics"""
 
     __tablename__ = "security_events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    timestamp = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     event_type = Column(String(50), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    context_id = Column(Integer, ForeignKey("contexts.id"), nullable=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    context_id = Column(UUID(as_uuid=True), ForeignKey("contexts.id"), nullable=True)
     ip_address = Column(INET, nullable=True)
     user_agent = Column(Text, nullable=True)
     endpoint = Column(String(255), nullable=True)
     method = Column(String(10), nullable=True)
     status_code = Column(Integer, nullable=True)
-    metadata = Column(JSONB, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    severity = Column(String(20), nullable=False, default="info")
+    outcome = Column(String(20), nullable=True)
+    session_id = Column(String(255), nullable=True)
+    request_id = Column(String(255), nullable=True)
+    resource_id = Column(String(255), nullable=True)
+    resource_type = Column(String(50), nullable=True)
+    correlation_id = Column(String(255), nullable=True)
+    description = Column(Text, nullable=True)
+    event_details = Column("details", JSONB, nullable=True)  # Renamed to avoid potential conflicts
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     # Relationships
     user = relationship("User", foreign_keys=[user_id])

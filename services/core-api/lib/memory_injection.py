@@ -17,6 +17,12 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import structlog
+from memory_injection_validation import (
+    MemoryInjectionRuleValidator,
+    RuleConflictError,
+    RuleExecutionError,
+    RuleValidationError,
+)
 from pydantic import BaseModel
 
 logger = structlog.get_logger(__name__)
@@ -178,54 +184,109 @@ class MemoryInjectionEngine:
         strategy: InjectionStrategy = InjectionStrategy.CONTEXTUAL,
         max_injections: int = 5,
     ) -> List[Dict[str, Any]]:
-        """Execute memory injection based on analysis and strategy."""
+        """Execute memory injection based on analysis and strategy with error handling."""
         try:
+            # Validate context
+            context_dict = context.dict()
+            is_valid, error = MemoryInjectionRuleValidator.validate_rule_execution_context(context_dict)
+            if not is_valid:
+                logger.warning("Invalid execution context", user_id=context.user_id, error=error)
+                raise RuleExecutionError(f"Invalid execution context: {error}", rule_id=None)
+
             # Get injection candidates
             candidates = await self.analyze_injection_opportunities(context, max_candidates=max_injections * 2)
 
             # Filter by strategy
             strategy_candidates = await self._filter_by_strategy(candidates, strategy)
 
-            # Execute injections
+            # Execute injections with error handling
             injected_memories = []
+            failed_injections = []
             for candidate in strategy_candidates[:max_injections]:
-                injection_result = await self._execute_injection(candidate, context)
-                if injection_result:
-                    injected_memories.append(injection_result)
+                try:
+                    injection_result = await self._execute_injection(candidate, context)
+                    if injection_result:
+                        injected_memories.append(injection_result)
+                except Exception as e:
+                    logger.warning(
+                        "Failed to execute injection for candidate",
+                        memory_id=candidate.memory_id,
+                        rule_id=candidate.rule_id,
+                        error=str(e),
+                    )
+                    failed_injections.append({"candidate": candidate.memory_id, "error": str(e)})
+                    # Continue with other injections instead of failing entirely
 
             # Track injection performance
-            await self._track_injection_performance(injected_memories, context)
+            try:
+                await self._track_injection_performance(injected_memories, context)
+            except Exception as e:
+                logger.warning("Failed to track injection performance", error=str(e))
+                # Don't fail the entire operation if tracking fails
 
             logger.info(
                 "Memory injection executed",
                 user_id=context.user_id,
                 strategy=strategy.value,
                 injections_made=len(injected_memories),
+                failed_count=len(failed_injections),
             )
+
+            # If all injections failed, raise an error
+            if len(injected_memories) == 0 and len(strategy_candidates) > 0:
+                error_msg = f"All {len(strategy_candidates)} injection attempts failed"
+                if failed_injections:
+                    error_msg += f". First error: {failed_injections[0]['error']}"
+                raise RuleExecutionError(error_msg, rule_id=None)
 
             return injected_memories
 
-        except Exception as e:
-            logger.error("Failed to inject memories", error=str(e))
+        except RuleExecutionError:
+            # Re-raise execution errors as-is
             raise
+        except Exception as e:
+            logger.error("Failed to inject memories", error=str(e), user_id=context.user_id)
+            raise RuleExecutionError(f"Failed to inject memories: {str(e)}", rule_id=None)
 
     async def create_injection_rule(self, user_id: str, rule_data: Dict[str, Any]) -> InjectionRule:
-        """Create a new memory injection rule."""
+        """Create a new memory injection rule with comprehensive validation."""
         try:
+            # Validate rule data
+            validation_errors = MemoryInjectionRuleValidator.validate_rule_data(rule_data)
+            if validation_errors:
+                error_message = "Rule validation failed:\n" + "\n".join(f"  - {err}" for err in validation_errors)
+                logger.warning("Rule validation failed", user_id=user_id, errors=validation_errors)
+                raise RuleValidationError(error_message)
+
             rule_id = f"rule_{int(time.time())}_{user_id[:8]}"
 
             rule = InjectionRule(
                 rule_id=rule_id,
                 name=rule_data["name"],
-                description=rule_data["description"],
+                description=rule_data.get("description", ""),
                 trigger=InjectionTrigger(rule_data["trigger"]),
                 strategy=InjectionStrategy(rule_data["strategy"]),
                 priority=InjectionPriority(rule_data["priority"]),
-                conditions=rule_data["conditions"],
-                actions=rule_data["actions"],
+                conditions=rule_data.get("conditions", {}),
+                actions=rule_data.get("actions", {}),
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
             )
+
+            # Check for rule conflicts with existing rules
+            existing_rules = await self._get_active_rules(user_id)
+            conflicts = MemoryInjectionRuleValidator.detect_rule_conflicts(rule, existing_rules)
+            if conflicts:
+                conflicting_rule_ids = [c[0].rule_id for c in conflicts]
+                conflict_messages = [c[1] for c in conflicts]
+                error_message = "Rule conflicts detected:\n" + "\n".join(f"  - {msg}" for msg in conflict_messages)
+                logger.warning(
+                    "Rule conflicts detected",
+                    user_id=user_id,
+                    rule_id=rule_id,
+                    conflicting_rules=conflicting_rule_ids,
+                )
+                raise RuleConflictError(error_message, conflicting_rule_ids)
 
             # Store rule in database
             await self._store_injection_rule(user_id, rule)
@@ -244,9 +305,12 @@ class MemoryInjectionEngine:
 
             return rule
 
-        except Exception as e:
-            logger.error("Failed to create injection rule", error=str(e))
+        except (RuleValidationError, RuleConflictError):
+            # Re-raise validation/conflict errors as-is
             raise
+        except Exception as e:
+            logger.error("Failed to create injection rule", error=str(e), user_id=user_id)
+            raise RuleExecutionError(f"Failed to create injection rule: {str(e)}", rule_id=None)
 
     async def get_injection_analytics(self, user_id: str, days_back: int = 30) -> Dict[str, Any]:
         """Get analytics about memory injection performance."""
@@ -325,7 +389,7 @@ class MemoryInjectionEngine:
             return []
 
     async def _evaluate_rule(self, rule: InjectionRule, context: InjectionContext) -> List[InjectionCandidate]:
-        """Evaluate a rule against current context."""
+        """Evaluate a rule against current context with error handling."""
         try:
             candidates = []
 
@@ -334,38 +398,60 @@ class MemoryInjectionEngine:
                 return candidates
 
             # Get potential memories based on rule trigger
-            if rule.trigger == InjectionTrigger.CONTEXT_MATCH:
-                memories = await self._find_context_matching_memories(rule, context)
-            elif rule.trigger == InjectionTrigger.KEYWORD_PRESENCE:
-                memories = await self._find_keyword_matching_memories(rule, context)
-            elif rule.trigger == InjectionTrigger.SEMANTIC_SIMILARITY:
-                memories = await self._find_semantically_similar_memories(rule, context)
-            elif rule.trigger == InjectionTrigger.USER_PATTERN:
-                memories = await self._find_pattern_matching_memories(rule, context)
-            elif rule.trigger == InjectionTrigger.TIME_BASED:
-                memories = await self._find_time_based_memories(rule, context)
-            else:
+            try:
+                if rule.trigger == InjectionTrigger.CONTEXT_MATCH:
+                    memories = await self._find_context_matching_memories(rule, context)
+                elif rule.trigger == InjectionTrigger.KEYWORD_PRESENCE:
+                    memories = await self._find_keyword_matching_memories(rule, context)
+                elif rule.trigger == InjectionTrigger.SEMANTIC_SIMILARITY:
+                    memories = await self._find_semantically_similar_memories(rule, context)
+                elif rule.trigger == InjectionTrigger.USER_PATTERN:
+                    memories = await self._find_pattern_matching_memories(rule, context)
+                elif rule.trigger == InjectionTrigger.TIME_BASED:
+                    memories = await self._find_time_based_memories(rule, context)
+                else:
+                    logger.warning("Unknown trigger type", rule_id=rule.rule_id, trigger=rule.trigger.value)
+                    memories = []
+            except Exception as e:
+                logger.error(
+                    "Failed to find memories for rule",
+                    rule_id=rule.rule_id,
+                    trigger=rule.trigger.value,
+                    error=str(e),
+                )
+                # Return empty list on error, don't fail entire injection
                 memories = []
 
             # Create candidates from found memories
             for memory_data in memories:
-                candidate = InjectionCandidate(
-                    memory_id=memory_data["id"],
-                    relevance_score=memory_data.get("relevance_score", 0.5),
-                    injection_reason=f"Rule: {rule.name} ({rule.trigger.value})",
-                    rule_id=rule.rule_id,
-                    confidence=memory_data.get("confidence", 0.7),
-                    urgency=self._calculate_urgency(rule, memory_data),
-                    context_match=memory_data.get("context_match", {}),
-                    suggested_timing=rule.strategy.value,
-                    metadata={"rule_trigger": rule.trigger.value},
-                )
-                candidates.append(candidate)
+                try:
+                    candidate = InjectionCandidate(
+                        memory_id=memory_data["id"],
+                        relevance_score=memory_data.get("relevance_score", 0.5),
+                        injection_reason=f"Rule: {rule.name} ({rule.trigger.value})",
+                        rule_id=rule.rule_id,
+                        confidence=memory_data.get("confidence", 0.7),
+                        urgency=self._calculate_urgency(rule, memory_data),
+                        context_match=memory_data.get("context_match", {}),
+                        suggested_timing=rule.strategy.value,
+                        metadata={"rule_trigger": rule.trigger.value},
+                    )
+                    candidates.append(candidate)
+                except Exception as e:
+                    logger.warning(
+                        "Failed to create candidate from memory",
+                        rule_id=rule.rule_id,
+                        memory_id=memory_data.get("id"),
+                        error=str(e),
+                    )
+                    # Skip this memory, continue with others
+                    continue
 
             return candidates
 
         except Exception as e:
             logger.error("Failed to evaluate rule", rule_id=rule.rule_id, error=str(e))
+            # Return empty list on error to prevent breaking entire injection process
             return []
 
     async def _score_injection_candidates(

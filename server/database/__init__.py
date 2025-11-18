@@ -15,7 +15,6 @@ This addresses external code review feedback:
 - Improve code organization and maintainability
 """
 
-import importlib
 import sys
 
 # Ensure consistent module aliasing when imported as `database` or `server.database`
@@ -23,11 +22,10 @@ sys.modules.setdefault("database", sys.modules[__name__])
 sys.modules.setdefault("server.database", sys.modules[__name__])
 
 # Import manager and operations
-from .manager import DatabaseManager
+from .manager import DatabaseManager  # noqa: E402
 
 # Import all models for backward compatibility
-from .models import TeamMember  # Team membership model (was TeamMembership)
-from .models import (
+from .models import (  # Team membership model (was TeamMembership)  # noqa: E402; noqa: E402
     Base,
     Context,
     ContextPermission,
@@ -36,10 +34,16 @@ from .models import (
     OrganizationRegistration,
     Team,
     TeamBilling,
+    TeamMember,
     TeamSubscription,
     User,
     UserInvitation,
 )
+
+# Create alias for backward compatibility
+# Note: TeamMember maps to team_members table, but some code expects TeamMembership
+# with status field. For now, we'll use TeamMember and handle status filtering differently.
+TeamMembership = TeamMember
 
 # Import RBAC models to register dynamic relationships on User model
 # This MUST come after importing User model
@@ -54,7 +58,7 @@ try:
 except ImportError:
     pass  # RBAC models optional for basic database operations
 
-from .operations import DatabaseOperations, get_db
+from .operations import DatabaseOperations, get_db  # noqa: E402
 
 # Export all for backward compatibility
 __all__ = [

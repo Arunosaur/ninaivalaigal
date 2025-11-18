@@ -80,15 +80,19 @@ async def create_subscription(
     billing_account_id: UUID,
     plan_tier: str,
     payment_method_id: Optional[str] = None,
+    billing_cycle_anchor: Optional[int] = None,
+    trial_days: Optional[int] = None,
     stripe_service: StripeService = Depends(get_stripe_service),
 ) -> Dict[str, Any]:
     """
-    Create Stripe subscription.
+    Create Stripe subscription (US#164: with billing cycle anchor and trial support).
 
     Args:
         billing_account_id: Billing account ID
         plan_tier: Plan tier (starter, pro, enterprise)
         payment_method_id: Stripe payment method ID (optional)
+        billing_cycle_anchor: Unix timestamp for billing cycle anchor (optional, US#164)
+        trial_days: Trial period in days (optional, US#164)
 
     Returns:
         Subscription details
@@ -106,6 +110,8 @@ async def create_subscription(
             billing_account_id=billing_account_id,
             plan_tier=plan_tier_enum,
             payment_method_id=payment_method_id,
+            billing_cycle_anchor=billing_cycle_anchor,
+            trial_days=trial_days,
         )
 
         return {
@@ -117,6 +123,170 @@ async def create_subscription(
         }
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/subscriptions/{billing_account_id}")
+async def get_subscription(
+    billing_account_id: UUID,
+    stripe_service: StripeService = Depends(get_stripe_service),
+) -> Dict[str, Any]:
+    """
+    Get subscription details for billing account.
+
+    Args:
+        billing_account_id: Billing account ID
+
+    Returns:
+        Subscription details
+    """
+    from server.billing.models import StripeCustomer, StripeSubscription
+
+    # Find subscription via billing account
+    stripe_customer = (
+        stripe_service.db.query(StripeCustomer).filter(StripeCustomer.billing_account_id == billing_account_id).first()
+    )
+
+    if not stripe_customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Stripe customer not found for billing account: {billing_account_id}",
+        )
+
+    subscription = (
+        stripe_service.db.query(StripeSubscription)
+        .filter(StripeSubscription.stripe_customer_id == stripe_customer.id)
+        .first()
+    )
+
+    if not subscription:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Subscription not found for billing account: {billing_account_id}",
+        )
+
+    return {
+        "stripe_subscription_id": subscription.stripe_subscription_id,
+        "plan_id": subscription.plan_id,
+        "status": subscription.status,
+        "current_period_start": subscription.current_period_start.isoformat(),
+        "current_period_end": subscription.current_period_end.isoformat(),
+        "cancel_at_period_end": subscription.cancel_at_period_end,
+        "last_synced_at": subscription.last_synced_at.isoformat() if subscription.last_synced_at else None,
+    }
+
+
+@router.put("/subscriptions/{billing_account_id}")
+async def update_subscription(
+    billing_account_id: UUID,
+    plan_tier: Optional[str] = None,
+    payment_method_id: Optional[str] = None,
+    stripe_service: StripeService = Depends(get_stripe_service),
+) -> Dict[str, Any]:
+    """
+    Update subscription (plan tier or payment method).
+
+    Args:
+        billing_account_id: Billing account ID
+        plan_tier: New plan tier (starter, pro, enterprise) - optional
+        payment_method_id: New payment method ID - optional
+
+    Returns:
+        Updated subscription details
+    """
+    import stripe
+
+    from server.billing.models import StripeCustomer, StripeSubscription
+
+    # Find subscription
+    stripe_customer = (
+        stripe_service.db.query(StripeCustomer).filter(StripeCustomer.billing_account_id == billing_account_id).first()
+    )
+
+    if not stripe_customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Stripe customer not found for billing account: {billing_account_id}",
+        )
+
+    subscription = (
+        stripe_service.db.query(StripeSubscription)
+        .filter(StripeSubscription.stripe_customer_id == stripe_customer.id)
+        .first()
+    )
+
+    if not subscription:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Subscription not found for billing account: {billing_account_id}",
+        )
+
+    # Update subscription in Stripe (US#164: with proration handling)
+    update_data = {}
+    if not proration_behavior:
+        proration_behavior = "create_prorations"  # Default: create prorations for plan changes
+
+    if plan_tier:
+        try:
+            plan_tier_enum = PlanTier(plan_tier.lower())
+            price_id = stripe_service._get_price_id_for_plan(plan_tier_enum)
+            if not price_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"No Stripe price configured for plan tier: {plan_tier}",
+                )
+            # Update subscription items with proration (US#164)
+            # Get current subscription items
+            stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id)
+            current_item_id = (
+                stripe_subscription["items"]["data"][0].id if stripe_subscription["items"]["data"] else None
+            )
+
+            if current_item_id:
+                # Update existing item with new price (proration handled by Stripe)
+                update_data["items"] = [
+                    {
+                        "id": current_item_id,
+                        "price": price_id,
+                    }
+                ]
+            else:
+                # Add new item if no existing items
+                update_data["items"] = [{"price": price_id}]
+
+            # Enable proration for plan changes (US#164)
+            update_data["proration_behavior"] = proration_behavior
+
+            subscription.plan_id = plan_tier_enum.value
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid plan tier: {plan_tier}. Must be one of: starter, pro, enterprise",
+            )
+
+    if payment_method_id:
+        update_data["default_payment_method"] = payment_method_id
+
+    if update_data:
+        stripe.Subscription.modify(subscription.stripe_subscription_id, **update_data)
+        stripe_service.db.commit()
+
+    # Sync status to get latest from Stripe
+    updated_subscription = stripe_service.sync_subscription_status(billing_account_id)
+
+    if not updated_subscription:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to sync subscription after update",
+        )
+
+    return {
+        "stripe_subscription_id": updated_subscription.stripe_subscription_id,
+        "plan_id": updated_subscription.plan_id,
+        "status": updated_subscription.status,
+        "current_period_start": updated_subscription.current_period_start.isoformat(),
+        "current_period_end": updated_subscription.current_period_end.isoformat(),
+        "cancel_at_period_end": updated_subscription.cancel_at_period_end,
+    }
 
 
 @router.post("/subscriptions/{billing_account_id}/sync")
@@ -141,13 +311,13 @@ async def sync_subscription(
             detail=f"Subscription not found for billing account: {billing_account_id}",
         )
 
-        return {
-            "stripe_subscription_id": subscription.stripe_subscription_id,
-            "plan_id": subscription.plan_id,
-            "status": subscription.status,
-            "current_period_start": subscription.current_period_start.isoformat(),
-            "current_period_end": subscription.current_period_end.isoformat(),
-        }
+    return {
+        "stripe_subscription_id": subscription.stripe_subscription_id,
+        "plan_id": subscription.plan_id,
+        "status": subscription.status,
+        "current_period_start": subscription.current_period_start.isoformat(),
+        "current_period_end": subscription.current_period_end.isoformat(),
+    }
 
 
 @router.delete("/subscriptions/{billing_account_id}")
@@ -224,8 +394,8 @@ async def handle_stripe_webhook(
         except stripe.error.SignatureVerificationError:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature")
 
-        # Handle event
-        result = stripe_service.handle_webhook_event(event_type=event["type"], event_data=event["data"])
+        # Handle event (US#165: pass full event structure for idempotency - event ID is at top level)
+        result = stripe_service.handle_webhook_event(event_type=event["type"], event_data=event)
 
         return result
 

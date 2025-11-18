@@ -14,10 +14,20 @@
 - **Separate Authentication**: Staff login via admin console only
 
 ### Staff Roles
+
+**IMPORTANT:** This is **Staff Admin** (SPEC-085), NOT Platform Admin (SPEC-005) or Vendor Admin (SPEC-025).
+
 1. **Support**: Customer assistance, ticket resolution, basic troubleshooting
 2. **Operations**: Platform monitoring, maintenance, incident response
 3. **Analyst**: Business intelligence, reporting, data analysis
 4. **Admin**: Full platform management, staff management, system configuration
+
+**Key Differences:**
+- **Staff Admin** (`staff.role='admin'`) - Platform employees, separate `staff` table, separate authentication
+- **Platform Admin** (`users.role='admin'`) - Regular users with admin role, uses `users` table
+- **Vendor Admin** (`vendor_admin` role) - Vendor operators managing tenants, uses `users` table
+
+**See:** [Admin Roles Comprehensive Clarification](../../docs/ADMIN_ROLES_COMPREHENSIVE_CLARIFICATION.md) for details on all admin types.
 
 ---
 

@@ -282,6 +282,41 @@ async def enforce_minimum_necessary(
         )
 
 
+@router.get("/audit-trail")
+async def get_audit_trail(
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    current_user: User = Depends(get_current_user),
+    hipaa_manager: HIPAAComplianceManager = Depends(get_hipaa_manager),
+):
+    """
+    Get HIPAA audit trail.
+
+    US-121: AC12 - Retrieve HIPAA-compliant audit trail records
+
+    Returns audit trail records showing who accessed PHI, when, and what actions were performed.
+
+    Query Parameters:
+    - start_date: Start date for audit trail (ISO format, default: 30 days ago)
+    - end_date: End date for audit trail (ISO format, default: now)
+    """
+    try:
+        audit_trail = await hipaa_manager.generate_hipaa_audit_trail(
+            user_id=current_user.id,
+            action="view",
+            resource_type="audit_trail",
+            start_date=start_date,
+            end_date=end_date,
+        )
+        return audit_trail
+    except Exception as e:
+        logger.error(f"Error retrieving HIPAA audit trail: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve audit trail: {str(e)}",
+        )
+
+
 @router.post("/breach-assessment", response_model=BreachAssessmentResponse)
 async def assess_breach(
     request_data: BreachAssessmentRequest,

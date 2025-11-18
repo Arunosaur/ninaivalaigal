@@ -138,7 +138,7 @@ echo ""
 
 # Determine which services to build
 if [ -z "$SERVICES_TO_BUILD" ]; then
-    SERVICES_TO_BUILD="${!SERVICES[@]}"
+    SERVICES_TO_BUILD="${SERVICES[*]}"
     SERVICES_TO_BUILD="${SERVICES_TO_BUILD// /,}"
 fi
 
@@ -190,7 +190,7 @@ for runtime in "${RUNTIME_LIST[@]}"; do
                             --dockerfile "$dockerfile" \
                             --context "$context" \
                             --arch "$arch" \
-                            $([ "$VERBOSE" = true ] && echo "--verbose" || echo "") \
+                            "$([ "$VERBOSE" = true ] && echo "--verbose" || echo "")" \
                             2>&1 | tee "/tmp/build-${runtime}-${service_name}-${arch}.log"; then
                             print_success "$service_name ($arch) built for Docker"
                             BUILT+=("docker:$service_name:$arch")
@@ -211,7 +211,7 @@ for runtime in "${RUNTIME_LIST[@]}"; do
                             --dockerfile "$dockerfile" \
                             --context "$context" \
                             --arch "$arch" \
-                            $([ "$VERBOSE" = true ] && echo "--verbose" || echo "") \
+                            "$([ "$VERBOSE" = true ] && echo "--verbose" || echo "")" \
                             2>&1 | tee "/tmp/build-${runtime}-${service_name}-${arch}.log"; then
                             print_success "$service_name ($arch) built for Colima"
                             BUILT+=("colima:$service_name:$arch")
@@ -234,7 +234,7 @@ for runtime in "${RUNTIME_LIST[@]}"; do
                             --context "$context" \
                             --tag arm64 \
                             --platform linux/arm64 \
-                            $([ "$VERBOSE" = true ] && echo "--verbose" || echo "") \
+                            "$([ "$VERBOSE" = true ] && echo "--verbose" || echo "")" \
                             2>&1 | tee "/tmp/build-${runtime}-${service_name}-arm64.log"; then
                             print_success "$service_name (arm64) built for Apple Container CLI"
                             BUILT+=("apple:$service_name:arm64")

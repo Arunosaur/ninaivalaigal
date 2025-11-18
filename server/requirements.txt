@@ -21,6 +21,7 @@ reportlab==4.0.7
 prometheus-client
 pgvector
 redis
+celery
 asyncpg
 PyJWT
 email-validator

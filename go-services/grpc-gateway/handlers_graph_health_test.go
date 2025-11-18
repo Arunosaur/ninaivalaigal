@@ -42,12 +42,8 @@ func TestGraphHealthHandlerWithClientsButError(t *testing.T) {
 }
 
 func TestGraphHealthHandlerResponseFormat(t *testing.T) {
-	gateway := NewGateway()
-	clients, _ := NewGRPCClients()
-	enhanced := &EnhancedGateway{
-		Gateway:     gateway,
-		grpcClients: clients,
-	}
+	enhanced := NewTestEnhancedGateway(t)
+	defer CleanupTestEnhancedGateway(t, enhanced)
 
 	req := httptest.NewRequest("GET", "/api/v1/graph/health", nil)
 	rec := httptest.NewRecorder()

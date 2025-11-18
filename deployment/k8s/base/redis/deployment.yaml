@@ -23,9 +23,30 @@ spec:
         app: redis
         component: cache
     spec:
+      # Pod Security Context: Run as non-root user (US-132, SPEC-015)
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999  # Redis user ID in official image
+        runAsGroup: 999
+        fsGroup: 999
+        # Drop all capabilities
+        capabilities:
+          drop:
+            - ALL
+        # Read-only root filesystem (Redis needs writes to data dir, so false)
+        readOnlyRootFilesystem: false
       containers:
       - name: redis
         image: redis:7-alpine
+        # Container Security Context
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: false  # Redis needs to write to data directory
+          runAsNonRoot: true
+          runAsUser: 999  # Redis user ID
         ports:
         - containerPort: 6379
           name: redis

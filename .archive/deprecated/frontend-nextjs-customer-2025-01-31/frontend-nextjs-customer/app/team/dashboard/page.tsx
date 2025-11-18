@@ -9,7 +9,7 @@
 //
 /**
  * US#210: Team Dashboard UI
- * 
+ *
  * Team overview dashboard with:
  * - Memory count and usage
  * - Active members list
@@ -298,4 +298,3 @@ export default function TeamDashboardPage() {
     </div>
   );
 }
-

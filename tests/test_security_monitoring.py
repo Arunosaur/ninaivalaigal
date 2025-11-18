@@ -10,9 +10,6 @@ Unit tests for services/core-api/lib/security_monitoring.py
 Tests security monitoring and metrics collection.
 """
 
-from datetime import datetime, timedelta
-from unittest.mock import patch
-
 import pytest
 
 pytestmark = pytest.mark.unit

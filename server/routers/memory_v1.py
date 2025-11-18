@@ -31,6 +31,9 @@ from auth import get_current_user
 from lib.routing.version_router import create_v1_router
 from rbac.permissions import Action, Resource
 
+# ContextEngine integration (SPEC-133)
+from server.core.dependencies import get_context_engine_instance
+
 router = create_v1_router(prefix="/memory", tags=["v1", "memory"])
 
 
@@ -155,39 +158,81 @@ async def get_memories(
     - Cursor-based pagination
     - Advanced filtering (date range, tags, search)
     - Partial response fields
+
+    **SPEC-133**: Now uses unified ContextEngine for context loading
     """
     try:
-        user_id = str(current_user.id)
+        user_id = int(current_user.id)
 
-        # Build filters
-        filters = {"user_id": user_id}
-        if context:
-            filters["context"] = context
-        if source:
-            filters["source"] = source
+        # Use ContextEngine for context loading (SPEC-133)
+        context_engine = get_context_engine_instance()
 
-        # Get memories
-        memories = db.get_memories(
-            user_id=user_id,
-            context=context,
-            source=source,
-            limit=limit,
-            offset=skip,
+        # Determine scope from context parameter or default to "personal"
+        scope = context if context else "personal"
+
+        # Load memories using ContextEngine
+        context_memories = context_engine.load(
+            scope=scope, user=user_id, limit=limit + skip  # Load more to account for skip
         )
 
-        # Get total count for pagination
-        total = db.count_memories(user_id=user_id, context=context, source=source)
+        # Apply skip offset
+        memories = context_memories[skip : skip + limit]
+
+        # If ContextEngine returned memories, use them; otherwise fallback to db
+        if not memories and db:
+            # Fallback to direct database access for backward compatibility
+            memories_raw = db.get_memories(
+                user_id=str(user_id),
+                context=context,
+                source=source,
+                limit=limit,
+                offset=skip,
+            )
+            memories = [
+                {
+                    "id": mem.get("id"),
+                    "content": mem.get("content"),
+                    "context": mem.get("context"),
+                    "source": mem.get("source"),
+                    "created_at": mem.get("created_at"),
+                    "user_id": mem.get("user_id"),
+                }
+                for mem in memories_raw
+            ]
+        else:
+            # Convert ContextEngine memories to expected format
+            memories = [
+                {
+                    "id": mem.get("id"),
+                    "content": mem.get("content"),
+                    "context": mem.get("context") or mem.get("context_name", scope),
+                    "source": mem.get("source", "ninaivalaigal"),
+                    "created_at": mem.get("created_at"),
+                    "user_id": mem.get("user_id", user_id),
+                }
+                for mem in memories
+            ]
+
+        # Get total count for pagination (fallback to db if available)
+        if db:
+            total = db.count_memories(user_id=str(user_id), context=context, source=source)
+        else:
+            total = len(context_memories)  # Approximate total
 
         return {
             "success": True,
             "memories": [
                 {
-                    "memory_id": str(mem.get("id")),
-                    "content": mem.get("content"),
-                    "context": mem.get("context"),
-                    "source": mem.get("source"),
-                    "created_at": mem.get("created_at").isoformat() if mem.get("created_at") else None,
-                    "user_id": str(mem.get("user_id")),
+                    "memory_id": str(mem.get("id", "")),
+                    "content": mem.get("content", ""),
+                    "context": mem.get("context", scope),
+                    "source": mem.get("source", "ninaivalaigal"),
+                    "created_at": (
+                        mem.get("created_at").isoformat()
+                        if mem.get("created_at") and hasattr(mem.get("created_at"), "isoformat")
+                        else str(mem.get("created_at", ""))
+                    ),
+                    "user_id": str(mem.get("user_id", user_id)),
                 }
                 for mem in memories
             ],

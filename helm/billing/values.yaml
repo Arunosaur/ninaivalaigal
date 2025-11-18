@@ -79,6 +79,33 @@ database:
   passwordSecret: "billing-db-password"
   passwordKey: "password"
 
+# pg_partman Configuration
+pgPartman:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  schema: "partman"
+  partitionTable: "usage_events"
+  partitionColumn: "recorded_at"
+  partitionInterval: "monthly"  # monthly, daily, yearly
+  premake: 3  # Number of partitions to create ahead
+  optimizeTrigger: 4  # Number of partitions to optimize per run
+  optimizeConstraint: 30  # Days to keep constraint optimization
+  retention: "12 months"  # Retention period for old partitions
+  enableBackgroundWorker: false  # Enable pg_partman background worker
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+
 # Environment Variables
 env:
   - name: REDIS_URL

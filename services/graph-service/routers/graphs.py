@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, status
-from graph.age_client import ApacheAGEClient, get_age_client
+from lib.graph.age_client import ApacheAGEClient, get_age_client
 from pydantic import BaseModel, Field
 
 from config import get_config

@@ -15,7 +15,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from ..auth_utils import get_current_user
@@ -73,6 +73,13 @@ class ContextShare(BaseModel):
     permission_level: Literal["read", "write"] = "read"
     message: Optional[str] = None
     expires_at: Optional[datetime] = None
+
+
+class OwnershipTransfer(BaseModel):
+    """OwnershipTransfer class."""
+
+    new_owner_id: int = Field(..., description="User ID of new owner")
+    transfer_message: Optional[str] = Field(None, max_length=1000, description="Optional message for transfer")
 
 
 class ContextResponse(BaseModel):
@@ -419,6 +426,78 @@ async def share_context(
     except Exception as e:
         logger.error(f"Error sharing context {context_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to share context")
+
+
+@router.post("/{context_id}/transfer-ownership", response_model=Dict[str, Any])
+async def transfer_context_ownership(
+    context_id: int,
+    transfer_data: OwnershipTransfer,
+    current_user: dict = Depends(get_current_user),
+    context_ops: UnifiedContextOps = Depends(get_context_ops),
+):
+    """
+    Transfer context ownership to another user.
+
+    Requires:
+    - Current user must be the owner of the context
+    - New owner must be a valid user
+
+    Effects:
+    - Updates context owner_id
+    - Changes old owner's permission to admin
+    - Grants owner permission to new owner
+    - Logs transfer in audit trail (if available)
+    """
+    try:
+        # Perform transfer (this will verify ownership internally)
+        user_id = current_user["user_id"]
+        result = await context_ops.transfer_ownership(
+            context_id=context_id,
+            current_owner_id=user_id,
+            new_owner_id=transfer_data.new_owner_id,
+            transfer_message=transfer_data.transfer_message,
+        )
+
+        # Try to log audit event if audit logger available
+        try:
+            from server.contexts.audit_logger import (
+                ContextSharingAuditLogger,
+                SharingAction,
+            )
+
+            from ..database import get_db_pool
+
+            pool = await get_db_pool()
+            audit_logger = ContextSharingAuditLogger(pool)
+            await audit_logger.log_sharing_event(
+                context_id=context_id,
+                action=SharingAction.PERMISSION_CHANGED,
+                actor_user_id=user_id,
+                target_user_id=transfer_data.new_owner_id,
+                old_permission="owner",
+                new_permission="owner",
+                metadata={
+                    "transfer_type": "ownership",
+                    "transfer_message": transfer_data.transfer_message,
+                },
+            )
+        except ImportError:
+            # Audit logger not available, skip logging
+            pass
+        except Exception as e:
+            logger.warning(f"Failed to log ownership transfer: {e}")
+
+        return result
+
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Only context owners can transfer ownership")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error transferring ownership of context {context_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to transfer ownership")
 
 
 @router.get("/health")

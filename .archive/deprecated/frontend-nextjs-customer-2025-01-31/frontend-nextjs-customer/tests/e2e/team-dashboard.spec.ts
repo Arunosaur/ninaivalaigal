@@ -7,7 +7,7 @@
 //
 /**
  * US#210: E2E Tests for Team Dashboard
- * 
+ *
  * Tests team dashboard functionality:
  * - Dashboard display with stats
  * - Member list
@@ -112,10 +112,10 @@ test.describe('Team Dashboard (US#210)', () => {
 
     // Navigate to dashboard
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-    
+
     // Wait for page to finish loading
     await page.waitForLoadState('networkidle', { timeout: 15000 });
-    
+
     // Wait for React to render - look for any heading
     await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
@@ -124,7 +124,7 @@ test.describe('Team Dashboard (US#210)', () => {
 
     // Verify stats cards exist in the page
     const pageContent = await page.textContent('body') || '';
-    
+
     // Verify key stats are present
     expect(pageContent).toMatch(/Members/i);
     expect(pageContent).toMatch(new RegExp(`${mockTeam.current_members}.*${mockTeam.max_members}`));
@@ -154,7 +154,7 @@ test.describe('Team Dashboard (US#210)', () => {
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-    
+
     // Wait for page to finish loading
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
@@ -187,7 +187,7 @@ test.describe('Team Dashboard (US#210)', () => {
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-    
+
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
@@ -214,7 +214,7 @@ test.describe('Team Dashboard (US#210)', () => {
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-    
+
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
@@ -243,7 +243,7 @@ test.describe('Team Dashboard (US#210)', () => {
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-    
+
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
@@ -272,19 +272,19 @@ test.describe('Team Dashboard (US#210)', () => {
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-    
+
     await page.waitForLoadState('networkidle', { timeout: 15000 });
 
     // Should show upgrade banner (check for upgrade CTA section)
     // The upgrade banner is only shown if team.is_standalone is true
     // Wait for the page to fully render
     await page.waitForLoadState('networkidle', { timeout: 10000 });
-    
+
     // Check for upgrade CTA text - it should be in a banner/gradient section
-    const upgradeBanner = page.locator('[class*="gradient"], [class*="blue"]').filter({ 
-      hasText: /Ready to Scale|Upgrade/i 
+    const upgradeBanner = page.locator('[class*="gradient"], [class*="blue"]').filter({
+      hasText: /Ready to Scale|Upgrade/i
     }).or(page.locator('text=/Ready to Scale/i'));
-    
+
     await expect(upgradeBanner.first()).toBeVisible({ timeout: 10000 });
   });
 
@@ -333,7 +333,7 @@ test.describe('Team Dashboard (US#210)', () => {
     });
 
     await page.goto('/team/dashboard?teamId=' + mockTeam.id);
-    
+
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     await page.waitForSelector('h1, h2, h3', { state: 'visible', timeout: 10000 });
 
@@ -341,4 +341,3 @@ test.describe('Team Dashboard (US#210)', () => {
     await expect(page.locator('text=/No members|No members yet/i').first()).toBeVisible({ timeout: 5000 });
   });
 });
-

@@ -9,7 +9,7 @@
 //
 /**
  * US#210: Team Upgrade to Organization UI
- * 
+ *
  * Allows team admins to upgrade their standalone team to an organization.
  */
 
@@ -197,4 +197,3 @@ export default function TeamUpgradePage() {
     </div>
   );
 }
-

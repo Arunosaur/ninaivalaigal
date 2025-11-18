@@ -100,6 +100,7 @@ make install
 | `spike` | Traffic spike | 500 | 5,000 | 60s |
 | `endurance` | Long-running | 100 | ∞ | 1800s |
 | `grpc-gateway` | Gateway-specific | 100 | 10,000 | 120s |
+| `10000-concurrent` | 10k+ concurrent requests | 10,000 | 50,000 | 300s |
 
 ---
 
@@ -251,6 +252,50 @@ Throughput:          2.34 MB/s
 
 ---
 
+## 🔒 Security: URL Allowlist
+
+The load tester supports URL allowlisting to prevent accidental testing of production endpoints or unauthorized services.
+
+### **Using Allowlist**
+
+```bash
+# Enable allowlist with file
+./bin/load-tester http http://localhost:13395/health \
+  --allowlist-file allowlist.txt \
+  --enable-allowlist
+
+# Allow specific URLs
+./bin/load-tester http http://localhost:13395/health \
+  --allowlist-url "http://localhost:13395" \
+  --allowlist-url "http://localhost:13390" \
+  --enable-allowlist
+
+# Allow specific hosts
+./bin/load-tester http http://dev.example.com/api/test \
+  --allowlist-host "dev.example.com" \
+  --allowlist-host "localhost" \
+  --enable-allowlist
+```
+
+### **Allowlist File Format**
+
+Create a file with one URL or host per line:
+
+```
+# Comments start with #
+http://localhost
+http://127.0.0.1
+localhost
+127.0.0.1
+192.168.1.100
+http://localhost:13395/health
+http://localhost:13395/api/v1
+```
+
+**Note**: Allowlist is disabled by default. Use `--enable-allowlist` to activate.
+
+---
+
 ## 🔧 Configuration
 
 ### **Command Line Options**
@@ -272,6 +317,10 @@ Throughput:          2.34 MB/s
 | `--http2` | Use HTTP/2 | true |
 | `--insecure` | Skip TLS verification | false |
 | `--verbose` | Verbose output | false |
+| `--allowlist-file` | Path to allowlist file | "" |
+| `--allowlist-url` | Allowed URL (repeatable) | [] |
+| `--allowlist-host` | Allowed host (repeatable) | [] |
+| `--enable-allowlist` | Enable URL allowlist validation | false |
 
 ---
 

@@ -247,7 +247,9 @@ async def health():
     return {"status": "healthy", "service": "core-api", "version": "1.0.0"}
 
 
+# SPEC-030: US-262 Security Monitoring Dashboard
 # Import and include SPEC-100 routers
+from routers import admin_analytics_security  # noqa: E402
 from routers import health as health_router  # noqa: E402
 
 from lib.api import container_health_api  # noqa: E402
@@ -260,7 +262,24 @@ app.include_router(metrics_module.router)
 app.include_router(memory_health.router)
 app.include_router(monitoring_api.router)
 app.include_router(container_health_api.router)  # SPEC-051 Platform Stability
+app.include_router(admin_analytics_security.router)  # SPEC-030: US-262 Security Analytics
 
+from lib.memory_attachments_api import router as memory_attachments_router  # noqa: E402
+from lib.memory_capture_api import router as memory_capture_router  # noqa: E402
+from lib.routers.substrate import (  # noqa: E402  # SPEC-012: Memory Substrate Management
+    router as substrate_router,
+)
+
+# ⚠️  REMOVED: queue_api migrated to Rust Memory Service (port 13393)
+# Phase 3: Router registration removed per SPEC-131 deprecation plan
+# See: tasks/active/US_93_95_PYTHON_DEPRECATION_PLAN.md
+# New Endpoint: http://localhost:13393/queue/*
+# from routers import queue_api  # REMOVED - Use Rust service
+# ⚠️  REMOVED: memory_injection_api migrated to Rust Memory Service (port 13393)
+# Phase 3: Router registration removed per SPEC-131 deprecation plan
+# See: tasks/active/US_93_95_PYTHON_DEPRECATION_PLAN.md
+# New Endpoint: http://localhost:13393/memory/injection/*
+# from routers import memory_injection_api  # REMOVED - Use Rust service
 # from routers import memory_api  # noqa: E402  # REMOVED - redundant with Rust
 # Import team management routers
 # Import memory & session routers
@@ -270,11 +289,9 @@ from routers import memory_acl_api  # noqa: E402
 from routers import memory_browser_api  # noqa: E402
 from routers import memory_drift_api  # noqa: E402
 from routers import memory_health_api  # noqa: E402
-from routers import memory_injection_api  # noqa: E402
 from routers import memory_suggestions_api  # noqa: E402
 from routers import organizations  # noqa: E402
 from routers import preload_api  # noqa: E402
-from routers import queue_api  # noqa: E402
 from routers import rbac_api  # noqa: E402
 from routers import session_api  # noqa: E402
 from routers import signup_api  # noqa: E402
@@ -304,10 +321,19 @@ app.include_router(memory_acl_api.router)
 app.include_router(memory_browser_api.router)
 app.include_router(memory_drift_api.router)
 app.include_router(memory_health_api.router)
-app.include_router(memory_injection_api.router)
+# ⚠️  REMOVED: memory_injection_api router registration removed (Phase 3)
+# Migrated to Rust Memory Service at http://localhost:13393/memory/injection/*
+# See: tasks/active/US_93_95_PYTHON_DEPRECATION_PLAN.md
+# app.include_router(memory_injection_api.router)  # REMOVED - Use Rust service
 app.include_router(memory_suggestions_api.router)
+app.include_router(memory_attachments_router)  # SPEC-032: Memory Attachment Endpoints
+app.include_router(memory_capture_router)  # SPEC-077: Multimodal Memory Capture Endpoints
+app.include_router(substrate_router)  # SPEC-012: Memory Substrate Management
 app.include_router(session_api.router)
-app.include_router(queue_api.router)
+# ⚠️  REMOVED: queue_api router registration removed (Phase 3)
+# Migrated to Rust Memory Service at http://localhost:13393/queue/*
+# See: tasks/active/US_93_95_PYTHON_DEPRECATION_PLAN.md
+# app.include_router(queue_api.router)  # REMOVED - Use Rust service
 app.include_router(preload_api.router)
 
 # Include team management routers
@@ -316,6 +342,70 @@ app.include_router(team_invitations_api.router)
 
 # Include development tools router
 app.include_router(dev_tools.router)
+
+# Include macro management router (SPEC-046)
+from routers import macro_audit_api, macro_management_api
+
+app.include_router(macro_management_api.router)
+app.include_router(macro_audit_api.router)
+
+# Include demo management router (SPEC-047)
+from routers import demo_management_api
+
+app.include_router(demo_management_api.router)
+
+# Include classification router (SPEC-048)
+from routers import (
+    classification_api,
+    classification_audit_api,
+    classification_search_api,
+    reclassification_api,
+)
+
+app.include_router(classification_api.router)
+app.include_router(classification_search_api.router)
+app.include_router(classification_audit_api.router)
+app.include_router(reclassification_api.router)
+
+# Include admin SPEC-005 status router
+from routers import admin_spec005_status, personalization_api
+
+app.include_router(admin_spec005_status.router)
+
+# Include admin user management API (US#110)
+from lib.routers.admin_user_management import router as admin_user_management_router
+
+app.include_router(admin_user_management_router)
+
+# Include admin context management API (US#113)
+from lib.routers.admin_context_management import (
+    router as admin_context_management_router,
+)
+
+app.include_router(admin_context_management_router)
+
+# Include policy visualization API (US#116)
+from lib.routers.policy_visualization import router as policy_visualization_router
+
+app.include_router(policy_visualization_router)
+
+# Include permission inheritance API (US#119)
+from lib.routers.permission_inheritance import router as permission_inheritance_router
+
+app.include_router(permission_inheritance_router)
+
+# Include tag ACL API (US#339)
+from lib.routers.tag_acl import router as tag_acl_router
+
+app.include_router(tag_acl_router)
+
+# Include snapshot restore API (US#343)
+from lib.routers.snapshot_restore import router as snapshot_restore_router
+
+app.include_router(snapshot_restore_router)
+
+# Include personalization engine router (SPEC-079)
+app.include_router(personalization_api.router)
 
 
 if __name__ == "__main__":

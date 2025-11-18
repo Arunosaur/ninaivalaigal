@@ -67,7 +67,6 @@ docs/
 
 # Docker
 docker-compose*.yml
-Dockerfile*
 .dockerignore
 
 # Tasks and planning

@@ -127,7 +127,8 @@ class Mem0Client:
 
                 if active_context == context_name:
                     print(
-                        f"⚠️  Cannot delete active context '{context_name}' - stop it first with: mem0 context stop {context_name}"
+                        f"⚠️  Cannot delete active context '{context_name}' - "
+                        f"stop it first with: mem0 context stop {context_name}"
                     )
                     skipped_active += 1
                     continue
@@ -191,6 +192,98 @@ class Mem0Client:
             print(f"✅ {scope_icon} Context '{name}' created successfully ({scope} scope)")
         else:
             print(f"❌ Failed to create context: {response.text}")
+
+    def macro_start(self, macro_name=None, context_id=None):
+        """Start macro recording mode"""
+        data = {}
+        if macro_name:
+            data["macro_name"] = macro_name
+        if context_id:
+            data["context_id"] = context_id
+
+        response = self.make_request("POST", "/macros/recording/start", json=data)
+        if response.status_code == 200:
+            result = response.json()
+            status_icon = "🔴" if result.get("is_recording") else "⚪"
+            print(f"{status_icon} {result.get('message', 'Macro recording started')}")
+            if result.get("macro_name"):
+                print(f"   Macro name: {result['macro_name']}")
+            if result.get("started_at"):
+                print(f"   Started at: {result['started_at']}")
+        elif response.status_code == 400:
+            # Already recording
+            error_data = response.json()
+            print(f"⚠️  {error_data.get('detail', 'Macro recording already active')}")
+        else:
+            print(f"❌ Failed to start macro recording: {response.text}")
+
+    def macro_stop(self):
+        """Stop macro recording mode"""
+        response = self.make_request("POST", "/macros/recording/stop")
+        if response.status_code == 200:
+            result = response.json()
+            status_icon = "🟢" if not result.get("is_recording") else "🔴"
+            print(f"{status_icon} {result.get('message', 'Macro recording stopped')}")
+            if result.get("step_count", 0) > 0:
+                print(f"   Steps captured: {result['step_count']}")
+            if result.get("duration_seconds"):
+                duration = result["duration_seconds"]
+                minutes = int(duration // 60)
+                seconds = int(duration % 60)
+                print(f"   Duration: {minutes}m {seconds}s")
+        elif response.status_code == 400:
+            # Not recording
+            error_data = response.json()
+            print(f"⚠️  {error_data.get('detail', 'Macro recording is not active')}")
+        else:
+            print(f"❌ Failed to stop macro recording: {response.text}")
+
+    def macro_status(self):
+        """Get macro recording status"""
+        response = self.make_request("GET", "/macros/recording/status")
+        if response.status_code == 200:
+            result = response.json()
+            is_recording = result.get("is_recording", False)
+            status_icon = "🔴" if is_recording else "⚪"
+            status_text = "ACTIVE" if is_recording else "INACTIVE"
+            print(f"{status_icon} Macro Recording: {status_text}")
+            print(f"   {result.get('message', 'No status information')}")
+
+            if is_recording:
+                if result.get("started_at"):
+                    print(f"   Started at: {result['started_at']}")
+                if result.get("step_count", 0) > 0:
+                    print(f"   Steps captured: {result['step_count']}")
+                if result.get("duration_seconds"):
+                    duration = result["duration_seconds"]
+                    minutes = int(duration // 60)
+                    seconds = int(duration % 60)
+                    print(f"   Duration: {minutes}m {seconds}s")
+                if result.get("macro_name"):
+                    print(f"   Macro name: {result['macro_name']}")
+        else:
+            print(f"❌ Failed to get macro recording status: {response.text}")
+
+    def macro_run(self, macro_id, execution_context=None, timeout_seconds=None):
+        """Execute a macro"""
+        data = {}
+        if execution_context:
+            data["execution_context"] = execution_context
+        if timeout_seconds:
+            data["timeout_seconds"] = timeout_seconds
+        
+        response = self.make_request("POST", f"/macros/{macro_id}/execute", json=data)
+        if response.status_code == 200:
+            result = response.json()
+            execution_id = result.get("execution_id")
+            status = result.get("status")
+            message = result.get("message", "")
+            print(f"✅ Macro execution started: {execution_id}")
+            print(f"   Status: {status}")
+            if message:
+                print(f"   Message: {message}")
+        else:
+            print(f"❌ Failed to execute macro: {response.text}")
 
 
 def main():
@@ -269,7 +362,9 @@ def main():
     elif command == "create":
         if len(sys.argv) < 4 or sys.argv[2] != "--context":
             print(
-                "Usage: mem0 create --context <name> [--scope personal|team|organization] [--description <desc>] [--team-id <id>] [--org-id <id>]"
+                "Usage: mem0 create --context <name> "
+                "[--scope personal|team|organization] "
+                "[--description <desc>] [--team-id <id>] [--org-id <id>]"
             )
             sys.exit(1)
 
@@ -298,9 +393,75 @@ def main():
 
         client.create_context(name, scope, description, team_id, org_id)
 
+    elif command == "macro":
+        # Macro commands: macro start, macro stop, macro status, macro run
+        if len(sys.argv) < 3:
+            print("Usage: mem0 macro <start|stop|status|run> [options]")
+            print("Commands:")
+            print("  macro start [--name <name>] [--context <context_id>]")
+            print("  macro stop")
+            print("  macro status")
+            print("  macro run <macro_id> [--context <json_context>] [--timeout <seconds>]")
+            sys.exit(1)
+
+        macro_subcommand = sys.argv[2]
+
+        if macro_subcommand == "start":
+            macro_name = None
+            context_id = None
+            i = 3
+            while i < len(sys.argv):
+                if sys.argv[i] == "--name" and i + 1 < len(sys.argv):
+                    macro_name = sys.argv[i + 1]
+                    i += 2
+                elif sys.argv[i] == "--context" and i + 1 < len(sys.argv):
+                    context_id = sys.argv[i + 1]
+                    i += 2
+                else:
+                    i += 1
+
+            client.macro_start(macro_name, context_id)
+
+        elif macro_subcommand == "stop":
+            client.macro_stop()
+
+        elif macro_subcommand == "status":
+            client.macro_status()
+
+        elif macro_subcommand == "run":
+            if len(sys.argv) < 4:
+                print("Usage: mem0 macro run <macro_id> [--context <json_context>] [--timeout <seconds>]")
+                sys.exit(1)
+            
+            macro_id = sys.argv[3]
+            execution_context = None
+            timeout_seconds = None
+            
+            i = 4
+            while i < len(sys.argv):
+                if sys.argv[i] == "--context" and i + 1 < len(sys.argv):
+                    try:
+                        execution_context = json.loads(sys.argv[i + 1])
+                    except json.JSONDecodeError:
+                        print("❌ Invalid JSON context")
+                        sys.exit(1)
+                    i += 2
+                elif sys.argv[i] == "--timeout" and i + 1 < len(sys.argv):
+                    timeout_seconds = int(sys.argv[i + 1])
+                    i += 2
+                else:
+                    i += 1
+            
+            client.macro_run(macro_id, execution_context, timeout_seconds)
+
+        else:
+            print(f"❌ Unknown macro command: {macro_subcommand}")
+            print("Available macro commands: start, stop, status, run")
+            sys.exit(1)
+
     else:
         print(f"❌ Unknown command: {command}")
-        print("Available commands: contexts, active, start, stop, delete, remember, recall, create")
+        print("Available commands: contexts, active, start, stop, delete, remember, recall, create, macro")
 
 
 if __name__ == "__main__":

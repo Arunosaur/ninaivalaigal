@@ -21,8 +21,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from config import DEFAULT_RUST_DATABASE_URL
-
+from ..config import DEFAULT_RUST_DATABASE_URL
 from .models import Base, Context, Memory, User
 
 

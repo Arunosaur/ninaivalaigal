@@ -553,10 +553,12 @@ jobs:
 **Emergency access to production secrets:**
 1. Create incident ticket with justification
 2. Request break-glass access via Slack #security-incidents
-3. Approval from 2 security team members required
+3. Approval from 2 security team members required (MFA required)
 4. Temporary Vault token issued (1-hour TTL)
 5. All actions logged and audited
 6. Post-mortem required within 24 hours
+
+**Implementation:** US#710 - Documented and tested break-glass emergency access procedure. See `docs/security/BREAK_GLASS_EMERGENCY_ACCESS.md` for complete procedure.
 
 ---
 

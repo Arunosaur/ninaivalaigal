@@ -35,7 +35,11 @@ async def require_admin(current_user: User = Depends(get_current_user)) -> User:
         raise HTTPException(status_code=403, detail="Admin access required")
 
     # Option 2: Check if user email is in admin list (temporary solution)
-    admin_emails = ["admin@ninaivalaigal.com", "swami@ninaivalaigal.com"]
+    admin_emails = [
+        "admin@ninaivalaigal.com",
+        "swami@ninaivalaigal.com",
+        "test-admin@ninaivalaigal.com",  # Test email for integration tests
+    ]
     if current_user.email not in admin_emails:
         raise HTTPException(status_code=403, detail="Admin access required")
 

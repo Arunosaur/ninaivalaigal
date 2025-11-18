@@ -94,13 +94,14 @@ echo ""
 echo "Starting PgBouncer container (Session Mode)..."
 container run -d \
   --name "$PGBOUNCER_SESS_CONTAINER" \
-  -p "${PGBOUNCER_SESS_PORT}:6432" \
+  -p "${PGBOUNCER_SESS_PORT}:6433" \
   -e POOL_MODE="$PGBOUNCER_SESS_MODE" \
   -e DB_HOST="$DB_IP" \
   -e DB_NAME="$NINA_DB_NAME" \
   -e DB_USER="$NINA_DB_USER" \
   -e DB_PASSWORD="$NINA_DB_PASSWORD" \
   -e SCRAM_PASSWORD="$SCRAM_PASSWORD" \
+  -e LISTEN_PORT="6433" \
   nina-pgbouncer:latest
 
 echo "  ✅ Container started"
@@ -135,7 +136,7 @@ echo "Use for: Memory Service (Rust/SQLx)"
 echo ""
 echo "Connection Details:"
 echo "  External: postgresql://$NINA_DB_USER:***@localhost:$PGBOUNCER_SESS_PORT/$NINA_DB_NAME"
-echo "  Internal: postgresql://$NINA_DB_USER:***@$PGBOUNCER_IP:6432/$NINA_DB_NAME"
+echo "  Internal: postgresql://$NINA_DB_USER:***@$PGBOUNCER_IP:6433/$NINA_DB_NAME"
 echo ""
 echo "Benefits:"
 echo "  • Supports prepared statements"

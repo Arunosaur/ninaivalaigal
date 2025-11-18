@@ -16,7 +16,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -24,8 +24,10 @@ export default function Login() {
     try {
       await authService.login(email, password)
       navigate('/analytics')
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.')
+    } catch (error: unknown) {
+      const typedError = error as { response?: { data?: { detail?: string } } }
+      const message = typedError?.response?.data?.detail || 'Login failed. Please check your credentials.'
+      setError(message)
     } finally {
       setLoading(false)
     }

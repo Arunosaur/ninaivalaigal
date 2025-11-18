@@ -200,6 +200,7 @@ def check_new_files() -> bool:
 
         # Skip test runner scripts (these are test harnesses, not modules under test)
         import re
+
         if any(re.search(pattern, new_file.name) for pattern in test_runner_patterns):
             continue
 

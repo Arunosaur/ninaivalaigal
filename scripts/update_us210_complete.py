@@ -131,4 +131,3 @@ def update_story():
 
 if __name__ == "__main__":
     sys.exit(update_story())
-

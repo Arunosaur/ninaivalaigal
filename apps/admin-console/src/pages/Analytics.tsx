@@ -5,72 +5,44 @@
 // Unauthorized copying, modification, or distribution is prohibited.
 // See LICENSE file in the server/ directory for details.
 //
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import adminApi from '../services/api'
+import SecurityHealthGauge from '../components/SecurityHealthGauge'
+import SecurityTimeSeriesChart from '../components/SecurityTimeSeriesChart'
+import SuspiciousIPsTable from '../components/SuspiciousIPsTable'
+import FailedLoginsTable from '../components/FailedLoginsTable'
+import useSecurityMetrics from '../hooks/useSecurityMetrics'
 import authService from '../services/auth'
 
-interface PlatformMetrics {
-  total_users: number
-  total_teams: number
-  active_users_30d: number
-  active_teams_30d: number
-  new_signups_30d: number
-  new_teams_30d: number
-  total_revenue_30d: number
-  avg_team_size: number
-  churn_rate: number
-  platform_health_score: number
-}
+const DEFAULT_TIME_WINDOWS = [24, 168, 720]
 
 export default function Analytics() {
-  const [metrics, setMetrics] = useState<PlatformMetrics | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const [timeWindow, setTimeWindow] = useState<number>(24)
+  const { metrics, loading, error, lastUpdated, refetch, isRefreshing } = useSecurityMetrics(timeWindow)
 
   useEffect(() => {
-    // Check authentication
     if (!authService.isAuthenticated()) {
       navigate('/login')
-      return
     }
-
-    async function fetchMetrics() {
-      try {
-        const data = await adminApi.getPlatformMetrics()
-        setMetrics(data)
-        setError(null)
-        setLoading(false)
-      } catch (err: any) {
-        console.error('Failed to fetch metrics:', err)
-
-        // If unauthorized, redirect to login
-        if (err.response?.status === 401 || err.response?.status === 403) {
-          authService.logout()
-          navigate('/login')
-          return
-        }
-
-        setError('Failed to load analytics data. Using mock data.')
-        // Fallback to mock data
-        setMetrics({
-          total_users: 2847,
-          total_teams: 634,
-          active_users_30d: 1892,
-          active_teams_30d: 512,
-          new_signups_30d: 342,
-          new_teams_30d: 89,
-          total_revenue_30d: 28450,
-          avg_team_size: 4.2,
-          churn_rate: 0.035,
-          platform_health_score: 87.5,
-        })
-        setLoading(false)
-      }
-    }
-    fetchMetrics()
   }, [navigate])
+
+  useEffect(() => {
+    setTimeWindow((previous) => (DEFAULT_TIME_WINDOWS.includes(previous) ? previous : 24))
+  }, [])
+
+  const aggregatedCounts = useMemo(() => {
+    if (!metrics?.events_by_type) {
+      return null
+    }
+
+    return Object.entries(metrics.events_by_type).map(([eventType, counts]) => ({
+      eventType,
+      total: counts.event_count ?? 0,
+      uniqueUsers: counts.unique_users ?? 0,
+      uniqueIps: counts.unique_ips ?? 0,
+    }))
+  }, [metrics])
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -96,9 +68,49 @@ export default function Analytics() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Platform Analytics</h2>
-          <p className="text-gray-400">Real-time insights and business intelligence</p>
+        <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-white mb-2">Security Monitoring Dashboard</h2>
+            <p className="text-gray-400">
+              Live security posture, authentication trends, and suspicious activity insights
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-sm text-gray-400">
+              Time Window:
+              <select
+                className="ml-2 rounded-md border border-gray-700 bg-gray-800 px-3 py-1 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                value={timeWindow}
+                onChange={(event) => {
+                  const value = Number(event.target.value)
+                  setTimeWindow(value)
+                  void refetch()
+                }}
+              >
+                <option value={24}>Last 24 Hours</option>
+                <option value={168}>Last 7 Days</option>
+                <option value={720}>Last 30 Days</option>
+              </select>
+            </label>
+
+            <button
+              type="button"
+              className="rounded-md border border-blue-500 bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-400"
+              onClick={() => {
+                void refetch()
+              }}
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? 'Refreshing…' : 'Refresh'}
+            </button>
+
+            {lastUpdated && (
+              <span className="text-xs text-gray-500">
+                Updated {lastUpdated.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Error Banner */}
@@ -115,89 +127,107 @@ export default function Analytics() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <MetricCard
-                title="Total Users"
-                value={metrics?.total_users.toLocaleString() || '0'}
-                change="+12%"
-                trend="up"
-              />
-              <MetricCard
-                title="Active Teams"
-                value={metrics?.total_teams.toLocaleString() || '0'}
-                change="+8%"
-                trend="up"
-              />
-              <MetricCard
-                title="MRR"
-                value={`$${(metrics?.total_revenue_30d || 0).toLocaleString()}`}
-                change="+23%"
-                trend="up"
-              />
-              <MetricCard
-                title="Churn Rate"
-                value={`${((metrics?.churn_rate || 0) * 100).toFixed(1)}%`}
-                change="-0.5%"
-                trend="down"
-              />
-            </div>
+            {metrics ? (
+              <>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 mb-8">
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 lg:col-span-1 flex items-center justify-center">
+                    <SecurityHealthGauge score={metrics.security_health_score} />
+                  </div>
 
-            {/* Additional Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <h3 className="text-sm font-medium text-gray-400 mb-2">Platform Health</h3>
-                <div className="flex items-end space-x-2">
-                  <span className="text-3xl font-bold text-green-400">
-                    {metrics?.platform_health_score.toFixed(1)}
-                  </span>
-                  <span className="text-gray-400 mb-1">/100</span>
+                  <MetricCard
+                    title="Auth Failures"
+                    subtitle="Last 24 Hours"
+                    value={metrics.auth_failures_24h.toLocaleString()}
+                    badge={`${metrics.auth_failures_7d.toLocaleString()} last 7d`}
+                  />
+
+                  <MetricCard
+                    title="Success Rate"
+                    subtitle="Authentication"
+                    value={`${metrics.auth_success_rate.toFixed(1)}%`}
+                    badge={`${metrics.auth_failures_30d.toLocaleString()} failures 30d`}
+                  />
+
+                  <MetricCard
+                    title="Active Incidents"
+                    subtitle="Account Lockouts"
+                    value={metrics.active_security_incidents.toString()}
+                    badge={`${metrics.rate_limit_exceeded_count} rate limit events`}
+                  />
                 </div>
+
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-8">
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 lg:col-span-2">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">Security Events by Hour</h3>
+                      <span className="text-xs text-gray-500">Aggregated per event type</span>
+                    </div>
+                    <SecurityTimeSeriesChart data={metrics.time_series} timeWindowHours={metrics.time_window_hours} />
+                  </div>
+
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">Aggregated Events</h3>
+                    <ul className="space-y-3 text-sm text-gray-200">
+                      {aggregatedCounts?.map((item) => (
+                        <li key={item.eventType} className="flex flex-col rounded-lg border border-gray-700 bg-gray-900/60 p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-white">{item.eventType.replace(/_/g, ' ')}</span>
+                            <span className="text-xs text-gray-400">{item.total} events</span>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-400">
+                            <span>{item.uniqueUsers} unique users</span>
+                            <span>{item.uniqueIps} unique IPs</span>
+                          </div>
+                        </li>
+                      )) || <li className="text-gray-500">No event aggregates available.</li>}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-white">Suspicious IPs</h3>
+                      <span className="text-xs text-gray-500">Threshold ≥ 10 events</span>
+                    </div>
+                    <SuspiciousIPsTable items={metrics.suspicious_ips} />
+                  </div>
+
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-white">Failed Logins (Top 10)</h3>
+                      <span className="text-xs text-gray-500">Risk ranked by frequency</span>
+                    </div>
+                    <FailedLoginsTable items={metrics.failed_logins_by_user} />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-gray-400">Security metrics unavailable.</p>
               </div>
-              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <h3 className="text-sm font-medium text-gray-400 mb-2">New Signups (30d)</h3>
-                <span className="text-3xl font-bold text-white">
-                  {metrics?.new_signups_30d.toLocaleString()}
-                </span>
-              </div>
-              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <h3 className="text-sm font-medium text-gray-400 mb-2">Avg Team Size</h3>
-                <span className="text-3xl font-bold text-white">
-                  {metrics?.avg_team_size.toFixed(1)}
-                </span>
-              </div>
-            </div>
+            )}
           </>
         )}
-
-        {/* Charts Placeholder */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-4">User Growth</h3>
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              Chart: User growth over time
-            </div>
-          </div>
-
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Revenue Trends</h3>
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              Chart: Revenue trends
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   )
 }
 
-function MetricCard({ title, value, change, trend }: { title: string; value: string; change: string; trend: 'up' | 'down' }) {
-  const trendColor = trend === 'up' ? 'text-green-400' : 'text-red-400'
+interface MetricCardProps {
+  title: string
+  subtitle?: string
+  value: string
+  badge?: string
+}
 
+function MetricCard({ title, subtitle, value, badge }: MetricCardProps) {
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <p className="text-gray-400 text-sm mb-1">{title}</p>
-      <p className="text-3xl font-bold text-white mb-2">{value}</p>
-      <p className={`text-sm ${trendColor}`}>{change} from last month</p>
+    <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+      <p className="text-sm font-medium text-gray-400">{title}</p>
+      {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+      <p className="mt-3 text-3xl font-bold text-white">{value}</p>
+      {badge && <span className="mt-2 inline-flex text-xs text-gray-400">{badge}</span>}
     </div>
   )
 }

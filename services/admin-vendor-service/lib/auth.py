@@ -415,16 +415,64 @@ def verify_email_token(verification_token: str) -> bool:
         session.close()
 
 
-def require_admin_role(current_user: dict, required_role: str = "admin") -> None:
+def require_vendor_admin(current_user: dict) -> None:
     """
-    Require specific admin role for vendor admin operations.
+    Require Vendor Admin role (vendor_admin role) - SPEC-025.
+
+    Vendor Admin can access Vendor Admin Console (SPEC-025) for multi-tenant SaaS management.
+    This is NOT the same as Platform Admin (SPEC-005) or Staff Admin (SPEC-085).
+
     Raises HTTPException if user doesn't have required permissions.
     """
     if not current_user:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    # Check if user is system admin
+    # System admin can also access vendor admin functions (for emergency operations)
     if current_user.get("is_system_admin", False):
+        return
+
+    # Check vendor_admin role
+    user_role = current_user.get("role", "").lower()
+    if user_role == "vendor_admin":
+        return
+
+    # Check RBAC roles
+    user_roles = current_user.get("rbac_roles", {})
+    if "vendor_admin" in user_roles:
+        return
+
+    # Check vendor_role field (if exists)
+    if current_user.get("vendor_role", "").lower() == "vendor_admin":
+        return
+
+    raise HTTPException(
+        status_code=403,
+        detail="Insufficient permissions. Required: Vendor Admin (vendor_admin role) for SPEC-025 Vendor Admin Console",
+    )
+
+
+def require_admin_role(current_user: dict, required_role: str = "admin") -> None:
+    """
+    DEPRECATED: Use specific admin functions instead.
+
+    - require_vendor_admin() for Vendor Admin (SPEC-025)
+    - require_platform_admin() for Platform Admin (SPEC-005)
+    - require_staff_admin() for Staff Admin (SPEC-085)
+    - require_system_admin() for System Admin (emergency only)
+
+    Legacy function that checks multiple admin types. This is ambiguous and
+    should be replaced with specific functions.
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # System admin bypass (for emergency operations)
+    if current_user.get("is_system_admin", False):
+        return
+
+    # Check vendor_admin role
+    if required_role == "vendor_admin":
+        require_vendor_admin(current_user)
         return
 
     # Check if user has vendor_admin role
@@ -438,7 +486,7 @@ def require_admin_role(current_user: dict, required_role: str = "admin") -> None
 
     raise HTTPException(
         status_code=403,
-        detail=f"Insufficient permissions. Required role: {required_role}",
+        detail=f"Insufficient permissions. Required role: {required_role}. Consider using specific admin functions.",
     )
 
 

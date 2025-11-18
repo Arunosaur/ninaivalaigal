@@ -37,6 +37,45 @@
             <p class="text-gray-400">Monitor and manage all users on the platform</p>
         </div>
 
+        <!-- Search and Filters -->
+        <div class="mb-6 bg-gray-800 rounded-lg border border-gray-700 p-4">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <input
+                        type="text"
+                        id="search-input"
+                        placeholder="Search by name or email..."
+                        class="w-full px-4 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                </div>
+                <div>
+                    <select id="status-filter" class="px-4 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="role-filter" class="px-4 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Roles</option>
+                        <option value="admin">Admin</option>
+                        <option value="user">User</option>
+                    </select>
+                </div>
+                <button
+                    onclick="openCreateUserModal()"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    + Create User
+                </button>
+            </div>
+        </div>
+
+        <!-- Pagination Info -->
+        <div class="mb-4 text-gray-400 text-sm" id="pagination-info">
+            Loading...
+        </div>
+
         <!-- Users Table -->
         <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
             <table class="min-w-full divide-y divide-gray-700">
@@ -70,8 +109,14 @@
             return null;
         }
 
-        // Fetch users list
-        async function fetchUsers() {
+        let currentPage = 1;
+        let currentLimit = 50;
+        let currentSearch = '';
+        let currentStatus = 'all';
+        let currentRole = '';
+
+        // Fetch users list from API
+        async function fetchUsers(page = 1, limit = 50, search = '', status = 'all', role = '') {
             const token = getAdminToken();
             if (!token) {
                 window.location.href = '/admin/login';
@@ -79,37 +124,175 @@
             }
 
             try {
-                // TODO: Replace with actual API endpoint when available
-                // For now, use mock data
-                const users = [
-                    { id: '1', name: 'John Doe', email: 'john@example.com', teams: 2, status: 'Active', joined: '2024-01-15' },
-                    { id: '2', name: 'Jane Smith', email: 'jane@example.com', teams: 1, status: 'Active', joined: '2024-02-20' },
-                    { id: '3', name: 'Bob Johnson', email: 'bob@example.com', teams: 3, status: 'Inactive', joined: '2023-12-10' },
-                ];
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    limit: limit.toString(),
+                });
+
+                if (search) params.append('search', search);
+                if (status !== 'all') params.append('status', status);
+                if (role) params.append('role', role);
+
+                const response = await fetch(`/admin/users?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = '/admin/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const users = data.users || [];
 
                 const tbody = document.getElementById('users-table-body');
-                tbody.innerHTML = users.map(user => `
-                    <tr class="hover:bg-gray-750">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${user.name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${user.email}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${user.teams}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                ${user.status}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${user.joined}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-400 hover:text-blue-300 cursor-pointer">
-                            View Details
-                        </td>
-                    </tr>
-                `).join('');
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-400">No users found</td></tr>';
+                } else {
+                    tbody.innerHTML = users.map(user => `
+                        <tr class="hover:bg-gray-750">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${user.full_name || user.username || 'N/A'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${user.email}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${user.team_ids?.length || 0}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                    ${user.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                                ${user.is_admin ? '<span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Admin</span>' : ''}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${new Date(user.created_at).toLocaleDateString()}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="openEditUserModal(${user.id})" class="text-blue-400 hover:text-blue-300 mr-2">Edit</button>
+                                <span class="text-gray-600">|</span>
+                                <button onclick="openUserContextsModal(${user.id})" class="text-green-400 hover:text-green-300 mx-2">Contexts</button>
+                                <span class="text-gray-600">|</span>
+                                <button onclick="deactivateUser(${user.id})" class="text-red-400 hover:text-red-300 ml-2">${user.is_active ? 'Deactivate' : 'Activate'}</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Update pagination info
+                const paginationInfo = document.getElementById('pagination-info');
+                paginationInfo.textContent = `Showing ${(page - 1) * limit + 1} to ${Math.min(page * limit, data.total)} of ${data.total} users`;
+
+                // Update pagination controls
+                updatePaginationControls(data);
+
             } catch (error) {
-                console.error('Failed to fetch users:', error);
+                console.error('Error fetching users:', error);
+                const tbody = document.getElementById('users-table-body');
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-red-400">Error loading users. Please try again.</td></tr>';
             }
         }
 
-        // Fetch users on page load
+        function updatePaginationControls(data) {
+            const existingPagination = document.getElementById('pagination-controls');
+            if (existingPagination) {
+                existingPagination.remove();
+            }
+
+            const pagination = document.createElement('div');
+            pagination.id = 'pagination-controls';
+            pagination.className = 'mt-4 flex justify-center items-center gap-2';
+
+            const prevButton = document.createElement('button');
+            prevButton.textContent = 'Previous';
+            prevButton.className = 'px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed';
+            prevButton.disabled = !data.has_prev;
+            prevButton.onclick = () => {
+                if (data.has_prev) {
+                    currentPage--;
+                    fetchUsers(currentPage, currentLimit, currentSearch, currentStatus, currentRole);
+                }
+            };
+
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Next';
+            nextButton.className = 'px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed';
+            nextButton.disabled = !data.has_next;
+            nextButton.onclick = () => {
+                if (data.has_next) {
+                    currentPage++;
+                    fetchUsers(currentPage, currentLimit, currentSearch, currentStatus, currentRole);
+                }
+            };
+
+            pagination.appendChild(prevButton);
+            pagination.appendChild(document.createTextNode(`Page ${data.page} of ${Math.ceil(data.total / data.limit)}`));
+            pagination.appendChild(nextButton);
+
+            document.querySelector('main').appendChild(pagination);
+        }
+
+        // Search functionality
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            currentPage = 1;
+            fetchUsers(currentPage, currentLimit, currentSearch, currentStatus, currentRole);
+        });
+
+        // Filter functionality
+        document.getElementById('status-filter').addEventListener('change', (e) => {
+            currentStatus = e.target.value;
+            currentPage = 1;
+            fetchUsers(currentPage, currentLimit, currentSearch, currentStatus, currentRole);
+        });
+
+        document.getElementById('role-filter').addEventListener('change', (e) => {
+            currentRole = e.target.value;
+            currentPage = 1;
+            fetchUsers(currentPage, currentLimit, currentSearch, currentStatus, currentRole);
+        });
+
+        // Modal functions
+        function openCreateUserModal() {
+            alert('Create user modal - to be implemented with full form');
+        }
+
+        function openEditUserModal(userId) {
+            alert(`Edit user ${userId} modal - to be implemented with full form`);
+        }
+
+        function openUserContextsModal(userId) {
+            alert(`User ${userId} contexts - to be implemented`);
+        }
+
+        async function deactivateUser(userId) {
+            if (!confirm('Are you sure you want to deactivate this user?')) {
+                return;
+            }
+
+            const token = getAdminToken();
+            try {
+                const response = await fetch(`/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    alert('User deactivated successfully');
+                    fetchUsers(currentPage, currentLimit, currentSearch, currentStatus, currentRole);
+                } else {
+                    alert('Failed to deactivate user');
+                }
+            } catch (error) {
+                console.error('Error deactivating user:', error);
+                alert('Error deactivating user');
+            }
+        }
+
+        // Load users on page load
         fetchUsers();
     </script>
 </body>

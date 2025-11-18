@@ -76,7 +76,10 @@ async def trigger_preloading(
     current_user: User = Depends(get_current_user),
     preloading_engine: MemoryPreloadingEngine = Depends(get_preloading_engine),
 ):
-    """Manually trigger memory preloading - SPEC-038"""
+    """Manually trigger memory preloading - SPEC-038
+
+    **SPEC-133**: Now uses unified ContextEngine for context persistence
+    """
     try:
         user_id = current_user.user_id
 
@@ -86,7 +89,29 @@ async def trigger_preloading(
             force_refresh=request.force_refresh if request else False,
         )
 
-        # Trigger preloading for current user
+        # Try to use ContextEngine for persistence (SPEC-133)
+        try:
+            from server.core.dependencies import get_context_engine_instance
+
+            context_engine = get_context_engine_instance()
+
+            # Persist context state using ContextEngine
+            session_data = {
+                "user_id": user_id,
+            }
+
+            persist_result = context_engine.persist(session_data)
+
+            if persist_result.get("persisted"):
+                logger.info(
+                    f"Context persisted via ContextEngine",
+                    user_id=user_id,
+                    memories_count=persist_result.get("memories_count", 0),
+                )
+        except Exception as e:
+            logger.debug(f"ContextEngine persistence failed, using fallback: {e}")
+
+        # Trigger preloading for current user (original implementation)
         result = await trigger_user_preloading(user_id)
 
         if result.get("status") == "failed":

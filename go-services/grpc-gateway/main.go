@@ -70,9 +70,10 @@ func (gw *Gateway) healthHandler(w http.ResponseWriter, r *http.Request) {
 		"connections": {
 			"memory_service": "%s",
 			"graphops_service": "%s",
+			"graph_service": "%s",
 			"core_api": "%s"
 		}
-	}`, time.Now().UTC().Format(time.RFC3339), MemoryAddr, GraphOpsAddr, CoreAPIAddr); err != nil {
+	}`, time.Now().UTC().Format(time.RFC3339), MemoryAddr, GraphOpsAddr, GraphServiceAddr, CoreAPIAddr); err != nil {
 		log.Printf("⚠️ Failed to write health response: %v", err)
 	}
 }
@@ -159,6 +160,38 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func main() {
 	log.Println("🚀 Starting gRPC Gateway for ninaivalaigal")
 
+	// Load YAML configuration file if specified
+	configFile := os.Getenv("GATEWAY_CONFIG_FILE")
+	var yamlConfig *GatewayConfig
+
+	// Try to find config file if not explicitly specified
+	if configFile == "" {
+		if fileExists("./gateway.yaml") {
+			configFile = "./gateway.yaml"
+		} else if fileExists("./config/gateway.yaml") {
+			configFile = "./config/gateway.yaml"
+		}
+	}
+
+	if configFile != "" {
+		var err error
+		yamlConfig, err = LoadConfigFromFile(configFile)
+		if err != nil {
+			log.Printf("⚠️  Failed to load YAML config: %v", err)
+			log.Println("ℹ️  Continuing with environment variable configuration")
+		} else {
+			log.Printf("✅ Loaded configuration from YAML file: %s", configFile)
+			// Apply YAML config to global variables
+			if err := yamlConfig.ApplyConfig(); err != nil {
+				log.Printf("⚠️  Failed to apply YAML config: %v", err)
+			} else {
+				log.Printf("📋 Gateway mode: %s", yamlConfig.Gateway.Mode)
+			}
+		}
+	} else {
+		log.Println("ℹ️  No YAML config file found, using environment variables")
+	}
+
 	// Initialize distributed tracing (Task #84)
 	serviceName := os.Getenv("OTEL_SERVICE_NAME")
 	if serviceName == "" {
@@ -199,25 +232,127 @@ func main() {
 
 	gateway := NewGateway()
 	enhancedGateway := &EnhancedGateway{
-		Gateway:     gateway,
-		grpcClients: grpcClients,
+		Gateway:           gateway,
+		grpcClients:       grpcClients,
+		config:            yamlConfig, // Store config for protocol detection
+		translator:        nil,        // Will be initialized below
+		circuitBreakerMgr: nil,        // Will be initialized below
 	}
 
-	// Update handlers to use enhanced versions
+	// Initialize protocol translator
+	enhancedGateway.translator = NewProtocolTranslator(enhancedGateway)
+
+	// Initialize circuit breaker manager
+	if yamlConfig != nil && yamlConfig.CircuitBreaker.Enabled {
+		enhancedGateway.circuitBreakerMgr = NewCircuitBreakerManager(yamlConfig)
+		log.Println("✅ Circuit breaker manager initialized")
+	}
+
+	// Initialize rate limiting middleware
+	var rateLimitMiddleware *RateLimitMiddleware
+	if yamlConfig != nil && yamlConfig.RateLimit.Enabled {
+		rateLimitMiddleware = NewRateLimitMiddleware(yamlConfig)
+		if rateLimitMiddleware != nil {
+			log.Println("✅ Rate limiting middleware initialized")
+		}
+	} else {
+		log.Println("ℹ️  Rate limiting middleware disabled")
+	}
+
+	// Initialize authentication middleware
+	var authMiddleware *AuthMiddleware
+	if yamlConfig != nil {
+		authMiddleware = NewAuthMiddleware(yamlConfig)
+		log.Println("✅ Authentication middleware initialized")
+	}
+
+	// Initialize cache
+	var cache *Cache
+	var cacheMiddleware *CacheMiddleware
+	if yamlConfig != nil && yamlConfig.Cache.Enabled {
+		cacheConfig := buildCacheConfig(yamlConfig)
+		var err error
+		cache, err = NewCache(cacheConfig)
+		if err != nil {
+			log.Printf("⚠️  Failed to initialize cache: %v", err)
+			log.Println("ℹ️  Continuing without caching")
+		} else {
+			cacheMiddleware = NewCacheMiddleware(cache)
+			log.Println("✅ Cache middleware initialized")
+		}
+	} else {
+		log.Println("ℹ️  Cache middleware disabled")
+	}
+
+	// Initialize transformation middleware
+	var transformationMiddleware *TransformationMiddleware
+	if yamlConfig != nil && yamlConfig.Transformation.Enabled {
+		transformationMiddleware = NewTransformationMiddleware(&yamlConfig.Transformation)
+		if transformationMiddleware != nil {
+			log.Println("✅ Transformation middleware initialized")
+		}
+	} else {
+		log.Println("ℹ️  Transformation middleware disabled")
+	}
+
+	// Initialize WAF middleware
+	var wafMiddleware *WAFMiddleware
+	if yamlConfig != nil && yamlConfig.WAF.Enabled {
+		wafMiddleware = NewWAFMiddleware(&yamlConfig.WAF)
+		if wafMiddleware != nil {
+			log.Println("✅ WAF middleware initialized")
+		}
+	} else {
+		log.Println("ℹ️  WAF middleware disabled")
+	}
+
+	// Apply middleware to router (order matters: waf -> cache -> transformation -> auth -> rate limit)
+	// WAF should run first to block malicious requests early
+	// Transformation should run early to modify requests/responses
+	// Auth must run before rate limit so user ID is available for per-user rate limiting
+	if wafMiddleware != nil {
+		gateway.router.Use(wafMiddleware.Middleware)
+	}
+	if cacheMiddleware != nil {
+		gateway.router.Use(cacheMiddleware.Middleware)
+	}
+	if transformationMiddleware != nil {
+		gateway.router.Use(transformationMiddleware.Middleware)
+	}
+	if authMiddleware != nil {
+		gateway.router.Use(authMiddleware.Middleware)
+	}
+	if rateLimitMiddleware != nil {
+		gateway.router.Use(rateLimitMiddleware.Middleware)
+	}
+
+	// Register enhanced handlers - always register routes, handlers will use REST proxy if gRPC unavailable
+	// Enhanced handlers support both REST proxy and gRPC translation based on backend protocol
+	gateway.router.HandleFunc("/health", enhancedGateway.enhancedHealthHandler).Methods("GET")
+	api := gateway.router.PathPrefix("/api/v1").Subrouter()
+	// Memory service routes - handlers support REST proxy and gRPC translation
+	api.HandleFunc("/memory/remember", enhancedGateway.memoryRememberHandler).Methods("POST")
+	api.HandleFunc("/memory/recall", enhancedGateway.memoryRecallHandler).Methods("GET")
+	api.HandleFunc("/memory/memories", enhancedGateway.memoryListHandler).Methods("GET")
+	// GraphOps service routes - always register, handlers will return proper errors if gRPC unavailable
+	api.HandleFunc("/graph/query", enhancedGateway.graphQueryHandler).Methods("POST")
+	api.HandleFunc("/graph/health", enhancedGateway.graphHealthHandler).Methods("GET")
+	if grpcClients != nil && grpcClients.GraphOpsClient != nil {
+		log.Println("✅ GraphOps gRPC routes registered (gRPC clients available)")
+	} else {
+		log.Println("✅ GraphOps routes registered (will return errors if gRPC clients unavailable)")
+	}
+	// Graph/AI Service HTTP proxy routes - proxy all /api/v1/graph/* requests to Graph Service
+	api.PathPrefix("/graph").HandlerFunc(enhancedGateway.graphServiceProxy)
+	log.Println("✅ Graph/AI Service HTTP proxy routes registered")
+	// Core API proxy routes - always use HTTP proxy
+	api.HandleFunc("/users/me", enhancedGateway.coreAPIProxy).Methods("GET", "PATCH")
+	api.HandleFunc("/auth/login", enhancedGateway.coreAPIProxy).Methods("POST")
+
 	if grpcClients != nil {
-		gateway.router.HandleFunc("/health", enhancedGateway.enhancedHealthHandler).Methods("GET")
-		api := gateway.router.PathPrefix("/api/v1").Subrouter()
-		// Memory service routes
-		api.HandleFunc("/memory/remember", enhancedGateway.memoryRememberHandler).Methods("POST")
-		api.HandleFunc("/memory/recall", enhancedGateway.memoryRecallHandler).Methods("GET")
-		api.HandleFunc("/memory/memories", enhancedGateway.memoryListHandler).Methods("GET")
-		// GraphOps service routes
-		api.HandleFunc("/graph/query", enhancedGateway.graphQueryHandler).Methods("POST")
-		api.HandleFunc("/graph/health", enhancedGateway.graphHealthHandler).Methods("GET")
-		// Core API proxy routes
-		api.HandleFunc("/users/me", enhancedGateway.coreAPIProxy).Methods("GET", "PATCH")
-		api.HandleFunc("/auth/login", enhancedGateway.coreAPIProxy).Methods("POST")
 		log.Println("✅ Enhanced handlers with gRPC integration enabled")
+	} else {
+		log.Println("✅ Enhanced handlers registered (REST proxy mode - gRPC clients unavailable)")
 	}
 
 	// Wrap router with OpenTelemetry HTTP instrumentation (Task #84)
@@ -254,6 +389,15 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// Close cache connection
+	if cache != nil {
+		if err := cache.Close(); err != nil {
+			log.Printf("⚠️  Failed to close cache connection: %v", err)
+		} else {
+			log.Println("🔌 Cache connection closed")
+		}
+	}
+
 	// Close gRPC connections
 	if enhancedGateway.grpcClients != nil {
 		enhancedGateway.grpcClients.Close()
@@ -270,4 +414,13 @@ func main() {
 	}
 
 	log.Println("✅ Server gracefully stopped")
+}
+
+// fileExists checks if a file exists
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }

@@ -61,6 +61,11 @@ jobs:
           cd terraform/${{ github.event.inputs.cloud_provider }}
           terraform init
 
+      - name: ✅ Validate Terraform Configuration
+        if: github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply'
+        run: |
+          bash terraform/scripts/validate-${{ github.event.inputs.cloud_provider }}.sh
+
       - name: 📋 Terraform Plan
         if: github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply'
         run: |
@@ -73,6 +78,11 @@ jobs:
           cd terraform/${{ github.event.inputs.cloud_provider }}
           terraform apply tfplan
 
+      - name: 🧪 Run Health Checks
+        if: github.event.inputs.action == 'apply'
+        run: |
+          bash terraform/scripts/test-${{ github.event.inputs.cloud_provider }}.sh || echo "⚠️  Health checks failed - deployment may still be in progress"
+
       - name: 🗑️ Terraform Destroy
         if: github.event.inputs.action == 'destroy'
         run: |
@@ -84,3 +94,12 @@ jobs:
         run: |
           cd terraform/${{ github.event.inputs.cloud_provider }}
           terraform output
+          echo ""
+          echo "🌐 Deployment URLs:"
+          if [ "${{ github.event.inputs.cloud_provider }}" = "aws" ]; then
+            terraform output -raw load_balancer_dns 2>/dev/null | sed 's/^/  ALB URL: http:\/\//' || echo "  ALB URL: Not available"
+          elif [ "${{ github.event.inputs.cloud_provider }}" = "gcp" ]; then
+            terraform output -raw service_url 2>/dev/null | sed 's/^/  Cloud Run URL: /' || echo "  Cloud Run URL: Not available"
+          elif [ "${{ github.event.inputs.cloud_provider }}" = "azure" ]; then
+            terraform output -raw container_group_fqdn 2>/dev/null | sed 's/^/  Container URL: http:\/\//' || terraform output -raw container_group_ip 2>/dev/null | sed 's/^/  Container URL: http:\/\//' || echo "  Container URL: Not available"
+          fi

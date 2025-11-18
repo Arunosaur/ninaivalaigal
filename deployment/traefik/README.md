@@ -24,14 +24,26 @@ Traefik serves as the unified entry point for all Ninaivalaigal microservices, p
 ```
 Client Request
       ↓
-  [Traefik Gateway]
-      ├─> /api/*      → Core API (8000)
-      ├─> /business/* → Business Service (8001)
-      ├─> /memory/*   → Memory Service (13393)
-      ├─> /graph/*    → GraphOps (13394)
-      ├─> /health     → Gateway Health
-      └─> /metrics    → Prometheus Metrics
+  [Traefik Gateway :80/443]
+      ├─> /api/auth, /api/users, /api/teams, /api/orgs, /api/acl
+      │   → Core API (ninaivalaigal-dev-core-api:8000)
+      ├─> /api/billing, /api/usage, /api/analytics
+      │   → Business Service (ninaivalaigal-dev-business-service:8000)
+      ├─> /api/admin, /api/vendor
+      │   → Admin/Vendor Service (ninaivalaigal-dev-admin-vendor-service:8000)
+      ├─> /api/memory, /api/recall
+      │   → Memory Service (ninaivalaigal-dev-memory-service:8000)
+      ├─> /api/graph, /api/intelligence
+      │   → Graph Service (ninaivalaigal-dev-graph-service:8000)
+      ├─> /grpc
+      │   → gRPC Gateway (ninaivalaigal-dev-grpc-gateway:13395)
+      ├─> /health, /ping
+      │   → Gateway Health Check
+      └─> /metrics
+          → Prometheus Metrics
 ```
+
+**Path Routing:** All `/api/*` paths are routed to appropriate microservices per SPEC-100 architecture.
 
 ---
 
@@ -91,14 +103,16 @@ Container deployment configuration with:
 
 ## 🔗 Routes
 
-| Path | Target | Port | Description |
-|------|--------|------|-------------|
-| `/api/*` | Core API | 8000 | Authentication, Users, Teams |
-| `/business/*` | Business Service | 8001 | Business logic |
-| `/memory/*` | Memory Service | 13393 | Memory operations |
-| `/graph/*` | GraphOps | 13394 | Graph intelligence |
-| `/health` | Gateway | - | Health check |
-| `/metrics` | Prometheus | - | Metrics endpoint |
+| Path Pattern | Target Service | Container | Port | Description |
+|--------------|----------------|-----------|------|-------------|
+| `/api/auth`, `/api/users`, `/api/teams`, `/api/orgs`, `/api/acl` | Core API | ninaivalaigal-dev-core-api | 8000 | Authentication, Users, Teams, Organizations, ACL |
+| `/api/billing`, `/api/usage`, `/api/analytics` | Business Service | ninaivalaigal-dev-business-service | 8000 | Billing, Usage Analytics |
+| `/api/admin`, `/api/vendor` | Admin/Vendor Service | ninaivalaigal-dev-admin-vendor-service | 8000 | Admin Console, Vendor Management |
+| `/api/memory`, `/api/recall` | Memory Service | ninaivalaigal-dev-memory-service | 8000 | Memory CRUD operations (Rust) |
+| `/api/graph`, `/api/intelligence` | Graph Service | ninaivalaigal-dev-graph-service | 8000 | Graph Intelligence, AI operations |
+| `/grpc` | gRPC Gateway | ninaivalaigal-dev-grpc-gateway | 13395 | gRPC to REST translation |
+| `/health`, `/ping` | Gateway | Internal | - | Gateway health check |
+| `/metrics` | Prometheus | Internal | - | Prometheus metrics endpoint |
 
 ---
 
@@ -110,9 +124,10 @@ Container deployment configuration with:
 - **Period:** 1 second
 
 ### CORS Configuration
-- Allowed origins: localhost:3000, localhost:8080
+- Allowed origins: localhost:3000, localhost:8080, localhost:8081, localhost:8181
 - Allowed methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
-- Max age: 100 seconds
+- Allowed headers: Authorization, Content-Type, X-Requested-With, *
+- Max age: 3600 seconds (1 hour)
 
 ### Security Headers
 - SSL redirect enabled
@@ -224,17 +239,24 @@ curl http://localhost/health
 ### Test Service Routes
 
 ```bash
+# Gateway Health
+curl http://localhost/health
+
 # Core API
-curl http://localhost/api/health
+curl http://localhost/api/auth/health
+curl http://localhost/api/users/health
 
 # Business Service
-curl http://localhost/business/health
+curl http://localhost/api/billing/health
 
 # Memory Service
-curl http://localhost/memory/health
+curl http://localhost/api/memory/health
 
-# GraphOps
-curl http://localhost/graph/health
+# Graph Service
+curl http://localhost/api/graph/health
+
+# Metrics
+curl http://localhost/metrics
 ```
 
 ### Load Testing
@@ -320,6 +342,8 @@ docker restart ninaivalaigal-gateway
 
 ---
 
-**Last Updated:** October 20, 2025
-**Developer:** Developer C
-**Task:** #83 - API Gateway Deployment
+**Last Updated:** November 7, 2025
+**Developer:** Developer F
+**Task:** US#83 - API Gateway Path Routing (Traefik)
+**Status:** ✅ Configuration Complete - Ready for Testing
+**SPECs:** SPEC-099, SPEC-100

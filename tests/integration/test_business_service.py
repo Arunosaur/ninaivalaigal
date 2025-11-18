@@ -13,7 +13,7 @@ import subprocess
 import pytest
 import requests
 
-from tests.config import CORE_API_BASE_URL
+from tests.config import BUSINESS_SERVICE_BASE_URL, CORE_API_BASE_URL
 
 
 def get_pgbouncer_ip():

@@ -63,6 +63,8 @@ Features:
 		createConfigCommand(),
 		createServerCommand(),
 		createInteractiveCommand(),
+		createDemoCommand(),
+		createClassificationCommand(), // Added classification command
 	)
 
 	// Global flags

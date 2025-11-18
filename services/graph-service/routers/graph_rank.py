@@ -14,8 +14,8 @@ Ranks memories and contexts based on connections, discussions, and approvals
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from auth_utils import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
+from lib.auth_utils import get_current_user
 
 router = APIRouter(prefix="/graph-rank", tags=["ai-intelligence"])
 

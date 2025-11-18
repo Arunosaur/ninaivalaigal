@@ -5,6 +5,17 @@
 
 
 
+## Taiga Stories
+
+The following Taiga stories have been created for SPEC-104:
+
+- **US#1053**: QUAL-001: FastAPI Template Quality Audit
+- **US#1054**: QUAL-002: Security Scanning & Vulnerability Assessment
+
+All stories are tagged with `spec-104` and are ready for implementation.
+
+---
+
 ## Problem Statement
 
 ### Verification Challenge

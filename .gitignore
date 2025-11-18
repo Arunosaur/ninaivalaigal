@@ -186,3 +186,6 @@ benchmarks/results/*.csv
 test-results/
 *.coverage.out
 coverage.out
+
+# Alembic environment config
+.env.alembic

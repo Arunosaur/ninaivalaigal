@@ -38,8 +38,10 @@ import requests
 pytestmark = pytest.mark.rust_integration
 
 # Configuration
-MEMORY_SERVICE_URL = "http://localhost:13393"
-CORE_API_URL = "http://localhost:13390"  # For JWT token generation
+from tests.config import CORE_API_BASE_URL, MEMORY_SERVICE_BASE_URL
+
+MEMORY_SERVICE_URL = MEMORY_SERVICE_BASE_URL
+CORE_API_URL = CORE_API_BASE_URL
 
 
 class MemoryServiceClient:

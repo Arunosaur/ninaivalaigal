@@ -355,9 +355,7 @@ async def invite_user_to_my_team(
                 )
 
         # Use existing invite logic
-        return await invite_user_to_team(
-            team.id, invite_data, background_tasks, current_user, team_manager, db
-        )
+        return await invite_user_to_team(team.id, invite_data, background_tasks, current_user, team_manager, db)
 
     except HTTPException:
         raise

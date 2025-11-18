@@ -25,6 +25,8 @@ var (
 	MemoryAddr string
 	// GraphOpsAddr is the upstream gRPC endpoint for GraphOps.
 	GraphOpsAddr string
+	// GraphServiceAddr is the upstream HTTP endpoint for Graph/AI Service (HTTP/REST, not gRPC).
+	GraphServiceAddr string
 )
 
 func init() {
@@ -41,7 +43,9 @@ func init() {
 
 	CoreAPIAddr = getEnv("CORE_API_ADDR", "localhost:13390")
 	MemoryAddr = getEnv("MEMORY_SERVICE_ADDR", "localhost:13393")
-	GraphOpsAddr = getEnv("GRAPHOPS_SERVICE_ADDR", "localhost:50051")
+	// GraphOps external port per ports.nv.yaml line 321 (Apple/Dev: 13398)
+	GraphOpsAddr = getEnv("GRAPHOPS_SERVICE_ADDR", "localhost:13398")
+	GraphServiceAddr = getEnv("GRAPH_SERVICE_ADDR", "localhost:13394")
 }
 
 func getEnv(key, fallback string) string {

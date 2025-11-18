@@ -1,7 +1,7 @@
 # SPEC-131: Memory Router Rationalization
 
 **Status:** 📋 Ready for Implementation
-**Taiga:** US #95
+**Taiga:** US#95 (Phase 1 - Complete), US#1029, US#1030 (Phase 2 & 3)
 **Created:** October 22, 2025
 **Owner:** Rust Team + Architecture Team
 

@@ -83,8 +83,10 @@ mod tests {
         // Add timeout to prevent hanging in CI/pre-commit hooks when DB is unavailable
         let client = match tokio::time::timeout(
             std::time::Duration::from_secs(5),
-            pool.get_client()
-        ).await {
+            pool.get_client(),
+        )
+        .await
+        {
             Ok(Ok(client)) => client,
             Ok(Err(e)) => return Err(e),
             Err(_) => {

@@ -48,6 +48,15 @@ Examples:
 				return err
 			}
 
+			// Validate URL against allowlist
+			allowlist := NewURLAllowlist()
+			if err := allowlist.LoadFromConfig(config); err != nil {
+				return fmt.Errorf("failed to load allowlist: %w", err)
+			}
+			if err := ValidateURL(config.URL, allowlist); err != nil {
+				return err
+			}
+
 			// Create and run HTTP tester
 			tester := NewHTTPTester(config)
 			return tester.Run(cmd.Context())
@@ -76,6 +85,12 @@ Examples:
 	cmd.Flags().DurationVar(&config.RampUp, "ramp-up", 5*time.Second, "Ramp up duration")
 	cmd.Flags().DurationVar(&config.RampDown, "ramp-down", 5*time.Second, "Ramp down duration")
 	cmd.Flags().DurationVar(&config.ThinkTime, "think-time", 0, "Think time between requests")
+
+	// Security: Allowlist
+	cmd.Flags().StringVar(&config.AllowlistFile, "allowlist-file", "", "Path to allowlist file (one URL or host per line)")
+	cmd.Flags().StringArrayVar(&config.AllowlistURLs, "allowlist-url", []string{}, "Allowed URL (can be specified multiple times)")
+	cmd.Flags().StringArrayVar(&config.AllowlistHosts, "allowlist-host", []string{}, "Allowed host (can be specified multiple times)")
+	cmd.Flags().BoolVar(&config.AllowlistEnabled, "enable-allowlist", false, "Enable URL allowlist validation")
 
 	return cmd
 }

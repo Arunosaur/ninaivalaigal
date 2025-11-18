@@ -54,6 +54,12 @@ type LoadTestConfig struct {
 	WSProtocol      string        `json:"ws_protocol"`
 	WSOrigin        string        `json:"ws_origin"`
 	MessageInterval time.Duration `json:"message_interval"`
+
+	// Security settings
+	AllowlistFile    string   `json:"allowlist_file"`
+	AllowlistURLs    []string `json:"allowlist_urls"`
+	AllowlistHosts   []string `json:"allowlist_hosts"`
+	AllowlistEnabled bool     `json:"allowlist_enabled"`
 }
 
 // NewLoadTestConfig creates a new configuration with defaults
@@ -152,6 +158,22 @@ func GetDefaultProfiles() []TestProfile {
 				RampDown:      15 * time.Second,
 				Method:        "POST",
 				ContentType:   "application/json",
+			},
+		},
+		{
+			Name:        "10000-concurrent",
+			Description: "High-concurrency test with 10,000+ concurrent requests",
+			Config: LoadTestConfig{
+				Concurrency:    10000,
+				TotalRequests:  50000,
+				Duration:       300 * time.Second,
+				RampUp:         60 * time.Second,
+				RampDown:       30 * time.Second,
+				Timeout:        30 * time.Second,
+				KeepAlive:      true,
+				HTTP2:          true,
+				Method:         "GET",
+				ReportInterval: 5 * time.Second,
 			},
 		},
 	}

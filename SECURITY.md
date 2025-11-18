@@ -170,6 +170,13 @@ Our middleware automatically adds security headers:
 - `Content-Security-Policy`: Restrict resource loading
 - `Referrer-Policy`: Control referrer information leakage
 
+### Container Vulnerability Scanning
+- **Workflow**: `.github/workflows/trivy-container-scan.yml` runs on every merge to `main`, relevant pull requests, and a weekly Monday cron (04:00 UTC)
+- **Coverage**: Builds and scans `Dockerfile.api`, `Dockerfile.postgres`, and `Dockerfile.pgbouncer` for both `linux/amd64` and `linux/arm64` targets
+- **Tooling**: Uses `aquasecurity/trivy-action` with `severity=CRITICAL,HIGH`, `ignore-unfixed`, and fails the run if findings remain
+- **Reporting**: Uploads SARIF reports to GitHub code scanning and stores artifacts for offline review; job summary links identify failing containers
+- **Manual Run**: Trigger via `Workflow Dispatch` for ad-hoc verification after base image updates or emergency advisories
+
 ## Monitoring and Alerting
 
 ### Security Metrics

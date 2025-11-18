@@ -30,12 +30,15 @@ _failed_attempts: dict[str, list[datetime]] = {}
 _lockouts: dict[str, datetime] = {}
 
 
-def record_failed_attempt(email: str) -> None:
+def record_failed_attempt(email: str, ip_address: str = None, user_agent: str = None, db_session=None) -> None:
     """
     Record a failed login attempt for the given email.
 
     Args:
         email: User email address
+        ip_address: IP address of the request (optional)
+        user_agent: User agent string (optional)
+        db_session: Database session for persistent logging (optional)
     """
     now = datetime.utcnow()
     email_lower = email.lower()
@@ -53,6 +56,26 @@ def record_failed_attempt(email: str) -> None:
     failed_count = len(_failed_attempts[email_lower])
     logger.warning(f"Failed login attempt recorded for {email_lower} (count: {failed_count}/{MAX_FAILED_ATTEMPTS})")
 
+    # Record security event to persistent storage
+    try:
+        from lib.security_monitoring import record_security_event
+
+        record_security_event(
+            event_type="login_failure",
+            details={
+                "email": email_lower,
+                "ip_address": ip_address,
+                "user_agent": user_agent,
+                "failed_count": failed_count,
+                "max_attempts": MAX_FAILED_ATTEMPTS,
+                "reason": "Invalid credentials",
+            },
+            db_session=db_session,
+            severity="warning",
+        )
+    except Exception as e:
+        logger.warning(f"Failed to record security event: {e}")
+
     # Check if we should lock the account
     if failed_count >= MAX_FAILED_ATTEMPTS:
         lock_until = now + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
@@ -61,6 +84,27 @@ def record_failed_attempt(email: str) -> None:
             f"Account locked due to excessive failed login attempts: {email_lower} "
             f"(failed_count: {failed_count}, locked_until: {lock_until.isoformat()})"
         )
+
+        # Record account lockout event
+        try:
+            from lib.security_monitoring import record_security_event
+
+            record_security_event(
+                event_type="account_locked",
+                details={
+                    "email": email_lower,
+                    "ip_address": ip_address,
+                    "user_agent": user_agent,
+                    "failed_count": failed_count,
+                    "lock_duration_minutes": LOCKOUT_DURATION_MINUTES,
+                    "lock_until": lock_until.isoformat(),
+                    "reason": "Excessive failed login attempts",
+                },
+                db_session=db_session,
+                severity="critical",
+            )
+        except Exception as e:
+            logger.warning(f"Failed to record lockout event: {e}")
 
 
 def clear_failed_attempts(email: str) -> None:

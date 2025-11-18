@@ -133,14 +133,31 @@ class EndpointRateLimiter:
 
         return "default"
 
-    async def check_rate_limit(self, request: Request) -> JSONResponse | None:
+    async def check_rate_limit(self, request: Request, db_session=None) -> JSONResponse | None:
         """Check rate limit for request, return error response if exceeded"""
         client_id = self.get_client_id(request)
         current_time = time.time()
 
+        # Get client IP for logging
+        client_ip = (
+            request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+            or request.headers.get("X-Real-IP", "")
+            or request.client.host
+        )
+        user_agent = request.headers.get("User-Agent", "")
+
         # Check if IP is temporarily blocked
         if client_id in self.blocked_ips:
             if current_time < self.blocked_ips[client_id]:
+                # Record blocked attempt
+                self._record_rate_limit_event(
+                    client_ip=client_ip,
+                    user_agent=user_agent,
+                    endpoint=request.url.path,
+                    reason="IP temporarily blocked",
+                    db_session=db_session,
+                )
+
                 return JSONResponse(
                     status_code=429,
                     content={
@@ -158,6 +175,16 @@ class EndpointRateLimiter:
             # Block IP for repeated global limit violations
             self.blocked_ips[client_id] = current_time + self.block_duration
 
+            # Record security event
+            self._record_rate_limit_event(
+                client_ip=client_ip,
+                user_agent=user_agent,
+                endpoint=request.url.path,
+                reason="Global rate limit exceeded - IP blocked",
+                db_session=db_session,
+                severity="critical",
+            )
+
             return JSONResponse(
                 status_code=429,
                 content={
@@ -173,6 +200,15 @@ class EndpointRateLimiter:
         allowed, info = limiter.is_allowed(client_id)
 
         if not allowed:
+            # Record rate limit exceeded event
+            self._record_rate_limit_event(
+                client_ip=client_ip,
+                user_agent=user_agent,
+                endpoint=request.url.path,
+                reason=f"Endpoint rate limit exceeded: {endpoint_pattern}",
+                db_session=db_session,
+            )
+
             return JSONResponse(
                 status_code=429,
                 content={
@@ -191,6 +227,34 @@ class EndpointRateLimiter:
 
         # Request allowed, add rate limit headers
         return None  # No error response needed
+
+    def _record_rate_limit_event(
+        self, client_ip: str, user_agent: str, endpoint: str, reason: str, db_session=None, severity: str = "warning"
+    ):
+        """Record rate limit violation to security events"""
+        try:
+            # Import here to avoid circular dependency
+            import os
+            import sys
+
+            # Add core-api to path if not already there
+            core_api_path = os.path.join(os.path.dirname(__file__), "../../core-api")
+            if core_api_path not in sys.path:
+                sys.path.insert(0, core_api_path)
+
+            from lib.security_monitoring import record_security_event
+
+            record_security_event(
+                event_type="rate_limit_exceeded",
+                details={"ip_address": client_ip, "user_agent": user_agent, "endpoint": endpoint, "reason": reason},
+                db_session=db_session,
+                severity=severity,
+            )
+        except Exception as e:
+            # Don't fail the request if logging fails
+            import logging
+
+            logging.warning(f"Failed to record rate limit event: {e}")
 
 
 class SecurityMiddleware:

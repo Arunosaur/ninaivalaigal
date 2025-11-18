@@ -5,6 +5,16 @@ title: Untitled SPEC
 
 # SPEC-060: Apache AGE Property Graph Memory Model
 
+## Taiga Stories
+
+The following Taiga story has been created for SPEC-060:
+
+- **US#1051**: AGE-001: Apache AGE Deployment & Configuration
+
+All stories are tagged with `spec-060` and are ready for implementation.
+
+---
+
 ## Summary
 
 This SPEC introduces Apache AGE (A Graph Extension for PostgreSQL) to implement a property graph-based architecture for representing relationships between memories, macros, users, contexts, and agent flows in ninaivalaigal. The graph model allows advanced Cypher queries, dynamic traversals, and relevance calculations—serving as a backbone for future insights and orchestration.

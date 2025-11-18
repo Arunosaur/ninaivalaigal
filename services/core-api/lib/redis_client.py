@@ -23,6 +23,14 @@ from redis.asyncio import Redis
 logger = structlog.get_logger(__name__)
 
 
+# Lazy import to avoid circular dependencies
+def _get_tracker():
+    """Get latency tracker with lazy import"""
+    from lib.redis_latency_tracker import track_redis_operation
+
+    return track_redis_operation
+
+
 class RedisClient:
     """Redis client with connection pooling and caching utilities"""
 
@@ -135,9 +143,15 @@ class MemoryTokenCache:
 
     async def get(self, memory_id: str) -> dict[str, Any] | None:
         """Get memory token from cache"""
+        import time
+        from collections import deque
+
+        from lib.redis_latency_tracker import _latency_samples
+
         if not self.redis.is_connected:
             return None
 
+        start_time = time.time()
         try:
             if not self.redis.redis:
                 return None
@@ -145,22 +159,53 @@ class MemoryTokenCache:
             key = self._get_key(memory_id)
             cached_data = await self.redis.redis.get(key)
 
+            # Track latency
+            duration_ms = (time.time() - start_time) * 1000
+            operation = "memory_cache_get"
+            if operation not in _latency_samples:
+                _latency_samples[operation] = deque(maxlen=1000)
+            _latency_samples[operation].append(duration_ms)
+
+            # Record in Prometheus
+            from lib.redis_latency_tracker import REDIS_OPERATION_DURATION
+
+            REDIS_OPERATION_DURATION.labels(operation=operation, status="success").observe(duration_ms / 1000)
+
             if cached_data:
-                logger.debug("Memory cache hit", memory_id=memory_id)
+                logger.debug("Memory cache hit", memory_id=memory_id, duration_ms=round(duration_ms, 2))
                 return json.loads(cached_data)
             else:
-                logger.debug("Memory cache miss", memory_id=memory_id)
+                logger.debug("Memory cache miss", memory_id=memory_id, duration_ms=round(duration_ms, 2))
                 return None
 
         except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            operation = "memory_cache_get"
+            from collections import deque
+
+            from lib.redis_latency_tracker import (
+                REDIS_OPERATION_DURATION,
+                _latency_samples,
+            )
+
+            if operation not in _latency_samples:
+                _latency_samples[operation] = deque(maxlen=1000)
+            _latency_samples[operation].append(duration_ms)
+            REDIS_OPERATION_DURATION.labels(operation=operation, status="error").observe(duration_ms / 1000)
             logger.error("Memory cache get error", memory_id=memory_id, error=str(e))
             return None
 
     async def set(self, memory_id: str, memory_data: dict[str, Any], ttl: int | None = None) -> bool:
         """Set memory token in cache"""
+        import time
+        from collections import deque
+
+        from lib.redis_latency_tracker import REDIS_OPERATION_DURATION, _latency_samples
+
         if not self.redis.is_connected:
             return False
 
+        start_time = time.time()
         try:
             key = self._get_key(memory_id)
             ttl = ttl or self.default_ttl
@@ -173,25 +218,63 @@ class MemoryTokenCache:
             }
 
             await self.redis.redis.setex(key, ttl, json.dumps(cache_data))
-            logger.debug("Memory cached", memory_id=memory_id, ttl=ttl)
+
+            # Track latency
+            duration_ms = (time.time() - start_time) * 1000
+            operation = "memory_cache_set"
+            if operation not in _latency_samples:
+                _latency_samples[operation] = deque(maxlen=1000)
+            _latency_samples[operation].append(duration_ms)
+            REDIS_OPERATION_DURATION.labels(operation=operation, status="success").observe(duration_ms / 1000)
+
+            logger.debug("Memory cached", memory_id=memory_id, ttl=ttl, duration_ms=round(duration_ms, 2))
             return True
 
         except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            operation = "memory_cache_set"
+            if operation not in _latency_samples:
+                _latency_samples[operation] = deque(maxlen=1000)
+            _latency_samples[operation].append(duration_ms)
+            REDIS_OPERATION_DURATION.labels(operation=operation, status="error").observe(duration_ms / 1000)
             logger.error("Memory cache set error", memory_id=memory_id, error=str(e))
             return False
 
     async def delete(self, memory_id: str) -> bool:
         """Delete memory token from cache"""
+        import time
+        from collections import deque
+
+        from lib.redis_latency_tracker import REDIS_OPERATION_DURATION, _latency_samples
+
         if not self.redis.is_connected:
             return False
 
+        start_time = time.time()
         try:
             key = self._get_key(memory_id)
             result = await self.redis.redis.delete(key)
-            logger.debug("Memory cache deleted", memory_id=memory_id, deleted=bool(result))
+
+            # Track latency
+            duration_ms = (time.time() - start_time) * 1000
+            operation = "memory_cache_delete"
+            if operation not in _latency_samples:
+                _latency_samples[operation] = deque(maxlen=1000)
+            _latency_samples[operation].append(duration_ms)
+            REDIS_OPERATION_DURATION.labels(operation=operation, status="success").observe(duration_ms / 1000)
+
+            logger.debug(
+                "Memory cache deleted", memory_id=memory_id, deleted=bool(result), duration_ms=round(duration_ms, 2)
+            )
             return bool(result)
 
         except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            operation = "memory_cache_delete"
+            if operation not in _latency_samples:
+                _latency_samples[operation] = deque(maxlen=1000)
+            _latency_samples[operation].append(duration_ms)
+            REDIS_OPERATION_DURATION.labels(operation=operation, status="error").observe(duration_ms / 1000)
             logger.error("Memory cache delete error", memory_id=memory_id, error=str(e))
             return False
 
@@ -283,6 +366,92 @@ class SessionStore:
 
         except Exception as e:
             logger.error("Session delete error", user_id=user_id, error=str(e))
+            return False
+
+    async def should_rotate(self, user_id: str, rotation_threshold_hours: int = 24) -> bool:
+        """
+        Check if session should be rotated (SPEC-114: every 24 hours).
+
+        Args:
+            user_id: User ID to check
+            rotation_threshold_hours: Hours remaining before rotation (default: 24)
+
+        Returns:
+            True if session should be rotated, False otherwise
+        """
+        if not self.redis.is_connected:
+            return False
+
+        try:
+            key = self._make_key(user_id)
+            ttl = await self.redis.redis.ttl(key)
+
+            if ttl < 0:
+                return False  # Session doesn't exist or expired
+
+            # Convert TTL (seconds) to hours
+            hours_remaining = ttl / 3600
+
+            # Rotate if less than rotation_threshold_hours remaining
+            should_rotate = hours_remaining < rotation_threshold_hours
+
+            if should_rotate:
+                logger.info(
+                    "Session rotation needed",
+                    user_id=user_id,
+                    hours_remaining=round(hours_remaining, 2),
+                    threshold=rotation_threshold_hours,
+                )
+
+            return should_rotate
+
+        except Exception as e:
+            logger.error("Session rotation check error", user_id=user_id, error=str(e))
+            return False
+
+    async def rotate_session(
+        self,
+        user_id: str,
+        new_session_data: dict[str, Any],
+        new_ttl: int | None = None,
+    ) -> bool:
+        """
+        Rotate session by deleting old and creating new (SPEC-114).
+
+        Args:
+            user_id: User ID
+            new_session_data: New session data
+            new_ttl: New TTL in seconds (default: 7 days = 604800)
+
+        Returns:
+            True if rotation successful, False otherwise
+        """
+        if not self.redis.is_connected:
+            return False
+
+        try:
+            key = self._make_key(user_id)
+
+            # Delete old session
+            await self.redis.redis.delete(key)
+            logger.debug("Old session deleted for rotation", user_id=user_id)
+
+            # Create new session with full TTL (7 days default)
+            new_ttl = new_ttl or (7 * 24 * 60 * 60)  # 7 days in seconds
+
+            enhanced_data = {
+                **new_session_data,
+                "created_at": datetime.utcnow().isoformat(),
+                "expires_in": new_ttl,
+                "rotated_at": datetime.utcnow().isoformat(),
+            }
+
+            await self.redis.redis.setex(key, new_ttl, json.dumps(enhanced_data))
+            logger.info("Session rotated successfully", user_id=user_id, new_ttl=new_ttl)
+            return True
+
+        except Exception as e:
+            logger.error("Session rotation error", user_id=user_id, error=str(e))
             return False
 
 

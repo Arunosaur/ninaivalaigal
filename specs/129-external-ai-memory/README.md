@@ -1,9 +1,9 @@
 # SPEC-129: External AI Memory API Integration
 
-**Status:** 📋 Planned  
-**Priority:** High  
-**Owner:** Architecture / Platform  
-**Version:** 0.1 (Draft)  
+**Status:** 📋 Planned
+**Priority:** High
+**Owner:** Architecture / Platform
+**Version:** 0.1 (Draft)
 **Last Updated:** January 2025
 
 **Note:** This SPEC was renumbered from SPEC-085 to SPEC-129.

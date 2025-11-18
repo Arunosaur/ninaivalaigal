@@ -40,3 +40,21 @@ variable "database_password" {
   sensitive   = true
   default     = "change_me_securely"
 }
+
+variable "subscription_id" {
+  description = "Azure subscription ID for budget alerts"
+  type        = string
+  default     = ""
+}
+
+variable "budget_amount" {
+  description = "Monthly budget amount in USD"
+  type        = number
+  default     = 100
+}
+
+variable "budget_alert_emails" {
+  description = "Email addresses for budget alerts"
+  type        = list(string)
+  default     = []
+}

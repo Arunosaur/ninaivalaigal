@@ -10,7 +10,7 @@ Unit tests for server/billing/prometheus_metrics.py
 Tests Prometheus metrics collection for billing system.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 

@@ -104,3 +104,43 @@ Stabilize the codebase after the large audit import while preparing the Rust Mem
 - **Slack:** `#platform-architecture`, `#rust-memory`
 - **Tracking:** Taiga epic (to be created) + SPEC-139 folder
 - **Approvals:** Platform Architect, Rust Lead, DevOps Lead
+
+---
+
+## Implementation Status
+
+**Current Status**: Mostly Complete (~85%)
+
+### ✅ Completed Deliverables
+- ✅ `AUDIT_RECONCILIATION_PLAN.md` - Step-by-step plan documented
+- ✅ `VERIFICATION_2025-11-AUDIT.md` - Evidence log with FastAPI boot, pytest gating, SPEC validation
+- ✅ `RUST_INTEGRATION_GATE.md` - Decision framework and readiness checklist (some items pending)
+- ✅ `RUST_MEMORY_RUNBOOK.md` - Operational playbook (94 lines)
+
+### ✅ Completed Implementation
+- ✅ Memory API signatures fixed (`server/memory/factory.py`)
+- ✅ Provider defaults gated by feature flag (`USE_RUST_MEMORY`)
+- ✅ Rust integration pytest suite marked (`@pytest.mark.rust_integration`)
+- ✅ Default CI pipelines exclude Rust integration tests
+- ✅ Optional CI job runs full suite with Rust service (nightly/on-demand)
+- ✅ Test gating mechanism working (CLI flag, env vars, feature flag)
+
+### ⚠️ Pending Items
+- ⚠️ JWT passthrough (Python gateway → Rust service)
+- ⚠️ Error handling parity (Rust responses → Python patterns)
+- ⚠️ Observability dashboards (Rust metrics + alerts)
+- ⚠️ Stakeholder approvals (operational runbook, Rust activation gate)
+- ⚠️ Audit regression fixes (P1-P5 items, if still needed)
+
+## Implementation Stories
+
+| Story ID | Subject | Status | Notes |
+|---------|---------|--------|-------|
+| **US#817** | Rust Memory Service Runbook - Operational Playbook | Done | ✅ Deliverable complete |
+| **US#818** | Rust Integration Gate Checklist - Decision Framework | Done | ✅ Deliverable complete |
+| **US#819** | Fix Python-Rust MemoryProvider Interface | New | ⚠️ Work complete, status needs update |
+| **US#820** | CI Markers and Rust Integration Test Setup | Done | ✅ Implementation complete |
+
+**Total**: 4 stories, 3 Done, 1 New (but work complete)
+
+**Note**: US#819 shows as "New" but work is complete. Consider updating to "Done".

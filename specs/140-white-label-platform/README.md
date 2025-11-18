@@ -142,10 +142,12 @@ function applyBrandTokens(organizationId: string): BrandTokens {
 
 ## Dependencies
 
-- **SPEC-026**: Standalone Teams Billing (multi-tenant foundation)
-- **SPEC-066**: Standalone Team Accounts (organization isolation)
-- **SPEC-075**: Unified Frontend Architecture (design system foundation)
-- **SPEC-043**: Memory ACL (access control for brand configuration)
+- **SPEC-026**: Standalone Teams Billing (multi-tenant foundation) - ⚠️ **BLOCKING** (Planned, not Complete)
+- **SPEC-066**: Standalone Team Accounts (organization isolation) - ❌ **DEPRECATED** (Use SPEC-026 instead)
+- **SPEC-075**: Unified Frontend Architecture (design system foundation) - ✅ Complete
+- **SPEC-043**: Memory ACL (access control for brand configuration) - ✅ Complete
+
+**Note**: SPEC-140 requires SPEC-026 (Standalone Teams Billing) for multi-tenant foundation. SPEC-026 is currently "Planned" and not implemented, which blocks SPEC-140 implementation.
 
 ## Related SPECs
 
@@ -204,6 +206,35 @@ function applyBrandTokens(organizationId: string): BrandTokens {
 - Third-party brand assets (users provide their own)
 - Brand analytics/reporting (future enhancement)
 - Automated brand generation (future enhancement)
+
+---
+
+## Implementation Status
+
+**Current Status**: Not Implemented (0%)
+
+### Existing Foundation
+- ✅ Design token system (SPEC-075) - Foundation for theme customization
+- ⚠️ Partial invoice branding (`InvoiceBrandingSettings.tsx`) - Not full white-label platform
+
+### Missing Components
+- ❌ `organization_branding` database table
+- ❌ Brand configuration API endpoints
+- ❌ Theme customization across UI
+- ❌ Custom domain support
+- ❌ White-label billing integration
+- ❌ Multi-brand support
+
+## Implementation Stories
+
+| Story ID | Subject | Status | Tags | Notes |
+|---------|---------|--------|------|-------|
+| **US#639** | SPEC-140: White-Label Platform | Ready | spec-140, white-label, enterprise, branding | ✅ Tags updated |
+| **US#560** | White-Label Platform (Future SPEC - Not SPEC-078) | New | spec-140, white-label, enterprise, branding | ✅ Tags updated |
+
+**Total**: 2 stories, both correctly tagged as `spec-140`
+
+**Note**: Both stories have been updated to correctly reference SPEC-140. Tags are now correct.
 
 ---
 

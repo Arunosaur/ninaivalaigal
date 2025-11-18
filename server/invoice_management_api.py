@@ -12,18 +12,32 @@ Complete invoice generation, tax handling, and billing cycle management
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 import stripe
-from database import Team, TeamMembership, User
+from database import Team, TeamBilling, TeamMember, User
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from models.standalone_teams import StandaloneTeamManager
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from auth import get_current_user, get_db
+
+# Import database models for invoice management (US#185)
+from server.billing.models import (
+    AccountStatus,
+    BillingAccount,
+    BillingPeriod,
+    BillingPeriodStatus,
+)
+from server.billing.models import Invoice as InvoiceModel
+from server.billing.models import InvoiceLineItem as InvoiceLineItemModel
+from server.billing.models import InvoiceStatus, PlanTier
+from server.billing.payment_failure_model import PaymentFailure as PaymentFailureModel
+from server.billing.tax_config_models import TaxConfiguration
 from services import InvoicingService, TaxCalculator
 
 # Shared invoicing services (US#237-243: SPEC-027/028 refactoring complete)
@@ -108,11 +122,145 @@ class PaymentFailure(BaseModel):
     is_resolved: bool
 
 
-# Mock databases (in production, use proper database tables)
-invoices_db = {}
-billing_cycles_db = {}
-payment_failures_db: dict = {}
-tax_settings_db: dict = {}
+# US#185: Mock databases removed - using database models instead
+# All CRUD operations now use database models:
+# - invoices_db → server.billing.models.Invoice (✅ migrated)
+# - billing_cycles_db → server.billing.models.BillingPeriod (✅ migrated)
+# - payment_failures_db → server.billing.payment_failure_model.PaymentFailure (✅ migrated)
+# - tax_settings_db → server.billing.tax_config_models.TaxConfiguration (✅ migrated)
+#
+# All mock stores have been removed. All operations use database models.
+
+
+# Helper functions for database operations
+def get_or_create_billing_account(db: Session, team_id: UUID) -> BillingAccount:
+    """
+    Get or create BillingAccount for a team.
+
+    US#185: Migrated from mock stores to database model.
+    """
+    # Check if billing account exists
+    billing_account = (
+        db.query(BillingAccount)
+        .filter(
+            BillingAccount.account_type == "team",
+            BillingAccount.account_id == team_id,
+            BillingAccount.status != AccountStatus.DELETED.value,
+        )
+        .first()
+    )
+
+    if billing_account:
+        return billing_account
+
+    # Create new billing account
+    billing_account = BillingAccount(
+        account_type="team",
+        account_id=team_id,
+        plan_tier=PlanTier.FREE.value,
+        currency="USD",
+        status=AccountStatus.ACTIVE.value,
+    )
+    db.add(billing_account)
+    db.flush()
+    return billing_account
+
+
+def get_or_create_billing_period(
+    db: Session, billing_account_id: UUID, period_start: datetime, period_end: datetime
+) -> BillingPeriod:
+    """
+    Get or create BillingPeriod for a billing account and period.
+
+    US#185: Migrated from mock stores to database model.
+    """
+    # Check if billing period exists
+    billing_period = (
+        db.query(BillingPeriod)
+        .filter(
+            BillingPeriod.billing_account_id == billing_account_id,
+            BillingPeriod.period_start == period_start,
+            BillingPeriod.period_end == period_end,
+        )
+        .first()
+    )
+
+    if billing_period:
+        return billing_period
+
+    # Create new billing period
+    billing_period = BillingPeriod(
+        billing_account_id=billing_account_id,
+        period_start=period_start,
+        period_end=period_end,
+        status=BillingPeriodStatus.ACTIVE.value,
+    )
+    db.add(billing_period)
+    db.flush()
+    return billing_period
+
+
+def invoice_model_to_pydantic(invoice_model: InvoiceModel, db: Optional[Session] = None) -> Invoice:
+    """
+    Convert database InvoiceModel to Pydantic Invoice for API responses.
+
+    US#185: Helper function for database-to-API conversion.
+    """
+    # Get line items
+    line_items_data = []
+    for line_item in invoice_model.line_items:
+        line_items_data.append(
+            InvoiceLineItem(
+                description=line_item.description,
+                quantity=float(line_item.quantity),
+                unit_price=float(line_item.unit_price),
+                total_price=float(line_item.amount),
+                period_start=invoice_model.billing_period.period_start if invoice_model.billing_period else None,
+                period_end=invoice_model.billing_period.period_end if invoice_model.billing_period else None,
+            )
+        )
+
+    # Get team info from billing account
+    team_id = invoice_model.billing_account.account_id if invoice_model.billing_account else None
+
+    # Fetch team name and billing email if db session is provided
+    team_name = ""
+    billing_email = ""
+    if db and team_id:
+        team = db.query(Team).filter(Team.id == team_id).first()
+        if team:
+            team_name = team.name or ""
+            # Try to get billing email from TeamBilling or use a default
+            team_billing = db.query(TeamBilling).filter(TeamBilling.team_id == team_id).first()
+            if team_billing and team_billing.billing_email:
+                billing_email = team_billing.billing_email
+            else:
+                # Fallback: get email from team's lead user or first admin
+                if team.lead_user_id:
+                    lead_user = db.query(User).filter(User.id == team.lead_user_id).first()
+                    if lead_user:
+                        billing_email = lead_user.email or ""
+
+    return Invoice(
+        id=str(invoice_model.id),
+        invoice_number=invoice_model.invoice_number,
+        team_id=team_id,
+        team_name=team_name,
+        billing_email=billing_email,
+        issue_date=invoice_model.issued_at or invoice_model.created_at,
+        due_date=invoice_model.due_at,
+        period_start=invoice_model.billing_period.period_start if invoice_model.billing_period else None,
+        period_end=invoice_model.billing_period.period_end if invoice_model.billing_period else None,
+        subtotal=float(invoice_model.subtotal),
+        tax_amount=float(invoice_model.tax_amount),
+        total_amount=float(invoice_model.total_amount),
+        currency=invoice_model.currency,
+        status=invoice_model.status,
+        line_items=line_items_data,
+        payment_method=None,  # Would need to query PaymentConfig if needed
+        paid_date=invoice_model.paid_at,
+        stripe_invoice_id=None,  # Would need to query StripeInvoice if needed
+    )
 
 
 def get_team_manager() -> StandaloneTeamManager:
@@ -125,7 +273,7 @@ def get_team_manager() -> StandaloneTeamManager:
 
 def generate_invoice_number() -> str:
     """Generate unique invoice number"""
-    timestamp = datetime.utcnow().strftime("%Y%m")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m")
     random_suffix = str(uuid4())[:8].upper()
     return f"INV-{timestamp}-{random_suffix}"
 
@@ -196,9 +344,9 @@ async def generate_invoice(
         raise HTTPException(status_code=403, detail="Only team admins can generate invoices")
 
     # Calculate usage and charges
-    member_count = (
-        db.query(TeamMembership).filter(TeamMembership.team_id == team_id, TeamMembership.status == "active").count()
-    )
+    # Note: TeamMember (aliased as TeamMembership) doesn't have a status field
+    # All team members are considered active
+    member_count = db.query(TeamMember).filter(TeamMember.team_id == team_id).count()
 
     # Determine plan and pricing
     if member_count <= 5:
@@ -247,43 +395,64 @@ async def generate_invoice(
     # Calculate totals
     subtotal = sum(item.total_price for item in line_items)
 
-    # Get tax settings and calculate tax using shared TaxCalculator service (US#237-243)
-    tax_settings = tax_settings_db.get(str(team_id))
+    # Get tax settings from database and calculate tax using shared TaxCalculator service (US#185, US#237-243)
+    tax_config = db.query(TaxConfiguration).filter(TaxConfiguration.team_id == team_id).first()
     tax_amount = 0.0
-    if tax_settings:
+    if tax_config:
+        # Get tax rate from tax_config settings or use default
+        tax_rate = 0.0
+        if tax_config.settings and isinstance(tax_config.settings, dict):
+            tax_rate = tax_config.settings.get("tax_rate", 0.0)
+
         tax_amount = tax_calculator.calculate(
             subtotal=subtotal,
-            tax_rate=tax_settings.tax_rate / 100.0,  # Convert percentage to decimal
-            is_tax_inclusive=tax_settings.is_tax_inclusive,
+            tax_rate=tax_rate / 100.0 if tax_rate > 0 else 0.0,  # Convert percentage to decimal
+            is_tax_inclusive=tax_config.tax_inclusive_pricing,
         )
 
     total_amount = subtotal + tax_amount
 
-    # Create invoice
-    invoice_id = str(uuid4())
-    invoice = Invoice(
-        id=invoice_id,
-        invoice_number=generate_invoice_number(),
-        team_id=team_id,
-        team_name=team.name,
-        billing_email=current_user.email,  # In production, use team billing email
-        issue_date=datetime.utcnow(),
-        due_date=datetime.utcnow() + timedelta(days=30),
-        period_start=period_start,
-        period_end=period_end,
-        subtotal=subtotal,
-        tax_amount=tax_amount,
-        total_amount=total_amount,
-        currency="USD",
-        status="draft",
-        line_items=line_items,
-        payment_method=None,
-        paid_date=None,
-        stripe_invoice_id=None,
-    )
+    # US#185: Get or create billing account and period
+    billing_account = get_or_create_billing_account(db, team_id)
+    billing_period = get_or_create_billing_period(db, billing_account.id, period_start, period_end)
 
-    # Store invoice
-    invoices_db[invoice_id] = invoice.dict()
+    # US#185: Create invoice in database
+    invoice_number = generate_invoice_number()
+    invoice_model = InvoiceModel(
+        billing_account_id=billing_account.id,
+        billing_period_id=billing_period.id,
+        invoice_number=invoice_number,
+        subtotal=Decimal(str(subtotal)),
+        tax_amount=Decimal(str(tax_amount)),
+        total_amount=Decimal(str(total_amount)),
+        currency="USD",
+        status=InvoiceStatus.DRAFT.value,
+        issued_at=datetime.now(timezone.utc),
+        due_at=datetime.now(timezone.utc) + timedelta(days=30),
+    )
+    db.add(invoice_model)
+    db.flush()
+
+    # Create line items in database
+    for line_item in line_items:
+        line_item_model = InvoiceLineItemModel(
+            invoice_id=invoice_model.id,
+            resource_type="subscription",  # Default, can be customized
+            description=line_item.description,
+            quantity=Decimal(str(line_item.quantity)),
+            unit_price=Decimal(str(line_item.unit_price)),
+            amount=Decimal(str(line_item.total_price)),
+        )
+        db.add(line_item_model)
+
+    db.commit()
+    db.refresh(invoice_model)
+
+    # Convert to Pydantic model for response
+    invoice = invoice_model_to_pydantic(invoice_model, db=db)
+    invoice.team_id = team_id
+    invoice.team_name = team.name
+    invoice.billing_email = current_user.email
 
     return invoice
 
@@ -303,15 +472,38 @@ async def get_team_invoices(
     if not membership:
         raise HTTPException(status_code=403, detail="Access denied to team invoices")
 
-    # Filter invoices for this team
-    team_invoices = [
-        Invoice(**invoice_data) for invoice_data in invoices_db.values() if invoice_data["team_id"] == str(team_id)
-    ]
+    # US#185: Query invoices from database
+    billing_account = (
+        db.query(BillingAccount)
+        .filter(
+            BillingAccount.account_type == "team",
+            BillingAccount.account_id == team_id,
+            BillingAccount.status != AccountStatus.DELETED.value,
+        )
+        .first()
+    )
 
-    # Sort by issue date (newest first)
-    team_invoices.sort(key=lambda x: x.issue_date, reverse=True)
+    if not billing_account:
+        return []
 
-    return team_invoices[:limit]
+    # Get invoices for this billing account
+    invoice_models = (
+        db.query(InvoiceModel)
+        .filter(InvoiceModel.billing_account_id == billing_account.id)
+        .order_by(InvoiceModel.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    # Convert to Pydantic models
+    team_invoices = [invoice_model_to_pydantic(inv, db=db) for inv in invoice_models]
+
+    # Set team info
+    for inv in team_invoices:
+        inv.team_id = team_id
+        # Could query team name and billing email if needed
+
+    return team_invoices
 
 
 @router.get("/{invoice_id}")
@@ -323,16 +515,29 @@ async def get_invoice(
 ) -> Invoice:
     """Get specific invoice details"""
 
-    if invoice_id not in invoices_db:
+    # US#185: Query invoice from database
+    try:
+        invoice_uuid = UUID(invoice_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Invalid invoice ID format")
+
+    invoice_model = db.query(InvoiceModel).filter(InvoiceModel.id == invoice_uuid).first()
+    if not invoice_model:
         raise HTTPException(status_code=404, detail="Invoice not found")
 
-    invoice_data = invoices_db[invoice_id]
-    invoice = Invoice(**invoice_data)
+    # Get team_id from billing account
+    team_id = invoice_model.billing_account.account_id if invoice_model.billing_account else None
+    if not team_id:
+        raise HTTPException(status_code=404, detail="Invoice billing account not found")
 
     # Verify access
-    membership = team_manager.get_team_membership(invoice.team_id, current_user.id, db)
+    membership = team_manager.get_team_membership(team_id, current_user.id, db)
     if not membership:
         raise HTTPException(status_code=403, detail="Access denied to this invoice")
+
+    # Convert to Pydantic model
+    invoice = invoice_model_to_pydantic(invoice_model, db=db)
+    invoice.team_id = team_id
 
     return invoice
 
@@ -346,21 +551,44 @@ async def download_invoice_pdf(
 ) -> Response:
     """Download invoice as PDF"""
 
-    if invoice_id not in invoices_db:
+    # US#185: Query invoice from database
+    try:
+        invoice_uuid = UUID(invoice_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Invalid invoice ID format")
+
+    invoice_model = db.query(InvoiceModel).filter(InvoiceModel.id == invoice_uuid).first()
+    if not invoice_model:
         raise HTTPException(status_code=404, detail="Invoice not found")
 
-    invoice_data = invoices_db[invoice_id]
-    invoice = Invoice(**invoice_data)
+    # Get team_id from billing account
+    team_id = invoice_model.billing_account.account_id if invoice_model.billing_account else None
+    if not team_id:
+        raise HTTPException(status_code=404, detail="Invoice billing account not found")
 
     # Verify access
-    membership = team_manager.get_team_membership(invoice.team_id, current_user.id, db)
+    membership = team_manager.get_team_membership(team_id, current_user.id, db)
     if not membership:
         raise HTTPException(status_code=403, detail="Access denied to this invoice")
 
-    # Get tax settings
-    tax_settings = tax_settings_db.get(str(invoice.team_id))
-    if tax_settings:
-        tax_settings = TaxSettings(**tax_settings)
+    # Convert to Pydantic model
+    invoice = invoice_model_to_pydantic(invoice_model, db=db)
+    invoice.team_id = team_id
+
+    # Get tax settings from database (US#185)
+    tax_config = db.query(TaxConfiguration).filter(TaxConfiguration.team_id == invoice.team_id).first()
+    tax_settings = None
+    if tax_config:
+        # Convert TaxConfiguration to TaxSettings Pydantic model for compatibility
+        tax_rate = 0.0
+        if tax_config.settings and isinstance(tax_config.settings, dict):
+            tax_rate = tax_config.settings.get("tax_rate", 0.0)
+        tax_settings = TaxSettings(
+            tax_rate=tax_rate,
+            tax_name=tax_config.settings.get("tax_name", "Tax") if tax_config.settings else "Tax",
+            tax_id=tax_config.settings.get("tax_id") if tax_config.settings else None,
+            is_tax_inclusive=tax_config.tax_inclusive_pricing,
+        )
 
     # Generate PDF
     pdf_content = create_pdf_invoice(invoice, tax_settings)
@@ -383,19 +611,34 @@ async def send_invoice(
 ) -> Dict[str, Any]:
     """Send invoice to customer via email"""
 
-    if invoice_id not in invoices_db:
+    # US#185: Query invoice from database
+    try:
+        invoice_uuid = UUID(invoice_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Invalid invoice ID format")
+
+    invoice_model = db.query(InvoiceModel).filter(InvoiceModel.id == invoice_uuid).first()
+    if not invoice_model:
         raise HTTPException(status_code=404, detail="Invoice not found")
 
-    invoice_data = invoices_db[invoice_id]
-    invoice = Invoice(**invoice_data)
+    # Get team_id from billing account
+    team_id = invoice_model.billing_account.account_id if invoice_model.billing_account else None
+    if not team_id:
+        raise HTTPException(status_code=404, detail="Invoice billing account not found")
 
     # Verify access
-    membership = team_manager.get_team_membership(invoice.team_id, current_user.id, db)
+    membership = team_manager.get_team_membership(team_id, current_user.id, db)
     if not membership or membership.role != "admin":
         raise HTTPException(status_code=403, detail="Only team admins can send invoices")
 
-    # Update invoice status
-    invoices_db[invoice_id]["status"] = "sent"
+    # US#185: Update invoice status in database
+    invoice_model.status = InvoiceStatus.ISSUED.value
+    invoice_model.issued_at = datetime.now(timezone.utc)
+    db.commit()
+
+    # Convert to Pydantic model for email
+    invoice = invoice_model_to_pydantic(invoice_model, db=db)
+    invoice.team_id = team_id
 
     # Send email (mock implementation)
     background_tasks.add_task(send_invoice_email, invoice.billing_email, invoice, invoice_id)
@@ -430,8 +673,36 @@ async def update_tax_settings(
     if not membership or membership.role != "admin":
         raise HTTPException(status_code=403, detail="Only team admins can update tax settings")
 
-    # Store tax settings
-    tax_settings_db[str(team_id)] = tax_settings.dict()
+    # Store tax settings in database (US#185)
+    tax_config = db.query(TaxConfiguration).filter(TaxConfiguration.team_id == team_id).first()
+
+    if tax_config:
+        # Update existing configuration
+        tax_config.tax_inclusive_pricing = tax_settings.is_tax_inclusive
+        if not tax_config.settings:
+            tax_config.settings = {}
+        tax_config.settings.update(
+            {
+                "tax_rate": tax_settings.tax_rate,
+                "tax_name": tax_settings.tax_name,
+                "tax_id": tax_settings.tax_id,
+            }
+        )
+        tax_config.updated_at = datetime.now(timezone.utc)
+    else:
+        # Create new configuration
+        tax_config = TaxConfiguration(
+            team_id=team_id,
+            tax_inclusive_pricing=tax_settings.is_tax_inclusive,
+            settings={
+                "tax_rate": tax_settings.tax_rate,
+                "tax_name": tax_settings.tax_name,
+                "tax_id": tax_settings.tax_id,
+            },
+        )
+        db.add(tax_config)
+
+    db.commit()
 
     return {"success": True, "message": "Tax settings updated successfully"}
 
@@ -450,9 +721,25 @@ async def get_tax_settings(
     if not membership:
         raise HTTPException(status_code=403, detail="Access denied to team tax settings")
 
-    tax_settings_data = tax_settings_db.get(str(team_id))
-    if tax_settings_data:
-        return TaxSettings(**tax_settings_data)
+    # Get tax settings from database (US#185)
+    tax_config = db.query(TaxConfiguration).filter(TaxConfiguration.team_id == team_id).first()
+
+    if tax_config:
+        # Convert TaxConfiguration to TaxSettings Pydantic model
+        tax_rate = 0.0
+        tax_name = "Tax"
+        tax_id = None
+        if tax_config.settings and isinstance(tax_config.settings, dict):
+            tax_rate = tax_config.settings.get("tax_rate", 0.0)
+            tax_name = tax_config.settings.get("tax_name", "Tax")
+            tax_id = tax_config.settings.get("tax_id")
+
+        return TaxSettings(
+            tax_rate=tax_rate,
+            tax_name=tax_name,
+            tax_id=tax_id,
+            is_tax_inclusive=tax_config.tax_inclusive_pricing,
+        )
 
     return None
 
@@ -472,30 +759,56 @@ async def setup_billing_cycle(
     if not membership or membership.role != "admin":
         raise HTTPException(status_code=403, detail="Only team admins can setup billing cycles")
 
-    # Store billing cycle configuration
-    billing_cycles_db[str(team_id)] = cycle_config.dict()
+    # US#185: Get or create billing account
+    billing_account = get_or_create_billing_account(db, team_id)
+
+    # US#185: Create billing period based on cycle config
+    # Calculate period start/end from cycle config
+    period_start = cycle_config.next_billing_date
+    if cycle_config.cycle_type == "monthly":
+        period_end = period_start + timedelta(days=30)
+    elif cycle_config.cycle_type == "quarterly":
+        period_end = period_start + timedelta(days=90)
+    elif cycle_config.cycle_type == "yearly":
+        period_end = period_start + timedelta(days=365)
+    else:
+        period_end = period_start + timedelta(days=30)  # Default monthly
+
+    billing_period = get_or_create_billing_period(db, billing_account.id, period_start, period_end)
 
     return {
         "success": True,
         "message": "Billing cycle configured successfully",
-        "next_billing_date": cycle_config.next_billing_date,
+        "next_billing_date": cycle_config.next_billing_date.isoformat(),
+        "billing_period_id": str(billing_period.id),
     }
 
 
 @router.post("/process-billing-cycles")
-async def process_billing_cycles(background_tasks: BackgroundTasks) -> Dict[str, Any]:
+async def process_billing_cycles(
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
     """Process all due billing cycles (admin/cron endpoint)"""
 
-    # In production, this would be called by a cron job
+    # US#185: Query active billing periods from database
+    active_periods = (
+        db.query(BillingPeriod)
+        .join(BillingAccount)
+        .filter(
+            BillingPeriod.status == BillingPeriodStatus.ACTIVE.value,
+            BillingPeriod.period_end <= datetime.now(timezone.utc),
+            BillingAccount.status != AccountStatus.DELETED.value,
+        )
+        .all()
+    )
+
     processed_count = 0
-
-    for team_id, cycle_data in billing_cycles_db.items():
-        cycle = BillingCycle(**cycle_data)
-
-        if cycle.auto_billing_enabled and cycle.next_billing_date <= datetime.utcnow():
-
+    for period in active_periods:
+        team_id = period.billing_account.account_id if period.billing_account else None
+        if team_id:
             # Generate and send invoice
-            background_tasks.add_task(process_team_billing_cycle, UUID(team_id), cycle)
+            background_tasks.add_task(process_team_billing_cycle, team_id, period.id, db)
             processed_count += 1
 
     return {
@@ -505,7 +818,7 @@ async def process_billing_cycles(background_tasks: BackgroundTasks) -> Dict[str,
     }
 
 
-async def process_team_billing_cycle(team_id: UUID, cycle: BillingCycle):
+async def process_team_billing_cycle(team_id: UUID, period_id: UUID, db: Session):
     """Process billing cycle for a specific team"""
     # In production, this would:
     # 1. Generate invoice for the period
@@ -514,32 +827,65 @@ async def process_team_billing_cycle(team_id: UUID, cycle: BillingCycle):
     # 4. Update next billing date
     # 5. Handle payment failures
 
-    print(f"Processing billing cycle for team {team_id}")
+    print(f"Processing billing cycle for team {team_id}, period {period_id}")
 
-    # Update next billing date
-    if cycle.cycle_type == "monthly":
-        next_date = cycle.next_billing_date + timedelta(days=30)
-    else:  # yearly
-        next_date = cycle.next_billing_date + timedelta(days=365)
+    # US#185: Get billing period
+    period = db.query(BillingPeriod).filter(BillingPeriod.id == period_id).first()
+    if not period:
+        print(f"Billing period {period_id} not found")
+        return
 
-    billing_cycles_db[str(team_id)]["next_billing_date"] = next_date.isoformat()
-    billing_cycles_db[str(team_id)]["last_invoice_date"] = datetime.utcnow().isoformat()
+    # Close current period and create next period
+    period.status = BillingPeriodStatus.CLOSED.value
+    period_duration = period.period_end - period.period_start
+    next_period = BillingPeriod(
+        billing_account_id=period.billing_account_id,
+        period_start=period.period_end,
+        period_end=period.period_end + period_duration,
+        status=BillingPeriodStatus.ACTIVE.value,
+    )
+    db.add(next_period)
+    db.commit()
 
 
 @router.get("/payment-failures")
 async def get_payment_failures(
-    team_id: Optional[UUID] = None, current_user: User = Depends(get_current_user)
+    team_id: Optional[UUID] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    unresolved_only: bool = False,
 ) -> List[PaymentFailure]:
     """Get payment failures (admin endpoint)"""
 
-    # In production, check admin permissions
+    # US#185: Query payment failures from database
+    query = db.query(PaymentFailureModel)
 
+    if unresolved_only:
+        query = query.filter(PaymentFailureModel.is_resolved.is_(False))
+
+    if team_id:
+        # Filter by team via billing account
+        query = query.join(BillingAccount).filter(BillingAccount.account_id == team_id)
+
+    failure_models = query.order_by(PaymentFailureModel.failure_date.desc()).all()
+
+    # Convert to Pydantic models
     failures = []
-    for failure_data in payment_failures_db.values():
-        failure = PaymentFailure(**failure_data)
-
-        if team_id is None or failure.team_id == team_id:
-            failures.append(failure)
+    for failure_model in failure_models:
+        team_id_from_account = failure_model.billing_account.account_id if failure_model.billing_account else None
+        if team_id_from_account:
+            failures.append(
+                PaymentFailure(
+                    id=str(failure_model.id),
+                    team_id=team_id_from_account,
+                    invoice_id=str(failure_model.invoice_id),
+                    failure_date=failure_model.failure_date,
+                    failure_reason=failure_model.failure_reason,
+                    retry_count=failure_model.retry_count,
+                    next_retry_date=failure_model.next_retry_date,
+                    is_resolved=failure_model.is_resolved,
+                )
+            )
 
     return failures
 
@@ -549,26 +895,38 @@ async def retry_failed_payment(
     failure_id: str,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Retry failed payment"""
 
-    if failure_id not in payment_failures_db:
+    # US#185: Query payment failure from database
+    try:
+        failure_uuid = UUID(failure_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Invalid payment failure ID format")
+
+    failure_model = db.query(PaymentFailureModel).filter(PaymentFailureModel.id == failure_uuid).first()
+    if not failure_model:
         raise HTTPException(status_code=404, detail="Payment failure not found")
 
-    failure_data = payment_failures_db[failure_id]
-    failure = PaymentFailure(**failure_data)
-
     # Update retry count and schedule retry
-    payment_failures_db[failure_id]["retry_count"] += 1
-    payment_failures_db[failure_id]["next_retry_date"] = (datetime.utcnow() + timedelta(days=3)).isoformat()
+    failure_model.retry_count += 1
+    failure_model.next_retry_date = datetime.now(timezone.utc) + timedelta(days=3)
+    failure_model.updated_at = datetime.now(timezone.utc)
+    db.commit()
+
+    # Get team_id for background task
+    team_id = failure_model.billing_account.account_id if failure_model.billing_account else None
 
     # Process retry
-    background_tasks.add_task(process_payment_retry, failure.invoice_id, failure.team_id)
+    if team_id:
+        background_tasks.add_task(process_payment_retry, str(failure_model.invoice_id), team_id)
 
     return {
         "success": True,
         "message": "Payment retry initiated",
-        "retry_count": failure.retry_count + 1,
+        "retry_count": failure_model.retry_count,
+        "next_retry_date": failure_model.next_retry_date.isoformat() if failure_model.next_retry_date else None,
     }
 
 

@@ -91,10 +91,16 @@ ALTER TABLE users ADD COLUMN vendor_role VARCHAR(20);
 
 ## Access Control
 
-- Only users with `role: "vendor_admin"` may access this UI
-- Requires separate login or SSO (TBD)
+**IMPORTANT:** This is **Vendor Admin** (SPEC-025), NOT Platform Admin (SPEC-005) or Staff Admin (SPEC-085).
+
+- Only users with `vendor_admin` role may access this UI
+- **Different from:** Platform Admin (`users.role='admin'`) - that's for Admin Console (SPEC-005)
+- **Different from:** Staff Admin (`staff.role='admin'`) - that's for Staff Management (SPEC-085)
+- Requires separate vendor admin authentication
 - All actions logged in `audit_log` table
 - Multi-factor authentication required for destructive operations
+
+**See:** [Admin Roles Comprehensive Clarification](../../docs/ADMIN_ROLES_COMPREHENSIVE_CLARIFICATION.md) for details on all admin types.
 
 ## Security Requirements
 

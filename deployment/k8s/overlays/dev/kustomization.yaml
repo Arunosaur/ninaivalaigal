@@ -36,6 +36,7 @@ patchesStrategicMerge:
 - patches/api-server-dev.yaml
 - patches/postgresql-dev.yaml
 - patches/redis-dev.yaml
+- patches/hpa-dev.yaml
 
 secretGenerator:
 - name: database-secret

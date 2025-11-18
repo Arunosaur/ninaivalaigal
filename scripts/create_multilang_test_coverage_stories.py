@@ -14,15 +14,15 @@ import os
 import sys
 from pathlib import Path
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+# Add taiga scripts to path
+taiga_scripts = Path(__file__).parent.parent / "taiga" / "scripts"
+sys.path.insert(0, str(taiga_scripts))
 
 try:
     from taiga_api import create_user_story, get_or_create_epic
 except ImportError:
     print("⚠️  Taiga API module not found. Creating stories JSON only.")
-    print("   To create stories in Taiga, ensure taiga_api.py exists.")
+    print("   To create stories in Taiga, ensure taiga/scripts/taiga_api.py exists.")
     create_user_story = None
     get_or_create_epic = None
 

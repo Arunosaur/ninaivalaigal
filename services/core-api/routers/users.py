@@ -28,8 +28,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import func
 
+# Import models from shared contracts (US#79 - Shared Contracts Layer)
+from auth.v1.models import UserProfileResponse, UserProfileUpdate
 
-# User profile models (inline definitions)
+
+# User profile helper models (not in contracts - service-specific)
 class RoleAssignmentResponse(BaseModel):
     """Role assignment response model"""
 
@@ -40,30 +43,6 @@ class RoleAssignmentResponse(BaseModel):
     is_active: bool
 
 
-class UserProfileResponse(BaseModel):
-    """User profile response model"""
-
-    id: UUID
-    username: str | None = None
-    email: EmailStr
-    name: str
-    account_type: str
-    subscription_tier: str | None = None
-    role: str
-    email_verified: bool
-    is_active: bool
-    created_at: str
-    last_login: str | None = None
-    role_assignments: list[RoleAssignmentResponse] = []
-
-
-class UserProfileUpdate(BaseModel):
-    """User profile update model"""
-
-    name: str | None = None
-    email: EmailStr | None = None
-
-
 # Database manager dependency
 def get_db():
     """Get database manager with dynamic configuration"""
@@ -72,7 +51,7 @@ def get_db():
     return DatabaseManager(get_dynamic_database_url())
 
 
-# NOTE: User profile models now imported from shared contracts
+# NOTE: UserProfileResponse and UserProfileUpdate are imported from shared contracts (US#79)
 # This eliminates duplicate definitions and ensures consistency across services.
 
 

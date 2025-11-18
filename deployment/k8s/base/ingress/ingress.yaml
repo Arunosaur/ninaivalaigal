@@ -5,17 +5,39 @@
 # Unauthorized copying, modification, or distribution is prohibited.
 # See LICENSE file in the server/ directory for details.
 #
+# Ingress Configuration with Path-Based Routing
+# SPEC-024: Ingress Gateway and TLS Automation
+#
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ninaivalaigal-ingress
+  namespace: ninaivalaigal
   labels:
     app: ninaivalaigal
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    # SSL/TLS Configuration
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    
+    # Security Headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+    
+    # Rate Limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "10"
+    
+    # Proxy Settings
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
 spec:
   ingressClassName: nginx
   tls:
@@ -26,6 +48,122 @@ spec:
   - host: api.ninaivalaigal.com
     http:
       paths:
+      # Core API - Auth, Users, Teams, Organizations, ACL
+      - path: /api/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: ninaivalaigal-api-service
+            port:
+              number: 80
+      - path: /api/users
+        pathType: Prefix
+        backend:
+          service:
+            name: ninaivalaigal-api-service
+            port:
+              number: 80
+      - path: /api/teams
+        pathType: Prefix
+        backend:
+          service:
+            name: ninaivalaigal-api-service
+            port:
+              number: 80
+      - path: /api/orgs
+        pathType: Prefix
+        backend:
+          service:
+            name: ninaivalaigal-api-service
+            port:
+              number: 80
+      - path: /api/acl
+        pathType: Prefix
+        backend:
+          service:
+            name: ninaivalaigal-api-service
+            port:
+              number: 80
+      
+      # Business Service - Billing, Usage, Analytics
+      - path: /api/billing
+        pathType: Prefix
+        backend:
+          service:
+            name: business-service
+            port:
+              number: 8000
+      - path: /api/usage
+        pathType: Prefix
+        backend:
+          service:
+            name: business-service
+            port:
+              number: 8000
+      - path: /api/analytics
+        pathType: Prefix
+        backend:
+          service:
+            name: business-service
+            port:
+              number: 8000
+      
+      # Memory Service
+      - path: /api/memory
+        pathType: Prefix
+        backend:
+          service:
+            name: memory-service
+            port:
+              number: 8000
+      - path: /api/recall
+        pathType: Prefix
+        backend:
+          service:
+            name: memory-service
+            port:
+              number: 8000
+      
+      # Graph Service
+      - path: /api/graph
+        pathType: Prefix
+        backend:
+          service:
+            name: graph-service
+            port:
+              number: 8000
+      - path: /api/intelligence
+        pathType: Prefix
+        backend:
+          service:
+            name: graph-service
+            port:
+              number: 8000
+      
+      # Health and Documentation
+      - path: /health
+        pathType: Exact
+        backend:
+          service:
+            name: ninaivalaigal-api-service
+            port:
+              number: 80
+      - path: /docs
+        pathType: Prefix
+        backend:
+          service:
+            name: ninaivalaigal-api-service
+            port:
+              number: 80
+      - path: /openapi.json
+        pathType: Exact
+        backend:
+          service:
+            name: ninaivalaigal-api-service
+            port:
+              number: 80
+      
+      # Default route (fallback)
       - path: /
         pathType: Prefix
         backend:

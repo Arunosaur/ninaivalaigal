@@ -186,14 +186,22 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
 
         if role == "admin":
             if method == "GET":
+                # Admin should have access to admin endpoints
+                if "/api/v1/admin" in path_lower or "/api/billing/admin" in path_lower:
+                    payload = {
+                        "admin_access": True,
+                        "data": [],
+                        "count": 0,
+                    }
+                    return (200, payload)
                 payload = {
                     "admin_access": "/api/v1/admin" in path_lower,
                     "user_profile": path_lower.startswith("/api/v1/users/"),
                 }
                 if path_lower.startswith("/api/v1/memories") and team_param and team_param != team:
-                    return (403, {})
-                if path_lower.startswith("/api/v1/users/"):
-                    return (403, {})
+                    return (403, {"error": "forbidden", "message": "Access denied"})
+                if path_lower.startswith("/api/v1/users/") and not path_lower.endswith(f"/{team}"):
+                    return (403, {"error": "forbidden", "message": "Access denied"})
                 return (200, payload)
             if method == "POST":
                 if path_lower.startswith("/api/v1/teams/") and team:
@@ -217,8 +225,9 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
             return False
 
         if role == "team_lead":
-            if "/api/v1/admin" in path_lower or "/billing/admin" in path_lower:
-                return (403, {})
+            # Block all admin endpoints
+            if "/api/v1/admin" in path_lower or "/billing/admin" in path_lower or path_lower.startswith("/admin/"):
+                return (403, {"error": "forbidden", "message": "Admin access required"})
             if method == "GET":
                 if team_param and team and team_param != team:
                     return (403, {})
@@ -235,6 +244,9 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
                 return (204 if same_team() else 403, {})
 
         if role == "member":
+            # Block all admin endpoints
+            if "/api/v1/admin" in path_lower or "/billing/admin" in path_lower or path_lower.startswith("/admin/"):
+                return (403, {"error": "forbidden", "message": "Admin access required"})
             allowed_get_prefixes = [
                 "/api/v1/memories",
                 "/api/v1/teams/",
@@ -275,10 +287,20 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
     class _StubResponse:
         """Mock HTTP response object."""
 
-        def __init__(self, status_code: int = 200, payload: Dict | None = None):
+        def __init__(self, status_code: int = 200, payload: Dict | None = None, headers: Dict | None = None):
             self.status_code = status_code
             self._payload = payload or {}
             self.text = json.dumps(self._payload)
+            self.headers = headers or {}
+            # Add common headers
+            self.headers.setdefault("Content-Type", "application/json")
+            if status_code == 429:
+                self.headers["Retry-After"] = "60"
+                self.headers["X-RateLimit-Limit"] = "100"
+                self.headers["X-RateLimit-Remaining"] = "0"
+            elif status_code in [200, 201, 204]:
+                self.headers["X-RateLimit-Limit"] = "100"
+                self.headers["X-RateLimit-Remaining"] = "99"
 
         def json(self) -> Dict:
             """Return response as JSON."""
@@ -317,7 +339,7 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
                     user_credentials[username] = json.get("password", "test_password_123")
                     if team_id:
                         user_teams[username] = team_id
-                return _StubResponse(201, {"status": "registered"})
+                return _StubResponse(201, {"status": "registered"}, {"Content-Type": "application/json"})
 
             if normalized.endswith("/auth/login"):
                 username = json.get("username", "user") if json else "user"
@@ -327,7 +349,7 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
                 user_teams.setdefault(username, default_role_teams.get(role))
                 expected_password = user_credentials.get(username, "test_password_123")
                 if supplied_password != expected_password:
-                    return _StubResponse(401, {"error": "invalid_credentials"})
+                    return _StubResponse(401, {"error": "invalid_credentials"}, {"Content-Type": "application/json"})
                 user_credentials.setdefault(username, expected_password)
                 token = f"token-{username}"
                 token_roles[token] = role
@@ -339,12 +361,17 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
                     "refresh_token": f"refresh-{username}",
                     "role": role,
                 }
-                return _StubResponse(200, payload)
+                return _StubResponse(200, payload, {"Content-Type": "application/json"})
 
             role = _role_from_headers(headers)
             team = _team_from_headers(headers)
             status_code, payload = _status_for_request("POST", normalized, role, team, body=json)
-            return _StubResponse(status_code, payload)
+            response_headers = {"Content-Type": "application/json"}
+            if status_code == 429:
+                response_headers["Retry-After"] = "60"
+                response_headers["X-RateLimit-Limit"] = "100"
+                response_headers["X-RateLimit-Remaining"] = "0"
+            return _StubResponse(status_code, payload, response_headers)
 
         async def put(
             self,
@@ -359,7 +386,12 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
             role = _role_from_headers(headers)
             team = _team_from_headers(headers)
             status_code, payload = _status_for_request("PUT", normalized, role, team, body=json)
-            return _StubResponse(status_code, payload)
+            response_headers = {"Content-Type": "application/json"}
+            if status_code == 429:
+                response_headers["Retry-After"] = "60"
+                response_headers["X-RateLimit-Limit"] = "100"
+                response_headers["X-RateLimit-Remaining"] = "0"
+            return _StubResponse(status_code, payload, response_headers)
 
         async def get(
             self,
@@ -374,7 +406,15 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
             role = _role_from_headers(headers)
             team = _team_from_headers(headers)
             status_code, payload = _status_for_request("GET", normalized, role, team, params=params)
-            return _StubResponse(status_code, payload)
+            response_headers = {"Content-Type": "application/json"}
+            if status_code == 429:
+                response_headers["Retry-After"] = "60"
+                response_headers["X-RateLimit-Limit"] = "100"
+                response_headers["X-RateLimit-Remaining"] = "0"
+            elif status_code in [200, 201, 204]:
+                response_headers["X-RateLimit-Limit"] = "100"
+                response_headers["X-RateLimit-Remaining"] = "99"
+            return _StubResponse(status_code, payload, response_headers)
 
         async def delete(
             self,
@@ -388,7 +428,12 @@ def stubbed_http(monkeypatch) -> Dict[str, List[Dict]]:
             role = _role_from_headers(headers)
             team = _team_from_headers(headers)
             status_code, payload = _status_for_request("DELETE", normalized, role, team)
-            return _StubResponse(status_code, payload)
+            response_headers = {"Content-Type": "application/json"}
+            if status_code == 429:
+                response_headers["Retry-After"] = "60"
+                response_headers["X-RateLimit-Limit"] = "100"
+                response_headers["X-RateLimit-Remaining"] = "0"
+            return _StubResponse(status_code, payload, response_headers)
 
         async def aclose(self) -> None:
             """Mock client close."""

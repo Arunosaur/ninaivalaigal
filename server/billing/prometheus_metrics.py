@@ -148,6 +148,28 @@ billing_accounts_total = Gauge(
     "billing_accounts_total", "Total billing accounts", ["account_type", "plan_tier", "status"]
 )
 
+# Archive Metrics (BILL-014)
+archive_operations_total = Counter(
+    "billing_archive_operations_total", "Total archive operations", ["operation_type", "status"]
+)
+
+archive_events_archived = Counter(
+    "billing_archive_events_archived_total", "Total events archived", ["billing_period_id"]
+)
+
+archive_size_bytes = Gauge("billing_archive_size_bytes", "Archive file size in bytes", ["archive_key"])
+
+archive_duration_seconds = Histogram(
+    "billing_archive_duration_seconds",
+    "Archive operation duration",
+    ["operation_type"],
+    buckets=[1, 5, 10, 30, 60, 300, 600],
+)
+
+archive_storage_cost_usd = Gauge("billing_archive_storage_cost_usd", "Archive storage cost in USD", ["storage_backend"])
+
+archive_eligible_events = Gauge("billing_archive_eligible_events", "Events eligible for archival", [])
+
 active_billing_periods = Gauge("billing_active_periods_total", "Active billing periods")
 
 revenue_total = Summary("billing_revenue_total", "Total revenue", ["currency"])
@@ -162,6 +184,30 @@ grace_periods_active = Gauge("billing_grace_periods_active", "Active grace perio
 grace_period_days_remaining = Gauge(
     "billing_grace_period_days_remaining", "Days remaining in grace period", ["billing_account_id"]
 )
+
+# Event Stream Metrics
+event_stream_published_total = Counter(
+    "billing_event_stream_published_total", "Total events published to stream", ["event_type", "aggregate_type"]
+)
+
+event_stream_publish_duration_seconds = Histogram(
+    "billing_event_stream_publish_duration_seconds",
+    "Event stream publish duration",
+    ["event_type"],
+    buckets=[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0],
+)
+
+event_stream_publish_errors_total = Counter(
+    "billing_event_stream_publish_errors_total", "Event stream publish errors", ["event_type", "error_type"]
+)
+
+event_stream_lag_seconds = Gauge("billing_event_stream_lag_seconds", "Event stream processing lag", ["event_type"])
+
+billing_events_total = Counter(
+    "billing_events_total", "Total billing events recorded", ["event_type", "aggregate_type"]
+)
+
+billing_events_published = Gauge("billing_events_published", "Billing events published to stream", ["event_type"])
 
 
 def record_usage_event(resource_type: str, account_type: str, quantity: float):
@@ -231,3 +277,29 @@ def record_payment_transfer(status: str, reason: str):
     """Record payment transfer metrics"""
     if PROMETHEUS_AVAILABLE:
         payment_transfers_total.labels(status=status, reason=reason).inc()
+
+
+def record_event_stream_publish(
+    event_type: str, aggregate_type: str, duration: float, success: bool, error_type: str = None
+):
+    """Record event stream publish metrics"""
+    if PROMETHEUS_AVAILABLE:
+        if success:
+            event_stream_published_total.labels(event_type=event_type, aggregate_type=aggregate_type).inc()
+            event_stream_publish_duration_seconds.labels(event_type=event_type).observe(duration)
+        else:
+            event_stream_publish_errors_total.labels(event_type=event_type, error_type=error_type or "unknown").inc()
+
+
+def record_billing_event(event_type: str, aggregate_type: str, published: bool = False):
+    """Record billing event metrics"""
+    if PROMETHEUS_AVAILABLE:
+        billing_events_total.labels(event_type=event_type, aggregate_type=aggregate_type).inc()
+        if published:
+            billing_events_published.labels(event_type=event_type).inc()
+
+
+def update_event_stream_lag(event_type: str, lag_seconds: float):
+    """Update event stream processing lag"""
+    if PROMETHEUS_AVAILABLE:
+        event_stream_lag_seconds.labels(event_type=event_type).set(lag_seconds)

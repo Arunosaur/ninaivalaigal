@@ -34,12 +34,16 @@ matrix:
       em: 8281
       prometheus: 9090
       grafana: 3001
+      loki: 3100
+      promtail: 9080
       core_api: 13370
       business_logic: 13371
       admin_vendor: 13372
       memory_service: 13373
       graph_service: 13374
       grpc_gateway: 13375
+      graphops: 13376
+      graphops_metrics: 9091
     test:
       postgresql: 5532
       pgbouncer: 6532
@@ -56,6 +60,8 @@ matrix:
       memory_service: 13473
       graph_service: 13474
       grpc_gateway: 13475
+      graphops: 13476
+      graphops_metrics: 9191
     prod:
       postgresql: 5632
       pgbouncer: 6632
@@ -72,6 +78,8 @@ matrix:
       memory_service: 13573
       graph_service: 13574
       grpc_gateway: 13575
+      graphops: 13576
+      graphops_metrics: 9291
   colima:
     dev:
       postgresql: 5442
@@ -89,6 +97,8 @@ matrix:
       memory_service: 13383
       graph_service: 13384
       grpc_gateway: 13385
+      graphops: 13386
+      graphops_metrics: 9101
     test:
       postgresql: 5542
       pgbouncer: 6542
@@ -105,6 +115,8 @@ matrix:
       memory_service: 13483
       graph_service: 13484
       grpc_gateway: 13485
+      graphops: 13486
+      graphops_metrics: 9201
     prod:
       postgresql: 5642
       pgbouncer: 6642
@@ -121,6 +133,8 @@ matrix:
       memory_service: 13583
       graph_service: 13584
       grpc_gateway: 13585
+      graphops: 13586
+      graphops_metrics: 9301
   apple:
     dev:
       postgresql: 5452
@@ -139,6 +153,7 @@ matrix:
       load_tester: 13396
       cli_tools: 13397
       graphops: 13398
+      graphops_metrics: 9091
       jaeger_otlp_grpc: 4317
       jaeger_otlp_http: 4318
       jaeger_ui: 16686
@@ -163,6 +178,8 @@ matrix:
       memory_service: 13493
       graph_service: 13494
       grpc_gateway: 13495
+      graphops: 13496
+      graphops_metrics: 9211
     prod:
       postgresql: 5652
       pgbouncer: 6652
@@ -179,6 +196,8 @@ matrix:
       memory_service: 13593
       graph_service: 13594
       grpc_gateway: 13595
+      graphops: 13596
+      graphops_metrics: 9311
 naming_conventions:
   container_pattern: ninaivalaigal-{env}-{service}
   database_pattern: ninaivalaigal_{env}
@@ -317,14 +336,16 @@ services:
     description: GraphOps gRPC Service (Rust) - Graph operations via gRPC
     container_port: 50051
     host_port: 13398
+    metrics_container_port: 9090
+    metrics_host_port: 9091
     protocol: grpc
     internal_access: Use container IP with port 50051 for service-to-service communication
     external_access: Use localhost:13398 for external clients (grpcurl, testing)
     health_check: /usr/local/bin/graphops --health-check
     grpc_reflection: enabled
     explore: grpcurl -plaintext localhost:13398 list
-    metrics: http://localhost:9090/metrics
-    note: 'Task #49 - gRPC+HTTP service on 13398 (139xx range)'
+    metrics: http://localhost:9091/metrics
+    note: 'Task #49 - gRPC+HTTP service on 13398 (139xx range), metrics on 9091 (avoid Prometheus conflict on 9090)'
   load_tester:
     description: Go Load Testing Tool - Concurrent benchmarking
     container_port: 8080
@@ -354,6 +375,21 @@ services:
     ui: http://localhost:3001
     default_credentials: admin/admin
     note: US#102 - Real-time monitoring dashboards and SLO tracking
+  loki:
+    description: Grafana Loki - Log Aggregation (SIEM)
+    container_port: 3100
+    host_port: 3100
+    protocol: http
+    health_check: curl -f http://localhost:3100/ready
+    ui: http://localhost:3100
+    note: US#619 - Centralized log aggregation with 30-day retention
+  promtail:
+    description: Promtail - Log Collection Agent
+    container_port: 9080
+    host_port: 9080
+    protocol: http
+    health_check: curl -f http://localhost:9080/ready
+    note: US#619 - Collects logs from Docker containers and sends to Loki
 port_ranges:
   postgresql:
     start: 5432

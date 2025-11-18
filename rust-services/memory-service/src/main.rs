@@ -15,6 +15,7 @@ use cache::MemoryCache;
 use dotenvy::dotenv;
 use models::{CreateMemoryRequest, Memory, RecallRequest};
 use serde_json::json;
+use services::event_stream::EventStream;
 use std::env;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -29,14 +30,21 @@ pub struct AppState {
     storage: Arc<MemoryStorage>,
     cache: MemoryCache,
     auth: JwtVerifier,
+    event_stream: Arc<tokio::sync::Mutex<EventStream>>,
 }
 
 impl AppState {
-    fn new(storage: MemoryStorage, cache: MemoryCache, auth: JwtVerifier) -> Self {
+    fn new(
+        storage: MemoryStorage,
+        cache: MemoryCache,
+        auth: JwtVerifier,
+        event_stream: EventStream,
+    ) -> Self {
         Self {
             storage: Arc::new(storage),
             cache,
             auth,
+            event_stream: Arc::new(tokio::sync::Mutex::new(event_stream)),
         }
     }
 
@@ -46,6 +54,10 @@ impl AppState {
 
     fn cache(&self) -> MemoryCache {
         self.cache.clone()
+    }
+
+    fn event_stream(&self) -> Arc<tokio::sync::Mutex<EventStream>> {
+        Arc::clone(&self.event_stream)
     }
 
     fn auth(&self) -> &JwtVerifier {
@@ -92,11 +104,16 @@ async fn main() {
         .await
         .expect("failed to initialise MemoryCache");
 
+    // Initialize Redis Streams event publisher (US#646: SPEC-099)
+    let stream_name = env::var("REDIS_STREAM_NAME")
+        .unwrap_or_else(|_| "events:memory".to_string());
+    let event_stream = EventStream::new(redis_url.clone(), Some(stream_name));
+
     let jwt_secret =
         env::var("NINAIVALAIGAL_JWT_SECRET").expect("NINAIVALAIGAL_JWT_SECRET must be set");
     let jwt = JwtVerifier::new(&jwt_secret);
 
-    let state = Arc::new(AppState::new(storage, cache, jwt));
+    let state = Arc::new(AppState::new(storage, cache, jwt, event_stream));
 
     let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "8000".to_string())
@@ -230,13 +247,35 @@ async fn remember(
 ) -> Result<Json<Memory>, StatusCode> {
     let storage = state.storage();
     let cache = state.cache();
+    let event_stream = state.event_stream();
     let user_id = user.user_id();
 
     match storage.create_memory(user_id, request).await {
         Ok(memory) => {
+            // Invalidate cache
             if let Err(error) = cache.invalidate_user(user_id).await {
                 warn!(?error, user_id = %user_id, "failed to invalidate cache after create");
             }
+
+            // Publish memory.created event to Redis Streams (US#646: SPEC-099)
+            let mut stream = event_stream.lock().await;
+            if let Err(error) = stream
+                .publish_memory_created(
+                    memory.id,
+                    user_id,
+                    &memory.content,
+                    memory.context_id,
+                )
+                .await
+            {
+                warn!(
+                    ?error,
+                    memory_id = %memory.id,
+                    "failed to publish memory.created event"
+                );
+                // Don't fail the request if event publishing fails
+            }
+
             Ok(Json(memory))
         }
         Err(error) => {
@@ -270,6 +309,7 @@ async fn recall(
 ) -> Result<Json<Vec<Memory>>, StatusCode> {
     let storage = state.storage();
     let cache = state.cache();
+    let event_stream = state.event_stream();
     let user_id = user.user_id();
     let RecallRequest { query, limit } = request;
     let limit = limit.unwrap_or(10).clamp(1, 100) as i64;
@@ -283,6 +323,21 @@ async fn recall(
             if let Err(error) = cache.cache_recall(user_id, &query, limit, &memories).await {
                 warn!(?error, user_id = %user_id, "failed to cache recall result");
             }
+
+            // Publish memory.recalled event to Redis Streams (US#646: SPEC-099)
+            let mut stream = event_stream.lock().await;
+            if let Err(error) = stream
+                .publish_memory_recalled(user_id, &query, memories.len())
+                .await
+            {
+                warn!(
+                    ?error,
+                    user_id = %user_id,
+                    "failed to publish memory.recalled event"
+                );
+                // Don't fail the request if event publishing fails
+            }
+
             Ok(Json(memories))
         }
         Err(error) => {
@@ -361,6 +416,7 @@ async fn delete_memory(
 ) -> StatusCode {
     let storage = state.storage();
     let cache = state.cache();
+    let event_stream = state.event_stream();
     let user_id = user.user_id();
 
     match storage.delete_memory(id, user_id).await {
@@ -369,6 +425,18 @@ async fn delete_memory(
             if let Err(error) = cache.invalidate_user(user_id).await {
                 warn!(?error, user_id = %user_id, "failed to invalidate cache after delete");
             }
+
+            // Publish memory.deleted event to Redis Streams (US#646: SPEC-099)
+            let mut stream = event_stream.lock().await;
+            if let Err(error) = stream.publish_memory_deleted(id, user_id).await {
+                warn!(
+                    ?error,
+                    memory_id = %id,
+                    "failed to publish memory.deleted event"
+                );
+                // Don't fail the request if event publishing fails
+            }
+
             StatusCode::NO_CONTENT
         }
         Err(error) => {

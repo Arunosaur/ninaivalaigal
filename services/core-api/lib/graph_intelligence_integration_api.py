@@ -24,6 +24,18 @@ from pydantic import BaseModel, Field
 from redis_client import get_redis_client
 from sqlalchemy.orm import Session
 
+# LangSmith tracing (US#139)
+try:
+    from langsmith import traceable
+except ImportError:
+    # No-op decorator if langsmith not available
+    def traceable(*args, **kwargs):
+        def decorator(func):
+            return func
+
+        return decorator
+
+
 # Initialize router
 router = APIRouter(prefix="/graph-intelligence", tags=["graph-intelligence-integration"])
 
@@ -489,6 +501,7 @@ async def sync_graph_data(
 
 
 @router.post("/reasoning", response_model=GraphReasoningResponse)
+@traceable(name="graph_reasoning")  # US#139: LangSmith tracing
 async def execute_graph_reasoning(
     request: GraphReasoningRequest,
     current_user: User = Depends(get_current_user),
@@ -521,6 +534,7 @@ async def execute_graph_reasoning(
 
 
 @router.post("/context-injection", response_model=ContextInjectionResponse)
+@traceable(name="graph_context_injection")  # US#139: LangSmith tracing
 async def inject_graph_context(
     request: ContextInjectionRequest,
     current_user: User = Depends(get_current_user),

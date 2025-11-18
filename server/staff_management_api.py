@@ -26,16 +26,28 @@ from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/admin/sta", tags=["Staff Management"])
+router = APIRouter(prefix="/admin/staff", tags=["Staff Management"])
 
 
-# TODO: Add proper RBAC integration later
-# For now, we'll use a simple dependency that checks for admin role
-def require_admin_role(token: str = None):
-    """Temporary admin check - replace with proper RBAC"""
-    # For now, return a mock admin user
-    # In production, this should verify JWT token and check role
-    return {"user_id": "admin", "role": "admin"}
+# Import JWT authentication from staff_auth_api
+from fastapi import Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+# Re-export authentication functions from staff_auth_api
+try:
+    from staff_auth_api import get_current_staff
+    from staff_auth_api import require_admin_role as _require_admin_role
+
+    # Use real JWT authentication
+    def require_admin_role(current_staff: dict = Depends(_require_admin_role)):
+        """Require admin role - uses real JWT authentication"""
+        return current_staff
+
+except ImportError:
+    # Fallback if staff_auth_api not available (should not happen)
+    def require_admin_role(token: str = None):
+        """Fallback admin check - should not be used in production"""
+        return {"user_id": "admin", "role": "admin"}
 
 
 # ============================================================================
@@ -44,7 +56,7 @@ def require_admin_role(token: str = None):
 
 
 class StaffCreate(BaseModel):
-    """Request model for creating sta"""
+    """Request model for creating staff"""
 
     name: str = Field(..., min_length=2, max_length=255)
     email: EmailStr
@@ -68,7 +80,7 @@ class StaffResponse(BaseModel):
 
 
 class StaffCreateResponse(BaseModel):
-    """Response after creating sta"""
+    """Response after creating staff"""
 
     staff_id: UUID
     temporary_password: str
@@ -84,7 +96,7 @@ class StaffRoleUpdate(BaseModel):
 
 
 class StaffDeactivate(BaseModel):
-    """Request model for deactivating sta"""
+    """Request model for deactivating staff"""
 
     reason: str = Field(..., min_length=10, max_length=500)
 
@@ -215,8 +227,8 @@ async def create_staff(
     log_staff_activity(
         db=db,
         staff_id=UUID(current_user["user_id"]),
-        action="create_sta",
-        resource_type="sta",
+        action="create_staff",
+        resource_type="staff",
         resource_id=str(staff_id),
         details={
             "new_staff_email": staff_data.email,
@@ -357,7 +369,7 @@ async def update_staff_role(
         db=db,
         staff_id=UUID(current_user["user_id"]),
         action="update_staff_role",
-        resource_type="sta",
+        resource_type="staff",
         resource_id=str(staff_id),
         details={
             "old_role": old_role,
@@ -426,8 +438,8 @@ async def deactivate_staff(
     log_staff_activity(
         db=db,
         staff_id=UUID(current_user["user_id"]),
-        action="deactivate_sta",
-        resource_type="sta",
+        action="deactivate_staff",
+        resource_type="staff",
         resource_id=str(staff_id),
         details={"reason": deactivate_data.reason},
         ip_address=request.client.host if request.client else None,

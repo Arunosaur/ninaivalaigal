@@ -1,130 +1,128 @@
 # Missing SPEC Stories Creation - Complete
 
-**Date**: January 2025
-**Status**: ✅ **COMPLETE** - All SPECs without stories now have stories
+**Date**: November 6, 2025
+**Status**: ✅ **COMPLETE** - All high-priority missing SPECs now have stories
 
 ---
 
 ## 📊 Summary
 
-- **Stories Created**: 53 user stories for SPECs without existing stories
+- **Stories Created**: 12 user stories for 3 missing SPECs
 - **Project**: ninaivalaigal
-- **Assignee**: Developer C (ID: 8)
-- **Status**: All marked as "Done"
-- **Tag**: Each story tagged with SPEC-XXX
+- **SPECs Covered**: SPEC-059, SPEC-130, SPEC-131
+- **Status**: All stories created and tagged properly
 
 ---
 
-## ✅ Process
+## ✅ SPECs Covered
 
-### 1. Identification
-- Parsed SPEC_INDEX.md to get all SPECs (140 found)
-- Queried Taiga API to get existing stories with SPEC numbers
-- Found 86 SPECs with existing stories
-- Identified 53 SPECs without stories
+### SPEC-059: Unified Macro Intelligence
 
-### 2. Story Creation
-- Created stories for all 53 missing SPECs
-- Assigned to Developer C (username: `developer-c`, ID: 8)
-- Marked all as "Done" status
-- Added SPEC-XXX tags to each story
-- Generated descriptions based on:
-  - SPEC title and status from SPEC_INDEX.md
-  - SPEC README content (if available)
+**Status**: In Progress (~40-50% complete)
+**Stories Created**: 7 stories (US#1007, US#1017, US#1031-1035)
+
+**Phase Breakdown**:
+- **Phase 1: Foundation** - US#1007 (Macro Schema Definition)
+- **Phase 2: Recording APIs** - US#1031-1033 (Option A, B, C)
+- **Phase 3: Indexing** - US#1017 (Metadata Indexing)
+- **Phase 4: Replay** - US#1034 (Replay Infrastructure)
+- **Phase 5: UI** - US#1035 (Macro Dashboard)
+
+**Notes**: Intelligence engine already complete, stories focus on remaining deliverables (recording, replay, UI).
+
+---
+
+### SPEC-130: Terminal/CLI Auto Context Capture
+
+**Status**: Planned
+**Stories Created**: 3 stories (US#1024, US#1028, US#1036)
+
+**Phase Breakdown**:
+- **Phase 1: Foundation** - US#1024 (Terminal Context Capture Foundation)
+- **Phase 2: IDE Integration** - US#1036 (VS Code & JetBrains)
+- **Phase 3: Processing** - US#1028 (Context Processing & Storage)
+
+**Notes**: Covers shell hooks, IDE integration, and context processing.
+
+---
+
+### SPEC-131: Memory Router Rationalization
+
+**Status**: Planned (Phase 1 Complete)
+**Stories Created**: 2 stories (US#1029-1030)
+
+**Phase Breakdown**:
+- **Phase 2: Conditional Evaluations** - US#1029 (Conditional Router Evaluations)
+- **Phase 3: Cleanup** - US#1030 (Python Router Cleanup & Deprecation)
+
+**Notes**: Phase 1 (US#95) already complete. New stories for Phase 2 & 3.
 
 ---
 
 ## 📋 Stories Created
 
-### Deprecated SPECs (3 stories)
-- **US#553**: SPEC-002: ~~User Management & Authentication~~ (DEPRECATED - See SPEC-006)
-- **US#555**: SPEC-066: ~~Standalone Team Accounts~~ (DEPRECATED)
+### SPEC-059 Stories
 
-### Reserved/Placeholder (1 story)
-- **US#554**: SPEC-037: (Reserved)
+| Story ID | Subject | Points | Priority | Phase |
+|----------|---------|--------|----------|-------|
+| US#1007 | UMI-001: Macro Schema Definition & Database Design | 8 | HIGH | Phase 1 |
+| US#1017 | UMI-005: Macro Metadata Indexing System | 8 | MEDIUM | Phase 3 |
+| US#1031 | UMI-002: Macro Recording API - Option A (Script-based) | 8 | HIGH | Phase 2 |
+| US#1032 | UMI-003: Macro Recording API - Option B (Visual/Replay) | 8 | MEDIUM | Phase 2 |
+| US#1033 | UMI-004: Macro Recording API - Option C (Implicit) | 8 | MEDIUM | Phase 2 |
+| US#1034 | UMI-006: Macro Replay Infrastructure | 8 | HIGH | Phase 4 |
+| US#1035 | UMI-007: Macro Dashboard User Interface | 8 | MEDIUM | Phase 5 |
 
-### Planned SPECs (32 stories)
-- **US#556**: SPEC-067: Advanced D3.js Visualizations
-- **US#557**: SPEC-069: Real-Time Collaboration
-- **US#558**: SPEC-074: GDPR Compliance
-- **US#559**: SPEC-076: Pilot Program Expansion
-- **US#560**: SPEC-078: White-Label Platform
-- **US#561**: SPEC-079: Mobile App Support
-- **US#562**: SPEC-080: Offline Mode
-- **US#563**: SPEC-081: Progressive Web App
-- **US#564**: SPEC-082: Analytics and ROI Dashboard
-- **US#565**: SPEC-083: Predictive Analytics
-- **US#568**: SPEC-088: API Versioning Strategy
-- **US#569**: SPEC-089: Breaking Change Management
-- **US#570**: SPEC-090: Approval Chain Processing (ACP)
-- **US#571**: SPEC-091: Agent-to-Agent Context Propagation (A2A)
-- **US#572**: SPEC-092: Middleware Resilience Follow-up
-- **US#573**: SPEC-095: Memory Graph State Reconciliation
-- **US#575**: SPEC-098: Memory Health & Orphaned Tokens
-- **US#576**: SPEC-102: Frontend Migration Preparation
-- **US#578**: SPEC-104: Post-Migration Quality Verification
-- **US#599**: SPEC-128: Memory Sharing & Transfer Architecture
-- **US#600**: SPEC-129: External AI Memory API Integration
-- **US#601**: SPEC-130: Terminal/CLI Auto Context Capture
-- **US#602**: SPEC-134: Perception System Architecture
-- **US#603**: SPEC-135: Multi-Agent Expert Protocol
-- **US#604**: SPEC-136: Execution System Backends
-- **US#605**: SPEC-137: Agent Plan Reflection Loop
+### SPEC-130 Stories
 
-### Complete SPECs (17 stories)
-- **US#566**: SPEC-084: Agentic UI Testing Framework (ENHANCED)
-- **US#567**: SPEC-087: API Surface Contracts (🔄 Partial)
-- **US#574**: SPEC-096: Frontend Quality Enforcement & CI/CD
-- **US#577**: SPEC-103: Next.js 15 Bootstrap & Component Port
-- **US#579**: SPEC-105: Backend Integration & Database Connectivity
-- **US#580**: SPEC-106: Frontend Linting & Formatting Standard
-- **US#581**: SPEC-107: Unified Runtime Parity & Deployment Standard
-- **US#582**: SPEC-108: Image Backup & Disaster Recovery
-- **US#583**: SPEC-109: Environment Naming, Tagging & Versioning
-- **US#584**: SPEC-110: Release Workflow - Multi-Arch to GHCR
-- **US#585**: SPEC-111: CI/CD Security Baseline & Secret Management
-- **US#586**: SPEC-113: Profile & Settings Pages
-- **US#587**: SPEC-114: Auth & Security Integration
-- **US#588**: SPEC-115: Real-Time Features (WebSocket/SSE)
-- **US#589**: SPEC-116: Internal Frontend Migration
-- **US#590**: SPEC-117: Feature Flags & Progressive Rollout (In Progress)
-- **US#591**: SPEC-118: Observability & Performance Budgets
-- **US#592**: SPEC-119: Automated SLO Enforcement
-- **US#593**: SPEC-120: Cost Optimization & Governance
-- **US#594**: SPEC-121: Frontend Shared Library Implementation
-- **US#595**: SPEC-123: Admin Frontend Rollout (Internal)
-- **US#596**: SPEC-124: Unified Workspace & CI/CD Pipelines
-- **US#597**: SPEC-125: Frontend Documentation & Monitoring
-- **US#598**: SPEC-126: ML Model Training & Fine-Tuning Pipeline (Planned)
+| Story ID | Subject | Points | Priority | Phase |
+|----------|---------|--------|----------|-------|
+| US#1024 | CLI-CAP-001: Terminal Context Capture Foundation | 8 | HIGH | Phase 1 |
+| US#1028 | CLI-CAP-003: Context Processing & Storage | 8 | MEDIUM | Phase 3 |
+| US#1036 | CLI-CAP-002: IDE Integration (VS Code & JetBrains) | 8 | MEDIUM | Phase 2 |
+
+### SPEC-131 Stories
+
+| Story ID | Subject | Points | Priority | Phase |
+|----------|---------|--------|----------|-------|
+| US#1029 | ROUTER-002: Conditional Router Evaluations | 8 | MEDIUM | Phase 2 |
+| US#1030 | ROUTER-003: Python Router Cleanup & Deprecation | 5 | LOW | Phase 3 |
 
 ---
 
-## ✅ Verification
+## ✅ Documentation Updates
 
-All stories were:
-- ✅ Created in ninaivalaigal project (ID: 1)
-- ✅ Assigned to Developer C (ID: 8)
-- ✅ Marked as "Done" status (ID: 5)
-- ✅ Tagged with SPEC-XXX format
-- ✅ Given descriptive titles and descriptions
+### SPEC READMEs Updated
 
----
+1. **SPEC-059 README**: Added "Taiga Stories" section with all 7 story references
+2. **SPEC-130 README**: Added "Taiga Stories" section with all 3 story references
+3. **SPEC-131 README**: Updated Taiga reference to include new stories (US#1029-1030)
 
-## 📈 Impact
+### SPEC_INDEX.md Updated
 
-**Before**:
-- 86 SPECs with stories
-- 53 SPECs without stories
-- **Coverage**: 62% (86/139 active SPECs)
-
-**After**:
-- 139 SPECs with stories
-- 0 SPECs without stories
-- **Coverage**: 100% (139/139 active SPECs)
+- **SPEC-059**: Added story references (US#1007, US#1017, US#1031-1035)
+- **SPEC-130**: Added story references (US#1024, US#1028, US#1036)
+- **SPEC-131**: Added story references (US#1029-1030)
 
 ---
 
-**Status**: ✅ **COMPLETE**
-**Total Stories Created**: 53
-**Range**: US#553 - US#605
-**Next Action**: None required - All SPECs now have stories
+## 🎯 Next Steps
+
+1. **Assign Stories**: Assign stories to developers based on priority and expertise
+2. **Begin Implementation**: Start with Phase 1 stories for each SPEC
+3. **Track Progress**: Update story status as work progresses
+4. **Update Documentation**: Keep SPEC READMEs updated with implementation status
+
+---
+
+## 📝 Notes
+
+- All stories are tagged with `spec-XXX` format for easy filtering
+- Stories are in "Ready" status and ready for assignment
+- Points values set to 8 (valid for project's points scale)
+- Priority levels: HIGH (2), MEDIUM (1), LOW (0)
+
+---
+
+**Last Updated**: November 6, 2025
+**Created By**: Automated script (`scripts/create_missing_spec_stories.py`)

@@ -21,7 +21,8 @@ for candidate in (
     _REPO_ROOT,
     _REPO_ROOT / "src",
     _REPO_ROOT / "shared" / "storage",
-    _REPO_ROOT / "services" / "core-api" / "lib",
+    _REPO_ROOT / "services" / "core-api",  # Add core-api directory so lib is importable as package
+    _REPO_ROOT / "services" / "core-api" / "lib",  # Also add lib for backward compatibility
 ):
     path_str = str(candidate)
     if path_str not in sys.path:

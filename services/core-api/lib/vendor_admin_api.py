@@ -15,10 +15,12 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 import structlog
-from auth_service import get_current_user, require_admin_role
+from auth_service import get_current_user
 from database.operations import DatabaseOperations, get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+
+from auth import require_vendor_admin
 
 logger = structlog.get_logger(__name__)
 
@@ -93,8 +95,12 @@ async def get_admin_dashboard_overview(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> SystemHealthMetrics:
-    """Get high-level system overview for vendor admin dashboard."""
-    require_admin_role(current_user, "vendor_admin")
+    """
+    Get high-level system overview for vendor admin dashboard.
+
+    **Required:** Vendor Admin (vendor_admin role) - SPEC-025 Vendor Admin Console
+    """
+    require_vendor_admin(current_user)
 
     try:
         # Get system-wide metrics
@@ -136,8 +142,13 @@ async def list_all_tenants(
     current_user: dict = Depends(get_current_user),
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, Any]:
-    """List all tenants with pagination and filtering."""
-    require_admin_role(current_user, "vendor_admin")
+    """
+    List all tenants with pagination and filtering.
+
+    **Required:** Vendor Admin (vendor_admin role) - SPEC-025 Vendor Admin Console
+    This endpoint is for multi-tenant SaaS management, NOT for Platform Admin or Staff Admin.
+    """
+    require_vendor_admin(current_user)
 
     try:
         offset = (page - 1) * limit
@@ -185,7 +196,7 @@ async def get_tenant_usage_analytics(
     db: DatabaseOperations = Depends(get_db),
 ) -> List[UsageMetrics]:
     """Get detailed usage analytics for a specific tenant."""
-    require_admin_role(current_user, "vendor_admin")
+    require_vendor_admin(current_user)
 
     try:
         # Verify tenant exists
@@ -228,7 +239,7 @@ async def get_tenant_rate_limits(
     db: DatabaseOperations = Depends(get_db),
 ) -> RateLimitConfig:
     """Get current rate limit configuration for a tenant."""
-    require_admin_role(current_user, "vendor_admin")
+    require_vendor_admin(current_user)
 
     try:
         # Verify tenant exists
@@ -261,7 +272,7 @@ async def update_tenant_rate_limits(
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, str]:
     """Update rate limit configuration for a tenant."""
-    require_admin_role(current_user, "vendor_admin")
+    require_vendor_admin(current_user)
 
     try:
         # Verify tenant exists
@@ -310,7 +321,7 @@ async def suspend_tenant(
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, str]:
     """Suspend a tenant (disable access while preserving data)."""
-    require_admin_role(current_user, "vendor_admin")
+    require_vendor_admin(current_user)
 
     try:
         # Verify tenant exists and is not already suspended
@@ -359,7 +370,7 @@ async def reactivate_tenant(
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, str]:
     """Reactivate a suspended tenant."""
-    require_admin_role(current_user, "vendor_admin")
+    require_vendor_admin(current_user)
 
     try:
         # Verify tenant exists and is suspended
@@ -410,7 +421,7 @@ async def get_admin_audit_logs(
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, Any]:
     """Get admin audit logs with pagination and filtering."""
-    require_admin_role(current_user, "vendor_admin")
+    require_vendor_admin(current_user)
 
     try:
         offset = (page - 1) * limit
@@ -458,7 +469,7 @@ async def get_system_health_detailed(
     db: DatabaseOperations = Depends(get_db),
 ) -> Dict[str, Any]:
     """Get detailed system health information for vendor admin."""
-    require_admin_role(current_user, "vendor_admin")
+    require_vendor_admin(current_user)
 
     try:
         # Get comprehensive system health metrics

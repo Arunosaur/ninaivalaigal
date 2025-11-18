@@ -131,7 +131,7 @@ def get_dynamic_database_url() -> str:
     try:
         import subprocess
 
-    script_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "scripts", "get-port.sh")
+        script_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "scripts", "get-port.sh")
         postgres_port = subprocess.run(
             [script_path, "postgres", nina_env, nina_runtime],
             capture_output=True,

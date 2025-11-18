@@ -223,6 +223,107 @@ pub async fn get_memory(
     }
 }
 
+/// Update an existing memory
+pub async fn update_memory(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(id): Path<Uuid>,
+    Json(req): Json<CreateMemoryRequest>,
+) -> Result<Json<MemoryResponse>, AppError> {
+    tracing::info!("Updating memory {} for user: {}", id, user.user_id);
+
+    // Validate scope
+    if !["personal", "team", "organization"].contains(&req.scope.as_str()) {
+        return Err(AppError::BadRequest(
+            "Scope must be one of: personal, team, organization".to_string(),
+        ));
+    }
+
+    let metadata_json = req.metadata.unwrap_or_else(|| serde_json::json!({}));
+
+    let memory = sqlx::query_as::<_, Memory>(
+        r#"
+        UPDATE memory.memory_records
+        SET text = $1,
+            metadata = $2,
+            scope = $3,
+            kind = $4,
+            updated_at = NOW()
+        WHERE id = $5 AND user_id = $6
+        RETURNING id, user_id, team_id, org_id, scope, kind, text, metadata,
+                   embedding::text as embedding, created_at, updated_at
+        "#,
+    )
+    .bind(&req.content)
+    .bind(&metadata_json)
+    .bind(&req.scope)
+    .bind(&req.kind)
+    .bind(id)
+    .bind(user.user_id)
+    .fetch_optional(&state.db)
+    .await?;
+
+    match memory {
+        Some(m) => {
+            // Invalidate cache
+            let cache_key = format!("memory:{}:{}", user.user_id, id);
+            let mut redis_conn = state.redis.clone();
+            let _ = redis::cmd("DEL")
+                .arg(&cache_key)
+                .query_async::<_, ()>(&mut redis_conn)
+                .await;
+
+            let response = MemoryResponse {
+                id: m.id,
+                content: m.text,
+                metadata: m.metadata,
+                scope: m.scope,
+                kind: m.kind,
+                created_at: m.created_at,
+                updated_at: m.updated_at,
+            };
+
+            Ok(Json(response))
+        }
+        None => Err(AppError::NotFound(format!("Memory {} not found", id))),
+    }
+}
+
+/// Delete a memory
+pub async fn delete_memory(
+    State(state): State<AppState>,
+    Extension(user): Extension<AuthenticatedUser>,
+    Path(id): Path<Uuid>,
+) -> Result<axum::http::StatusCode, AppError> {
+    tracing::info!("Deleting memory {} for user: {}", id, user.user_id);
+
+    let rows_affected = sqlx::query(
+        r#"
+        DELETE FROM memory.memory_records
+        WHERE id = $1 AND user_id = $2
+        "#,
+    )
+    .bind(id)
+    .bind(user.user_id)
+    .execute(&state.db)
+    .await?
+    .rows_affected();
+
+    if rows_affected == 0 {
+        return Err(AppError::NotFound(format!("Memory {} not found", id)));
+    }
+
+    // Invalidate cache
+    let cache_key = format!("memory:{}:{}", user.user_id, id);
+    let mut redis_conn = state.redis.clone();
+    let _ = redis::cmd("DEL")
+        .arg(&cache_key)
+        .query_async::<_, ()>(&mut redis_conn)
+        .await;
+
+    Ok(axum::http::StatusCode::NO_CONTENT)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -197,7 +197,9 @@ def main():
     if not story:
         print("   ❌ US#601 not found by reference number")
         print("   🔍 Searching by subject/tags...")
-        story = find_story_by_subject_or_tags(token, project_id, ["spec-130", "terminal cli", "auto context", "cli capture"])
+        story = find_story_by_subject_or_tags(
+            token, project_id, ["spec-130", "terminal cli", "auto context", "cli capture"]
+        )
 
     if story:
         story_id = story.get("id")
@@ -230,4 +232,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

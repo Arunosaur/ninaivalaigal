@@ -28,6 +28,14 @@ updated: 2025-10-12
 **Effective:** Immediate (tests/agentic/ operational)
 **Related:** SPEC-052 (Comprehensive Test Coverage), SPEC-068 (UI Suite), SPEC-075 (Frontend Architecture)
 
+## Taiga Stories
+
+The following Taiga story has been created for SPEC-084:
+
+- **US#1052**: AUI-001: Agentic UI Testing Framework Foundation
+
+All stories are tagged with `spec-084` and are ready for implementation.
+
 ---
 
 ## 1) Purpose

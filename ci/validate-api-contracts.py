@@ -8,6 +8,7 @@ Ensures gRPC and REST API contracts remain compatible across versions
 """
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -15,12 +16,26 @@ from typing import Dict, List
 
 import yaml
 
+# Import contract validation metrics
+try:
+    from ci.contract_validation_metrics import ContractValidationMetrics
+
+    METRICS_AVAILABLE = True
+except ImportError:
+    METRICS_AVAILABLE = False
+    ContractValidationMetrics = None
+
 
 class ContractValidator:
-    def __init__(self, contracts_dir: Path):
+    def __init__(self, contracts_dir: Path, enable_metrics: bool = True):
         self.contracts_dir = contracts_dir
         self.errors: List[str] = []
         self.warnings: List[str] = []
+        self.enable_metrics = enable_metrics and METRICS_AVAILABLE
+        if self.enable_metrics:
+            self.metrics = ContractValidationMetrics()
+        else:
+            self.metrics = None
 
     def validate_protobuf_syntax(self) -> bool:
         """Validate all .proto files compile successfully"""
@@ -153,7 +168,18 @@ class ContractValidator:
 
     def generate_report(self) -> Dict:
         """Generate validation report"""
-        return {"passed": len(self.errors) == 0, "errors": self.errors, "warnings": self.warnings}
+        passed = len(self.errors) == 0
+
+        # Record metrics
+        if self.metrics:
+            self.metrics.record_validation(success=passed, service="all")
+            if not passed:
+                # Count breaking changes (errors indicate breaking changes)
+                breaking_count = len([e for e in self.errors if "breaking" in e.lower() or "removed" in e.lower()])
+                if breaking_count > 0:
+                    self.metrics.record_breaking_change(service="all", count=breaking_count)
+
+        return {"passed": passed, "errors": self.errors, "warnings": self.warnings}
 
 
 def main():
@@ -191,6 +217,24 @@ def main():
         print("\nWarnings:")
         for warning in report["warnings"]:
             print(f"  {warning}")
+
+    # Export metrics if available
+    if validator.metrics:
+        # Try to push to Pushgateway if URL is set (for CI)
+        pushgateway_url = os.getenv("PROMETHEUS_PUSHGATEWAY_URL")
+        if pushgateway_url:
+            validator.metrics.push_to_gateway(gateway_url=pushgateway_url)
+            print(f"\n✅ Metrics pushed to Pushgateway: {pushgateway_url}")
+        else:
+            # Export metrics to stdout (can be scraped or saved)
+            metrics_output = validator.metrics.export_metrics()
+            metrics_file = os.getenv("CONTRACT_METRICS_FILE", "/tmp/contract_validation_metrics.prom")
+            try:
+                with open(metrics_file, "w") as f:
+                    f.write(metrics_output)
+                print(f"\n✅ Metrics exported to: {metrics_file}")
+            except Exception as e:
+                print(f"\n⚠️  Failed to export metrics: {e}")
 
     sys.exit(0 if report["passed"] else 1)
 

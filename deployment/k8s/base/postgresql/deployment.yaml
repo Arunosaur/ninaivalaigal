@@ -5,6 +5,11 @@
 # Unauthorized copying, modification, or distribution is prohibited.
 # See LICENSE file in the server/ directory for details.
 #
+# PostgreSQL Primary Deployment
+# US-950: DB-REPL-001: PostgreSQL Streaming Replication Setup
+# SPEC-153: Database Replication & High Availability
+# Note: This is the primary database. For replicas, see replica-statefulset.yaml
+#
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,6 +17,7 @@ metadata:
   labels:
     app: postgresql
     component: database
+    role: primary
 spec:
   replicas: 1
   selector:
@@ -23,9 +29,30 @@ spec:
         app: postgresql
         component: database
     spec:
+      # Pod Security Context: Run as non-root user (US-132, SPEC-015)
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999  # PostgreSQL user ID in official image
+        runAsGroup: 999
+        fsGroup: 999
+        # Drop all capabilities
+        capabilities:
+          drop:
+            - ALL
+        # Read-only root filesystem (PostgreSQL needs writes to data dir, so false)
+        readOnlyRootFilesystem: false
       containers:
       - name: postgresql
         image: postgres:15-alpine
+        # Container Security Context
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: false  # PostgreSQL needs to write to data directory
+          runAsNonRoot: true
+          runAsUser: 999  # PostgreSQL user ID
         ports:
         - containerPort: 5432
           name: postgres
@@ -54,6 +81,9 @@ spec:
         - name: postgresql-config
           mountPath: /etc/postgresql/postgresql.conf
           subPath: postgresql.conf
+        - name: postgresql-hba
+          mountPath: /etc/postgresql/pg_hba.conf
+          subPath: pg_hba.conf
         - name: init-scripts
           mountPath: /docker-entrypoint-initdb.d
         livenessProbe:
@@ -79,6 +109,9 @@ spec:
       - name: postgresql-config
         configMap:
           name: postgresql-config
+      - name: postgresql-hba
+        configMap:
+          name: postgresql-hba
       - name: init-scripts
         configMap:
           name: postgresql-init

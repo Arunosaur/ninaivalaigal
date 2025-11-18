@@ -25,8 +25,9 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
-from graph.age_client import ApacheAGEClient
-from redis_client import RedisClient
+# Import from lib - main.py sets up path so lib is available
+from lib.graph.age_client import ApacheAGEClient
+from lib.redis_client import RedisClient
 
 logger = logging.getLogger(__name__)
 

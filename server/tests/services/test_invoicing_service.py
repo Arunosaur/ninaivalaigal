@@ -20,6 +20,7 @@ Tests cover:
 
 import time
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 

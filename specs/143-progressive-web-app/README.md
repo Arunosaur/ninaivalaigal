@@ -168,10 +168,13 @@ self.addEventListener('sync', (event) => {
 
 ## Dependencies
 
-- **SPEC-142**: Offline Mode (critical - PWA requires offline support)
-- **SPEC-075**: Unified Frontend Architecture (design system and components)
-- **SPEC-044**: Cross-Device Session Continuity (session management)
-- **SPEC-115**: Real-Time Features (WebSocket/SSE for live updates)
+- **SPEC-142**: Offline Mode (critical - PWA requires offline support) - ⚠️ **BLOCKING** (Planned, not Complete)
+- **SPEC-075**: Unified Frontend Architecture (design system and components) - ✅ Complete
+- **SPEC-115**: Real-Time Features (WebSocket/SSE for live updates) - ⚠️ **BLOCKING** (Planned, not Complete)
+
+**Note**: After dependency investigation, SPEC-044 is actually "Memory Drift Detection" (Complete), not "Cross-Device Session Continuity". Session continuity is optional and not blocking for PWA.
+
+**Critical Path**: SPEC-142 Phase 2 (Sync Infrastructure) must complete before SPEC-143 Phase 2 (Offline Support) can begin. SPEC-143 Phase 1 (Foundation) can run in parallel with SPEC-142 Phase 1-2.
 
 ## Related SPECs
 
@@ -319,6 +322,52 @@ class NotificationManager {
 - App store distribution (this is web-based)
 - Complete feature parity with native apps
 - Platform-specific optimizations beyond core PWA features
+
+---
+
+## Implementation Status
+
+**Current Status**: Not Implemented (0%)
+
+### Existing Foundation
+- ✅ Web platform (SPEC-075) - Foundation exists
+- ✅ Design token system (SPEC-075) - Can be used for PWA theming
+
+### Missing Components
+- ❌ Service Worker
+- ❌ Web App Manifest (`manifest.json`)
+- ❌ Install prompts
+- ❌ Offline support (requires SPEC-142)
+- ❌ Push notifications
+- ❌ All PWA features
+
+## Implementation Stories
+
+### **High-Level Story**
+| Story ID | Subject | Status | Tags | Notes |
+|---------|---------|--------|------|-------|
+| **US#643** | SPEC-143: Progressive Web App | Ready | spec-143, pwa, progressive-web-app, web | ✅ Correctly tagged |
+
+### **Phase Stories Created** (7 stories total)
+
+**Phase 1: Foundation (3 weeks)** - Can run in parallel with SPEC-142 Phase 1-2
+- **US#891**: Phase 1.1: Service Worker Setup & Web App Manifest (Weeks 1-2)
+- **US#892**: Phase 1.2: Install Prompt & PWA Foundation (Week 3)
+
+**Phase 2: Offline Support (4 weeks)** - Requires SPEC-142 Phase 2 complete
+- **US#893**: Phase 2.1: Full Offline Functionality (Weeks 4-5) - **BLOCKED by SPEC-142 Phase 2**
+- **US#894**: Phase 2.2: Background Sync & Cache Management (Weeks 6-7)
+
+**Phase 3: App Experience (3 weeks)**
+- **US#895**: Phase 3.1: App Shortcuts, Badges & Push Notifications (Weeks 8-9)
+- **US#896**: Phase 3.2: Performance Optimization (Week 10)
+
+**Phase 4: Polish & Testing (2 weeks)**
+- **US#897**: Phase 4: Cross-Browser Testing & Final Polish (Weeks 11-12)
+
+**Total**: 7 phase stories (US#891-897), 12 weeks
+
+**Note**: See `docs/spec-analysis/SPEC_141_142_143_STORY_BREAKDOWN.md` for detailed story breakdown. SPEC-143 is **recommended as an alternative** to SPEC-141 (Mobile App Support). PWA is faster to implement (12 weeks vs 24 weeks) and may meet user needs before native apps are required. However, SPEC-142 Phase 2 (Offline Mode) is a **critical blocking dependency** for Phase 2.
 
 ---
 

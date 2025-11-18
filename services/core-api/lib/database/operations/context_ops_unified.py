@@ -363,6 +363,115 @@ class UnifiedContextOps:
             logger.info(f"Shared context {context_id} by user {shared_by}")
             return True
 
+    async def transfer_ownership(
+        self,
+        context_id: int,
+        current_owner_id: int,
+        new_owner_id: int,
+        transfer_message: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Transfer context ownership from current owner to new owner.
+
+        Args:
+            context_id: Context ID to transfer
+            current_owner_id: Current owner user ID (must be owner)
+            new_owner_id: New owner user ID
+            transfer_message: Optional message for the transfer
+
+        Returns:
+            Dict with transfer result
+
+        Raises:
+            PermissionError: If current user is not owner
+            ValueError: If context not found or invalid transfer
+        """
+        async with self.pool.acquire() as conn:
+            # Verify current user is owner
+            if not await self._check_context_access(conn, context_id, current_owner_id, min_level="owner"):
+                raise PermissionError("Only context owners can transfer ownership")
+
+            # Get context details
+            context_query = """
+                SELECT id, name, owner_id, scope, team_id, organization_id
+                FROM contexts
+                WHERE id = $1 AND is_active = true
+            """
+            context = await conn.fetchrow(context_query, context_id)
+
+            if not context:
+                raise ValueError(f"Context {context_id} not found")
+
+            # Validate new owner exists
+            user_query = "SELECT id FROM users WHERE id = $1"
+            new_owner = await conn.fetchrow(user_query, new_owner_id)
+            if not new_owner:
+                raise ValueError(f"New owner {new_owner_id} not found")
+
+            # Validate transfer is allowed (can't transfer to same owner)
+            if context["owner_id"] == new_owner_id:
+                raise ValueError("Cannot transfer ownership to current owner")
+
+            # Update ownership
+            old_owner_id = context["owner_id"]
+            update_query = """
+                UPDATE contexts
+                SET owner_id = $1, updated_at = $2
+                WHERE id = $3
+            """
+            await conn.execute(update_query, new_owner_id, datetime.now(timezone.utc), context_id)
+
+            # Update permissions: old owner becomes admin, new owner becomes owner
+            # First, update or create old owner's permission to admin
+            old_owner_perm_query = """
+                INSERT INTO context_permissions (
+                    context_id, user_id, permission_level, granted_by, granted_at
+                ) VALUES ($1, $2, 'admin', $3, $4)
+                ON CONFLICT (context_id, user_id, team_id, organization_id)
+                DO UPDATE SET
+                    permission_level = 'admin',
+                    granted_by = EXCLUDED.granted_by,
+                    granted_at = EXCLUDED.granted_at
+                WHERE context_permissions.context_id = $1
+                  AND context_permissions.user_id = $2
+                  AND context_permissions.team_id IS NULL
+                  AND context_permissions.organization_id IS NULL
+            """
+            await conn.execute(
+                old_owner_perm_query,
+                context_id,
+                old_owner_id,
+                current_owner_id,
+                datetime.now(timezone.utc),
+            )
+
+            # Delete any existing permission for new owner, then grant owner permission
+            delete_new_owner_perm_query = """
+                DELETE FROM context_permissions
+                WHERE context_id = $1 AND user_id = $2
+            """
+            await conn.execute(delete_new_owner_perm_query, context_id, new_owner_id)
+
+            # Grant owner permission to new owner
+            await self._grant_permission(
+                conn,
+                context_id,
+                user_id=new_owner_id,
+                permission_level="owner",
+                granted_by=current_owner_id,
+            )
+
+            logger.info(f"Transferred context {context_id} ownership from user {old_owner_id} to user {new_owner_id}")
+
+            return {
+                "success": True,
+                "context_id": context_id,
+                "old_owner_id": old_owner_id,
+                "new_owner_id": new_owner_id,
+                "transfer_message": transfer_message,
+                "transferred_at": datetime.now(timezone.utc).isoformat(),
+            }
+
     # Private helper methods
     async def _check_context_exists(
         self,
@@ -395,6 +504,18 @@ class UnifiedContextOps:
         min_level: PermissionLevel = "read",
     ) -> bool:
         """Check if user has minimum permission level for context"""
+        # First check if user is owner via owner_id
+        owner_query = """
+            SELECT owner_id FROM contexts
+            WHERE id = $1 AND is_active = true
+        """
+        owner_id = await conn.fetchval(owner_query, context_id)
+        if owner_id == user_id and min_level in ["read", "write", "admin", "owner"]:
+            # Owner has all permissions
+            levels = {"read": 1, "write": 2, "admin": 3, "owner": 4}
+            return levels.get("owner", 4) >= levels.get(min_level, 0)
+
+        # Check permissions via context_access view
         query = """
             SELECT permission_level FROM context_access
             WHERE context_id = $1 AND user_id = $2

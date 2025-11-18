@@ -69,6 +69,7 @@ resolve_container_ip() {
 # Resolve dependency container IPs (Apple Container CLI uses IPs, not DNS)
 MEMORY_CONTAINER="ninaivalaigal-${NINA_ENV}-memory-service"
 GRAPHOPS_CONTAINER="ninaivalaigal-${NINA_ENV}-graphops"
+GRAPH_SERVICE_CONTAINER="ninaivalaigal-${NINA_ENV}-graph-service"
 CORE_API_CONTAINER="ninaivalaigal-${NINA_ENV}-core-api"
 
 echo "📡 Resolving dependency container IPs..."
@@ -93,6 +94,16 @@ else
 	echo "   ⚠️  GraphOps: $GRAPHOPS_ADDR (fallback - container not found)"
 fi
 
+# Graph/AI Service: HTTP on port 8001 (internal container port)
+GRAPH_SERVICE_CONTAINER_IP=$(resolve_container_ip "$GRAPH_SERVICE_CONTAINER" 2>/dev/null || echo "")
+if [ -n "$GRAPH_SERVICE_CONTAINER_IP" ]; then
+	GRAPH_SERVICE_ADDR="${GRAPH_SERVICE_ADDR_OVERRIDE:-${GRAPH_SERVICE_CONTAINER_IP}:8001}"  # Internal HTTP port
+	echo "   Graph/AI Service: $GRAPH_SERVICE_ADDR (HTTP)"
+else
+	GRAPH_SERVICE_ADDR="${GRAPH_SERVICE_ADDR_OVERRIDE:-${HOST_IP}:13394}"  # Fallback to host port
+	echo "   ⚠️  Graph/AI Service: $GRAPH_SERVICE_ADDR (fallback - container not found)"
+fi
+
 # Core API: HTTP on port 8000 (internal container port)
 CORE_API_CONTAINER_IP=$(resolve_container_ip "$CORE_API_CONTAINER" 2>/dev/null || echo "")
 if [ -n "$CORE_API_CONTAINER_IP" ]; then
@@ -115,6 +126,7 @@ log "Host port:   ${HOST_PORT} -> container ${CONTAINER_PORT}"
 log "Public URL:  http://${PUBLIC_HOST}:${PUBLIC_PORT}/health"
 log "Memory addr: ${MEMORY_ADDR}"
 log "GraphOps:    ${GRAPHOPS_ADDR}"
+log "Graph/AI:    ${GRAPH_SERVICE_ADDR}"
 log "Core API:    ${CORE_API_ADDR}"
 
 if [[ "${SKIP_BUILD:-false}" != "true" ]]; then
@@ -150,6 +162,7 @@ container run -d \
 	-e CORE_API_ADDR="${CORE_API_ADDR}" \
 	-e MEMORY_SERVICE_ADDR="${MEMORY_ADDR}" \
 	-e GRAPHOPS_SERVICE_ADDR="${GRAPHOPS_ADDR}" \
+	-e GRAPH_SERVICE_ADDR="${GRAPH_SERVICE_ADDR}" \
 	-e OTEL_SERVICE_NAME="ninaivalaigal-grpc-gateway" \
 	-e OTEL_EXPORTER_OTLP_ENDPOINT="${OTEL_ENDPOINT}" \
 	-e OTEL_TRACING_ENABLED="${OTEL_ENABLED}" \

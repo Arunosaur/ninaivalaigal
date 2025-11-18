@@ -9,7 +9,7 @@
 //
 /**
  * US#210: Team Creation Flow UI
- * 
+ *
  * Team creation wizard (3 steps):
  * Step 1: Team Information (name, description, max members)
  * Step 2: Invite Members (optional)
@@ -416,4 +416,3 @@ export default function TeamCreatePage() {
     </div>
   );
 }
-

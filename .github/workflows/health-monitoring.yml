@@ -42,6 +42,26 @@ jobs:
           ./scripts/comprehensive-health-monitor.sh monitor
         fi
 
+    - name: Detect Regression and Rollback (REGR-005)
+      if: failure()
+      env:
+        BASELINE_TAG: ${{ env.BASELINE_TAG || 'v0.9.0' }}
+        ROLLBACK_REASON: "Post-deployment regression detected by health monitoring"
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        COMPOSE_FILE: deployment/prod/compose.production.yml
+      run: |
+        echo "🔄 Post-deployment regression detected - initiating rollback..."
+        echo "Baseline tag: $BASELINE_TAG"
+
+        # Check if we're in production environment
+        if [ -f "$COMPOSE_FILE" ]; then
+          echo "Production environment detected - executing rollback..."
+          bash scripts/rollback_on_regression.sh
+        else
+          echo "⚠️  Not in production environment - skipping rollback"
+          echo "Health monitoring detected issues but rollback skipped (non-production)"
+        fi
+
   manual-restart:
     runs-on: self-hosted
     if: github.event.inputs.action == 'restart'

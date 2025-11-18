@@ -19,9 +19,10 @@ from typing import Any
 
 import asyncpg
 import structlog
-from redis_client import RelevanceScoreCache, get_relevance_cache
+from lib.config import get_config
 
-from config import get_config
+# Import from lib - main.py sets up path so lib is available
+from lib.redis_client import RelevanceScoreCache, get_relevance_cache
 
 logger = structlog.get_logger(__name__)
 

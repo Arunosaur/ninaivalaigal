@@ -47,6 +47,23 @@ class EventType(str, Enum):
     PAYMENT_RECEIVED = "payment.received"
     PAYMENT_FAILED = "payment.failed"
 
+    # Approval Events (SPEC-090)
+    APPROVAL_CREATED = "approval.created"
+    APPROVAL_SUBMITTED = "approval.submitted"
+    APPROVAL_APPROVED = "approval.approved"
+    APPROVAL_REJECTED = "approval.rejected"
+    APPROVAL_FINALIZED = "approval.finalized"
+    APPROVAL_EXPIRED = "approval.expired"
+    APPROVAL_RETRY = "approval.retry"
+    APPROVAL_ROLLBACK = "approval.rollback"
+
+    # A2A Context Events (SPEC-091)
+    A2A_CONTEXT_CREATED = "a2a.context.created"
+    A2A_CONTEXT_PUBLISHED = "a2a.context.published"
+    A2A_CONTEXT_DELIVERED = "a2a.context.delivered"
+    A2A_CONTEXT_EXPIRED = "a2a.context.expired"
+    A2A_CONTEXT_REVOKED = "a2a.context.revoked"
+
     # System Events
     SYSTEM_HEALTH_CHECK = "system.health_check"
     SYSTEM_ERROR = "system.error"
@@ -61,6 +78,8 @@ class StreamTopic(str, Enum):
     ORGANIZATIONS = "ninaivalaigal:events:organizations"
     MEMORIES = "ninaivalaigal:events:memories"
     SUBSCRIPTIONS = "ninaivalaigal:events:subscriptions"
+    APPROVALS = "ninaivalaigal:events:approvals"
+    A2A = "ninaivalaigal:events:a2a"
     SYSTEM = "ninaivalaigal:events:system"
 
 
@@ -96,6 +115,21 @@ EVENT_TO_TOPIC = {
     EventType.INVOICE_GENERATED: StreamTopic.SUBSCRIPTIONS,
     EventType.PAYMENT_RECEIVED: StreamTopic.SUBSCRIPTIONS,
     EventType.PAYMENT_FAILED: StreamTopic.SUBSCRIPTIONS,
+    # Approval events (SPEC-090)
+    EventType.APPROVAL_CREATED: StreamTopic.APPROVALS,
+    EventType.APPROVAL_SUBMITTED: StreamTopic.APPROVALS,
+    EventType.APPROVAL_APPROVED: StreamTopic.APPROVALS,
+    EventType.APPROVAL_REJECTED: StreamTopic.APPROVALS,
+    EventType.APPROVAL_FINALIZED: StreamTopic.APPROVALS,
+    EventType.APPROVAL_EXPIRED: StreamTopic.APPROVALS,
+    EventType.APPROVAL_RETRY: StreamTopic.APPROVALS,
+    EventType.APPROVAL_ROLLBACK: StreamTopic.APPROVALS,
+    # A2A Context events (SPEC-091)
+    EventType.A2A_CONTEXT_CREATED: StreamTopic.A2A,
+    EventType.A2A_CONTEXT_PUBLISHED: StreamTopic.A2A,
+    EventType.A2A_CONTEXT_DELIVERED: StreamTopic.A2A,
+    EventType.A2A_CONTEXT_EXPIRED: StreamTopic.A2A,
+    EventType.A2A_CONTEXT_REVOKED: StreamTopic.A2A,
     # System events
     EventType.SYSTEM_HEALTH_CHECK: StreamTopic.SYSTEM,
     EventType.SYSTEM_ERROR: StreamTopic.SYSTEM,

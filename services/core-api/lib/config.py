@@ -283,3 +283,55 @@ def get_dynamic_redis_config() -> dict[str, Any]:
 def get_database_url() -> str:
     """Get database URL from configuration (legacy compatibility)"""
     return get_dynamic_database_url()
+
+
+def get_primary_database_url() -> str:
+    """
+    Get primary database URL.
+
+    Returns:
+        Primary database URL (from PRIMARY_DATABASE_URL or default)
+    """
+    primary_url = os.getenv("PRIMARY_DATABASE_URL")
+    if primary_url:
+        return primary_url
+
+    # Fallback to default database URL
+    return get_dynamic_database_url()
+
+
+def get_replica_database_urls() -> list[str]:
+    """
+    Get list of replica database URLs from environment variables.
+
+    Looks for:
+    - REPLICA_DATABASE_URL_1
+    - REPLICA_DATABASE_URL_2
+    - REPLICA_DATABASE_URL_3
+    - REPLICA_DATABASE_URLS (comma-separated)
+
+    Returns:
+        List of replica database URLs
+    """
+    replica_urls: list[str] = []
+
+    # Check for comma-separated list
+    replica_urls_env = os.getenv("REPLICA_DATABASE_URLS")
+    if replica_urls_env:
+        replica_urls.extend([url.strip() for url in replica_urls_env.split(",") if url.strip()])
+
+    # Check for numbered environment variables
+    for i in range(1, 10):  # Support up to 9 replicas
+        replica_url = os.getenv(f"REPLICA_DATABASE_URL_{i}")
+        if replica_url:
+            replica_urls.append(replica_url)
+
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_urls = []
+    for url in replica_urls:
+        if url not in seen:
+            seen.add(url)
+            unique_urls.append(url)
+
+    return unique_urls

@@ -39,3 +39,21 @@ variable "database_password" {
   sensitive   = true
   default     = "change_me_securely"
 }
+
+variable "billing_account_id" {
+  description = "GCP billing account ID for budget alerts"
+  type        = string
+  default     = ""
+}
+
+variable "budget_amount" {
+  description = "Monthly budget amount in USD"
+  type        = number
+  default     = 100
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "production"
+}

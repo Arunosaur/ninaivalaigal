@@ -92,7 +92,12 @@ async fn main() -> anyhow::Result<()> {
             "/api/v1/memories",
             get(memory::list_memories).post(memory::create_memory),
         )
-        .route("/api/v1/memories/:id", get(memory::get_memory))
+        .route(
+            "/api/v1/memories/:id",
+            get(memory::get_memory)
+                .put(memory::update_memory)
+                .delete(memory::delete_memory),
+        )
         .route_layer(middleware::from_fn(validate_jwt));
 
     // Initialize global Prometheus metrics

@@ -25,8 +25,113 @@ services:
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
       - ./backups:/backups
+      - ./deployment/postgresql/primary/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./deployment/postgresql/primary/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c hba_file=/etc/postgresql/pg_hba.conf
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nina -d ninaivalaigal_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ninaivalaigal_prod_network
+
+  # PostgreSQL Replicas for Streaming Replication
+  # US-950: DB-REPL-001: PostgreSQL Streaming Replication Setup
+  # US-954: DB-REPL-005: Multi-Replica Support & Load Balancing
+  postgres-replica-1:
+    image: postgres:15.8
+    container_name: ninaivalaigal-prod-db-replica-1
+    environment:
+      POSTGRES_DB: ninaivalaigal_prod
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
+      POSTGRES_HOST_AUTH_METHOD: md5
+      REPLICATION_USER: replicator
+      REPLICATION_PASSWORD: ${NINA_REPLICATION_PASSWORD:-secure_replication_password}
+      PRIMARY_HOST: postgres
+      PRIMARY_PORT: 5432
+    ports:
+      - "5433:5432"  # Different port to avoid conflict
+    volumes:
+      - postgres_replica_1_data:/var/lib/postgresql/data
+      - ./deployment/postgresql/replica/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nina -d ninaivalaigal_prod && psql -U nina -d ninaivalaigal_prod -c 'SELECT pg_is_in_recovery();' | grep -q 't'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ninaivalaigal_prod_network
+
+  postgres-replica-2:
+    image: postgres:15.8
+    container_name: ninaivalaigal-prod-db-replica-2
+    environment:
+      POSTGRES_DB: ninaivalaigal_prod
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
+      POSTGRES_HOST_AUTH_METHOD: md5
+      REPLICATION_USER: replicator
+      REPLICATION_PASSWORD: ${NINA_REPLICATION_PASSWORD:-secure_replication_password}
+      PRIMARY_HOST: postgres
+      PRIMARY_PORT: 5432
+    ports:
+      - "5434:5432"  # Different port to avoid conflict
+    volumes:
+      - postgres_replica_2_data:/var/lib/postgresql/data
+      - ./deployment/postgresql/replica/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nina -d ninaivalaigal_prod && psql -U nina -d ninaivalaigal_prod -c 'SELECT pg_is_in_recovery();' | grep -q 't'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ninaivalaigal_prod_network
+
+  postgres-replica-3:
+    image: postgres:15.8
+    container_name: ninaivalaigal-prod-db-replica-3
+    environment:
+      POSTGRES_DB: ninaivalaigal_prod
+      POSTGRES_USER: nina
+      POSTGRES_PASSWORD: ${NINA_DB_PASSWORD:-secure_nina_password}
+      POSTGRES_HOST_AUTH_METHOD: md5
+      REPLICATION_USER: replicator
+      REPLICATION_PASSWORD: ${NINA_REPLICATION_PASSWORD:-secure_replication_password}
+      PRIMARY_HOST: postgres
+      PRIMARY_PORT: 5432
+    ports:
+      - "5435:5432"  # Different port to avoid conflict
+    volumes:
+      - postgres_replica_3_data:/var/lib/postgresql/data
+      - ./deployment/postgresql/replica/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nina -d ninaivalaigal_prod && psql -U nina -d ninaivalaigal_prod -c 'SELECT pg_is_in_recovery();' | grep -q 't'"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -118,6 +223,12 @@ services:
 
 volumes:
   postgres_prod_data:
+    driver: local
+  postgres_replica_1_data:
+    driver: local
+  postgres_replica_2_data:
+    driver: local
+  postgres_replica_3_data:
     driver: local
   redis_prod_data:
     driver: local

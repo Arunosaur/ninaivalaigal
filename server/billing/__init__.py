@@ -121,6 +121,14 @@ __all__ = [
     # Distributed Locking
     "DistributedLock",
     "with_idempotency_lock",
+    # Event Hash Verification
+    "compute_event_hash",
+    "verify_event_hash",
+    "check_event_hash_processed",
+    "mark_event_hash_processed",
+    "with_event_hash_verification",
     # Archival
     "MetricsArchivalService",
+    # Weekly Cost Summary
+    "WeeklyCostSummaryService",
 ]

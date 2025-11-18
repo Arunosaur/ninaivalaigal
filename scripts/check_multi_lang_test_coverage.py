@@ -251,6 +251,7 @@ class MultiLangTestChecker:
 
             # Skip test runner scripts
             import re
+
             if any(re.search(pattern, new_file.name) for pattern in test_runner_patterns):
                 continue
 

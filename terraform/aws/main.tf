@@ -6,6 +6,19 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  # Remote State Backend Configuration
+  # Configure this after creating the S3 bucket and DynamoDB table
+  # See terraform/aws/README.md for setup instructions
+  backend "s3" {
+    # These values should be set via backend config file or CLI
+    # bucket         = "ninaivalaigal-terraform-state"
+    # key            = "aws/terraform.tfstate"
+    # region         = "us-west-2"
+    # encrypt        = true
+    # dynamodb_table = "terraform-state-lock"
+    # versioning     = true
+  }
 }
 
 provider "aws" {
@@ -24,6 +37,8 @@ resource "aws_ecs_cluster" "ninaivalaigal" {
   tags = {
     Name        = "ninaivalaigal"
     Environment = var.environment
+    Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -81,6 +96,8 @@ resource "aws_ecs_task_definition" "ninaivalaigal_api" {
   tags = {
     Name        = "ninaivalaigal-api"
     Environment = var.environment
+    Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -109,6 +126,8 @@ resource "aws_ecs_service" "ninaivalaigal_api" {
   tags = {
     Name        = "ninaivalaigal-api"
     Environment = var.environment
+    Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -125,6 +144,8 @@ resource "aws_lb" "ninaivalaigal" {
   tags = {
     Name        = "ninaivalaigal-alb"
     Environment = var.environment
+    Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -150,6 +171,8 @@ resource "aws_lb_target_group" "ninaivalaigal" {
   tags = {
     Name        = "ninaivalaigal-tg"
     Environment = var.environment
+    Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -187,6 +210,8 @@ resource "aws_security_group" "alb" {
   tags = {
     Name        = "ninaivalaigal-alb-sg"
     Environment = var.environment
+    Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -212,6 +237,8 @@ resource "aws_security_group" "ecs_tasks" {
   tags = {
     Name        = "ninaivalaigal-ecs-tasks-sg"
     Environment = var.environment
+    Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -235,6 +262,8 @@ resource "aws_iam_role" "ecs_execution_role" {
   tags = {
     Name        = "ninaivalaigal-ecs-execution-role"
     Environment = var.environment
+    Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }
 
@@ -251,5 +280,7 @@ resource "aws_cloudwatch_log_group" "ninaivalaigal" {
   tags = {
     Name        = "ninaivalaigal-logs"
     Environment = var.environment
+    Project     = "ninaivalaigal"
+    CostCenter  = var.environment
   }
 }

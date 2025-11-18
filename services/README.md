@@ -21,6 +21,8 @@ services/
 
 ## 🎯 Service Boundaries
 
+This section documents the service boundary and responsibilities for each microservice in the Ninaivalaigal architecture. Each service boundary defines the scope and responsibilities of that service, ensuring clear separation of concerns and enabling independent deployment and scaling.
+
 ### Core API
 **Responsibility**: Authentication and user management
 - User authentication and authorization

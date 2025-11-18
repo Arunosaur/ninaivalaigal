@@ -5,6 +5,8 @@
 -- Install required extensions
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS age;
+-- Database Federation & Sharding (US#958, SPEC-160)
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 
 -- Load AGE extension
 LOAD 'age';

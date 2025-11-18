@@ -16,9 +16,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import DDL, event
+from sqlalchemy import event
 from sqlalchemy.dialects import postgresql, sqlite
-from sqlalchemy.orm import Session
 
 from server.billing.models import (
     AccountStatus,

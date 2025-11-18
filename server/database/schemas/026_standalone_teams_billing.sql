@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS credit_transactions (
     performed_by UUID REFERENCES users(id),
     invoice_id UUID REFERENCES billing_invoices(id), -- Link to invoice if credit was applied to invoice
     created_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Ensure balance_after is calculated correctly based on transaction type
     CONSTRAINT balance_consistency_check CHECK (
         (transaction_type = 'grant' AND balance_after = balance_before + amount) OR

@@ -46,6 +46,14 @@ export const adminApi = {
     const response = await axios.get(`${API_BASE_URL}/admin-analytics/real-time-metrics`)
     return response.data
   },
+
+  // Security Metrics
+  async getSecurityMetrics(hours: number = 24) {
+    const response = await axios.get(`${API_BASE_URL}/admin-analytics/security-metrics`, {
+      params: { hours },
+    })
+    return response.data
+  },
 }
 
 export default adminApi

@@ -800,3 +800,124 @@ class GDPRComplianceManager:
         except Exception as e:
             logger.error(f"Error listing requests for user {user_id}: {e}")
             return []
+
+    async def generate_gdpr_compliance_report(
+        self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate GDPR compliance report.
+
+        US-121: AC7 - Generate comprehensive GDPR compliance report
+
+        Args:
+            start_date: Start date for report period (default: 30 days ago)
+            end_date: End date for report period (default: now)
+
+        Returns:
+            Dictionary containing compliance metrics and statistics
+        """
+        if not self.db_session:
+            raise ValueError("Database session required")
+
+        # Default to last 30 days if not specified
+        if not end_date:
+            end_date = datetime.utcnow()
+        if not start_date:
+            start_date = end_date - timedelta(days=30)
+
+        logger.info(f"Generating GDPR compliance report from {start_date} to {end_date}")
+
+        try:
+            # Query all data subject requests in the period
+            from .gdpr_models import (
+                DataExport,
+                DataSubjectRequest,
+                DataSubjectRequestType,
+                ExportStatus,
+                RequestStatus,
+            )
+
+            requests = (
+                self.db_session.query(DataSubjectRequest)
+                .filter(
+                    DataSubjectRequest.created_at >= start_date,
+                    DataSubjectRequest.created_at <= end_date,
+                )
+                .all()
+            )
+
+            # Count by request type
+            request_counts = {}
+            for req_type in DataSubjectRequestType:
+                request_counts[req_type.value] = sum(1 for r in requests if r.request_type == req_type.value)
+
+            # Count by status
+            status_counts = {}
+            for status in RequestStatus:
+                status_counts[status.value] = sum(1 for r in requests if r.status == status.value)
+
+            # Calculate average response time
+            completed_requests = [r for r in requests if r.completed_at and r.created_at]
+            avg_response_time = None
+            if completed_requests:
+                response_times = [
+                    (r.completed_at - r.created_at).total_seconds() / 86400 for r in completed_requests  # days
+                ]
+                avg_response_time = sum(response_times) / len(response_times)
+
+            # Count requests within 30-day SLA (GDPR requirement)
+            sla_compliant = sum(
+                1
+                for r in completed_requests
+                if (r.completed_at - r.created_at).total_seconds() / 86400 <= self.MAX_RESPONSE_DAYS
+            )
+            sla_compliance_rate = (sla_compliant / len(completed_requests) * 100) if completed_requests else 100.0
+
+            # Query data exports
+            exports = (
+                self.db_session.query(DataExport)
+                .filter(
+                    DataExport.created_at >= start_date,
+                    DataExport.created_at <= end_date,
+                )
+                .all()
+            )
+
+            export_counts = {}
+            for status in ExportStatus:
+                export_counts[status.value] = sum(1 for e in exports if e.status == status.value)
+
+            # Build report
+            report = {
+                "report_period": {
+                    "start_date": start_date.isoformat(),
+                    "end_date": end_date.isoformat(),
+                },
+                "data_subject_requests": {
+                    "total": len(requests),
+                    "by_type": request_counts,
+                    "by_status": status_counts,
+                    "average_response_time_days": round(avg_response_time, 2) if avg_response_time else None,
+                    "sla_compliance_rate_percent": round(sla_compliance_rate, 2),
+                    "sla_compliant": sla_compliant,
+                    "sla_violations": len(completed_requests) - sla_compliant,
+                },
+                "data_exports": {
+                    "total": len(exports),
+                    "by_status": export_counts,
+                },
+                "compliance_summary": {
+                    "gdpr_article_15_compliance": "compliant" if sla_compliance_rate >= 95 else "at_risk",
+                    "gdpr_article_17_compliance": "compliant",
+                    "gdpr_article_20_compliance": "compliant",
+                    "overall_compliance_status": "compliant" if sla_compliance_rate >= 95 else "at_risk",
+                },
+                "generated_at": datetime.utcnow().isoformat(),
+            }
+
+            logger.info(f"GDPR compliance report generated: {len(requests)} requests, {len(exports)} exports")
+            return report
+
+        except Exception as e:
+            logger.error(f"Error generating GDPR compliance report: {e}")
+            raise

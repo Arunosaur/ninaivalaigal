@@ -130,7 +130,9 @@ def test_database_connection():
     print("🧪 Testing database connection...")
 
     result = run_command(
-        "cd server && python -c \"from database import DatabaseManager; from main import load_config; db = DatabaseManager(load_config()); session = db.get_session(); print('Database connected'); session.close()\""
+        'cd server && python -c "from database import DatabaseManager; '
+        "from main import load_config; db = DatabaseManager(load_config()); "
+        "session = db.get_session(); print('Database connected'); session.close()\""
     )
     if not result["success"]:
         print(f"❌ Database connection failed: {result['stderr']}")

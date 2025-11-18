@@ -36,6 +36,7 @@ patchesStrategicMerge:
 - patches/api-server-staging.yaml
 - patches/postgresql-staging.yaml
 - patches/ingress-staging.yaml
+- patches/hpa-staging.yaml
 
 secretGenerator:
 - name: database-secret
