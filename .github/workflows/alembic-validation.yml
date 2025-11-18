@@ -1,0 +1,83 @@
+name: Alembic Single Source of Truth Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: [ 'alembic/**' ]
+  pull_request:
+    branches: [ main ]
+    paths: [ 'alembic/**' ]
+
+jobs:
+  alembic-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install alembic sqlalchemy
+    
+    - name: Validate single source of truth
+      run: |
+        chmod +x scripts/alembic-validate-single-source.sh
+        ./scripts/alembic-validate-single-source.sh
+    
+    - name: Check migration naming
+      run: |
+        # Enforce migration naming convention
+        for file in alembic/*/versions/*.py; do
+          if [[ -f "$file" ]]; then
+            basename=$(basename "$file")
+            if [[ ! "$basename" =~ ^[0-9]{8}_[0-9]{4}_ ]]; then
+              echo "❌ Invalid migration filename: $basename"
+              echo "Expected format: YYYYMMDD_HHMM_description.py"
+              exit 1
+            fi
+          fi
+        done
+    
+    - name: Validate schema targeting
+      run: |
+        # Ensure all create_table calls specify schema
+        for file in alembic/*/versions/*.py; do
+          if [[ -f "$file" ]]; then
+            if grep -q "create_table" "$file" && ! grep -q "schema=" "$file"; then
+              echo "❌ Missing schema specification in $file"
+              echo "All create_table calls must specify schema parameter"
+              exit 1
+            fi
+          fi
+        done
+    
+    - name: Check for duplicate tables
+      run: |
+        # Additional check for duplicate table names
+        temp_dir=$(mktemp -d)
+        find alembic -name "*.py" -path "*/versions/*" -exec grep -l "create_table" {} \; | while read file; do
+          schema=$(echo "$file" | sed 's|.*/\([^/]*\)/versions/.*|\1|')
+          grep "create_table" "$file" -A 1 | grep '"' | sed 's/.*"\([^"]*\)".*/\1/' | while read table; do
+            echo "$schema:$table" >> "$temp_dir/tables.txt"
+          done
+        done
+        
+        if [ -f "$temp_dir/tables.txt" ]; then
+          duplicates=$(cut -d: -f2 "$temp_dir/tables.txt" | sort | uniq -d)
+          if [ -n "$duplicates" ]; then
+            echo "❌ DUPLICATE TABLE NAMES FOUND:"
+            for table in $duplicates; do
+              echo "   $table:"
+              grep ":$table$" "$temp_dir/tables.txt" | sed 's/^/     - /'
+            done
+            exit 1
+          fi
+        fi
+        
+        rm -rf "$temp_dir"
+        echo "✅ No duplicate table names found"
