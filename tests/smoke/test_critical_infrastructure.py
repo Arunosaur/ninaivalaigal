@@ -142,7 +142,7 @@ class TestDatabaseSchema:
         # Connect through PgBouncer on port 6432
         db_url = f"postgresql://nina:dev_password_change_in_production@{pgbouncer_ip}:6432/ninaivalaigal_dev"  # pragma: allowlist secret  # noqa: E501
         result = subprocess.run(
-            ["alembic", "current"],
+            ["alembic", "-c", "alembic/public/alembic.ini", "current"],
             cwd="/Users/swami/WorkSpace/ninaivalaigal",  # pragma: allowlist secret
             env={**os.environ, "DATABASE_URL": db_url},
             capture_output=True,
