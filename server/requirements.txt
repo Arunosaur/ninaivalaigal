@@ -28,7 +28,7 @@ email-validator
 psutil
 alembic
 requests
-scikit-learn==1.3.0
+scikit-learn==1.7.2
 numpy==1.24.3
 # OpenTelemetry for distributed tracing (Task #84)
 opentelemetry-api==1.21.0
