@@ -43,5 +43,5 @@ opentelemetry-instrumentation-redis>=0.42b0,<1.0.0
 opentelemetry-exporter-otlp-proto-grpc>=1.21.0,<2.0.0
 
 # AI & Memory Management (using our own system, not external tools)
-scikit-learn>=1.3.0,<1.4.0
+scikit-learn>=1.3.0,<1.8.0
 numpy>=1.24.0,<2.0.0
