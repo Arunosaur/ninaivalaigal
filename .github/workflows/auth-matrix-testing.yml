@@ -59,7 +59,7 @@ jobs:
         EOF
 
     - name: 🚀 Start Redis (for caching tests)
-      uses: supercharge/redis-github-action@1.7.0
+      uses: supercharge/redis-github-action@1.8.1
       with:
         redis-version: 7
 
