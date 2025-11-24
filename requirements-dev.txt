@@ -35,4 +35,4 @@ safety==3.2.7
 shellcheck-py==0.11.0.1
 yamllint==1.33.0
 sqlfluff==2.3.5
-commitizen==4.9.1
+commitizen==4.10.0
